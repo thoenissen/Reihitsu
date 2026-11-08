@@ -1,7 +1,10 @@
-﻿using System.Linq;
+﻿using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -1932,9 +1935,1274 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
         await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
     }
 
+    /// <summary>
+    /// Verifying that a crossed field whose <c>static</c> modifier only an excluded branch gives it counts as a static
+    /// initialized field of that build, also when the branch opens inside the initializer of the previous field and the
+    /// group closes in front of the crossed field's first token, so moving a static initialized field across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenACrossedFieldIsStaticOnlyInAnExcludedBranchThatOpensInTheInitializerOfThePreviousField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                                  private int _a =
+                              #if DEBUG
+                                      1;
+                                  private static
+                              #else
+                                      2;
+                              #endif
+                                  int _b = Log("b");
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a crossed field whose <c>static</c> modifier only an excluded branch gives it counts as a static
+    /// initialized field of that build, also when every branch writes the previous field's terminator and the group closes
+    /// in front of the crossed field's first token, so moving a static initialized field across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenACrossedFieldIsStaticOnlyInAnExcludedBranchThatOpensBehindThePreviousDeclarator(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                                  private int _a
+                              #if DEBUG
+                                  ;
+                                  private static
+                              #else
+                                  ;
+                              #endif
+                                  int _b = Log("b");
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of a group that opens behind the previous declarator: no branch gives the crossed field
+    /// <c>static</c>, so it is an instance field in every build and the static field's move keeps its fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAFieldAcrossAFieldThatNoBranchOpeningBehindThePreviousDeclaratorMakesStatic(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                                  private int _a
+                              #if DEBUG
+                                  ;
+                                  private
+                              #else
+                                  ;
+                              #endif
+                                  int _b = Log("b");
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private static readonly int _c = Log("c");
+                                       private static int _t;
+                                       private int _a
+                                   #if DEBUG
+                                       ;
+                                       private
+                                   #else
+                                       ;
+                                   #endif
+                                       int _b = Log("b");
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that the excluded <c>#else</c> branch of a group that opens behind the previous declarator gives the
+    /// crossed field its <c>static</c> modifier in that build, so moving a static initialized field across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenACrossedFieldIsStaticOnlyInAnExcludedElseBranchThatOpensBehindThePreviousDeclarator(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                                  private int _a
+                              #if !DEBUG
+                                  ;
+                              #else
+                                  ;
+                                  private static
+                              #endif
+                                  int _b = Log("b");
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of an excluded <c>#else</c> branch behind the previous declarator that writes no
+    /// <c>static</c>: the crossed field is an instance field in every build, so the fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAFieldAcrossAFieldThatNoElseBranchOpeningBehindThePreviousDeclaratorMakesStatic(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                                  private int _a
+                              #if !DEBUG
+                                  ;
+                              #else
+                                  ;
+                                  private
+                              #endif
+                                  int _b = Log("b");
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private static readonly int _c = Log("c");
+                                       private static int _t;
+                                       private int _a
+                                   #if !DEBUG
+                                       ;
+                                   #else
+                                       ;
+                                       private
+                                   #endif
+                                       int _b = Log("b");
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that every excluded branch of a group is read: only the excluded <c>#elif</c> branch gives the crossed
+    /// field <c>static</c>, so moving a static initialized field across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenACrossedFieldIsStaticOnlyInTheSecondExcludedBranchOfAGroupThatOpensBehindThePreviousDeclarator(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                                  private int _a
+                              #if DEBUG
+                                  ;
+                                  private
+                              #elif TRACE
+                                  ;
+                                  private static
+                              #else
+                                  ;
+                              #endif
+                                  int _b = Log("b");
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a crossed field whose group opens behind the previous declarator and closes behind its own
+    /// modifiers counts as static in the build whose branch writes <c>static</c>, so moving a static initialized field
+    /// across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenACrossedFieldIsStaticOnlyInAnExcludedBranchThatSpansThePreviousDeclaratorAndItsModifiers(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                                  private int _a
+                              #if DEBUG
+                                  ;
+                                  private static
+                              #else
+                                  ;
+                                  private
+                              #endif
+                                  int _b = Log("b");
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a crossed field whose group opens inside the initializer of the previous field and closes behind its
+    /// own modifiers counts as static in the build whose branch writes <c>static</c>, so moving a static initialized field
+    /// across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenACrossedFieldIsStaticOnlyInAnExcludedBranchThatSpansThePreviousInitializerAndItsModifiers(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                                  private int _a =
+                              #if DEBUG
+                                      1;
+                                  private static
+                              #else
+                                      2;
+                                  private
+                              #endif
+                                  int _b = Log("b");
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of a group that spans the previous declarator and the crossed field's modifiers with no
+    /// branch writing <c>static</c>: the crossed field is an instance field in every build, so the fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAFieldAcrossAFieldThatNoBranchSpanningThePreviousDeclaratorMakesStatic(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                                  private int _a
+                              #if DEBUG
+                                  ;
+                                  internal
+                              #else
+                                  ;
+                                  private
+                              #endif
+                                  int _b = Log("b");
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private static readonly int _c = Log("c");
+                                       private static int _t;
+                                       private int _a
+                                   #if DEBUG
+                                       ;
+                                       internal
+                                   #else
+                                       ;
+                                       private
+                                   #endif
+                                       int _b = Log("b");
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a crossed field whose every branch, spanning the previous declarator and its modifiers, writes
+    /// <c>static</c> is static in every build, so moving an instance initialized field across it keeps its fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAnInstanceFieldAcrossAFieldThatEveryBranchSpanningThePreviousDeclaratorMakesStatic(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _t;
+                                  private static int _a
+                              #if DEBUG
+                                  ;
+                                  internal static
+                              #else
+                                  ;
+                                  private static
+                              #endif
+                                  int _b = Log("b");
+                                  private readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private readonly int _c = Log("c");
+                                       private int _t;
+                                       private static int _a
+                                   #if DEBUG
+                                       ;
+                                       internal static
+                                   #else
+                                       ;
+                                       private static
+                                   #endif
+                                       int _b = Log("b");
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart where the excluded branch spanning the previous declarator lacks <c>static</c>: the
+    /// crossed field is an instance initialized field of that build, so moving an instance initialized field across it is
+    /// withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenACrossedFieldIsAnInstanceFieldOnlyInAnExcludedBranchThatSpansThePreviousDeclaratorAndItsModifiers(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _t;
+                                  private static int _a
+                              #if DEBUG
+                                  ;
+                                  internal
+                              #else
+                                  ;
+                                  private static
+                              #endif
+                                  int _b = Log("b");
+                                  private readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that an excluded branch behind the previous declarator that writes no <c>static</c> does not make the
+    /// crossed field an instance field: its <c>static</c> stands behind the group in every build, so the fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAnInstanceFieldAcrossAFieldThatIsStaticBehindAGroupThatOpensBehindThePreviousDeclarator(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _t;
+                                  private static int _a
+                              #if DEBUG
+                                  ;
+                                  private
+                              #else
+                                  ;
+                              #endif
+                                  static int _b = Log("b");
+                                  private readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private readonly int _c = Log("c");
+                                       private int _t;
+                                       private static int _a
+                                   #if DEBUG
+                                       ;
+                                       private
+                                   #else
+                                       ;
+                                   #endif
+                                       static int _b = Log("b");
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a complete group in front of the crossed field's first token that adds another modifier leaves the
+    /// field static in every build, so moving an instance initialized field across it keeps its fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAnInstanceFieldAcrossAStaticFieldWithAnExcludedGroupInFrontOfItsFirstToken(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a;
+                              #if DEBUG
+                                  volatile
+                              #endif
+                                  private static int _b = Log("b");
+                                  private readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private readonly int _c = Log("c");
+                                       private int _a;
+                                   #if DEBUG
+                                       volatile
+                                   #endif
+                                       private static int _b = Log("b");
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a crossed field whose every branch in front of its first token writes <c>static</c>, while only one
+    /// writes <c>readonly</c>, is static in every build, so moving an instance initialized field across it keeps its fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAnInstanceFieldAcrossAFieldThatIsStaticInEveryBranchWithAReadonlyModifierOnlyInOne(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a;
+                              #if DEBUG
+                                  private static readonly
+                              #else
+                                  private static
+                              #endif
+                                  int _b = Log("b");
+                                  private readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private readonly int _c = Log("c");
+                                       private int _a;
+                                   #if DEBUG
+                                       private static readonly
+                                   #else
+                                       private static
+                                   #endif
+                                       int _b = Log("b");
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a crossed field whose every branch in front of its first token writes <c>static</c>, with another
+    /// accessibility in each, is static in every build, so moving an instance initialized field across it keeps its fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAnInstanceFieldAcrossAFieldThatIsStaticInEveryBranchWithADifferentAccessibility(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a;
+                              #if DEBUG
+                                  internal static
+                              #else
+                                  private static
+                              #endif
+                                  int _b = Log("b");
+                                  private readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private readonly int _c = Log("c");
+                                       private int _a;
+                                   #if DEBUG
+                                       internal static
+                                   #else
+                                       private static
+                                   #endif
+                                       int _b = Log("b");
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart where the excluded branch in front of the crossed field's first token lacks
+    /// <c>static</c>: the field is an instance initialized field of that build, so moving an instance initialized field
+    /// across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenACrossedFieldLacksStaticOnlyInAnExcludedBranchInFrontOfItsFirstToken(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a;
+                              #if DEBUG
+                                  internal
+                              #else
+                                  private static
+                              #endif
+                                  int _b = Log("b");
+                                  private readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a crossed declaration whose every branch writes <c>const</c>, with another accessibility in each,
+    /// has no runtime initializer in any build, so moving an instance initialized field across it keeps its fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAnInstanceFieldAcrossADeclarationThatIsAConstantInEveryBranch(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a;
+                              #if DEBUG
+                                  internal const
+                              #else
+                                  private const
+                              #endif
+                                  int K = 1;
+                                  private readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private readonly int _c = Log("c");
+                                       private int _a;
+                                   #if DEBUG
+                                       internal const
+                                   #else
+                                       private const
+                                   #endif
+                                       int K = 1;
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart where the excluded branch writes <c>readonly</c> instead of <c>const</c>: the crossed
+    /// declaration is an instance initialized field of that build, so moving an instance initialized field across it is
+    /// withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenACrossedDeclarationIsAnInstanceFieldInsteadOfAConstantOnlyInAnExcludedBranch(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a;
+                              #if DEBUG
+                                  internal readonly
+                              #else
+                                  private const
+                              #endif
+                                  int K = 1;
+                                  private readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a crossed field whose every branch behind its first modifier writes <c>static</c> is static in every
+    /// build, so moving an instance initialized field across it keeps its fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAnInstanceFieldAcrossAFieldThatIsStaticInEveryBranchBehindItsFirstModifier(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a;
+                                  private
+                              #if DEBUG
+                                  static readonly
+                              #else
+                                  static
+                              #endif
+                                  int _b = Log("b");
+                                  private readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private readonly int _c = Log("c");
+                                       private int _a;
+                                       private
+                                   #if DEBUG
+                                       static readonly
+                                   #else
+                                       static
+                                   #endif
+                                       int _b = Log("b");
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart where the excluded branch behind the crossed field's first modifier lacks <c>static</c>:
+    /// the field is an instance initialized field of that build, so moving an instance initialized field across it is
+    /// withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenACrossedFieldLacksStaticOnlyInAnExcludedBranchBehindItsFirstModifier(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a;
+                                  private
+                              #if DEBUG
+                                  readonly
+                              #else
+                                  static
+                              #endif
+                                  int _b = Log("b");
+                                  private readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that an excluded branch of a group nested in an active branch behind the crossed field's first modifier
+    /// gives the field <c>static</c> in that build, so moving a static initialized field across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenACrossedFieldIsStaticOnlyInAnExcludedInnerGroupBehindItsFirstModifier(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _t;
+                                  private
+                              #if !DEBUG
+                              #if TRACE
+                                  static
+                              #endif
+                              #endif
+                                  int _b = Log("b");
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a crossed field whose <c>#if</c>, <c>#elif</c>, and <c>#else</c> branches all write <c>static</c> is
+    /// static in every build, so moving an instance initialized field across it keeps its fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAnInstanceFieldAcrossAFieldThatIsStaticInEveryBranchOfAnElifGroup(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a;
+                              #if DEBUG
+                                  private static readonly
+                              #elif TRACE
+                                  internal static
+                              #else
+                                  private static
+                              #endif
+                                  int _b = Log("b");
+                                  private readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private readonly int _c = Log("c");
+                                       private int _a;
+                                   #if DEBUG
+                                       private static readonly
+                                   #elif TRACE
+                                       internal static
+                                   #else
+                                       private static
+                                   #endif
+                                       int _b = Log("b");
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart where only the excluded <c>#elif</c> branch lacks <c>static</c>: the crossed field is an
+    /// instance initialized field of that build, so moving an instance initialized field across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenACrossedFieldLacksStaticOnlyInAnExcludedElifBranch(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a;
+                              #if DEBUG
+                                  private static readonly
+                              #elif TRACE
+                                  internal
+                              #else
+                                  private static
+                              #endif
+                                  int _b = Log("b");
+                                  private readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a moved field whose every branch in front of its first token writes <c>static</c> is static in every
+    /// build, so moving it across an instance initialized field keeps its fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAFieldThatIsStaticInEveryBranchAcrossAnInstanceInitializedField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _a;
+                                  private int _s = Log("s");
+                              #if DEBUG
+                                  internal static readonly
+                              #else
+                                  private static readonly
+                              #endif
+                                  int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                   #if DEBUG
+                                       internal static readonly
+                                   #else
+                                       private static readonly
+                                   #endif
+                                       int _c = Log("c");
+                                       private static int _a;
+                                       private int _s = Log("s");
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart where the excluded branch in front of the moved field's first token lacks <c>static</c>:
+    /// the moved field is an instance initialized field of that build, so moving it across an instance initialized field
+    /// is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenTheMovedFieldLacksStaticOnlyInAnExcludedBranch(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _a;
+                                  private int _s = Log("s");
+                              #if DEBUG
+                                  internal readonly
+                              #else
+                                  private static readonly
+                              #endif
+                                  int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a <c>static</c> lambda that an excluded branch writes as a crossed field's initializer value is no
+    /// <c>static</c> modifier: the field is an instance field in every build, so moving a static initialized field across it
+    /// is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixIsOfferedWhenAnExcludedInitializerOfACrossedFieldIsAStaticLambda(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              public class C
+                              {
+                                  private static int _t;
+                                  private Func<int> _f =
+                              #if DEBUG
+                                      static () => 1;
+                              #else
+                                      () => 2;
+                              #endif
+                                  private static int _u;
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a <c>static</c> lambda that an excluded branch writes inside an argument list of a crossed field's
+    /// initializer is no <c>static</c> modifier: the field is an instance field in every build, so moving a static
+    /// initialized field across it is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-007")]
+    [Requirement("RH7109-006")]
+    public async Task FixIsOfferedWhenAnExcludedArgumentOfACrossedFieldsInitializerIsAStaticLambda(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              public class C
+                              {
+                                  private static int _t;
+                                  private int _f = Run(
+                              #if DEBUG
+                                      static () => 1);
+                              #else
+                                      () => 2);
+                              #endif
+                                  private static int _u;
+                                  private static readonly int {|RH7109:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+
+                                  private static int Run(Func<int> f)
+                                  {
+                                      return f();
+                                  }
+                              }
+                              """;
+
+        await VerifyCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods
+
+    /// <summary>
+    /// Verifies that the analyzer reports exactly the diagnostics marked in the source, and that the code fix registers
+    /// an action for the first of them whose result compiles and is not reported. Used where only whether the fix is
+    /// offered is under test, and the layout of the result is decided elsewhere
+    /// </summary>
+    /// <param name="source">The source text to test, with markup for every expected diagnostic</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyCodeFixIsOffered(string source)
+    {
+        await Verify(source);
+
+        TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+
+        var fixedSource = await TryApplyCodeFixAsync(plainSource);
+
+        Assert.IsNotNull(fixedSource, "A code fix must be offered for this input.");
+
+        await Verify(fixedSource);
+    }
 
     /// <summary>
     /// Writes the provided text with the given line break

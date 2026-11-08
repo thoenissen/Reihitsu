@@ -3219,6 +3219,123 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
         await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies that a field of the moved block whose every branch writes <c>static</c>, with another accessibility in each,
+    /// is a static field in every build, so moving the block of a struct across an instance field reorders no instance
+    /// field and the code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task CodeFixMovesABlockOfAStructAcrossAnInstanceFieldWhenEveryBranchDeclaresItsFieldStatic(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              public struct S : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  private int _a;
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                              #if DEBUG
+                                  internal static
+                              #else
+                                  private static
+                              #endif
+                                  int _b;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+
+                                   public struct S : IDisposable
+                                   {
+                                       #region Fields
+
+                                   #if DEBUG
+                                       internal static
+                                   #else
+                                       private static
+                                   #endif
+                                       int _b;
+
+                                       #endregion // Fields
+
+                                       #region IDisposable
+
+                                       private int _a;
+
+                                       public void Dispose()
+                                       {
+                                       }
+
+                                       #endregion // IDisposable
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the counterpart where the excluded branch lacks <c>static</c>: the field of the moved block is an instance
+    /// field of a struct in that build, so the reorder would change its layout and no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenAFieldOfTheMovedBlockOfAStructLacksStaticOnlyInAnExcludedBranch(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              public struct S : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  private int _a;
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                              #if DEBUG
+                                  internal
+                              #else
+                                  private static
+                              #endif
+                                  int _b;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods

@@ -2289,6 +2289,43 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
         await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
     }
 
+    /// <summary>
+    /// Verifying that a crossed field whose <c>static</c> modifier only an excluded branch gives it counts as a static
+    /// initialized field of that build, also when the branch opens inside the initializer of the previous field and the
+    /// group closes in front of the crossed field's first token, so moving a static initialized field across it is withheld
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-007")]
+    public async Task NoCodeFixWhenACrossedFieldIsStaticOnlyInAnExcludedBranchThatOpensInTheInitializerOfThePreviousField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a =
+                              #if DEBUG
+                                      1;
+                                  private static
+                              #else
+                                      2;
+                              #endif
+                                  int _b = Log("b");
+                                  private static int {|RH7103:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods
