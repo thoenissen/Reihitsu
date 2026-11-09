@@ -38,6 +38,11 @@ Run lane: **behavior change** (widened from bug fix, Decisions #2). Roles: spec 
 | 9 | 03 spec author | Scope of A5 refusal | Narrowed: only an excluded declaration of the same type (name, arity, `partial`) that carries an attribute list | One without attributes cannot set layout; keeps `main` output for every input not demanded | Kept fixes are today's output | 7e019ae |
 | 10 | after batch 1 | Accept change doc | Accepted; Decisions section should record the answers when status changes | Skeptic ran, amendment written, maintainer answers match | Answers given | 7e019ae |
 | 11 | 04 test implementer | Nested group of a whole type in front of the type's first token (`FixMovesAFieldOfATypeBehindANestedGroupOfAWholeTypeInFrontOfIt`): no-nesting clause of RH2001-010 vs none in SHARED-ORDER-008 at the type's first token | Keep the test (fix kept); the shared helper of Decision #6 applies the no-nesting clause only where a spec states it | Locks today's output, which no spec or answer changes; withholding it would be an unasked visible change | Output identical to `main` | 220f435 |
+| 12 | 08 auditor (round 1) | Finding #1: RH2001-010's no-nesting half (group inside another group's branch) withholds safe fixes `main` offers (file wrapped in `#if NET`) | Drop that half for RH2001-010; keep `main`'s output there | Protects nothing for this fix; common multi-targeting shape | Keeps `main`'s output, so nothing in question | pending |
+| 13 | 08 auditor (round 1) | Finding #2: excluded branch behind a property (`#if X = 5; #endif`) joins the declaration in another build | Take in as repair: refuse with the same shared reading on the token behind the property; spec author extends RH2001-010 | Same class as #1666 (excluded branch holds part of the declaration); cheap check with the existing helper | Withholding demanded by unchanged SHARED-FIX-003; rare class | pending |
+| 14 | 08 auditor (round 1) | Finding #3: four rare-class withholdings not listed in the change doc | Spec author states them in the change doc as rare-class refusals outside *Visible output changes*; PR Review notes names the classes | Rare-class withholding puts nothing in question (README, What reaches the maintainer) | Rare class | pending |
+| 15 | 08 auditor (round 1) | Finding #4: a partial declaration ending in `;` with a conditional layout attribute is not read | Repair: read such a declaration (class/struct/record forms), tests, SHARED-ORDER-008 wording | Same requirement as #1667 | Demanded by unchanged SHARED-FIX-003 | pending |
+| 16 | 08 auditor (round 1) | Findings #5 (check order) and #6 (stale `<returns>`) | Implementer repairs both | Low, same file | Internal | pending |
 
 ## Follow-up candidates
 
@@ -53,4 +58,5 @@ Run lane: **behavior change** (widened from bug fix, Decisions #2). Roles: spec 
 - Implementer 05 done (25cba35): all green, ~51 net production lines.
 - Cleaner 06 clean (5bdda45).
 - Spec checker 07 consistent, no findings (fbb4c41).
-- Next: merge main if behind, build, auditor (08).
+- Audit 1 (08, ce0b3eb) on fce5e46: findings #1-#6. Repair round 1 started.
+- Round 1 worklist: spec author 09 (RH2001-010 for #1/#2, SHARED-ORDER-008 for #4, change doc #3) -> test implementer 10 (#1 kept, #2 refused, #4 refused, LF/CRLF) -> implementer 11 (#1, #2, #4, #5, #6) -> cleaner -> spec checker -> auditor (repair only) -> validator.
