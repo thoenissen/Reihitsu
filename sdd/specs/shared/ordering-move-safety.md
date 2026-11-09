@@ -557,9 +557,9 @@ Every other conditional directive in either span refuses the move, among them:
 
 The fix decides each group by a small structural test of where its directives stand, and by nothing else (SHARED-FIX-009): for each directive, the token whose leading trivia holds it and the unit list at whose boundary that token stands; whether a directive of another group lies between the group's directives; and, for each excluded branch, one parse of its text on its own as the content of that list, checked for whole units, for a syntax error, and, where the list is an accessor list or the statements of an accessor's body, for a `field` token and for an accessor without a body. For a branch in a type body outside every member's own tokens, that parse is the one with which the guard already finds the members that SHARED-ORDER-007 counts, unchanged; for a branch inside a member, it is the same parse with the text placed into an empty list of the unit's kind. The fix evaluates no condition, combines no branches of one or of several groups, parses no build configuration, and has no limit on the number of configurations. A group that this test does not classify as wrapping whole units refuses the move. A conditional directive outside both spans does not refuse the move. A conditional directive behind both spans, or outside every declaration of the reordered type, is not read; one in a declaration of the type in front of its body, or in the body of the reordered declaration in front of the moved and the crossed span, is read as the next paragraph states. Balanced pairs that this requirement keeps travel as SHARED-ORDER-006 states.
 
-A member reordering fix MUST treat a type as one whose field order sets its layout (SHARED-ORDER-007) when a declaration of the type holds a conditional directive in front of its body's opening brace, or when the body of the declaration whose members the fix reorders holds one in front of the moved and the crossed span, as stated below: it MUST NOT offer a move that would reorder the type's instance fields, counted as SHARED-ORDER-007 counts them. A declaration of the type is the declaration whose members the fix reorders, and, for a `partial` type, every other declaration of it that the analyzed build compiles, in the same document or in another; each is read on its own, by the same test. The directive counts when it stands
+A member reordering fix MUST treat a type as one whose field order sets its layout (SHARED-ORDER-007) when a declaration of the type holds a conditional directive in front of its body's opening brace — or, for a declaration that ends in `;` instead of a body, in front of that `;` — or when the body of the declaration whose members the fix reorders holds one in front of the moved and the crossed span, as stated below: it MUST NOT offer a move that would reorder the type's instance fields, counted as SHARED-ORDER-007 counts them. A declaration of the type is the declaration whose members the fix reorders, and, for a `partial` type, every other declaration of it that the analyzed build compiles, in the same document or in another, also one that ends in `;` instead of a body, such as `public partial class C;`; each is read on its own, by the same test. The directive counts when it stands
 
-- in the leading trivia of a token of the declaration that follows its first token, up to and including the opening brace — among or behind its attribute lists, between its modifiers, or at its keyword, name, type parameter list, base list, or constraint clauses;
+- in the leading trivia of a token of the declaration that follows its first token, up to and including the opening brace, or, for a declaration that ends in `;` instead of a body, up to and including that `;` — among or behind its attribute lists, between its modifiers, or at its keyword, name, type parameter list, base list, or constraint clauses;
 - in the leading trivia of the declaration's first token, when the directive belongs to a group with an excluded branch that does not read as whole members (*Whole units in every branch*), such as a branch that holds attribute lists, a modifier, or the keyword of the type, or with an excluded branch that reads as whole members one of which is another declaration of the type: a type declaration at the outermost level of the branch with the type's name, its number of type parameters, the `partial` modifier, and an attribute list;
 - in the body of the declaration whose members the fix reorders, between its opening brace and the start of the moved and the crossed span — for a member move, the start of the crossed span, at the target's first trivia (SHARED-ORDER-003); for RH7309, the start of the first region block whose place the fix changes or of the code between blocks that the reorder crosses — when the directive belongs to a group that does not wrap whole units under the test above, such as a group whose branch closes the type's body and opens another type, or holds a modifier of a member in front of the spans. A group of whole members, of whole attribute lists, of whole accessors, or of whole statements in front of the spans does not count.
 
@@ -1177,6 +1177,25 @@ public partial class C
     private int _a;
 }
 ```
+
+Example — a conditional attribute list on another declaration of a `partial` type that ends in `;` instead of a body, for RH7109. Without `NET` defined,
+
+```csharp
+using System.Runtime.InteropServices;
+
+#if NET
+[StructLayout(LayoutKind.Sequential)]
+#endif
+public partial class C;
+
+public partial class C
+{
+    private int _a;
+    private readonly int {|RH7109:_c|};
+}
+```
+
+is reported, and no code fix is offered: the declaration `public partial class C;` is read like one with a body, and in a build with `NET` the field order of `C` sets its layout. The same holds for a `partial` struct, record, or record struct declared with `;`, and for a conditional directive behind the declaration's first token, such as in its base list or in front of its `;`. Without a conditional directive in any declaration of `C`, the fix moves `_c` in front of `_a`, as the example above shows for a declaration with a body.
 
 Example — another declaration of a `partial` type with an attribute list, in an excluded branch in front of the reordered declaration, for RH7109. Without `NET` defined,
 

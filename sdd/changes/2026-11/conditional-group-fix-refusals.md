@@ -9,8 +9,8 @@
 
 ## What
 
-- **RH2001** (RH2001-010). The fix is withheld for a property with a modifier when a directive of a conditional group stands in the leading trivia of its first modifier and the group does not wrap whole members: it is nested, or one of its excluded branches, parsed on its own as the content of a type body, does not read as whole member declarations without a syntax error. A group of whole members above the property keeps the fix, as RH2001-004 states. RH2001-004 and RH2001-009 point to the new requirement instead of covering the position themselves.
-- **Every declaration of a `partial` type** (SHARED-ORDER-008). A conditional directive in front of the body of any declaration of the reordered type, not only of the declaration whose members the fix reorders, makes the type count as one whose field order sets its layout, by the test that already applies to the reordered declaration. A group in front of a declaration's first token whose excluded branch holds another declaration of the type — a `partial` declaration of the type's name with an attribute list — counts as well; until now, every group whose excluded branches read as whole members was exempt.
+- **RH2001** (RH2001-010). The fix is withheld for a property with a modifier when a directive of a conditional group stands in the leading trivia of its first modifier, and for a property without an initializer when a directive of a conditional group stands in the leading trivia of the token behind the property, and the group does not wrap whole members: another group lies inside one of its branches, or one of its excluded branches, parsed on its own as the content of a type body, does not read as whole member declarations without a syntax error. A group that only lies inside a branch of another group is decided by its own branches, so a file or a part of a type body wrapped in `#if` keeps the fix as on `main`. A group of whole members above or behind the property keeps the fix, as RH2001-004 states. RH2001-004 and RH2001-009 point to the new requirement instead of covering the positions themselves.
+- **Every declaration of a `partial` type** (SHARED-ORDER-008). A conditional directive in front of the body of any declaration of the reordered type, not only of the declaration whose members the fix reorders, makes the type count as one whose field order sets its layout, by the test that already applies to the reordered declaration; a declaration that ends in `;` instead of a body, such as `public partial class C;`, is read up to its `;`. A group in front of a declaration's first token whose excluded branch holds another declaration of the type — a `partial` declaration of the type's name with an attribute list — counts as well; until now, every group whose excluded branches read as whole members was exempt.
 - **Groups in the type body in front of the spans** (SHARED-ORDER-008). A conditional group with a directive in the body of the reordered declaration between its opening brace and the moved and the crossed span, which does not wrap whole units by the existing structural test, makes the type count as one whose field order sets its layout. Until now, such a directive was not read. A move that reorders no instance field stays available, as for a conditional directive in the type's declaration. A directive behind the spans is still not read.
 - SHARED-ORDER-007 and SHARED-FIX-009 name the new readings where they referred to the old ones.
 
@@ -18,15 +18,15 @@
 
 The maintainer's triage of thoenissen/Reihitsu#1665, thoenissen/Reihitsu#1666, and thoenissen/Reihitsu#1667 (2026-11-09): each fix changes program meaning or breaks the build in another build configuration, which SHARED-FIX-003 (*Build configurations*) forbids. The inputs those issues report are withheld as bug fixes against SHARED-FIX-003, which is unchanged:
 
-- RH2001 converts a property whose excluded branch above holds `extern` into a field that is `extern` in a build with the symbol (CS0106), and one whose excluded branch holds `readonly`, in a struct, into a field with `readonly` twice (CS1004).
-- The member-moving fixes reorder the fields of a partial class whose other declaration carries `[StructLayout(LayoutKind.Sequential)]` inside `#if`, or is itself, with that attribute, inside an `#if` block in front of the reordered declaration, and of a partial struct whose other declaration carries `[StructLayout(LayoutKind.Auto)]` inside `#if !X`.
+- RH2001 converts a property whose excluded branch above holds `extern` into a field that is `extern` in a build with the symbol (CS0106), and one whose excluded branch holds `readonly`, in a struct, into a field with `readonly` twice (CS1004). It also converts a property without an initializer whose excluded branch behind holds `= 5;` into a field followed by `= 5;` in a build with the symbol, a syntax error.
+- The member-moving fixes reorder the fields of a partial class whose other declaration carries `[StructLayout(LayoutKind.Sequential)]` inside `#if` — also one that ends in `;` instead of a body — or is itself, with that attribute, inside an `#if` block in front of the reordered declaration, and of a partial struct whose other declaration carries `[StructLayout(LayoutKind.Auto)]` inside `#if !X`.
 - RH7109 reorders the fields of a struct `D` that a group in front of the moved and the crossed span opens in a build with `X`, after closing the class whose fields the analyzed build reorders.
 
 The specs did not decide these inputs as SHARED-FIX-003 does: RH2001-004 kept every directive above the property in front of the field, SHARED-ORDER-008 read the conditional directives of the reordered declaration only, and it stated that a directive outside both spans is not read. Each new reading follows SHARED-FIX-009: it decides from where the directives stand and from one parse of each excluded branch, the parse that SHARED-ORDER-008 already uses, and a group it does not classify withholds the fix. Because it cannot tell a harmless excluded branch from a harmful one by anything finer, it also withholds a few fixes that change no build; those are listed below.
 
 ## Visible output changes
 
-Code-fix output on `main` measured with `scripts/apply-fix.sh` at `95aa3e6`, LF and CRLF alike. Each case is a fix that main offers, which changes no build, and which is now withheld. The diagnostic stays in every case. The inputs of the three issues, whose withholding SHARED-FIX-003 demands, are not listed.
+Code-fix output on `main` measured with `scripts/apply-fix.sh` at `95aa3e6`, LF and CRLF alike. Each case is a fix that main offers, which changes no build, and which is now withheld. The diagnostic stays in every case. The inputs of the three issues, whose withholding SHARED-FIX-003 demands, are not listed. Fixes withheld for a rare input class are listed under *Rare-class withholdings* below.
 
 An attribute list in an excluded branch in front of the first modifier, RH2001 (RH2001-010). Without `DEBUG` defined:
 
@@ -120,7 +120,54 @@ public class C
 
 After: no fix offered; RH7109 stays reported on `_c`.
 
-Unchanged and kept, measured the same way: a group of whole members in front of the property for RH2001; a plain partial class, and a partial class with another declaration of it without an attribute list in an `#if` block in front of it, and a group of whole members or whole statements in front of the spans for RH7109; and, for RH7103, the move of a static field behind the group of thoenissen/Reihitsu#1665, which reorders no instance field.
+Unchanged and kept, measured the same way: a group of whole members in front of the property for RH2001, also inside the active branch of a group that wraps the file, and a group of whole members behind it, or any group behind a property with an initializer; a plain partial class, and a partial class with another declaration of it without an attribute list in an `#if` block in front of it, and a group of whole members or whole statements in front of the spans for RH7109; and, for RH7103, the move of a static field behind the group of thoenissen/Reihitsu#1665, which reorders no instance field.
+
+## Rare-class withholdings
+
+Each of these is a fix that `main` offers, which changes no build, and which is now withheld; the diagnostic stays. Each input is a rare class, so the rule for rare input classes (`AGENTS.md`, *Code-fix coverage*) decides the withholding, not a maintainer answer: the reading that refuses the harmful inputs above cannot tell these from them by a cheap check.
+
+- RH2001, a modifier in an excluded branch in front of the first modifier that the field can carry, such as `static`: in a build with `DEBUG`, the static get-only property becomes a static read-only field, which is equally valid:
+
+  ```csharp
+  #if DEBUG
+      static
+  #endif
+      private int Value { get; }
+  ```
+
+- RH2001, an excluded branch in front of the first modifier that holds text that is not code; a build with the symbol does not compile before or after the fix.
+- RH2001, a group in front of the first modifier that holds another group, also when the inner group holds whole members:
+
+  ```csharp
+  #if DEBUG
+  #if TRACE
+      private int _trace;
+  #endif
+  #endif
+      private int Value { get; }
+  ```
+
+- RH2001, a group whose directive stands behind a property without an initializer and whose branch holds another group, such as `#if !RELEASE` around a part of the type body that holds `#if DEBUG` … `#endif` and the property, with its `#endif` behind the property (the last example of RH2001-010).
+- RH2001, a group behind a property without an initializer whose excluded branch holds something other than whole members that the property cannot take, such as a modifier or an attribute list of the next member:
+
+  ```csharp
+      private int Value { get; }
+  #if DEBUG
+      static
+  #endif
+      private int _other;
+  ```
+
+- RH7109 (and RH7102, RH7103, RH7309 for a move that reorders instance fields), a conditional base list on another declaration of a `partial` class:
+
+  ```csharp
+  public partial class C
+  #if DEBUG
+      : System.IDisposable
+  #endif
+  {
+  }
+  ```
 
 ## Decisions
 
@@ -136,7 +183,9 @@ In each case the diagnostic stays reported.
 
 ### RH2001 tells whole members from everything else by one parse of each excluded branch
 
-The fix keeps the group of whole members above a property, which RH2001-009 already shows with its fix, and refuses every other group in front of the first modifier. The test is the one SHARED-ORDER-008 uses for a group in the leading trivia of a type's first token: no nesting, and each excluded branch read as whole members. The active branch needs no reading: a modifier in it is the property's first modifier, and the group's next directive then stands between two modifiers, which RH2001-009 already refuses.
+The fix keeps the group of whole members above a property, which RH2001-009 already shows with its fix, and refuses every other group in front of the first modifier. The test is the one SHARED-ORDER-008 uses for a group in the leading trivia of a type's first token: no group inside the group's branches, and each excluded branch read as whole members. The active branch needs no reading: a modifier in it is the property's first modifier, and the group's next directive then stands between two modifiers, which RH2001-009 already refuses. Unlike SHARED-ORDER-008, the test does not refuse a group that lies inside a branch of another group: such a group lies in that branch's active code, so each of its excluded branches is read whole, and the other group is read only through a directive of its own in front of or behind the property. Refusing it would withhold the fix for a file wrapped in `#if`, which multi-targeting code commonly writes and which `main` fixes safely.
+
+The same test reads a group behind a property without an initializer, at the token behind the property: an excluded branch there can give the property an initializer, which the field the fix writes cannot take. A property with an initializer ends in `;`, so nothing behind it joins the declaration, and the test is not applied there.
 
 ### A group in front of the spans counts like a conditional directive in the type's declaration
 

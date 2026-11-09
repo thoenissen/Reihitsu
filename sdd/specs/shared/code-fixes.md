@@ -1105,7 +1105,7 @@ A fix that reads the text of an excluded branch MUST read it so that the reading
 
 A fix decides which conditional directives withhold it from where the directives stand in the syntax tree — the token whose leading trivia holds each directive, and the construct that token begins or ends — never from their conditions. A directive whose place that test does not classify withholds the fix.
 
-A fix that reads no excluded code, and that leaves every conditional directive and its line in place, is governed by SHARED-FIX-003 and SHARED-DIAG-008 alone; this requirement adds nothing to it, such as RH2001's fix where it is withheld for every conditional directive between a property's modifiers (RH2001-009); where RH2001's fix reads the excluded branches of a group in front of a property's first modifier, it reads them as this requirement states (RH2001-010).
+A fix that reads no excluded code, and that leaves every conditional directive and its line in place, is governed by SHARED-FIX-003 and SHARED-DIAG-008 alone; this requirement adds nothing to it, such as RH2001's fix where it is withheld for every conditional directive between a property's modifiers (RH2001-009); where RH2001's fix reads the excluded branches of a group in front of a property's first modifier or behind the property, it reads them as this requirement states (RH2001-010).
 
 Each rule's spec states which conditional directives withhold its fix; for the member reordering fixes, this is SHARED-ORDER-008.
 
