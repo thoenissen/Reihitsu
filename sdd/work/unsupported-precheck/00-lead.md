@@ -21,6 +21,9 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 2 | 02 skeptic | Architecture finding: FMT-PIPE-031 clause restates SHARED-FIX-010 and would put a guard back into the split | Drop the clause; SHARED-FIX-010 is the one statement | One rule in one place; no guard for a refused shape in a phase | RH7101 is withheld either way through the type context | pending |
+| 3 | 02 skeptic | Where `SyntaxNotSupportedException` is caught | Once, in the shared pipeline runner where the precheck outcome is produced; never wrapped in `InvalidOperationException` under a trace | One outcome site; FMT-UNSUP-006 testable via `ExecutePhases` | Same outcome at every entry point | pending |
+| 4 | 02 skeptic | Spec defects 1–6 of 02-skeptic (FMT-PIPE-017 example, RH7101-006 wording, FMT-STRUCT-022 `;` comment, nested declarations in values, fixed-buffer brackets, first location in text order) | Route all to the spec author after the output answers | Spec accuracy | 017 example keeps its target output; location = first in text order shown in Q2 | pending |
 | 1 | Claim | Branch name | Use the session-designated branch `claude/funny-darwin-l756yr` instead of `claude/issue-1670-<slug>` | The session forbids pushing to any other branch | Branch names are internal | claim commit |
 
 ## Follow-up candidates
@@ -31,4 +34,6 @@
 
 - 01 spec author done (89537be): verdict open question; 6 output questions in its handover; change doc Draft.
 - Lane check after 01: confirmed behavior-change.
-- Next: skeptic (02) running; then batch output questions (spec author Q1–6 + skeptic's) before test implementer.
+- 02 skeptic done (211d739): output question; re-asked Q5 split into 5a–5d; new Q7 RH2001; escalation 9 candidate: code-fix registration query across ~45 formatting fixes.
+- Next: ask batch (Q1–Q7 + escalation 9 on the code-fix mechanism), wait; then spec author amendment (Decisions 2–4 + answers), lane check, test implementer.
+- (old) skeptic (02) running; then batch output questions (spec author Q1–6 + skeptic's) before test implementer.
