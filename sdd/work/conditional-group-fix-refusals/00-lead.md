@@ -37,6 +37,7 @@ Run lane: **behavior change** (widened from bug fix, Decisions #2). Roles: spec 
 | 8 | 02 skeptic | A6: a `partial` declaration only excluded code writes elsewhere (behind the type, behind the spans, other document) | Not refused in this run; follow-up candidate (bug, safety rail on `main`), carries the question | No cheap check; the only refusal would withhold instance-field reorders on every partial type (common code); output unchanged by the run | Output identical to `main` | — |
 | 9 | 03 spec author | Scope of A5 refusal | Narrowed: only an excluded declaration of the same type (name, arity, `partial`) that carries an attribute list | One without attributes cannot set layout; keeps `main` output for every input not demanded | Kept fixes are today's output | 7e019ae |
 | 10 | after batch 1 | Accept change doc | Accepted; Decisions section should record the answers when status changes | Skeptic ran, amendment written, maintainer answers match | Answers given | 7e019ae |
+| 11 | 04 test implementer | Nested group of a whole type in front of the type's first token (`FixMovesAFieldOfATypeBehindANestedGroupOfAWholeTypeInFrontOfIt`): no-nesting clause of RH2001-010 vs none in SHARED-ORDER-008 at the type's first token | Keep the test (fix kept); the shared helper of Decision #6 applies the no-nesting clause only where a spec states it | Locks today's output, which no spec or answer changes; withholding it would be an unasked visible change | Output identical to `main` | 220f435 |
 
 ## Follow-up candidates
 
@@ -48,4 +49,5 @@ Run lane: **behavior change** (widened from bug fix, Decisions #2). Roles: spec 
 - Skeptic 02 done (7ceac0b): all three premises reproduce.
 - Spec author 03 done (7e019ae).
 - Batch 1 answered (all A). Change doc accepted (Decisions #10).
-- Next: test implementer (04).
+- Test implementer 04 done (220f435): all three reproduced; 52 red tests.
+- Next: implementer (05).
