@@ -49,3 +49,15 @@ Extra: comment on #877 (cross-link to #1603, item 1).
 
 - #1666, #1667, #1665: milestone 1.2.1 (12); labels unchanged (bug, analyzer, agent-filed already present); triage comment posted (critical, own run together).
 - #1668: milestone vNext (2); added `enhancement` (kept analyzer, maintenance, agent-filed); triage comment posted (closer analysis; refuse any conditional block if the precise check is non-trivial).
+
+## 2026-11-09 b
+
+Maintainer-approved bookkeeping; labels read before each update, full list passed, none removed.
+
+- #1673 → 1.2.1 (`bug` already present).
+- #1655 → 1.2.2 (`bug` already present); triage comment posted (overlap #1387, declarator example now refused by FMT-UNSUP-004, enum-member example remains).
+- vNext (`enhancement` already present on all): #1645 #1646 #1647 #1648 #1652 #1653 #1658 #1659 #1649 #1650; `documentation` added on #1649 and #1650.
+- Maintenance (`maintenance` already present on all): #1651 #1654 #1661 #1672.
+- #1664 closed as duplicate of #1339 (milestone 1.2.2 set): its input (field outside every region vs. constant in a region) and the `NoCodeFixWhenDirectivesAreInLeadingTrivia` test note carried over in a comment on #1339; closing comment on #1664.
+- #1656 closed as duplicate of #1545 with comment (no milestone set).
+- Re-read: open issues without a milestone (PRs excluded): 0.
