@@ -2,7 +2,7 @@
 
 Known ways a change in this repository goes wrong. The skeptic names the classes that can reach a change, the test implementer covers them, and the auditor checks every one. IDs are immutable; a class that no longer applies is marked retired, not removed. A new class is added only by a pull request that names the failure it prevents, and its **Origin** says where it was learned; it never cites a run note, which is temporary ([`notes/README.md`](notes/README.md)). Where the members of a class are known, a [matrix](#class-matrices) lists them: the skeptic and the auditor enumerate a defect's class from it and report all failing members together ([`README.md`](README.md#architecture-findings)).
 
-**Origin** says where the class was learned: *RC reviews* — the 1.0-RC review rounds, which traced nearly every critical finding to the trivia, semantics, convergence, idempotency, parity, and closure classes; *audits* — findings of the former preflight audit and Behavior Contract gate; *reproduction* — the former reproduction gate.
+**Origin** says where the class was learned: *RC reviews* — the 1.0-RC review rounds, which traced nearly every critical finding to the trivia, semantics, convergence, idempotency, parity, and closure classes; *audits* — findings of the former preflight audit and Behavior Contract gate; *reproduction* — the former reproduction gate; *precheck* — the change that introduced the formatter's Unsupported outcome ([`unsupported-precheck.md`](../sdd/changes/2026-11/unsupported-precheck.md)).
 
 ## Guards and predicates
 
@@ -58,6 +58,19 @@ Known ways a change in this repository goes wrong. The skeptic names the classes
 | FC-012 | Two neighboring phases undo each other (insert ↔ collapse) | RC reviews |
 | FC-013 | Analyzer and formatter disagree: formatter output is flagged by a rule that [SHARED-DIAG-010](../sdd/specs/shared/diagnostics.md) (P31) covers — a layout rule whose code fix lays code out as the formatter does. An order or content rule may report what the formatter keeps, and analyzer-clean code that the formatter changes is not this class where [P11](../sdd/README.md#the-formatter-may-do-more-than-the-analyzers-p11) calls the rewrite intended | RC reviews |
 | FC-014 | A new rule's concern is of a kind the formatter judges — layout, or an order or a syntax form that a formatter phase rewrites, such as using order, expression bodies, trailing commas, braces of empty types, or field splitting — but no formatter phase owns it for the rule's construct, leaving permanent diagnostics for CLI users. Order or content that the formatter does not judge, such as the order of members or the content of comments, is not this class: the formatter keeps it without judging it, so [SHARED-DIAG-010](../sdd/specs/shared/diagnostics.md) lets a rule about it report what the formatter keeps | RC reviews |
+
+## Unsupported shapes
+
+These classes reach a change that declares a shape unsupported, or changes the precheck's check of one ([`unsupported-syntax.md`](../sdd/specs/formatter/unsupported-syntax.md)).
+
+| ID | Failure class | Origin |
+|---|---|---|
+| FC-038 | A phase produces a declared shape — for example, a split, join, move, or relocation carries a comment into the span the shape covers — so the formatter refuses its own output on the next pass (FMT-UNSUP-005) | precheck |
+| FC-039 | The check stops descending at the outer match or excepted region, so a nested occurrence — a declaration inside an initializer value or a lambda body — is missed, or the outer node's exception leaks inward to it; the precheck's case of FC-027 | precheck |
+| FC-040 | The outcome depends on the documentation mode: the parser attaches `///` or `/** */` text to another token, or parses it as structured trivia, so the CLI and a code fix answer differently for the same text | precheck |
+| FC-041 | The check is not local to its input: it reads text outside a node-level input, so a target that holds only part of the shape is refused, or the same node, as the precheck's input, gets a different answer as a target than as a detached node or a document root (FMT-UNSUP-003); the precheck's case of FC-028 | precheck |
+| FC-042 | A guard that only serves a declared shape survives in a phase, a code fix, or a spec clause, so the shape is handled twice and the guard drifts from the precheck; the precheck's case of FC-015 | precheck |
+| FC-043 | A code fix asks `FindUnsupportedSyntax` about another node than the formatter receives from it — the target instead of the context, or the replaced code instead of the node it builds — so it is offered and then changes nothing, or is withheld where the formatter would format (SHARED-FIX-010); the precheck's case of FC-009 | precheck |
 
 ## Tests and evidence
 
