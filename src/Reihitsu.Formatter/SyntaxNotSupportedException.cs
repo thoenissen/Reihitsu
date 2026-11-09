@@ -5,7 +5,7 @@
 /// point uses turns it into the unsupported outcome, so it never reaches a caller of <see cref="ReihitsuFormatter"/>
 /// (FMT-UNSUP-006)
 /// </summary>
-internal sealed class SyntaxNotSupportedException : Exception
+public sealed class SyntaxNotSupportedException : Exception
 {
     #region Constructor
 

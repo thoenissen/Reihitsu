@@ -324,17 +324,16 @@ internal sealed class FormatCommandHandler
                 return FileProcessResult.SkippedGenerated;
             }
 
-            var unsupported = _formatter.FindUnsupportedSyntax(syntaxTree, cancellationToken);
+            var formattingResult = _formatter.FormatSyntaxTree(syntaxTree, cancellationToken);
 
-            if (unsupported != null)
+            if (formattingResult.Unsupported != null)
             {
-                ReportUnsupported(filePath, unsupported);
+                ReportUnsupported(filePath, formattingResult.Unsupported);
 
                 return FileProcessResult.SkippedUnsupported;
             }
 
-            var formattedTree = _formatter.FormatSyntaxTree(syntaxTree, cancellationToken);
-            var formattedContent = (await formattedTree.GetTextAsync(cancellationToken).ConfigureAwait(false)).ToString();
+            var formattedContent = (await formattingResult.Output.GetTextAsync(cancellationToken).ConfigureAwait(false)).ToString();
             var hasContentChanges = string.Equals(originalContent, formattedContent, StringComparison.Ordinal) == false;
             var hasEncodingChanges = _utf8Bom && IsUtf8WithBom(fileRead.Encoding) == false;
 
