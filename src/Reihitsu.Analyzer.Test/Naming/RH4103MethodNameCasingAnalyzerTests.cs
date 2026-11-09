@@ -94,6 +94,28 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
                                                  }
                                                  """;
 
+    /// <summary>
+    /// Source of an extension method <c>first</c> whose derived name <c>First</c> is not a name the compiler looks up
+    /// </summary>
+    private const string FirstExtensionSource = """
+                                                using System.Collections.Generic;
+
+                                                namespace Ext;
+
+                                                public static class MyLinq
+                                                {
+                                                    public static TSource {|RH4103:first|}<TSource>(this IEnumerable<TSource> source)
+                                                    {
+                                                        foreach (var item in source)
+                                                        {
+                                                            return item;
+                                                        }
+
+                                                        return default;
+                                                    }
+                                                }
+                                                """;
+
     #endregion // Constants
 
     #region Tests
@@ -1683,50 +1705,51 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     }
 
     /// <summary>
-    /// Verifies that a query method is renamed when a query expression of another document does not see it, so the new name makes nothing ambiguous and the fix stays offered
+    /// Verifies that an extension method is renamed when a call of another document does not see it, so the new name makes nothing ambiguous and the fix stays offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-CASING-009")]
-    public async Task FixRenamesAQueryMethodThatNoQueryOfAnotherDocumentSees()
+    public async Task FixRenamesAnExtensionMethodThatNoCallOfAnotherDocumentSees()
     {
-        const string queryCode = """
-                                 using System.Collections.Generic;
-                                 using System.Linq;
+        const string callCode = """
+                                using System.Collections.Generic;
+                                using System.Linq;
 
-                                 public static class Use
-                                 {
-                                     public static IEnumerable<int> Run(List<int> values)
-                                     {
-                                         return from value in values select value * 2;
-                                     }
-                                 }
-                                 """;
+                                public static class Use
+                                {
+                                    public static int Run(List<int> values)
+                                    {
+                                        return values.First();
+                                    }
+                                }
+                                """;
 
         const string fixedCode = """
-                                 using System;
                                  using System.Collections.Generic;
 
                                  namespace Ext;
 
                                  public static class MyLinq
                                  {
-                                     public static IEnumerable<TResult> Select<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
+                                     public static TSource First<TSource>(this IEnumerable<TSource> source)
                                      {
                                          foreach (var item in source)
                                          {
-                                             yield return selector(item);
+                                             return item;
                                          }
+
+                                         return default;
                                      }
                                  }
                                  """;
 
-        await Verify(SelectExtensionSource,
+        await Verify(FirstExtensionSource,
                      fixedCode,
                      test =>
                      {
-                         test.TestState.Sources.Add(("/0/Test1.cs", queryCode));
-                         test.FixedState.Sources.Add(("/0/Test1.cs", queryCode));
+                         test.TestState.Sources.Add(("/0/Test1.cs", callCode));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", callCode));
                      });
     }
 
@@ -2108,7 +2131,15 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static test => test.NumberOfFixAllIterations = 1);
+        await Verify(testCode,
+                     fixedCode,
+                     static test =>
+                            {
+                                // The diagnostics that keep no fix are marked in the expected source
+                                test.FixedState.MarkupHandling = MarkupMode.Allow;
+                                test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                                test.NumberOfFixAllIterations = 1;
+                            });
     }
 
     /// <summary>
@@ -2219,7 +2250,15 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static test => test.NumberOfFixAllIterations = 1);
+        await Verify(testCode,
+                     fixedCode,
+                     static test =>
+                            {
+                                // The diagnostics that keep no fix are marked in the expected source
+                                test.FixedState.MarkupHandling = MarkupMode.Allow;
+                                test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                                test.NumberOfFixAllIterations = 1;
+                            });
     }
 
     /// <summary>
@@ -2345,7 +2384,15 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static test => test.NumberOfFixAllIterations = 1);
+        await Verify(testCode,
+                     fixedCode,
+                     static test =>
+                            {
+                                // The diagnostics that keep no fix are marked in the expected source
+                                test.FixedState.MarkupHandling = MarkupMode.Allow;
+                                test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                                test.NumberOfFixAllIterations = 1;
+                            });
     }
 
     /// <summary>
@@ -2483,7 +2530,15 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static test => test.NumberOfFixAllIterations = 1);
+        await Verify(testCode,
+                     fixedCode,
+                     static test =>
+                            {
+                                // The diagnostics that keep no fix are marked in the expected source
+                                test.FixedState.MarkupHandling = MarkupMode.Allow;
+                                test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                                test.NumberOfFixAllIterations = 1;
+                            });
     }
 
     /// <summary>

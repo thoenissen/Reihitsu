@@ -1042,7 +1042,15 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static test => test.NumberOfFixAllIterations = 1);
+        await Verify(testCode,
+                     fixedCode,
+                     static test =>
+                            {
+                                // The diagnostics that keep no fix are marked in the expected source
+                                test.FixedState.MarkupHandling = MarkupMode.Allow;
+                                test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                                test.NumberOfFixAllIterations = 1;
+                            });
     }
 
     #endregion // Tests

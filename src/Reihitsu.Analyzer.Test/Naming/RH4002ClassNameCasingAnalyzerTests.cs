@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Naming;
@@ -930,7 +931,15 @@ public class RH4002ClassNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4002Cl
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, static test => test.NumberOfFixAllIterations = 1);
+        await Verify(testCode,
+                     fixedCode,
+                     static test =>
+                            {
+                                // The diagnostics that keep no fix are marked in the expected source
+                                test.FixedState.MarkupHandling = MarkupMode.Allow;
+                                test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                                test.NumberOfFixAllIterations = 1;
+                            });
     }
 
     #endregion // Tests

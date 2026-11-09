@@ -484,6 +484,57 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
         await Verify(testCode, testCode);
     }
 
+    /// <summary>
+    /// Verifies that renaming an interface property also renames the record property that implements it and the positional parameter that declares that property
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-007")]
+    public async Task FixRenamesThePositionalParameterOfARecordPropertyThatImplementsTheInterfaceProperty()
+    {
+        const string testCode = """
+                                public interface IShape
+                                {
+                                    int {|RH4114:count|} { get; }
+                                }
+
+                                public record Shape(int count) : IShape;
+                                """;
+
+        const string fixedCode = """
+                                 public interface IShape
+                                 {
+                                     int Count { get; }
+                                 }
+
+                                 public record Shape(int Count) : IShape;
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that an interface property keeps its diagnostic but gets no fix when its rename would also rename a positional parameter of a record that a caller-argument expression of the same primary constructor names by a string
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheRenameReachesAPositionalParameterThatACallerArgumentExpressionNames()
+    {
+        const string testCode = """
+                                using System.Runtime.CompilerServices;
+
+                                public interface IShape
+                                {
+                                    int {|RH4114:count|} { get; }
+                                }
+
+                                public record Shape(int count, [CallerArgumentExpression("count")] string Expression = null) : IShape;
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

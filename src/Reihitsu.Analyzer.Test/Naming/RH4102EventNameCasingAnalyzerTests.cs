@@ -883,7 +883,7 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     }
 
     /// <summary>
-    /// Verifies a custom-event code fix with the dedicated internal provider
+    /// Verifies the code fix on an event with accessors
     /// </summary>
     /// <param name="testCode">Test source</param>
     /// <param name="fixedCode">Expected fixed source</param>
@@ -892,7 +892,7 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     /// <returns>A task that represents the asynchronous operation</returns>
     private static async Task VerifyCustomEvent(string testCode, string fixedCode, int diagnosticCount, bool fixAll = false)
     {
-        var test = new CSharpCodeFixVerifierTest<RH4102EventNameCasingAnalyzer, RH4102CustomEventNameCasingCodeFixProvider>
+        var test = new CSharpCodeFixVerifierTest<RH4102EventNameCasingAnalyzer, RH4102EventNameCasingCodeFixProvider>
                    {
                        TestCode = testCode,
                        FixedCode = fixedCode,
@@ -910,7 +910,7 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     }
 
     /// <summary>
-    /// Verifies a custom-event code fix with the dedicated internal provider in a project that references the given assembly
+    /// Verifies the code fix on an event with accessors in a project that references the given assembly
     /// </summary>
     /// <param name="testCode">Test source with markup for every expected diagnostic</param>
     /// <param name="fixedCode">Expected fixed source</param>
@@ -918,7 +918,7 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     /// <returns>A task that represents the asynchronous operation</returns>
     private static async Task VerifyCustomEventWithReference(string testCode, string fixedCode, MetadataReference reference)
     {
-        var test = new CSharpCodeFixVerifierTest<RH4102EventNameCasingAnalyzer, RH4102CustomEventNameCasingCodeFixProvider>
+        var test = new CSharpCodeFixVerifierTest<RH4102EventNameCasingAnalyzer, RH4102EventNameCasingCodeFixProvider>
                    {
                        TestCode = testCode,
                        FixedCode = fixedCode,
