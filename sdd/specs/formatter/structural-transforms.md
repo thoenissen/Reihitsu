@@ -5,7 +5,7 @@
 | ID prefix | FMT-STRUCT |
 | Status | Active |
 | Code owners | `StructuralTransformPhase`, `ConfigurableStructuralTransforms`, `ControlFlowBraceTransform`, `ExpressionBodiedMethodTransform`, `ExpressionBodiedConstructorTransform`, `ExpressionBodiedOperatorTransform`, `ExpressionBodiedConversionTransform`, `ExpressionBodiedFinalizerTransform`, `ExpressionBodiedLocalFunctionTransform`, `ExpressionBodiedTransformUtilities`, `ExpressionBodyToBlockConverter`, `AccessorExpressionBodyTransform`, `GetOnlyMemberExpressionBodyTransform`, `EmptyTypeDeclarationSemicolonTransform`, `EnumTrailingCommaRemovalTransform`, `InitializerTrailingCommaRemovalTransform`, `TrailingCommaRemovalUtilities`, `FieldDeclarationSplitTransform`, `AttributeListSplitTransform`, `AttributeListMergeTransform`, `AttributeListShapeUtilities` |
-| Uses | FMT-BREAK-013, FMT-BREAK-014, FMT-BREAK-027, FMT-BREAK-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-PIPE-029, FMT-SPACE-003, FMT-SPACE-004, FMT-SPACE-008, FMT-SPACE-012, FMT-SPACE-017, SHARED-ATTR-013, SHARED-COMMENT-012, SHARED-DOC-004 |
+| Uses | FMT-BREAK-013, FMT-BREAK-014, FMT-BREAK-027, FMT-BREAK-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-PIPE-029, FMT-SPACE-003, FMT-SPACE-004, FMT-SPACE-008, FMT-SPACE-012, FMT-SPACE-017, FMT-UNSUP-004, SHARED-ATTR-013, SHARED-DOC-004 |
 
 This spec covers the phase that rewrites syntax shape before any layout is decided, right after the tabs in whitespace are replaced (FMT-PIPE-001): braces for `if`/`else` bodies, block bodies for expression-bodied functions, expression bodies for simple accessors and get-only members, semicolon declarations for empty types, removal of trailing commas, one field per declaration, one attribute per list on declarations (FMT-STRUCT-028), and the merge of attribute lists that name one target (FMT-STRUCT-029). Every rewrite produces equivalent code (FMT-PIPE-003) and is refused for a construct whose comments, directives, or disabled text it could not carry over (FMT-PIPE-002). The RH7101 code fix splits a field by formatting it with its type as context (FMT-PIPE-029), so the field split, laid out by the phases after this one, is also that fix's output.
 
@@ -1021,11 +1021,11 @@ class C
 
 ### FMT-STRUCT-022 — Split fields keep their comments
 
-When the formatter splits a field under FMT-STRUCT-021, the declaration's leading trivia MUST stay on the first generated field; a comment that belongs to the first declarator — in its leading trivia, which FMT-STRUCT-030 delimits from the part every field repeats — MUST stay in front of the first field's name; a comment that trailed a separating comma MUST trail the field that comma now ends; and a comment in front of a later declarator MUST move onto its own line in front of that declarator's field.
+When the formatter splits a field under FMT-STRUCT-021, the declaration's leading trivia MUST stay on the first generated field, a comment inside a declarator's initializer value, behind the value's last token included, MUST stay in that value in the declarator's field, and the trivia behind the declaration's `;` MUST stay behind the last field.
 
-A declaration with a documentation comment, or with a comment in the part every generated field repeats, is not split (FMT-STRUCT-030, which delimits that part from the first declarator), so the leading trivia that stays on the first field holds no documentation comment, and no comment stands in the part of the declaration that every generated field repeats.
+The formatter refuses an input with a comment between the declaration's own tokens — behind the type, at a declarator's name, at an `=`, or at a `,` between declarators (FMT-UNSUP-004) — so no split field has a comment there. A declaration with a documentation comment, or with a comment in the part every generated field repeats, is not split (FMT-STRUCT-030), so the leading trivia that stays on the first field holds no documentation comment.
 
-Why: Each comment keeps describing the declarator it was written next to. A comment in front of the declaration stays in front of it, where its first field now begins. A documentation comment documents every field of the declaration, so keeping it on the first field would leave the others undocumented, and the declaration is not split instead (FMT-STRUCT-030).
+Why: Each comment keeps describing the code it was written next to. A comment in front of the declaration stays in front of it, where its first field now begins; a comment in a value stays in the value it describes; and a comment behind the declaration stays behind its end, which is now the last field's. A documentation comment documents every field of the declaration, so keeping it on the first field would leave the others undocumented, and the declaration is not split instead (FMT-STRUCT-030).
 
 Example:
 
@@ -1033,9 +1033,7 @@ Example:
 class C
 {
     // The coordinates
-    private int _x, // horizontal
-
-                /* vertical */ _y;
+    private int _x = 1 /* horizontal */, _y; // vertical
 }
 ```
 
@@ -1043,10 +1041,8 @@ class C
 class C
 {
     // The coordinates
-    private int _x; // horizontal
-
-    /* vertical */
-    private int _y;
+    private int _x = 1 /* horizontal */;
+    private int _y; // vertical
 }
 ```
 
@@ -1181,9 +1177,9 @@ The trivia a transform carries over keeps what the author wrote:
 
 The transform MAY drop the line breaks in front of the first comment that leads a braced statement, and the whitespace and line breaks of a token it removes when no carried comment stands next to them, such as the line break behind a removed `=>` or the whitespace in front of an expression that has no comment in front of it.
 
-The field split (FMT-STRUCT-021) writes the separators above and, beyond them, only the layout FMT-STRUCT-022 decides and no later phase decides again: exactly one space in front of each comment that trailed a separating comma, whatever the author wrote there; a line break behind the last of those comments when one of them spans lines — a delimited comment (`/* */`) whose closing `*/` stands on a later line than its opening — so the next field starts its own line; and a line break behind each comment it moves onto its own line in front of a later field. Comments that each start and end on one line write no such line break: `private int _x, /* a */ _y;` gives `private int _x; /* a */private int _y;` in the phase's output, while `private int _x, /* a` followed by a line `b */ _y;` gives `private int _x; /* a`, the line `b */` as the author wrote it, a line break, and `private int _y;`. It MUST NOT write indentation in front of a field it creates or of a comment it moves, and MUST NOT write a line break in front of a field it creates other than these separators: the indentation phase indents those lines (FMT-INDENT), and the line-break phase puts each field on a line of its own (FMT-BREAK). For example, `private int _x, _y;` becomes `private int _x;private int _y;` in the phase's output, `private int _x,// h` followed by a line `_y;` becomes `private int _x; // h`, a line break, and `private int _y;`, and `private int _x,` followed by a line `/* v */ _y;` becomes `private int _x;`, a line break, `/* v */`, a line break, and `private int _y;`, none of them indented.
+The field split (FMT-STRUCT-021) writes no separator beyond those above: no whitespace, line break, or indentation in front of a field it creates, which the indentation phase indents (FMT-INDENT) and the line-break phase puts on a line of its own (FMT-BREAK). For example, `private int _x, _y;` becomes `private int _x;private int _y;` in the phase's output, not indented.
 
-Why: The phases after this one, the trace, and the documentation phase read the text of this phase's tree, so the text has to be that tree (FMT-PIPE-021). Every other piece of layout is decided again by the phase that owns it — line breaks by FMT-BREAK, spaces by FMT-SPACE, columns by FMT-INDENT — so a transform that writes it makes one decision in two places (FMT-PIPE-001), and the two can disagree. A wrap is not a decision about the comments it carries (FMT-PIPE-013): the gaps the author left around them are what the phases see in code that needs no wrap, and the spacing phase keeps a gap in front of a comment as it finds it. An elastic marker is whitespace to the spacing phase but no character of the text, so a tree that carries one is spaced differently from its own text wherever no spacing rule decides the gap: the spacing phase collapses the marker as whitespace and keeps a space the text does not hold, the difference FMT-PIPE-021 rules out between a phase's tree and its text. The field split's one space in front of a comment that trailed a comma, and its line break behind a comment it moves in front of a later field, are where FMT-STRUCT-022 puts those comments, and no later phase puts them there: the spacing phase keeps the gap in front of a comment as it finds it, and the line-break phase leaves a comment on the line of the member behind it. A field behind the closing `*/` of a comment that spans lines does not start its line (SHARED-COMMENT-012); the split writes the line break in front of it itself, as document-level formatting has always placed that field, rather than depend on how the line-break phase treats a gap whose only line break stands inside a comment. Its indentation, and its line break in front of a field behind a single-line comment or behind no comment, are decided again by the indentation and line-break phases, in every entry point, also for the RH7101 fix (FMT-PIPE-029).
+Why: The phases after this one, the trace, and the documentation phase read the text of this phase's tree, so the text has to be that tree (FMT-PIPE-021). Every other piece of layout is decided again by the phase that owns it — line breaks by FMT-BREAK, spaces by FMT-SPACE, columns by FMT-INDENT — so a transform that writes it makes one decision in two places (FMT-PIPE-001), and the two can disagree. A wrap is not a decision about the comments it carries (FMT-PIPE-013): the gaps the author left around them are what the phases see in code that needs no wrap, and the spacing phase keeps a gap in front of a comment as it finds it. An elastic marker is whitespace to the spacing phase but no character of the text, so a tree that carries one is spaced differently from its own text wherever no spacing rule decides the gap: the spacing phase collapses the marker as whitespace and keeps a space the text does not hold, the difference FMT-PIPE-021 rules out between a phase's tree and its text. The indentation of a field the split creates, and the line break in front of it, are decided by the indentation and line-break phases, in every entry point, also for the RH7101 fix (FMT-PIPE-029); no comment stands between two of the fields (FMT-UNSUP-004), so none of them depends on where a comment ends.
 
 Example — the transform's output for the class of FMT-PIPE-021's first example holds `int Get(){return 42;}` followed by the line break the author wrote behind `;`, the author's line break between `// trailing` and the inserted `}` behind it, and no line break behind either inserted `}` of `M`. The final output is unchanged by this requirement:
 
@@ -1334,33 +1330,6 @@ The transform's output has no line break between the inner inserted `}` and the 
 Example — a created `return` and the expression behind it: `int A() => a;` gives `return a;` in the transform's output, `int B() => \u0061;` gives `return \u0061;`, `int C() => @a;` gives `return@a;`, `int D() => @"s";` gives `return@"s";`, and `int E() => (a);` gives `return(a);`. The final output of each has one space behind `return` (FMT-SPACE-012).
 
 Example — a comment directly at the arrow (FMT-STRUCT-006) keeps the other comments of the member where they are, and a comment that leads the expression keeps leading it: for `int Get() => // c` followed by a line `/* d */ 42;`, for `int Get() => // c` followed by a line `// d` and a line `42;`, and for `int Get()` followed by a line `/* c */ =>` and a line `/* d */ 42;`, the transform's output has a line break between the created `return` and `/* d */` or `// d`. This example decides the transform's output only; FMT-STRUCT-006 leaves the final place of these comments unspecified.
-
-Example — a comment that spans lines behind a separating comma ends the line of the field that comma now ends, and the next field starts its own line; the comment's later lines keep the text the author wrote, also when a one-line comment follows on its last line:
-
-```csharp
-class C
-{
-    private int _x, /* a
-       b */ _y;
-    private int _p, /* a */ /* b
-       c */ _q, /* d
-       e */ /* f */ _r;
-}
-```
-
-```csharp
-class C
-{
-    private int _x; /* a
-       b */
-    private int _y;
-    private int _p; /* a */ /* b
-       c */
-    private int _q; /* d
-       e */ /* f */
-    private int _r;
-}
-```
 
 ### FMT-STRUCT-027 — A removed comma's comment on a line of its own stays there
 
@@ -1592,17 +1561,12 @@ The method keeps one `[param: A, B]` list and one `[typevar: C, D]` list, and `[
 
 The formatter MUST NOT split a field declaration under FMT-STRUCT-021, and MUST leave it as one declaration, when either of these conditions holds:
 
-- The declaration has a documentation comment (SHARED-DOC-004): a `///` or `/** */` comment in its leading trivia, and the documentation mode of the syntax tree is `Parse` or `Diagnose`. In the documentation mode `None`, such a comment is an ordinary comment and does not keep the declaration from being split. A `///` or `/** */` comment in front of a later declarator is not a documentation comment of the declaration and does not keep it from being split; FMT-STRUCT-022 moves it in front of that declarator's field.
-- A comment stands in the part every generated field repeats. That part is the trivia of the tokens in front of the first declarator — the attribute lists, the modifiers, and the type — without the declaration's leading trivia, in front of its first token, and without the first declarator's leading trivia. It holds every comment inside or behind an attribute list, between two modifiers, between a modifier and the type, and inside the type, and every comment behind the type that is trailing trivia of the type's last token. A comment in the declaration's leading trivia is not in it, and neither is a comment inside the first declarator or behind it, such as one in its initializer or behind the comma that ends it. FMT-STRUCT-022 places those comments.
+- The declaration has a documentation comment (SHARED-DOC-004): a `///` or `/** */` comment in its leading trivia, and the documentation mode of the syntax tree is `Parse` or `Diagnose`. In the documentation mode `None`, such a comment is an ordinary comment and does not keep the declaration from being split.
+- A comment stands in the part every generated field repeats: in the trivia of a token in front of the first declarator's name — an attribute list, a modifier, or the type — other than the declaration's leading trivia, in front of its first token. That holds every comment inside or behind an attribute list, between two modifiers, between a modifier and the type, and inside the type. A comment in the declaration's leading trivia is not in it.
 
-This requirement is the one statement of where the repeated part ends; every other requirement that needs that boundary refers to it instead of restating it. The boundary is the token the compiler attaches a comment to, not the comment's line or kind. The trailing trivia of the type's last token runs to the first line break behind the type that no comment spans: the end of the type's line, or, when a comment in that trailing trivia starts on the type's line and spans lines, the end of the line where that comment ends. When the documentation mode is `Parse` or `Diagnose`, it ends earlier, in front of the first `///` or `/** */` comment behind the type in front of that line break: the compiler never attaches such a comment to the token in front of it. Everything after the end of that trailing trivia, up to the first declarator's name, is the first declarator's leading trivia. So these comments belong to the first declarator; they do not keep the declaration from being split, and they stay in front of the first field's name only (FMT-STRUCT-022):
+This requirement is the one statement of where the repeated part ends; every other requirement that needs that boundary refers to it instead of restating it. A comment behind the type's last token is in the repeated part as well, and a comment in the trivia of the first declarator's name is not; the formatter refuses an input that holds either before any phase runs (FMT-UNSUP-004), so the split meets neither.
 
-- every comment that starts behind that line break;
-- when the documentation mode is `Parse` or `Diagnose`, the first `///` or `/** */` comment behind the type in front of that line break, and every comment that starts behind it in front of that line break, ordinary comments (`//`, `/* */`) included; also when the first declarator starts the next line.
-
-Every other comment behind the type in front of that line break is in the repeated part and keeps the declaration from being split: in every documentation mode, an ordinary comment in front of the first `///` or `/** */` comment, or in front of a line break with no such comment in front of it, also when the first declarator starts the next line; and in the documentation mode `None`, where a `///` or `/** */` comment is an ordinary comment, every comment behind the type in front of that line break. No comment that belongs to the first declarator is a documentation comment of the declaration (SHARED-DOC-004).
-
-Why: A documentation comment documents every field of the declaration, and the split keeps the declaration's leading trivia on the first field only (FMT-STRUCT-022), so every other field would lose its documentation. A comment between the first token and the first declarator stands in the attributes, modifiers, and type that every generated field repeats (FMT-STRUCT-021): repeating it would put a copy next to fields it was not written next to, and keeping it on one field would separate it from the others it described. Both results are what FMT-STRUCT-024 refuses. A comment on its own line in front of the first name stands in no repeated part: it is written next to the first declarator, stays next to it, and is copied nowhere, so FMT-STRUCT-024 does not refuse that split. When documentation comments are not parsed, the compiler attaches a documentation-style comment in the declaration's leading trivia to no field, and it stays in front of the declaration's first field like any comment in its leading trivia. The same holds, when documentation comments are parsed, for the first `///` or `/** */` comment behind the type and every comment behind it on that line: the compiler makes them part of the first declarator, the split keeps them in front of the first field, and no other field gets a copy. The boundary is stated by the token a comment is attached to because that is what the split repeats: every generated field repeats the tokens in front of the first declarator with their trivia, and only the first field gets the first declarator with its leading trivia. A boundary by line or by comment kind would also not survive formatting: the documentation-comment phase moves the first declarator's leading trivia off the type's line, so a comment judged by its line would stand on a later line after one pass and be decided the other way on the next (FMT-PIPE-004).
+Why: A documentation comment documents every field of the declaration, and the split keeps the declaration's leading trivia on the first field only (FMT-STRUCT-022), so every other field would lose its documentation. A comment between the first token and the first declarator stands in the attributes, modifiers, and type that every generated field repeats (FMT-STRUCT-021): repeating it would put a copy next to fields it was not written next to, and keeping it on one field would separate it from the others it described. Both results are what FMT-STRUCT-024 refuses. When documentation comments are not parsed, the compiler attaches a documentation-style comment in the declaration's leading trivia to no field, and it stays in front of the declaration's first field like any comment in its leading trivia. The boundary is the first declarator's name because every generated field repeats the tokens in front of it with their trivia.
 
 Example — when the documentation mode is `Parse`, none of these declarations is split:
 
@@ -1619,19 +1583,14 @@ class C
     /** <summary>The sizes</summary> */
     public int Width, Height;
 
-    private int /* c */ _first, _second;
-
     private /* c */ int _a, _b;
 
     [Obsolete /* why */]
     private int _c, _d;
-
-    private int // c
-        _e, _f;
 }
 ```
 
-Example — the other side of each condition: an ordinary comment in front of the declaration and a comment inside the first declarator do not keep a declaration from being split:
+Example — the other side of each condition: an ordinary comment in front of the declaration and a comment inside the first declarator's value do not keep a declaration from being split:
 
 ```csharp
 class C
@@ -1639,7 +1598,7 @@ class C
     // The coordinates
     public int X, Y;
 
-    private int _first = /* c */ 1, _second;
+    private int _first = 1 /* c */, _second;
 }
 ```
 
@@ -1650,98 +1609,10 @@ class C
     public int X;
     public int Y;
 
-    private int _first = /* c */ 1;
+    private int _first = 1 /* c */;
     private int _second;
 }
 ```
-
-Example — a comment on its own line in front of the first declarator's name is the first declarator's: the declaration is split, the comment stays in front of `_first` only, and each field keeps the line break its declarator had:
-
-```csharp
-class C
-{
-    private int
-        /* c */ _first, _second;
-}
-```
-
-```csharp
-class C
-{
-    private int
-    /* c */ _first;
-    private int
-    _second;
-}
-```
-
-Example — when the documentation mode is `Parse`, a `///` or `/** */` comment behind the type on the type's line is the first declarator's: the declaration is split, and the comment stays in the first field only. Where the comment stands inside that field is not this requirement's decision; the example shows the whole formatted output:
-
-```csharp
-class C
-{
-    private int /** c */ _first, _second;
-
-    private int /// <summary>c</summary>
-        _g, _h;
-}
-```
-
-```csharp
-class C
-{
-    private int
-
-    /** c */ _first;
-    private int _second;
-
-    private int
-
-    /// <summary>
-    /// c
-    /// </summary>
-    _g;
-    private int _h;
-}
-```
-
-In the documentation mode `None`, both comments are ordinary comments behind the type, and neither declaration is split.
-
-Example — when the documentation mode is `Parse`, a comment that starts behind the first `/** */` comment on the type's line is the first declarator's as well, an ordinary one included: the first two declarations are split, and both comments stay in the first field only. An ordinary comment in front of the `/** */` comment is trailing trivia of the type, in the repeated part: the third declaration is not split. As in the example above, where the comments stand inside the first field is not this requirement's decision:
-
-```csharp
-class C
-{
-    private int /** c */ /* d */ _first, _second;
-
-    private int /** c */ // d
-        _g, _h;
-
-    private int /* d */ /** c */ _a, _b;
-}
-```
-
-```csharp
-class C
-{
-    private int
-
-    /** c */ /* d */ _first;
-    private int _second;
-
-    private int
-
-    /** c */ // d
-    _g;
-    private int _h;
-
-    private int /* d */
-
-    /** c */ _a, _b;
-}
-```
-
-In the documentation mode `None`, every comment behind the type is trailing trivia of the type, and none of the three declarations is split.
 
 Example — in the documentation mode `None`, the documentation comments above are ordinary comments, and the declarations they precede are split:
 

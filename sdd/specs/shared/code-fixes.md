@@ -5,7 +5,7 @@
 | ID prefix | SHARED-FIX |
 | Status | Active |
 | Code owners | — |
-| Uses | FMT-PIPE-007, FMT-PIPE-017, FMT-PIPE-018, RH2001-009, RH5111-004, RH7004-004, RH7309-006, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002, SHARED-ORDER-006, SHARED-ORDER-007, SHARED-ORDER-008 |
+| Uses | FMT-PIPE-007, FMT-PIPE-017, FMT-PIPE-018, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-004, RH2001-009, RH5111-004, RH7004-004, RH7309-006, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002, SHARED-ORDER-006, SHARED-ORDER-007, SHARED-ORDER-008 |
 
 This spec covers what holds for every code fix of an analyzer rule, so a rule spec states only what its own fix produces and when it is withheld. It applies to every rule whose header names a code fix, without being listed under `Uses`; SHARED-FIX-002 applies to the rules whose header says `Fix All`.
 
@@ -1129,3 +1129,25 @@ public class C
 is reported, and no code fix is offered: whether `_b` has an initializer depends on the build, and the fix does not work it out, although no build would change here. Without the `#if` group, the fix moves `_c` in front of `_a`.
 
 Example — whole members in an excluded branch, for RH7109: the examples of SHARED-ORDER-007, where the fix counts each member of the branch as present and withholds or offers the move on that count.
+
+### SHARED-FIX-010 — A fix whose formatting the formatter refuses is withheld
+
+A code fix that formats its result through the formatter MUST NOT be offered when the formatter refuses that formatting as unsupported (FMT-UNSUP-001): when the node it formats — or, for a fix that formats its target in a context, the context (FMT-UNSUP-002) — holds a shape the formatter declares unsupported. The diagnostic is still reported.
+
+Why: The formatter returns a refused input unchanged, so the fix would either change nothing (SHARED-FIX-005) or leave its edit unformatted (SHARED-FIX-007). A reported diagnostic without a fix is a supported end state, and the shapes the formatter refuses are rare.
+
+Example — RH7101, whose fix formats the field declaration in its type: in
+
+```csharp
+class C
+{
+    private int _a, {|RH7101:_b|};
+
+    void M()
+    {
+        int /* c */ x = 1;
+    }
+}
+```
+
+the declaration `_a, _b` holds no comment, but the type holds a declaration that the formatter refuses (FMT-UNSUP-004), and no code fix is offered.

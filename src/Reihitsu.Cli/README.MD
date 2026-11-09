@@ -31,6 +31,7 @@ reihitsu-format [options] [<paths>...]
 | `--verbose` | Show detailed output for each file.                                |
 | `--force`   | Skip the confirmation prompt that is shown when a run would format more than 25 files. Required for large runs when standard input is not interactive (e.g. CI). |
 | `--utf8-bom` | Normalize processed files to UTF-8 with a byte order mark. Encoding-only changes are reported in `--check` and `--dry-run` modes. |
+| `--suppress-unsupported` | Report a file whose syntax the formatter does not support as a warning instead of an error. Such a file is never changed, and the warning does not change the exit code. |
 | `--lang-version <version>` | C# language version to parse and format for, such as `12`, `12.0`, `latest`, or `preview` (default: `latest`). `latest` selects C# 14.0, the newest version the formatter supports; newer values such as `preview` are lowered to 14.0 with a warning. Version-dependent rules follow it; for example, empty types keep their `{ }` body below C# 12. An invalid value fails with exit code `2`. `LangVersion` from project files is not read. |
 | `--help`    | Show help message.                                                 |
 | `--version` | Show version information.                                          |

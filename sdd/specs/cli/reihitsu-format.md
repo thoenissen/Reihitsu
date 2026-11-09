@@ -5,7 +5,7 @@
 | ID prefix | CLI |
 | Status | Active |
 | Code owners | `Program`, `ParseResult`, `FormatCommandHandler`, `ExitCodes`, `GeneratedFileUtilities`, `FileProcessResult`, `DefaultFileSystem`, `DefaultConsoleInput`, `DefaultSourceFormatter`, `DiffGenerator` |
-| Uses | FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-008 |
+| Uses | FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-008, FMT-UNSUP-001 |
 
 This spec covers the `reihitsu-format` .NET tool: its arguments, which files it selects and skips, how it reads and writes them, the `--check` and `--dry-run` modes, its console output, and its exit codes. What the formatter does to a file's content is specified under `formatter/`.
 
@@ -22,7 +22,7 @@ Paths in the example outputs are shortened to `/work/…`; the tool prints full 
 
 ### CLI-001 — Arguments are options and paths
 
-The CLI MUST accept the options `--check`, `--dry-run`, `--verbose`, `--force`, `--utf8-bom`, `--lang-version <version>`, `--help` (and `-h`), and `--version`, in any order and mixed with paths. Every other argument that starts with `-` MUST be an unknown option, unless it follows the argument `--`, after which every argument is a path. Without a path, the current directory MUST be used.
+The CLI MUST accept the options `--check`, `--dry-run`, `--verbose`, `--force`, `--utf8-bom`, `--suppress-unsupported`, `--lang-version <version>`, `--help` (and `-h`), and `--version`, in any order and mixed with paths. Every other argument that starts with `-` MUST be an unknown option, unless it follows the argument `--`, after which every argument is a path. Without a path, the current directory MUST be used.
 
 Why: Paths that start with `-` exist; `--` is the conventional way to pass them without changing how options are recognized.
 
@@ -282,3 +282,33 @@ This run would format 26 file(s), but standard input is not interactive, so the 
 ```
 
 exit code 2.
+
+### CLI-019 — An unsupported file is never changed and is reported as an error
+
+The CLI MUST leave a file unchanged, in every mode, when the formatter refuses it as unsupported (FMT-UNSUP-001), also when `--utf8-bom` would change its encoding, and MUST report it as an error that names the file, the location of the unsupported shape, and the reason.
+
+This requirement does not decide the wording or the stream of that report, the exit code it leads to, or how `--check`, `--dry-run`, and the summary count the file.
+
+Why: The formatter refuses the whole file, so the CLI has nothing to write; writing only the encoding would change a file the formatter declined to touch. Reporting the file says why it was left as written, which a silent skip would hide: the user can rewrite the shape by hand.
+
+Example — `u.cs` holds
+
+```csharp
+class C
+{
+    void M()
+    {
+        int /* c */ a = 1;
+    }
+}
+```
+
+`reihitsu-format u.cs` leaves the file unchanged and reports it as an error that names `u.cs`, the location of the comment, and the reason.
+
+### CLI-020 — `--suppress-unsupported` reports an unsupported file as a warning
+
+With `--suppress-unsupported`, the CLI MUST report a file the formatter refuses as unsupported as a warning instead of an error, MUST still leave it unchanged (CLI-019), and the warning MUST NOT change the exit code: the run exits with the code it would have without that file.
+
+Why: A team that adopts the formatter on code with unsupported shapes needs a green run while the shapes are rewritten by hand, without losing the list of files that need it. The file still stays unchanged, because formatting it would put the shape back in front of the phases that no longer handle it.
+
+Example — with `u.cs` from CLI-019 and an unformatted `A.cs`, `reihitsu-format --check --suppress-unsupported u.cs A.cs` reports `u.cs` as a warning, reports `A.cs` as not formatted, and exits with code 1, the code the run has for `A.cs` alone.
