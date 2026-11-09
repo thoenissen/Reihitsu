@@ -32,6 +32,7 @@
 | 9 | Implementer | Older test `FixRenamesAQueryMethodThatNoQueryOfAnotherDocumentSees` expects `select` → `Select`, which SHARED-CASING-011 now withholds | Test implementer keeps its SHARED-CASING-009 purpose with a method name outside the SHARED-CASING-011 list; the withheld `select` case is already covered by the new tests | Decisions 3 and 6 accepted withholding for the rare class | Withholding for a rare class | — |
 | 10 | Implementer | Empty `RH4102CustomEventNameCasingCodeFixProvider` kept only for two test helpers (S2094) | Test implementer switches the helpers to `RH4102EventNameCasingCodeFixProvider`; implementer then deletes the empty type | Dead type; one provider now covers both event kinds | Internal type | — |
 | 11 | Implementer | SHARED-CASING-012 check also withholds a positional record property rename that cascades to a primary-constructor parameter named in `CallerArgumentExpression` | Accept; test implementer adds one test locking it | Within SHARED-FIX-003 Run time; rare class | Withholding for a rare class | — |
+| 12 | Test implementer | The three `NoFixIsOfferedWhenTheNewNameMakesAQueryOf…Ambiguous` tests now pass through SHARED-CASING-011 alone; SHARED-CASING-009's ambiguity path has no test with a name outside the list, because the renamer rewrites call sites (follow-up candidate) | Accept | Covering it needs the follow-up's behavior first | Tests only | 05f7b33 |
 
 ## Follow-up candidates
 
@@ -44,5 +45,6 @@
 - Done: test implementer (03-test-implementer.md, 1c84020). #1597, #1016, #1015, #1084 reproduced (74 red tests); #1598 NOT reproduced (5 green characterization tests in RH4109 tests).
 - #1598 answered: tests only, PR uses `Closes #1598`; #1598 skips the remaining build roles (spec checker and validator still cover its tests).
 - Done: implementer (04-implementer.md, 87ce0ad): 11 failing tests disputed; decisions 8–11.
-- Next: test implementer repair (decisions 8–11), then implementer deletes empty RH4102 custom provider; then cleaner.
+- Done: test implementer repair (05-test-implementer.md, 05f7b33): analyzer 7842/0, architecture 117/0 (Debug). Release breaks on RH7110 in CasingAnalyzerBase (cleaner).
+- Next: implementer deletes empty RH4102 custom provider → spec author removes its owner rows (RH4102.md:11, sdd/specs/README.md:109) → cleaner (RH7110, S2094).
 - (old) implementer for #1597, #1016, #1015, #1084 (note: merging the two RH4102 providers would require changing existing tests that name `RH4102CustomEventNameCasingCodeFixProvider`).
