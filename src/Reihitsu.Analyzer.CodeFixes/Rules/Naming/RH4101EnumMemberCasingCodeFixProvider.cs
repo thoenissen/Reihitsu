@@ -23,7 +23,7 @@ public class RH4101EnumMemberCasingCodeFixProvider : CasingCodeFixProviderBase<E
     /// Constructor
     /// </summary>
     public RH4101EnumMemberCasingCodeFixProvider()
-        : base(RH4101EnumMemberCasingAnalyzer.DiagnosticId, CodeFixResources.RH4101Title, CasingUtilities.ToPascalCase)
+        : base(new RH4101EnumMemberCasingAnalyzer(), CodeFixResources.RH4101Title, CasingUtilities.ToPascalCase)
     {
     }
 

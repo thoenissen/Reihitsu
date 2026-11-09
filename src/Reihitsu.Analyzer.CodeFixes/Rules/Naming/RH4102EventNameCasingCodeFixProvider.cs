@@ -11,11 +11,12 @@ using Reihitsu.Core;
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Naming;
 
 /// <summary>
-/// Providing fixes for <see cref="RH4102EventNameCasingAnalyzer"/>
+/// Providing fixes for <see cref="RH4102EventNameCasingAnalyzer"/>, for field-like events and events with accessors alike, so
+/// that Fix All renames both kinds together
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH4102EventNameCasingCodeFixProvider))]
-public class RH4102EventNameCasingCodeFixProvider : CasingCodeFixProviderBase<VariableDeclaratorSyntax>
+public class RH4102EventNameCasingCodeFixProvider : CasingCodeFixProviderBase<SyntaxNode>
 {
     #region Constructor
 
@@ -23,7 +24,7 @@ public class RH4102EventNameCasingCodeFixProvider : CasingCodeFixProviderBase<Va
     /// Constructor
     /// </summary>
     public RH4102EventNameCasingCodeFixProvider()
-        : base(RH4102EventNameCasingAnalyzer.DiagnosticId, CodeFixResources.RH4102Title, CasingUtilities.ToPascalCase)
+        : base(new RH4102EventNameCasingAnalyzer(), CodeFixResources.RH4102Title, CasingUtilities.ToPascalCase)
     {
     }
 
@@ -32,9 +33,14 @@ public class RH4102EventNameCasingCodeFixProvider : CasingCodeFixProviderBase<Va
     #region CasingCodeFixProviderBase
 
     /// <inheritdoc/>
-    protected override string GetIdentifier(VariableDeclaratorSyntax node)
+    protected override string GetIdentifier(SyntaxNode node)
     {
-        return node.Identifier.ValueText;
+        return node switch
+               {
+                   VariableDeclaratorSyntax variableDeclarator => variableDeclarator.Identifier.ValueText,
+                   EventDeclarationSyntax eventDeclaration => eventDeclaration.Identifier.ValueText,
+                   _ => string.Empty
+               };
     }
 
     #endregion // CasingCodeFixProviderBase

@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Naming;
@@ -316,6 +317,106 @@ public class RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests : BatchC
                                 """;
 
         await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a record parameter named by the string literal of a caller-argument expression is still reported
+    /// but not fixed, because after the rename the attribute would name no parameter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-012")]
+    [Requirement("RH4120-003")]
+    public async Task NoFixIsOfferedWhenACallerArgumentExpressionLiteralNamesTheOldName()
+    {
+        const string testCode = """
+                                using System.Runtime.CompilerServices;
+
+                                public record R(bool {|RH4120:flag|}, [CallerArgumentExpression("flag")] string Expression = null);
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a record parameter whose new name is the string literal of a caller-argument expression is still
+    /// reported but not fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-012")]
+    [Requirement("RH4120-003")]
+    public async Task NoFixIsOfferedWhenACallerArgumentExpressionLiteralNamesTheNewName()
+    {
+        const string testCode = """
+                                using System.Runtime.CompilerServices;
+
+                                public record R(bool {|RH4120:flag|}, [CallerArgumentExpression("Flag")] string Expression = null);
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a record parameter named by a <c>nameof</c> caller-argument expression is renamed together with the
+    /// <c>nameof</c> argument
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-012")]
+    [Requirement("RH4120-003")]
+    public async Task FixIsOfferedWhenACallerArgumentExpressionNamesTheParameterWithNameof()
+    {
+        const string testCode = """
+                                using System.Runtime.CompilerServices;
+
+                                public record R(bool {|RH4120:flag|}, [CallerArgumentExpression(nameof(flag))] string Expression = null);
+                                """;
+
+        const string fixedCode = """
+                                 using System.Runtime.CompilerServices;
+
+                                 public record R(bool Flag, [CallerArgumentExpression(nameof(Flag))] string Expression = null);
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All leaves a record parameter named by a caller-argument expression, and renames the parameter
+    /// of the other record of the document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-012")]
+    [Requirement("RH4120-003")]
+    public async Task FixAllSkipsTheParameterNamedByACallerArgumentExpression()
+    {
+        const string testCode = """
+                                using System.Runtime.CompilerServices;
+
+                                public record R(bool {|RH4120:flag|}, [CallerArgumentExpression("flag")] string Expression = null);
+
+                                public record S(int {|RH4120:count|});
+                                """;
+
+        const string fixedCode = """
+                                 using System.Runtime.CompilerServices;
+
+                                 public record R(bool {|RH4120:flag|}, [CallerArgumentExpression("flag")] string Expression = null);
+
+                                 public record S(int Count);
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static test =>
+                            {
+                                // The diagnostics that keep no fix are marked in the expected source
+                                test.FixedState.MarkupHandling = MarkupMode.Allow;
+                                test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                                test.NumberOfFixAllIterations = 1;
+                            });
     }
 
     #endregion // Tests

@@ -23,7 +23,7 @@ public class RH4005InterfaceNameCasingCodeFixProvider : CasingCodeFixProviderBas
     /// Constructor
     /// </summary>
     public RH4005InterfaceNameCasingCodeFixProvider()
-        : base(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, CodeFixResources.RH4005Title, OnTransformIdentifier)
+        : base(new RH4005InterfaceNameCasingAnalyzer(), CodeFixResources.RH4005Title, OnTransformIdentifier)
     {
     }
 

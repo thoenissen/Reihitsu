@@ -23,7 +23,7 @@ public class RH4121TypeParameterNameCasingCodeFixProvider : CasingCodeFixProvide
     /// Constructor
     /// </summary>
     public RH4121TypeParameterNameCasingCodeFixProvider()
-        : base(RH4121TypeParameterNameCasingAnalyzer.DiagnosticId, CodeFixResources.RH4121Title, CasingUtilities.ToTypeParameterName)
+        : base(new RH4121TypeParameterNameCasingAnalyzer(), CodeFixResources.RH4121Title, CasingUtilities.ToTypeParameterName)
     {
     }
 
