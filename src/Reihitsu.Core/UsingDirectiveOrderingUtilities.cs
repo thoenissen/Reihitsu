@@ -90,7 +90,7 @@ public static class UsingDirectiveOrderingUtilities
     {
         return usingDirective.Alias != null
                    ? usingDirective.Alias.Name.Identifier.ValueText
-                   : usingDirective.Name?.ToString() ?? string.Empty;
+                   : StripGlobalQualifier(usingDirective.Name?.ToString() ?? string.Empty);
     }
 
     /// <summary>
@@ -207,6 +207,7 @@ public static class UsingDirectiveOrderingUtilities
                               .ThenBy(obj => GetNamespaceGroupOrderKey(obj.UsingDirective), StringComparer.OrdinalIgnoreCase)
                               .ThenBy(obj => GetRootNamespace(obj.UsingDirective), StringComparer.Ordinal)
                               .ThenBy(obj => GetSortKey(obj.UsingDirective), StringComparer.OrdinalIgnoreCase)
+                              .ThenBy(obj => IsGlobalQualifiedName(obj.UsingDirective))
                               .ThenBy(obj => obj.DirectiveIndex)
                               .Select(obj => obj.UsingDirective)
                               .ToList();
@@ -347,6 +348,18 @@ public static class UsingDirectiveOrderingUtilities
         return name.StartsWith(globalQualifier, StringComparison.Ordinal)
                    ? name.Substring(globalQualifier.Length)
                    : name;
+    }
+
+    /// <summary>
+    /// Determines whether a using directive's name carries a leading <c>global::</c> qualifier
+    /// </summary>
+    /// <param name="usingDirective">Using directive</param>
+    /// <returns><see langword="true"/> if the directive's name carries a leading <c>global::</c> qualifier</returns>
+    private static bool IsGlobalQualifiedName(UsingDirectiveSyntax usingDirective)
+    {
+        var name = usingDirective.Name?.ToString() ?? string.Empty;
+
+        return usingDirective.Alias == null && StripGlobalQualifier(name) != name;
     }
 
     /// <summary>

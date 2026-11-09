@@ -164,6 +164,61 @@ public class UsingDirectiveOrderingUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that the sort key strips a leading <c>global::</c> qualifier, matching the group key
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-USING-007")]
+    public void GetSortKeyStripsGlobalQualifier()
+    {
+        var usingDirective = CoreSyntaxTestHelper.ParseCompilationUnit("""
+                                                                       using global::System.Text;
+                                                                       """)
+                                                 .Usings
+                                                 .Single();
+
+        Assert.AreEqual("System.Text", UsingDirectiveOrderingUtilities.GetSortKey(usingDirective));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>global::</c>-qualified directive sorts by its unqualified name within its group
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-USING-007")]
+    public void ComputeCanonicalOrderSortsGlobalQualifiedDirectivesByTheirUnqualifiedName()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("""
+                                                                        using System.Linq;
+                                                                        using global::System.Text;
+                                                                        using System;
+                                                                        """)
+                                                  .Usings;
+
+        var canonical = UsingDirectiveOrderingUtilities.ComputeCanonicalOrder(usingDirectives);
+
+        Assert.AreSequenceEqual(["using System;", "using System.Linq;", "using global::System.Text;"],
+                                canonical.Select(obj => obj.ToString()).ToArray());
+    }
+
+    /// <summary>
+    /// Verifies that on an otherwise identical name, the unqualified directive sorts before the <c>global::</c>-qualified one
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-USING-007")]
+    public void ComputeCanonicalOrderSortsUnqualifiedNameBeforeGlobalQualifiedOnEqualKeys()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("""
+                                                                        using global::System.Text;
+                                                                        using System.Text;
+                                                                        """)
+                                                  .Usings;
+
+        var canonical = UsingDirectiveOrderingUtilities.ComputeCanonicalOrder(usingDirectives);
+
+        Assert.AreSequenceEqual(["using System.Text;", "using global::System.Text;"],
+                                canonical.Select(obj => obj.ToString()).ToArray());
+    }
+
+    /// <summary>
     /// Verifies that a <c>global::</c>-qualified System import is classified into the System namespace group
     /// </summary>
     [TestMethod]

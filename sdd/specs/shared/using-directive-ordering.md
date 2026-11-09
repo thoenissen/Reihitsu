@@ -269,7 +269,7 @@ class C
 
 ### SHARED-USING-007 — Alphabetical order within a group, stable on ties
 
-Within a group, analyzer and formatter MUST order directives by their sort key — the alias name for an alias directive, otherwise the imported namespace or type name — compared case-insensitively (ordinal). Directives whose keys compare equal MUST keep their source order.
+Within a group, analyzer and formatter MUST order directives by their sort key — the alias name for an alias directive, otherwise the imported namespace or type name after removing a leading `global::` qualifier, matching the root namespace used to group the directive (SHARED-USING-004) — compared case-insensitively (ordinal). When this leaves two directives with an equal key only because one of them carries a `global::` qualifier that the other does not, the directive without the qualifier MUST sort first. Directives whose keys compare equal for every other reason MUST keep their source order.
 
 A rule that reports a directive out of this order MUST compare the directive with every earlier directive of its group in the block, whatever directives of other groups or kinds lie between them, and MUST report it when its sort key comes before the key of any of them. Every other rule that checks the order of a sequence of elements MUST compare an element in the same way: with every earlier element of its group, whatever lies between them.
 

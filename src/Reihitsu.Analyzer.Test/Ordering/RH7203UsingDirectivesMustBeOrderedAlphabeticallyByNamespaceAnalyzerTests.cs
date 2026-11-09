@@ -463,6 +463,32 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
     }
 
     /// <summary>
+    /// Verifies that a line starting with <c>#</c> inside a block comment, rather than a real preprocessor directive,
+    /// does not block reordering
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("SHARED-USING-009")]
+    public async Task HashInsideABlockCommentDoesNotBlockReporting()
+    {
+        const string testCode = """
+                                /*
+                                # not a directive
+                                */
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
     /// Verifies that equal keys, directives of other groups, and static and alias directives are not reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
