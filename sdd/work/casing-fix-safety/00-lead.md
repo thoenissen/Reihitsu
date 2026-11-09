@@ -37,6 +37,7 @@
 | 14 | Auditor (round 1) | Finding 2: vacuous linked-document assertion in the #1598 test helper | Repair round 1: test implementer makes it check that the copies are linked | PR-introduced test weakness | Tests only | — |
 | 15 | Auditor (round 1) | Hint: SHARED-CASING-011 also withholds `add`, `where`, `dispose` in Java-style code | Keep decision 6 | The input already violates RH4103 itself; withholding only removes a fix for those exact 21 names | Withholding for a rare class | — |
 | 16 | Repair 1 spec | Spec author's departures: C# 11 condition on the `nameof` exemption; no exemption for extension-block members | Accept both | Conservative cheap refusal of a rare class; without the C# 11 condition the finding returns under C# 10 | Withholding for a rare class | 2499cbe |
+| 17 | Repair 1 tests | Example (d): test implementer observed that under C# 10 the renamer renames the `nameof` operand and behavior is kept, contradicting the spec's *Why* | Keep the C# 11 condition (conservative, cheap language-version check; evidence between the two roles conflicts); spec author rewords the *Why* so it states a conservative refusal instead of a binding claim | A conservative refusal of a rare class is always allowed; a spec must not assert an unverified compiler fact | Withholding for a rare class | — |
 
 ## Follow-up candidates
 
@@ -55,5 +56,5 @@
 - Done: cleaner (08-cleaner.md, 5290043): Release 0 warnings.
 - Done: spec checker (09-spec-checker.md, 3d0271b): consistent, no findings.
 - Done: auditor (10-auditor.md, 92ee46f), audited head 5a1e702 vs main b673099: findings 1 (high), 2 (low).
-- Repair round 1 worklist: (1) DONE spec author (11-spec-author.md, 2499cbe); (2) test implementer: tests for cases a, b, c + linked-document assertion; (3) implementer widens guard; then cleaner, spec checker, auditor (repair only), validator.
+- Repair round 1 worklist: (1) DONE spec author (11-spec-author.md, 2499cbe); (2) DONE test implementer (12-test-implementer.md, 97b1643; 5 red); (3) implementer widens guard; (3b) spec author rewords SHARED-CASING-012 *Why* (decision 17); then cleaner, spec checker, auditor (repair only), validator.
 - (old) implementer for #1597, #1016, #1015, #1084 (note: merging the two RH4102 providers would require changing existing tests that name `RH4102CustomEventNameCasingCodeFixProvider`).
