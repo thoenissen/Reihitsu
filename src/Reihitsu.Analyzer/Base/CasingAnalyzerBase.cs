@@ -66,13 +66,6 @@ public abstract class CasingAnalyzerBase : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
-    /// Gets the locations of the names to check
-    /// </summary>
-    /// <param name="node">Syntax node</param>
-    /// <returns>The locations of the names to check</returns>
-    protected abstract IEnumerable<(string Name, Location Location)> GetLocations(SyntaxNode node);
-
-    /// <summary>
     /// Determines whether the rule accepts a name, that is, whether it reports no diagnostic for a declaration it checks
     /// that carries this name
     /// </summary>
@@ -82,6 +75,13 @@ public abstract class CasingAnalyzerBase : DiagnosticAnalyzerBase
     {
         return _casingValidation(name);
     }
+
+    /// <summary>
+    /// Gets the locations of the names to check
+    /// </summary>
+    /// <param name="node">Syntax node</param>
+    /// <returns>The locations of the names to check</returns>
+    protected abstract IEnumerable<(string Name, Location Location)> GetLocations(SyntaxNode node);
 
     /// <summary>
     /// Analyzes the node
