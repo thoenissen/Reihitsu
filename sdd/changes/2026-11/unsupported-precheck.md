@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-UNSUP (new spec `formatter/unsupported-syntax.md`: FMT-UNSUP-001 to FMT-UNSUP-007), FMT-PIPE-001, FMT-PIPE-017, FMT-PIPE-027, FMT-PIPE-029, FMT-PIPE-031, FMT-STRUCT-022, FMT-STRUCT-023, FMT-STRUCT-026, FMT-STRUCT-030, FMT-INDENT-015, FMT-BLANK-018, FMT-SPACE-012, FMT-SPACE-014, FMT-DOC-003, RH2001-007, RH2001-009, RH7101-004, RH7101-006, RH7101-007, SHARED-FIX-010, CLI-001, CLI-014, CLI-017, CLI-019, CLI-020, PLAY-008 |
 
@@ -10,7 +10,7 @@
 
 The formatter gets an explicit *Unsupported* outcome. A new first phase, the precheck, checks the input the formatting phases receive against a list of shapes the formatter declares unsupported. When one matches, no other phase runs: the entry point returns its input unchanged and reports it as unsupported, with the reason and the location of the first such shape in the text (FMT-UNSUP-001, FMT-UNSUP-002). Every formatting entry point returns a result object, `FormattingResult<T>`, whose `Output` is the formatted or unchanged input and whose `Unsupported` carries the reason and the location, or is null (FMT-UNSUP-001). A phase may refuse an input during the run for a shape the precheck does not find, with the same outcome, produced in the same place; the refusal never escapes an entry point as an exception (FMT-UNSUP-006). The decision depends only on the tokens and trivia inside the input (FMT-UNSUP-003), formatted output is never unsupported (FMT-UNSUP-005), and `ReihitsuFormatter.FindUnsupportedSyntax` answers the precheck's question for a node with the precheck's own predicate (FMT-UNSUP-007).
 
-The first unsupported shape is a comment inside a variable declaration (FMT-UNSUP-004): anywhere from the declaration's first token — its attributes and modifiers included — through its terminator, except the leading trivia of that first token, the trivia behind the `;`, and the inside of an initializer value. A comment on its own line in front of a value or in front of the `;` is refused. A variable declaration inside a value is checked on its own.
+The first unsupported shape is a comment inside a variable declaration (FMT-UNSUP-004): anywhere from the declaration's first token — its attributes and modifiers included — through its terminator, except the leading trivia of that first token, the trivia behind the `;`, and the inside of an initializer value. A comment in front of a value, also on its own line, between a value and the `,`, `;`, or `)` behind it, in front of the `;`, in an attribute's arguments, and on its own line in front of the `)` of a `using` or `fixed` statement is refused. A variable declaration inside a value is checked on its own.
 
 The special cases this shape made necessary are removed from the specs and the formatter: the field split no longer carries comments at a comma or in front of a later declarator, and no longer refuses a declaration for a comment among its attributes, modifiers, or type, because the precheck refuses every such input first (FMT-STRUCT-022, FMT-STRUCT-026, FMT-STRUCT-030, FMT-PIPE-031). *Special cases* below lists what is deleted and what was checked and kept.
 
@@ -126,7 +126,67 @@ class C
 // after: the input unchanged, reported as unsupported
 ```
 
-A comment above the declaration, behind its `;`, or inside an initializer value or a lambda body keeps the input formatted as today (FMT-UNSUP-004). A comment between a value's last token and the `,` or `;` behind it, and a comment on its own line in front of the `)` of a `using` or `fixed` statement, are still open (below).
+The same holds for a comment between a value and the `,`, `;`, or `)` behind it (maintainer's answer to question 9, option A), for a comment on its own line in front of the `)` of a `using` or `fixed` statement (question 10, A), and for a comment in an attribute's arguments (question 11, A):
+
+```csharp
+// input
+using System;
+
+class C
+{
+    [Obsolete("old" /* why */)]
+    private int _e;
+
+    void M()
+    {
+        var timeout = 30 /* seconds */;
+        int b = 1 /* c */, c = 2;
+
+        using (var s = Open()
+            // c
+            )
+        {
+        }
+    }
+
+    IDisposable Open() => null;
+}
+```
+
+```csharp
+// before
+using System;
+
+class C
+{
+    [Obsolete("old" /* why */)]
+    private int _e;
+
+    void M()
+    {
+        var timeout = 30 /* seconds */;
+        int b = 1 /* c */, c = 2;
+
+        using (var s = Open()
+
+        // c
+        )
+        {
+        }
+    }
+
+    IDisposable Open()
+    {
+        return null;
+    }
+}
+```
+
+```csharp
+// after: the input unchanged, reported as unsupported
+```
+
+A comment above the declaration, behind its `;` or the `)` of a `using` or `fixed` statement, or inside an initializer value or a lambda body — between the value's first and last token — keeps the input formatted as today (FMT-UNSUP-004).
 
 ### 2. Formatter output — fields with a comment inside the declaration are no longer split
 
@@ -163,7 +223,7 @@ class C
 }
 ```
 
-The same holds for `///` and `/** */` comments in front of a later declarator, which used to be moved in front of that declarator's field, in every documentation mode. A declaration with a comment among its attributes or modifiers, such as `private /* c */ int _a, _b;`, was left unsplit and otherwise formatted, and is now refused with its input.
+The same holds for `///` and `/** */` comments in front of a later declarator, which used to be moved in front of that declarator's field, in every documentation mode. A declaration with a comment among its attributes or modifiers, such as `private /* c */ int _a, _b;`, or in an attribute's arguments, such as `[System.Obsolete("old" /* why */)] private int _c, _d;`, was left unsplit and otherwise formatted, and is now refused with its input. A declaration with a comment between a value and the `,` behind it, such as `private int _a = 1 /* c */, _b;`, was split into `private int _a = 1 /* c */;` and `private int _b;`, and is now refused with its input (question 9, A).
 
 ### 3. Code fixes — withheld where the formatter refuses the node they format
 
@@ -248,7 +308,7 @@ class C
 // after: both reported, and no code fix is offered
 ```
 
-The same holds for `private int Value { get; set; } = /* five */ 5;`, which became `private int _value = /* five */ 5;`. The RH7105 and RH7106 fixes, which reorder a member's modifiers and format the member, are withheld for a field with a comment among its modifiers or in front of its type. The diagnostics themselves do not change. A fix that formats a node below a declaration, such as RH5303, RH5304, and RH5305 on an equals-value clause, stays offered when the comment is in the declaration but not in that node (FMT-UNSUP-003).
+The same holds for `private int Value { get; set; } = /* five */ 5;`, which became `private int _value = /* five */ 5;`, and for `private int Value { get; set; } = 5 /* five */;`, which became `private int _value = 5 /* five */;` (question 9, A). The RH7105 and RH7106 fixes, which reorder a member's modifiers and format the member, are withheld for a field with a comment among its modifiers or in front of its type. The diagnostics themselves do not change. A fix that formats a node below a declaration, such as RH5303, RH5304, and RH5305 on an equals-value clause, stays offered when the comment is in the declaration but not in that node (FMT-UNSUP-003).
 
 ### 4. CLI
 
@@ -289,13 +349,6 @@ Every formatting entry point of `ReihitsuFormatter` returns `FormattingResult<T>
 
 None. A withheld fix is covered by `documentation/rules/general-notes.md` ("A diagnostic without a code fix", and comments blocking a fix), and no rule's report changes.
 
-### Open — not decided by this change doc yet
-
-These points are visible and await the maintainer's answer; FMT-UNSUP-004 states that it does not decide them yet:
-
-- a comment in the trailing trivia of an initializer value's last token, between the value and the `,` or `;` behind it, such as `int b = 1 /* c */, c = 2;` or `var timeout = 30 /* seconds */;`;
-- a comment in the leading trivia of the `)` that ends the declaration of a `using` or `fixed` statement, on a line of its own.
-
 ## Decisions
 
 ### The design decisions of the issue are binding
@@ -320,7 +373,19 @@ One line on standard error, `error: <path>(<line>,<column>): unsupported syntax:
 
 ### The first shape covers the whole declaration (question 5, B)
 
-All four cases the maintainer was asked about refuse the input: a comment inside the type, a comment between a modifier and the type, a comment on its own line in front of the value, and one in front of the `;`. FMT-UNSUP-004 therefore refuses a comment anywhere in the declaration's span — from its first token, attributes and modifiers included, through its terminator — except in the leading trivia of the first token, in the trailing trivia of the `;`, and inside an initializer value. Attribute arguments are no initializer value, and the brackets and size of a fixed-size buffer are part of the span. For a `for` initializer the terminator is the `for` statement's first `;`. The comment kinds are refused in every documentation mode, so the mode no longer decides which declarations the split refuses.
+All four cases the maintainer was asked about refuse the input: a comment inside the type, a comment between a modifier and the type, a comment on its own line in front of the value, and one in front of the `;`. FMT-UNSUP-004 therefore refuses a comment anywhere in the declaration's span — from its first token, attributes and modifiers included, through its terminator — except in the leading trivia of the first token, in the trailing trivia of the `;`, and inside an initializer value. The brackets and size of a fixed-size buffer are part of the span. For a `for` initializer the terminator is the `for` statement's first `;`. The comment kinds are refused in every documentation mode, so the mode no longer decides which declarations the split refuses.
+
+### The value's inside ends at its last token (question 9, A)
+
+A comment between a value's last token and the `,` or `;` behind it is refused, like one in front of the value and one in front of the `;`: the inside of a value is the trivia from its first token's trailing trivia through its last token's leading trivia (FMT-UNSUP-004). Whether the parser attaches such a comment to the value or to the `;` — `/** c */` in `int a = 1 /** c */;` goes to the `;` when documentation comments are parsed — therefore no longer decides the outcome, and the CLI and a code fix agree for the same text. As a consequence, the RH2001 fix is withheld for a property whose initializer has a comment behind its value on the value's line (RH2001-007).
+
+### The `)` of a `using` or `fixed` statement ends its declaration (question 10, A)
+
+The span of the declaration of a `using` or `fixed` statement runs through the `)` behind its last declarator, as a local's runs through its `;`: a comment in front of the `)`, on its own line or behind the value, is refused, and a comment behind the `)` is excepted like one behind the `;` (FMT-UNSUP-004). The statement's keyword and `(` stay outside the span.
+
+### Attribute arguments are part of the span (question 11, A)
+
+A comment inside an attribute's arguments, such as `[Obsolete("old" /* why */)] private int _e;`, is refused: the attribute lists of a field or an event field are wholly in the span, and an attribute argument is no initializer value (FMT-UNSUP-004).
 
 ### Nested declarations are checked on their own
 
@@ -356,11 +421,11 @@ It runs only the using phase on one scope (FMT-PIPE-030), not the formatting pha
 
 ### The written-back boundary trivia is not covered
 
-The node-level entry points write back their target's leading and trailing trivia. The first shape excludes both the leading trivia of the declaration's first token and the trivia behind the `;`, so the precheck covers no written-back trivia, and the write-back paths stay as they are.
+The node-level entry points write back their target's leading and trailing trivia. The first shape excludes both the leading trivia of the declaration's first token and the trivia behind the `;` or `)` that ends it, so the precheck covers no written-back trivia, and the write-back paths stay as they are.
 
 ### Spec examples that hold a refused shape for another reason are rewritten
 
-Formatter examples whose subject is not a variable declaration but whose input held one with a refused comment now use a construct that holds no variable declaration, with the same output: FMT-INDENT-015 (an expression-bodied property instead of the field `_map`), FMT-BLANK-018 (`int[] G { get; } =`), FMT-SPACE-012 (a fixed-size buffer without the comment behind `fixed`), FMT-SPACE-014 (`int P => 1 /** x */;`), and FMT-DOC-003 (`int A => 1 /// stray`). Each output was produced with the CLI built from `main`.
+Formatter examples whose subject is not a variable declaration but whose input held one with a refused comment now use a construct that holds no variable declaration, with the same output: FMT-INDENT-015 (an expression-bodied property instead of the field `_map`), FMT-BLANK-018 (`int[] G { get; } =`), FMT-SPACE-012 (a fixed-size buffer without the comment behind `fixed`), FMT-SPACE-014 (`int P => 1 /** x */;`), and FMT-DOC-003 (`int A => 1 /// stray`). Each output was produced with the CLI built from `main`. Answers 9 to 11 make no further formatter or formatting-fix example refused: the analyzer examples that hold the shapes they add belong to rules whose fix does not format (RH3204, RH5041, RH5517 to RH5520) or already state that no fix is offered (RH7101-007), and RH2001-007 now names the comment behind the value.
 
 ## Special cases
 
@@ -378,7 +443,7 @@ The maintainer's acceptance criterion: every special case the first shape makes 
 
 - `FieldDeclarationSplitTransform.IsDocumented`: a documentation comment in the declaration's leading trivia is not refused (FMT-STRUCT-030).
 - `FieldDeclarationSplitTransform.CarriesDirective`: the precheck refuses comments only (FMT-STRUCT-023).
-- The carry-over of the terminator's leading trivia, and the dropped leading trivia of a later declarator, in `CreateSplitField`: they now carry whitespace and line breaks only, which FMT-STRUCT-026 keeps as written; they are not comment special cases.
+- The carry-over of the terminator's leading trivia and of each declarator's trailing trivia, and the dropped leading trivia of a later declarator, in `CreateSplitField`: they now carry whitespace and line breaks only (a comment behind a value's last token is refused under question 9), which FMT-STRUCT-026 keeps as written; they are not comment special cases.
 - `LineBreakAssignmentRewriter` (`WouldJoinAcrossUnjoinableTrivia` in the equals-value and operator placement): shared with property initializers, enum members, parameter defaults, and assignment expressions, and an equals-value clause target with a comment still reaches the phases (FMT-UNSUP-003).
 - The spacing rules around `=` and `,` (`OperatorSpacingRule`, `CommaSpacingRule`, `DeclaredNameSpacingRule`, `NoSpaceSpacingRule`): they have no comment special case; comment gaps are handled by the shared next-token leading-comment guard and `NormalizeGapBehindLeadingComment`.
 - `DeclarationSemicolonLineBreakRewriter` and `LineBreakTriviaUtilities.CollapseTokenToSameLine`: shared with delegates, properties with an initializer, and event fields.
@@ -396,5 +461,8 @@ The maintainer's acceptance criterion: every special case the first shape makes 
 - **Check only the target of `FormatNodeInDocumentWithContextAsync`** — rejected: the phases receive the context, so a refused shape elsewhere in it would still reach them, against the one-check-site contract.
 - **Keep the existing return types and add parallel `Try…` methods** (question 1, B) — rejected by the maintainer: a caller could ignore the outcome by calling the old method.
 - **Only the trivia of the type, the names, `=`, and `,`** (question 5, A) — rejected by the maintainer; it would also have kept `CarriesCommentInRepeatedPart`.
+- **Except a comment between a value and the `,` or `;` behind it** (question 9, B) — rejected by the maintainer: whether `int a = 1 /** c */;` was refused would have depended on the documentation mode.
+- **End the span of a `using` or `fixed` statement at its last declarator** (question 10, B) — rejected by the maintainer: the `)` ends that declaration as the `;` ends a local's, and one rule covers both.
+- **Treat attribute arguments like initializer values** (question 11, B) — rejected by the maintainer: it would carve the attributes out of the one check from the first token through the terminator.
 - **Format at registration to learn the outcome** — rejected: it would format a whole type for each RH7101 diagnostic shown.
 - **A condition for refused comments in `SplitsFieldDeclaration`** — rejected: it restates SHARED-FIX-010 and puts a guard back into the split.

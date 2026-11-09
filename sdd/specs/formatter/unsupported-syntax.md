@@ -124,19 +124,19 @@ The span of a variable declaration runs from its first token through its termina
 - a field or an event field: from the member's first token — its first attribute list, its first modifier, or its type — through the `;` that ends it;
 - a local declaration statement, a `using` declaration included: from the statement's first token — such as `using`, `await`, `const`, or the type — through its `;`;
 - the initializer of a `for` statement: from the type's first token through the `for` statement's first `;`;
-- a `using` statement or a `fixed` statement: from the type's first token through the last token of the last declarator. Whether the leading trivia of the `)` behind it belongs to the span is not decided by this requirement yet.
+- a `using` statement or a `fixed` statement: from the type's first token through the `)` behind the last declarator. The statement's keyword and its `(` are not in the span.
 
 These places are excepted:
 
 - the leading trivia of the span's first token: a comment above the declaration, or in front of it on its line;
-- the trailing trivia of the `;` that ends the span: a comment behind the declaration;
-- inside an initializer value: the trivia between the value's first token and its last token. The leading trivia of the value's first token is not excepted: a comment on its own line in front of the value refuses the input. Whether the trailing trivia of the value's last token — a comment between the value and the `,` or `;` behind it — is excepted is not decided by this requirement yet.
+- the trailing trivia of the `;` or `)` that ends the span: a comment behind the declaration;
+- inside an initializer value: the trivia between the value's first token and its last token — from the trailing trivia of its first token through the leading trivia of its last token. Neither the leading trivia of the value's first token nor the trailing trivia of its last token is excepted: a comment in front of the value, also on its own line, and a comment between the value and the `,`, `;`, or `)` behind it refuse the input. A value of one token has no inside.
 
 A variable declaration inside an initializer value, such as a local declared in a lambda body, is a declaration of its own: this requirement applies to it with its own span, whatever the declaration around it holds.
 
 The reason the formatter gives for this shape is `a comment between a variable declaration's own tokens`, and its location is the span of the comment.
 
-Why: A comment inside a declaration makes every phase that rewrites or lays out the declaration — the field split, which repeats the attributes, modifiers, and type on every field, the line break at `=`, the spacing around `=` and `,` — carry the comment along and decide where it goes, and each of them needed special cases for it. The shape is rare, and refusing it lets those special cases go. Refusing the whole declaration, not only the trivia of some of its tokens, makes the boundary one check from the first token through the terminator, with no carve-out for the attributes, the modifiers, or the type, so no phase keeps a guard for a comment anywhere among them. A comment above or in front of the declaration, behind its `;`, or inside a value stands where the phases already handle comments for every other statement, member, and expression.
+Why: A comment inside a declaration makes every phase that rewrites or lays out the declaration — the field split, which repeats the attributes, modifiers, and type on every field, the line break at `=`, the spacing around `=` and `,` — carry the comment along and decide where it goes, and each of them needed special cases for it. The shape is rare, and refusing it lets those special cases go. Refusing the whole declaration, not only the trivia of some of its tokens, makes the boundary one check from the first token through the terminator, with no carve-out for the attributes, their arguments, the modifiers, or the type, so no phase keeps a guard for a comment anywhere among them. The value's inside ends where its last token ends: a comment between the value and the `,` or `;` behind it is refused like one in front of the `;`, so it makes no difference whether the parser attaches it to the value or to the `;` — `int a = 1 /** c */;` is refused whether documentation comments are parsed or not. The `)` of a `using` or `fixed` statement ends its declaration as the `;` ends a local's, and a comment in front of it is refused like one in front of the `;`. A comment above or in front of the declaration, behind its `;` or `)`, or inside a value stands where the phases already handle comments for every other statement, member, and expression.
 
 Example — each declaration is refused, and the input that holds it is returned unchanged:
 
@@ -156,7 +156,7 @@ class C
 }
 ```
 
-Example — a comment among the attributes, the modifiers, or the type, on its own line in front of the value, or on its own line in front of the `;`; each declaration is refused:
+Example — a comment among the attributes or in an attribute's arguments, among the modifiers, or in the type, on its own line in front of the value, or on its own line in front of the `;`; each declaration is refused:
 
 ```csharp
 using System;
@@ -173,6 +173,9 @@ class C
     [Obsolete /* why */]
     private int _c;
 
+    [Obsolete("old" /* why */)]
+    private int _e;
+
     private /* c */ static int _d;
 
     void M()
@@ -184,6 +187,31 @@ class C
             // c
             ;
     }
+}
+```
+
+Example — a comment between a value and the `,`, `;`, or `)` behind it, and a comment on its own line in front of the `)` of a `using` statement; each declaration is refused:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var timeout = 30 /* seconds */;
+        int b = 1 /* c */, c = 2;
+
+        using (var s = Open() /* c */)
+        {
+        }
+
+        using (var t = Open()
+            // c
+            )
+        {
+        }
+    }
+
+    System.IDisposable Open() => null;
 }
 ```
 
@@ -213,7 +241,13 @@ class C
             return 1;
         };
         int b = Compute(1, /* c10 */ 2);
+
+        using (var s = Open()) // c11
+        {
+        }
     }
+
+    IDisposable Open() => null;
 }
 ```
 
