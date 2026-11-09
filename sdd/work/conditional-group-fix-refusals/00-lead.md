@@ -21,7 +21,7 @@ Run lane: **behavior change** (widened from bug fix, Decisions #2). Roles: spec 
 
 ## Maintainer answers
 
-(none yet)
+- Batch 1 (before test implementer): 1A, 2A, 3A — all three change-doc visible output changes as recommended: no fix offered (RH2001 attribute in excluded branch; RH7109 partial with conditional `[Serializable]`; RH7109 `#if DEBUG static #endif` in front of an uncrossed member). Matches the change doc; no amendment needed.
 
 ## Decisions taken
 
@@ -36,6 +36,7 @@ Run lane: **behavior change** (widened from bug fix, Decisions #2). Roles: spec 
 | 7 | 02 skeptic | Issue goals | #1666: drop "refusal must not parse an excluded branch" (contradicts its own counterpart goal). #1665: narrow "a test per consumer asserts no fix" — RH7109/RH7309 no fix, RH7102/RH7103 keep fix (they reorder no instance field). #1667: keep, add a two-document test | Skeptic evidence; agent-filed goals are proposals | Kept fixes are today's output; no visible change beyond the change doc | 7ceac0b |
 | 8 | 02 skeptic | A6: a `partial` declaration only excluded code writes elsewhere (behind the type, behind the spans, other document) | Not refused in this run; follow-up candidate (bug, safety rail on `main`), carries the question | No cheap check; the only refusal would withhold instance-field reorders on every partial type (common code); output unchanged by the run | Output identical to `main` | — |
 | 9 | 03 spec author | Scope of A5 refusal | Narrowed: only an excluded declaration of the same type (name, arity, `partial`) that carries an attribute list | One without attributes cannot set layout; keeps `main` output for every input not demanded | Kept fixes are today's output | 7e019ae |
+| 10 | after batch 1 | Accept change doc | Accepted; Decisions section should record the answers when status changes | Skeptic ran, amendment written, maintainer answers match | Answers given | 7e019ae |
 
 ## Follow-up candidates
 
@@ -46,5 +47,5 @@ Run lane: **behavior change** (widened from bug fix, Decisions #2). Roles: spec 
 - Last step: spec author 01 (change doc written, 6a5f07c). Output questions pending: 3 visible changes in the change doc (RH2001 `[Obsolete]` in excluded branch; RH7109 partial with conditional `[Serializable]`; RH7109 `#if DEBUG static #endif` in front of a member ahead of moved code).
 - Skeptic 02 done (7ceac0b): all three premises reproduce.
 - Spec author 03 done (7e019ae).
-- Now: output-question batch 1 asked (RH2001 [Obsolete]; RH7109 partial [Serializable]; RH7109 `#if DEBUG static #endif`), waiting for answers.
-- Next: record answers, route to spec author if any differs from the change doc, then test implementer.
+- Batch 1 answered (all A). Change doc accepted (Decisions #10).
+- Next: test implementer (04).
