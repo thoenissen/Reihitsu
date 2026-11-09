@@ -347,7 +347,15 @@ Every formatting entry point of `ReihitsuFormatter` returns `FormattingResult<T>
 
 ### 7. Rule pages
 
-None. A withheld fix is covered by `documentation/rules/general-notes.md` ("A diagnostic without a code fix", and comments blocking a fix), and no rule's report changes.
+`documentation/rules/RH7101.md`, *How to fix it*. The page no longer promises that the code fix carries the comments written on the declaration and on the individual variables over to the new fields: RH7101-007 withholds the fix for a comment inside the declaration. It says only that the fix performs the split; a fix withheld for a comment is covered by `documentation/rules/general-notes.md` ("A diagnostic without a code fix", and comments blocking a fix). No rule's report changes, and no other rule page promises what the fix now withholds.
+
+Before:
+
+> Split the combined declaration into one field declaration per variable. The code fix carries the comments written on the declaration and on the individual variables over to the fields it creates.
+
+After:
+
+> Split the combined declaration into one field declaration per variable. The code fix performs the split for you.
 
 ## Decisions
 
