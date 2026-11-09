@@ -15,7 +15,7 @@
 
 ## Maintainer answers
 
-(none yet)
+- Escalation 4 (#1598 not reproduced): the run ships only the characterization tests for #1598 and the PR closes the issue with them (`Closes #1598`). The maintainer considered a general rule that analyzers and fixes consider only active code; the lead explained the existing cheap disabled-text guard; the maintainer asked for nothing further in this run, so no follow-up for the general rule.
 
 ## Decisions taken
 
@@ -38,6 +38,5 @@
 - Done: skeptic (01-skeptic.md, eb79b88). No output questions.
 - Done: spec author (02-spec-author.md, 5fed711). No output questions. Lane check: confirmed.
 - Done: test implementer (03-test-implementer.md, 1c84020). #1597, #1016, #1015, #1084 reproduced (74 red tests); #1598 NOT reproduced (5 green characterization tests in RH4109 tests).
-- PR link for #1598 changed to `Refs #1598`.
-- OPEN: escalation 4 for #1598 asked to the maintainer; the whole run waits for the answer.
-- Next after answer: implementer for #1597, #1016, #1015, #1084 (note: merging the two RH4102 providers would require changing existing tests that name `RH4102CustomEventNameCasingCodeFixProvider`).
+- #1598 answered: tests only, PR uses `Closes #1598`; #1598 skips the remaining build roles (spec checker and validator still cover its tests).
+- Next: implementer for #1597, #1016, #1015, #1084 (note: merging the two RH4102 providers would require changing existing tests that name `RH4102CustomEventNameCasingCodeFixProvider`).
