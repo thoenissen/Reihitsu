@@ -38,6 +38,7 @@
 | 15 | Auditor (round 1) | Hint: SHARED-CASING-011 also withholds `add`, `where`, `dispose` in Java-style code | Keep decision 6 | The input already violates RH4103 itself; withholding only removes a fix for those exact 21 names | Withholding for a rare class | — |
 | 16 | Repair 1 spec | Spec author's departures: C# 11 condition on the `nameof` exemption; no exemption for extension-block members | Accept both | Conservative cheap refusal of a rare class; without the C# 11 condition the finding returns under C# 10 | Withholding for a rare class | 2499cbe |
 | 17 | Repair 1 tests | Example (d): test implementer observed that under C# 10 the renamer renames the `nameof` operand and behavior is kept, contradicting the spec's *Why* | Keep the C# 11 condition (conservative, cheap language-version check; evidence between the two roles conflicts); spec author rewords the *Why* so it states a conservative refusal instead of a binding claim | A conservative refusal of a rare class is always allowed; a spec must not assert an unverified compiler fact | Withholding for a rare class | — |
+| 18 | After audit | Finding 3 comment fix: `verify-text-only --strict-docs` FAILs (XML doc text of one test method changed); non-strict PASSes | Treat as repair round 2 as lead.md section 7 prescribes: spec checker and auditor on the repair only | Playbook rule; cost is one comment | Test comment only | 95e14f1 |
 
 ## Follow-up candidates
 
@@ -57,5 +58,6 @@
 - Done: spec checker (09-spec-checker.md, 3d0271b): consistent, no findings.
 - Done: auditor (10-auditor.md, 92ee46f), audited head 5a1e702 vs main b673099: findings 1 (high), 2 (low).
 - Repair round 1 worklist: (1) DONE spec author (11-spec-author.md, 2499cbe); (2) DONE test implementer (12-test-implementer.md, 97b1643; 5 red); (3) DONE implementer (13-implementer.md, ba93a6f; analyzer 7849/0); (3b) DONE spec author (14-spec-author.md, 776c97b); cleaner DONE (15-cleaner.md, f4d6c6b); spec checker DONE (16-spec-checker.md, 4b371ec); auditor DONE (17-auditor.md, 8570109): PASS, audited SHA b05e1a1a1b78f71067bab2d19bfe47fedfa85708; finding 3 (low, test XML comment) → cleaner, prove with verify-text-only --strict-docs --base b05e1a1.
-- Next: cleaner comment fix → verify-text-only → validator → publish (issue manager for the one follow-up candidate, note, delete sdd/work). then cleaner, spec checker, auditor (repair only), validator.
+- Cleaner comment fix DONE (18-cleaner.md, 95e14f1); strict proof FAIL → repair round 2 (decision 18).
+- Next: spec checker → auditor (repair round 2 only, base audit b05e1a1) → validator → publish (issue manager for the one follow-up candidate, note, delete sdd/work). then cleaner, spec checker, auditor (repair only), validator.
 - (old) implementer for #1597, #1016, #1015, #1084 (note: merging the two RH4102 providers would require changing existing tests that name `RH4102CustomEventNameCasingCodeFixProvider`).
