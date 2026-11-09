@@ -22,11 +22,16 @@
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name | Use the session-designated branch `claude/relaxed-franklin-o3mkrk` instead of `claude/batch-1597-<slug>` | The session environment only permits pushing to this branch | Branch name is internal | claim commit |
+| 2 | Skeptic | #1597 goal "rename the `CallerArgumentExpression` literal" | Dropped; the fix is withheld instead | SHARED-FIX-003 forbids changing a user literal; the issue already allows withholding | Withholding is the issue's own required output; rare class | — |
+| 3 | Skeptic | #1597 refusal shape | Cheap refusal: withhold RH4103 when the new name is a compiler pattern-lookup name; withhold a parameter rename when a `CallerArgumentExpression` string names the old or new name. No binding comparison | Binding comparison is machinery for a rare class (AGENTS.md, Special cases) | Withholding a fix for a rare class | — |
+| 4 | Skeptic | Architecture finding (#1016, #1084): acceptability of the new name decided in several places, none asks the rule's style check | Change the structure in this run: one check in the casing base withholds the fix when the rule would still report the new name | Narrow per-converter fixes would add further copies of the rule; stays within the casing base and its converters | Brings the code back to SHARED-FIX-001 / SHARED-CASING-008; withholding only | — |
+| 5 | Skeptic | Spec clarifications | Spawn the spec author for SHARED-CASING-007 (#1597) and SHARED-CASING-008 (#1016) clarifications | Specs currently contradict SHARED-FIX-003 / leave the inputs out | Clarifications follow existing SHARED-FIX requirements | — |
 
 ## Follow-up candidates
 
-(none yet)
+- Renamer rewrites call sites to keep binding (`values.Select(...)` → `Enumerable.Select(values, ...)`, `box.Add(1)` → `box.Add((object)1)`), conflicting with SHARED-FIX-006; carries an output question (01-skeptic.md).
 
 ## Worklist / next step
 
-- Next: skeptic (premise + reachability for all five issues; whether a spec clarification is needed).
+- Done: skeptic (01-skeptic.md, eb79b88). No output questions.
+- Next: spec author (clarifications), then test implementer.
