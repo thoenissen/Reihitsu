@@ -74,7 +74,8 @@ Batch 2 (from 03-spec-author + lead), answer "9A 10A 11A":
 - 16 auditor on 8a61cc68: findings (58251016), 2 medium. Repair round 2 (Decision 18).
 - Repair 2: 17 test impl. (c43711a4), 19 spec author (c1572538), 18 implementer (f57f9f80) done.
 - 20 cleaner clean (5e89e918); 21 spec checker consistent (a1fbc09a).
-- Next: auditor on the repair (22), validator (23).
+- 22 auditor: pass on adec6d08 (audited SHA; handover 31f31f74).
+- Next: validator (23), then issue manager (follow-ups), note, delete sdd/work, publish.
 - Batch 2 answered. Then: fresh spec author (04) carries Q9–Q11 into change doc/spec, change doc leaves Draft; then test implementer (05).
 - (done) ask batch 2 (Q9–Q11), then test implementer (may start on everything else, but wait: tests lock outputs; ask first).
 - Batch 1 answered (see Maintainer answers). Then: fresh spec author amendment (answers + Decisions 2–4), skeptic not re-run unless amendment adds visible outputs; then test implementer.
