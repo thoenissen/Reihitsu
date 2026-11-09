@@ -23,6 +23,10 @@ Batch 1 (before test implementer), questions from 01-spec-author and 02-skeptic;
 - Q5 → B (all four refused): 5a comment inside the type, 5b comment between a modifier and the type, 5c comment on its own line in front of the value, 5d comment on its own line in front of the `;` — all make the input unsupported. The refused span is the whole declaration from its first token (attributes/modifiers included, but not the leading trivia of that first token) through the `;`'s leading trivia, outside initializer values.
 - Q6 → A: Playground shows the input unchanged plus a message like PLAY-006's.
 - Q7 → A: RH2001 is reported with no fix when the field it would write is unsupported.
+Batch 2 (from 03-spec-author + lead), answer "9A 10A 11A":
+- Q9 → A: a comment between an initializer value's last token and the `,` or `;` behind it is refused (e.g. `var timeout = 30 /* seconds */;`).
+- Q10 → A: a comment in front of the `)` of a `using`/`fixed` statement's declaration is refused.
+- Q11 → A: a comment inside a field's attribute argument is refused (attributes are wholly in the span).
 - Q8 (escalation 9, code-fix mechanism) → A: one query on `ReihitsuFormatter` (same predicate as the precheck), called at registration by every formatting fix on exactly the node/context it formats (RH2001: the built field). ~45 call sites accepted.
 
 ## Decisions taken
@@ -44,7 +48,8 @@ Batch 1 (before test implementer), questions from 01-spec-author and 02-skeptic;
 - Lane check after 01: confirmed behavior-change.
 - 02 skeptic done (211d739): output question; re-asked Q5 split into 5a–5d; new Q7 RH2001; escalation 9 candidate: code-fix registration query across ~45 formatting fixes.
 - 03 spec author amendment done (3f270a53): batch 1 + Decisions 2–4 carried out; open Q9 (comment between value and `,`/`;`), Q10 (comment before `)` of using/fixed); internal choice touching output: comment inside an attribute argument refused → asked as Q11. Lane check: confirmed.
-- Next: ask batch 2 (Q9–Q11), then test implementer (may start on everything else, but wait: tests lock outputs; ask first).
+- Batch 2 answered. Next: fresh spec author (04) carries Q9–Q11 into change doc/spec, change doc leaves Draft; then test implementer (05).
+- (done) ask batch 2 (Q9–Q11), then test implementer (may start on everything else, but wait: tests lock outputs; ask first).
 - Batch 1 answered (see Maintainer answers). Then: fresh spec author amendment (answers + Decisions 2–4), skeptic not re-run unless amendment adds visible outputs; then test implementer.
 - (done) ask batch (Q1–Q7 + escalation 9 on the code-fix mechanism), wait; then spec author amendment (Decisions 2–4 + answers), lane check, test implementer.
 - (old) skeptic (02) running; then batch output questions (spec author Q1–6 + skeptic's) before test implementer.
