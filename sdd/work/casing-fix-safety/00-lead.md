@@ -60,5 +60,6 @@
 - Repair round 1 worklist: (1) DONE spec author (11-spec-author.md, 2499cbe); (2) DONE test implementer (12-test-implementer.md, 97b1643; 5 red); (3) DONE implementer (13-implementer.md, ba93a6f; analyzer 7849/0); (3b) DONE spec author (14-spec-author.md, 776c97b); cleaner DONE (15-cleaner.md, f4d6c6b); spec checker DONE (16-spec-checker.md, 4b371ec); auditor DONE (17-auditor.md, 8570109): PASS, audited SHA b05e1a1a1b78f71067bab2d19bfe47fedfa85708; finding 3 (low, test XML comment) → cleaner, prove with verify-text-only --strict-docs --base b05e1a1.
 - Cleaner comment fix DONE (18-cleaner.md, 95e14f1); strict proof FAIL → repair round 2 (decision 18).
 - Repair round 2: spec checker DONE (19, 35774c3), auditor PASS (20-auditor.md, 3d98f4c). AUDITED SHA: 35774c3a9092aa868b889938a327c9ff400ff888.
-- Next: validator → publish (issue manager for the one follow-up candidate, note, delete sdd/work). then cleaner, spec checker, auditor (repair only), validator.
+- Validator PASS (21-validator.md, 35a0bbb): all projects green, Release 0 warnings. LANE CHECK: confirmed — claimed bug-fix, diff needs bug-fix.
+- Next: issue manager (1 follow-up candidate), note, delete sdd/work, trigger commit, PR body.
 - (old) implementer for #1597, #1016, #1015, #1084 (note: merging the two RH4102 providers would require changing existing tests that name `RH4102CustomEventNameCasingCodeFixProvider`).
