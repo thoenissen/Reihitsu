@@ -508,7 +508,23 @@ public class RH4109PublicFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH4109
             var initiatingDocumentId = documentIds.Single(entry => entry.Project == initiatingProject && entry.Path == HolderPath).Id;
             var initiatingDocument = solution.GetDocument(initiatingDocumentId);
 
-            Assert.IsNotEmpty(initiatingDocument.GetLinkedDocumentIds().Concat([initiatingDocumentId]), "The holder file must be a document of the initiating project.");
+            // Every copy of a file that several projects compile must be a linked document of the other copies, as in a
+            // multi-targeted project; a file of one project only has no linked document
+            foreach (var (project, path, documentId) in documentIds)
+            {
+                var expectedLinkedIds = documentIds.Where(entry => entry.Path == path && entry.Id != documentId)
+                                                   .Select(static entry => entry.Id)
+                                                   .OrderBy(static id => id.Id)
+                                                   .ToList();
+                var linkedIds = solution.GetDocument(documentId)
+                                        .GetLinkedDocumentIds()
+                                        .OrderBy(static id => id.Id)
+                                        .ToList();
+
+                Assert.AreSequenceEqual(expectedLinkedIds, linkedIds, $"The copies of {path} in {project} must be linked documents of each other.");
+            }
+
+            Assert.IsNotEmpty(initiatingDocument.GetLinkedDocumentIds(), "The holder file of the initiating project must be a linked document of another project's copy.");
 
             var initialErrors = await GetCompileErrorsAsync(solution).ConfigureAwait(false);
             var compilation = await initiatingDocument.Project.GetCompilationAsync(CancellationToken.None).ConfigureAwait(false);

@@ -1,6 +1,8 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -1171,6 +1173,229 @@ public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH
     }
 
     /// <summary>
+    /// Verifies that a parameter is still reported but not fixed when a caller-argument expression of its parameter list
+    /// is a qualified <c>nameof</c> of another symbol with the parameter's old name, because the rename leaves that
+    /// argument's value as it is and the attribute would name no parameter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-012")]
+    [Requirement("RH4105-003")]
+    public async Task NoFixIsOfferedWhenACallerArgumentExpressionIsAQualifiedNameofOfAnotherSymbolWithTheOldName()
+    {
+        const string testCode = """
+                                using System.Runtime.CompilerServices;
+
+                                public static class Names
+                                {
+                                    public const int Condition = 0;
+                                }
+
+                                public static class Guard
+                                {
+                                    public static string Check(bool {|RH4105:Condition|}, [CallerArgumentExpression(nameof(Names.Condition))] string expression = null)
+                                    {
+                                        return expression;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a parameter is still reported but not fixed when a caller-argument expression of its parameter list
+    /// is a <c>nameof</c> of another symbol with the parameter's new name, because after the rename the attribute would
+    /// start to name the renamed parameter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-012")]
+    [Requirement("RH4105-003")]
+    public async Task NoFixIsOfferedWhenACallerArgumentExpressionIsANameofOfAnotherSymbolWithTheNewName()
+    {
+        const string testCode = """
+                                using System.Runtime.CompilerServices;
+
+                                public static class Guard
+                                {
+                                    private const int condition = 0;
+
+                                    public static string Check(bool {|RH4105:Condition|}, [CallerArgumentExpression(nameof(condition))] string expression = null)
+                                    {
+                                        return expression;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the receiver parameter of an extension block is still reported but not fixed when a member of the
+    /// block names it by the string literal of a caller-argument expression
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-012")]
+    [Requirement("RH4105-003")]
+    public async Task NoFixIsOfferedWhenAMemberOfAnExtensionBlockNamesTheReceiverByACallerArgumentExpressionLiteral()
+    {
+        const string testCode = """
+                                using System.Runtime.CompilerServices;
+
+                                public static class GuardExtensions
+                                {
+                                    extension(bool {|RH4105:Condition|})
+                                    {
+                                        public string Check([CallerArgumentExpression("Condition")] string expression = null)
+                                        {
+                                            return Condition ? expression : null;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the receiver parameter of an extension block is still reported but not fixed when a member of the
+    /// block names it by a <c>nameof</c> caller-argument expression, which is not exempt in another parameter list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-012")]
+    [Requirement("RH4105-003")]
+    public async Task NoFixIsOfferedWhenAMemberOfAnExtensionBlockNamesTheReceiverByANameofCallerArgumentExpression()
+    {
+        const string testCode = """
+                                using System.Runtime.CompilerServices;
+
+                                public static class GuardExtensions
+                                {
+                                    extension(bool {|RH4105:Condition|})
+                                    {
+                                        public string Check([CallerArgumentExpression(nameof(Condition))] string expression = null)
+                                        {
+                                            return Condition ? expression : null;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the receiver parameter of an extension block is renamed when no member of the block carries a
+    /// caller-argument expression
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-012")]
+    [Requirement("RH4105-003")]
+    public async Task FixRenamesTheReceiverOfAnExtensionBlockWithoutACallerArgumentExpression()
+    {
+        const string testCode = """
+                                public static class GuardExtensions
+                                {
+                                    extension(bool {|RH4105:Condition|})
+                                    {
+                                        public string Check(string expression = null)
+                                        {
+                                            return Condition ? expression : null;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public static class GuardExtensions
+                                 {
+                                     extension(bool condition)
+                                     {
+                                         public string Check(string expression = null)
+                                         {
+                                             return condition ? expression : null;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a parameter is still reported but not fixed under C# 10 when a caller-argument expression of its
+    /// parameter list is an unqualified <c>nameof</c> of the old name, because before C# 11 that <c>nameof</c> refers to a
+    /// member of the type with the same name, which the rename leaves as it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-012")]
+    [Requirement("RH4105-003")]
+    public async Task NoFixIsOfferedForAnUnqualifiedNameofOfTheOldNameBeforeCSharp11()
+    {
+        const string testCode = """
+                                using System.Runtime.CompilerServices;
+
+                                public static class Guard
+                                {
+                                    public const int Condition = 0;
+
+                                    public static string Check(bool {|RH4105:Condition|}, [CallerArgumentExpression(nameof(Condition))] string expression = null)
+                                    {
+                                        return expression;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode, static test => test.SolutionTransforms.Add(static (solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp10)));
+    }
+
+    /// <summary>
+    /// Verifies that, from C# 11 on, an unqualified <c>nameof</c> of the old name refers to the parameter even where the
+    /// type declares a member with the same name, so the argument is exempt and renamed together with the parameter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-012")]
+    [Requirement("RH4105-003")]
+    public async Task FixRenamesAnUnqualifiedNameofOfTheOldNameFromCSharp11OnWhenTheTypeHasAMemberWithThatName()
+    {
+        const string testCode = """
+                                using System.Runtime.CompilerServices;
+
+                                public static class Guard
+                                {
+                                    public const int Condition = 0;
+
+                                    public static string Check(bool {|RH4105:Condition|}, [CallerArgumentExpression(nameof(Condition))] string expression = null)
+                                    {
+                                        return expression;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Runtime.CompilerServices;
+
+                                 public static class Guard
+                                 {
+                                     public const int Condition = 0;
+
+                                     public static string Check(bool condition, [CallerArgumentExpression(nameof(condition))] string expression = null)
+                                     {
+                                         return expression;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static test => test.SolutionTransforms.Add(static (solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp11)));
+    }
+
+    /// <summary>
     /// Verifies the example of a derived name that the rule still reports: <c>_ϒx</c> becomes <c>ϒx</c>, which does not
     /// start with a lowercase letter, so the parameter is still reported but not fixed
     /// </summary>
@@ -1269,6 +1494,29 @@ public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH
     }
 
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Sets the language version of the test project
+    /// </summary>
+    /// <param name="solution">Solution</param>
+    /// <param name="projectId">Test project</param>
+    /// <param name="languageVersion">Language version</param>
+    /// <returns>The solution with the language version applied</returns>
+    private static Solution ApplyLanguageVersion(Solution solution, ProjectId projectId, LanguageVersion languageVersion)
+    {
+        var project = solution.GetProject(projectId);
+
+        if (project?.ParseOptions is CSharpParseOptions parseOptions)
+        {
+            solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(languageVersion));
+        }
+
+        return solution;
+    }
+
+    #endregion // Methods
 
     #region BatchCodeFixTestsBase
 
