@@ -39,6 +39,8 @@ Batch 2 (from 03-spec-author + lead), answer "9A 10A 11A":
 | 5 | 04 spec author | Accept the change doc (Status: Accepted) | Accepted by the lead | Skeptic ran; amendments only carry the maintainer's answers | Every visible change is a maintainer answer | 036b89f0 |
 | 6 | 04 spec author | Re-run the skeptic over amendments 03/04? | No | Amendments carry maintainer answers and the skeptic's own defect list; spec checker and auditor still verify | Nothing new visible | — |
 | 7 | 04 spec author | Comment behind a `using`/`fixed` `)` | Not refused, like a comment behind `;` | Symmetry with the issue's binding exclusion behind `;` | Keeps today's output | 036b89f0 |
+| 8 | 05 test impl. | Spec examples FMT-STRUCT-022, FMT-STRUCT-030 (2nd), RH7101-004, RH7101-007 (3rd) show `Offset(/* … */ 1)` but unchanged FMT-SPACE-013 gives `/* … */1` | Spec examples are wrong; correct them to the FMT-SPACE-013 output (spec author, in parallel with the implementer) | An unchanged requirement decides it | Output demanded by unchanged FMT-SPACE-013 | pending |
+| 9 | 05 test impl. | Trace tool output for a refused input is unspecified | Leave unspecified; implementer keeps the trace from wrapping the refusal (Decision 3) | Dev tool, not a shipped surface | Trace is internal tooling | — |
 | 1 | Claim | Branch name | Use the session-designated branch `claude/funny-darwin-l756yr` instead of `claude/issue-1670-<slug>` | The session forbids pushing to any other branch | Branch names are internal | claim commit |
 
 ## Follow-up candidates
@@ -52,7 +54,8 @@ Batch 2 (from 03-spec-author + lead), answer "9A 10A 11A":
 - 02 skeptic done (211d739): output question; re-asked Q5 split into 5a–5d; new Q7 RH2001; escalation 9 candidate: code-fix registration query across ~45 formatting fixes.
 - 03 spec author amendment done (3f270a53): batch 1 + Decisions 2–4 carried out; open Q9 (comment between value and `,`/`;`), Q10 (comment before `)` of using/fixed); internal choice touching output: comment inside an attribute argument refused → asked as Q11. Lane check: confirmed.
 - 04 spec author done (036b89f0): change doc Accepted, nothing open. Lane check confirmed.
-- Next: test implementer (05), then implementer (06).
+- 05 test implementer done (7c351c7e): tests written, ~92 obsolete tests deleted, API assumed listed in its handover.
+- Next: implementer (06) + spec author example fix (07) in parallel.
 - Batch 2 answered. Then: fresh spec author (04) carries Q9–Q11 into change doc/spec, change doc leaves Draft; then test implementer (05).
 - (done) ask batch 2 (Q9–Q11), then test implementer (may start on everything else, but wait: tests lock outputs; ask first).
 - Batch 1 answered (see Maintainer answers). Then: fresh spec author amendment (answers + Decisions 2–4), skeptic not re-run unless amendment adds visible outputs; then test implementer.
