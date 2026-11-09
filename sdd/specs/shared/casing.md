@@ -5,7 +5,7 @@
 | ID prefix | SHARED-CASING |
 | Status | Active |
 | Code owners | `CasingAnalyzerBase`, `CasingCodeFixProviderBase<T>`, `ExcludedCodeUtilities`, `NamingAccessibilityClassifier`, `NamespaceCasingHelper`, `CasingUtilities` |
-| Uses | SHARED-FIX-002, SHARED-FIX-003 |
+| Uses | SHARED-FIX-001, SHARED-FIX-002, SHARED-FIX-003 |
 
 This spec covers the rules that require one kind of name to be written in a naming style. It defines the styles, the accessibility groups of fields and properties, how a namespace name is checked, and the code fix that renames a reported name. Each rule that uses this spec states which declarations it checks, which style it requires, where its diagnostic is located, and any exceptions of its own.
 
@@ -191,7 +191,7 @@ namespace {|RH4008:company|}.Product.{|RH4008:data_access|}
 
 A rule's code fix MUST derive the new name from an old name whose characters are all letters of the Unicode categories Lu, Ll, Lm, or Lo, decimal digits, or `_` as follows. It splits the old name into words at every `_`, and drops the underscores. It writes the first character of each word in uppercase. When every other character of a word is an uppercase letter, it writes them in lowercase; otherwise it keeps them. It then joins the words, which gives the new name for a PascalCase target. For a camelCase target, the first character of the joined words is written in lowercase, and for a `_camelCase` target, that camelCase name gets a `_` in front.
 
-This requirement covers an old name whose first word, the first non-empty part between underscores, starts with a letter whose one-character uppercase and lowercase mappings, in the invariant culture, differ from each other. A first word that starts with a digit, with a letter without case such as `注`, or with a letter such as `ß` that has no one-character uppercase mapping, is not covered.
+This requirement covers an old name whose first word, the first non-empty part between underscores, starts with a letter whose one-character uppercase and lowercase mappings, in the invariant culture, differ from each other. A first word that starts with a digit, with a letter without case such as `注`, or with a letter such as `ß` that has no one-character uppercase mapping, is not covered. For such an old name, SHARED-CASING-008 decides whether the fix is offered.
 
 For a camelCase or `_camelCase` target, it further covers only an old name whose first word does not start with two uppercase letters, or consists of uppercase letters only.
 
@@ -283,8 +283,9 @@ This requirement covers an old name that SHARED-CASING-006 covers, and a derived
 
 - Neither the old name of a symbol of the rename cascade nor the new name occurs as an identifier in code that an `#if`, `#elif`, or `#else` branch excludes, in a document where a symbol of the rename cascade can be referred to. The old names are those of every symbol of the cascade that source can refer to by its name, not only the reported symbol's: a symbol of the cascade that is spelled differently from the reported one, such as the parameter of the other part of a partial method, adds its own spelling. A symbol whose name source never writes, such as a property's accessor or a type's constructor, adds no old name, and neither does a symbol outside the cascade, such as a type parameter of the other part of a partial method that this part spells differently, which the renamer leaves as it is. A document where no symbol of the cascade can be referred to is outside the region, even when its excluded code names an old name or the new name.
 - For no record does the rename change which parameters of its primary constructor have a member of the same name, declared in the record or inherited from its base type. The compiler declares a property for a positional parameter only when no such member exists, so a rename that changes the match adds or removes a public member.
+- Neither SHARED-CASING-011 nor SHARED-CASING-012 withholds the rename. Those requirements name renames that can change at run time which method a construct calls, or which expression text a parameter receives, without a compile error and without a reference the renamer could change.
 
-A rename outside this coverage is withheld where SHARED-FIX-003 withholds it.
+A rename outside this coverage is withheld where SHARED-FIX-003 withholds it, and always where SHARED-CASING-011 or SHARED-CASING-012 withholds it.
 
 Why: Renaming only the declaration would leave every use pointing at a name that no longer exists.
 
@@ -460,9 +461,11 @@ The fix is offered and renames `C.Value` and its reference to `_value`; the seco
 
 ### SHARED-CASING-008 — The fix is withheld when no usable name can be derived
 
-The code fix MUST NOT be offered when the old name has no letter or digit, or when the name that the steps of SHARED-CASING-006 derive is the old name itself or is not a valid identifier because it starts with a digit. The diagnostic is still reported.
+The code fix MUST NOT be offered when the old name has no letter or digit, when the derived name is the old name itself or is not a valid identifier because it starts with a digit, or when the rule would still report the declaration under the derived name. The derived name is the name that the steps of SHARED-CASING-006 derive, or, for a rule whose fix requirement states a derivation of its own, such as RH4005 and RH4121, the name that derivation gives. The diagnostic is still reported.
 
-Why: A name such as `__` has no words to build a name from. A derived name that equals the old one changes nothing, and one that is not an identifier does not compile.
+The last condition holds for every old name, also for one that SHARED-CASING-006 does not cover. It decides those names: an old name whose first word starts with a digit, with a letter without case such as `注`, or with a letter whose mapping to the target case is not a letter of that case, such as `ϒ` for a camelCase target, is offered the fix only when the rule accepts the name derived from it.
+
+Why: A name such as `__` has no words to build a name from. A derived name that equals the old one changes nothing, and one that is not an identifier does not compile. A derived name that the rule still reports corrects nothing in one application (SHARED-FIX-001), and a second application, if it changes the name at all, gives a name the first one should have given. For most of these old names, no name in the rule's style can be built from the old one without dropping or inventing characters, so the name is left for the author to choose.
 
 Example — RH4105:
 
@@ -487,6 +490,52 @@ public class C
 ```
 
 is reported, and no code fix is offered, because the derived name is `_1st` again.
+
+Example — derived names that the rule still reports, for RH4106:
+
+```csharp
+public class C
+{
+    private int {|RH4106:__1st|};
+    private int {|RH4106:_1_value|};
+    private int {|RH4106:注文|};
+    private int {|RH4106:注文_明細|};
+    private int {|RH4106:ϒ_x|};
+}
+```
+
+is reported, and no code fix is offered for any field: the derived names `_1st`, `_1Value`, `_注文`, `_注文明細`, and `_ϒx` are not in `_camelCase`, because a digit, a letter without case, or the uppercase letter `ϒ` follows the prefix, so RH4106 still reports each of them.
+
+Example — derived names that the rule still reports, for RH4002 and RH4105:
+
+```csharp
+class {|RH4002:_注文|}
+{
+    void M(int {|RH4105:_ϒx|})
+    {
+    }
+}
+```
+
+is reported, and no code fix is offered for either: `注文` does not start with an uppercase letter, and `ϒx` does not start with a lowercase letter, because `ϒ` has no lowercase mapping.
+
+Example — a derived name that the rule accepts, for RH4106, where the first word starts with `ß`:
+
+```csharp
+public class C
+{
+    private int {|RH4106:ß_x|};
+}
+```
+
+```csharp
+public class C
+{
+    private int _ßX;
+}
+```
+
+`ß` is a lowercase letter, so `_ßX` is in `_camelCase`, and the fix is offered.
 
 ### SHARED-CASING-009 — The fix is withheld when the new name would collide
 
@@ -715,6 +764,157 @@ internal class C
         {
             int badName = 2;
         }
+    }
+}
+```
+
+### SHARED-CASING-011 — The fix is withheld when a method would receive a name the compiler looks up
+
+The code fix MUST NOT be offered for a method that is not a local function when its derived name (SHARED-CASING-008) is one of `Add`, `AppendFormatted`, `AppendLiteral`, `Cast`, `Deconstruct`, `Dispose`, `DisposeAsync`, `GetAsyncEnumerator`, `GetAwaiter`, `GetEnumerator`, `GetPinnableReference`, `GroupBy`, `GroupJoin`, `Join`, `OrderBy`, `OrderByDescending`, `Select`, `SelectMany`, `ThenBy`, `ThenByDescending`, or `Where`. This holds whether or not the rename would change which method a construct calls. A method whose derived name is not in this list, and a local function, are not withheld by this requirement. The diagnostic is still reported.
+
+Why: The compiler looks these names up for constructs that do not write them in source: `foreach`, `await foreach`, query clauses, `await`, deconstruction, collection initializers, `using`, `fixed`, and interpolated-string handlers. A method renamed to one of them can win that lookup over the method the construct called before, such as an extension method, an extension in a farther namespace, an explicit interface implementation, or a less specific overload, and the program then calls another method without a compile error (SHARED-FIX-003). The renamer does not see such a construct, because the construct names no symbol. Telling a rename that changes such a call from one that does not would mean comparing every such construct before and after the rename; a method spelled like one of these names in the wrong case is rare, so the fix is withheld for the whole list. A local function is never found by such a lookup.
+
+Example — `foreach`, for RH4103:
+
+```csharp
+using System.Collections;
+using System.Collections.Generic;
+
+public class Numbers : IEnumerable<int>
+{
+    public IEnumerator<int> {|RH4103:getEnumerator|}()
+    {
+        yield return 1;
+    }
+
+    IEnumerator<int> IEnumerable<int>.GetEnumerator()
+    {
+        yield return 2;
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<int>)this).GetEnumerator();
+}
+```
+
+is reported, and no code fix is offered: `foreach (var number in new Numbers())` calls the interface implementation today and would call the renamed `GetEnumerator` after the rename, so it would yield `1` instead of `2`. The same holds for a class that declares only `getEnumerator`, where no `foreach` would call another method.
+
+Example — a query clause, for RH4103:
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace N
+{
+    public static class Extensions
+    {
+        public static IEnumerable<int> {|RH4103:select|}(this IEnumerable<int> source, Func<int, int> selector)
+        {
+            return source;
+        }
+    }
+
+    public class User
+    {
+        public IEnumerable<int> Get(List<int> values)
+        {
+            return from value in values select value * 2;
+        }
+    }
+}
+```
+
+is reported, and no code fix is offered: the `select` clause calls `Enumerable.Select` today and would call `N.Extensions.Select` after the rename. The same holds for the other names of the list, such as `add` next to a collection initializer and `deconstruct` next to a deconstruction.
+
+Example — names outside the list, for RH4103 and RH4104:
+
+```csharp
+public class C
+{
+    public int {|RH4103:select_all|}()
+    {
+        int {|RH4104:getEnumerator|}()
+        {
+            return 1;
+        }
+
+        return getEnumerator();
+    }
+}
+```
+
+```csharp
+public class C
+{
+    public int SelectAll()
+    {
+        int GetEnumerator()
+        {
+            return 1;
+        }
+
+        return GetEnumerator();
+    }
+}
+```
+
+`SelectAll` is not in the list, and `getEnumerator` is a local function, so both fixes are offered.
+
+### SHARED-CASING-012 — The fix is withheld when a caller-argument expression names the old or the new name
+
+The code fix MUST NOT be offered for a parameter when a parameter list that declares a symbol of its rename cascade (SHARED-CASING-007) carries a `CallerArgumentExpression` attribute whose argument is not a `nameof` expression and has a constant value that is the old name or the new name of a symbol of that cascade. The argument may be a string literal or any other constant, such as a `const` field. An attribute whose argument is a `nameof` expression does not withhold the fix. The diagnostic is still reported.
+
+Why: The attribute names a parameter by a string, which the renamer does not treat as a reference. When the string names the old name, the rename leaves it naming no parameter; when it names the new name, the rename makes it name the renamed parameter. Either way, the parameter that carries the attribute receives another value at run time (SHARED-FIX-003), and the compiler only warns. A `nameof` argument is a reference, which the rename changes together with the parameter.
+
+Example — RH4105:
+
+```csharp
+using System.Runtime.CompilerServices;
+
+public static class Guard
+{
+    public static string Check(bool {|RH4105:Condition|}, [CallerArgumentExpression("Condition")] string expression = null)
+    {
+        return expression;
+    }
+}
+```
+
+is reported, and no code fix is offered: after renaming `Condition` to `condition`, the attribute would name no parameter, and `Guard.Check(1 > 0)` would return `null` instead of `"1 > 0"`. The same holds for `[CallerArgumentExpression("condition")]`, which names the new name and would start to receive the caller's expression, for a `const string` whose value is `"Condition"` used as the argument, and for a constructor, a local function, or a delegate that declares such a parameter list.
+
+Example — RH4120:
+
+```csharp
+using System.Runtime.CompilerServices;
+
+public record R(bool {|RH4120:flag|}, [CallerArgumentExpression("flag")] string Expression = null);
+```
+
+is reported, and no code fix is offered: after renaming `flag` to `Flag`, the attribute would name no parameter.
+
+Example — a `nameof` argument, for RH4105:
+
+```csharp
+using System.Runtime.CompilerServices;
+
+public static class Guard
+{
+    public static string Check(bool {|RH4105:Condition|}, [CallerArgumentExpression(nameof(Condition))] string expression = null)
+    {
+        return expression;
+    }
+}
+```
+
+```csharp
+using System.Runtime.CompilerServices;
+
+public static class Guard
+{
+    public static string Check(bool condition, [CallerArgumentExpression(nameof(condition))] string expression = null)
+    {
+        return expression;
     }
 }
 ```
