@@ -1983,9 +1983,936 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                      Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying that a static member whose <c>static</c> modifier only some configurations compile is not reported,
+    /// because a conditional directive lies in the modifier list the rule judges
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task StaticMemberWhoseStaticModifierAnIfSplitsIsNotReported(string endOfLine)
+    {
+        const string source = """
+                              public struct S
+                              {
+                                  private int _a;
+                                  private
+                              #if !DEBUG
+                                      static
+                              #endif
+                                      int _b;
+                              }
+                              """;
+
+        await Verify(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the other side of the judged span: a conditional directive in the initializer of the static member, not in
+    /// its modifiers, keeps it reported; the group stands between two tokens of the moved declaration, at no boundary of
+    /// whole units, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-DIAG-008")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task NoCodeFixWhenTheMovedStaticFieldHasAnInitializerOnlyInAnotherConfiguration(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _i;
+                                  public static int Shared = Log("p");
+                                  private static int {|RH7103:_s|}
+                              #if DEBUG
+                                      = Log("s")
+                              #endif
+                                      ;
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a conditional group in front of a crossed field's first token whose branches hold its modifiers,
+    /// which are neither whole members nor whole attribute lists, withholds the fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task NoCodeFixWhenACrossedFieldIsStaticOnlyInAGroupInFrontOfItsFirstToken(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a;
+                              #if DEBUG
+                                  private static
+                              #else
+                                  private
+                              #endif
+                                  int _b = Log("b");
+                                  private static int {|RH7103:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a conditional group in front of a moved static method whose branches each hold a whole attribute list
+    /// wraps whole attribute lists, so the group moves with the method
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task FixMovesAStaticMethodWithAnExcludedAttributeWithANamedArgument(string endOfLine)
+    {
+        const string source = """
+                              using System.Runtime.InteropServices;
+
+                              public class C
+                              {
+                                  private void Run()
+                                  {
+                                  }
+
+                                  private int _b = 2;
+
+                              #if DEBUG
+                                  [DllImport("a", EntryPoint = "b")]
+                              #else
+                                  [DllImport("a")]
+                              #endif
+                                  private static extern void {|RH7103:M|}();
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.Runtime.InteropServices;
+
+                                   public class C
+                                   {
+                                   #if DEBUG
+                                       [DllImport("a", EntryPoint = "b")]
+                                   #else
+                                       [DllImport("a")]
+                                   #endif
+                                       private static extern void M();
+
+                                       private void Run()
+                                       {
+                                       }
+
+                                       private int _b = 2;
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a conditional group of whole accessors without <c>field</c> in a moved static property wraps whole
+    /// units, also when the excluded accessor assigns a field, so moving the property across a static initialized field is
+    /// offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task FixMovesAStaticPropertyWithAnAssignmentInAnExcludedAccessor(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _v;
+
+                                  private int Instance { get; set; }
+
+                                  public static int Counter = Log("c");
+
+                                  private static int {|RH7103:Value|}
+                                  {
+                                      get
+                                      {
+                                          return _v;
+                                      }
+                              #if DEBUG
+                                      set
+                                      {
+                                          _v = value;
+                                      }
+                              #endif
+                                  }
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private static int _v;
+
+                                       private static int Value
+                                       {
+                                           get
+                                           {
+                                               return _v;
+                                           }
+                                   #if DEBUG
+                                           set
+                                           {
+                                               _v = value;
+                                           }
+                                   #endif
+                                       }
+
+                                       private int Instance { get; set; }
+
+                                       public static int Counter = Log("c");
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a conditional group of whole accessors without <c>field</c> in a moved static property wraps whole
+    /// units, so moving the property across a static initialized field is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task FixMovesAStaticPropertyWithAnExcludedAccessor(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private static int _v;
+
+                                  private int Instance { get; set; }
+
+                                  public static int Counter = Log("c");
+
+                                  private static int {|RH7103:Value|}
+                                  {
+                                      get
+                                      {
+                                          return _v;
+                                      }
+                              #if DEBUG
+                                      set
+                                      {
+                                          Log("v");
+                                      }
+                              #endif
+                                  }
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private static int _v;
+
+                                       private static int Value
+                                       {
+                                           get
+                                           {
+                                               return _v;
+                                           }
+                                   #if DEBUG
+                                           set
+                                           {
+                                               Log("v");
+                                           }
+                                   #endif
+                                       }
+
+                                       private int Instance { get; set; }
+
+                                       public static int Counter = Log("c");
+
+                                       private static int Log(string name)
+                                       {
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a conditional group that opens inside the initializer of the field in front of a crossed field, and
+    /// whose branches end that declaration and begin the next one, withholds the fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task NoCodeFixWhenACrossedFieldIsStaticOnlyInAnExcludedBranchThatOpensInTheInitializerOfThePreviousField(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a =
+                              #if DEBUG
+                                      1;
+                                  private static
+                              #else
+                                      2;
+                              #endif
+                                  int _b = Log("b");
+                                  private static int {|RH7103:_c|} = Log("c");
+
+                                  private static int Log(string name)
+                                  {
+                                      return 0;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the SHARED-ORDER-008 example of a group of whole members in the moved member's leading trivia: the group
+    /// moves with <c>Create</c>
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task FixMovesAMemberWithAGroupOfWholeMembersInItsLeadingTrivia(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  public void Run()
+                                  {
+                                  }
+
+                              #if DEBUG
+                                  public void Trace()
+                                  {
+                                  }
+                              #endif
+                                  public static void {|RH7103:Create|}()
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                   #if DEBUG
+                                       public void Trace()
+                                       {
+                                       }
+                                   #endif
+                                       public static void Create()
+                                       {
+                                       }
+
+                                       public void Run()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the SHARED-ORDER-008 example of a group of whole accessors in a crossed property: the fix moves
+    /// <c>Shared</c> in front of <c>Value</c>
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task FixMovesAMemberAcrossAPropertyWithAGroupOfWholeAccessors(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  public int Value
+                                  {
+                                      get;
+                              #if DEBUG
+                                      set;
+                              #endif
+                                  }
+
+                                  public static int {|RH7103:Shared|} => 1;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       public static int Shared => 1;
+
+                                       public int Value
+                                       {
+                                           get;
+                                   #if DEBUG
+                                           set;
+                                   #endif
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the SHARED-ORDER-008 example of a group of whole statements in a switch section of a crossed method, which
+    /// counts like a block: the fix moves <c>Create</c> in front of <c>Run</c>
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task FixMovesAMemberAcrossAMethodWithAGroupOfWholeStatementsInASwitchSection(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  public int Run(int value)
+                                  {
+                                      switch (value)
+                                      {
+                                          case 1:
+                              #if DEBUG
+                                              System.Console.WriteLine();
+                              #endif
+                                              return 1;
+                                          default:
+                                              return 0;
+                                      }
+                                  }
+
+                                  public static void {|RH7103:Create|}()
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       public static void Create()
+                                       {
+                                       }
+
+                                       public int Run(int value)
+                                       {
+                                           switch (value)
+                                           {
+                                               case 1:
+                                   #if DEBUG
+                                                   System.Console.WriteLine();
+                                   #endif
+                                                   return 1;
+                                               default:
+                                                   return 0;
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the SHARED-ORDER-008 example of a conditional argument inside a statement of a crossed method: the
+    /// directives stand between two tokens of one statement, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task NoCodeFixWhenAConditionalArgumentStandsInAStatementOfACrossedMethod(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  public void Run()
+                                  {
+                                      System.Console.WriteLine(
+                              #if DEBUG
+                                          "debug"
+                              #else
+                                          "release"
+                              #endif
+                                          );
+                                  }
+
+                                  public static void {|RH7103:Create|}()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the SHARED-ORDER-008 example of the <c>field</c> clause: without <c>TRACE</c> defined, a group of whole
+    /// statements in a crossed accessor's body uses <c>field</c>, so no code fix is offered, although moving the static
+    /// <c>Shared</c> reorders no instance field in any build
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task NoCodeFixWhenAGroupInACrossedAccessorBodyUsesTheFieldKeyword(string endOfLine)
+    {
+        const string source = """
+                              public struct S
+                              {
+                                  private int _x;
+
+                                  public int Value
+                                  {
+                                      get
+                                      {
+                              #if TRACE
+                                          return field;
+                              #else
+                                          return 0;
+                              #endif
+                                      }
+                                  }
+
+                                  public static int {|RH7103:Shared|} => 1;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of the <c>field</c> clause: with <c>return 1;</c> in place of <c>return field;</c>, the
+    /// group wraps whole statements, and the fix moves <c>Shared</c> in front of <c>Value</c>
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task FixMovesAMemberAcrossAnAccessorWhoseGroupOfWholeStatementsDoesNotUseTheFieldKeyword(string endOfLine)
+    {
+        const string source = """
+                              public struct S
+                              {
+                                  private int _x;
+
+                                  public int Value
+                                  {
+                                      get
+                                      {
+                              #if TRACE
+                                          return 1;
+                              #else
+                                          return 0;
+                              #endif
+                                      }
+                                  }
+
+                                  public static int {|RH7103:Shared|} => 1;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public struct S
+                                   {
+                                       private int _x;
+
+                                       public static int Shared => 1;
+
+                                       public int Value
+                                       {
+                                           get
+                                           {
+                                   #if TRACE
+                                               return 1;
+                                   #else
+                                               return 0;
+                                   #endif
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the <c>field</c> clause for the active branch: without <c>TRACE</c> defined, the active branch of a group of
+    /// whole statements in a crossed accessor's body returns <c>field</c>, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task NoCodeFixWhenTheActiveBranchOfAGroupInACrossedAccessorBodyUsesTheFieldKeyword(string endOfLine)
+    {
+        const string source = """
+                              public struct S
+                              {
+                                  private int _x;
+
+                                  public int Value
+                                  {
+                                      get
+                                      {
+                              #if !TRACE
+                                          return field;
+                              #else
+                                          return 0;
+                              #endif
+                                      }
+                                  }
+
+                                  public static int {|RH7103:Shared|} => 1;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the <c>field</c> clause for a group of whole accessors: the excluded <c>set =&gt; field = value;</c> of a
+    /// crossed property uses <c>field</c>, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task NoCodeFixWhenAGroupOfWholeAccessorsOfACrossedPropertyUsesTheFieldKeyword(string endOfLine)
+    {
+        const string source = """
+                              public struct S
+                              {
+                                  private int _x;
+
+                                  public int Value
+                                  {
+                                      get => 0;
+                              #if DEBUG
+                                      set => field = value;
+                              #endif
+                                  }
+
+                                  public static int {|RH7103:Shared|} => 1;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the counterpart of the <c>field</c> clause for a group of whole accessors: with <c>set { }</c> in place of
+    /// <c>set =&gt; field = value;</c>, the group wraps whole accessors with a body, and the fix moves <c>Shared</c> in front
+    /// of <c>Value</c>
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task FixMovesAMemberAcrossAPropertyOfAStructWhoseGroupOfWholeAccessorsDoesNotUseTheFieldKeyword(string endOfLine)
+    {
+        const string source = """
+                              public struct S
+                              {
+                                  private int _x;
+
+                                  public int Value
+                                  {
+                                      get => 0;
+                              #if DEBUG
+                                      set { }
+                              #endif
+                                  }
+
+                                  public static int {|RH7103:Shared|} => 1;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public struct S
+                                   {
+                                       private int _x;
+
+                                       public static int Shared => 1;
+
+                                       public int Value
+                                       {
+                                           get => 0;
+                                   #if DEBUG
+                                           set { }
+                                   #endif
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the <c>No backing field from a branch</c> clause in a class: the excluded <c>set;</c> behind
+    /// <c>get =&gt; 0;</c> would give a crossed property a backing field in a build with <c>DEBUG</c> only, so no code fix is
+    /// offered, although the field order of a class sets no layout
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task NoCodeFixWhenAGroupOfWholeAccessorsOfACrossedPropertyOfAClassHoldsAnAccessorWithoutABody(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  public int Value
+                                  {
+                                      get => 0;
+                              #if DEBUG
+                                      set;
+                              #endif
+                                  }
+
+                                  public static int {|RH7103:Shared|} => 1;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the <c>No backing field from a branch</c> clause for an active branch in a class: the active
+    /// <c>set;</c> behind <c>get =&gt; 0;</c> gives a crossed property a backing field only in a build without
+    /// <c>DEBUG</c>, so no code fix is offered, although the field order of a class sets no layout
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task NoCodeFixWhenAnActiveGroupOfWholeAccessorsOfACrossedPropertyOfAClassHoldsAnAccessorWithoutABody(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  public int Value
+                                  {
+                                      get => 0;
+                              #if !DEBUG
+                                      set;
+                              #endif
+                                  }
+
+                                  public static int {|RH7103:Shared|} => 1;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a conditional attribute list on a class whose field order sets no layout keeps the move of a member
+    /// that reorders no instance field: the fix moves the static <c>Create</c> in front of <c>Run</c>
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task FixMovesAStaticMethodOfAClassWithAConditionalAttributeList(string endOfLine)
+    {
+        const string source = """
+                              #if DEBUG
+                              [System.Serializable]
+                              #endif
+                              public class C
+                              {
+                                  public void Run()
+                                  {
+                                  }
+
+                                  public static void {|RH7103:Create|}()
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   #if DEBUG
+                                   [System.Serializable]
+                                   #endif
+                                   public class C
+                                   {
+                                       public static void Create()
+                                       {
+                                       }
+
+                                       public void Run()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a conditional entry in the base list of a class whose field order sets no layout keeps the move of a
+    /// member that reorders no instance field: the fix moves the static <c>Create</c> in front of <c>Dispose</c>
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7103-007")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task FixMovesAStaticMethodOfAClassWithAConditionalEntryInItsBaseList(string endOfLine)
+    {
+        const string source = """
+                              public sealed class C : System.IDisposable
+                              #if NET
+                                  , System.IAsyncDisposable
+                              #endif
+                              {
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  public static void {|RH7103:Create|}()
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public sealed class C : System.IDisposable
+                                   #if NET
+                                       , System.IAsyncDisposable
+                                   #endif
+                                   {
+                                       public static void Create()
+                                       {
+                                       }
+
+                                       public void Dispose()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods
+
+    /// <summary>
+    /// Writes the provided text with the given line break
+    /// </summary>
+    /// <param name="text">Text</param>
+    /// <param name="endOfLine">Line break</param>
+    /// <returns>The text with every line break replaced by <paramref name="endOfLine"/></returns>
+    private static string WithEndOfLine(string text, string endOfLine)
+    {
+        return text.Replace("\r\n", "\n").Replace("\n", endOfLine);
+    }
 
     /// <summary>
     /// Applies the one code action registered for <c>_a</c>, asserts the exact result, and asserts that <c>_b</c> is

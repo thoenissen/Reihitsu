@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -57,6 +58,116 @@ public static class ModifierOrderingUtilities
                                                 .OrderBy(obj => GetRh7105Rank(obj.Modifier))
                                                 .ThenBy(obj => obj.ModifierIndex)
                                                 .Select(obj => obj.Modifier));
+    }
+
+    /// <summary>
+    /// Writes a declaration's modifiers in a new order (SHARED-MODORDER-002). The trivia in front of the first written
+    /// modifier stays in front of the new first modifier, and each modifier is followed by a single space, so the
+    /// modifiers stand on one line. A comment, a directive, or code that a directive excludes between two modifiers
+    /// keeps its place between the modifiers written in front of it and those written behind it, and one between the
+    /// last modifier and the token behind them keeps its place in front of that token; a modifier that the new order
+    /// adds at such a place is written behind it (RH2001-009). The modifiers cannot be written so when the new order
+    /// puts a modifier written in front of such trivia behind one written behind it, because the trivia would have
+    /// to move next to another keyword
+    /// </summary>
+    /// <param name="modifiers">Modifiers as written</param>
+    /// <param name="nextToken">Token behind the modifiers</param>
+    /// <param name="orderedModifiers">
+    /// The modifiers in the new order: every written modifier, matched to the written one of its kind in the order
+    /// they were written, and every modifier the new order adds
+    /// </param>
+    /// <param name="rewrittenModifiers">The rewritten modifiers</param>
+    /// <param name="nextTokenLeadingTrivia">The leading trivia of the token behind the modifiers</param>
+    /// <returns><see langword="true"/> if the modifiers could be written in the new order</returns>
+    public static bool TryWriteModifiersInOrder(SyntaxTokenList modifiers, SyntaxToken nextToken, SyntaxTokenList orderedModifiers, out SyntaxTokenList rewrittenModifiers, out SyntaxTriviaList nextTokenLeadingTrivia)
+    {
+        rewrittenModifiers = default;
+        nextTokenLeadingTrivia = nextToken.LeadingTrivia;
+
+        if (TryGetWrittenIndices(modifiers, orderedModifiers, out var writtenIndices) == false)
+        {
+            return false;
+        }
+
+        // The gap whose trivia is written behind a modifier: gap g lies between the written modifiers g - 1 and g, and
+        // the last gap between the last modifier and the token behind them
+        var gapBehindModifier = new int?[orderedModifiers.Count];
+
+        for (var gapIndex = 1; gapIndex <= modifiers.Count; gapIndex++)
+        {
+            if (HoldsCommentOrDirective(modifiers[gapIndex - 1].TrailingTrivia) == false
+                && HoldsCommentOrDirective(GetLeadingTriviaBehindGap(modifiers, nextToken, gapIndex)) == false)
+            {
+                continue;
+            }
+
+            var lastIndexInFront = -1;
+            var firstIndexBehind = orderedModifiers.Count;
+
+            for (var orderedIndex = 0; orderedIndex < orderedModifiers.Count; orderedIndex++)
+            {
+                if (writtenIndices[orderedIndex] < 0)
+                {
+                    continue;
+                }
+
+                if (writtenIndices[orderedIndex] < gapIndex)
+                {
+                    lastIndexInFront = orderedIndex;
+                }
+                else if (orderedIndex < firstIndexBehind)
+                {
+                    firstIndexBehind = orderedIndex;
+                }
+            }
+
+            if (firstIndexBehind < lastIndexInFront)
+            {
+                return false;
+            }
+
+            gapBehindModifier[lastIndexInFront] = gapIndex;
+        }
+
+        var rewrittenTokens = new List<SyntaxToken>(orderedModifiers.Count);
+        var leadingTrivia = modifiers.Count > 0
+                                ? modifiers[0].LeadingTrivia
+                                : nextToken.LeadingTrivia;
+
+        if (modifiers.Count == 0 && orderedModifiers.Count > 0)
+        {
+            nextTokenLeadingTrivia = default;
+        }
+
+        for (var orderedIndex = 0; orderedIndex < orderedModifiers.Count; orderedIndex++)
+        {
+            var trailingTrivia = SyntaxFactory.TriviaList(SyntaxFactory.Space);
+            var nextLeadingTrivia = default(SyntaxTriviaList);
+
+            if (gapBehindModifier[orderedIndex] is { } gapIndex)
+            {
+                trailingTrivia = modifiers[gapIndex - 1].TrailingTrivia;
+
+                if (orderedIndex + 1 < orderedModifiers.Count)
+                {
+                    nextLeadingTrivia = GetLeadingTriviaBehindGap(modifiers, nextToken, gapIndex);
+
+                    if (gapIndex == modifiers.Count)
+                    {
+                        nextTokenLeadingTrivia = default;
+                    }
+                }
+            }
+
+            rewrittenTokens.Add(orderedModifiers[orderedIndex].WithLeadingTrivia(leadingTrivia)
+                                                              .WithTrailingTrivia(trailingTrivia));
+
+            leadingTrivia = nextLeadingTrivia;
+        }
+
+        rewrittenModifiers = SyntaxFactory.TokenList(rewrittenTokens);
+
+        return true;
     }
 
     /// <summary>
@@ -185,6 +296,67 @@ public static class ModifierOrderingUtilities
         }
 
         return -1;
+    }
+
+    /// <summary>
+    /// Matches every modifier of the new order to the written modifier of its kind, in the order they were written
+    /// </summary>
+    /// <param name="modifiers">Modifiers as written</param>
+    /// <param name="orderedModifiers">Modifiers in the new order</param>
+    /// <param name="writtenIndices">
+    /// The index of the written modifier for each modifier of the new order, -1 for a modifier the new order adds
+    /// </param>
+    /// <returns><see langword="true"/> if the new order holds every written modifier</returns>
+    private static bool TryGetWrittenIndices(SyntaxTokenList modifiers, SyntaxTokenList orderedModifiers, out int[] writtenIndices)
+    {
+        writtenIndices = new int[orderedModifiers.Count];
+
+        var isMatched = new bool[modifiers.Count];
+
+        for (var orderedIndex = 0; orderedIndex < orderedModifiers.Count; orderedIndex++)
+        {
+            writtenIndices[orderedIndex] = -1;
+
+            for (var writtenIndex = 0; writtenIndex < modifiers.Count; writtenIndex++)
+            {
+                if (isMatched[writtenIndex] == false
+                    && modifiers[writtenIndex].RawKind == orderedModifiers[orderedIndex].RawKind)
+                {
+                    isMatched[writtenIndex] = true;
+                    writtenIndices[orderedIndex] = writtenIndex;
+
+                    break;
+                }
+            }
+        }
+
+        return isMatched.All(obj => obj);
+    }
+
+    /// <summary>
+    /// Gets the leading trivia of the token behind a gap between the written modifiers: the written modifier behind
+    /// it, or the token behind the modifiers for the last gap
+    /// </summary>
+    /// <param name="modifiers">Modifiers as written</param>
+    /// <param name="nextToken">Token behind the modifiers</param>
+    /// <param name="gapIndex">Index of the gap, which lies in front of the written modifier of that index</param>
+    /// <returns>The leading trivia</returns>
+    private static SyntaxTriviaList GetLeadingTriviaBehindGap(SyntaxTokenList modifiers, SyntaxToken nextToken, int gapIndex)
+    {
+        return gapIndex < modifiers.Count
+                   ? modifiers[gapIndex].LeadingTrivia
+                   : nextToken.LeadingTrivia;
+    }
+
+    /// <summary>
+    /// Determines whether the trivia holds a comment, a directive, or code that a directive excludes
+    /// </summary>
+    /// <param name="triviaList">Trivia</param>
+    /// <returns><see langword="true"/> if the trivia holds a comment, a directive, or excluded code</returns>
+    private static bool HoldsCommentOrDirective(SyntaxTriviaList triviaList)
+    {
+        return triviaList.Any(trivia => SyntaxNodeUtilities.IsCommentOrDirective(trivia)
+                                        || trivia.IsKind(SyntaxKind.DisabledTextTrivia));
     }
 
     #endregion // Methods
