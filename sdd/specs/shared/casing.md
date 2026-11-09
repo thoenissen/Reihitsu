@@ -863,9 +863,20 @@ public class C
 
 ### SHARED-CASING-012 — The fix is withheld when a caller-argument expression names the old or the new name
 
-The code fix MUST NOT be offered for a parameter when a parameter list that declares a symbol of its rename cascade (SHARED-CASING-007) carries a `CallerArgumentExpression` attribute whose argument is not a `nameof` expression and has a constant value that is the old name or the new name of a symbol of that cascade. The argument may be a string literal or any other constant, such as a `const` field. An attribute whose argument is a `nameof` expression does not withhold the fix. The diagnostic is still reported.
+The code fix MUST NOT be offered for a parameter when a `CallerArgumentExpression` attribute in one of the following parameter lists has an argument whose constant value is the old name or the new name of a symbol of the parameter's rename cascade (SHARED-CASING-007), unless the argument is exempt:
 
-Why: The attribute names a parameter by a string, which the renamer does not treat as a reference. When the string names the old name, the rename leaves it naming no parameter; when it names the new name, the rename makes it name the renamed parameter. Either way, the parameter that carries the attribute receives another value at run time (SHARED-FIX-003), and the compiler only warns. A `nameof` argument is a reference, which the rename changes together with the parameter.
+- a parameter list that declares a symbol of the cascade;
+- the parameter list of a member declared in an extension block whose receiver parameter is a symbol of the cascade.
+
+The argument may be a string literal, a `nameof` expression, or any other constant, such as a `const` field. An argument is exempt only when all of the following hold:
+
+- it is a `nameof` expression whose operand is a single unqualified identifier, such as `nameof(Condition)`; a qualified operand, such as `nameof(Names.Condition)`, is not exempt;
+- that identifier is the old name of a parameter that is a symbol of the cascade and that the parameter list carrying the attribute declares itself; an identifier that is the new name, or the old name of a parameter another list declares, such as the receiver of an extension block for an attribute in a member's parameter list, is not exempt;
+- the document is compiled with C# 11 or later.
+
+The diagnostic is still reported.
+
+Why: The attribute names a parameter by the value of its argument. The renamer changes that value only where the argument is a `nameof` that refers to a renamed parameter. From C# 11 on, an unqualified name in a `nameof` inside an attribute of a parameter list refers to the parameter of that name in the list; before C# 11 it refers to a member of the type, such as a `const` of the same name, which the rename leaves as it is. Every other argument keeps its value through the rename: a string, a constant, and a `nameof` of another symbol, qualified or not, even where the renamer qualifies it to keep its binding. When the value is the old name, the rename leaves the attribute naming no parameter; when it is the new name, the rename makes the attribute name the renamed parameter. Either way, the parameter that carries the attribute receives another value at run time (SHARED-FIX-003), and the compiler only warns. The check compares constant values with the cascade's names and looks only at the shape of a `nameof` argument, never at what it binds to; so an extension block, whose members' attributes can name the receiver from another parameter list, is refused for every such argument, `nameof` included. Such inputs are rare, and a rare class is refused with a cheap check (`AGENTS.md`, *Special cases do not grow the source*).
 
 Example — RH4105:
 
@@ -893,7 +904,7 @@ public record R(bool {|RH4120:flag|}, [CallerArgumentExpression("flag")] string 
 
 is reported, and no code fix is offered: after renaming `flag` to `Flag`, the attribute would name no parameter.
 
-Example — a `nameof` argument, for RH4105:
+Example — a `nameof` of the parameter itself, for RH4105, compiled with C# 11 or later: the argument is exempt, and the fix renames the parameter and the `nameof` operand together:
 
 ```csharp
 using System.Runtime.CompilerServices;
@@ -918,3 +929,79 @@ public static class Guard
     }
 }
 ```
+
+Example — a qualified `nameof` of another symbol that has the old name, for RH4105:
+
+```csharp
+using System.Runtime.CompilerServices;
+
+public static class Names
+{
+    public const int Condition = 0;
+}
+
+public static class Guard
+{
+    public static string Check(bool {|RH4105:Condition|}, [CallerArgumentExpression(nameof(Names.Condition))] string expression = null)
+    {
+        return expression;
+    }
+}
+```
+
+is reported, and no code fix is offered: the `nameof` refers to `Names.Condition`, so the rename keeps its value `"Condition"`, which then names no parameter, and `Guard.Check(1 > 0)` would return `null` instead of `"1 > 0"`.
+
+Example — an unqualified `nameof` of another symbol that has the new name, for RH4105:
+
+```csharp
+using System.Runtime.CompilerServices;
+
+public static class Guard
+{
+    private const int condition = 0;
+
+    public static string Check(bool {|RH4105:Condition|}, [CallerArgumentExpression(nameof(condition))] string expression = null)
+    {
+        return expression;
+    }
+}
+```
+
+is reported, and no code fix is offered: the operand `condition` is not the old name of the parameter, and the value `"condition"` is the new name, which after the rename names the renamed parameter, so `Guard.Check(1 > 0)` would return `"1 > 0"` instead of `null`.
+
+Example — a `nameof` of the parameter itself, for RH4105, compiled with C# 10:
+
+```csharp
+using System.Runtime.CompilerServices;
+
+public static class Guard
+{
+    public const int Condition = 0;
+
+    public static string Check(bool {|RH4105:Condition|}, [CallerArgumentExpression(nameof(Condition))] string expression = null)
+    {
+        return expression;
+    }
+}
+```
+
+is reported, and no code fix is offered: before C# 11, `nameof(Condition)` refers to the field `Guard.Condition`, which the rename leaves as it is, so the attribute would name no parameter. Compiled with C# 11 or later, the same input is exempt: `nameof(Condition)` refers to the parameter, and the fix renames both to `condition`.
+
+Example — an extension block receiver, for RH4105:
+
+```csharp
+using System.Runtime.CompilerServices;
+
+public static class GuardExtensions
+{
+    extension(bool {|RH4105:Condition|})
+    {
+        public string Check([CallerArgumentExpression("Condition")] string expression = null)
+        {
+            return expression;
+        }
+    }
+}
+```
+
+is reported, and no code fix is offered: the attribute is in the parameter list of a member of the block whose receiver is renamed, and after renaming `Condition` to `condition` it would name no parameter, so `(1 > 0).Check()` would return `null` instead of `"1 > 0"`. The same holds for `[CallerArgumentExpression(nameof(Condition))]` in that member's parameter list: the receiver is declared by another parameter list, so the argument is not exempt. Without a `CallerArgumentExpression` attribute in the block, or with one whose value is neither `"Condition"` nor `"condition"`, the fix is offered and renames the receiver to `condition`.
