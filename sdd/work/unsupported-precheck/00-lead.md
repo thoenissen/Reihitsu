@@ -67,7 +67,8 @@ Batch 2 (from 03-spec-author + lead), answer "9A 10A 11A":
 - 08 test implementer done (b4c97050); 09 spec author done (165d5802).
 - 10 implementer done (d49a20e3): rows 11, 12 carried out; Release build 0 warnings.
 - 11 cleaner clean (5d25217f). 12 spec checker: 2 findings (e550d9da) → repair round 1: spec author (13, c2891db9) ∥ test implementer (14, 24306645: tags were pre-existing and correct) done.
-- Next: spec checker (15) on the repair; then merge main if behind, build, auditor (16).
+- 15 spec checker: consistent (16afa0e1). Build green on 16afa0e1. main = 158e8fc (not behind).
+- Next: auditor (16) on audited SHA 16afa0e1 (+ this notes commit).
 - Batch 2 answered. Then: fresh spec author (04) carries Q9–Q11 into change doc/spec, change doc leaves Draft; then test implementer (05).
 - (done) ask batch 2 (Q9–Q11), then test implementer (may start on everything else, but wait: tests lock outputs; ask first).
 - Batch 1 answered (see Maintainer answers). Then: fresh spec author amendment (answers + Decisions 2–4), skeptic not re-run unless amendment adds visible outputs; then test implementer.
