@@ -36,6 +36,9 @@ Batch 2 (from 03-spec-author + lead), answer "9A 10A 11A":
 | 2 | 02 skeptic | Architecture finding: FMT-PIPE-031 clause restates SHARED-FIX-010 and would put a guard back into the split | Drop the clause; SHARED-FIX-010 is the one statement | One rule in one place; no guard for a refused shape in a phase | RH7101 is withheld either way through the type context | pending |
 | 3 | 02 skeptic | Where `SyntaxNotSupportedException` is caught | Once, in the shared pipeline runner where the precheck outcome is produced; never wrapped in `InvalidOperationException` under a trace | One outcome site; FMT-UNSUP-006 testable via `ExecutePhases` | Same outcome at every entry point | pending |
 | 4 | 02 skeptic | Spec defects 1–6 of 02-skeptic (FMT-PIPE-017 example, RH7101-006 wording, FMT-STRUCT-022 `;` comment, nested declarations in values, fixed-buffer brackets, first location in text order) | Route all to the spec author after the output answers | Spec accuracy | 017 example keeps its target output; location = first in text order shown in Q2 | pending |
+| 5 | 04 spec author | Accept the change doc (Status: Accepted) | Accepted by the lead | Skeptic ran; amendments only carry the maintainer's answers | Every visible change is a maintainer answer | 036b89f0 |
+| 6 | 04 spec author | Re-run the skeptic over amendments 03/04? | No | Amendments carry maintainer answers and the skeptic's own defect list; spec checker and auditor still verify | Nothing new visible | — |
+| 7 | 04 spec author | Comment behind a `using`/`fixed` `)` | Not refused, like a comment behind `;` | Symmetry with the issue's binding exclusion behind `;` | Keeps today's output | 036b89f0 |
 | 1 | Claim | Branch name | Use the session-designated branch `claude/funny-darwin-l756yr` instead of `claude/issue-1670-<slug>` | The session forbids pushing to any other branch | Branch names are internal | claim commit |
 
 ## Follow-up candidates
@@ -48,7 +51,9 @@ Batch 2 (from 03-spec-author + lead), answer "9A 10A 11A":
 - Lane check after 01: confirmed behavior-change.
 - 02 skeptic done (211d739): output question; re-asked Q5 split into 5a–5d; new Q7 RH2001; escalation 9 candidate: code-fix registration query across ~45 formatting fixes.
 - 03 spec author amendment done (3f270a53): batch 1 + Decisions 2–4 carried out; open Q9 (comment between value and `,`/`;`), Q10 (comment before `)` of using/fixed); internal choice touching output: comment inside an attribute argument refused → asked as Q11. Lane check: confirmed.
-- Batch 2 answered. Next: fresh spec author (04) carries Q9–Q11 into change doc/spec, change doc leaves Draft; then test implementer (05).
+- 04 spec author done (036b89f0): change doc Accepted, nothing open. Lane check confirmed.
+- Next: test implementer (05), then implementer (06).
+- Batch 2 answered. Then: fresh spec author (04) carries Q9–Q11 into change doc/spec, change doc leaves Draft; then test implementer (05).
 - (done) ask batch 2 (Q9–Q11), then test implementer (may start on everything else, but wait: tests lock outputs; ask first).
 - Batch 1 answered (see Maintainer answers). Then: fresh spec author amendment (answers + Decisions 2–4), skeptic not re-run unless amendment adds visible outputs; then test implementer.
 - (done) ask batch (Q1–Q7 + escalation 9 on the code-fix mechanism), wait; then spec author amendment (Decisions 2–4 + answers), lane check, test implementer.
