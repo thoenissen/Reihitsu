@@ -87,7 +87,8 @@ A visible output is **in question** when its change is not decided yet: no uncha
 - a case within the run's issues whose real output looks wrong and that no spec decides (`sdd/README.md`, *Open questions*);
 - two readings of a spec that give different output for the same input;
 - a test whose asserted visible output turns out to be wrong;
-- a dropped or changed goal of an issue that would change visible output, and any departure from the goals of an issue without the `agent-filed` label.
+- a dropped or changed goal of an issue that would change visible output, and any departure from the goals of an issue without the `agent-filed` label;
+- declaring a shape unsupported, also for a rare shape: the formatter then refuses and reports every file that holds it (`AGENTS.md`, *Special cases do not grow the source*).
 
 Each of these is an **output question**, asked in the form `Output questions` in [`AGENTS.md`](../AGENTS.md#output-questions) describes. Output questions are batched: the lead asks every open one in one message at two points of the run — **before the test implementer starts**, after the spec author, the skeptic, and any amendment the skeptic caused, because tests lock outputs in; and **before the auditor**, for the questions found later. A question that blocks writing a test is asked at once. A case outside the run's issues is not asked: it becomes an `agent-filed` follow-up issue that carries the question in the same form.
 
@@ -105,7 +106,7 @@ The lead stops and asks the maintainer only when:
 6. a warning can only be resolved by a suppression or a ruleset change;
 7. the narrowing after the third repair round would change an output the maintainer answered, or the run still blocks after it ([below](#repairs));
 8. before the claim: an issue reference in the prompt is unclear, an existing claim exists, the prompt names more than eight issues, or its issues do not share a lane;
-9. a structural change would add more than about 100 production lines or a new type ([below](#architecture-findings)), or refusing a class would withhold a fix or leave a construct unformatted for code people commonly write (`AGENTS.md`, *Code-fix coverage*). The options always include refusing the class instead.
+9. a structural change would add more than about 100 production lines or a new type ([below](#architecture-findings)), or refusing a class would withhold a fix or leave a construct unformatted for code people commonly write (`AGENTS.md`, *Code-fix coverage*). The options always include refusing the class instead: withholding the fix, leaving the construct as written, or declaring the shape unsupported (`AGENTS.md`, *Special cases do not grow the source*).
 
 The maintainer's answer to an output question is recorded where it takes effect — the change doc's `Decisions` section or the spec — and in the run's note. The answer to any other escalation is recorded in the run's note; the PR carries only the part that shapes the change.
 
@@ -131,7 +132,7 @@ The run implements the issues the prompt names, but its scope is not frozen. The
 - it puts no visible output in question;
 - the lane check still admits the diff.
 
-Every other find becomes a follow-up, unless no caller of the repository reaches it (`AGENTS.md`, *Supported inputs*); such a find is dropped. Code that only serves a rare input class is never scope the run takes in: that class is refused (`AGENTS.md`, *Code-fix coverage*). A role that sees the change grow — a shared helper with other consumers, more than double the production paths the handovers name, or an adjacent fix — reports it in its handover and keeps working; the lead decides and records it. Only a new rule stops the run (escalation 5).
+Every other find becomes a follow-up, unless no caller of the repository reaches it (`AGENTS.md`, *Supported inputs*); such a find is dropped. Code that only serves a rare input class is never scope the run takes in: that class is refused (`AGENTS.md`, *Code-fix coverage*). A new unsupported shape is a change of its own unless the run's issues are about that shape: proposed in a run on another issue, it is a follow-up candidate that carries its output question, naming the shape and the special cases it would delete. A role that sees the change grow — a shared helper with other consumers, more than double the production paths the handovers name, or an adjacent fix — reports it in its handover and keeps working; the lead decides and records it. Only a new rule stops the run (escalation 5).
 
 ## Notes
 
@@ -151,7 +152,7 @@ The escalation covers the defects that reach the run: a defect of one of the run
 
 A role that finds one reports it in its handover under `## Architecture findings`: the components, the decision they share, and the input that shows them disagreeing or the places that state the rule. It finishes its own job without changing the structure. The lead decides before the next role starts, and records the decision under *Decisions taken*:
 
-- **Refuse the class first** when the finding concerns a rare input class, or repeats the class of an earlier audit finding of the run: the fix is withheld for the class, or the formatter leaves the construct as written (`AGENTS.md`, *Code-fix coverage*). It is routed to its owner like a repair and does not use up a repair round.
+- **Refuse the class first** when the finding concerns a rare input class, or repeats the class of an earlier audit finding of the run: the fix is withheld for the class, or the formatter leaves the construct as written (`AGENTS.md`, *Code-fix coverage*). It is routed to its owner like a repair and does not use up a repair round. When the class is a comment or directive shape that forces guards into several phases, or keeps coming back in findings, the refusal to propose is a new unsupported shape: it is asked as an output question ([above](#what-reaches-the-maintainer)), never routed before the maintainer answers, and for a shape the run's issues are not about it is a follow-up candidate ([Scope](#scope)); meanwhile the run refuses the class locally.
 - **Change the structure in this run** only when refusing is not enough — the class includes code people commonly write, or the narrow fix would itself add a copy, a prediction, or a second statement of the rule — and the structural change stays within the components the run changes and their counterparts. It is routed to its owner like a repair, from the first role of the lane it affects, and does not use up a repair round. A structural change that adds more than about 100 production lines or a new type is escalation 9.
 - **Otherwise, fix narrowly** and file the structural change as a follow-up.
 - A structural change that would put a visible output in question is an output question; one that needs a new rule is escalation 5.

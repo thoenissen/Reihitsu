@@ -55,7 +55,9 @@ A code fix is never required to correct every case its diagnostic reports. Some 
 - When making a rewrite safe for a rare class of inputs needs more than that — evaluating `#if` conditions or reconstructing other build configurations, predicting what another component or a later formatter phase will produce, parser-like rules over text or trivia, or a new type — the code fix is withheld for that class, and the formatter leaves the construct as written. Rare inputs never justify that machinery.
 - Rare inputs are shapes people seldom write. Every input that already violates another Reihitsu rule is rare by definition, such as a comment inside an argument list (RH5038) or a `#region` inside a member (RH7303): that rule reports it anyway.
 - Non-destructiveness still comes first. A formatter rewrite or a fix that damages user code is repaired — by skipping the construct, not by modelling it.
-- A refusal that would withhold a fix, or leave a construct unformatted, for code people commonly write is not covered by this rule; it is a question for the maintainer, not a license for machinery.
+- The third refusal is to **declare the shape unsupported** ([`sdd/specs/formatter/unsupported-syntax.md`](sdd/specs/formatter/unsupported-syntax.md)): the precheck refuses every input that holds the shape as a whole, every entry point returns it unchanged and reports it with a reason and a location, the CLI reports the file as an error, and every code fix that would format it is withheld (SHARED-FIX-010). Each shape is one FMT-UNSUP requirement, checked with a cheap check on exactly what the phases receive, from the tokens and trivia inside that input alone, and never produced by a phase; the change that declares it deletes every special case it makes unnecessary and lists them, and a shape that deletes nothing is not declared.
+- Withholding the fix and leaving the construct as written are local and silent, and a rare class needs no one's answer for them. Declaring a shape unsupported refuses and reports whole files, so it is a visible output change that only the maintainer decides, asked as an output question that names the special cases it would delete. It is the refusal to propose when a comment or directive shape forces guards into several phases, or when the same shape keeps coming back in findings; leaving as written stays the refusal for a single construct. A new shape is a change of its own unless the work's issue is about that shape.
+- A refusal that would withhold a fix, leave a construct unformatted, or refuse a file for code people commonly write is not covered by this rule; it is a question for the maintainer, not a license for machinery.
 
 ## Supported inputs
 
@@ -119,7 +121,7 @@ A question whose answer decides what an end user sees — the formatter's output
 4. **After** — one `csharp` block per option, labeled `A`, `B`, …, with `(recommended)` on one of them. A diagnostic is shown as the code with the reported span marked, or as one line naming span and message.
 5. **Why** — one sentence for the recommendation.
 
-No requirement IDs, mechanisms, or internal alternatives; those belong to the run, not to the question. Several output questions in one message are numbered like any other questions, and the rules above for waiting on the answer apply unchanged.
+No requirement IDs, mechanisms, or internal alternatives; those belong to the run, not to the question. An option that declares a shape unsupported shows as its output the input unchanged and the line the CLI reports for it, and adds one line behind *Why* that names the special cases the shape would delete, because they are what the refused files buy. Several output questions in one message are numbered like any other questions, and the rules above for waiting on the answer apply unchanged.
 
 ````markdown
 **1 · RH3202 · Expression-style methods should not be used — comment in front of the expression**

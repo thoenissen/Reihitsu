@@ -59,6 +59,18 @@ Known ways a change in this repository goes wrong. The skeptic names the classes
 | FC-013 | Analyzer and formatter disagree: formatter output is flagged by a rule that [SHARED-DIAG-010](../sdd/specs/shared/diagnostics.md) (P31) covers — a layout rule whose code fix lays code out as the formatter does. An order or content rule may report what the formatter keeps, and analyzer-clean code that the formatter changes is not this class where [P11](../sdd/README.md#the-formatter-may-do-more-than-the-analyzers-p11) calls the rewrite intended | RC reviews |
 | FC-014 | A new rule's concern is of a kind the formatter judges — layout, or an order or a syntax form that a formatter phase rewrites, such as using order, expression bodies, trailing commas, braces of empty types, or field splitting — but no formatter phase owns it for the rule's construct, leaving permanent diagnostics for CLI users. Order or content that the formatter does not judge, such as the order of members or the content of comments, is not this class: the formatter keeps it without judging it, so [SHARED-DIAG-010](../sdd/specs/shared/diagnostics.md) lets a rule about it report what the formatter keeps | RC reviews |
 
+## Unsupported shapes
+
+These classes reach a change that declares a shape unsupported, or changes the precheck's check of one ([`unsupported-syntax.md`](../sdd/specs/formatter/unsupported-syntax.md)).
+
+| ID | Failure class | Origin |
+|---|---|---|
+| FC-038 | A phase produces a declared shape — a split, join, move, or relocation carries a comment or directive into the span the shape covers — so the formatter refuses its own output on the next pass (FMT-UNSUP-005) | the first unsupported shape |
+| FC-039 | The check skips nested subtrees: it stops at the outer match or excepted region, so a nested occurrence — a declaration inside an initializer value or a lambda body — is missed, or the outer node's exception is applied to it | the first unsupported shape |
+| FC-040 | The outcome depends on the documentation mode: the parser attaches `///` or `/** */` text to another token, or parses it as structured trivia, so the CLI and a code fix answer differently for the same text | the first unsupported shape |
+| FC-041 | The node-level answer and the whole-document answer are mixed: the check reads text outside its input, a node-level target that holds only part of the shape is refused, or a code fix asks about another node than the formatter receives — the target instead of the context, the replaced code instead of the built node (FMT-UNSUP-003, SHARED-FIX-010) | the first unsupported shape |
+| FC-042 | A guard for a declared shape survives in a phase, a code fix, or a spec clause, so the shape is handled twice and the guard drifts from the precheck | the first unsupported shape |
+
 ## Tests and evidence
 
 | ID | Failure class | Origin |
