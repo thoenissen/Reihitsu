@@ -171,7 +171,7 @@ are left unchanged. A comment before a `;` stays where it is, and the `;` behind
 ```csharp
 class C
 {
-    int A /// stray
+    int A => 1 /// stray
         ;
 }
 ```
@@ -179,7 +179,7 @@ class C
 ```csharp
 class C
 {
-    int A /// stray
+    int A => 1 /// stray
     ;
 }
 ```

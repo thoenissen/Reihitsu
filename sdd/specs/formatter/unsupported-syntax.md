@@ -5,9 +5,9 @@
 | ID prefix | FMT-UNSUP |
 | Status | Active |
 | Code owners | — |
-| Uses | FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-STRUCT-021 |
+| Uses | FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-STRUCT-021, SHARED-FIX-010 |
 
-This spec covers the formatter's *Unsupported* outcome: the input shapes the formatter refuses as a whole, the precheck phase that finds them before any other phase runs (FMT-PIPE-001), a phase's refusal of a shape the precheck does not find, and what every entry point returns for a refused input. Each unsupported shape is a requirement of this spec; a shape is declared here so that no phase has to handle it.
+This spec covers the formatter's *Unsupported* outcome: the input shapes the formatter refuses as a whole, the precheck phase that finds them before any other phase runs (FMT-PIPE-001), a phase's refusal of a shape the precheck does not find, what every entry point returns for a refused input, and the query that tells a code fix whether the formatter refuses a node. Each unsupported shape is a requirement of this spec; a shape is declared here so that no phase has to handle it.
 
 ## Non-goals
 
@@ -22,9 +22,16 @@ This spec covers the formatter's *Unsupported* outcome: the input shapes the for
 
 When the input of the formatting phases contains a shape that a requirement of this spec declares unsupported, the formatter MUST NOT format any part of it: the entry point MUST return its input unchanged, and MUST report the input as unsupported, with the reason — the unsupported shape — and the location of the shape. The phases after the precheck MUST NOT run on a refused input.
 
-This requirement does not decide how an entry point represents the outcome to its caller.
+Every formatting entry point of `ReihitsuFormatter` — `FormatDocumentAsync`, `FormatSyntaxTree`, `FormatNode`, `FormatNodeInDocumentAsync`, and `FormatNodeInDocumentWithContextAsync` — MUST return a result object, `FormattingResult<T>`, instead of the bare document, tree, or node:
 
-Why: Rare comment and directive shapes have cost analysis, spec text, and special cases in the phases, and many of them ended in leaving the construct as written anyway, silently and decided again for every phase. Refusing the whole input removes the shape from every phase at once: a phase that never sees it needs no guard for it. Formatting the rest of the input would put the phases back next to the shape, and they would need their guards again. Reporting the refusal tells the user why the input was left as written, which the silent outcome did not.
+- `Output` is what the entry point returned before this outcome existed: the formatted document, tree, or node, or the input unchanged when the formatter refuses it, and also when FMT-PIPE-005 or FMT-PIPE-006 leaves it untouched.
+- `Unsupported` is null when the input is not refused, also for an input FMT-PIPE-005 or FMT-PIPE-006 leaves untouched. For a refused input it is an `UnsupportedSyntax` that carries the reason — the description the requirement of the shape gives, such as `a comment between a variable declaration's own tokens` for FMT-UNSUP-004 — and the location: the span of the shape in the caller's syntax tree, from which a host derives the line and the column of its first character.
+
+When the input holds several unsupported shapes, the reason and the location MUST be those of the shape that starts first in the text.
+
+`OrganizeUsingDirectivesInDocumentAsync` refuses no input (FMT-UNSUP-002) and keeps its return type; `SplitsFieldDeclaration` answers a question and keeps its return type (FMT-PIPE-031).
+
+Why: Rare comment and directive shapes have cost analysis, spec text, and special cases in the phases, and many of them ended in leaving the construct as written anyway, silently and decided again for every phase. Refusing the whole input removes the shape from every phase at once: a phase that never sees it needs no guard for it. Formatting the rest of the input would put the phases back next to the shape, and they would need their guards again. Reporting the refusal tells the user why the input was left as written, which the silent outcome did not. A result object makes the outcome part of every call: no caller can format and overlook a refusal, and the CLI, the Playground, and the code fixes all have to report it or withhold on it. One location per input keeps the report one line; the first shape in the text is the one a user meets first, and after rewriting it the next run names the next one.
 
 Example — `FormatSyntaxTree` with
 
@@ -36,7 +43,24 @@ class C{
 }
 ```
 
-returns the tree unchanged, also the brace and the spacing the formatter would correct elsewhere, and reports it as unsupported, at the comment `/* c */`, for a comment between a variable declaration's own tokens (FMT-UNSUP-004).
+returns a result whose `Output` is the tree unchanged, also the brace and the spacing the formatter would correct elsewhere, and whose `Unsupported` names the reason `a comment between a variable declaration's own tokens` (FMT-UNSUP-004) and the span of `/* c */`, which starts in line 3, column 13.
+
+Example — in
+
+```csharp
+class C
+{
+    void M()
+    {
+        int b = /* second */ 1;
+        int /* first */ a = 1;
+    }
+}
+```
+
+the location is that of `/* second */`, the shape that starts first in the text.
+
+Example — `FormatSyntaxTree` with `class C{ int x }`, which has a syntax error, returns a result whose `Output` is the tree unchanged and whose `Unsupported` is null (FMT-PIPE-005).
 
 ### FMT-UNSUP-002 — The precheck runs on exactly what the phases receive
 
@@ -71,7 +95,9 @@ class C
 
 The formatter MUST decide whether an input is unsupported from the tokens and the trivia inside that input alone. Text outside the input, and the node the input stands in, MUST NOT decide it: a shape that a requirement of this spec names by its syntax counts only where that syntax is part of the input.
 
-Why: A decision that read the code around a node-level input would give a node one answer as part of the document and another as a target, and whole-document and node-level formatting would disagree about what they refuse. A node-level input is formatted as a root of its own (FMT-PIPE-017), and its phases see nothing else either.
+So whole-document formatting and node-level formatting agree for the same node, but not between a document and a node below the shape: a target that holds part of a refused declaration, but not the declaration, is formatted, while the document that holds it is refused.
+
+Why: A decision that read the code around a node-level input would give a node one answer as part of the document and another as a target. A node-level input is formatted as a root of its own (FMT-PIPE-017), and its phases see nothing else either.
 
 Example — `FormatNodeInDocumentAsync` with the equals-value clause `= /* a */ new List<int> { 1 }` of
 
@@ -87,28 +113,30 @@ class C
 }
 ```
 
-as target formats the clause: the clause holds the `=` and the comment, but not the variable declaration that FMT-UNSUP-004 names. With the local declaration statement as target, the input holds the declaration, and the document is returned unchanged and reported as unsupported.
+as target formats the clause: the clause holds the `=` and the comment, but not the variable declaration that FMT-UNSUP-004 names. With the local declaration statement as target, the input holds the declaration, and the document is returned unchanged and reported as unsupported; `FormatDocumentAsync` refuses the document as well.
 
-### FMT-UNSUP-004 — Comments between a variable declaration's own tokens are unsupported
+### FMT-UNSUP-004 — Comments inside a variable declaration are unsupported
 
-An input MUST be refused when a comment — `//`, `/* */`, `///`, or `/** */` — stands in the trivia of one of these tokens of a variable declaration:
+An input MUST be refused when a comment — `//`, `/* */`, `///`, or `/** */`, in every documentation mode — stands in the trivia of a token in the span of a variable declaration, other than in the places excepted below.
 
-- between the type and the first declarator's name: behind the type's last token, or in front of the first declarator's name;
-- in the trivia of a declarator's name, in front of it or behind it, also when no `=` follows;
-- in the trivia of the `=` of a declarator's initializer, in front of it or behind it;
-- in the trivia of a `,` between two declarators, in front of it or behind it.
+The span of a variable declaration runs from its first token through its terminator, and every token in between belongs to it — attribute lists with their arguments, modifiers, every token of the type, each declarator's name, the brackets and the size of a fixed-size buffer, each `=`, and each `,` between declarators:
 
-This holds for every variable declaration: of a local, a field, an event field, a `using` statement or declaration, a `fixed` statement, and the initializer of a `for` statement.
+- a field or an event field: from the member's first token — its first attribute list, its first modifier, or its type — through the `;` that ends it;
+- a local declaration statement, a `using` declaration included: from the statement's first token — such as `using`, `await`, `const`, or the type — through its `;`;
+- the initializer of a `for` statement: from the type's first token through the `for` statement's first `;`;
+- a `using` statement or a `fixed` statement: from the type's first token through the last token of the last declarator. Whether the leading trivia of the `)` behind it belongs to the span is not decided by this requirement yet.
 
-These comments MUST NOT refuse an input:
+These places are excepted:
 
-- a comment in the leading trivia of the declaration's first token, above the declaration or in front of it on its line;
-- a comment behind the `;` that ends the declaration;
-- a comment inside an initializer value, such as one inside an object initializer or a lambda body, or one behind the value's last token.
+- the leading trivia of the span's first token: a comment above the declaration, or in front of it on its line;
+- the trailing trivia of the `;` that ends the span: a comment behind the declaration;
+- inside an initializer value: the trivia between the value's first token and its last token. The leading trivia of the value's first token is not excepted: a comment on its own line in front of the value refuses the input. Whether the trailing trivia of the value's last token — a comment between the value and the `,` or `;` behind it — is excepted is not decided by this requirement yet.
 
-This requirement specifies the outcome only for the trivia it names and leaves every other comment of a variable declaration unspecified.
+A variable declaration inside an initializer value, such as a local declared in a lambda body, is a declaration of its own: this requirement applies to it with its own span, whatever the declaration around it holds.
 
-Why: A comment between the tokens of one declaration makes every phase that rewrites or lays out the declaration — the field split, the line break at `=`, the spacing around `=` and `,` — carry the comment along and decide where it goes, and each of them needed special cases for it. The shape is rare, and refusing it lets those special cases go. A comment above or in front of the declaration, behind its `;`, or inside a value stands where the phases already handle comments for every other statement, member, and expression.
+The reason the formatter gives for this shape is `a comment between a variable declaration's own tokens`, and its location is the span of the comment.
+
+Why: A comment inside a declaration makes every phase that rewrites or lays out the declaration — the field split, which repeats the attributes, modifiers, and type on every field, the line break at `=`, the spacing around `=` and `,` — carry the comment along and decide where it goes, and each of them needed special cases for it. The shape is rare, and refusing it lets those special cases go. Refusing the whole declaration, not only the trivia of some of its tokens, makes the boundary one check from the first token through the terminator, with no carve-out for the attributes, the modifiers, or the type, so no phase keeps a guard for a comment anywhere among them. A comment above or in front of the declaration, behind its `;`, or inside a value stands where the phases already handle comments for every other statement, member, and expression.
 
 Example — each declaration is refused, and the input that holds it is returned unchanged:
 
@@ -128,6 +156,37 @@ class C
 }
 ```
 
+Example — a comment among the attributes, the modifiers, or the type, on its own line in front of the value, or on its own line in front of the `;`; each declaration is refused:
+
+```csharp
+using System;
+
+class C
+{
+    System.Collections.Generic.Dictionary<int, // first
+        string> _map;
+
+    private
+        // c
+        int _b;
+
+    [Obsolete /* why */]
+    private int _c;
+
+    private /* c */ static int _d;
+
+    void M()
+    {
+        int c =
+            // c
+            1;
+        int d
+            // c
+            ;
+    }
+}
+```
+
 Example — the other side: none of these comments refuses the input, and the input is formatted:
 
 ```csharp
@@ -135,6 +194,9 @@ using System;
 
 class C
 {
+    /// <summary>The count</summary>
+    private int _count;
+
     void M()
     {
         // c6
@@ -150,7 +212,25 @@ class C
             // c9
             return 1;
         };
-        int b = 1 /* c10 */, c = 2;
+        int b = Compute(1, /* c10 */ 2);
+    }
+}
+```
+
+Example — a declaration inside a value is checked on its own: the lambda's local refuses the input, although the comment is inside the value of `f`:
+
+```csharp
+using System;
+
+class C
+{
+    void M()
+    {
+        Func<int> f = () =>
+        {
+            int /* c */ x = 1;
+            return x;
+        };
     }
 }
 ```
@@ -160,14 +240,21 @@ Example — the requirement holds for every variable declaration; each of these 
 ```csharp
 using System;
 
-class C
+unsafe struct S
 {
     private int _a, /* c */ _b;
     public event Action /* c */ Changed;
+    public fixed int _buffer[4] /* c */;
 
-    void M()
+    void M(int[] items)
     {
         for (int i = 0, /* c */ j = 0; i < j; i++)
+        {
+        }
+
+        using var /* c */ stream = Open();
+
+        fixed (int* /* c */ p = items)
         {
         }
     }
@@ -180,19 +267,19 @@ The formatter MUST NOT produce a shape that a requirement of this spec declares 
 
 Why: A phase that wrote an unsupported shape would hand the later phases the shape they no longer guard against, and a second run would refuse what the first one wrote, which breaks idempotency (FMT-PIPE-004).
 
-Example — the field split (FMT-STRUCT-021) keeps a comment behind an initializer value inside that value, where no requirement of this spec refuses it:
+Example — the field split (FMT-STRUCT-021) keeps a comment inside an initializer value inside that value, where no requirement of this spec refuses it:
 
 ```csharp
 class C
 {
-    private int _a = 1 /* c */, _b;
+    private int _a = 1 + /* c */ 2, _b;
 }
 ```
 
 ```csharp
 class C
 {
-    private int _a = 1 /* c */;
+    private int _a = 1 + /* c */ 2;
     private int _b;
 }
 ```
@@ -201,6 +288,32 @@ class C
 
 When a phase refuses an input during the run, for a shape that the precheck does not find, every public entry point of `ReihitsuFormatter` MUST return its input unchanged and report it as unsupported, as FMT-UNSUP-001 states for the precheck's refusal; the refusal MUST NOT reach the caller as an exception. Every shape a phase refuses this way MUST be stated by a requirement of this spec, which names the phase.
 
+The formatter MUST turn a phase's refusal into the outcome in one place, where the pipeline run that every entry point uses produces the precheck's outcome, also when a pipeline observer or the trace watches the run: the refusal MUST NOT reach the observer's caller as an exception either, wrapped in another exception or not.
+
 No phase refuses an input in this way yet.
 
-Why: Some shapes are cheaper to recognize where a phase meets them than ahead of all phases; the outcome must not depend on where the shape was found. An exception that escaped would abort the CLI's run and surface as `AD0001` in a code fix. Roslyn's syntax trees are immutable, so stopping in the middle of the phases cannot leave a partly formatted result behind. A refusal stated in no requirement would be a special case nobody can find.
+Why: Some shapes are cheaper to recognize where a phase meets them than ahead of all phases; the outcome must not depend on where the shape was found. An exception that escaped would abort the CLI's run and surface as `AD0001` in a code fix. Producing both refusals in one place gives one outcome site, and it lets a test run the pipeline with a phase that refuses. Roslyn's syntax trees are immutable, so stopping in the middle of the phases cannot leave a partly formatted result behind. A refusal stated in no requirement would be a special case nobody can find.
+
+### FMT-UNSUP-007 — The formatter answers whether it refuses a node
+
+`ReihitsuFormatter.FindUnsupportedSyntax` MUST return, for the node it is given, the `UnsupportedSyntax` that the precheck gives for that node as the input of the phases — the same reason and location (FMT-UNSUP-001) — or null when the precheck does not refuse it. It MUST decide by the same predicate the precheck runs, not by a copy of it, and MUST NOT format the node. It answers for the node alone (FMT-UNSUP-003): text outside the node does not decide it.
+
+This requirement decides the inputs the formatting code fixes pass (`AGENTS.md`, *Supported inputs*): the node, or the context, a fix formats, which SHARED-FIX-010 states.
+
+Why: A code fix has to know when it registers whether the formatter will refuse its formatting, because an action that changes nothing or leaves its edit unformatted is no fix (SHARED-FIX-010). Code fixes reach the formatter only through `ReihitsuFormatter` (FMT-PIPE-009), so the answer is one of its entry points. One predicate for the precheck and the query means one statement of every unsupported shape; a copy in the code fixes could drift apart from it. Formatting the node at registration to read the outcome would format a whole type for each RH7101 diagnostic shown in the light bulb.
+
+Example — for
+
+```csharp
+class C
+{
+    private int _a, _b;
+
+    void M()
+    {
+        int /* c */ x = 1;
+    }
+}
+```
+
+`FindUnsupportedSyntax` returns the reason `a comment between a variable declaration's own tokens` and the span of `/* c */` for the class `C` and for the method `M`, and null for the field declaration `_a, _b`.

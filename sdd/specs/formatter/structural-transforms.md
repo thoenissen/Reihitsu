@@ -1021,9 +1021,9 @@ class C
 
 ### FMT-STRUCT-022 — Split fields keep their comments
 
-When the formatter splits a field under FMT-STRUCT-021, the declaration's leading trivia MUST stay on the first generated field, a comment inside a declarator's initializer value, behind the value's last token included, MUST stay in that value in the declarator's field, and the trivia behind the declaration's `;` MUST stay behind the last field.
+When the formatter splits a field under FMT-STRUCT-021, the declaration's leading trivia MUST stay on the first generated field, a comment inside a declarator's initializer value MUST stay in that value in the declarator's field, and the trivia behind the declaration's `;` MUST stay behind the last field.
 
-The formatter refuses an input with a comment between the declaration's own tokens — behind the type, at a declarator's name, at an `=`, or at a `,` between declarators (FMT-UNSUP-004) — so no split field has a comment there. A declaration with a documentation comment, or with a comment in the part every generated field repeats, is not split (FMT-STRUCT-030), so the leading trivia that stays on the first field holds no documentation comment.
+These are the only places of a split declaration that can hold a comment. The formatter refuses an input with a comment anywhere else in a field declaration — among its attributes and modifiers, in its type, at a declarator's name, at an `=` or in front of a value, at a `,` between declarators, or in front of the `;` (FMT-UNSUP-004) — so no split field carries one there. FMT-UNSUP-004 states which comments around a value count as inside it. A declaration with a documentation comment is not split (FMT-STRUCT-030), so the leading trivia that stays on the first field holds no documentation comment.
 
 Why: Each comment keeps describing the code it was written next to. A comment in front of the declaration stays in front of it, where its first field now begins; a comment in a value stays in the value it describes; and a comment behind the declaration stays behind its end, which is now the last field's. A documentation comment documents every field of the declaration, so keeping it on the first field would leave the others undocumented, and the declaration is not split instead (FMT-STRUCT-030).
 
@@ -1033,7 +1033,7 @@ Example:
 class C
 {
     // The coordinates
-    private int _x = 1 /* horizontal */, _y; // vertical
+    private int _x = Offset(/* horizontal */ 1), _y; // vertical
 }
 ```
 
@@ -1041,7 +1041,7 @@ class C
 class C
 {
     // The coordinates
-    private int _x = 1 /* horizontal */;
+    private int _x = Offset(/* horizontal */ 1);
     private int _y; // vertical
 }
 ```
@@ -1050,7 +1050,7 @@ class C
 
 The formatter MUST NOT split a field declaration that contains a preprocessor directive or disabled text anywhere in its trivia.
 
-Why: The split rebuilds each generated field's trivia from comments only, so a directive between the declarators would be dropped or end up guarding a different field.
+Why: The split carries over only the declaration's leading trivia, the declarators with their values, and the trivia behind its `;` (FMT-STRUCT-022), so a directive between the declarators would be dropped or end up guarding a different field. The precheck refuses comments only (FMT-UNSUP-004), so directives still reach the split.
 
 For example, a declaration `private int _x, _debug, _y;` whose `_debug,` line is wrapped in `#if DEBUG` … `#endif` keeps its three declarators in one declaration.
 
@@ -1557,22 +1557,17 @@ class C
 
 The method keeps one `[param: A, B]` list and one `[typevar: C, D]` list, and `[E, F]` becomes `[E]` and `[F]`.
 
-### FMT-STRUCT-030 — A documented field, or one with a comment in the part every field repeats, is not split
+### FMT-STRUCT-030 — A documented field is not split
 
-The formatter MUST NOT split a field declaration under FMT-STRUCT-021, and MUST leave it as one declaration, when either of these conditions holds:
+The formatter MUST NOT split a field declaration under FMT-STRUCT-021, and MUST leave it as one declaration, when the declaration has a documentation comment (SHARED-DOC-004): a `///` or `/** */` comment in its leading trivia, and the documentation mode of the syntax tree is `Parse` or `Diagnose`. In the documentation mode `None`, such a comment is an ordinary comment and does not keep the declaration from being split.
 
-- The declaration has a documentation comment (SHARED-DOC-004): a `///` or `/** */` comment in its leading trivia, and the documentation mode of the syntax tree is `Parse` or `Diagnose`. In the documentation mode `None`, such a comment is an ordinary comment and does not keep the declaration from being split.
-- A comment stands in the part every generated field repeats: in the trivia of a token in front of the first declarator's name — an attribute list, a modifier, or the type — other than the declaration's leading trivia, in front of its first token. That holds every comment inside or behind an attribute list, between two modifiers, between a modifier and the type, and inside the type. A comment in the declaration's leading trivia is not in it.
+A comment among the attributes, the modifiers, or the type that every generated field repeats needs no condition here: the formatter refuses an input that holds one before any phase runs (FMT-UNSUP-004), so the split never meets it.
 
-This requirement is the one statement of where the repeated part ends; every other requirement that needs that boundary refers to it instead of restating it. A comment behind the type's last token is in the repeated part as well, and a comment in the trivia of the first declarator's name is not; the formatter refuses an input that holds either before any phase runs (FMT-UNSUP-004), so the split meets neither.
+Why: A documentation comment documents every field of the declaration, and the split keeps the declaration's leading trivia on the first field only (FMT-STRUCT-022), so every other field would lose its documentation. Repeating it on every field would put a copy next to fields it was not written next to, the result FMT-STRUCT-024 refuses. When documentation comments are not parsed, the compiler attaches a documentation-style comment in the declaration's leading trivia to no field, and it stays in front of the declaration's first field like any comment in its leading trivia.
 
-Why: A documentation comment documents every field of the declaration, and the split keeps the declaration's leading trivia on the first field only (FMT-STRUCT-022), so every other field would lose its documentation. A comment between the first token and the first declarator stands in the attributes, modifiers, and type that every generated field repeats (FMT-STRUCT-021): repeating it would put a copy next to fields it was not written next to, and keeping it on one field would separate it from the others it described. Both results are what FMT-STRUCT-024 refuses. When documentation comments are not parsed, the compiler attaches a documentation-style comment in the declaration's leading trivia to no field, and it stays in front of the declaration's first field like any comment in its leading trivia. The boundary is the first declarator's name because every generated field repeats the tokens in front of it with their trivia.
-
-Example — when the documentation mode is `Parse`, none of these declarations is split:
+Example — when the documentation mode is `Parse`, neither of these declarations is split:
 
 ```csharp
-using System;
-
 class C
 {
     /// <summary>
@@ -1582,15 +1577,10 @@ class C
 
     /** <summary>The sizes</summary> */
     public int Width, Height;
-
-    private /* c */ int _a, _b;
-
-    [Obsolete /* why */]
-    private int _c, _d;
 }
 ```
 
-Example — the other side of each condition: an ordinary comment in front of the declaration and a comment inside the first declarator's value do not keep a declaration from being split:
+Example — the other side of the condition: an ordinary comment in front of the declaration and a comment inside the first declarator's value do not keep a declaration from being split:
 
 ```csharp
 class C
@@ -1598,7 +1588,7 @@ class C
     // The coordinates
     public int X, Y;
 
-    private int _first = 1 /* c */, _second;
+    private int _first = Offset(/* c */ 1), _second;
 }
 ```
 
@@ -1609,7 +1599,7 @@ class C
     public int X;
     public int Y;
 
-    private int _first = 1 /* c */;
+    private int _first = Offset(/* c */ 1);
     private int _second;
 }
 ```

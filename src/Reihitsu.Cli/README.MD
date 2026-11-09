@@ -42,7 +42,7 @@ reihitsu-format [options] [<paths>...]
 |------|------------------------------------------------|
 | `0`  | Success — all files are formatted correctly.   |
 | `1`  | Formatting needed (when using `--check` or `--dry-run`). |
-| `2`  | Error occurred.                                |
+| `2`  | Error occurred, or a file holds syntax the formatter does not support (unless `--suppress-unsupported` is given). Such a file is reported on standard error as `error: <path>(<line>,<column>): unsupported syntax: <reason>. The file was left unchanged.` |
 
 ## Examples
 

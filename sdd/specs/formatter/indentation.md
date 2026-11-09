@@ -766,7 +766,7 @@ class C
     }
 
     System.Collections.Generic.Dictionary<int, // first
-        string> _map;
+        string> Map => null;
 }
 ```
 
@@ -780,7 +780,7 @@ class C
     }
 
     System.Collections.Generic.Dictionary<int, // first
-                                          string> _map;
+                                          string> Map => null;
 }
 ```
 

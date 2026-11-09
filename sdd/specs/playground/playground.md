@@ -5,7 +5,7 @@
 | ID prefix | PLAY |
 | Status | Active |
 | Code owners | `Home`, `MainLayout`, `PlaygroundFormatter`, `PlaygroundFormatResult`, `PlaygroundVersion` |
-| Uses | FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-008, FMT-PIPE-007 |
+| Uses | FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-008, FMT-PIPE-007, FMT-UNSUP-001 |
 
 This spec covers the user-visible behavior of the Reihitsu Playground, a Blazor WebAssembly page that formats pasted C# with the Reihitsu formatter: what it shows, when it formats, and what it does with input it cannot format.
 
@@ -80,3 +80,23 @@ The output is the same text, and the message is shown.
 The footer MUST show the informational version of the `Reihitsu.Formatter` assembly the page runs, as `v<version>`, and the header MUST link to the GitHub repository.
 
 Why: A user who reports a formatting result from the Playground needs to say which version produced it.
+
+### PLAY-008 — Input with unsupported syntax is shown unchanged with a message
+
+When the formatter refuses the input as unsupported (FMT-UNSUP-001), the Playground MUST show the input unchanged as the output and show the message "The input contains syntax the formatter does not support and was left unchanged: line <line>, column <column> — <reason>." below the button, where `<line>` and `<column>` are the one-based line and column of the first character of the shape the formatter reports, and `<reason>` is the reason it gives. The message MUST disappear on the next format of an input the formatter does not refuse.
+
+Why: Without the message the unchanged output would look like the formatter had nothing to do, the reason PLAY-006 gives for syntax errors; the line and the column lead the user to the code to rewrite by hand.
+
+Example — input:
+
+```csharp
+class C
+{
+    void M()
+    {
+        int /* c */ a = 1;
+    }
+}
+```
+
+The output is the same text, and the message "The input contains syntax the formatter does not support and was left unchanged: line 5, column 13 — a comment between a variable declaration's own tokens." is shown.
