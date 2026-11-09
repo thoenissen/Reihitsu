@@ -43,13 +43,8 @@ public class RH7104PartialElementsMustDeclareAccessModifierCodeFixProvider : Cod
             return document;
         }
 
-        var declaredSymbol = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken);
-        var accessibilityTokens = GetAccessibilityTokens(declaredSymbol?.DeclaredAccessibility ?? Accessibility.NotApplicable,
-                                                         typeDeclaration.Parent is TypeDeclarationSyntax,
-                                                         typeDeclaration.Modifiers[0].LeadingTrivia);
-        var updatedModifiers = SyntaxFactory.TokenList(accessibilityTokens.Concat(typeDeclaration.Modifiers.Select((modifier, modifierIndex) => modifierIndex == 0 ? modifier.WithLeadingTrivia() : modifier)));
         var formattingAnnotation = new SyntaxAnnotation();
-        var updatedTypeDeclaration = typeDeclaration.WithModifiers(updatedModifiers).WithAdditionalAnnotations(formattingAnnotation);
+        var updatedTypeDeclaration = CreateUpdatedTypeDeclaration(typeDeclaration, semanticModel, cancellationToken).WithAdditionalAnnotations(formattingAnnotation);
         var updatedRoot = root.ReplaceNode(typeDeclaration, updatedTypeDeclaration);
         var updatedDocument = document.WithSyntaxRoot(updatedRoot);
         var formattedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -59,6 +54,25 @@ public class RH7104PartialElementsMustDeclareAccessModifierCodeFixProvider : Cod
         return formattedTypeDeclaration == null
                    ? updatedDocument
                    : (await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedTypeDeclaration, cancellationToken).ConfigureAwait(false)).Output;
+    }
+
+    /// <summary>
+    /// Creates the type declaration the fix formats: the type with its accessibility keywords in front of its modifiers, which
+    /// take over the leading trivia of the first modifier
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration</param>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The updated type declaration</returns>
+    private static TypeDeclarationSyntax CreateUpdatedTypeDeclaration(TypeDeclarationSyntax typeDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        var declaredSymbol = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken);
+        var accessibilityTokens = GetAccessibilityTokens(declaredSymbol?.DeclaredAccessibility ?? Accessibility.NotApplicable,
+                                                         typeDeclaration.Parent is TypeDeclarationSyntax,
+                                                         typeDeclaration.Modifiers[0].LeadingTrivia);
+        var updatedModifiers = SyntaxFactory.TokenList(accessibilityTokens.Concat(typeDeclaration.Modifiers.Select((modifier, modifierIndex) => modifierIndex == 0 ? modifier.WithLeadingTrivia() : modifier)));
+
+        return typeDeclaration.WithModifiers(updatedModifiers);
     }
 
     /// <summary>
@@ -131,15 +145,15 @@ public class RH7104PartialElementsMustDeclareAccessModifierCodeFixProvider : Cod
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+        var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
 
-        if (root != null)
+        if (root != null
+            && semanticModel != null)
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                // The fix adds accessibility keywords in front of the type's modifiers, which no variable declaration holds, so
-                // the formatter gives the type it builds the answer it gives the type as it stands (SHARED-FIX-010)
                 if (TryGetTypeDeclaration(root, diagnostic, out var typeDeclaration)
-                    && ReihitsuFormatter.FindUnsupportedSyntax(typeDeclaration) == null)
+                    && ReihitsuFormatter.FindUnsupportedSyntax(CreateUpdatedTypeDeclaration(typeDeclaration, semanticModel, context.CancellationToken)) == null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7104Title,
                                                               token => ApplyCodeFixAsync(context.Document, typeDeclaration, token),
