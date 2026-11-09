@@ -49,7 +49,7 @@ Batch 2 (from 03-spec-author + lead), answer "9A 10A 11A":
 | 15 | 06 implementer | FMT-UNSUP spec lists no code owners | Spec author adds the types to the spec header and index | Spec consistency | Internal | f2b7638d…d49a20e3 |
 | 16 | 12 spec checker | Repair round 1: RH7101 rule page still promises comment carry-over; tags FMT-STRUCT-021/023 on three tests not listed in a handover | Spec author narrows the rule-page sentence (and change doc visible change 7); test implementer verifies the three tags and lists them | Same requirement, PR-introduced | Rule page follows the answered outputs (Q5B, Q7A); general-notes already covers comments blocking a fix | c2891db9/24306645 |
 | 17 | Repair 1 | Re-run the cleaner after repair round 1? | Skip | Repair changed only a rule page, the change doc and a handover; no C# file | — | — |
-| 18 | 16 auditor | Repair round 2: F1 RH7104 queries the type as it stands, not the built type; F2 SHARED-FIX-010 tested at 6 of ~41 call sites | F2 → test implementer (17: one no-fix test per distinct node-finding/building path); then F1 → implementer (18: RH7104 queries the built node via a helper shared with the action); AGENTS.md phase-table wording hint → spec author (19) in parallel with 17 | Same requirement (SHARED-FIX-010), FC-017 | Fix offer unchanged for every supported input | pending |
+| 18 | 16 auditor | Repair round 2: F1 RH7104 queries the type as it stands, not the built type; F2 SHARED-FIX-010 tested at 6 of ~41 call sites | F2 → test implementer (17: one no-fix test per distinct node-finding/building path); then F1 → implementer (18: RH7104 queries the built node via a helper shared with the action); AGENTS.md phase-table wording hint → spec author (19) in parallel with 17 | Same requirement (SHARED-FIX-010), FC-017 | Fix offer unchanged for every supported input | c43711a4/c1572538/f57f9f80 |
 | 19 | 16 auditor | Hints: unreachable location mapping for a future phase refusal; PreparationPhase swallowing a sub-phase refusal | Dropped | No caller reaches them (AGENTS.md, Supported inputs) | — | — |
 | 1 | Claim | Branch name | Use the session-designated branch `claude/funny-darwin-l756yr` instead of `claude/issue-1670-<slug>` | The session forbids pushing to any other branch | Branch names are internal | claim commit |
 
@@ -72,7 +72,8 @@ Batch 2 (from 03-spec-author + lead), answer "9A 10A 11A":
 - 11 cleaner clean (5d25217f). 12 spec checker: 2 findings (e550d9da) → repair round 1: spec author (13, c2891db9) ∥ test implementer (14, 24306645: tags were pre-existing and correct) done.
 - 15 spec checker: consistent (16afa0e1). Build green on 16afa0e1. main = 158e8fc (not behind).
 - 16 auditor on 8a61cc68: findings (58251016), 2 medium. Repair round 2 (Decision 18).
-- Next: test implementer (17) ∥ spec author (19); implementer (18); cleaner; spec checker; auditor on the repair; validator.
+- Repair 2: 17 test impl. (c43711a4), 19 spec author (c1572538), 18 implementer (f57f9f80) done.
+- Next: cleaner (20), spec checker (21), auditor on the repair (22), validator (23).
 - Batch 2 answered. Then: fresh spec author (04) carries Q9–Q11 into change doc/spec, change doc leaves Draft; then test implementer (05).
 - (done) ask batch 2 (Q9–Q11), then test implementer (may start on everything else, but wait: tests lock outputs; ask first).
 - Batch 1 answered (see Maintainer answers). Then: fresh spec author amendment (answers + Decisions 2–4), skeptic not re-run unless amendment adds visible outputs; then test implementer.
