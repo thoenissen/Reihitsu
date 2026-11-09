@@ -4689,6 +4689,35 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that a refused comment in the block of the anonymous method withholds the fix: the fix formats the
+    /// lambda it builds, which keeps the block and so the comment, and the formatter refuses it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task NoFixIsOfferedWhenTheAnonymousMethodBodyHoldsACommentTheFormatterRefuses()
+    {
+        const string source = """
+                              using System;
+
+                              public class Test
+                              {
+                                  public Func<int, int> Run()
+                                  {
+                                      return {|RH3004:delegate|}(int x)
+                                             {
+                                                 int /* c */ y = x;
+
+                                                 return y;
+                                             };
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region Methods

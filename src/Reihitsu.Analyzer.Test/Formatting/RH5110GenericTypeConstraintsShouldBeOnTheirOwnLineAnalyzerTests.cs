@@ -634,6 +634,29 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : B
         await Verify(testData, fixedData, Diagnostics(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5110MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a refused comment in a member of the constrained type withholds the fix: the fix formats the
+    /// declaration that owns the constraint clause, which the formatter refuses, although the clause holds no refused
+    /// shape
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task NoFixIsOfferedWhenTheConstrainedDeclarationHoldsACommentTheFormatterRefuses()
+    {
+        const string source = """
+                              internal class Example<T> {|RH5110:where|} T : class
+                              {
+                                  private void M()
+                                  {
+                                      int /* c */ y = 1;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

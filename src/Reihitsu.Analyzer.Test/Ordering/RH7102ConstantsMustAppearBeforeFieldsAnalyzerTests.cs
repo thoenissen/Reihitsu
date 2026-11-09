@@ -1140,6 +1140,32 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
         await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies that a refused comment in another member of the type withholds the fix: the fix moves the constant and
+    /// formats the whole type it builds, which the formatter refuses, although the reported constant holds no refused
+    /// shape
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task NoFixIsOfferedWhenAnotherMemberOfTheTypeHoldsACommentTheFormatterRefuses()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  private int _field;
+                                  private const int {|RH7102:Max|} = 1;
+
+                                  private void M()
+                                  {
+                                      int /* c */ y = 1;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region Methods

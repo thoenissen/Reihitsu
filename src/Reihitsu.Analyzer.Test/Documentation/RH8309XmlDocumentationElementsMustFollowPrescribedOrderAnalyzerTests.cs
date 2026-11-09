@@ -1429,6 +1429,37 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
         await VerifyNoCodeFixIsOffered(source);
     }
 
+    /// <summary>
+    /// Verifies that a refused comment in the body of the documented method withholds the fix: the fix formats the
+    /// declaration it builds with the reordered documentation, which the formatter refuses, although the documentation
+    /// holds no refused shape
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task NoFixIsOfferedWhenTheDocumentedMemberHoldsACommentTheFormatterRefuses()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  /// <summary>
+                                  /// Adds two numbers.
+                                  /// </summary>
+                                  /// <returns>The sum.</returns>
+                                  /// {|RH8309:<param name="a">First value.</param>|}
+                                  /// <param name="b">Second value.</param>
+                                  public int Add(int a, int b)
+                                  {
+                                      int /* c */ sum = a + b;
+
+                                      return sum;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
