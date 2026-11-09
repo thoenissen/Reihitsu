@@ -35,6 +35,7 @@ Run lane: **behavior change** (widened from bug fix, Decisions #2). Roles: spec 
 | 6 | 02 skeptic | Architecture finding FC-015: "group wraps whole members" decided in `WrapsWholeUnits` and `DeclarationHoldsConditionalDirective`; RH2001-010 would add a third | Change structure in this run: one Core helper serving all three, no new type | The narrow fix would add a third copy; stays inside `OrderingDeclarationUtilities` (Core), which the run changes | Internal structure | pending |
 | 7 | 02 skeptic | Issue goals | #1666: drop "refusal must not parse an excluded branch" (contradicts its own counterpart goal). #1665: narrow "a test per consumer asserts no fix" — RH7109/RH7309 no fix, RH7102/RH7103 keep fix (they reorder no instance field). #1667: keep, add a two-document test | Skeptic evidence; agent-filed goals are proposals | Kept fixes are today's output; no visible change beyond the change doc | 7ceac0b |
 | 8 | 02 skeptic | A6: a `partial` declaration only excluded code writes elsewhere (behind the type, behind the spans, other document) | Not refused in this run; follow-up candidate (bug, safety rail on `main`), carries the question | No cheap check; the only refusal would withhold instance-field reorders on every partial type (common code); output unchanged by the run | Output identical to `main` | — |
+| 9 | 03 spec author | Scope of A5 refusal | Narrowed: only an excluded declaration of the same type (name, arity, `partial`) that carries an attribute list | One without attributes cannot set layout; keeps `main` output for every input not demanded | Kept fixes are today's output | 7e019ae |
 
 ## Follow-up candidates
 
@@ -44,4 +45,6 @@ Run lane: **behavior change** (widened from bug fix, Decisions #2). Roles: spec 
 
 - Last step: spec author 01 (change doc written, 6a5f07c). Output questions pending: 3 visible changes in the change doc (RH2001 `[Obsolete]` in excluded branch; RH7109 partial with conditional `[Serializable]`; RH7109 `#if DEBUG static #endif` in front of a member ahead of moved code).
 - Skeptic 02 done (7ceac0b): all three premises reproduce.
-- Next: spec author amendment (03: A5 sentence, issue-goal narrowing in change doc), then output-question batch (3 questions), then test implementer.
+- Spec author 03 done (7e019ae).
+- Now: output-question batch 1 asked (RH2001 [Obsolete]; RH7109 partial [Serializable]; RH7109 `#if DEBUG static #endif`), waiting for answers.
+- Next: record answers, route to spec author if any differs from the change doc, then test implementer.
