@@ -43,6 +43,8 @@ Batch 1 (before test implementer), questions from 01-spec-author and 02-skeptic;
 - 01 spec author done (89537be): verdict open question; 6 output questions in its handover; change doc Draft.
 - Lane check after 01: confirmed behavior-change.
 - 02 skeptic done (211d739): output question; re-asked Q5 split into 5a–5d; new Q7 RH2001; escalation 9 candidate: code-fix registration query across ~45 formatting fixes.
-- Batch 1 answered (see Maintainer answers). Next: fresh spec author amendment (answers + Decisions 2–4), skeptic not re-run unless amendment adds visible outputs; then test implementer.
+- 03 spec author amendment done (3f270a53): batch 1 + Decisions 2–4 carried out; open Q9 (comment between value and `,`/`;`), Q10 (comment before `)` of using/fixed); internal choice touching output: comment inside an attribute argument refused → asked as Q11. Lane check: confirmed.
+- Next: ask batch 2 (Q9–Q11), then test implementer (may start on everything else, but wait: tests lock outputs; ask first).
+- Batch 1 answered (see Maintainer answers). Then: fresh spec author amendment (answers + Decisions 2–4), skeptic not re-run unless amendment adds visible outputs; then test implementer.
 - (done) ask batch (Q1–Q7 + escalation 9 on the code-fix mechanism), wait; then spec author amendment (Decisions 2–4 + answers), lane check, test implementer.
 - (old) skeptic (02) running; then batch output questions (spec author Q1–6 + skeptic's) before test implementer.
