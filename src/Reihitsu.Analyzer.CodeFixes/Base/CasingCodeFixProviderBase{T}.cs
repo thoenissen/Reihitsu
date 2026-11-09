@@ -760,7 +760,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
 
         var renamedNames = GetOldNames(prepared.Value.Cascade, renamedCascade).Add(identifier);
 
-        if (HasCallerArgumentExpressionNaming(prepared.Value.Cascade, renamedNames, cancellationToken)
+        if (HasCallerArgumentExpressionNaming(prepared.Value.Cascade, renamedNames, identifier, cancellationToken)
             || await ExcludedCodeUtilities.HasExcludedCodeOccurrenceAsync(solution, prepared.Value.Cascade, renamedNames, cancellationToken).ConfigureAwait(false))
         {
             return null;
@@ -820,39 +820,55 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Determines whether the single argument of an attribute is a <see langword="nameof"/> expression
+    /// Gets the parameter list of a method, a property, or an extension block
     /// </summary>
-    /// <param name="attribute">Attribute</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns><see langword="true"/> when the argument is a <see langword="nameof"/> expression; otherwise, <see langword="false"/></returns>
-    private static bool IsNameofArgument(AttributeData attribute, CancellationToken cancellationToken)
+    /// <param name="member">Member</param>
+    /// <returns>The member's parameters, the receiver parameter of an extension block, or an empty list for any other member</returns>
+    private static ImmutableArray<IParameterSymbol> GetParameters(ISymbol member)
     {
-        return attribute.ApplicationSyntaxReference?.GetSyntax(cancellationToken) is AttributeSyntax { ArgumentList.Arguments.Count: 1 } attributeSyntax
-               && attributeSyntax.ArgumentList.Arguments[0].Expression is InvocationExpressionSyntax { Expression: IdentifierNameSyntax { Identifier.ValueText: "nameof" } };
+        return member switch
+               {
+                   IMethodSymbol method => method.Parameters,
+                   IPropertySymbol property => property.Parameters,
+                   INamedTypeSymbol { IsExtension: true, ExtensionParameter: { } receiver } => ImmutableArray.Create(receiver),
+                   _ => ImmutableArray<IParameterSymbol>.Empty
+               };
     }
 
     /// <summary>
-    /// Determines whether a <c>CallerArgumentExpression</c> attribute of a parameter list that declares a parameter of
-    /// the rename cascade names one of the specified names by a constant other than a <see langword="nameof"/> expression
+    /// Determines whether the single argument of an attribute is a <see langword="nameof"/> expression whose operand is
+    /// a single unqualified identifier from the specified names, in a document compiled with C# 11 or later
     /// </summary>
-    /// <param name="cascade">Rename cascade before the rename</param>
+    /// <param name="attribute">Attribute</param>
+    /// <param name="exemptNames">Identifiers that exempt the argument</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> when the argument is exempt; otherwise, <see langword="false"/></returns>
+    /// <remarks>
+    /// The check reads only the shape of the argument and the document's language version, never what the
+    /// <see langword="nameof"/> operand binds to
+    /// </remarks>
+    private static bool IsExemptNameofArgument(AttributeData attribute, ImmutableHashSet<string> exemptNames, CancellationToken cancellationToken)
+    {
+        return exemptNames.IsEmpty == false
+               && attribute.ApplicationSyntaxReference?.GetSyntax(cancellationToken) is AttributeSyntax { ArgumentList.Arguments.Count: 1 } attributeSyntax
+               && attributeSyntax.SyntaxTree.Options is CSharpParseOptions { LanguageVersion: >= LanguageVersion.CSharp11 }
+               && attributeSyntax.ArgumentList.Arguments[0].Expression is InvocationExpressionSyntax { Expression: IdentifierNameSyntax { Identifier.ValueText: "nameof" }, ArgumentList.Arguments.Count: 1 } nameofExpression
+               && nameofExpression.ArgumentList.Arguments[0].Expression is IdentifierNameSyntax operand
+               && exemptNames.Contains(operand.Identifier.ValueText);
+    }
+
+    /// <summary>
+    /// Determines whether a <c>CallerArgumentExpression</c> attribute in a parameter list names one of the specified
+    /// names by an argument that is not exempt
+    /// </summary>
+    /// <param name="parameters">Parameter list</param>
     /// <param name="names">Old names of the cascade and the new name</param>
+    /// <param name="exemptNames">Identifiers of a <see langword="nameof"/> argument that exempt it</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns><see langword="true"/> when such an attribute names one of the names; otherwise, <see langword="false"/></returns>
-    /// <remarks>
-    /// The attribute names a parameter by a string, which the renamer does not treat as a reference, so the rename would
-    /// change which parameter it names, or whether it names one, and the parameter that carries it would receive another
-    /// value at run time. A <see langword="nameof"/> argument is a reference, which the rename changes with the parameter
-    /// </remarks>
-    private static bool HasCallerArgumentExpressionNaming(ImmutableArray<ISymbol> cascade, ImmutableHashSet<string> names, CancellationToken cancellationToken)
+    private static bool HasCallerArgumentExpressionNaming(ImmutableArray<IParameterSymbol> parameters, ImmutableHashSet<string> names, ImmutableHashSet<string> exemptNames, CancellationToken cancellationToken)
     {
-        foreach (var parameter in cascade.OfType<IParameterSymbol>()
-                                         .SelectMany(static parameter => parameter.ContainingSymbol switch
-                                                                         {
-                                                                             IMethodSymbol method => method.Parameters,
-                                                                             IPropertySymbol property => property.Parameters,
-                                                                             _ => ImmutableArray<IParameterSymbol>.Empty
-                                                                         }))
+        foreach (var parameter in parameters)
         {
             foreach (var attribute in parameter.GetAttributes())
             {
@@ -863,10 +879,50 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
                     && attribute.ConstructorArguments.Length == 1
                     && attribute.ConstructorArguments[0].Value is string name
                     && names.Contains(name)
-                    && IsNameofArgument(attribute, cancellationToken) == false)
+                    && IsExemptNameofArgument(attribute, exemptNames, cancellationToken) == false)
                 {
                     return true;
                 }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether a <c>CallerArgumentExpression</c> attribute in a parameter list that the rename cascade
+    /// reaches names one of the specified names by an argument that is not exempt
+    /// </summary>
+    /// <param name="cascade">Rename cascade before the rename</param>
+    /// <param name="names">Old names of the cascade and the new name</param>
+    /// <param name="identifier">New name</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> when such an attribute names one of the names; otherwise, <see langword="false"/></returns>
+    /// <remarks>
+    /// The inspected lists are every parameter list that declares a parameter of the cascade, and the parameter lists of
+    /// the members of an extension block whose receiver parameter is in the cascade. The attribute names a parameter by
+    /// the value of its argument, which the renamer changes only for a <see langword="nameof"/> that refers to a renamed
+    /// parameter, so every other argument naming an old or the new name would make the parameter that carries it receive
+    /// another value at run time. Only a <see langword="nameof"/> of a single unqualified identifier that is the old name
+    /// of a cascade parameter the same list declares, in C# 11 or later, is exempt; an extension block member's list
+    /// declares no cascade parameter and so exempts nothing
+    /// </remarks>
+    private static bool HasCallerArgumentExpressionNaming(ImmutableArray<ISymbol> cascade, ImmutableHashSet<string> names, string identifier, CancellationToken cancellationToken)
+    {
+        var cascadeParameters = cascade.OfType<IParameterSymbol>().ToList();
+
+        foreach (var owner in cascadeParameters.Select(static parameter => parameter.ContainingSymbol).Distinct(SymbolEqualityComparer.Default))
+        {
+            var exemptNames = cascadeParameters.Where(parameter => SymbolEqualityComparer.Default.Equals(parameter.ContainingSymbol, owner)
+                                                                   && string.Equals(parameter.Name, identifier, StringComparison.Ordinal) == false)
+                                               .Select(static parameter => parameter.Name)
+                                               .ToImmutableHashSet(StringComparer.Ordinal);
+
+            if (HasCallerArgumentExpressionNaming(GetParameters(owner), names, exemptNames, cancellationToken)
+                || (owner is INamedTypeSymbol { IsExtension: true } extension
+                    && extension.GetMembers().Any(member => HasCallerArgumentExpressionNaming(GetParameters(member), names, ImmutableHashSet<string>.Empty, cancellationToken))))
+            {
+                return true;
             }
         }
 
