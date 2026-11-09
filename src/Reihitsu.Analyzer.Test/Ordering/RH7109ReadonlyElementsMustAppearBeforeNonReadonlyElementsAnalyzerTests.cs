@@ -4795,6 +4795,230 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     }
 
     /// <summary>
+    /// Verifying the SHARED-ORDER-008 example of a conditional <c>StructLayout</c> attribute list on another declaration of
+    /// a partial class that ends in <c>;</c> instead of a body: the declaration is read like one with a body, in a build
+    /// with <c>NET</c> the field order of <c>C</c> sets its layout, and no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-008")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenAConditionalGroupWrapsTheLayoutAttributeOfAnotherDeclarationOfAPartialClassThatEndsInASemicolon(string endOfLine)
+    {
+        const string source = """
+                              using System.Runtime.InteropServices;
+
+                              #if NET
+                              [StructLayout(LayoutKind.Sequential)]
+                              #endif
+                              public partial class C;
+
+                              public partial class C
+                              {
+                                  private int _a;
+                                  private readonly int {|RH7109:_c|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a conditional <c>StructLayout</c> attribute list on another declaration of a partial struct that ends
+    /// in <c>;</c> is read: a build with <c>X</c> lays the struct out in field order, and no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-008")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenAConditionalGroupWrapsTheAutoLayoutAttributeOfAnotherDeclarationOfAPartialStructThatEndsInASemicolon(string endOfLine)
+    {
+        const string source = """
+                              using System.Runtime.InteropServices;
+
+                              #if !X
+                              [StructLayout(LayoutKind.Auto)]
+                              #endif
+                              public partial struct S;
+
+                              public partial struct S
+                              {
+                                  private int _a;
+                                  private readonly int {|RH7109:_c|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a conditional <c>StructLayout</c> attribute list on another declaration of a partial record that
+    /// ends in <c>;</c> is read: in a build with <c>NET</c> the field order of <c>R</c> sets its layout, and no code fix is
+    /// offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-008")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenAConditionalGroupWrapsTheLayoutAttributeOfAnotherDeclarationOfAPartialRecordThatEndsInASemicolon(string endOfLine)
+    {
+        const string source = """
+                              using System.Runtime.InteropServices;
+
+                              #if NET
+                              [StructLayout(LayoutKind.Sequential)]
+                              #endif
+                              public partial record R;
+
+                              public partial record R
+                              {
+                                  private int _a;
+                                  private readonly int {|RH7109:_c|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a conditional <c>StructLayout</c> attribute list on another declaration of a partial record struct
+    /// that ends in <c>;</c> is read: a build with <c>X</c> lays the record struct out in field order, and no code fix is
+    /// offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-008")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenAConditionalGroupWrapsTheAutoLayoutAttributeOfAnotherDeclarationOfAPartialRecordStructThatEndsInASemicolon(string endOfLine)
+    {
+        const string source = """
+                              using System.Runtime.InteropServices;
+
+                              #if !X
+                              [StructLayout(LayoutKind.Auto)]
+                              #endif
+                              public partial record struct S;
+
+                              public partial record struct S
+                              {
+                                  private int _a;
+                                  private readonly int {|RH7109:_c|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a conditional group in the base list of another declaration of a partial class that ends in
+    /// <c>;</c>, behind the declaration's first token and in front of its <c>;</c>, makes the class count as one whose
+    /// field order sets its layout, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-008")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenAConditionalGroupStandsInTheBaseListOfAnotherDeclarationOfAPartialClassThatEndsInASemicolon(string endOfLine)
+    {
+        const string source = """
+                              public partial class C
+                              {
+                                  private int _a;
+                                  private readonly int {|RH7109:_c|};
+                              }
+
+                              public partial class C
+                              #if X
+                                  : System.IDisposable
+                              #endif
+                                  ;
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the SHARED-ORDER-008 counterpart of a declaration of a partial class that ends in <c>;</c>: without a
+    /// conditional directive in any declaration of <c>C</c>, the fix moves <c>_c</c> in front of <c>_a</c>
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-008")]
+    [Requirement("RH7109-006")]
+    public async Task FixMovesAFieldOfAPartialClassWhoseOtherDeclarationEndsInASemicolonWithoutAConditionalDirective(string endOfLine)
+    {
+        const string source = """
+                              public partial class C;
+
+                              public partial class C
+                              {
+                                  private int _a;
+                                  private readonly int {|RH7109:_c|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public partial class C;
+
+                                   public partial class C
+                                   {
+                                       private readonly int _c;
+                                       private int _a;
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that another declaration of a partial class with an attribute list that ends in <c>;</c>, in an excluded
+    /// branch in front of the reordered declaration, is one of the type's declarations, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-008")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenAnExcludedBranchInFrontOfThePartialClassDeclaresAnotherDeclarationOfItWithAnAttributeListThatEndsInASemicolon(string endOfLine)
+    {
+        const string source = """
+                              using System.Runtime.InteropServices;
+
+                              #if NET
+                              [StructLayout(LayoutKind.Sequential)]
+                              public partial class C;
+                              #endif
+                              public partial class C
+                              {
+                                  private int _a;
+                                  private readonly int {|RH7109:_c|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
     /// Verifying that a conditional directive on another declaration of a partial class keeps a move that reorders no
     /// instance field: moving the static <c>_c</c> in front of the static <c>_a</c> changes no layout, and the fix moves it
     /// </summary>
