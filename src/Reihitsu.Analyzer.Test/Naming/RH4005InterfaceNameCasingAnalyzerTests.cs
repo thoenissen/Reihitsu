@@ -492,6 +492,130 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies the example of derived names that this rule still reports: every interface is still reported, and no fix
+    /// is offered for any of them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4005-002")]
+    [Requirement("SHARED-CASING-008")]
+    public async Task NoFixIsOfferedForAnyInterfaceWhoseDerivedNameTheRuleStillReports()
+    {
+        const string testCode = """
+                                public interface {|RH4005:_|}
+                                {
+                                }
+
+                                public interface {|RH4005:__|}
+                                {
+                                }
+
+                                public interface {|RH4005:_2x|}
+                                {
+                                }
+
+                                public interface {|RH4005:注文|}
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies, one name at a time, that an interface without a usable derived name is still reported but not fixed:
+    /// the name has no letter or digit, or a digit, a letter without case, or a letter without a one-character uppercase
+    /// mapping would follow the <c>I</c>
+    /// </summary>
+    /// <param name="oldName">The reported interface name</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4005-002")]
+    [Requirement("SHARED-CASING-008")]
+    [DataRow("_")]
+    [DataRow("__")]
+    [DataRow("___")]
+    [DataRow("_2x")]
+    [DataRow("注文")]
+    [DataRow("ßx")]
+    public async Task NoFixIsOfferedWhenNoUsableNameCanBeDerived(string oldName)
+    {
+        var testCode = $$"""
+                         public interface {|RH4005:{{oldName}}|}
+                         {
+                         }
+                         """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All leaves the interfaces without a usable derived name, and renames the other interface of the
+    /// document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4005-002")]
+    [Requirement("SHARED-CASING-008")]
+    public async Task FixAllSkipsTheInterfacesWithoutAUsableDerivedName()
+    {
+        const string testCode = """
+                                public interface {|RH4005:_|}
+                                {
+                                }
+
+                                public interface {|RH4005:_2x|}
+                                {
+                                }
+
+                                public interface {|RH4005:iDocumentWriter|}
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public interface {|RH4005:_|}
+                                 {
+                                 }
+
+                                 public interface {|RH4005:_2x|}
+                                 {
+                                 }
+
+                                 public interface IDocumentWriter
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static test => test.NumberOfFixAllIterations = 1);
+    }
+
+    /// <summary>
+    /// Verifies that an interface whose name has a letter after the underscore is renamed to the name with the
+    /// <c>I</c> prefix, the other side of the letterless names that are not fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4005-002")]
+    [Requirement("SHARED-CASING-008")]
+    public async Task FixIsOfferedWhenAnUnderscoreIsFollowedByALetter()
+    {
+        const string testCode = """
+                                public interface {|RH4005:_reader|}
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public interface IReader
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

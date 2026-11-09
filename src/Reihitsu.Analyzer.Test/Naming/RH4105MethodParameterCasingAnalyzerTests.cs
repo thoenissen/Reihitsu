@@ -837,6 +837,420 @@ public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH
                      });
     }
 
+    /// <summary>
+    /// Verifies that a parameter named by the string literal of a caller-argument expression is still reported but not
+    /// fixed, because after the rename the attribute would name no parameter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-012")]
+    [Requirement("RH4105-003")]
+    public async Task NoFixIsOfferedWhenACallerArgumentExpressionLiteralNamesTheOldName()
+    {
+        const string testCode = """
+                                using System.Runtime.CompilerServices;
+
+                                public static class Guard
+                                {
+                                    public static string Check(bool {|RH4105:Condition|}, [CallerArgumentExpression("Condition")] string expression = null)
+                                    {
+                                        return expression;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a parameter whose new name is the string literal of a caller-argument expression is still reported
+    /// but not fixed, because after the rename the attribute would start to name the renamed parameter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-012")]
+    [Requirement("RH4105-003")]
+    public async Task NoFixIsOfferedWhenACallerArgumentExpressionLiteralNamesTheNewName()
+    {
+        const string testCode = """
+                                using System.Runtime.CompilerServices;
+
+                                public static class Guard
+                                {
+                                    public static string Check(bool {|RH4105:Condition|}, [CallerArgumentExpression("condition")] string expression = null)
+                                    {
+                                        return expression;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a parameter named by a constant of a caller-argument expression is still reported but not fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-012")]
+    [Requirement("RH4105-003")]
+    public async Task NoFixIsOfferedWhenACallerArgumentExpressionConstantNamesTheOldName()
+    {
+        const string testCode = """
+                                using System.Runtime.CompilerServices;
+
+                                public static class Guard
+                                {
+                                    private const string ConditionName = "Condition";
+
+                                    public static string Check(bool {|RH4105:Condition|}, [CallerArgumentExpression(ConditionName)] string expression = null)
+                                    {
+                                        return expression;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a constructor parameter named by a caller-argument expression is still reported but not fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-012")]
+    [Requirement("RH4105-003")]
+    public async Task NoFixIsOfferedWhenACallerArgumentExpressionNamesAConstructorParameter()
+    {
+        const string testCode = """
+                                using System.Runtime.CompilerServices;
+
+                                public class Guard
+                                {
+                                    public Guard(bool {|RH4105:Condition|}, [CallerArgumentExpression("Condition")] string expression = null)
+                                    {
+                                        Expression = expression;
+                                    }
+
+                                    public string Expression { get; }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a primary constructor parameter of a class named by a caller-argument expression is still reported
+    /// but not fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-012")]
+    [Requirement("RH4105-003")]
+    public async Task NoFixIsOfferedWhenACallerArgumentExpressionNamesAPrimaryConstructorParameter()
+    {
+        const string testCode = """
+                                using System.Runtime.CompilerServices;
+
+                                public class Guard(bool {|RH4105:Condition|}, [CallerArgumentExpression("Condition")] string expression = null)
+                                {
+                                    public bool Value => Condition;
+
+                                    public string Expression => expression;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a local function parameter named by a caller-argument expression is still reported but not fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-012")]
+    [Requirement("RH4105-003")]
+    public async Task NoFixIsOfferedWhenACallerArgumentExpressionNamesALocalFunctionParameter()
+    {
+        const string testCode = """
+                                using System.Runtime.CompilerServices;
+
+                                public static class Guard
+                                {
+                                    public static string Run()
+                                    {
+                                        return Check(1 > 0);
+
+                                        static string Check(bool {|RH4105:Condition|}, [CallerArgumentExpression("Condition")] string expression = null)
+                                        {
+                                            return expression;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a delegate parameter named by a caller-argument expression is still reported but not fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-012")]
+    [Requirement("RH4105-003")]
+    public async Task NoFixIsOfferedWhenACallerArgumentExpressionNamesADelegateParameter()
+    {
+        const string testCode = """
+                                using System.Runtime.CompilerServices;
+
+                                public delegate string Check(bool {|RH4105:Condition|}, [CallerArgumentExpression("Condition")] string expression = null);
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a parameter of a partial method is still reported but not fixed when the caller-argument expression
+    /// that names it is declared on the other part of the method
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-012")]
+    [Requirement("RH4105-003")]
+    public async Task NoFixIsOfferedWhenACallerArgumentExpressionOnTheOtherPartOfAPartialMethodNamesTheParameter()
+    {
+        const string testCode = """
+                                using System.Runtime.CompilerServices;
+
+                                public partial class Guard
+                                {
+                                    public partial string Check(bool {|RH4105:Condition|}, [CallerArgumentExpression("Condition")] string expression = null);
+                                }
+
+                                public partial class Guard
+                                {
+                                    public partial string Check(bool {|RH4105:Condition|}, string expression)
+                                    {
+                                        return expression;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a parameter named by a <c>nameof</c> caller-argument expression is renamed together with the
+    /// <c>nameof</c> argument
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-012")]
+    [Requirement("RH4105-003")]
+    public async Task FixIsOfferedWhenACallerArgumentExpressionNamesTheParameterWithNameof()
+    {
+        const string testCode = """
+                                using System.Runtime.CompilerServices;
+
+                                public static class Guard
+                                {
+                                    public static string Check(bool {|RH4105:Condition|}, [CallerArgumentExpression(nameof(Condition))] string expression = null)
+                                    {
+                                        return expression;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Runtime.CompilerServices;
+
+                                 public static class Guard
+                                 {
+                                     public static string Check(bool condition, [CallerArgumentExpression(nameof(condition))] string expression = null)
+                                     {
+                                         return expression;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a parameter is renamed when the caller-argument expression of its parameter list names another
+    /// parameter, neither by the old nor by the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-012")]
+    [Requirement("RH4105-003")]
+    public async Task FixIsOfferedWhenACallerArgumentExpressionNamesAnotherParameter()
+    {
+        const string testCode = """
+                                using System.Runtime.CompilerServices;
+
+                                public static class Guard
+                                {
+                                    public static string Check(bool {|RH4105:Enabled|}, bool condition, [CallerArgumentExpression("condition")] string expression = null)
+                                    {
+                                        return Enabled ? expression : null;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Runtime.CompilerServices;
+
+                                 public static class Guard
+                                 {
+                                     public static string Check(bool enabled, bool condition, [CallerArgumentExpression("condition")] string expression = null)
+                                     {
+                                         return enabled ? expression : null;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All leaves a parameter named by a caller-argument expression, and renames the other parameter of
+    /// the document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-012")]
+    [Requirement("RH4105-003")]
+    public async Task FixAllSkipsTheParameterNamedByACallerArgumentExpression()
+    {
+        const string testCode = """
+                                using System.Runtime.CompilerServices;
+
+                                public static class Guard
+                                {
+                                    public static string Check(bool {|RH4105:Condition|}, [CallerArgumentExpression("Condition")] string expression = null)
+                                    {
+                                        return expression;
+                                    }
+
+                                    public static int Twice(int {|RH4105:Value|})
+                                    {
+                                        return Value * 2;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Runtime.CompilerServices;
+
+                                 public static class Guard
+                                 {
+                                     public static string Check(bool {|RH4105:Condition|}, [CallerArgumentExpression("Condition")] string expression = null)
+                                     {
+                                         return expression;
+                                     }
+
+                                     public static int Twice(int value)
+                                     {
+                                         return value * 2;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static test => test.NumberOfFixAllIterations = 1);
+    }
+
+    /// <summary>
+    /// Verifies the example of a derived name that the rule still reports: <c>_ϒx</c> becomes <c>ϒx</c>, which does not
+    /// start with a lowercase letter, so the parameter is still reported but not fixed
+    /// </summary>
+    /// <param name="oldName">The reported parameter name</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-008")]
+    [Requirement("RH4105-003")]
+    [DataRow("_ϒx")]
+    [DataRow("_注文")]
+    [DataRow("ϒ_x")]
+    public async Task NoFixIsOfferedWhenTheRuleStillReportsTheDerivedName(string oldName)
+    {
+        var testCode = $$"""
+                         public class C
+                         {
+                             public void M(int {|RH4105:{{oldName}}|})
+                             {
+                             }
+                         }
+                         """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a parameter whose first word starts with <c>ŉ</c>, a lowercase letter without a one-character
+    /// uppercase mapping, is renamed, because the rule accepts the derived name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-008")]
+    [Requirement("RH4105-003")]
+    public async Task FixIsOfferedWhenTheRuleAcceptsTheDerivedNameOfAnUncoveredOldName()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    public int M(int {|RH4105:_ŉx|})
+                                    {
+                                        return _ŉx;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     public int M(int ŉx)
+                                     {
+                                         return ŉx;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All leaves a parameter whose derived name the rule still reports, and renames the other
+    /// parameter of the document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-008")]
+    [Requirement("RH4105-003")]
+    public async Task FixAllSkipsTheParameterWhoseDerivedNameTheRuleStillReports()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    public void M(int {|RH4105:_ϒx|}, int {|RH4105:ItemCount|})
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     public void M(int {|RH4105:_ϒx|}, int itemCount)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static test => test.NumberOfFixAllIterations = 1);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -933,6 +933,118 @@ public class RH4106PrivateFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH410
                      });
     }
 
+    /// <summary>
+    /// Verifies the example of derived names that the rule still reports: every field is still reported, and no fix is
+    /// offered for any of them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-008")]
+    [Requirement("RH4106-006")]
+    public async Task NoFixIsOfferedForAnyFieldWhoseDerivedNameTheRuleStillReports()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int {|RH4106:__1st|};
+                                    private int {|RH4106:_1_value|};
+                                    private int {|RH4106:注文|};
+                                    private int {|RH4106:注文_明細|};
+                                    private int {|RH4106:ϒ_x|};
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies, one name at a time, that a field whose derived name the rule still reports is still reported but not
+    /// fixed: a digit, a letter without case, or a letter without a lowercase mapping would follow the prefix
+    /// </summary>
+    /// <param name="oldName">The reported field name</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-008")]
+    [Requirement("RH4106-006")]
+    [DataRow("__1st")]
+    [DataRow("_1_value")]
+    [DataRow("注文")]
+    [DataRow("注文_明細")]
+    [DataRow("ϒ_x")]
+    [DataRow("_ϒ_x")]
+    [DataRow("ϒx")]
+    public async Task NoFixIsOfferedWhenTheRuleStillReportsTheDerivedName(string oldName)
+    {
+        var testCode = $$"""
+                         public class C
+                         {
+                             private int {|RH4106:{{oldName}}|};
+                         }
+                         """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies the example of a derived name that the rule accepts: the first word starts with <c>ß</c>, a lowercase
+    /// letter, so <c>_ßX</c> is in <c>_camelCase</c> and the field is renamed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-008")]
+    [Requirement("RH4106-004")]
+    public async Task FixIsOfferedWhenTheRuleAcceptsTheDerivedNameOfAnUncoveredOldName()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int {|RH4106:ß_x|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     private int _ßX;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All leaves the fields whose derived names the rule still reports, and renames the other field of
+    /// the document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-008")]
+    [Requirement("RH4106-006")]
+    public async Task FixAllSkipsTheFieldsWhoseDerivedNamesTheRuleStillReports()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    private int {|RH4106:__1st|};
+                                    private int {|RH4106:注文|};
+                                    private int {|RH4106:ϒ_x|};
+                                    private int {|RH4106:CacheCount|};
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     private int {|RH4106:__1st|};
+                                     private int {|RH4106:注文|};
+                                     private int {|RH4106:ϒ_x|};
+                                     private int _cacheCount;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static test => test.NumberOfFixAllIterations = 1);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -1976,6 +1976,641 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
                      });
     }
 
+    /// <summary>
+    /// Verifies that a method that would be renamed to <c>GetEnumerator</c> is still reported but not fixed, because a
+    /// <c>foreach</c> over the type would call the renamed method instead of the explicit interface implementation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-011")]
+    [Requirement("RH4103-003")]
+    public async Task NoFixIsOfferedWhenTheRenameWouldChangeTheMethodAForeachCalls()
+    {
+        const string testCode = """
+                                using System.Collections;
+                                using System.Collections.Generic;
+
+                                public class Numbers : IEnumerable<int>
+                                {
+                                    public IEnumerator<int> {|RH4103:getEnumerator|}()
+                                    {
+                                        yield return 1;
+                                    }
+
+                                    IEnumerator<int> IEnumerable<int>.GetEnumerator()
+                                    {
+                                        yield return 2;
+                                    }
+
+                                    IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<int>)this).GetEnumerator();
+                                }
+
+                                public static class Consumer
+                                {
+                                    public static int First()
+                                    {
+                                        foreach (var number in new Numbers())
+                                        {
+                                            return number;
+                                        }
+
+                                        return 0;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All leaves a method whose rename would change the method a <c>foreach</c> calls, and renames
+    /// the other method of the document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-011")]
+    [Requirement("RH4103-003")]
+    public async Task FixAllSkipsTheRenameThatWouldChangeTheMethodAForeachCalls()
+    {
+        const string testCode = """
+                                using System.Collections;
+                                using System.Collections.Generic;
+
+                                public class Numbers : IEnumerable<int>
+                                {
+                                    public IEnumerator<int> {|RH4103:getEnumerator|}()
+                                    {
+                                        yield return 1;
+                                    }
+
+                                    public int {|RH4103:count_all|}()
+                                    {
+                                        return 0;
+                                    }
+
+                                    IEnumerator<int> IEnumerable<int>.GetEnumerator()
+                                    {
+                                        yield return 2;
+                                    }
+
+                                    IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<int>)this).GetEnumerator();
+                                }
+
+                                public static class Consumer
+                                {
+                                    public static int First()
+                                    {
+                                        foreach (var number in new Numbers())
+                                        {
+                                            return number;
+                                        }
+
+                                        return 0;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Collections;
+                                 using System.Collections.Generic;
+
+                                 public class Numbers : IEnumerable<int>
+                                 {
+                                     public IEnumerator<int> {|RH4103:getEnumerator|}()
+                                     {
+                                         yield return 1;
+                                     }
+
+                                     public int CountAll()
+                                     {
+                                         return 0;
+                                     }
+
+                                     IEnumerator<int> IEnumerable<int>.GetEnumerator()
+                                     {
+                                         yield return 2;
+                                     }
+
+                                     IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<int>)this).GetEnumerator();
+                                 }
+
+                                 public static class Consumer
+                                 {
+                                     public static int First()
+                                     {
+                                         foreach (var number in new Numbers())
+                                         {
+                                             return number;
+                                         }
+
+                                         return 0;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static test => test.NumberOfFixAllIterations = 1);
+    }
+
+    /// <summary>
+    /// Verifies that an extension method that would be renamed to <c>Select</c> is still reported but not fixed,
+    /// because a query clause in its namespace would call it instead of <c>Enumerable.Select</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-011")]
+    [Requirement("RH4103-003")]
+    public async Task NoFixIsOfferedWhenTheRenameWouldChangeTheMethodAQueryClauseCalls()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                namespace N
+                                {
+                                    public static class Extensions
+                                    {
+                                        public static IEnumerable<int> {|RH4103:select|}(this IEnumerable<int> source, Func<int, int> selector)
+                                        {
+                                            return source;
+                                        }
+                                    }
+
+                                    public class User
+                                    {
+                                        public IEnumerable<int> Get(List<int> values)
+                                        {
+                                            return from value in values select value * 2;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All leaves an extension method whose rename would change the method a query clause calls,
+    /// and renames the other method of the document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-011")]
+    [Requirement("RH4103-003")]
+    public async Task FixAllSkipsTheRenameThatWouldChangeTheMethodAQueryClauseCalls()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                namespace N
+                                {
+                                    public static class Extensions
+                                    {
+                                        public static IEnumerable<int> {|RH4103:select|}(this IEnumerable<int> source, Func<int, int> selector)
+                                        {
+                                            return source;
+                                        }
+
+                                        public static int {|RH4103:count_all|}(this IEnumerable<int> source)
+                                        {
+                                            return 0;
+                                        }
+                                    }
+
+                                    public class User
+                                    {
+                                        public IEnumerable<int> Get(List<int> values)
+                                        {
+                                            return from value in values select value * 2;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using System.Collections.Generic;
+                                 using System.Linq;
+
+                                 namespace N
+                                 {
+                                     public static class Extensions
+                                     {
+                                         public static IEnumerable<int> {|RH4103:select|}(this IEnumerable<int> source, Func<int, int> selector)
+                                         {
+                                             return source;
+                                         }
+
+                                         public static int CountAll(this IEnumerable<int> source)
+                                         {
+                                             return 0;
+                                         }
+                                     }
+
+                                     public class User
+                                     {
+                                         public IEnumerable<int> Get(List<int> values)
+                                         {
+                                             return from value in values select value * 2;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static test => test.NumberOfFixAllIterations = 1);
+    }
+
+    /// <summary>
+    /// Verifies that a method that would be renamed to <c>Deconstruct</c> is still reported but not fixed, because a
+    /// deconstruction would call it instead of the extension method
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-011")]
+    [Requirement("RH4103-003")]
+    public async Task NoFixIsOfferedWhenTheRenameWouldChangeTheMethodADeconstructionCalls()
+    {
+        const string testCode = """
+                                public class Point
+                                {
+                                    public void {|RH4103:deconstruct|}(out int x, out int y)
+                                    {
+                                        x = 3;
+                                        y = 0;
+                                    }
+                                }
+
+                                public static class PointExtensions
+                                {
+                                    public static void Deconstruct(this Point point, out int x, out int y)
+                                    {
+                                        x = 7;
+                                        y = 0;
+                                    }
+                                }
+
+                                public static class Consumer
+                                {
+                                    public static int GetX(Point point)
+                                    {
+                                        var (x, _) = point;
+
+                                        return x;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All leaves a method whose rename would change the method a deconstruction calls, and renames
+    /// the other method of the document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-011")]
+    [Requirement("RH4103-003")]
+    public async Task FixAllSkipsTheRenameThatWouldChangeTheMethodADeconstructionCalls()
+    {
+        const string testCode = """
+                                public class Point
+                                {
+                                    public void {|RH4103:deconstruct|}(out int x, out int y)
+                                    {
+                                        x = 3;
+                                        y = 0;
+                                    }
+
+                                    public int {|RH4103:get_length|}()
+                                    {
+                                        return 0;
+                                    }
+                                }
+
+                                public static class PointExtensions
+                                {
+                                    public static void Deconstruct(this Point point, out int x, out int y)
+                                    {
+                                        x = 7;
+                                        y = 0;
+                                    }
+                                }
+
+                                public static class Consumer
+                                {
+                                    public static int GetX(Point point)
+                                    {
+                                        var (x, _) = point;
+
+                                        return x;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Point
+                                 {
+                                     public void {|RH4103:deconstruct|}(out int x, out int y)
+                                     {
+                                         x = 3;
+                                         y = 0;
+                                     }
+
+                                     public int GetLength()
+                                     {
+                                         return 0;
+                                     }
+                                 }
+
+                                 public static class PointExtensions
+                                 {
+                                     public static void Deconstruct(this Point point, out int x, out int y)
+                                     {
+                                         x = 7;
+                                         y = 0;
+                                     }
+                                 }
+
+                                 public static class Consumer
+                                 {
+                                     public static int GetX(Point point)
+                                     {
+                                         var (x, _) = point;
+
+                                         return x;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static test => test.NumberOfFixAllIterations = 1);
+    }
+
+    /// <summary>
+    /// Verifies that a method that would be renamed to <c>Add</c> is still reported but not fixed, because a collection
+    /// initializer would call it instead of the extension method
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-011")]
+    [Requirement("RH4103-003")]
+    public async Task NoFixIsOfferedWhenTheRenameWouldChangeTheMethodACollectionInitializerCalls()
+    {
+        const string testCode = """
+                                using System.Collections;
+                                using System.Collections.Generic;
+
+                                public class Box : IEnumerable<object>
+                                {
+                                    private readonly List<object> _items = new List<object>();
+
+                                    public void {|RH4103:add|}(int value)
+                                    {
+                                        _items.Add("instance");
+                                    }
+
+                                    public IEnumerator<object> GetEnumerator() => _items.GetEnumerator();
+
+                                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                                }
+
+                                public static class BoxExtensions
+                                {
+                                    public static void Add(this Box box, int value)
+                                    {
+                                    }
+                                }
+
+                                public static class Consumer
+                                {
+                                    public static Box Create()
+                                    {
+                                        return new Box { 1, 2 };
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All leaves a method whose rename would change the method a collection initializer calls, and
+    /// renames the other method of the document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-011")]
+    [Requirement("RH4103-003")]
+    public async Task FixAllSkipsTheRenameThatWouldChangeTheMethodACollectionInitializerCalls()
+    {
+        const string testCode = """
+                                using System.Collections;
+                                using System.Collections.Generic;
+
+                                public class Box : IEnumerable<object>
+                                {
+                                    private readonly List<object> _items = new List<object>();
+
+                                    public void {|RH4103:add|}(int value)
+                                    {
+                                        _items.Add("instance");
+                                    }
+
+                                    public int {|RH4103:count_all|}()
+                                    {
+                                        return _items.Count;
+                                    }
+
+                                    public IEnumerator<object> GetEnumerator() => _items.GetEnumerator();
+
+                                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                                }
+
+                                public static class BoxExtensions
+                                {
+                                    public static void Add(this Box box, int value)
+                                    {
+                                    }
+                                }
+
+                                public static class Consumer
+                                {
+                                    public static Box Create()
+                                    {
+                                        return new Box { 1, 2 };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Collections;
+                                 using System.Collections.Generic;
+
+                                 public class Box : IEnumerable<object>
+                                 {
+                                     private readonly List<object> _items = new List<object>();
+
+                                     public void {|RH4103:add|}(int value)
+                                     {
+                                         _items.Add("instance");
+                                     }
+
+                                     public int CountAll()
+                                     {
+                                         return _items.Count;
+                                     }
+
+                                     public IEnumerator<object> GetEnumerator() => _items.GetEnumerator();
+
+                                     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                                 }
+
+                                 public static class BoxExtensions
+                                 {
+                                     public static void Add(this Box box, int value)
+                                     {
+                                     }
+                                 }
+
+                                 public static class Consumer
+                                 {
+                                     public static Box Create()
+                                     {
+                                         return new Box { 1, 2 };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static test => test.NumberOfFixAllIterations = 1);
+    }
+
+    /// <summary>
+    /// Verifies that a method whose derived name is a name the compiler looks up is still reported but not fixed, also
+    /// when no construct of the code would call another method after the rename
+    /// </summary>
+    /// <param name="oldName">The reported method name</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-011")]
+    [Requirement("RH4103-003")]
+    [DataRow("add")]
+    [DataRow("appendFormatted")]
+    [DataRow("appendLiteral")]
+    [DataRow("cast")]
+    [DataRow("deconstruct")]
+    [DataRow("dispose")]
+    [DataRow("disposeAsync")]
+    [DataRow("getAsyncEnumerator")]
+    [DataRow("getAwaiter")]
+    [DataRow("getEnumerator")]
+    [DataRow("getPinnableReference")]
+    [DataRow("groupBy")]
+    [DataRow("groupJoin")]
+    [DataRow("join")]
+    [DataRow("orderBy")]
+    [DataRow("orderByDescending")]
+    [DataRow("select")]
+    [DataRow("selectMany")]
+    [DataRow("thenBy")]
+    [DataRow("thenByDescending")]
+    [DataRow("where")]
+    [DataRow("get_enumerator")]
+    [DataRow("GET_ENUMERATOR")]
+    public async Task NoFixIsOfferedWhenTheDerivedNameIsANameTheCompilerLooksUp(string oldName)
+    {
+        var testCode = $$"""
+                         public class C
+                         {
+                             public void {|RH4103:{{oldName}}|}()
+                             {
+                             }
+                         }
+                         """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method whose derived name is close to, but not one of, the names the compiler looks up is renamed
+    /// </summary>
+    /// <param name="oldName">The reported method name</param>
+    /// <param name="newName">The expected new name</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-011")]
+    [Requirement("RH4103-003")]
+    [DataRow("getEnumerators", "GetEnumerators")]
+    [DataRow("moveNext", "MoveNext")]
+    [DataRow("select_all", "SelectAll")]
+    [DataRow("adder", "Adder")]
+    public async Task FixIsOfferedWhenTheDerivedNameIsNotANameTheCompilerLooksUp(string oldName, string newName)
+    {
+        var testCode = $$"""
+                         public class C
+                         {
+                             public void {|RH4103:{{oldName}}|}()
+                             {
+                             }
+                         }
+                         """;
+
+        var fixedCode = $$"""
+                          public class C
+                          {
+                              public void {{newName}}()
+                              {
+                              }
+                          }
+                          """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the example of names outside the list: the method is renamed, and a local function named like a looked-up
+    /// name is not reported by this rule and left as it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-011")]
+    [Requirement("RH4103-003")]
+    public async Task FixIsOfferedForAMethodWhoseDerivedNameIsOutsideTheList()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    public int {|RH4103:select_all|}()
+                                    {
+                                        int getEnumerator()
+                                        {
+                                            return 1;
+                                        }
+
+                                        return getEnumerator();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     public int SelectAll()
+                                     {
+                                         int getEnumerator()
+                                         {
+                                             return 1;
+                                         }
+
+                                         return getEnumerator();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

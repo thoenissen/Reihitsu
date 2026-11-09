@@ -799,6 +799,31 @@ public class RH4121TypeParameterNameCasingAnalyzerTests : BatchCodeFixTestsBase<
                      });
     }
 
+    /// <summary>
+    /// Verifies that a type parameter whose first word starts with a digit is renamed when the rule accepts the derived
+    /// name: <c>_1</c> becomes <c>T1</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-008")]
+    [Requirement("RH4121-003")]
+    public async Task FixIsOfferedWhenTheRuleAcceptsTheDerivedNameOfADigitName()
+    {
+        const string testCode = """
+                                public class C<{|RH4121:_1|}>
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C<T1>
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

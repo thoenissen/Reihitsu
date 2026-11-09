@@ -853,6 +853,86 @@ public class RH4002ClassNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4002Cl
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies the example of a derived name that the rule still reports: <c>_注文</c> becomes <c>注文</c>, which does
+    /// not start with an uppercase letter, so the class is still reported but not fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-008")]
+    [Requirement("RH4002-002")]
+    public async Task NoFixIsOfferedWhenTheRuleStillReportsTheDerivedNameOfACaselessName()
+    {
+        const string testCode = """
+                                class {|RH4002:_注文|}
+                                {
+                                    void M(int _ϒx)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies, one name at a time, that a class whose derived name the rule still reports is still reported but not
+    /// fixed: the first word starts with a letter without case, or with a letter without a one-character uppercase mapping
+    /// </summary>
+    /// <param name="oldName">The reported class name</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-008")]
+    [Requirement("RH4002-002")]
+    [DataRow("_注文")]
+    [DataRow("注文_明細")]
+    [DataRow("_ßx")]
+    [DataRow("ß_x")]
+    [DataRow("_ŉx")]
+    public async Task NoFixIsOfferedWhenTheRuleStillReportsTheDerivedName(string oldName)
+    {
+        var testCode = $$"""
+                         public class {|RH4002:{{oldName}}|}
+                         {
+                         }
+                         """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All leaves the class whose derived name the rule still reports, and renames the other class of
+    /// the document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-008")]
+    [Requirement("RH4002-002")]
+    public async Task FixAllSkipsTheClassWhoseDerivedNameTheRuleStillReports()
+    {
+        const string testCode = """
+                                public class {|RH4002:_注文|}
+                                {
+                                }
+
+                                public class {|RH4002:order_line|}
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class {|RH4002:_注文|}
+                                 {
+                                 }
+
+                                 public class OrderLine
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, static test => test.NumberOfFixAllIterations = 1);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
