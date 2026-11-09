@@ -60,4 +60,4 @@ Run lane: **behavior change** (widened from bug fix, Decisions #2). Roles: spec 
 - Cleaner 06 clean (5bdda45).
 - Spec checker 07 consistent, no findings (fbb4c41).
 - Audit 1 (08, ce0b3eb) on fce5e46: findings #1-#6. Repair round 1 started.
-- Round 1: spec author 09 done (7ef961e). Worklist: spec author 09 (RH2001-010 for #1/#2, SHARED-ORDER-008 for #4, change doc #3) -> test implementer 10 (#1 kept, #2 refused, #4 refused, LF/CRLF) -> implementer 11 (#1, #2, #4, #5, #6) -> cleaner -> spec checker -> auditor (repair only) -> validator.
+- Round 1: spec author 09 done (7ef961e); test implementer 10 done (c5fd203, 23 red). Worklist: spec author 09 (RH2001-010 for #1/#2, SHARED-ORDER-008 for #4, change doc #3) -> test implementer 10 (#1 kept, #2 refused, #4 refused, LF/CRLF) -> implementer 11 (#1, #2, #4, #5, #6) -> cleaner -> spec checker -> auditor (repair only) -> validator.
