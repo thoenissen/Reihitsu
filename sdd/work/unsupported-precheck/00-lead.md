@@ -15,7 +15,15 @@
 
 ## Maintainer answers
 
-(none yet)
+Batch 1 (before test implementer), questions from 01-spec-author and 02-skeptic; answer "1A 2A 3A 4A 5 all not supported 6A 7A 8A":
+- Q1 → A: every formatting entry point returns a result object (`FormattingResult<T>`: output + unsupported reason/location, null when formatted).
+- Q2 → A: CLI writes `error: <path>(line,col): unsupported syntax: <reason>. The file was left unchanged.` to stderr (first shape in text order), plus summary `Skipped <n> file(s) with unsupported syntax.`; with `--suppress-unsupported` the line starts `warning:`.
+- Q3 → A: exit code 2 (`ExitCodes.Error`) without the flag, also outranking 1 in `--check`.
+- Q4 → A: `--check`/`--dry-run` print the same error/warning line, no `Not formatted:`/`Would format:`, no diff, not counted as needing formatting.
+- Q5 → B (all four refused): 5a comment inside the type, 5b comment between a modifier and the type, 5c comment on its own line in front of the value, 5d comment on its own line in front of the `;` — all make the input unsupported. The refused span is the whole declaration from its first token (attributes/modifiers included, but not the leading trivia of that first token) through the `;`'s leading trivia, outside initializer values.
+- Q6 → A: Playground shows the input unchanged plus a message like PLAY-006's.
+- Q7 → A: RH2001 is reported with no fix when the field it would write is unsupported.
+- Q8 (escalation 9, code-fix mechanism) → A: one query on `ReihitsuFormatter` (same predicate as the precheck), called at registration by every formatting fix on exactly the node/context it formats (RH2001: the built field). ~45 call sites accepted.
 
 ## Decisions taken
 
@@ -35,5 +43,6 @@
 - 01 spec author done (89537be): verdict open question; 6 output questions in its handover; change doc Draft.
 - Lane check after 01: confirmed behavior-change.
 - 02 skeptic done (211d739): output question; re-asked Q5 split into 5a–5d; new Q7 RH2001; escalation 9 candidate: code-fix registration query across ~45 formatting fixes.
-- Next: ask batch (Q1–Q7 + escalation 9 on the code-fix mechanism), wait; then spec author amendment (Decisions 2–4 + answers), lane check, test implementer.
+- Batch 1 answered (see Maintainer answers). Next: fresh spec author amendment (answers + Decisions 2–4), skeptic not re-run unless amendment adds visible outputs; then test implementer.
+- (done) ask batch (Q1–Q7 + escalation 9 on the code-fix mechanism), wait; then spec author amendment (Decisions 2–4 + answers), lane check, test implementer.
 - (old) skeptic (02) running; then batch output questions (spec author Q1–6 + skeptic's) before test implementer.
