@@ -62,7 +62,8 @@ Batch 2 (from 03-spec-author + lead), answer "9A 10A 11A":
 - 04 spec author done (036b89f0): change doc Accepted, nothing open. Lane check confirmed.
 - 05 test implementer done (7c351c7e): tests written, ~92 obsolete tests deleted, API assumed listed in its handover.
 - 06 implementer done (f2b7638d, 3e41e82f): all pass except 3 disputed CLI tests. 07 spec author example fix done (cf3ebad5).
-- Next: test implementer (08: Decisions 10–12 tests) ∥ spec author (09: Decision 15); then implementer (10: Decisions 11–12 code); then cleaner.
+- 08 test implementer done (b4c97050); 09 spec author done (165d5802).
+- Next: implementer (10: Decisions 11–12 code), then cleaner (11).
 - Batch 2 answered. Then: fresh spec author (04) carries Q9–Q11 into change doc/spec, change doc leaves Draft; then test implementer (05).
 - (done) ask batch 2 (Q9–Q11), then test implementer (may start on everything else, but wait: tests lock outputs; ask first).
 - Batch 1 answered (see Maintainer answers). Then: fresh spec author amendment (answers + Decisions 2–4), skeptic not re-run unless amendment adds visible outputs; then test implementer.
