@@ -43,6 +43,7 @@ Run lane: **behavior change** (widened from bug fix, Decisions #2). Roles: spec 
 | 14 | 08 auditor (round 1) | Finding #3: four rare-class withholdings not listed in the change doc | Spec author states them in the change doc as rare-class refusals outside *Visible output changes*; PR Review notes names the classes | Rare-class withholding puts nothing in question (README, What reaches the maintainer) | Rare class | pending |
 | 15 | 08 auditor (round 1) | Finding #4: a partial declaration ending in `;` with a conditional layout attribute is not read | Repair: read such a declaration (class/struct/record forms), tests, SHARED-ORDER-008 wording | Same requirement as #1667 | Demanded by unchanged SHARED-FIX-003 | pending |
 | 16 | 08 auditor (round 1) | Findings #5 (check order) and #6 (stale `<returns>`) | Implementer repairs both | Low, same file | Internal | pending |
+| 17 | 09 spec author | (a) `#if !RELEASE` around a nested group and the property, `#endif` behind it, stays withheld; (b) behind-the-property check only for properties without initializer; (c) extend RH2001-010 instead of RH2001-011 | Accept all three | (a) a third nesting mode for a rare shape would grow the source (AGENTS, special cases); (b) one cheap check; (c) one test, existing tags | (a) rare class, listed in change doc *Rare-class withholdings* and PR Review notes; (b)(c) keep `main` output / internal | 7ef961e |
 
 ## Follow-up candidates
 
@@ -59,4 +60,4 @@ Run lane: **behavior change** (widened from bug fix, Decisions #2). Roles: spec 
 - Cleaner 06 clean (5bdda45).
 - Spec checker 07 consistent, no findings (fbb4c41).
 - Audit 1 (08, ce0b3eb) on fce5e46: findings #1-#6. Repair round 1 started.
-- Round 1 worklist: spec author 09 (RH2001-010 for #1/#2, SHARED-ORDER-008 for #4, change doc #3) -> test implementer 10 (#1 kept, #2 refused, #4 refused, LF/CRLF) -> implementer 11 (#1, #2, #4, #5, #6) -> cleaner -> spec checker -> auditor (repair only) -> validator.
+- Round 1: spec author 09 done (7ef961e). Worklist: spec author 09 (RH2001-010 for #1/#2, SHARED-ORDER-008 for #4, change doc #3) -> test implementer 10 (#1 kept, #2 refused, #4 refused, LF/CRLF) -> implementer 11 (#1, #2, #4, #5, #6) -> cleaner -> spec checker -> auditor (repair only) -> validator.
