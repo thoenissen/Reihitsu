@@ -2,7 +2,7 @@
 
 Known ways a change in this repository goes wrong. The skeptic names the classes that can reach a change, the test implementer covers them, and the auditor checks every one. IDs are immutable; a class that no longer applies is marked retired, not removed. A new class is added only by a pull request that names the failure it prevents, and its **Origin** says where it was learned; it never cites a run note, which is temporary ([`notes/README.md`](notes/README.md)). Where the members of a class are known, a [matrix](#class-matrices) lists them: the skeptic and the auditor enumerate a defect's class from it and report all failing members together ([`README.md`](README.md#architecture-findings)).
 
-**Origin** says where the class was learned: *RC reviews* — the 1.0-RC review rounds, which traced nearly every critical finding to the trivia, semantics, convergence, idempotency, parity, and closure classes; *audits* — findings of the former preflight audit and Behavior Contract gate; *reproduction* — the former reproduction gate.
+**Origin** says where the class was learned: *RC reviews* — the 1.0-RC review rounds, which traced nearly every critical finding to the trivia, semantics, convergence, idempotency, parity, and closure classes; *audits* — findings of the former preflight audit and Behavior Contract gate; *reproduction* — the former reproduction gate; *precheck* — the change that introduced the formatter's Unsupported outcome ([`unsupported-precheck.md`](../sdd/changes/2026-11/unsupported-precheck.md)).
 
 ## Guards and predicates
 
@@ -65,11 +65,12 @@ These classes reach a change that declares a shape unsupported, or changes the p
 
 | ID | Failure class | Origin |
 |---|---|---|
-| FC-038 | A phase produces a declared shape — a split, join, move, or relocation carries a comment or directive into the span the shape covers — so the formatter refuses its own output on the next pass (FMT-UNSUP-005) | the first unsupported shape |
-| FC-039 | The check skips nested subtrees: it stops at the outer match or excepted region, so a nested occurrence — a declaration inside an initializer value or a lambda body — is missed, or the outer node's exception is applied to it | the first unsupported shape |
-| FC-040 | The outcome depends on the documentation mode: the parser attaches `///` or `/** */` text to another token, or parses it as structured trivia, so the CLI and a code fix answer differently for the same text | the first unsupported shape |
-| FC-041 | The node-level answer and the whole-document answer are mixed: the check reads text outside its input, a node-level target that holds only part of the shape is refused, or a code fix asks about another node than the formatter receives — the target instead of the context, the replaced code instead of the built node (FMT-UNSUP-003, SHARED-FIX-010) | the first unsupported shape |
-| FC-042 | A guard for a declared shape survives in a phase, a code fix, or a spec clause, so the shape is handled twice and the guard drifts from the precheck | the first unsupported shape |
+| FC-038 | A phase produces a declared shape — a split, join, move, or relocation carries a comment or directive into the span the shape covers — so the formatter refuses its own output on the next pass (FMT-UNSUP-005) | precheck |
+| FC-039 | The check stops descending at the outer match or excepted region, so a nested occurrence — a declaration inside an initializer value or a lambda body — is missed, or the outer node's exception leaks inward to it; the precheck's case of FC-027 | precheck |
+| FC-040 | The outcome depends on the documentation mode: the parser attaches `///` or `/** */` text to another token, or parses it as structured trivia, so the CLI and a code fix answer differently for the same text | precheck |
+| FC-041 | The check is not local to its input: it reads text outside a node-level input, so a target that holds only part of the shape is refused, or one is formatted differently as a target than as part of the document (FMT-UNSUP-003); the precheck's case of FC-028 | precheck |
+| FC-042 | A guard that only serves a declared shape survives in a phase, a code fix, or a spec clause, so the shape is handled twice and the guard drifts from the precheck | precheck |
+| FC-043 | A code fix asks `FindUnsupportedSyntax` about another node than the formatter receives from it — the target instead of the context, or the replaced code instead of the node it builds — so it is offered and then changes nothing, or is withheld where the formatter would format (SHARED-FIX-010) | precheck |
 
 ## Tests and evidence
 

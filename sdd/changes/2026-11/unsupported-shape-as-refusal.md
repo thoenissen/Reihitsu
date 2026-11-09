@@ -9,12 +9,12 @@
 
 ## What
 
-`AGENTS.md`, *Special cases do not grow the source*, names a third refusal for a rare input class next to withholding the fix and leaving the construct as written: **declaring the shape unsupported**. Its contract is the one the first shape was built under — one FMT-UNSUP requirement per shape, checked cheaply on exactly what the phases receive, from the tokens and trivia inside that input alone, never produced by a phase, and declared together with the deletion of every special case it makes unnecessary; a shape that deletes nothing is not declared.
+`AGENTS.md`, *Special cases do not grow the source*, names a third refusal for a rare input class next to withholding the fix and leaving the construct as written: **declaring the shape unsupported**. Its contract is the one the first shape was built under — one FMT-UNSUP requirement per shape, checked cheaply on exactly what the phases receive, from the tokens and trivia inside that input alone, never produced by a phase, a requirement and a test for each phase that throws for it, and declared together with the deletion of every special case it makes unnecessary, listed in the change doc's *Special cases* section; a shape that deletes nothing is not declared.
 
 The three refusals differ in who decides:
 
 - withholding the fix and leaving the construct as written are local and silent, and the rule decides them for a rare class;
-- declaring a shape unsupported refuses and reports whole files, so it is always a visible output change: an output question that shows the input unchanged with the CLI's line and names the special cases the shape would delete.
+- declaring a shape unsupported refuses and reports whole files, so it is always a visible output change: an output question that shows the input unchanged with the CLI's line and the withheld code fixes, and names in plain words the special cases the shape would delete.
 
 It is the refusal to propose when a comment or directive shape forces guards into several phases, or keeps coming back in findings. A new shape is a change of its own, unless the work's issue is about that shape.
 
@@ -22,11 +22,12 @@ The squad follows it:
 
 - *What reaches the maintainer* lists declaring a shape unsupported as in question, and escalation 9 offers it among the refusals;
 - *Architecture findings* proposes it as the refusal for a repeated or multi-phase shape, as an output question, and *Scope* makes a shape outside the run's issues a follow-up candidate that carries the question, while the run refuses the class locally;
-- the lead's table proposes it for findings on rare classes, guards beyond a cheap check, repeated audit classes, and production growth, keeps such a follow-up instead of dropping it as rare, and never routes a declaration without the maintainer's answer;
+- the lead's table proposes it, where `AGENTS.md` makes it the refusal to propose, for findings on rare classes, guards beyond a cheap check, repeated audit classes, and production growth, while the local refusal is made in any case; it keeps such a follow-up instead of dropping it as rare, and never routes a declaration without the maintainer's answer;
+- the spec author writes the *Special cases* section, with *Deleted* and *Checked and kept*, into a change doc that declares a shape;
 - the skeptic names the option with the shape's exact span, the special cases it would delete, and the common code it would refuse;
-- the auditor reports a special case that only serves a shape the precheck could refuse, and a guard that survives for a declared shape;
-- the implementer deletes the listed special cases as part of the change and adds no throw site without a requirement and a test, and the test implementer covers the requirement's examples, both sides of the boundary, nested occurrences, every entry point, closure, and every throw site;
-- the failure-class catalog gains FC-038 to FC-042 for a shape a phase produces, a check that skips nested subtrees, an outcome that depends on the documentation mode, a mix of node-level and whole-document answers, and a guard that survives for a declared shape.
+- the auditor reports a special case that only serves a shape to declare, and a guard that only serves a declared shape; a guard that also serves a node-level input holding part of the shape, or other constructs, stays;
+- the implementer deletes the listed special cases as part of the change and adds no throw site without a requirement and a test, and the test implementer covers the requirement's examples, both sides of the boundary, nested occurrences, each documentation mode, every entry point, closure, and every throw site;
+- the failure-class catalog gains FC-038 to FC-043 for a shape a phase produces, a check that stops descending, an outcome that depends on the documentation mode, a check that is not local to its input, a guard that survives for a declared shape, and a code fix that asks about the wrong node.
 
 ## Why
 
@@ -52,7 +53,7 @@ The precheck's contract makes a shape a change across the formatter, the code fi
 
 ### The failure classes come from the first shape
 
-FC-038 to FC-041 are the questions the first shape had to settle: closure, nested declarations, the documentation mode, and the node-level boundary. FC-042 is the removal the contract demands.
+FC-038 to FC-043 prevent the failures the first shape had to rule out: the formatter refusing its own output, a nested declaration missed or wrongly excepted, the CLI and a code fix answering differently for the same text, a node-level target refused for text outside it, a guard kept for a shape no phase sees any more, and a code fix offered for a refused node or withheld for one the formatter formats.
 
 ## Alternatives considered
 

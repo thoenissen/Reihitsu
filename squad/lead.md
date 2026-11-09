@@ -69,13 +69,13 @@ An agent is large when `scripts/usage.sh` shows, for its spawn, about 40 respons
 | Test implementer or implementer: a test or the spec is wrong | Decide when the asserted output is internal or an unchanged requirement decides it; otherwise an output question |
 | Any role: scope grows, or an adjacent fix | Decide under `README.md`, *Scope*; a new rule is escalation 5 |
 | Any role: architecture finding | Decide under `README.md`, *Architecture findings*, before the next role starts |
-| Any role: a finding on a rare input class (`AGENTS.md`, *Code-fix coverage*) | Widen the refusal: route the withheld fix or the skipped construct to its owner like a repair; never more reasoning (`README.md`, *Architecture findings*). When the class is a comment or directive shape that forces guards into several phases, also propose declaring it unsupported: an output question when the run's issues are about the shape, otherwise a follow-up candidate that carries it (`README.md`, *Scope*) |
-| Implementer: a guard needs more than a cheap check | Widen the refusal as above, a proposal to declare the shape unsupported included; escalation 9 only when the class includes code people commonly write |
+| Any role: a finding on a rare input class (`AGENTS.md`, *Code-fix coverage*) | Widen the refusal: route the withheld fix or the skipped construct to its owner like a repair; never more reasoning (`README.md`, *Architecture findings*). Also, when `AGENTS.md`, *Special cases do not grow the source*, makes declaring the shape the refusal to propose, propose it: an output question when the run's issues are about the shape, otherwise a follow-up candidate that carries it (`README.md`, *Scope*) |
+| Implementer: a guard needs more than a cheap check | Widen the refusal as above, including the proposal to declare the shape unsupported where that applies; escalation 9 only when the class includes code people commonly write |
 | Any role: a safety rail the run cannot repair in scope | Escalation 2, at once |
 | Cleaner: only a suppression or ruleset change resolves a warning | Escalation 6 |
 | Spec checker or auditor: findings | Repair round (section 7) |
-| Auditor: a finding that repeats the class of an earlier audit finding | An architecture finding, instead of a repair round: refuse the class first; a comment or directive shape that keeps coming back is also proposed for declaring unsupported, as above |
-| Auditor: production growth that a refusal would have avoided | Replace the growth by withholding the fix or leaving the construct as written, routed like a repair; growth that only declaring the shape unsupported would remove is proposed as above and stays until the maintainer answers |
+| Auditor: a finding that repeats the class of an earlier audit finding | An architecture finding, instead of a repair round: refuse the class first, and propose declaring the shape unsupported as above where that applies |
+| Auditor: production growth that a refusal would have avoided | Replace the growth by withholding the fix or leaving the construct as written, routed like a repair, in any case; propose declaring the shape unsupported as above where that applies |
 | Auditor: undecided visible output | An output question, asked at once |
 | Validator: a failure that also exists on `main` | Decide: a follow-up, or an adjacent fix under *Scope* |
 
@@ -90,7 +90,7 @@ Ask output questions in batches (`README.md`, *What reaches the maintainer*), in
 - **Before the test implementer starts**: every visible output change of the change doc, and every output question the spec author and the skeptic raised. When nothing is open, there is no stop.
 - **Before the auditor** (section 6): the questions found since.
 
-When an output question's option makes a code fix lay out, move, or rewrite code (comments, directives, literals, build configurations), ask in the same message whether the fix may be withheld for inputs where that is unsafe. A rare input class needs no question: it is refused (`AGENTS.md`, *Code-fix coverage*) — unless the refusal declares a shape unsupported, which is always asked. Settling it before the first audit is cheaper than after the sixth.
+When an output question's option makes a code fix lay out, move, or rewrite code (comments, directives, literals, build configurations), ask in the same message whether the fix may be withheld for inputs where that is unsafe. A rare input class needs no question: it is refused (`AGENTS.md`, *Code-fix coverage*) — unless the refusal declares a shape unsupported, which is always the maintainer's: asked in the run when its issues are about the shape, otherwise carried by a follow-up. Settling it before the first audit is cheaper than after the sixth.
 
 Record each answer under `Maintainer answers` in `00-lead.md`, and carry it out before the next role starts: a visible output change the maintainer chose goes into the change doc's `Decisions` section and the spec, routed to the spec author (continue its agent or spawn a fresh one, section 4); a bug fix or a clarification within the run's issues is routed to its owner like a repair; a case outside the run's issues becomes a follow-up.
 
