@@ -50,4 +50,5 @@ Run lane: **behavior change** (widened from bug fix, Decisions #2). Roles: spec 
 - Spec author 03 done (7e019ae).
 - Batch 1 answered (all A). Change doc accepted (Decisions #10).
 - Test implementer 04 done (220f435): all three reproduced; 52 red tests.
-- Next: implementer (05).
+- Implementer 05 done (25cba35): all green, ~51 net production lines.
+- Next: cleaner (06), spec checker (07).
