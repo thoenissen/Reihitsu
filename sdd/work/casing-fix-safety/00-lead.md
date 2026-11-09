@@ -37,4 +37,7 @@
 
 - Done: skeptic (01-skeptic.md, eb79b88). No output questions.
 - Done: spec author (02-spec-author.md, 5fed711). No output questions. Lane check: confirmed.
-- Next: test implementer (reproductions incl. #1598 linked-document test).
+- Done: test implementer (03-test-implementer.md, 1c84020). #1597, #1016, #1015, #1084 reproduced (74 red tests); #1598 NOT reproduced (5 green characterization tests in RH4109 tests).
+- PR link for #1598 changed to `Refs #1598`.
+- OPEN: escalation 4 for #1598 asked to the maintainer; the whole run waits for the answer.
+- Next after answer: implementer for #1597, #1016, #1015, #1084 (note: merging the two RH4102 providers would require changing existing tests that name `RH4102CustomEventNameCasingCodeFixProvider`).
