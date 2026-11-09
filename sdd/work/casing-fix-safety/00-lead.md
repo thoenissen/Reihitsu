@@ -46,5 +46,6 @@
 - #1598 answered: tests only, PR uses `Closes #1598`; #1598 skips the remaining build roles (spec checker and validator still cover its tests).
 - Done: implementer (04-implementer.md, 87ce0ad): 11 failing tests disputed; decisions 8–11.
 - Done: test implementer repair (05-test-implementer.md, 05f7b33): analyzer 7842/0, architecture 117/0 (Debug). Release breaks on RH7110 in CasingAnalyzerBase (cleaner).
-- Next: implementer deletes empty RH4102 custom provider → spec author removes its owner rows (RH4102.md:11, sdd/specs/README.md:109) → cleaner (RH7110, S2094).
+- Done: implementer deleted empty provider (06-implementer.md, e5dffc1); architecture test EveryCodeOwnerNamesAnExistingType red until spec rows removed.
+- Next: spec author removes its owner rows (RH4102.md:11, sdd/specs/README.md:109) → cleaner (RH7110, S2094).
 - (old) implementer for #1597, #1016, #1015, #1084 (note: merging the two RH4102 providers would require changing existing tests that name `RH4102CustomEventNameCasingCodeFixProvider`).
