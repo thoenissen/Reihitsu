@@ -105,6 +105,7 @@ Start from [`templates/change.md`](templates/change.md).
 - Header: `Status`, `Date`, `Affected requirements` (IDs, the specs a new surface creates, or `none — process change`), and `Depends on` when it builds on another change doc.
 - Status is `Draft` while under discussion and `Accepted` once every visible output change it lists has the maintainer's answer; a change doc needs no approval of its own. In a squad run, the lead sets `Accepted`. Set it before the PR is marked ready for review.
 - File: `changes/yyyy-mm/<slug>.md`, by the month the change is merged.
+- A change that declares a shape unsupported adds a `Special cases` section with `Deleted` and `Checked and kept` (`AGENTS.md`, *Special cases do not grow the source*).
 - No task lists and no implementation plan — they are noise once the change is merged.
 - Change docs are history. Once merged, they are not edited to track later changes; a later change gets its own doc.
 
