@@ -41,6 +41,12 @@ Batch 2 (from 03-spec-author + lead), answer "9A 10A 11A":
 | 7 | 04 spec author | Comment behind a `using`/`fixed` `)` | Not refused, like a comment behind `;` | Symmetry with the issue's binding exclusion behind `;` | Keeps today's output | 036b89f0 |
 | 8 | 05 test impl. | Spec examples FMT-STRUCT-022, FMT-STRUCT-030 (2nd), RH7101-004, RH7101-007 (3rd) show `Offset(/* … */ 1)` but unchanged FMT-SPACE-013 gives `/* … */1` | Spec examples are wrong; correct them to the FMT-SPACE-013 output (spec author, in parallel with the implementer) | An unchanged requirement decides it | Output demanded by unchanged FMT-SPACE-013 | pending |
 | 9 | 05 test impl. | Trace tool output for a refused input is unspecified | Leave unspecified; implementer keeps the trace from wrapping the refusal (Decision 3) | Dev tool, not a shipped surface | Trace is internal tooling | — |
+| 10 | 06 implementer | Three CLI e2e tests use a `FormattedSource` that ends with `\n`, which the formatter removes | Test is wrong (input constant not formatted); test implementer fixes the input, no assertion changes | The test's premise ("already formatted") is false | Asserted CLI output unchanged | pending |
+| 11 | 06 implementer | CLI asks `ISourceFormatter.FindUnsupportedSyntax` separately and keeps `FormatSyntaxTree` returning a bare tree | Architecture finding (two check sites; a phase's refusal would go unreported): change the structure in this run — `ISourceFormatter.FormatSyntaxTree` returns `FormattingResult<SyntaxTree>`, the CLI reports from the result, the separate query on `ISourceFormatter` goes; test implementer adapts the mock setup first | One check site is binding; within components the run changes | No output change: same messages | pending |
+| 12 | 06 implementer | S3871 wants `SyntaxNotSupportedException` public | Make it public; test implementer adds it to `PublicApiSurfaceTests` | No suppression (escalation 6 avoided); API is internal per AGENTS.md | Not a visible surface | pending |
+| 13 | 06 implementer | Precheck runs twice per fix (registration + format) | Accepted, no follow-up | Cost of the maintainer's answer 8A; time only | — | — |
+| 14 | 06 implementer | Scope: 63 production files, formatter +549/−276 | Accepted | Covered by answers 1A and 8A (escalation 9 answered) | — | — |
+| 15 | 06 implementer | FMT-UNSUP spec lists no code owners | Spec author adds the types to the spec header and index | Spec consistency | Internal | pending |
 | 1 | Claim | Branch name | Use the session-designated branch `claude/funny-darwin-l756yr` instead of `claude/issue-1670-<slug>` | The session forbids pushing to any other branch | Branch names are internal | claim commit |
 
 ## Follow-up candidates
@@ -55,7 +61,8 @@ Batch 2 (from 03-spec-author + lead), answer "9A 10A 11A":
 - 03 spec author amendment done (3f270a53): batch 1 + Decisions 2–4 carried out; open Q9 (comment between value and `,`/`;`), Q10 (comment before `)` of using/fixed); internal choice touching output: comment inside an attribute argument refused → asked as Q11. Lane check: confirmed.
 - 04 spec author done (036b89f0): change doc Accepted, nothing open. Lane check confirmed.
 - 05 test implementer done (7c351c7e): tests written, ~92 obsolete tests deleted, API assumed listed in its handover.
-- Next: implementer (06) + spec author example fix (07) in parallel.
+- 06 implementer done (f2b7638d, 3e41e82f): all pass except 3 disputed CLI tests. 07 spec author example fix done (cf3ebad5).
+- Next: test implementer (08: Decisions 10–12 tests) ∥ spec author (09: Decision 15); then implementer (10: Decisions 11–12 code); then cleaner.
 - Batch 2 answered. Then: fresh spec author (04) carries Q9–Q11 into change doc/spec, change doc leaves Draft; then test implementer (05).
 - (done) ask batch 2 (Q9–Q11), then test implementer (may start on everything else, but wait: tests lock outputs; ask first).
 - Batch 1 answered (see Maintainer answers). Then: fresh spec author amendment (answers + Decisions 2–4), skeptic not re-run unless amendment adds visible outputs; then test implementer.
