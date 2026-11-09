@@ -49,5 +49,6 @@
 - Done: implementer deleted empty provider (06-implementer.md, e5dffc1); architecture test EveryCodeOwnerNamesAnExistingType red until spec rows removed.
 - Done: spec author removed owner rows (07-spec-author.md, 457db3f); architecture 117/117.
 - Done: cleaner (08-cleaner.md, 5290043): Release 0 warnings.
-- Next: spec checker.
+- Done: spec checker (09-spec-checker.md, 3d0271b): consistent, no findings.
+- Next: auditor.
 - (old) implementer for #1597, #1016, #1015, #1084 (note: merging the two RH4102 providers would require changing existing tests that name `RH4102CustomEventNameCasingCodeFixProvider`).
