@@ -36,6 +36,7 @@
 | 13 | Auditor (round 1) | Finding 1: SHARED-CASING-012 guard misses `nameof` of another symbol with the old/new name, and C# 14 extension-block receivers | Repair round 1: refuse the class with a cheap check — owners re-derive (spec author narrows SHARED-CASING-012, test implementer adds one test per case, implementer widens the guard) | Same requirement; rare class → wider refusal, no binding analysis | Withholding for a rare class | — |
 | 14 | Auditor (round 1) | Finding 2: vacuous linked-document assertion in the #1598 test helper | Repair round 1: test implementer makes it check that the copies are linked | PR-introduced test weakness | Tests only | — |
 | 15 | Auditor (round 1) | Hint: SHARED-CASING-011 also withholds `add`, `where`, `dispose` in Java-style code | Keep decision 6 | The input already violates RH4103 itself; withholding only removes a fix for those exact 21 names | Withholding for a rare class | — |
+| 16 | Repair 1 spec | Spec author's departures: C# 11 condition on the `nameof` exemption; no exemption for extension-block members | Accept both | Conservative cheap refusal of a rare class; without the C# 11 condition the finding returns under C# 10 | Withholding for a rare class | 2499cbe |
 
 ## Follow-up candidates
 
@@ -54,5 +55,5 @@
 - Done: cleaner (08-cleaner.md, 5290043): Release 0 warnings.
 - Done: spec checker (09-spec-checker.md, 3d0271b): consistent, no findings.
 - Done: auditor (10-auditor.md, 92ee46f), audited head 5a1e702 vs main b673099: findings 1 (high), 2 (low).
-- Repair round 1 worklist: (1) spec author narrows SHARED-CASING-012; (2) test implementer: tests for cases a, b, c + linked-document assertion; (3) implementer widens guard; then cleaner, spec checker, auditor (repair only), validator.
+- Repair round 1 worklist: (1) DONE spec author (11-spec-author.md, 2499cbe); (2) test implementer: tests for cases a, b, c + linked-document assertion; (3) implementer widens guard; then cleaner, spec checker, auditor (repair only), validator.
 - (old) implementer for #1597, #1016, #1015, #1084 (note: merging the two RH4102 providers would require changing existing tests that name `RH4102CustomEventNameCasingCodeFixProvider`).
