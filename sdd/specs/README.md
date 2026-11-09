@@ -106,7 +106,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH4010.md](analyzer/RH4010.md) | RH4010 | `RH4010RecordNameCasingAnalyzer`, `RH4010RecordNameCasingCodeFixProvider` |
 | [analyzer/RH4011.md](analyzer/RH4011.md) | RH4011 | `RH4011RecordStructNameCasingAnalyzer`, `RH4011RecordStructNameCasingCodeFixProvider` |
 | [analyzer/RH4101.md](analyzer/RH4101.md) | RH4101 | `RH4101EnumMemberCasingAnalyzer`, `RH4101EnumMemberCasingCodeFixProvider` |
-| [analyzer/RH4102.md](analyzer/RH4102.md) | RH4102 | `RH4102EventNameCasingAnalyzer`, `RH4102EventNameCasingCodeFixProvider`, `RH4102CustomEventNameCasingCodeFixProvider` |
+| [analyzer/RH4102.md](analyzer/RH4102.md) | RH4102 | `RH4102EventNameCasingAnalyzer`, `RH4102EventNameCasingCodeFixProvider` |
 | [analyzer/RH4103.md](analyzer/RH4103.md) | RH4103 | `RH4103MethodNameCasingAnalyzer`, `RH4103MethodNameCasingCodeFixProvider` |
 | [analyzer/RH4104.md](analyzer/RH4104.md) | RH4104 | `RH4104LocalFunctionNameCasingAnalyzer`, `RH4104LocalFunctionNameCasingCodeFixProvider` |
 | [analyzer/RH4105.md](analyzer/RH4105.md) | RH4105 | `RH4105MethodParameterCasingAnalyzer`, `RH4105MethodParameterCasingCodeFixProvider` |
