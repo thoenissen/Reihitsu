@@ -41,5 +41,34 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineFormatterTests : 
                               ExpectedDiagnostic(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, 1, 27, 1, 32, AnalyzerResources.RH5110MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter moves a wrapped constraint clause onto its own line and lays out its constraints one
+    /// per line, aligned under the first constraint, so the analyzer reports nothing on the result
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesViolationWithWrappedConstraints()
+    {
+        const string input = """
+                             internal class Example<T> where T : class,
+                                 new()
+                             {
+                                 public int Bar { get; set; }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example<T>
+                                     where T : class,
+                                               new()
+                                 {
+                                     public int Bar { get; set; }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, 1, 27, 1, 32, AnalyzerResources.RH5110MessageFormat));
+    }
+
     #endregion // Tests
 }

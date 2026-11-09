@@ -5,7 +5,7 @@
 | ID prefix | CLI |
 | Status | Active |
 | Code owners | `Program`, `ParseResult`, `FormatCommandHandler`, `ExitCodes`, `GeneratedFileUtilities`, `FileProcessResult`, `DefaultFileSystem`, `DefaultConsoleInput`, `DefaultSourceFormatter`, `DiffGenerator` |
-| Uses | FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-008 |
+| Uses | FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-008, FMT-UNSUP-001 |
 
 This spec covers the `reihitsu-format` .NET tool: its arguments, which files it selects and skips, how it reads and writes them, the `--check` and `--dry-run` modes, its console output, and its exit codes. What the formatter does to a file's content is specified under `formatter/`.
 
@@ -22,7 +22,7 @@ Paths in the example outputs are shortened to `/work/…`; the tool prints full 
 
 ### CLI-001 — Arguments are options and paths
 
-The CLI MUST accept the options `--check`, `--dry-run`, `--verbose`, `--force`, `--utf8-bom`, `--lang-version <version>`, `--help` (and `-h`), and `--version`, in any order and mixed with paths. Every other argument that starts with `-` MUST be an unknown option, unless it follows the argument `--`, after which every argument is a path. Without a path, the current directory MUST be used.
+The CLI MUST accept the options `--check`, `--dry-run`, `--verbose`, `--force`, `--utf8-bom`, `--suppress-unsupported`, `--lang-version <version>`, `--help` (and `-h`), and `--version`, in any order and mixed with paths. Every other argument that starts with `-` MUST be an unknown option, unless it follows the argument `--`, after which every argument is a path. Without a path, the current directory MUST be used.
 
 Why: Paths that start with `-` exist; `--` is the conventional way to pass them without changing how options are recognized.
 
@@ -239,7 +239,7 @@ exit code 1. The removed final line break is FMT-CLEAN's.
 
 ### CLI-014 — The summary names every skipped group
 
-After processing, the CLI MUST print an empty line, the mode's summary line (CLI-011 to CLI-013), and then, each only when non-zero: `Skipped <n> generated file(s).`, `Skipped <n> file(s) with syntax errors.`, `Skipped <n> file(s) that could not be decoded.`, and `<n> file(s) encountered errors.`
+After processing, the CLI MUST print an empty line, the mode's summary line (CLI-011 to CLI-013), and then, each only when non-zero: `Skipped <n> generated file(s).`, `Skipped <n> file(s) with syntax errors.`, `Skipped <n> file(s) with unsupported syntax.` (CLI-019), `Skipped <n> file(s) that could not be decoded.`, and `<n> file(s) encountered errors.`
 
 Why: A run that formatted fewer files than expected must say why.
 
@@ -260,10 +260,10 @@ Why: One unreadable file should not hide the state of all others, but the run as
 The CLI MUST exit with:
 
 - 0 when the run succeeded — in write mode whether or not files changed; with `--check` or `--dry-run` when no file would change; also for `--help`, `--version`, no selected files, and a declined confirmation (CLI-018);
-- 1 when `--check` or `--dry-run` found a file that would change and no file failed;
-- 2 for invalid arguments (CLI-002), a missing path (CLI-005), a failed file (CLI-016), a large run that cannot be confirmed (CLI-018), cancellation with Ctrl+C (`Operation canceled.` on standard error), and any unexpected error (`Error: <message>`).
+- 1 when `--check` or `--dry-run` found a file that would change, no file failed, and no file was reported as unsupported with `error:` (CLI-019);
+- 2 for invalid arguments (CLI-002), a missing path (CLI-005), a failed file (CLI-016), a file the formatter refuses as unsupported without `--suppress-unsupported` (CLI-019), a large run that cannot be confirmed (CLI-018), cancellation with Ctrl+C (`Operation canceled.` on standard error), and any unexpected error (`Error: <message>`).
 
-Why: CI distinguishes "the code needs formatting" from "the tool could not do its job"; only the second is a broken pipeline.
+Why: CI distinguishes "the code needs formatting" from "the tool could not do its job"; only the second is a broken pipeline. A file the tool refuses is one it could not do its job on, and `--suppress-unsupported` is the way to let such a run pass (CLI-020).
 
 ### CLI-018 — Large write runs need confirmation
 
@@ -282,3 +282,80 @@ This run would format 26 file(s), but standard input is not interactive, so the 
 ```
 
 exit code 2.
+
+### CLI-019 — An unsupported file is never changed and is reported as an error
+
+The CLI MUST leave a file unchanged, in every mode, when the formatter refuses it as unsupported (FMT-UNSUP-001), also when `--utf8-bom` would change its encoding, and MUST report it on standard error with one line:
+
+```text
+error: <path>(<line>,<column>): unsupported syntax: <reason>. The file was left unchanged.
+```
+
+`<line>` and `<column>` are the one-based line and column of the first character of the shape the formatter reports, which is the first unsupported shape in the file's text (FMT-UNSUP-001), and `<reason>` is the reason the formatter gives. A file that holds several unsupported shapes gets one line.
+
+The file MUST count in the total of the mode's summary line and not as changed, and the summary MUST name it in `Skipped <n> file(s) with unsupported syntax.` (CLI-014). In `--check` and `--dry-run`, the CLI MUST report the file with this line only: it prints no `Not formatted:` and no `Would format:` line and no diff for it, and does not count it as a file that needs formatting or would be formatted. With `--verbose`, it prints no further line for the file.
+
+The run MUST exit with code 2 when it reports a file this way, also with `--check` and `--dry-run` when another file would change (CLI-017).
+
+Why: The formatter refuses the whole file, so the CLI has nothing to write; writing only the encoding would change a file the formatter declined to touch. Reporting the file says why it was left as written, which a silent skip would hide: the user can rewrite the shape by hand. An error belongs on standard error, and the `<path>(<line>,<column>)` form is the one CI logs and editors turn into a link to the comment. The file does not need formatting in a way the tool can apply, so counting it as such would make `--check` and write mode disagree about the same file. The exit code 2 says that the tool could not do its job on a file, as for a failed file; a new code would add a contract that CI scripts would have to learn.
+
+Example — `u.cs` holds
+
+```csharp
+class C
+{
+    void M()
+    {
+        int /* c */ a = 1;
+    }
+}
+```
+
+and `reihitsu-format /work/u.cs` leaves the file unchanged, writes
+
+```text
+error: /work/u.cs(5,13): unsupported syntax: a comment between a variable declaration's own tokens. The file was left unchanged.
+```
+
+to standard error, and
+
+```text
+
+Formatted 0 of 1 file(s).
+Skipped 1 file(s) with unsupported syntax.
+```
+
+to standard output, and exits with code 2.
+
+Example — with `u.cs` and a formatted `B.cs`, `reihitsu-format --check /work/u.cs /work/B.cs` writes the same `error:` line, then
+
+```text
+
+0 of 2 file(s) need formatting.
+Skipped 1 file(s) with unsupported syntax.
+```
+
+and exits with code 2. `--dry-run` writes the same, with `0 of 2 file(s) would be formatted.` With an unformatted `A.cs` in place of `B.cs`, `--check` also writes `Not formatted: /work/A.cs` and `1 of 2 file(s) need formatting.`, and still exits with code 2.
+
+### CLI-020 — `--suppress-unsupported` reports an unsupported file as a warning
+
+With `--suppress-unsupported`, the CLI MUST report a file the formatter refuses as unsupported with the line of CLI-019 starting with `warning:` instead of `error:`, on standard error, MUST still leave the file unchanged and count it as CLI-019 states, and the warning MUST NOT change the exit code: the run exits with the code it would have without that file.
+
+Why: A team that adopts the formatter on code with unsupported shapes needs a green run while the shapes are rewritten by hand, without losing the list of files that need it. The file still stays unchanged, because formatting it would put the shape back in front of the phases that no longer handle it.
+
+Example — with `u.cs` from CLI-019 and an unformatted `A.cs`, `reihitsu-format --check --suppress-unsupported /work/u.cs /work/A.cs` writes
+
+```text
+warning: /work/u.cs(5,13): unsupported syntax: a comment between a variable declaration's own tokens. The file was left unchanged.
+```
+
+to standard error, and
+
+```text
+Not formatted: /work/A.cs
+
+1 of 2 file(s) need formatting.
+Skipped 1 file(s) with unsupported syntax.
+```
+
+to standard output, and exits with code 1, the code the run has for `A.cs` alone.

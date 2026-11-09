@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
@@ -45,7 +46,8 @@ internal sealed class CommentIndentationContributor : ILayoutContributor
     /// token of a node formatted on its own has no previous token in its tree, so its preceding token in the document is read
     /// from <see cref="FormattingContext.RootPrecedingToken"/>. The column is the one the token's line has in the output of
     /// the indentation phase, after the phase moved the lines of multi-line raw string literals
-    /// (<see cref="LayoutModel.TryGetPlacedColumn"/>)
+    /// (<see cref="LayoutModel.TryGetPlacedColumn"/>). A comment in front of a closing brace or of the closing bracket of a
+    /// collection expression is indented one level deeper than that token, inside the scope it closes
     /// </summary>
     /// <param name="token">The token whose leading trivia to inspect</param>
     /// <param name="model">The layout model</param>
@@ -59,8 +61,10 @@ internal sealed class CommentIndentationContributor : ILayoutContributor
             return;
         }
 
-        // Comments before a closing brace should be indented inside the block
-        if (token.IsKind(SyntaxKind.CloseBraceToken))
+        // Comments before a closing brace, or before the closing bracket of a collection expression, are indented inside
+        // the scope the token closes, in the column of its contents (FMT-INDENT-006, FMT-PIPE-014)
+        if (token.IsKind(SyntaxKind.CloseBraceToken)
+            || (token.IsKind(SyntaxKind.CloseBracketToken) && token.Parent is CollectionExpressionSyntax))
         {
             alignColumn += FormattingContext.IndentSize;
         }

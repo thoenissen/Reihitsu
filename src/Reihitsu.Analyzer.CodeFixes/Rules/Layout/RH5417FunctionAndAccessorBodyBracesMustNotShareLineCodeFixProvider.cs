@@ -41,7 +41,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider 
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, MemberDeclarationSyntax member, CancellationToken cancellationToken)
     {
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, member, cancellationToken).ConfigureAwait(false);
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, member, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     /// <summary>
@@ -87,7 +87,8 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider 
 
         foreach (var diagnostic in context.Diagnostics)
         {
-            if (GetFormattingMember(root, diagnostic.Location.SourceSpan) is not { } member)
+            if (GetFormattingMember(root, diagnostic.Location.SourceSpan) is not { } member
+                || ReihitsuFormatter.FindUnsupportedSyntax(member) != null)
             {
                 continue;
             }

@@ -54,7 +54,7 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
     public void CheckRunsTheProductionPhasesInPipelineOrder()
     {
         // Arrange
-        var observedNames = ObservedPipeline.Run(FormattedSource, "\n").Select(phase => phase.Name).ToList();
+        var observedNames = new[] { ObservedPipeline.PrecheckPhaseName }.Concat(ObservedPipeline.Run(FormattedSource, "\n").Select(phase => phase.Name)).ToList();
 
         // Act
         var checkedNames = PhaseStabilityCheck.CreateProductionPhases().Select(PhaseStabilityCheck.GetReportedName).ToList();
@@ -259,7 +259,7 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
             var endingName = DescribeLineEnding(endOfLine);
             var (root, context) = SecondPassInput.Create(text, endOfLine, null);
 
-            Assert.AreEqual(text, FormattingPipeline.ExecutePhases(root, context, phases, null, CancellationToken.None).ToFullString(), $"The source should be a fixed point of both phases under {endingName} line endings.");
+            Assert.AreEqual(text, FormattingPipeline.ExecutePhases(root, context, phases, null, CancellationToken.None).Output.ToFullString(), $"The source should be a fixed point of both phases under {endingName} line endings.");
 
             // Act
             var changes = PhaseStabilityCheck.FindChangingPhases(text, endOfLine, null, phases);
@@ -433,7 +433,7 @@ public class PhaseStabilityCheckTests : FormatterTestsBase
     private static string AssertNoPhaseChangesTheOutputOf(string input)
     {
         var tree = CSharpSyntaxTree.ParseText(input);
-        var outputRoot = ReihitsuFormatter.FormatSyntaxTree(tree).GetRoot();
+        var outputRoot = ReihitsuFormatter.FormatSyntaxTree(tree).Output.GetRoot();
         var output = outputRoot.ToFullString();
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(outputRoot);
 

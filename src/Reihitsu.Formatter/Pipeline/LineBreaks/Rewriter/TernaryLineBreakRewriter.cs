@@ -127,7 +127,8 @@ internal sealed class TernaryLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Moves the ternary <c>?</c> token from line-end position to line-start position
+    /// Moves the ternary <c>?</c> token from line-end position to line-start position. A line break that already separates
+    /// the condition from the <c>?</c> stays the gap's only one (FMT-BREAK-030)
     /// </summary>
     /// <param name="node">The conditional expression node</param>
     /// <param name="questionToken">The question mark token</param>
@@ -143,7 +144,7 @@ internal sealed class TernaryLineBreakRewriter : CSharpSyntaxRewriter
         }
 
         var newQuestionTrailing = LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(questionToken.TrailingTrivia));
-        var newConditionTrailing = LineBreakTriviaUtilities.AppendEndOfLine(conditionLastToken.TrailingTrivia, _context.EndOfLine);
+        var newConditionTrailing = LineBreakTriviaUtilities.EndLineInFrontOf(conditionLastToken, questionToken, _context.EndOfLine);
         var newConditionLastToken = conditionLastToken.WithTrailingTrivia(newConditionTrailing);
         var newQuestionToken = questionToken.WithTrailingTrivia(newQuestionTrailing);
         var whenTrueFirstToken = node.WhenTrue.GetFirstToken();
@@ -167,7 +168,9 @@ internal sealed class TernaryLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Normalizes placement of the <c>:</c> token in a ternary expression
+    /// Normalizes placement of the <c>:</c> token in a ternary expression. When the <c>:</c> ends its line, it moves to the
+    /// start of the next line, and a line break that already separates the true branch from it stays the gap's only one
+    /// (FMT-BREAK-030)
     /// </summary>
     /// <param name="node">The conditional expression node</param>
     /// <returns>The updated conditional expression</returns>
@@ -184,7 +187,7 @@ internal sealed class TernaryLineBreakRewriter : CSharpSyntaxRewriter
 
             var whenTrueLastToken = node.WhenTrue.GetLastToken();
             var newColonTrailing = LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(colonToken.TrailingTrivia));
-            var newWhenTrueTrailing = LineBreakTriviaUtilities.AppendEndOfLine(whenTrueLastToken.TrailingTrivia, _context.EndOfLine);
+            var newWhenTrueTrailing = LineBreakTriviaUtilities.EndLineInFrontOf(whenTrueLastToken, colonToken, _context.EndOfLine);
             var newWhenTrueLastToken = whenTrueLastToken.WithTrailingTrivia(newWhenTrueTrailing);
             var newColonToken = colonToken.WithTrailingTrivia(newColonTrailing);
             var whenFalseFirstToken = node.WhenFalse.GetFirstToken();

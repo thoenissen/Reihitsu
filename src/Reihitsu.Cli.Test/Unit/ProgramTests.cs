@@ -136,6 +136,46 @@ public class ProgramTests
     }
 
     /// <summary>
+    /// Verifies that <c>--suppress-unsupported</c> sets <see cref="ParseResult.SuppressUnsupported"/> to <see langword="true"/> and
+    /// no other option
+    /// </summary>
+    [TestMethod]
+    [Requirement("CLI-001")]
+    public void ParseArgumentsSuppressUnsupportedFlagSetsSuppressUnsupported()
+    {
+        var result = Program.ParseArguments(["--suppress-unsupported"]);
+
+        Assert.IsTrue(result.SuppressUnsupported);
+        Assert.IsFalse(result.CheckOnly);
+        Assert.IsFalse(result.DryRun);
+        Assert.IsFalse(result.Verbose);
+        Assert.IsFalse(result.Force);
+        Assert.IsFalse(result.Utf8Bom);
+        Assert.IsFalse(result.ShowHelp);
+        Assert.IsFalse(result.ShowVersion);
+        Assert.IsEmpty(result.Paths);
+        Assert.IsNull(result.UnknownOption);
+    }
+
+    /// <summary>
+    /// Verifies that <c>--suppress-unsupported</c> is accepted in any order, mixed with paths and other options, and is off
+    /// without it
+    /// </summary>
+    [TestMethod]
+    [Requirement("CLI-001")]
+    public void ParseArgumentsSuppressUnsupportedFlagMixesWithPathsAndOptions()
+    {
+        var result = Program.ParseArguments(["src", "--suppress-unsupported", "--check"]);
+        var without = Program.ParseArguments(["--check", "src"]);
+
+        Assert.IsTrue(result.SuppressUnsupported);
+        Assert.IsTrue(result.CheckOnly);
+        Assert.AreSequenceEqual(new[] { "src" }, result.Paths.ToArray());
+        Assert.IsNull(result.UnknownOption);
+        Assert.IsFalse(without.SuppressUnsupported);
+    }
+
+    /// <summary>
     /// Verifies that <c>--help</c> sets <see cref="ParseResult.ShowHelp"/> to <see langword="true"/>
     /// </summary>
     [TestMethod]

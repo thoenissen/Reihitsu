@@ -834,6 +834,88 @@ public class SwitchCaseBraceRewriterTests
     }
 
     /// <summary>
+    /// Verifies that a <c>break</c>-only section whose label holds a parenthesized pattern spanning several lines does not
+    /// make the switch multi-line, so the phase leaves the switch unchanged
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-004")]
+    [Requirement("FMT-SWITCH-006")]
+    public void BreakOnlySectionWithMultiLineParenthesizedPatternDoesNotAddBraces()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(object o)
+                                 {
+                                     switch (o)
+                                     {
+                                         case (int
+                                               or long):
+                                             break;
+
+                                         case string s:
+                                             B();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(input, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a section whose label holds a parenthesized pattern spanning several lines and whose body is not only
+    /// <c>break</c> makes the switch multi-line, so the phase wraps the body of every section in a block and keeps the
+    /// <c>break</c> statement behind it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-SWITCH-004")]
+    public void SectionWithBodyAndMultiLineParenthesizedPatternAddsBraces()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(object o)
+                                 {
+                                     switch (o)
+                                     {
+                                         case (int
+                                               or long):
+                                             A();
+                                             break;
+
+                                         case string s:
+                                             B();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        var sections = GetSwitchStatement(actual).Sections;
+
+        Assert.HasCount(2, sections);
+
+        foreach (var section in sections)
+        {
+            Assert.HasCount(2, section.Statements);
+            Assert.IsInstanceOfType<BlockSyntax>(section.Statements[0]);
+            Assert.IsInstanceOfType<BreakStatementSyntax>(section.Statements[1]);
+        }
+    }
+
+    /// <summary>
     /// Counts the number of non-overlapping occurrences of a substring in a string
     /// </summary>
     /// <param name="text">The text to search</param>

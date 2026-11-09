@@ -96,6 +96,7 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
     protected static string Format(string code)
     {
         return ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(code), CancellationToken.None)
+                                .Output
                                 .GetText()
                                 .ToString();
     }

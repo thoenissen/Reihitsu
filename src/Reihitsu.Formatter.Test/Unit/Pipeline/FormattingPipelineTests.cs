@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
@@ -68,7 +70,7 @@ public class FormattingPipelineTests
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(Environment.NewLine);
-        var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
+        var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken).Output;
         var actual = result.ToFullString();
 
         Assert.AreEqual(expected, actual);
@@ -95,7 +97,7 @@ public class FormattingPipelineTests
         {
             cts.Cancel();
 
-            Assert.ThrowsExactly<OperationCanceledException>(() => FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationToken), context, cts.Token));
+            Assert.ThrowsExactly<OperationCanceledException>(() => FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationToken), context, cts.Token).Output);
         }
     }
 
@@ -111,7 +113,7 @@ public class FormattingPipelineTests
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
+        var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken).Output;
 
         // Assert
         Assert.IsNotNull(result);
@@ -141,12 +143,12 @@ public class FormattingPipelineTests
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(Environment.NewLine);
-        var firstPass = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
+        var firstPass = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken).Output;
         var canonical = firstPass.ToFullString();
 
         // Act - format the already-formatted output a second time
         var secondTree = CSharpSyntaxTree.ParseText(canonical, cancellationToken: TestContext.CancellationToken);
-        var secondPass = FormattingPipeline.Execute(secondTree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
+        var secondPass = FormattingPipeline.Execute(secondTree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken).Output;
         var actual = secondPass.ToFullString();
 
         // Assert - second pass must produce identical output, ignoring trailing newline
@@ -169,6 +171,7 @@ public class FormattingPipelineTests
         var observedPhases = new List<string>();
         var expectedPhases = new[]
                              {
+                                 "PrecheckPhase",
                                  "PreparationPhase/TabReplacement",
                                  "PreparationPhase/LineEndings",
                                  "StructuralTransformPhase",
@@ -186,7 +189,7 @@ public class FormattingPipelineTests
         // Act
         var unobserved = FormattingPipeline.Execute(unobservedTree.GetRoot(TestContext.CancellationToken),
                                                     context,
-                                                    TestContext.CancellationToken);
+                                                    TestContext.CancellationToken).Output;
         var observed = FormattingPipeline.Execute(observedTree.GetRoot(TestContext.CancellationToken),
                                                   context,
                                                   (phaseName, before, after) =>
@@ -195,7 +198,7 @@ public class FormattingPipelineTests
                                                       Assert.IsNotNull(before);
                                                       Assert.IsNotNull(after);
                                                   },
-                                                  TestContext.CancellationToken);
+                                                  TestContext.CancellationToken).Output;
 
         // Assert
         Assert.AreSequenceEqual(expectedPhases, observedPhases);
@@ -218,7 +221,7 @@ public class FormattingPipelineTests
                                                       new FormattingContext("\n"),
                                                       [new TabReplacementPhase()],
                                                       (phaseName, _, _) => observedPhases.Add(phaseName),
-                                                      TestContext.CancellationToken);
+                                                      TestContext.CancellationToken).Output;
 
         // Assert
         Assert.AreSequenceEqual(new[] { "PreparationPhase/TabReplacement" }, observedPhases);
@@ -241,7 +244,7 @@ public class FormattingPipelineTests
                                                       new FormattingContext("\n"),
                                                       [new LineEndingNormalizationPhase()],
                                                       (phaseName, _, _) => observedPhases.Add(phaseName),
-                                                      TestContext.CancellationToken);
+                                                      TestContext.CancellationToken).Output;
 
         // Assert
         Assert.AreSequenceEqual(new[] { "PreparationPhase/LineEndings" }, observedPhases);
@@ -274,7 +277,7 @@ public class FormattingPipelineTests
         Assert.AreEqual("class C\r\n{\n    int x;\r}", observedPhases[0].Output, "The TabReplacement sub-phase should replace the tab and keep every line break.");
         Assert.AreEqual(observedPhases[0].Output, observedPhases[1].Input, "The LineEndings sub-phase should receive the output of the TabReplacement sub-phase.");
         Assert.AreEqual("class C\n{\n    int x;\n}", observedPhases[1].Output, "The LineEndings sub-phase should rewrite every line break to the detected line ending.");
-        Assert.AreEqual(observedPhases[1].Output, result.ToFullString());
+        Assert.AreEqual(observedPhases[1].Output, result.Output.ToFullString());
     }
 
     /// <summary>
@@ -294,7 +297,7 @@ public class FormattingPipelineTests
 
         // Act
         var executed = new PreparationPhase().Execute(root, context, TestContext.CancellationToken).ToFullString();
-        var pipelined = FormattingPipeline.ExecutePhases(root, context, [new PreparationPhase()], phaseObserver: null, TestContext.CancellationToken).ToFullString();
+        var pipelined = FormattingPipeline.ExecutePhases(root, context, [new PreparationPhase()], phaseObserver: null, TestContext.CancellationToken).Output.ToFullString();
 
         // Assert
         Assert.AreEqual(expected, executed);
@@ -321,6 +324,108 @@ public class FormattingPipelineTests
     }
 
     /// <summary>
+    /// Verifies that the precheck is the first phase: an input it refuses is returned unchanged, no other phase runs on it, and
+    /// only the precheck is reported to the observer
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-001")]
+    [Requirement("FMT-UNSUP-001")]
+    public void ExecuteRunsNoPhaseBehindThePrecheckOnARefusedInput()
+    {
+        // Arrange
+        const string input = "internal class Sample{void M(){int /* c */ x=1;}}";
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var observedPhases = new List<string>();
+
+        // Act
+        var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationToken),
+                                                new FormattingContext("\n"),
+                                                (phaseName, _, _) => observedPhases.Add(phaseName),
+                                                TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(input, result.Output.ToFullString());
+        Assert.IsNotNull(result.Unsupported);
+        Assert.DoesNotContain(phase => phase != "PrecheckPhase", observedPhases, "No phase behind the precheck may run on a refused input.");
+    }
+
+    /// <summary>
+    /// Verifies that a phase's refusal is turned into the unsupported outcome where the pipeline produces the precheck's: the
+    /// input is returned unchanged, also when a phase in front of the refusing one changed it, and the outcome carries the
+    /// phase's reason and location; the refusal does not reach the caller as an exception
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-006")]
+    public void ExecutePhasesTurnsAPhasesRefusalIntoTheUnsupportedOutcome()
+    {
+        // Arrange
+        const string input = "internal class Sample;";
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var refusal = new UnsupportedSyntax("a shape the test phase refuses", Location.Create(tree, new TextSpan(9, 5)));
+        var phases = new IFormattingPhase[] { new TextChangingPhase(), new ThrowingPhase(new SyntaxNotSupportedException(refusal)) };
+
+        // Act
+        var result = FormattingPipeline.ExecutePhases(tree.GetRoot(TestContext.CancellationToken),
+                                                      new FormattingContext("\n"),
+                                                      phases,
+                                                      phaseObserver: null,
+                                                      TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(input, result.Output.ToFullString());
+        Assert.IsNotNull(result.Unsupported);
+        Assert.AreEqual(refusal.Reason, result.Unsupported.Reason);
+        Assert.AreEqual(refusal.Location.SourceSpan, result.Unsupported.Location.SourceSpan);
+    }
+
+    /// <summary>
+    /// Verifies that a phase's refusal under an observer gives the same outcome, and is neither wrapped in another exception nor
+    /// thrown to the observer's caller
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-006")]
+    public void ExecutePhasesTurnsAnObservedPhasesRefusalIntoTheUnsupportedOutcome()
+    {
+        // Arrange
+        const string input = "internal class Sample;";
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var refusal = new UnsupportedSyntax("a shape the test phase refuses", Location.Create(tree, new TextSpan(9, 5)));
+        var phases = new IFormattingPhase[] { new TextChangingPhase(), new ThrowingPhase(new SyntaxNotSupportedException(refusal)) };
+        var observedPhases = new List<string>();
+
+        // Act
+        var result = FormattingPipeline.ExecutePhases(tree.GetRoot(TestContext.CancellationToken),
+                                                      new FormattingContext("\n"),
+                                                      phases,
+                                                      (phaseName, _, _) => observedPhases.Add(phaseName),
+                                                      TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(input, result.Output.ToFullString());
+        Assert.IsNotNull(result.Unsupported);
+        Assert.AreEqual(refusal.Reason, result.Unsupported.Reason);
+        Assert.AreEqual(refusal.Location.SourceSpan, result.Unsupported.Location.SourceSpan);
+        Assert.AreSequenceEqual(new[] { nameof(TextChangingPhase) }, observedPhases);
+    }
+
+    /// <summary>
+    /// Verifies that the pipeline returns no unsupported outcome for an input it formats
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-001")]
+    public void ExecuteReportsNoUnsupportedOutcomeForAFormattedInput()
+    {
+        // Arrange
+        var tree = CSharpSyntaxTree.ParseText("internal class Sample{void M(){int x=1; /* c */}}", cancellationToken: TestContext.CancellationToken);
+
+        // Act
+        var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationToken), new FormattingContext("\n"), TestContext.CancellationToken);
+
+        // Assert
+        Assert.IsNull(result.Unsupported);
+    }
+
+    /// <summary>
     /// Verifies that an observed phase failure is wrapped with the failing phase name and original exception
     /// </summary>
     [TestMethod]
@@ -338,7 +443,7 @@ public class FormattingPipelineTests
                                                                                                             (_, _, _) =>
                                                                                                             {
                                                                                                             },
-                                                                                                            TestContext.CancellationToken));
+                                                                                                            TestContext.CancellationToken).Output);
 
         // Assert
         Assert.Contains(nameof(ThrowingPhase), actual.Message);
@@ -363,7 +468,7 @@ public class FormattingPipelineTests
                                                                                                              (_, _, _) =>
                                                                                                              {
                                                                                                              },
-                                                                                                             TestContext.CancellationToken));
+                                                                                                             TestContext.CancellationToken).Output);
 
         // Assert
         Assert.AreSame(expected, actual);
@@ -385,7 +490,7 @@ public class FormattingPipelineTests
                                                                                                         new FormattingContext("\n"),
                                                                                                         phases,
                                                                                                         phaseObserver: null,
-                                                                                                        TestContext.CancellationToken));
+                                                                                                        TestContext.CancellationToken).Output);
 
         // Assert
         Assert.AreSame(expected, actual);
@@ -419,7 +524,7 @@ public class FormattingPipelineTests
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(Environment.NewLine);
-        var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
+        var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken).Output;
         var actual = result.ToFullString();
 
         Assert.AreEqual(expected, actual);

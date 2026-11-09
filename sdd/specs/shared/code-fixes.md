@@ -5,7 +5,7 @@
 | ID prefix | SHARED-FIX |
 | Status | Active |
 | Code owners | — |
-| Uses | FMT-PIPE-007, FMT-PIPE-017, FMT-PIPE-018, RH5111-004, RH7004-004, RH7309-006, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002, SHARED-ORDER-006 |
+| Uses | FMT-PIPE-007, FMT-PIPE-017, FMT-PIPE-018, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, RH2001-009, RH5111-004, RH5303-005, RH7004-004, RH7309-006, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002, SHARED-ORDER-006, SHARED-ORDER-007, SHARED-ORDER-008 |
 
 This spec covers what holds for every code fix of an analyzer rule, so a rule spec states only what its own fix produces and when it is withheld. It applies to every rule whose header names a code fix, without being listed under `Uses`; SHARED-FIX-002 applies to the rules whose header says `Fix All`.
 
@@ -1093,3 +1093,84 @@ class C
 ```
 
 Every line break of the result is CRLF, including the three the fix creates. In a document whose line breaks are all LF, the same fix creates LF line breaks, and in a document whose line breaks are all a lone `\r`, it creates `\n` line breaks.
+
+### SHARED-FIX-009 — A fix does not work out another build configuration
+
+A code fix MUST NOT work out what another build configuration compiles in order to show that it is safe there (SHARED-FIX-003, *Build configurations*). It MUST NOT evaluate the condition of an `#if` or `#elif`, combine the branches of several conditional groups into one configuration, or assemble a declaration, a statement, or an expression from parts that an excluded branch and the active code, or several branches, write. Where a fix could show that it keeps every build configuration intact only by such a reading, it MUST be withheld; the diagnostic is still reported (SHARED-FIX-003).
+
+A fix that reads the text of an excluded branch MUST read it so that the reading can only withhold: what an excluded branch holds never makes the fix offer a change that it would not offer without that branch.
+
+- It reads only what the branch holds whole — whole member declarations, whole statements, whole attribute lists or accessors, or the names in the branch — and counts each of them as present at its position, in every build, whether or not some build compiles it together with the code around it, such as a member that SHARED-ORDER-007 counts or a name that SHARED-FIX-003's RH4106 example looks for.
+- When its safety would depend on what an excluded branch makes of code outside it — a modifier, a type, an initializer, an accessor, or a body that the branch shares with code outside it, a brace that the branch opens or closes for code outside it, or a conditional group that a branch of another group holds — the fix is withheld.
+
+A fix decides which conditional directives withhold it from where the directives stand in the syntax tree — the token whose leading trivia holds each directive, and the construct that token begins or ends — never from their conditions. A directive whose place that test does not classify withholds the fix.
+
+A fix that reads no excluded code, and that leaves every conditional directive and its line in place, is governed by SHARED-FIX-003 and SHARED-DIAG-008 alone; this requirement adds nothing to it, such as RH2001's fix, which reads no excluded code and is withheld for every conditional directive between a property's modifiers (RH2001-009).
+
+Each rule's spec states which conditional directives withhold its fix; for the member reordering fixes, this is SHARED-ORDER-008.
+
+Why: A conditional directive is a special case that needs no code fix. Working out the configurations of a document means evaluating conditions and combining branches the way a compiler does for every assignment of the symbols, and every reading short of that misses a build that the fix breaks: a member whose `static`, initializer, or braces come from different branches is a different member in each build. A reported diagnostic without a fix is a supported end state, and the user knows which builds the code serves. A reading that counts whole units as present can only withhold a fix, so a mistake in it stays on the safe side, and a test of where directives stand needs no knowledge of which builds exist.
+
+Example — a member that a branch completes, for RH7109. Without `DEBUG` defined,
+
+```csharp
+public class C
+{
+    private int _a;
+    private int _b
+#if DEBUG
+        = 1
+#endif
+        ;
+    private readonly int {|RH7109:_c|};
+}
+```
+
+is reported, and no code fix is offered: whether `_b` has an initializer depends on the build, and the fix does not work it out, although no build would change here. Without the `#if` group, the fix moves `_c` in front of `_a`.
+
+Example — whole members in an excluded branch, for RH7109: the examples of SHARED-ORDER-007, where the fix counts each member of the branch as present and withholds or offers the move on that count.
+
+### SHARED-FIX-010 — A fix whose formatting the formatter refuses is withheld
+
+A code fix that formats its result through the formatter MUST NOT be offered when the formatter refuses that formatting as unsupported (FMT-UNSUP-001). The diagnostic is still reported.
+
+The fix MUST learn this when it registers, before it offers an action, by asking `ReihitsuFormatter.FindUnsupportedSyntax` (FMT-UNSUP-007) about exactly the node the formatter would receive from it:
+
+- a fix that formats a node of the document with `FormatNodeInDocumentAsync` or `FormatNode` — that node;
+- a fix that formats its target in a context with `FormatNodeInDocumentWithContextAsync` — the context (FMT-UNSUP-002);
+- a fix that builds a node and then formats it — the node it builds, as it would be formatted, not the code it replaces.
+
+The fix MUST NOT decide the question by a check of its own, and MUST NOT offer an action that, once invoked, finds the refusal and changes nothing or leaves its edit unformatted.
+
+Why: The formatter returns a refused input unchanged, so the fix would either change nothing (SHARED-FIX-005) or leave its edit unformatted (SHARED-FIX-007), and a fix that built a refused node would hand the user a file the formatter then refuses as a whole. A reported diagnostic without a fix is a supported end state, and the shapes the formatter refuses are rare. Asking about exactly what the formatter receives gives the fix the formatter's own answer: a narrower node would miss a refused shape elsewhere in a context, and a wider one would withhold a fix the formatter carries out. One predicate, shared by the precheck and the query, keeps the fixes and the formatter from drifting apart.
+
+Example — RH7101, whose fix formats the field declaration in its type: in
+
+```csharp
+class C
+{
+    private int _a, {|RH7101:_b|};
+
+    void M()
+    {
+        int /* c */ x = 1;
+    }
+}
+```
+
+the declaration `_a, _b` holds no comment, but the type holds a declaration that the formatter refuses (FMT-UNSUP-004), and no code fix is offered.
+
+Example — RH2001, whose fix builds a field from the property and formats the field: in
+
+```csharp
+class C
+{
+    private int /* note */ {|RH2001:Value|} { get; set; }
+
+    private int {|RH2001:Count|} { get; set; } = /* five */ 5;
+}
+```
+
+the fields the fix would build, `private int /* note */ _value;` and `private int _count = /* five */ 5;`, hold a comment that the formatter refuses, and no code fix is offered for either property. The properties themselves hold no variable declaration.
+
+Example — RH5303, whose fix formats the equals-value clause of a collection initializer: for the input of RH5303-005 whose object creation stands behind the last line of a multi-line comment, `var d = /* a` …, the clause holds no variable declaration (FMT-UNSUP-003), and the fix is offered, although the formatter refuses the document as a whole.

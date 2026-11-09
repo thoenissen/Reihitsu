@@ -670,11 +670,13 @@ public class AttributeListStructuralFinalOutputTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a line break between the merged lists of an indexer parameter and of a type parameter is joined with the
-    /// rest of their bracketed lists
+    /// Verifies that a line break between the merged lists of a type parameter is joined with the rest of its list, and that
+    /// the same line break in an indexer parameter still wraps the indexer's parameter list, one parameter per line, as it
+    /// wraps a method's
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-029")]
+    [Requirement("FMT-BREAK-013")]
     public void LineBreakBetweenMergedListsOfBracketedListsIsJoined()
     {
         const string input = """
@@ -688,7 +690,8 @@ public class AttributeListStructuralFinalOutputTests : FormatterTestsBase
         const string expected = """
                                 class G<[A, B] T, U>
                                 {
-                                    int this[[A, B] int i, int j] => i;
+                                    int this[[A, B] int i,
+                                             int j] => i;
                                 }
                                 """;
 
@@ -1431,7 +1434,7 @@ public class AttributeListStructuralFinalOutputTests : FormatterTestsBase
 
                 Assert.IsNotNull(method);
 
-                var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, method, TestContext.CancellationToken);
+                var result = (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, method, TestContext.CancellationToken)).Output;
                 var text = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
 
                 Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), text, $"Under {DescribeLineEnding(endOfLine)} line endings.");
@@ -1491,7 +1494,7 @@ public class AttributeListStructuralFinalOutputTests : FormatterTestsBase
     {
         var tree = CSharpSyntaxTree.ParseText(NormalizeLineEndings(input, endOfLine), cancellationToken: TestContext.CancellationToken);
 
-        return ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).GetRoot(TestContext.CancellationToken).ToFullString();
+        return ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output.GetRoot(TestContext.CancellationToken).ToFullString();
     }
 
     #endregion // Methods

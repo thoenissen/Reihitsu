@@ -147,9 +147,9 @@ public class PhaseLineEndingOwnershipTests : FormatterTestsBase
                                         Disabled();
                                 #else
                                         Enabled();
-
                                 #endif
                                 #pragma warning disable CS0168
+
                                         /* block */
                                         if (a)
                                         {

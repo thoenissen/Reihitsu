@@ -43,7 +43,7 @@ internal static class PhaseTreeRoundTrip
                                                         failures.Add($"The output of {phaseName} does not parse back to its tree (FMT-PIPE-021): {difference}");
                                                     }
                                                 },
-                                                CancellationToken.None);
+                                                CancellationToken.None).Output;
 
         return (result, failures);
     }

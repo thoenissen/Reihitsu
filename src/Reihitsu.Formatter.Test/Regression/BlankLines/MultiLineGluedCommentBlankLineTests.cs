@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -429,10 +429,12 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that no blank line is inserted above a multi-line comment glued to the closing bracket of a collection
-    /// expression
+    /// expression, and that the comment's first line takes the column of the expression's elements while its other line
+    /// stays where it is
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-018")]
+    [Requirement("FMT-INDENT-006")]
     public void InsertsNoBlankLineAboveMultiLineCommentGluedToCollectionExpressionBracket()
     {
         const string input = """
@@ -444,16 +446,26 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
                                       */ ];
                              }
                              """;
+        const string expected = """
+                                class C
+                                {
+                                    int[] F = [
+                                                  1
+                                                  /* x
+                                         */ ];
+                                }
+                                """;
 
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
     /// Verifies that the author's blank line above a multi-line comment glued to the closing bracket of a collection
-    /// expression is removed
+    /// expression is removed, and that the comment's first line takes the column of the expression's elements
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-018")]
+    [Requirement("FMT-INDENT-006")]
     public void RemovesAuthorBlankLineAboveMultiLineCommentGluedToCollectionExpressionBracket()
     {
         const string input = """
@@ -471,7 +483,7 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
                                 {
                                     int[] F = [
                                                   1
-                                              /* x
+                                                  /* x
                                          */ ];
                                 }
                                 """;
@@ -640,7 +652,7 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 int[] G =
+                                 int[] G { get; } =
                                  /* g
                                   */ { 1, 2 };
                                  int H;
@@ -680,7 +692,7 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 int[] G =
+                                 int[] G { get; } =
 
                                  /* g
                                   */ { 1, 2 };
@@ -712,7 +724,7 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
         const string expected = """
                                 class C
                                 {
-                                    int[] G =
+                                    int[] G { get; } =
                                     /* g
                                      */ { 1, 2 };
                                     int H;

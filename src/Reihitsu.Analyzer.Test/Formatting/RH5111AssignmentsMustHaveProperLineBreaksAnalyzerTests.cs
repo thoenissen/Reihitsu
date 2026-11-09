@@ -39,6 +39,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
         var cancellationToken = TestContext.CancellationToken;
         var syntaxTree = CSharpSyntaxTree.ParseText(source, cancellationToken: cancellationToken);
         var expectedText = await ReihitsuFormatter.FormatSyntaxTree(syntaxTree, cancellationToken)
+                                                  .Output
                                                   .GetTextAsync(cancellationToken);
         var expected = expectedText.ToString();
         var actual = await ApplyCodeFixAsync(source);
@@ -3079,14 +3080,14 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     }
 
     /// <summary>
-    /// Verifies that the fix of a declarator behind the last line of a multi-line comment keeps the comment and the
-    /// declarator as in the document and puts the wrapped argument under the first argument
+    /// Verifies that the fix of a declarator behind the last line of a multi-line comment that stands behind the
+    /// separating comma is withheld: the fix formats the declarator in its declaration statement, and the formatter
+    /// refuses that statement for the comment between the declaration's own tokens
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5111-004")]
-    [Requirement("FMT-PIPE-017")]
-    public async Task VerifyDeclaratorBehindTheLastLineOfAMultiLineCommentKeepsTheWrappedArgumentUnderTheFirstArgument()
+    [Requirement("SHARED-FIX-010")]
+    public async Task VerifyNoFixIsOfferedForADeclaratorBehindAMultiLineCommentBehindTheSeparatingComma()
     {
         const string testData = """
                                 class C
@@ -3099,30 +3100,14 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
                                     void M()
                                     {
                                         int a = 1, /* x
-                                                      y */ {|#0:b =
+                                                      y */ {|RH5111:b =
                                             Other(1,
                                                   2)|};
                                     }
                                 }
                                 """;
-        const string fixedData = """
-                                 class C
-                                 {
-                                     static int Other(int x, int y)
-                                     {
-                                         return x + y;
-                                     }
 
-                                     void M()
-                                     {
-                                         int a = 1, /* x
-                                                       y */ b = Other(1,
-                                                                      2);
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testData, fixedData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>
@@ -3275,6 +3260,132 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
                                  """;
 
         await Verify(testData, fixedData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: an enum member's <c>=</c> below its name is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-001")]
+    public async Task VerifyEnumMemberEqualsBelowNameIsReported()
+    {
+        const string testData = """
+                                enum E
+                                {
+                                    {|#0:A
+                                        = 1|}
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of an enum member whose <c>=</c> stands below its name joins the member in one application and
+    /// keeps the trailing comma, which belongs to the enum, not to the member
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-001")]
+    [Requirement("RH5111-004")]
+    public async Task VerifyEnumMemberEqualsBelowNameIsFixedInOneApplication()
+    {
+        const string testData = """
+                                enum E
+                                {
+                                    {|#0:A
+                                        = 1|},
+                                }
+                                """;
+        const string fixedData = """
+                                 enum E
+                                 {
+                                     A = 1,
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     static config =>
+                            {
+                                config.NumberOfIncrementalIterations = 1;
+                                config.NumberOfFixAllIterations = 1;
+                            },
+                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData),
+                     NormalizeToCarriageReturnLineFeed(fixedData),
+                     static config =>
+                            {
+                                config.NumberOfIncrementalIterations = 1;
+                                config.NumberOfFixAllIterations = 1;
+                            },
+                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of an enum member whose <c>=</c> stands alone on its line joins name, <c>=</c>, and value in one
+    /// application
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-004")]
+    public async Task VerifyLoneEnumMemberEqualsIsFixedInOneApplication()
+    {
+        const string testData = """
+                                enum E
+                                {
+                                    {|#0:A
+                                        =
+                                        1|},
+                                }
+                                """;
+        const string fixedData = """
+                                 enum E
+                                 {
+                                     A = 1,
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     static config =>
+                            {
+                                config.NumberOfIncrementalIterations = 1;
+                                config.NumberOfFixAllIterations = 1;
+                            },
+                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that Fix All joins two enum members whose <c>=</c> stands below the name in one iteration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-004")]
+    public async Task VerifyFixAllJoinsSeveralEnumMembers()
+    {
+        const string testData = """
+                                enum E
+                                {
+                                    {|#0:A
+                                        = 1|},
+                                    {|#1:B
+                                        = 2|}
+                                }
+                                """;
+        const string fixedData = """
+                                 enum E
+                                 {
+                                     A = 1,
+                                     B = 2
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat, 2));
     }
 
     /// <summary>

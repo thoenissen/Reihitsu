@@ -5,7 +5,7 @@
 | ID prefix | FMT-SPACE |
 | Status | Active |
 | Code owners | `HorizontalSpacingPhase`, `HorizontalSpacingRewriter`, `SpacingPolicy`, `ISpacingRule`, `AttributeListCloseBracketSpacingRule`, `NoSpaceSpacingRule`, `CommaSpacingRule`, `SingleSpaceSpacingRule`, `OperatorSpacingRule`, `ForLoopSemicolonSpacingRule`, `KeywordSpacingRule`, `AttributeTargetColonSpacingRule`, `ArrowSpacingRule`, `ConditionalOperatorSpacingRule`, `NameColonSpacingRule`, `WhenSpacingRule`, `DeclaredNameSpacingRule`, `AccessorListSpacingRule`, `RelationalPatternSpacingRule`, `PrefixKeywordSpacingRule`, `WithSpacingRule`, `LambdaReturnTypeSpacingRule`, `FunctionPointerCallingConventionSpacingRule`, `TrailingWhitespaceWriter`, `CommaSpacingUtilities`, `UnaryOperatorSpacingUtilities` |
-| Uses | FMT-BREAK-015, FMT-BREAK-018, FMT-BREAK-021, FMT-BREAK-024, FMT-BREAK-031, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-014, SHARED-BLANK-008 |
+| Uses | FMT-BREAK-015, FMT-BREAK-018, FMT-BREAK-021, FMT-BREAK-024, FMT-BREAK-031, FMT-BREAK-037, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-014, SHARED-BLANK-008 |
 
 This spec covers `HorizontalSpacingPhase`: the whitespace between two adjacent tokens on the same line, as decided by the ordered spacing rules of `SpacingPolicy`, how that decision is applied when a comment sits in the gap, and the gaps the phase leaves alone.
 
@@ -294,9 +294,9 @@ class C
 
 ### FMT-SPACE-009 — One space before braces and around declaration colons
 
-The formatter MUST put exactly one space before an opening or closing brace that does not belong to an interpolation, and on both sides of the colon of a base list or of a constructor initializer. Braces of an interpolation MUST NOT get this space.
+The formatter MUST put exactly one space before an opening or closing brace that does not belong to an interpolation, and on both sides of the colon of a base list, of a constructor initializer, or of a type-parameter constraint clause (`where T : class`). Braces of an interpolation MUST NOT get this space.
 
-Why: A brace or a declaration colon separates two parts of a construct; gluing them hides the boundary. Interpolation braces are part of the string's text layout and keep the author's spacing (FMT-SPACE-002). The space after an opening brace is not decided by this rule.
+Why: A brace or a declaration colon separates two parts of a construct; gluing them hides the boundary. The colon of a constraint clause separates a type parameter from its constraints as a base-list colon separates a type from its base types, so it is spaced the same way, also where a join wrote it without a space (FMT-BREAK-031, FMT-BREAK-037). Interpolation braces are part of the string's text layout and keep the author's spacing (FMT-SPACE-002). The space after an opening brace is not decided by this rule.
 
 Example:
 
@@ -321,6 +321,11 @@ class C:B
 
         return $"{a}";
     }
+
+    void N<T>()
+        where T:class
+    {
+    }
 }
 ```
 
@@ -344,6 +349,11 @@ class C : B
         var values = new int[] { a };
 
         return $"{a}";
+    }
+
+    void N<T>()
+        where T : class
+    {
     }
 }
 ```
@@ -524,19 +534,19 @@ class C
 }
 ```
 
-and for a fixed-size buffer, where the space follows a comment glued to the type (FMT-SPACE-013):
+and for a fixed-size buffer:
 
 ```csharp
 unsafe struct S
 {
-    public fixed/* c */int _b[4];
+    public fixed  int _b[4];
 }
 ```
 
 ```csharp
 unsafe struct S
 {
-    public fixed/* c */ int _b[4];
+    public fixed int _b[4];
 }
 ```
 
@@ -634,7 +644,7 @@ class C
 
 When the right token carries a comment in its own leading trivia on the same line (a delimited documentation comment `/** */` written between two tokens), the formatter MUST NOT change the whitespace in front of that comment, also when the left token carries a comment of its own in the gap (FMT-SPACE-013). When a spacing rule decides the token pair, the formatter MUST apply that decision to the whitespace between the comment and the right token: it MUST remove that whitespace when the rule allows no space, and it MUST make it exactly the number of spaces the rule demands otherwise, inserting the space where the author wrote none.
 
-Why: The rules see only the token pair, not the comment. Applying a "no space before `;`" decision to the whitespace in front of the comment would glue the comment to the left token (`_a/** x */;`). The whitespace after the comment is the part the rule actually answers for: leaving a space there would keep one the analyzer rules for semicolons, commas, and attribute brackets report, and leaving it out would keep the pair tighter than the rule demands (`/** sum */+b`). The decision is the same one FMT-SPACE-013 applies behind a comment the left token carries.
+Why: The rules see only the token pair, not the comment. Applying a "no space before `;`" decision to the whitespace in front of the comment would glue the comment to the left token (`1/** x */;`). The whitespace after the comment is the part the rule actually answers for: leaving a space there would keep one the analyzer rules for semicolons, commas, and attribute brackets report, and leaving it out would keep the pair tighter than the rule demands (`/** sum */+b`). The decision is the same one FMT-SPACE-013 applies behind a comment the left token carries.
 
 Example:
 
@@ -643,8 +653,8 @@ using System;
 
 class C
 {
-    int _a /** x */;
-    int _b /** y */ ;
+    int P => 1 /** x */;
+    int Q => 1 /** y */ ;
 
     [Obsolete /** why */ ]
     int M(bool c, int b)
@@ -663,8 +673,8 @@ using System;
 
 class C
 {
-    int _a /** x */;
-    int _b /** y */;
+    int P => 1 /** x */;
+    int Q => 1 /** y */;
 
     [Obsolete /** why */]
     int M(bool c, int b)
@@ -840,7 +850,7 @@ class C
 
 ### FMT-SPACE-019 — Name colons: no space before, one space after
 
-The formatter MUST put no space in front of the colon of a name colon or an expression colon and exactly one space behind it: a named argument, a named attribute argument, a named tuple element, and the name of a property or positional subpattern. The colon of a `case` or `default` label, of a conditional expression (FMT-SPACE-018), of a base list or constructor initializer (FMT-SPACE-009), of an attribute target (FMT-SPACE-016), and of an interpolation's format clause is not a name colon.
+The formatter MUST put no space in front of the colon of a name colon or an expression colon and exactly one space behind it: a named argument, a named attribute argument, a named tuple element, and the name of a property or positional subpattern. The colon of a `case` or `default` label, of a conditional expression (FMT-SPACE-018), of a base list, a constructor initializer, or a type-parameter constraint clause (FMT-SPACE-009), of an attribute target (FMT-SPACE-016), and of an interpolation's format clause is not a name colon.
 
 Why: The name labels the value behind it and belongs to it, so the colon stays with the name and the space separates the label from the value — the form `name: value` the line-break phase's join examples already show (FMT-BREAK-015).
 

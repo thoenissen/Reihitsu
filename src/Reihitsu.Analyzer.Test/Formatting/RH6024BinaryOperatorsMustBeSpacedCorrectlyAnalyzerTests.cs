@@ -740,6 +740,35 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
         await Verify(testData, fixedData);
     }
 
+    /// <summary>
+    /// Verifies that a refused comment in a lambda operand withholds the fix: the fix formats the binary expression
+    /// around the operator, which the formatter refuses, although the operator holds no refused shape
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task NoFixIsOfferedWhenTheBinaryExpressionHoldsACommentTheFormatterRefuses()
+    {
+        const string source = """
+                              using System;
+
+                              internal class C
+                              {
+                                  private int Get(Func<int> value)
+                                  {
+                                      return Get(() =>
+                                                 {
+                                                     int /* c */ y = 1;
+
+                                                     return y;
+                                                 }){|RH6024:+|}1;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

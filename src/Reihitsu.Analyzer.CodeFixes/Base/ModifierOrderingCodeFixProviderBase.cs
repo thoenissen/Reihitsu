@@ -58,30 +58,6 @@ public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
     protected abstract SyntaxTokenList GetUpdatedModifiers(SyntaxTokenList modifiers);
 
     /// <summary>
-    /// Normalizes modifier spacing after reordering
-    /// </summary>
-    /// <param name="updatedModifiers">Updated modifiers</param>
-    /// <param name="originalModifiers">Original modifiers</param>
-    /// <returns>The normalized modifiers</returns>
-    private static SyntaxTokenList NormalizeModifierTrivia(SyntaxTokenList updatedModifiers, SyntaxTokenList originalModifiers)
-    {
-        if (updatedModifiers.Count == 0)
-        {
-            return updatedModifiers;
-        }
-
-        var firstLeadingTrivia = originalModifiers[0].LeadingTrivia;
-        var normalizedModifiers = new List<SyntaxToken>(updatedModifiers.Count);
-
-        for (var modifierIndex = 0; modifierIndex < updatedModifiers.Count; modifierIndex++)
-        {
-            normalizedModifiers.Add(SyntaxFactory.Token(modifierIndex == 0 ? firstLeadingTrivia : default, (SyntaxKind)updatedModifiers[modifierIndex].RawKind, [SyntaxFactory.Space]));
-        }
-
-        return SyntaxFactory.TokenList(normalizedModifiers);
-    }
-
-    /// <summary>
     /// Determines whether reordering the modifiers would drop or relocate a comment or a preprocessor directive that
     /// sits between them or behind the last of them; only the leading trivia of the first modifier is preserved when
     /// the modifiers are rebuilt, so a comment or directive anywhere else among the modifiers would be silently
@@ -108,6 +84,32 @@ public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
     }
 
     /// <summary>
+    /// Creates the member declaration the fix formats: the declaration with its modifiers in order. The guard of
+    /// RegisterCodeFixesAsync leaves no comment or directive between the modifiers or behind the last of them, so the
+    /// rewrite writes each modifier with a single space behind it and leaves the token behind the modifiers as it is
+    /// (SHARED-MODORDER-002)
+    /// </summary>
+    /// <param name="memberDeclaration">Member declaration</param>
+    /// <param name="updatedDeclaration">The updated member declaration</param>
+    /// <returns><see langword="true"/> if the modifiers can be written in order; otherwise, <see langword="false"/></returns>
+    private bool TryCreateUpdatedDeclaration(MemberDeclarationSyntax memberDeclaration, out MemberDeclarationSyntax updatedDeclaration)
+    {
+        var originalModifiers = DeclarationModifierUtilities.GetModifiers(memberDeclaration);
+
+        if (originalModifiers.Count == 0
+            || ModifierOrderingUtilities.TryWriteModifiersInOrder(originalModifiers, originalModifiers[originalModifiers.Count - 1].GetNextToken(), GetUpdatedModifiers(originalModifiers), out var updatedModifiers, out _) == false)
+        {
+            updatedDeclaration = null;
+
+            return false;
+        }
+
+        updatedDeclaration = DeclarationModifierUtilities.WithModifiers(memberDeclaration, updatedModifiers);
+
+        return true;
+    }
+
+    /// <summary>
     /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
@@ -123,10 +125,15 @@ public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
             return document;
         }
 
-        var originalModifiers = DeclarationModifierUtilities.GetModifiers(memberDeclaration);
+        if (TryCreateUpdatedDeclaration(memberDeclaration, out var updatedDeclaration) == false)
+        {
+            return document;
+        }
+
         var formattingAnnotation = new SyntaxAnnotation();
-        var updatedDeclaration = DeclarationModifierUtilities.WithModifiers(memberDeclaration, NormalizeModifierTrivia(GetUpdatedModifiers(originalModifiers), originalModifiers))
-                                                             .WithAdditionalAnnotations(formattingAnnotation);
+
+        updatedDeclaration = updatedDeclaration.WithAdditionalAnnotations(formattingAnnotation);
+
         var updatedRoot = root.ReplaceNode(memberDeclaration, updatedDeclaration);
         var updatedDocument = document.WithSyntaxRoot(updatedRoot);
         var formattedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -134,7 +141,7 @@ public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
 
         return formattedMemberDeclaration == null
                    ? updatedDocument
-                   : await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedMemberDeclaration, cancellationToken).ConfigureAwait(false);
+                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedMemberDeclaration, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     #endregion // Methods
@@ -160,7 +167,9 @@ public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
             foreach (var diagnostic in context.Diagnostics)
             {
                 if (OrderingDeclarationUtilities.TryGetMemberDeclaration(root, diagnostic, out var memberDeclaration)
-                    && ReorderingWouldDropCommentOrDirective(DeclarationModifierUtilities.GetModifiers(memberDeclaration)) == false)
+                    && ReorderingWouldDropCommentOrDirective(DeclarationModifierUtilities.GetModifiers(memberDeclaration)) == false
+                    && (TryCreateUpdatedDeclaration(memberDeclaration, out var updatedDeclaration) == false
+                        || ReihitsuFormatter.FindUnsupportedSyntax(updatedDeclaration) == null))
                 {
                     context.RegisterCodeFix(CodeAction.Create(_title,
                                                               token => ApplyCodeFixAsync(context.Document, memberDeclaration, token),

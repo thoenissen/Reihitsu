@@ -38,7 +38,7 @@ public class ReihitsuFormatterTrailingDirectiveAtEndOfFileTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
         var actual = result.GetRoot(TestContext.CancellationToken).ToFullString();
 
         // Assert
@@ -62,7 +62,7 @@ public class ReihitsuFormatterTrailingDirectiveAtEndOfFileTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
         var actual = result.GetRoot(TestContext.CancellationToken).ToFullString();
 
         // Assert

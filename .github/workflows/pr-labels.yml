@@ -1,0 +1,80 @@
+name: Label pull requests
+
+# GitHub's "Generate release notes" sorts a pull request by the labels on the pull request itself
+# (.github/release.yml), but the area labels live on the issues. This workflow copies the area labels
+# of the issues a pull request closes ("Closes #N") onto the pull request. A pull request that closes
+# no labeled issue is labeled from the paths it changes instead.
+#
+# pull_request_target runs the workflow from the base branch and checks out no pull-request code,
+# so it may write labels on pull requests from forks as well.
+
+on:
+  pull_request_target:
+    types: [opened, edited, reopened, synchronize, ready_for_review, closed]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: write
+
+jobs:
+  label:
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v8
+        with:
+          script: |
+            const areaLabels = ['analyzer', 'formatter', 'cli', 'documentation', 'maintenance'];
+            const { owner, repo } = context.repo;
+            const number = context.payload.pull_request.number;
+
+            // 1. The area labels of the issues the pull request closes.
+            const result = await github.graphql(
+              `query($owner: String!, $repo: String!, $number: Int!) {
+                 repository(owner: $owner, name: $repo) {
+                   pullRequest(number: $number) {
+                     closingIssuesReferences(first: 50) {
+                       nodes { labels(first: 50) { nodes { name } } }
+                     }
+                   }
+                 }
+               }`,
+              { owner, repo, number });
+
+            const labels = new Set();
+
+            for (const issue of result.repository.pullRequest.closingIssuesReferences.nodes) {
+              for (const label of issue.labels.nodes) {
+                if (areaLabels.includes(label.name)) {
+                  labels.add(label.name);
+                }
+              }
+            }
+
+            // 2. Without a labeled issue: the paths the pull request changes.
+            if (labels.size === 0) {
+              const files = await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number: number, per_page: 100 });
+              const paths = files.map(file => file.filename);
+              const touches = (...prefixes) => paths.some(path => prefixes.some(prefix => path.startsWith(prefix)));
+
+              if (touches('src/Reihitsu.Analyzer/', 'src/Reihitsu.Analyzer.CodeFixes/', 'src/Reihitsu.Analyzer.Package/')) {
+                labels.add('analyzer');
+              }
+
+              if (touches('src/Reihitsu.Formatter/', 'src/Reihitsu.Core/')) {
+                labels.add('formatter');
+              }
+
+              if (touches('src/Reihitsu.Cli/')) {
+                labels.add('cli');
+              }
+
+              if (labels.size === 0) {
+                labels.add(paths.every(path => path.startsWith('documentation/') || path === 'README.MD') ? 'documentation' : 'maintenance');
+              }
+            }
+
+            core.info(`Labels: ${[...labels].join(', ')}`);
+
+            await github.rest.issues.addLabels({ owner, repo, issue_number: number, labels: [...labels] });

@@ -58,19 +58,26 @@ public abstract class TypeMemberOrderingCodeFixProviderBase : CodeFixProvider
     protected abstract bool TryGetTargetMember(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberDeclaration, out MemberDeclarationSyntax targetMember);
 
     /// <summary>
-    /// Determines whether moving the member before the target member preserves the meaning of the code.
-    /// The base implementation refuses moves that would relocate a preprocessor directive away from the code it
-    /// governs; a directive pair contained completely in the moved or the crossed half travels intact and is
-    /// allowed. Derived classes can add further restrictions
+    /// Determines whether moving the member before the target member preserves the meaning of the code, in every build
+    /// configuration. The move is refused when it would relocate a preprocessor directive away from the code it
+    /// governs, while a directive pair contained completely in the moved or the crossed half travels intact and is
+    /// allowed (SHARED-ORDER-003 to SHARED-ORDER-006). It is refused as well when it would put two members of one
+    /// context that each have a runtime initializer, or two instance fields of a type whose field order sets its
+    /// layout, into the other order, counting the members that code excluded by an <c>#if</c> branch declares
+    /// (SHARED-ORDER-007), and when the moved or the crossed span holds a directive of a conditional group that does not
+    /// wrap whole units (SHARED-ORDER-008). Every member reordering fix applies both guards, because every one of them moves the
+    /// member together with its leading trivia
     /// </summary>
     /// <param name="semanticModel">Semantic model of the document</param>
     /// <param name="typeDeclaration">Containing type declaration</param>
     /// <param name="memberDeclaration">Member declaration to move</param>
     /// <param name="targetMember">Target member</param>
     /// <returns><see langword="true"/> if the move is safe to offer</returns>
-    protected virtual bool IsMoveSafe(SemanticModel semanticModel, TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberDeclaration, MemberDeclarationSyntax targetMember)
+    private static bool IsMoveSafe(SemanticModel semanticModel, TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberDeclaration, MemberDeclarationSyntax targetMember)
     {
-        return OrderingDeclarationUtilities.MoveRangeContainsDirectives(typeDeclaration, memberDeclaration, targetMember) == false;
+        return OrderingDeclarationUtilities.MoveRangeContainsDirectives(typeDeclaration, memberDeclaration, targetMember) == false
+               && semanticModel?.GetDeclaredSymbol(typeDeclaration) is INamedTypeSymbol typeSymbol
+               && OrderingDeclarationUtilities.ChangesMemberOrder(typeDeclaration, typeSymbol, memberDeclaration, targetMember) == false;
     }
 
     /// <summary>
@@ -105,7 +112,7 @@ public abstract class TypeMemberOrderingCodeFixProviderBase : CodeFixProvider
 
         return formattedTypeDeclaration == null
                    ? updatedDocument
-                   : await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedTypeDeclaration, cancellationToken).ConfigureAwait(false);
+                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedTypeDeclaration, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     #endregion // Methods
@@ -133,7 +140,8 @@ public abstract class TypeMemberOrderingCodeFixProviderBase : CodeFixProvider
             {
                 if (OrderingDeclarationUtilities.TryGetContainingTypeAndMember(root, diagnostic, out var typeDeclaration, out var memberDeclaration)
                     && TryGetTargetMember(typeDeclaration, memberDeclaration, out var targetMember)
-                    && IsMoveSafe(semanticModel, typeDeclaration, memberDeclaration, targetMember))
+                    && IsMoveSafe(semanticModel, typeDeclaration, memberDeclaration, targetMember)
+                    && ReihitsuFormatter.FindUnsupportedSyntax(OrderingDeclarationUtilities.MoveMemberBefore(typeDeclaration, memberDeclaration, targetMember)) == null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(_title,
                                                               token => ApplyCodeFixAsync(context.Document, typeDeclaration, memberDeclaration, token),

@@ -25,17 +25,6 @@ internal static class TokenGapUtilities
     }
 
     /// <summary>
-    /// Determines whether a trivia list that forms a whole gap between two tokens holds a line break, by the same statement
-    /// as <see cref="HasLineBreakBetween"/>: a line break inside a comment that spans lines counts
-    /// </summary>
-    /// <param name="gapTrivia">The trivia of the gap</param>
-    /// <returns><see langword="true"/> if the gap contains a line break, also one inside a comment</returns>
-    public static bool HasLineBreak(SyntaxTriviaList gapTrivia)
-    {
-        return TokenGapAnalysis.OfTriviaRange(gapTrivia, 0, gapTrivia.Count).HasLineBreak;
-    }
-
-    /// <summary>
     /// Counts blank lines between two neighboring tokens while ignoring comment-content lines
     /// </summary>
     /// <param name="previousToken">The token that precedes the gap</param>

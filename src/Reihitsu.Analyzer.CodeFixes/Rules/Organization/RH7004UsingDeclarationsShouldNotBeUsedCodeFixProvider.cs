@@ -52,8 +52,31 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
             return document;
         }
 
-        var followingStatements = parentBlock.Statements.Skip(statementIndex + 1);
         var formattingAnnotation = new SyntaxAnnotation();
+        var newUsingStatement = CreateUsingStatement(parentBlock, usingDeclaration, statementIndex).WithAdditionalAnnotations(formattingAnnotation);
+        var updatedStatements = SyntaxFactory.List(parentBlock.Statements.Take(statementIndex).Concat([newUsingStatement]));
+        var updatedBlock = parentBlock.WithStatements(updatedStatements);
+        var updatedRoot = root.ReplaceNode(parentBlock, updatedBlock);
+        var updatedDocument = document.WithSyntaxRoot(updatedRoot);
+        var formattedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var formattedUsingStatement = formattedRoot?.GetAnnotatedNodes(formattingAnnotation).OfType<UsingStatementSyntax>().FirstOrDefault();
+
+        return formattedUsingStatement == null
+                   ? updatedDocument
+                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedUsingStatement, cancellationToken).ConfigureAwait(false)).Output;
+    }
+
+    /// <summary>
+    /// Creates the using statement the fix replaces the using declaration with, before the formatter lays it out: the
+    /// declaration's resource, and a block that holds every statement behind it in its block
+    /// </summary>
+    /// <param name="parentBlock">The block that holds the using declaration</param>
+    /// <param name="usingDeclaration">The using declaration</param>
+    /// <param name="statementIndex">The index of the using declaration in the block</param>
+    /// <returns>The using statement</returns>
+    private static UsingStatementSyntax CreateUsingStatement(BlockSyntax parentBlock, LocalDeclarationStatementSyntax usingDeclaration, int statementIndex)
+    {
+        var followingStatements = parentBlock.Statements.Skip(statementIndex + 1);
         var semicolonToken = usingDeclaration.SemicolonToken;
         var closeParenToken = SyntaxFactory.Token(SyntaxKind.CloseParenToken)
                                            .WithLeadingTrivia(semicolonToken.LeadingTrivia);
@@ -69,23 +92,12 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
             statementTrailingTrivia = SyntaxFactory.TriviaList(semicolonToken.TrailingTrivia.Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)).Take(1));
         }
 
-        var newUsingStatement = SyntaxFactory.UsingStatement(usingDeclaration.Declaration, null, SyntaxFactory.Block(followingStatements))
-                                             .WithAwaitKeyword(usingDeclaration.AwaitKeyword)
-                                             .WithUsingKeyword(usingDeclaration.UsingKeyword)
-                                             .WithCloseParenToken(closeParenToken)
-                                             .WithLeadingTrivia(usingDeclaration.GetLeadingTrivia())
-                                             .WithTrailingTrivia(statementTrailingTrivia)
-                                             .WithAdditionalAnnotations(formattingAnnotation);
-        var updatedStatements = SyntaxFactory.List(parentBlock.Statements.Take(statementIndex).Concat([newUsingStatement]));
-        var updatedBlock = parentBlock.WithStatements(updatedStatements);
-        var updatedRoot = root.ReplaceNode(parentBlock, updatedBlock);
-        var updatedDocument = document.WithSyntaxRoot(updatedRoot);
-        var formattedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var formattedUsingStatement = formattedRoot?.GetAnnotatedNodes(formattingAnnotation).OfType<UsingStatementSyntax>().FirstOrDefault();
-
-        return formattedUsingStatement == null
-                   ? updatedDocument
-                   : await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedUsingStatement, cancellationToken).ConfigureAwait(false);
+        return SyntaxFactory.UsingStatement(usingDeclaration.Declaration, null, SyntaxFactory.Block(followingStatements))
+                            .WithAwaitKeyword(usingDeclaration.AwaitKeyword)
+                            .WithUsingKeyword(usingDeclaration.UsingKeyword)
+                            .WithCloseParenToken(closeParenToken)
+                            .WithLeadingTrivia(usingDeclaration.GetLeadingTrivia())
+                            .WithTrailingTrivia(statementTrailingTrivia);
     }
 
     /// <summary>
@@ -165,7 +177,8 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
 
             if (usingDeclaration?.Parent is BlockSyntax parentBlock
                 && HasFollowingStatementsThatPreventConversion(parentBlock, usingDeclaration) == false
-                && WouldSeparateDirective(root, parentBlock, usingDeclaration) == false)
+                && WouldSeparateDirective(root, parentBlock, usingDeclaration) == false
+                && ReihitsuFormatter.FindUnsupportedSyntax(CreateUsingStatement(parentBlock, usingDeclaration, parentBlock.Statements.IndexOf(usingDeclaration))) == null)
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7004Title,
                                                           token => ApplyCodeFixAsync(context.Document, usingDeclaration, token),

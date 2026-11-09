@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -267,8 +267,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the change doc's row for an array initializer: the comment keeps column 8, the opening brace stands behind it
-    /// in column 16, and the elements and the closing brace follow the brace
+    /// Verifies the change doc's row for an array initializer: the comment keeps the column of its line, the opening brace
+    /// stands behind it, and the elements and the closing brace follow the brace. A property initializer carries the array
+    /// initializer, because a comment in front of a variable declaration's value makes the input unsupported
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-023")]
@@ -278,27 +279,21 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 void M()
-                                 {
-                                     int[] b =
-                                     /* c */ {
-                                     1,
-                                     2
-                                     };
-                                 }
+                                 int[] B { get; } =
+                                 /* c */ {
+                                 1,
+                                 2
+                                 };
                              }
                              """;
         const string expected = """
                                 class C
                                 {
-                                    void M()
-                                    {
-                                        int[] b =
-                                        /* c */ {
-                                                    1,
-                                                    2
-                                                };
-                                    }
+                                    int[] B { get; } =
+                                    /* c */ {
+                                                1,
+                                                2
+                                            };
                                 }
                                 """;
 
@@ -307,7 +302,8 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the other side of the array initializer's row: a comment on the line above leaves the opening brace at the start
-    /// of its line, and the elements and the closing brace follow the line's column
+    /// of its line, and the elements and the closing brace follow the line's column. A property initializer carries the array
+    /// initializer, because a comment in front of a variable declaration's value makes the input unsupported
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-023")]
@@ -317,16 +313,13 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
         const string source = """
                               class C
                               {
-                                  void M()
-                                  {
-                                      int[] b =
+                                  int[] B { get; } =
 
-                                      // c
-                                      {
-                                          1,
-                                          2
-                                      };
-                                  }
+                                  // c
+                                  {
+                                      1,
+                                      2
+                                  };
                               }
                               """;
 
@@ -374,9 +367,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 void M()
+                                 List<int> M()
                                  {
-                                     List<int> x =
+                                     return
                                      /* c */ [
                                      1,
                                      2
@@ -387,9 +380,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
         const string expected = """
                                 class C
                                 {
-                                    void M()
+                                    List<int> M()
                                     {
-                                        List<int> x =
+                                        return
                                         /* c */ [
                                                     1,
                                                     2
@@ -413,9 +406,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
         const string source = """
                               class C
                               {
-                                  void M()
+                                  List<int> M()
                                   {
-                                      List<int> x =
+                                      return
 
                                       // c
                                       [
@@ -484,9 +477,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 void M()
+                                 P M()
                                  {
-                                     var p =
+                                     return
                                      /* c */ new P
                                      {
                                      X = 2
@@ -497,9 +490,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
         const string expected = """
                                 class C
                                 {
-                                    void M()
+                                    P M()
                                     {
-                                        var p =
+                                        return
                                         /* c */ new P
                                                 {
                                                     X = 2
@@ -523,9 +516,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 void M()
+                                 List<int> M()
                                  {
-                                     var p =
+                                     return
                                      /* c */ new List<int>
                                      {
                                      2
@@ -536,9 +529,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
         const string expected = """
                                 class C
                                 {
-                                    void M()
+                                    List<int> M()
                                     {
-                                        var p =
+                                        return
                                         /* c */ new List<int>
                                                 {
                                                     2
@@ -562,9 +555,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 void M()
+                                 object M()
                                  {
-                                     var p =
+                                     return
                                      /* c */ new
                                      {
                                      X = 1
@@ -575,9 +568,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
         const string expected = """
                                 class C
                                 {
-                                    void M()
+                                    object M()
                                     {
-                                        var p =
+                                        return
                                         /* c */ new
                                                 {
                                                     X = 1
@@ -646,9 +639,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 void M()
+                                 Action M()
                                  {
-                                     Action a =
+                                     return
                                      /* c */ () =>
                                      {
                                      M();
@@ -659,9 +652,9 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
         const string expected = """
                                 class C
                                 {
-                                    void M()
+                                    Action M()
                                     {
-                                        Action a =
+                                        return
                                         /* c */ () =>
                                                 {
                                                     M();
@@ -913,7 +906,7 @@ public class CommentLedFirstTokenAnchorTests : FormatterTestsBase
                 Assert.Fail($"Expected a {targetKind.Name} in the test document.");
             }
 
-            var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, TestContext.CancellationToken);
+            var result = (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, TestContext.CancellationToken)).Output;
 
             return (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
         }

@@ -42,7 +42,8 @@ public class RH5201MethodChainsShouldBeAlignedCodeFixProvider : CodeFixProvider
             {
                 var chainNode = FluentChainCodeFixHelper.FindChainNode(root, diagnostic);
 
-                if (chainNode != null)
+                if (chainNode != null
+                    && FluentChainCodeFixHelper.IsFormattingRefused(chainNode) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5201Title,
                                                               cancellationToken => FluentChainCodeFixHelper.FormatChainAsync(context.Document, chainNode, cancellationToken),

@@ -47,7 +47,7 @@ public sealed class PhaseOwnershipDocumentationTests
         var phaseNames = GetRuntimePhaseNames();
 
         // Assert
-        Assert.HasCount(12, phaseNames);
+        Assert.HasCount(13, phaseNames);
 
         var previousPosition = -1;
 

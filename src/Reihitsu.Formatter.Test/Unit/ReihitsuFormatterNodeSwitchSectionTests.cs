@@ -98,7 +98,7 @@ public class ReihitsuFormatterNodeSwitchSectionTests : FormatterTestsBase
     {
         var document = CreateDocument(text);
         var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
-        var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, selectTarget(root), TestContext.CancellationToken);
+        var result = (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, selectTarget(root), TestContext.CancellationToken)).Output;
 
         return (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
     }

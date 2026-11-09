@@ -53,7 +53,7 @@ public abstract class EmptyTypeDeclarationShouldUseSemicolonCodeFixProviderBase 
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, TypeDeclarationSyntax typeDeclaration, CancellationToken cancellationToken)
     {
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, typeDeclaration, cancellationToken).ConfigureAwait(false);
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, typeDeclaration, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     /// <summary>
@@ -100,7 +100,8 @@ public abstract class EmptyTypeDeclarationShouldUseSemicolonCodeFixProviderBase 
         foreach (var diagnostic in context.Diagnostics)
         {
             if (TryGetTypeDeclaration(root, diagnostic, DeclarationKind, out var typeDeclaration)
-                && EmptyTypeDeclarationSemicolonAnalysisUtilities.CanConvertSafely(typeDeclaration, DeclarationKind, MinimumLanguageVersion))
+                && EmptyTypeDeclarationSemicolonAnalysisUtilities.CanConvertSafely(typeDeclaration, DeclarationKind, MinimumLanguageVersion)
+                && ReihitsuFormatter.FindUnsupportedSyntax(typeDeclaration) == null)
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixTitle,
                                                           token => ApplyCodeFixAsync(context.Document, typeDeclaration, token),

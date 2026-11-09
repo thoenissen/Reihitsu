@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -140,7 +140,7 @@ public class ListAndHeaderAlignmentTests : FormatterTestsBase
                                  }
 
                                  System.Collections.Generic.Dictionary<int, // first
-                                     string> _map;
+                                     string> Map => null;
                              }
                              """;
         const string expected = """
@@ -153,7 +153,7 @@ public class ListAndHeaderAlignmentTests : FormatterTestsBase
                                     }
 
                                     System.Collections.Generic.Dictionary<int, // first
-                                                                          string> _map;
+                                                                          string> Map => null;
                                 }
                                 """;
 
@@ -196,14 +196,14 @@ public class ListAndHeaderAlignmentTests : FormatterTestsBase
                              unsafe class C
                              {
                                  delegate*<int, // first
-                                     string, void> _callback;
+                                     string, void> Callback => null;
                              }
                              """;
         const string expected = """
                                 unsafe class C
                                 {
                                     delegate*<int, // first
-                                              string, void> _callback;
+                                              string, void> Callback => null;
                                 }
                                 """;
 

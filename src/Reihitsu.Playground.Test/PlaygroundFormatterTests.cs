@@ -78,7 +78,7 @@ public class PlaygroundFormatterTests
     public void FormatEqualsTreeLevelFormattingWithDefaultParseOptions()
     {
         var input = "using System;\nnamespace N{\nclass C{int P{get{return 1;}}\n#if DEBUG\n   int   d;\n#endif\nvoid M(){Console.WriteLine( 1 );}}\nclass Empty{}\nstatic class E{extension(int v){public int Twice(){return v*2;}}}}\n";
-        var expected = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken).ToString();
+        var expected = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken).Output.ToString();
 
         var result = PlaygroundFormatter.Format(input);
 

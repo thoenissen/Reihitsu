@@ -5,7 +5,7 @@
 | ID prefix | FMT-PIPE |
 | Status | Active |
 | Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `PreparationPhase`, `FormattingContext`, `PrecedingTokenFacts`, `RootListPosition`, `RootConstruct`, `RootConstructExtensions`, `TriviaFact`, `FluentChainBoundary`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities`, `BlockWrapTriviaUtilities` |
-| Uses | RH3208-003, RH7101-006, RH7201-004, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-COMMENT-012, SHARED-DIAG-001, SHARED-FIX-001, SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-006, SHARED-FIX-007, SHARED-USING-009, SHARED-USING-010, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BLANK-018, FMT-BREAK-001, FMT-BREAK-006, FMT-BREAK-007, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-BREAK-033, FMT-BREAK-036, FMT-CLEAN-001, FMT-CLEAN-005, FMT-CLEAN-007, FMT-CLEAN-008, FMT-DOC-001, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-018, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-028, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-023, FMT-STRUCT-026, FMT-SWITCH-003, FMT-SWITCH-008, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003, FMT-USING-003, FMT-USING-010 |
+| Uses | RH3208-003, RH7101-005, RH7101-006, RH7201-004, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-COMMENT-012, SHARED-DIAG-001, SHARED-DOC-004, SHARED-FIX-001, SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-006, SHARED-FIX-007, SHARED-FIX-010, SHARED-USING-009, SHARED-USING-010, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BLANK-018, FMT-BREAK-001, FMT-BREAK-006, FMT-BREAK-007, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-BREAK-033, FMT-BREAK-036, FMT-CLEAN-001, FMT-CLEAN-005, FMT-CLEAN-007, FMT-CLEAN-008, FMT-DOC-001, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-018, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-028, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-023, FMT-STRUCT-026, FMT-STRUCT-030, FMT-SWITCH-003, FMT-SWITCH-008, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, FMT-USING-003, FMT-USING-010 |
 
 This spec covers what holds for the formatter as a whole: the public entry points, the fixed phase order, and the invariants every phase must keep. What an individual phase decides is specified in that phase's own spec.
 
@@ -25,6 +25,7 @@ The formatter MUST apply its phases in this order, each phase receiving the outp
 
 | # | Phase | Spec |
 |---|---|---|
+| 0 | `PrecheckPhase` | [unsupported-syntax.md](unsupported-syntax.md) (FMT-UNSUP) |
 | 1.1 | `PreparationPhase/TabReplacement` | [tab-replacement.md](tab-replacement.md) (FMT-TAB) |
 | 1.2 | `PreparationPhase/LineEndings` | [line-endings.md](line-endings.md) (FMT-EOL) |
 | 2 | `StructuralTransformPhase` | [structural-transforms.md](structural-transforms.md) (FMT-STRUCT) |
@@ -38,7 +39,7 @@ The formatter MUST apply its phases in this order, each phase receiving the outp
 | 10 | `IndentationPhase` | [indentation.md](indentation.md) (FMT-INDENT) and [raw-string-alignment.md](raw-string-alignment.md) (FMT-RAW) |
 | 11 | `CleanupPhase` | [cleanup.md](cleanup.md) (FMT-CLEAN) |
 
-The first phase is the preparation phase, whose two sub-phases, TabReplacement and LineEndings, run in this order. Each sub-phase is a phase of its own: it receives the output of the step before it and is reported to the pipeline observer and the trace under the name in the table. The preparation phase is not reported as a step of its own; every other phase is reported under its type name.
+The first phase is the precheck phase, which decides whether the input is unsupported and changes nothing (FMT-UNSUP-002); when it refuses the input, no other phase runs (FMT-UNSUP-001). The preparation phase follows, whose two sub-phases, TabReplacement and LineEndings, run in this order. Each sub-phase is a phase of its own: it receives the output of the step before it and is reported to the pipeline observer and the trace under the name in the table. The preparation phase is not reported as a step of its own; every other phase is reported under its type name.
 
 A phase MUST NOT compute the column of a token, a comment, or a line from a move or a replacement that a phase after it applies, neither by repeating that phase's rule nor by adjusting for its result: the tab width of FMT-TAB-001 and the raw-string move of FMT-RAW-001 are applied before or in the phase that measures them. This requirement specifies columns; FMT-PIPE-025 states the same rule for line breaks and blank lines.
 
@@ -440,12 +441,12 @@ class C
 The formatter MUST lay out and space every member of a syntax family alike. Each of these is one family:
 
 - every parameter list, the bracketed parameter list of an indexer included;
-- every assignment operator: `=` and every compound assignment operator, such as `+=` and `??=`;
+- every assignment operator: `=` and every compound assignment operator, such as `+=` and `??=`, and the `=` that gives a variable declarator, a property, an enum member, or a parameter its value;
 - every arrow `=>`, whatever construct it belongs to;
 - every colon that ends an attribute target, such as the colon of `return:`, `assembly:`, or `field:`;
 - every closing bracket of an initializer-like block, such as the `}` of an object or collection initializer and the `]` of a collection expression.
 
-This requirement does not override the layout a construct's own requirement chooses for it inside its family; it requires that no member of a family is left out of the treatment the requirements give that family. These choices stay as their requirements make them: a function-pointer parameter list is joined onto one line (FMT-BREAK-014); an array initializer keeps the author's layout while an object or collection initializer is laid out over several lines (FMT-BREAK-021); a collection expression written on one line stays on it (FMT-BREAK-022); the arrow of an expression-bodied property or indexer joins the declaration's line (FMT-BREAK-026); and the arms of a switch expression keep the line breaks the author wrote. Within those choices, an indexer's parameter list is laid out as the parameter list of a method is, a compound assignment as an assignment with `=` is, every attribute-target colon is spaced alike, a comment in front of a closing `]` is indented as one in front of a closing `}` is, and every arrow is spaced alike.
+This requirement does not override the layout a construct's own requirement chooses for it inside its family; it requires that no member of a family is left out of the treatment the requirements give that family. These choices stay as their requirements make them: a function-pointer parameter list is joined onto one line (FMT-BREAK-014); an array initializer keeps the author's layout while an object or collection initializer is laid out over several lines (FMT-BREAK-021); a collection expression written on one line stays on it (FMT-BREAK-022); the arrow of an expression-bodied property or indexer joins the declaration's line (FMT-BREAK-026); and the arms of a switch expression keep the line breaks the author wrote. Within those choices, an indexer's parameter list is laid out as the parameter list of a method is, a compound assignment as an assignment with `=` is, the value of an enum member and the default value of a parameter as the initializer of a variable is, every attribute-target colon is spaced alike, a comment in front of a closing `]` is indented as one in front of a closing `}` is, and every arrow is spaced alike.
 
 Why: A reader learns the layout of a construct once and expects it wherever the construct occurs. When the formatter lays out one member of a family and leaves another as it was written, the same shape stays formatted in one place and unformatted in the next, and the author cannot predict which. A construct's own requirement chooses its layout for reasons of its own, such as keeping literal data lists short; the family statement does not undo those reasons, it keeps a member from being left out because the treatment was written for its neighbors only.
 
@@ -862,7 +863,7 @@ class C
 
 Why: A code fix formats only the code its diagnostic is about (FMT-PIPE-010), and the columns of that code have to be the columns the formatter gives it, so that formatting the result changes nothing in it (SHARED-FIX-007). When the node is formatted as if it started at another column and its lines are moved afterwards, the move reaches only lines that start with whitespace: the line behind a multi-line comment's last line and the lines of a raw string literal stay where the phases left them, while the lines aligned to them move, and a tab in the node's own leading whitespace counted as one column by the move but as four by the phases puts the node a few columns off. Laying out the node at its own column leaves nothing to move, so the indentation phase is the only owner of a line's final column for node-level targets too, as it is for documents (FMT-PIPE-001). Whitespace in front of the node that the entry point does not rewrite is counted as it stands, as the rules that report the code count it, so a fix's output is measured by its rule in the column the fix gave it (SHARED-FIX-001). The target of the context entry point stays where the document has it, because everything in front of it is written back as it stands; laying out its other lines from the column the context's layout would have given it put a line aligned to an anchor on the target's first line off that anchor, a result the next formatting moves again and that an alignment rule reports where one covers the line, such as RH5203 for a wrapped argument and RH5301 for the braces of an object initializer. Keeping the target's first token in place is the decision `FormatNodeInDocumentAsync` takes for its own target, whose first token keeps its column too.
 
-Example — `FormatNodeInDocumentAsync` with the `EqualsValueClauseSyntax` `= /* a … List<int> …` as target; `new` stands behind the last line of a multi-line comment, in column 24, and the braces and the element are laid out from it, as document-level formatting lays them out:
+Example — `FormatNodeInDocumentAsync` with the `EqualsValueClauseSyntax` `= /* a … List<int> …` as target; `new` stands behind the last line of a multi-line comment, in column 24, and the braces and the element are laid out from it, as the indentation phase lays out an initializer behind a comment wherever it stands. The target holds no variable declaration, so the formatter formats it (FMT-UNSUP-003); document-level formatting returns this document unchanged and reports it as unsupported, because the comment stands behind the declaration's `=` (FMT-UNSUP-004):
 
 ```csharp
 using System.Collections.Generic;
@@ -1303,7 +1304,7 @@ is kept unchanged.
 
 Every phase, each sub-phase of the preparation phase included, MUST leave the output of `FormatDocumentAsync` and `FormatSyntaxTree` unchanged when it runs alone on it: the output's text, parsed with the parse options of the syntax tree the formatter was given and formatted with the line ending FMT-PIPE-007 detects in it, gives a tree that the phase MUST return with the same text.
 
-- **Output of a run that formatted.** The requirement covers the output of an input the formatter formats. An input with a syntax error or a generated-code marker in its file header is returned unchanged (FMT-PIPE-005, FMT-PIPE-006); its output is not formatted output, and the requirement does not cover it. `class C{void M(){int x=1;}}` is formatted, and no phase changes its output; `class C{void M(){int x=1}}` comes out unchanged, and the requirement says nothing about a phase run alone on it.
+- **Output of a run that formatted.** The requirement covers the output of an input the formatter formats. An input with a syntax error or a generated-code marker in its file header is returned unchanged (FMT-PIPE-005, FMT-PIPE-006), and so is an input the formatter refuses as unsupported (FMT-UNSUP-001); its output is not formatted output, and the requirement does not cover it. `class C{void M(){int x=1;}}` is formatted, and no phase changes its output; `class C{void M(){int x=1}}` comes out unchanged, and the requirement says nothing about a phase run alone on it.
 - **Document and tree entry points.** The requirement covers `FormatDocumentAsync` and `FormatSyntaxTree`. It does not cover the output of `FormatNode`, `FormatNodeInDocumentAsync`, and `FormatNodeInDocumentWithContextAsync`: their phases receive a detached root and the facts of FMT-PIPE-024, not a parsed text. A method that a code fix formats with `FormatNodeInDocumentAsync` is covered once the document that holds it is formatted with `FormatDocumentAsync`.
 - **Text, not tree.** The phase's output is compared with the formatter's output as text. A phase that returns the same text with a run of whitespace or a line break given to the other of the two tokens around it (FMT-PIPE-021) changes nothing.
 
@@ -1392,29 +1393,29 @@ class C
 
 ### FMT-PIPE-029 — The context entry point writes back every field the split makes of its target
 
-When the target of `FormatNodeInDocumentWithContextAsync` is a field declaration that the structural phase splits in the context (FMT-STRUCT-021), the entry point MUST write back, in place of the target, every field the split makes of it, in source order, and nothing else of the context (FMT-PIPE-010). The first of these fields stands in for the target in FMT-PIPE-017 and FMT-PIPE-018: it keeps the target's leading trivia as it stands in the document, and its first token keeps the line and the column the target's first token has there. The last keeps the target's trailing trivia (FMT-PIPE-010), apart from the whitespace in front of another member behind it (below). Every other line of the fields — the lines of the later fields, of the comments in front of them, and the line breaks and blank lines between two of the fields — is written as the phases lay out the context, and ends in the column FMT-PIPE-017 gives the target's other lines: a later field's first line, which the indentation phase places by the depth, stands where the context's depth places a member. A tab in front of the target's first token counts as one column (FMT-PIPE-017), and a later field's indentation is written as the phases write it, in spaces.
+When the target of `FormatNodeInDocumentWithContextAsync` is a field declaration that the structural phase splits in the context (FMT-STRUCT-021), the entry point MUST write back, in place of the target, every field the split makes of it, in source order, and nothing else of the context (FMT-PIPE-010). The first of these fields stands in for the target in FMT-PIPE-017 and FMT-PIPE-018: it keeps the target's leading trivia as it stands in the document, and its first token keeps the line and the column the target's first token has there. The last keeps the target's trailing trivia (FMT-PIPE-010), apart from the whitespace in front of another member behind it (below). Every other line of the fields — the lines of the later fields, and the line breaks and blank lines between two of the fields — is written as the phases lay out the context, and ends in the column FMT-PIPE-017 gives the target's other lines: a later field's first line, which the indentation phase places by the depth, stands where the context's depth places a member. A tab in front of the target's first token counts as one column (FMT-PIPE-017), and a later field's indentation is written as the phases write it, in spaces.
 
 The fields MUST NOT share a line with another member of the context, as SHARED-FIX-007 requires of a member a fix changes:
 
-- When another member stands in front of the target on the target's first line, the first field MUST start the next line instead of keeping the target's line and column: the whitespace between that member and the target MUST be replaced by a line break and the indentation the phases lay out there, so the first field's line — the target's leading trivia, such as a documentation comment, and then its first token — starts where the context's depth places a member.
+- When another member stands in front of the target on the target's first line, the first field MUST start the next line instead of keeping the target's line and column: the whitespace between that member and the target MUST be replaced by a line break and the indentation the phases lay out there, so the first field's line — the target's leading trivia and then its first token — starts where the context's depth places a member.
 - When another member stands behind the target on the target's last line, that member MUST start the next line: the whitespace between the last field and that member MUST be replaced by a line break and the indentation the phases lay out there, and the member keeps everything else as it stands, its leading trivia included.
-- What stands in such a gap stays with the token whose trivia it is. A comment in the trailing trivia of the token in front of the gap — the last token of the other member in front, or of the target — stays where it stands, behind that token, and only the whitespace behind the comment is replaced. A documentation comment is leading trivia of the token behind the gap and goes with its member onto the next line: in front of the target, it starts the first field's line; behind the target, it starts the other member's line.
+- What stands in such a gap stays with the token whose trivia it is. A comment in the trailing trivia of the token in front of the gap — the last token of the other member in front, or of the target — stays where it stands, behind that token, and only the whitespace behind the comment is replaced. A documentation comment behind the target is leading trivia of the token behind the gap and goes with its member onto the next line: it starts the other member's line. A documentation comment in front of the target, also one written behind the code of the member in front, is a documentation comment of the target (SHARED-DOC-004), and the split refuses a documented declaration (FMT-STRUCT-030), so no target this requirement covers has one.
 - The gap gets exactly one line break and no blank line, also where document-level formatting writes a blank line there (SHARED-FIX-006). No whitespace is left at the end of a line.
-- Whether another member stands on the target's first or last line is a result of the phases, read from the context as they lay it out; the entry point does not decide it again from the gap in the document (FMT-PIPE-001). It is a question only where nothing in the gap starts a line in the document: no line break in the gap separates the token in front of it — the last token of the other member in front, or of the target — from the token behind it — the target's first token, or the first token of the member behind the target. The line breaks that count are those SHARED-BLANK-008 counts: an end-of-line, and the line break that ends a `///` comment or a directive; a line break inside the text of a comment that spans lines does not count (SHARED-BLANK-002). Where something in the gap starts a line — the first token behind the gap, or a comment or documentation comment in front of it — the target's leading trivia and the trivia behind the target stay as they stand (FMT-PIPE-018, FMT-PIPE-010), also where the token behind the gap does not start its line, such as `private` in `_p;⏎    /** x */ private int _x, _y;`. Where the question arises, the first field, or the member behind the target, starts the next line exactly when, in the context as the phases lay it out, its first token or a documentation comment in its leading trivia starts a line, and keeps its place when neither does. Two phases start such a line: the documentation-comment phase starts the line of a documentation comment written behind code (FMT-DOC-001), and the line-break phase starts a member's line where the gap holds no line break (FMT-BREAK-007). So a gap whose comments each start and end on one line, such as `_p; /* c */ private int _x, _y;`, puts both on one line; a gap that holds a documentation comment puts the member it documents on the next line, also when a comment in the gap spans lines; and a member behind the closing `*/` of a comment that spans lines, with no documentation comment between, keeps its place (SHARED-COMMENT-012). See the examples below.
+- Whether another member stands on the target's first or last line is a result of the phases, read from the context as they lay it out; the entry point does not decide it again from the gap in the document (FMT-PIPE-001). It is a question only where nothing in the gap starts a line in the document: no line break in the gap separates the token in front of it — the last token of the other member in front, or of the target — from the token behind it — the target's first token, or the first token of the member behind the target. The line breaks that count are those SHARED-BLANK-008 counts: an end-of-line, and the line break that ends a `///` comment or a directive; a line break inside the text of a comment that spans lines does not count (SHARED-BLANK-002). Where something in the gap starts a line — the first token behind the gap, or a comment or documentation comment in front of it — the target's leading trivia and the trivia behind the target stay as they stand (FMT-PIPE-018, FMT-PIPE-010), also where the token behind the gap does not start its line, such as `private` in `_y;⏎    /** q */ private int _q;`. Where the question arises, the first field, or the member behind the target, starts the next line exactly when, in the context as the phases lay it out, its first token or a documentation comment in its leading trivia starts a line, and keeps its place when neither does. Two phases start such a line: the documentation-comment phase starts the line of a documentation comment written behind code (FMT-DOC-001), and the line-break phase starts a member's line where the gap holds no line break (FMT-BREAK-007). So a gap whose comments each start and end on one line, such as `_p; /* c */ private int _x, _y;`, puts both on one line; a gap that holds a documentation comment puts the member it documents on the next line, also when a comment in the gap spans lines; and a member behind the closing `*/` of a comment that spans lines, with no documentation comment between, keeps its place (SHARED-COMMENT-012). See the examples below.
 
 A target behind or in front of a token that is not a member, such as the `{` or the `}` of its type, keeps its line.
 
-This requirement decides the input the RH7101 code fix passes (`AGENTS.md`, *Supported inputs*): a field declaration with more than one declarator that the split does not refuse (FMT-STRUCT-023), as target, and the class, struct, record, or interface declaration whose member it is, as context. Another combined field declaration of the context, or of a type nested in it, is split in the root like the target and is not written back.
+This requirement decides the input the RH7101 code fix passes (`AGENTS.md`, *Supported inputs*): a field declaration with more than one declarator that the split does not refuse (FMT-STRUCT-023, FMT-STRUCT-030), as target, and the class, struct, record, or interface declaration whose member it is, as context, where the formatter does not refuse the context as unsupported (FMT-UNSUP-002). Another combined field declaration of the context, or of a type nested in it, is split in the root like the target and is not written back.
 
 Why: The RH7101 fix replaces one declaration by several, a change the structural phase makes only to a member of a type, so the fix needs the type as context. Writing back the split fields, and only them, leaves every other member of the type as it stands and keeps the blank lines and comments above the declaration (SHARED-FIX-006), while the phases lay out the fields the fix creates as document-level formatting lays them out (SHARED-FIX-007). The blank lines between two of the fields are inside the code the fix changes, not between it and a neighbour, so they are the phases' decision. A later field is a line the context's depth places, like any line of a target that the indentation phase places by the depth (FMT-PIPE-017). A member that would share its line with another member after the fix is the one place where the fix changes what stands around the declaration, because SHARED-FIX-007 gives each member a fix changes a line of its own and has the other member start on the next line. A comment in that gap stays with the code it was written behind, and a documentation comment goes with the member it documents, as document-level formatting places both: the target's leading trivia is written back as it stands (FMT-PIPE-018), and the other member's leading trivia is code the fix does not change (SHARED-FIX-006). The gap gets no blank line, because the blank lines between the changed code and its neighbours are not the fix's to change (SHARED-FIX-006). Whether another member shares the target's line is decided by the phases, by more than one of them: the documentation-comment phase moves a documentation comment written behind code, and its member with it, before the line-break phase decides whether a gap needs a line break (FMT-DOC-001, FMT-BREAK-007). The entry point reads that decision from the context the phases have laid out instead of predicting it from the gap in the document by a rule of its own (FMT-PIPE-001): a prediction restates one phase's rule and misses what an earlier phase changed, so it would move a member document-level formatting leaves, or leave one it moves. Read from the phases' result, the fix moves exactly the members document-level formatting moves. Where something in the gap already starts a line in the document, the entry point keeps the gap's trivia as it stands (FMT-PIPE-010, FMT-PIPE-018), even where document-level formatting moves a documentation comment in it: what starts that line does not share a line with the member, and the trivia is code the fix does not change (SHARED-FIX-006). A documentation comment that starts its line counts like the token behind it, because the phases start the line of that comment, not of the token: asking the question there would write a second line break into a gap that already has one.
 
-Example — `FormatNodeInDocumentWithContextAsync` with the field `_x, _y` as target and the class as context; the comment in front of `_y` gets the blank line above it that the blank-line phase writes, and the other field of the class and the field of `D` stay as they are:
+Example — `FormatNodeInDocumentWithContextAsync` with the field `_x, _y` as target and the class as context; the comment in front of the declaration stays on the first field, and the other field of the class and the field of `D` stay as they are:
 
 ```csharp
 class C
 {
-    private int _x, // horizontal
-                /* vertical */ _y;
+    // The coordinates
+    private int _x, _y;
     private int _a, _b;
 
     class D
@@ -1427,9 +1428,8 @@ class C
 ```csharp
 class C
 {
-    private int _x; // horizontal
-
-    /* vertical */
+    // The coordinates
+    private int _x;
     private int _y;
     private int _a, _b;
 
@@ -1515,52 +1515,30 @@ class C
 }
 ```
 
-Example — a member in front of the target on its first line, and a comment that spans lines behind the separating comma: the first field starts the next line at the member column, the comment ends the first field's line, and `_y` starts a line of its own behind it (FMT-STRUCT-026):
+Example — a documentation comment behind the target: it goes with the member behind it, and no blank line is written above it, where document-level formatting writes one:
 
 ```csharp
 class C
 {
-    private int _p; private int _x, /* a
-       b */ _y;
+    private int _x, _y; /** Q. */ private int _q;
 }
 ```
 
 ```csharp
 class C
 {
-    private int _p;
-    private int _x; /* a
-       b */
-    private int _y;
-}
-```
-
-Example — a documentation comment in each gap: each goes with the member behind it, and no blank line is written above it, where document-level formatting writes one:
-
-```csharp
-class C
-{
-    private int _p; /** X. */ private int _x, _y; /** Q. */ private int _q;
-}
-```
-
-```csharp
-class C
-{
-    private int _p;
-    /** X. */ private int _x;
+    private int _x;
     private int _y;
     /** Q. */ private int _q;
 }
 ```
 
-Example — a documentation comment that spans lines in each gap: the documentation-comment phase starts the line of each (FMT-DOC-001), so the first field and `_q` start the next line with it, its later line stays as it stands, and no blank line is written above it:
+Example — a documentation comment that spans lines behind the target: the documentation-comment phase starts its line (FMT-DOC-001), so `_q` starts the next line with it, its later line stays as it stands, and no blank line is written above it:
 
 ```csharp
 class C
 {
-    private int _p; /** a
-       b */ private int _x, _y; /** c
+    private int _x, _y; /** c
        d */ private int _q;
 }
 ```
@@ -1568,22 +1546,19 @@ class C
 ```csharp
 class C
 {
-    private int _p;
-    /** a
-       b */ private int _x;
+    private int _x;
     private int _y;
     /** c
        d */ private int _q;
 }
 ```
 
-Example — a comment that spans lines and then a documentation comment in each gap: the comment stays behind the code in front of it, and the documentation comment starts the next line with its member, as in the example above; the first field and `_q` do not keep their place behind `b */` and `e */`, because the documentation comment between starts a line:
+Example — a comment that spans lines and then a documentation comment behind the target: the comment stays behind `_y;`, and the documentation comment starts the next line with its member, as in the example above; `_q` does not keep its place behind `e */`, because the documentation comment between starts a line:
 
 ```csharp
 class C
 {
-    private int _p; /* a
-       b */ /** c */ private int _x, _y; /* d
+    private int _x, _y; /* d
        e */ /** f */ private int _q;
 }
 ```
@@ -1591,22 +1566,19 @@ class C
 ```csharp
 class C
 {
-    private int _p; /* a
-       b */
-    /** c */ private int _x;
+    private int _x;
     private int _y; /* d
        e */
     /** f */ private int _q;
 }
 ```
 
-Example — a one-line comment and then a documentation comment that spans lines in each gap:
+Example — a one-line comment and then a documentation comment that spans lines behind the target:
 
 ```csharp
 class C
 {
-    private int _p; /* a */ /** b
-       c */ private int _x, _y; /* d */ /** e
+    private int _x, _y; /* d */ /** e
        f */ private int _q;
 }
 ```
@@ -1614,23 +1586,19 @@ class C
 ```csharp
 class C
 {
-    private int _p; /* a */
-    /** b
-       c */ private int _x;
+    private int _x;
     private int _y; /* d */
     /** e
        f */ private int _q;
 }
 ```
 
-Example — a comment that spans lines and then a documentation comment that spans lines in each gap:
+Example — a comment that spans lines and then a documentation comment that spans lines behind the target:
 
 ```csharp
 class C
 {
-    private int _p; /* a
-       b */ /** c
-       d */ private int _x, _y; /* e
+    private int _x, _y; /* e
        f */ /** g
        h */ private int _q;
 }
@@ -1639,10 +1607,7 @@ class C
 ```csharp
 class C
 {
-    private int _p; /* a
-       b */
-    /** c
-       d */ private int _x;
+    private int _x;
     private int _y; /* e
        f */
     /** g
@@ -1650,13 +1615,11 @@ class C
 }
 ```
 
-Example — the other side of the condition: the target's first token and `_q`'s first token already start their lines in the document, so the documentation comments stay where they stand, although document-level formatting moves each onto a line of its own; a `///` comment behind `_p;` and behind `_y;` stays the same way:
+Example — the other side of the condition: `_q`'s first token already starts its line in the document, so the documentation comment stays where it stands, although document-level formatting moves it onto a line of its own; a `///` comment behind `_y;` stays the same way:
 
 ```csharp
 class C
 {
-    private int _p; /** a
-       b */
     private int _x, _y; /** c
        d */
     private int _q;
@@ -1666,8 +1629,6 @@ class C
 ```csharp
 class C
 {
-    private int _p; /** a
-       b */
     private int _x;
     private int _y; /** c
        d */
@@ -1675,13 +1636,12 @@ class C
 }
 ```
 
-Example — a documentation comment that starts its line in front of the target and in front of the member behind it, with its member behind it on that line: the gap holds a line break, so the question does not arise; the first field keeps the target's line and column behind `/** x */`, and `/** q */ private int _q;` stays as it stands:
+Example — a documentation comment that starts its line in front of the member behind the target, with that member behind it on that line: the gap holds a line break, so the question does not arise, and `/** q */ private int _q;` stays as it stands:
 
 ```csharp
 class C
 {
-    private int _p;
-    /** x */ private int _x, _y;
+    private int _x, _y;
     /** q */ private int _q;
 }
 ```
@@ -1689,8 +1649,7 @@ class C
 ```csharp
 class C
 {
-    private int _p;
-    /** x */ private int _x;
+    private int _x;
     private int _y;
     /** q */ private int _q;
 }
@@ -1774,11 +1733,11 @@ using System.Linq; class C { } } }
 
 ### FMT-PIPE-031 — The formatter answers whether it splits a field declaration
 
-`SplitsFieldDeclaration` MUST return whether the structural phase splits the field declaration it is given: true exactly when the declaration has more than one declarator, is a member of a class, struct, record, or interface (FMT-STRUCT-021), and carries no directive or disabled text (FMT-STRUCT-023).
+`SplitsFieldDeclaration` MUST return whether the structural phase splits the field declaration it is given: true exactly when the declaration has more than one declarator, is a member of a class, struct, record, or interface (FMT-STRUCT-021), carries no directive or disabled text (FMT-STRUCT-023), and has no documentation comment when the documentation mode of its syntax tree is `Parse` or `Diagnose` (FMT-STRUCT-030). Whether the formatter refuses the declaration, or the type around it, as unsupported is not part of the answer: `FindUnsupportedSyntax` answers that (FMT-UNSUP-007).
 
 This requirement decides the input the RH7101 code fix passes (`AGENTS.md`, *Supported inputs*): the field declaration of a diagnostic.
 
-Why: The RH7101 fix splits a declaration only through formatting it (FMT-PIPE-029), so it must not be offered where formatting does not split it (SHARED-FIX-005); RH7101-006 withholds it also for a declaration that formatting splits. The split states its own applicability once; the fix asks the formatter instead of keeping a copy of the split's conditions, which could drift apart from them.
+Why: The RH7101 fix splits a declaration only through formatting it (FMT-PIPE-029), so it must not be offered where formatting does not split it (SHARED-FIX-005); RH7101-005 and RH7101-006 are the cases where formatting does not split a declaration the rule reports. The split states its own applicability once; the fix asks the formatter instead of keeping a copy of the split's conditions, which could drift apart from them. A declaration with a comment that FMT-UNSUP-004 refuses never reaches the split, because the precheck refuses every input that holds it; a condition for it here would put a guard for a refused shape back into the phase, and would state a second time what SHARED-FIX-010 already decides for the fix through the type it formats.
 
 Example — in
 
@@ -1795,3 +1754,24 @@ class C
 ```
 
 the method returns true for `_a, _b` and false for `_c, _d, _e`.
+
+Example — when the documentation mode is `Parse`, in
+
+```csharp
+class C
+{
+    /// <summary>
+    /// The coordinates
+    /// </summary>
+    public int X, Y;
+
+    // The sizes
+    public int Width, Height;
+
+    private /* c */ int _first, _second;
+
+    private int _g = /* c */ 1, _h;
+}
+```
+
+the method returns false for `X, Y`, and true for `Width, Height`, for `_first, _second`, and for `_g, _h`; `FindUnsupportedSyntax` returns the comment `/* c */` of `_first, _second` for that declaration and for the class. In the documentation mode `None`, the method returns true for `X, Y` as well.

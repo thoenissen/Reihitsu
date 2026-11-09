@@ -61,9 +61,23 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider : Co
     /// <param name="scope">Scope node</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Updated document</returns>
-    private static Task<Document> ApplyIndentationFormattingAsync(Document document, SyntaxNode scope, CancellationToken cancellationToken)
+    private static async Task<Document> ApplyIndentationFormattingAsync(Document document, SyntaxNode scope, CancellationToken cancellationToken)
     {
-        return ReihitsuFormatter.FormatNodeInDocumentAsync(document, scope, cancellationToken);
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, scope, cancellationToken).ConfigureAwait(false)).Output;
+    }
+
+    /// <summary>
+    /// Determines whether the formatter refuses the scope the fix formats for a diagnostic as unsupported; a directive is
+    /// indented without the formatter (SHARED-FIX-010)
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="diagnostic">Diagnostic</param>
+    /// <returns><see langword="true"/> if the formatter refuses the scope; otherwise, <see langword="false"/></returns>
+    private static bool IsScopeRefused(SyntaxNode root, Diagnostic diagnostic)
+    {
+        return TryGetDirectiveTrivia(root, diagnostic, out _) == false
+               && TryGetFormattingScope(root, diagnostic, out var scope)
+               && ReihitsuFormatter.FindUnsupportedSyntax(scope) != null;
     }
 
     /// <summary>
@@ -196,17 +210,27 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider : Co
     }
 
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
+        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return;
+        }
+
         foreach (var diagnostic in context.Diagnostics)
         {
+            if (IsScopeRefused(root, diagnostic))
+            {
+                continue;
+            }
+
             context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5204Title,
                                                       token => ApplyCodeFixAsync(context.Document, diagnostic, token),
                                                       nameof(RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider)),
                                     diagnostic);
         }
-
-        return Task.CompletedTask;
     }
 
     #endregion // CodeFixProvider

@@ -197,6 +197,7 @@ public class CommentLineTerminatorIndentationTests : FormatterTestsBase
     private string Format(string text)
     {
         return ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(text, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken)
+                                .Output
                                 .GetText(TestContext.CancellationToken)
                                 .ToString();
     }

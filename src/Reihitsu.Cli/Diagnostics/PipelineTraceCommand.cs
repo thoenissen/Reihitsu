@@ -265,26 +265,31 @@ internal static class PipelineTraceCommand
 
         try
         {
-            var formattedRoot = FormattingPipeline.Execute(root,
-                                                           context,
-                                                           (phaseName, phaseInput, phaseOutput) =>
-                                                           {
-                                                               activePhase = phaseName;
+            var result = FormattingPipeline.Execute(root,
+                                                    context,
+                                                    (phaseName, phaseInput, phaseOutput) =>
+                                                    {
+                                                        activePhase = phaseName;
 
-                                                               var before = phaseInput.ToFullString();
-                                                               var after = phaseOutput.ToFullString();
+                                                        var before = phaseInput.ToFullString();
+                                                        var after = phaseOutput.ToFullString();
 
-                                                               if (string.Equals(before, after, StringComparison.Ordinal))
-                                                               {
-                                                                   return;
-                                                               }
+                                                        if (string.Equals(before, after, StringComparison.Ordinal))
+                                                        {
+                                                            return;
+                                                        }
 
-                                                               observedChanges++;
-                                                               WritePhaseChange(output, displayPath, pass, phaseName, before, after);
-                                                           },
-                                                           cancellationToken);
+                                                        observedChanges++;
+                                                        WritePhaseChange(output, displayPath, pass, phaseName, before, after);
+                                                    },
+                                                    cancellationToken);
 
-            return (true, formattedRoot, observedChanges);
+            if (result.Unsupported != null)
+            {
+                error.WriteLine($"trace: pass {pass}: unsupported syntax: {result.Unsupported.Reason}. The input was left unchanged.");
+            }
+
+            return (true, result.Output, observedChanges);
         }
         catch (InvalidOperationException exception) when (exception.Message.StartsWith("Formatting phase '", StringComparison.Ordinal))
         {

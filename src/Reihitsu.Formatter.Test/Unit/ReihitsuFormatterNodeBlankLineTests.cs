@@ -615,7 +615,7 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
             {
                 var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
                 var document = project.AddDocument("Test.cs", SourceText.From(NormalizeLineEndings(input, endOfLine)));
-                var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
+                var result = (await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken)).Output;
 
                 Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), (await result.GetTextAsync(TestContext.CancellationToken)).ToString(), $"Unexpected document-level output under {DescribeLineEnding(endOfLine)} line endings.");
             }
@@ -2699,11 +2699,12 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the blank line above a switch section whose preceding section ends in a break statement lands above the directive that precedes the section
+    /// Verifies that a switch section whose preceding section ends in a break statement gets no blank line when a directive directly precedes the section
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
-    public async Task InsertsBlankLineAboveDirectiveOfSwitchSectionAfterBreakSection()
+    [Requirement("FMT-BLANK-006")]
+    public async Task InsertsNoBlankLineAboveSwitchSectionDirectlyPrecededByDirectiveAfterBreakSection()
     {
         const string input = """
                              public class C
@@ -2736,7 +2737,6 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
                                             case 1:
                                                 value++;
                                                 break;
-
                                 #if !DEBUG
                                             case 2:
                                                 value--;
@@ -3001,11 +3001,12 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the blank line required after a break statement is inserted above a directive that precedes the own-line comment of a block statement
+    /// Verifies that the blank line required after a break statement is inserted behind a directive that precedes the own-line comment of a block statement, in front of that comment
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
-    public async Task InsertsBlankLineAboveDirectiveOfCommentedBlockStatementAfterBreak()
+    [Requirement("FMT-BLANK-016")]
+    public async Task InsertsBlankLineBehindDirectiveOfCommentedBlockStatementAfterBreak()
     {
         const string input = """
                              public class C
@@ -3035,8 +3036,8 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
                                         while (value > 0)
                                         {
                                             break;
-
                                 #if !DEBUG
+
                                             // Scope
                                             {
                                                 value++;
@@ -3255,7 +3256,7 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
 
             Assert.IsNotNull(root, "Expected a syntax root in the test document.");
 
-            var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, selectTarget(root), TestContext.CancellationToken);
+            var result = (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, selectTarget(root), TestContext.CancellationToken)).Output;
 
             return (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
         }

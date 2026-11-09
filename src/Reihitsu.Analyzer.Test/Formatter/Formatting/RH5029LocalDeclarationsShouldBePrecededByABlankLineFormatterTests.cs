@@ -152,7 +152,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineFormatterTests :
 
         var tree = CSharpSyntaxTree.ParseText(source);
         var context = new FormattingContext(Environment.NewLine);
-        var formatted = FormattingPipeline.Execute(await tree.GetRootAsync(), context, CancellationToken.None).ToFullString();
+        var formatted = FormattingPipeline.Execute(await tree.GetRootAsync(), context, CancellationToken.None).Output.ToFullString();
 
         Assert.AreEqual(source, formatted, "Formatter output should keep compliant code unchanged.");
 

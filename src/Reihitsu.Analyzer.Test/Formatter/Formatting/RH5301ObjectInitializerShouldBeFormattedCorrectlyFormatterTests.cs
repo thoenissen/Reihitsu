@@ -141,9 +141,9 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyFormatterTests : F
 
                              internal class Example
                              {
-                                 private static void Method()
+                                 private static P Method()
                                  {
-                                     var p =
+                                     return
 
                                      /* c */ {|#0:new P
                                      {
@@ -160,9 +160,9 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyFormatterTests : F
 
                                  internal class Example
                                  {
-                                     private static void Method()
+                                     private static P Method()
                                      {
-                                         var p =
+                                         return
 
                                          /* c */ new P
                                                  {

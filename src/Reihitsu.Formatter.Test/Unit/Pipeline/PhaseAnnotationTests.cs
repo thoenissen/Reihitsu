@@ -225,7 +225,7 @@ public class PhaseAnnotationTests : FormatterTestsBase
                                                           context,
                                                           [PhaseStabilityCheck.CreateProductionPhases().Single(phase => phase.GetType().Name == "StructuralTransformPhase")],
                                                           null,
-                                                          CancellationToken.None);
+                                                          CancellationToken.None).Output;
             var description = $"Under {DescribeLineEnding(endOfLine)} line endings:{Environment.NewLine}{output.ToFullString()}";
 
             Assert.IsNotNull(output.DescendantNodes().OfType<MethodDeclarationSyntax>().Single().Body, description);
@@ -356,7 +356,7 @@ public class PhaseAnnotationTests : FormatterTestsBase
         var result = FormattingPipeline.Execute(annotated,
                                                 context,
                                                 (phaseName, _, after) => AssertKept(after, expectations, phaseName, description),
-                                                CancellationToken.None);
+                                                CancellationToken.None).Output;
 
         return result.ToFullString();
     }

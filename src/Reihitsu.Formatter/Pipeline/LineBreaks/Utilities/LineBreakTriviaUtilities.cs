@@ -42,6 +42,25 @@ internal static class LineBreakTriviaUtilities
     }
 
     /// <summary>
+    /// Creates the trailing trivia of the token in front of a token that moves to the start of a line: its trailing trivia
+    /// with a line break appended, unless a line break already separates the two tokens — behind an end-of-line comment, or
+    /// in front of a comment line above the moved token. That line break then stays the gap's only one, so the move writes
+    /// no blank line into the gap (FMT-BREAK-030)
+    /// </summary>
+    /// <param name="previousToken">The token in front of the gap</param>
+    /// <param name="token">The token that moves to the start of a line</param>
+    /// <param name="endOfLine">The end-of-line sequence to append</param>
+    /// <returns>The trailing trivia of <paramref name="previousToken"/> that ends its line exactly once</returns>
+    public static SyntaxTriviaList EndLineInFrontOf(SyntaxToken previousToken,
+                                                    SyntaxToken token,
+                                                    string endOfLine)
+    {
+        return SyntaxTriviaUtilities.AreSeparatedByEndOfLine(previousToken, token)
+                   ? previousToken.TrailingTrivia
+                   : AppendEndOfLine(previousToken.TrailingTrivia, endOfLine);
+    }
+
+    /// <summary>
     /// Moves a token to a new line by prepending an end-of-line trivia to its leading trivia. The trailing trivia of the
     /// previous token stays as it is, whitespace at its end included; the cleanup phase removes whitespace in front of every
     /// line break (FMT-BREAK-029)
@@ -154,6 +173,40 @@ internal static class LineBreakTriviaUtilities
                                                               SyntaxToken token)
     {
         return RemoveTrailingWhitespace(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)).AddRange(CreateJoinSeparator(previousToken, token));
+    }
+
+    /// <summary>
+    /// Joins every given gap of a node onto one line in one rewrite: the token in front of each gap gets its joined
+    /// trailing trivia (<see cref="CreateJoinedTrailingTrivia"/>), and the token behind it loses its leading line break and
+    /// whitespace (<see cref="RemoveLeadingEndOfLineAndWhitespace"/>). A token that stands at both ends of two gaps carries
+    /// both edits. The caller selects the gaps and has already refused every gap that must keep its line break; this
+    /// method joins each one it is given
+    /// </summary>
+    /// <typeparam name="TNode">The syntax node type containing the gaps</typeparam>
+    /// <param name="node">The node containing the tokens of every gap</param>
+    /// <param name="gaps">The gaps to join, each given by the token in front of it and the token behind it, in text order</param>
+    /// <returns>The node with every gap joined, or the original node when no gap was given</returns>
+    public static TNode JoinGaps<TNode>(TNode node,
+                                        IEnumerable<(SyntaxToken PreviousToken, SyntaxToken Token)> gaps)
+        where TNode : SyntaxNode
+    {
+        var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
+
+        foreach (var (previousToken, token) in gaps)
+        {
+            var currentPrevious = replacements.TryGetValue(previousToken, out var replacedPrevious) ? replacedPrevious : previousToken;
+            var currentToken = replacements.TryGetValue(token, out var replacedToken) ? replacedToken : token;
+
+            replacements[previousToken] = currentPrevious.WithTrailingTrivia(CreateJoinedTrailingTrivia(currentPrevious, token));
+            replacements[token] = RemoveLeadingEndOfLineAndWhitespace(currentToken);
+        }
+
+        if (replacements.Count == 0)
+        {
+            return node;
+        }
+
+        return node.ReplaceTokens(replacements.Keys, (original, _) => replacements[original]);
     }
 
     /// <summary>

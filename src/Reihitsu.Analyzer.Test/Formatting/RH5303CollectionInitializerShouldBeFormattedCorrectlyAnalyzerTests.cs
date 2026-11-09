@@ -978,6 +978,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     [TestMethod]
     [Requirement("RH5303-005")]
     [Requirement("FMT-PIPE-017")]
+    [Requirement("SHARED-FIX-010")]
     public async Task VerifyCreationBehindTheLastLineOfAMultiLineCommentIsFixedFromNewWhereItStands()
     {
         const string testData = """

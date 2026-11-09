@@ -1237,8 +1237,8 @@ public class IdempotencyTests : FormatterTestsBase
         foreach (var endOfLine in _lineEndings)
         {
             var input = NormalizeLineEndings(CommentJoinTestData, endOfLine);
-            var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
-            var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
+            var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken).Output;
+            var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken).Output;
             var formatted = firstPass.GetRoot(TestContext.CancellationToken).ToFullString();
 
             Assert.AreEqual(formatted, secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), $"Formatter must be idempotent under {DescribeLineEnding(endOfLine)} line endings.");
@@ -1298,9 +1298,9 @@ public class IdempotencyTests : FormatterTestsBase
         foreach (var endOfLine in _lineEndings)
         {
             var normalized = NormalizeLineEndings(input, endOfLine);
-            var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(normalized, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
+            var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(normalized, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken).Output;
             var firstResult = firstPass.GetRoot(TestContext.CancellationToken).ToFullString();
-            var secondResult = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken).GetRoot(TestContext.CancellationToken).ToFullString();
+            var secondResult = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken).Output.GetRoot(TestContext.CancellationToken).ToFullString();
 
             Assert.AreEqual(firstResult, secondResult, $"Formatter must be idempotent under {DescribeLineEnding(endOfLine)} line endings.");
             AssertUsesLineEnding(firstResult, endOfLine);
@@ -1317,7 +1317,7 @@ public class IdempotencyTests : FormatterTestsBase
         foreach (var endOfLine in _lineEndings)
         {
             var normalized = NormalizeLineEndings(input, endOfLine);
-            var formatted = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(normalized, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
+            var formatted = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(normalized, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken).Output;
             var actual = formatted.GetRoot(TestContext.CancellationToken).ToFullString();
 
             Assert.AreEqual(normalized, actual, $"Formatter must produce no changes under {DescribeLineEnding(endOfLine)} line endings.");

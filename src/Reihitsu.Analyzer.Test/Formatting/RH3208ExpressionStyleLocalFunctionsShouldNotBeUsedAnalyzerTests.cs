@@ -1685,6 +1685,36 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
         await Verify(testData, fixedData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a refused comment inside a labeled local function withholds the fix: the fix formats the local
+    /// function in the context of the label that starts its line, which the formatter refuses
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task NoFixIsOfferedForALabeledLocalFunctionWhoseBodyHoldsACommentTheFormatterRefuses()
+    {
+        const string source = """
+                              using System;
+
+                              internal class C
+                              {
+                                  public void Run()
+                                  {
+                                      goto L;
+                                      L: int Local() {|RH3208:=> Get(() => { int /* c */ y = 1; return y; })|};
+                                  }
+
+                                  private static int Get(Func<int> value)
+                                  {
+                                      return value();
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

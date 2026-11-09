@@ -20,7 +20,8 @@ internal sealed class ArgumentAlignmentContributor : ILayoutContributor
     /// <summary>
     /// Aligns a wrapped list to the column after the open token - its element starts, its closing token, and every
     /// separator that starts a line - then aligns every line that starts inside an element at a token other than the
-    /// element's first token with that first token
+    /// element's first token with that first token. An empty list whose closing token starts a line, such as one that
+    /// holds only a comment, has its closing token aligned the same way (FMT-INDENT-012)
     /// </summary>
     /// <typeparam name="T">The syntax node type of the list items</typeparam>
     /// <param name="openToken">The opening token (parenthesis or bracket)</param>
@@ -34,11 +35,6 @@ internal sealed class ArgumentAlignmentContributor : ILayoutContributor
     private static void AlignToOpenToken<T>(SyntaxToken openToken, SyntaxToken closeToken, SeparatedSyntaxList<T> items, LayoutModel model)
         where T : SyntaxNode
     {
-        if (items.Count == 0)
-        {
-            return;
-        }
-
         var firstLine = LayoutComputer.GetLine(openToken);
         var lastLine = LayoutComputer.GetLine(closeToken);
 

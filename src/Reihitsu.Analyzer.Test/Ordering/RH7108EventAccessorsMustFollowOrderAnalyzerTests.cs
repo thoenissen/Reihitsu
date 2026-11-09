@@ -372,6 +372,40 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
         await VerifyNoCodeFixIsOffered(source);
     }
 
+    /// <summary>
+    /// Verifies that a refused comment in the remove accessor withholds the fix for the reported add accessor: the fix
+    /// formats the event it builds, which the formatter refuses, although the reported accessor holds no refused shape
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task NoFixIsOfferedWhenTheOtherAccessorHoldsACommentTheFormatterRefuses()
+    {
+        const string source = """
+                              using System;
+
+                              internal class C
+                              {
+                                  private EventHandler _changed;
+
+                                  public event EventHandler Changed
+                                  {
+                                      remove
+                                      {
+                                          EventHandler /* c */ handler = value;
+                                          _changed -= handler;
+                                      }
+                                      {|RH7108:add|}
+                                      {
+                                          _changed += value;
+                                      }
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

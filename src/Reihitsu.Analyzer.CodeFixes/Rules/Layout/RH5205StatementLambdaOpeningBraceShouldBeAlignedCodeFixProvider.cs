@@ -31,7 +31,7 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedCodeFixProvider : C
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, LambdaExpressionSyntax lambdaExpression, CancellationToken cancellationToken)
     {
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, lambdaExpression, cancellationToken).ConfigureAwait(false);
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, lambdaExpression, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     #endregion // Methods
@@ -58,7 +58,8 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedCodeFixProvider : C
             {
                 var lambdaExpression = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.FirstAncestorOrSelf<LambdaExpressionSyntax>();
 
-                if (lambdaExpression?.Body is BlockSyntax)
+                if (lambdaExpression?.Body is BlockSyntax
+                    && ReihitsuFormatter.FindUnsupportedSyntax(lambdaExpression) == null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5205Title,
                                                               token => ApplyCodeFixAsync(context.Document, lambdaExpression, token),

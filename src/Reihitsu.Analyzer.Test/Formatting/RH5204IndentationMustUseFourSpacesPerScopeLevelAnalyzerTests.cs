@@ -1880,6 +1880,30 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                      Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat, 2));
     }
 
+    /// <summary>
+    /// Verifies that a refused comment in another statement of the block withholds the fix: the fix formats the block
+    /// that starts above the misindented line, which the formatter refuses, although the misindented statement holds no
+    /// refused shape
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task NoFixIsOfferedWhenTheFormattingScopeHoldsACommentTheFormatterRefuses()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  private void M()
+                                  {
+                                      int /* c */ y = 1;
+                                       {|RH5204:return|};
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

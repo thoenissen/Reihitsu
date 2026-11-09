@@ -170,7 +170,7 @@ public static class PhaseStabilityCheck
 
         foreach (var phase in phases)
         {
-            var output = FormattingPipeline.ExecutePhases(root, context, [phase], null, CancellationToken.None).ToFullString();
+            var output = FormattingPipeline.ExecutePhases(root, context, [phase], null, CancellationToken.None).Output.ToFullString();
 
             if (output != text)
             {

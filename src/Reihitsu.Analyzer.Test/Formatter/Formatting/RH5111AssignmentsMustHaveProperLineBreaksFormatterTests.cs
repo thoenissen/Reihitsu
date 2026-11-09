@@ -115,7 +115,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksFormatterTests : Formatter
             var normalizedInput = input.Replace("{|#0:", string.Empty).Replace("|}", string.Empty).Replace("\r\n", "\n").Replace("\n", endOfLine);
             var normalizedFixedData = fixedData.Replace("\r\n", "\n").Replace("\n", endOfLine);
             var syntaxTree = CSharpSyntaxTree.ParseText(normalizedInput, cancellationToken: TestContext.CancellationToken);
-            var formatted = FormattingPipeline.Execute(await syntaxTree.GetRootAsync(TestContext.CancellationToken), new FormattingContext(endOfLine), TestContext.CancellationToken).ToFullString();
+            var formatted = FormattingPipeline.Execute(await syntaxTree.GetRootAsync(TestContext.CancellationToken), new FormattingContext(endOfLine), TestContext.CancellationToken).Output.ToFullString();
 
             Assert.AreEqual(normalizedFixedData, formatted, "Formatter output should join the parameter default value.");
         }
@@ -143,6 +143,36 @@ public class RH5111AssignmentsMustHaveProperLineBreaksFormatterTests : Formatter
                                  internal enum Values
                                  {
                                      First = 1
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter joins an enum member whose <c>=</c> stands below its name, so the analyzer reports
+    /// nothing on the formatted code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-016")]
+    public async Task VerifyFormatterFixesEnumMemberEqualsBelowName()
+    {
+        const string input = """
+                             internal enum Values
+                             {
+                                 {|#0:First
+                                     = 1|},
+                                 Second
+                             }
+                             """;
+        const string fixedData = """
+                                 internal enum Values
+                                 {
+                                     First = 1,
+                                     Second
                                  }
                                  """;
 

@@ -122,7 +122,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
 
         // Assert
         Assert.AreSame(tree, result, "Tree with syntax errors should be returned unchanged.");
@@ -149,7 +149,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
 
         // Assert
         Assert.AreSame(tree, result, "Syntax-invalid source with an unmatched region should remain unchanged.");
@@ -176,7 +176,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
 
         // Assert
         Assert.AreSame(tree, result, "Syntax-invalid source with an unmatched endregion should remain unchanged.");
@@ -207,7 +207,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
 
         // Assert
         Assert.AreSame(tree, result, "Tree with single-line auto-generated marker should be returned unchanged.");
@@ -242,7 +242,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
 
         // Assert
         Assert.AreSame(tree, result, "Tree with multi-line auto-generated marker should be returned unchanged.");
@@ -284,7 +284,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
         var actual = result.GetRoot(TestContext.CancellationToken).ToFullString();
 
         // Assert
@@ -320,7 +320,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
         var actual = result.GetRoot(TestContext.CancellationToken).ToFullString();
 
         // Assert
@@ -354,7 +354,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                                .OfType<PropertyDeclarationSyntax>()
                                .Single(obj => obj.Identifier.ValueText == "Other");
 
-            var result = ReihitsuFormatter.FormatNode(property, indentLevel: 1, cancellationToken: TestContext.CancellationToken);
+            var result = ReihitsuFormatter.FormatNode(property, indentLevel: 1, cancellationToken: TestContext.CancellationToken).Output;
             var firstPass = result.ToFullString();
 
             Assert.AreEqual(expected, firstPass, $"Subtree formatting should preserve documentation under {DescribeLineEnding(endOfLine)} line endings.");
@@ -364,7 +364,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                                                .DescendantNodes()
                                                .OfType<PropertyDeclarationSyntax>()
                                                .Single();
-            var secondResult = ReihitsuFormatter.FormatNode(reparsedProperty, indentLevel: 1, cancellationToken: TestContext.CancellationToken);
+            var secondResult = ReihitsuFormatter.FormatNode(reparsedProperty, indentLevel: 1, cancellationToken: TestContext.CancellationToken).Output;
 
             Assert.AreEqual(firstPass, secondResult.ToFullString(), $"Subtree formatting should be idempotent under {DescribeLineEnding(endOfLine)} line endings.");
         }
@@ -384,13 +384,13 @@ public class ReihitsuFormatterTests : FormatterTestsBase
             var input = NormalizeLineEndings(inputWithLf, endOfLine);
             var expected = NormalizeLineEndings(expectedWithLf, endOfLine);
             var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-            var firstResult = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+            var firstResult = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
             var firstPass = firstResult.GetRoot(TestContext.CancellationToken).ToFullString();
 
             Assert.AreEqual(expected, firstPass, $"Documentation-only input should preserve {DescribeLineEnding(endOfLine)} line endings.");
 
             var reparsedTree = CSharpSyntaxTree.ParseText(firstPass, cancellationToken: TestContext.CancellationToken);
-            var secondResult = ReihitsuFormatter.FormatSyntaxTree(reparsedTree, TestContext.CancellationToken);
+            var secondResult = ReihitsuFormatter.FormatSyntaxTree(reparsedTree, TestContext.CancellationToken).Output;
 
             Assert.AreEqual(firstPass, secondResult.GetRoot(TestContext.CancellationToken).ToFullString(), $"Documentation-only input should be idempotent under {DescribeLineEnding(endOfLine)} line endings.");
         }
@@ -423,7 +423,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         foreach (var testCase in testCases)
         {
             var tree = CSharpSyntaxTree.ParseText(testCase.Input, cancellationToken: TestContext.CancellationToken);
-            var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+            var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
             var firstPass = result.GetRoot(TestContext.CancellationToken).ToFullString();
 
             Assert.AreEqual(testCase.Expected,
@@ -436,7 +436,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                                   reparsedTree.GetDiagnostics(TestContext.CancellationToken),
                                   $"Reparsed {testCase.Description} output should not have syntax errors.");
 
-            var secondResult = ReihitsuFormatter.FormatSyntaxTree(reparsedTree, TestContext.CancellationToken);
+            var secondResult = ReihitsuFormatter.FormatSyntaxTree(reparsedTree, TestContext.CancellationToken).Output;
 
             Assert.AreEqual(firstPass,
                             secondResult.GetRoot(TestContext.CancellationToken).ToFullString(),
@@ -456,7 +456,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
 
         // Assert — the formatter may normalize the file (e.g. add a trailing newline),
         // but it must not throw or produce syntax errors.
@@ -488,7 +488,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var methodNode = root.DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
 
         // Act
-        var result = ReihitsuFormatter.FormatNode(methodNode, cancellationToken: TestContext.CancellationToken);
+        var result = ReihitsuFormatter.FormatNode(methodNode, cancellationToken: TestContext.CancellationToken).Output;
         var actual = result.ToFullString();
 
         // Assert
@@ -533,7 +533,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
             Assert.IsNull(detachedMethod.Parent, "Test setup must use a detached node.");
 
             // Act
-            var firstResult = ReihitsuFormatter.FormatNode(detachedMethod, cancellationToken: TestContext.CancellationToken);
+            var firstResult = ReihitsuFormatter.FormatNode(detachedMethod, cancellationToken: TestContext.CancellationToken).Output;
             var firstPass = firstResult.ToFullString();
 
             // Assert
@@ -546,7 +546,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
 
             Assert.IsNotNull(reparsedMethod, "Expected the first-pass output to parse as a method declaration.");
 
-            var secondResult = ReihitsuFormatter.FormatNode(reparsedMethod, cancellationToken: TestContext.CancellationToken);
+            var secondResult = ReihitsuFormatter.FormatNode(reparsedMethod, cancellationToken: TestContext.CancellationToken).Output;
 
             Assert.AreEqual(firstPass,
                             secondResult.ToFullString(),
@@ -578,7 +578,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                 Assert.IsNotNull(detachedMethod, "Expected the fixture to parse as a method declaration.");
 
                 // Act
-                var firstPass = ReihitsuFormatter.FormatNode(detachedMethod, cancellationToken: TestContext.CancellationToken).ToFullString();
+                var firstPass = ReihitsuFormatter.FormatNode(detachedMethod, cancellationToken: TestContext.CancellationToken).Output.ToFullString();
 
                 // Assert
                 Assert.AreEqual(expected, firstPass, $"Unexpected first pass under {description}.");
@@ -587,7 +587,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                 var reparsedMethod = SyntaxFactory.ParseMemberDeclaration(firstPass);
 
                 Assert.IsNotNull(reparsedMethod, "Expected the first-pass output to parse as a method declaration.");
-                Assert.AreEqual(firstPass, ReihitsuFormatter.FormatNode(reparsedMethod, cancellationToken: TestContext.CancellationToken).ToFullString(), $"The second pass must not change the output under {description}.");
+                Assert.AreEqual(firstPass, ReihitsuFormatter.FormatNode(reparsedMethod, cancellationToken: TestContext.CancellationToken).Output.ToFullString(), $"The second pass must not change the output under {description}.");
             }
         }
     }
@@ -625,7 +625,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var ifStatement = root.DescendantNodes().OfType<IfStatementSyntax>().Single();
 
         // Act
-        var result = ReihitsuFormatter.FormatNode(ifStatement, cancellationToken: TestContext.CancellationToken);
+        var result = ReihitsuFormatter.FormatNode(ifStatement, cancellationToken: TestContext.CancellationToken).Output;
         var formattedText = result.ToFullString();
 
         // Assert — level 4 puts the if at column 16 and its body statement at column 20
@@ -660,7 +660,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         Assert.IsNotNull(detachedMethodNode.SyntaxTree, "Detached/generated nodes should receive a synthesized syntax tree from Roslyn.");
 
         // Act
-        var result = ReihitsuFormatter.FormatNode(detachedMethodNode, cancellationToken: TestContext.CancellationToken);
+        var result = ReihitsuFormatter.FormatNode(detachedMethodNode, cancellationToken: TestContext.CancellationToken).Output;
         var actual = result.ToFullString();
 
         // Assert
@@ -692,7 +692,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         Assert.IsNotNull(detachedMethodNode.SyntaxTree, "Detached/generated nodes should receive a synthesized syntax tree from Roslyn.");
 
         // Act
-        var result = ReihitsuFormatter.FormatNode(detachedMethodNode, cancellationToken: TestContext.CancellationToken);
+        var result = ReihitsuFormatter.FormatNode(detachedMethodNode, cancellationToken: TestContext.CancellationToken).Output;
         var rawStringToken = result.DescendantNodes()
                                    .OfType<LiteralExpressionSyntax>()
                                    .Single()
@@ -734,7 +734,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
             var document = project.AddDocument("Test.cs", SourceText.From(input));
 
             // Act
-            var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
+            var result = (await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken)).Output;
 
             // Assert
             var originalText = await document.GetTextAsync(TestContext.CancellationToken);
@@ -773,7 +773,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
             var document = project.AddDocument("Test.cs", SourceText.From(input));
 
             // Act
-            var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
+            var result = (await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken)).Output;
 
             // Assert
             var originalText = await document.GetTextAsync(TestContext.CancellationToken);
@@ -825,7 +825,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
             var document = project.AddDocument("Test.cs", SourceText.From(input));
 
             // Act
-            var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
+            var result = (await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken)).Output;
             var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
 
             // Assert
@@ -885,9 +885,9 @@ public class ReihitsuFormatterTests : FormatterTestsBase
             }
 
             // Act
-            var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document,
-                                                                           namespaceDeclaration,
-                                                                           TestContext.CancellationToken);
+            var result = (await ReihitsuFormatter.FormatNodeInDocumentAsync(document,
+                                                                            namespaceDeclaration,
+                                                                            TestContext.CancellationToken)).Output;
             var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
 
             // Assert
@@ -944,9 +944,9 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                 Assert.IsNotNull(root, "Expected a syntax root in the test document.");
 
                 // Act
-                var firstResult = await ReihitsuFormatter.FormatNodeInDocumentAsync(document,
-                                                                                    root,
-                                                                                    TestContext.CancellationToken);
+                var firstResult = (await ReihitsuFormatter.FormatNodeInDocumentAsync(document,
+                                                                                     root,
+                                                                                     TestContext.CancellationToken)).Output;
                 var firstPass = (await firstResult.GetTextAsync(TestContext.CancellationToken)).ToString();
 
                 // Assert
@@ -959,9 +959,9 @@ public class ReihitsuFormatterTests : FormatterTestsBase
 
                 Assert.IsNotNull(firstRoot, "Expected a syntax root after the first formatting pass.");
 
-                var secondResult = await ReihitsuFormatter.FormatNodeInDocumentAsync(firstResult,
-                                                                                     firstRoot,
-                                                                                     TestContext.CancellationToken);
+                var secondResult = (await ReihitsuFormatter.FormatNodeInDocumentAsync(firstResult,
+                                                                                      firstRoot,
+                                                                                      TestContext.CancellationToken)).Output;
                 var secondPass = (await secondResult.GetTextAsync(TestContext.CancellationToken)).ToString();
 
                 Assert.AreEqual(firstPass,
@@ -1034,9 +1034,9 @@ public class ReihitsuFormatterTests : FormatterTestsBase
             }
 
             // Act
-            var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document,
-                                                                           namespaceDeclaration,
-                                                                           TestContext.CancellationToken);
+            var result = (await ReihitsuFormatter.FormatNodeInDocumentAsync(document,
+                                                                            namespaceDeclaration,
+                                                                            TestContext.CancellationToken)).Output;
             var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
 
             // Assert
@@ -1092,7 +1092,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                                                     .Text;
 
             // Act
-            var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, methods[0], TestContext.CancellationToken);
+            var result = (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, methods[0], TestContext.CancellationToken)).Output;
             var resultRoot = await result.GetSyntaxRootAsync(TestContext.CancellationToken);
             var resultMethods = resultRoot?.DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
 
@@ -1169,10 +1169,10 @@ public class ReihitsuFormatterTests : FormatterTestsBase
             }
 
             // Act
-            var result = await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document,
-                                                                                      target,
-                                                                                      classDeclaration,
-                                                                                      TestContext.CancellationToken);
+            var result = (await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document,
+                                                                                       target,
+                                                                                       classDeclaration,
+                                                                                       TestContext.CancellationToken)).Output;
             var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
 
             // Assert
@@ -1208,7 +1208,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
 
             Assert.IsNotNull(root);
 
-            var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, root, TestContext.CancellationToken);
+            var result = (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, root, TestContext.CancellationToken)).Output;
             var originalText = await document.GetTextAsync(TestContext.CancellationToken);
             var resultText = await result.GetTextAsync(TestContext.CancellationToken);
 
@@ -1238,7 +1238,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
 
             Assert.IsNotNull(root);
 
-            var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, root, TestContext.CancellationToken);
+            var result = (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, root, TestContext.CancellationToken)).Output;
             var resultText = await result.GetTextAsync(TestContext.CancellationToken);
 
             Assert.AreEqual(expected, resultText.ToString(), "The root of a generated document must be formatted when it is the target.");
@@ -1286,7 +1286,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
 
             Assert.IsNotNull(root);
 
-            var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, root, TestContext.CancellationToken);
+            var result = (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, root, TestContext.CancellationToken)).Output;
             var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
 
             Assert.AreEqual(expected,
@@ -1332,7 +1332,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
         var actual = result.GetRoot(TestContext.CancellationToken).ToFullString();
 
         // Assert
@@ -1376,7 +1376,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
         var actual = result.GetRoot(TestContext.CancellationToken).ToFullString();
 
         // Assert
@@ -1410,7 +1410,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
         var actual = result.GetRoot(TestContext.CancellationToken).ToFullString();
 
         // Assert
@@ -1455,7 +1455,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
         var actual = result.GetRoot(TestContext.CancellationToken).ToFullString();
 
         // Assert
@@ -1477,7 +1477,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
         var actual = result.GetRoot(TestContext.CancellationToken).ToFullString();
 
         // Assert
@@ -1498,7 +1498,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
         var actual = result.GetRoot(TestContext.CancellationToken).ToFullString();
 
         // Assert
@@ -1531,7 +1531,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         {
             cts.Cancel();
 
-            Assert.ThrowsExactly<OperationCanceledException>(() => ReihitsuFormatter.FormatSyntaxTree(tree, cts.Token));
+            Assert.ThrowsExactly<OperationCanceledException>(() => ReihitsuFormatter.FormatSyntaxTree(tree, cts.Token).Output);
         }
     }
 
@@ -1575,7 +1575,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
         var actual = result.GetRoot(TestContext.CancellationToken).ToFullString();
 
         // Assert
@@ -1598,7 +1598,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
             var syntaxTree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
             // Act
-            var result = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, TestContext.CancellationToken);
+            var result = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, TestContext.CancellationToken).Output;
 
             // Assert
             Assert.AreEqual(expected, result.GetText(TestContext.CancellationToken).ToString(), $"Document-level formatting must convert the accessor under {DescribeLineEnding(endOfLine)} line endings.");
@@ -1626,7 +1626,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                 var document = project.AddDocument("Test.cs", SourceText.From(input));
 
                 // Act
-                var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
+                var result = (await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken)).Output;
                 var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
 
                 // Assert
@@ -1652,7 +1652,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
             var property = root.DescendantNodes().OfType<PropertyDeclarationSyntax>().Single();
 
             // Act
-            var result = ReihitsuFormatter.FormatNode(property, cancellationToken: TestContext.CancellationToken);
+            var result = ReihitsuFormatter.FormatNode(property, cancellationToken: TestContext.CancellationToken).Output;
 
             // Assert
             var accessor = result.DescendantNodes().OfType<AccessorDeclarationSyntax>().First();
@@ -1674,7 +1674,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     {
         await AssertNodeLevelFormattingKeepsSource(BlockBodiedAccessorSource,
                                                    static root => root.DescendantNodes().OfType<PropertyDeclarationSyntax>().Single(),
-                                                   static (document, target, cancellationToken) => ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, cancellationToken));
+                                                   static async (document, target, cancellationToken) => (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, cancellationToken)).Output);
     }
 
     /// <summary>
@@ -1688,7 +1688,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     {
         await AssertNodeLevelFormattingKeepsSource(BlockBodiedAccessorSource,
                                                    static root => root,
-                                                   static (document, target, cancellationToken) => ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, cancellationToken));
+                                                   static async (document, target, cancellationToken) => (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, cancellationToken)).Output);
     }
 
     /// <summary>
@@ -1703,10 +1703,10 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     {
         await AssertNodeLevelFormattingKeepsSource(BlockBodiedAccessorSource,
                                                    static root => root.DescendantNodes().OfType<PropertyDeclarationSyntax>().Single(),
-                                                   static (document, target, cancellationToken) => ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document,
-                                                                                                                                                          target,
-                                                                                                                                                          target.Ancestors().OfType<ClassDeclarationSyntax>().First(),
-                                                                                                                                                          cancellationToken));
+                                                   static async (document, target, cancellationToken) => (await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document,
+                                                                                                                                                                       target,
+                                                                                                                                                                       target.Ancestors().OfType<ClassDeclarationSyntax>().First(),
+                                                                                                                                                                       cancellationToken)).Output);
     }
 
     /// <summary>
@@ -1779,7 +1779,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
 
                 // Act — the set accessor's if-statement body is braced by a structural transform, without
                 // reordering the accessors, so the only expected change is the braced if-body
-                var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, property, TestContext.CancellationToken);
+                var result = (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, property, TestContext.CancellationToken)).Output;
                 var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
 
                 // Assert
@@ -1800,7 +1800,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     {
         await AssertNodeLevelFormattingKeepsSource(ExpressionBodiedIndexerSource,
                                                    static root => root.DescendantNodes().OfType<IndexerDeclarationSyntax>().Single(),
-                                                   static (document, target, cancellationToken) => ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, cancellationToken));
+                                                   static async (document, target, cancellationToken) => (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, cancellationToken)).Output);
     }
 
     /// <summary>
@@ -1824,7 +1824,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                 var document = project.AddDocument("Test.cs", SourceText.From(input));
 
                 // Act
-                var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
+                var result = (await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken)).Output;
                 var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
 
                 // Assert
@@ -1850,7 +1850,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
             var property = root.DescendantNodes().OfType<PropertyDeclarationSyntax>().Single();
 
             // Act
-            var result = (PropertyDeclarationSyntax)ReihitsuFormatter.FormatNode(property, cancellationToken: TestContext.CancellationToken);
+            var result = (PropertyDeclarationSyntax)ReihitsuFormatter.FormatNode(property, cancellationToken: TestContext.CancellationToken).Output;
 
             // Assert
             Assert.IsNotNull(result.AccessorList, $"Node-level formatting must keep the accessor list under {DescribeLineEnding(endOfLine)} line endings.");
@@ -1870,7 +1870,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     {
         await AssertNodeLevelFormattingKeepsSource(GetOnlyAccessorListSource,
                                                    static root => root.DescendantNodes().OfType<PropertyDeclarationSyntax>().Single(),
-                                                   static (document, target, cancellationToken) => ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, cancellationToken));
+                                                   static async (document, target, cancellationToken) => (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, cancellationToken)).Output);
     }
 
     /// <summary>
@@ -1884,7 +1884,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     {
         await AssertNodeLevelFormattingKeepsSource(GetOnlyAccessorListSource,
                                                    static root => root,
-                                                   static (document, target, cancellationToken) => ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, cancellationToken));
+                                                   static async (document, target, cancellationToken) => (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, cancellationToken)).Output);
     }
 
     /// <summary>
@@ -1899,10 +1899,10 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     {
         await AssertNodeLevelFormattingKeepsSource(GetOnlyAccessorListSource,
                                                    static root => root.DescendantNodes().OfType<PropertyDeclarationSyntax>().Single(),
-                                                   static (document, target, cancellationToken) => ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document,
-                                                                                                                                                          target,
-                                                                                                                                                          target.Ancestors().OfType<ClassDeclarationSyntax>().First(),
-                                                                                                                                                          cancellationToken));
+                                                   static async (document, target, cancellationToken) => (await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document,
+                                                                                                                                                                       target,
+                                                                                                                                                                       target.Ancestors().OfType<ClassDeclarationSyntax>().First(),
+                                                                                                                                                                       cancellationToken)).Output);
     }
 
     /// <summary>

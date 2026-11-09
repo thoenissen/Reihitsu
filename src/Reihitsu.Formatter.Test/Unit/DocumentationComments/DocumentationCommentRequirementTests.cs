@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -81,14 +81,14 @@ public class DocumentationCommentRequirementTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 int A /// stray
+                                 int A => 1 /// stray
                                      ;
                              }
                              """;
         const string expected = """
                                 class C
                                 {
-                                    int A /// stray
+                                    int A => 1 /// stray
                                     ;
                                 }
                                 """;

@@ -370,17 +370,18 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a block comment written before a field's semicolon keeps the space in front of it. The
+    /// Verifies that a block comment written before a member's semicolon keeps the space in front of it. The
     /// spacing rules decide from the token pair alone, so without the comment-gap exemption they would collapse
-    /// the gap between the declarator and the semicolon and delete that space
+    /// the gap between the expression and the semicolon and delete that space. An expression-bodied property carries the
+    /// comment, because a comment in front of a variable declaration's semicolon makes the input unsupported
     /// </summary>
     [TestMethod]
-    public void PreservesBlockCommentBeforeFieldSemicolon()
+    public void PreservesBlockCommentBeforeMemberSemicolon()
     {
         const string input = """
                              internal class TestClass
                              {
-                                 private int _fourth /* Comment */;
+                                 private int Fourth => 4 /* Comment */;
                              }
                              """;
 
@@ -708,17 +709,17 @@ public class TrailingDocumentationCommentPreservationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a delimited documentation comment written before a single field's semicolon stays in place.
-    /// No split is involved here, which is what makes the split field's output identical to the declaration the
-    /// author would have written by hand
+    /// Verifies that a delimited documentation comment written before a member's semicolon stays in place. An
+    /// expression-bodied property carries the comment, because a comment in front of a variable declaration's semicolon
+    /// makes the input unsupported
     /// </summary>
     [TestMethod]
-    public void PreservesDelimitedDocumentationBeforeSingleFieldSemicolon()
+    public void PreservesDelimitedDocumentationBeforeMemberSemicolon()
     {
         const string input = """
                              internal class TestClass
                              {
-                                 private int _only /** note */;
+                                 private int Only => 1 /** note */;
                              }
                              """;
 

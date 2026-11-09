@@ -5,8 +5,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
-using Reihitsu.Formatter.Data;
-using Reihitsu.Formatter.Pipeline.Core.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 
@@ -16,11 +14,6 @@ namespace Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
 {
     #region Fields
-
-    /// <summary>
-    /// Formatting context
-    /// </summary>
-    private readonly FormattingContext _context;
 
     /// <summary>
     /// Cancellation token
@@ -34,11 +27,9 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="context">Formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public FieldDeclarationSplitTransform(FormattingContext context, CancellationToken cancellationToken)
+    public FieldDeclarationSplitTransform(CancellationToken cancellationToken)
     {
-        _context = context;
         _cancellationToken = cancellationToken;
     }
 
@@ -48,8 +39,9 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
 
     /// <summary>
     /// Determines whether the transform splits the field declaration: it declares more than one variable, is a member of a
-    /// class, struct, record, or interface, and carries no preprocessor directive or disabled text (FMT-STRUCT-021,
-    /// FMT-STRUCT-023)
+    /// class, struct, record, or interface, carries no preprocessor directive or disabled text, and has no documentation
+    /// comment (FMT-STRUCT-021, FMT-STRUCT-023, FMT-STRUCT-030). A comment anywhere else in the declaration never reaches
+    /// the split, because the precheck refuses every input that holds one (FMT-UNSUP-004)
     /// </summary>
     /// <param name="fieldDeclaration">The field declaration to inspect</param>
     /// <returns><see langword="true"/> if the transform splits the declaration; otherwise, <see langword="false"/></returns>
@@ -57,7 +49,21 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     {
         return fieldDeclaration.Declaration.Variables.Count > 1
                && fieldDeclaration.Parent is ClassDeclarationSyntax or StructDeclarationSyntax or RecordDeclarationSyntax or InterfaceDeclarationSyntax
-               && CarriesDirective(fieldDeclaration) == false;
+               && CarriesDirective(fieldDeclaration) == false
+               && IsDocumented(fieldDeclaration) == false;
+    }
+
+    /// <summary>
+    /// Determines whether a field declaration has a documentation comment in its leading trivia. The split keeps that trivia
+    /// on the first generated field only, so every other field would lose the documentation that applied to it. The parser
+    /// produces documentation comment trivia only in the documentation modes <c>Parse</c> and <c>Diagnose</c>; in the mode
+    /// <c>None</c>, a <c>///</c> or <c>/** */</c> comment is an ordinary comment and does not count (FMT-STRUCT-030)
+    /// </summary>
+    /// <param name="fieldDeclaration">The field declaration to inspect</param>
+    /// <returns><see langword="true"/> if the declaration is documented; otherwise, <see langword="false"/></returns>
+    private static bool IsDocumented(FieldDeclarationSyntax fieldDeclaration)
+    {
+        return fieldDeclaration.GetLeadingTrivia().Any(SyntaxTriviaUtilities.IsDocumentationCommentTrivia);
     }
 
     /// <summary>
@@ -73,73 +79,53 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Gets the comment trivia contained in the provided trivia list, including documentation comments
+    /// Splits one eligible field declaration into single-declarator fields
     /// </summary>
-    /// <param name="trivia">The trivia list</param>
-    /// <returns>The comment trivia</returns>
-    private static List<SyntaxTrivia> GetComments(SyntaxTriviaList trivia)
+    /// <param name="fieldDeclaration">Field declaration to split</param>
+    /// <returns>The generated single-declarator fields</returns>
+    private static IEnumerable<FieldDeclarationSyntax> SplitField(FieldDeclarationSyntax fieldDeclaration)
     {
-        return trivia.Where(SyntaxTriviaUtilities.IsCommentTrivia).ToList();
+        var variables = fieldDeclaration.Declaration.Variables;
+
+        return variables.Select((_, variableIndex) => CreateSplitField(fieldDeclaration, variableIndex));
     }
 
     /// <summary>
-    /// Builds the trailing trivia for a split field that a separating comma ended: one space in front of each comment that
-    /// trailed the comma, and a line break where no later phase writes one (FMT-STRUCT-026) — behind a single-line comment,
-    /// behind comments of which one spans lines, and in front of a comment that leads the next field. A gap without a line
-    /// break is broken by the line-break phase; a gap whose only line break is inside a comment is not
-    /// (<see cref="TokenGapUtilities.HasLineBreak(SyntaxTriviaList)"/>), so the split ends the field's line itself
+    /// Creates the generated field for one declarator. The first field keeps the declaration's leading trivia, the last its
+    /// trailing trivia; a later declarator's leading trivia and a separator's trailing trivia hold no comment
+    /// (FMT-UNSUP-004) and are dropped, and no field gets a separator in front of it (FMT-STRUCT-022, FMT-STRUCT-026)
     /// </summary>
-    /// <param name="comments">The comments that trailed the comma</param>
-    /// <param name="nextFieldHasLeadingComment">Whether a comment leads the next field</param>
-    /// <returns>The trailing trivia</returns>
-    private SyntaxTriviaList BuildTrailingTrivia(List<SyntaxTrivia> comments, bool nextFieldHasLeadingComment)
+    /// <param name="fieldDeclaration">Original field declaration</param>
+    /// <param name="variableIndex">Index of the declarator to emit</param>
+    /// <returns>The generated single-declarator field</returns>
+    private static FieldDeclarationSyntax CreateSplitField(FieldDeclarationSyntax fieldDeclaration, int variableIndex)
     {
-        var trivia = new List<SyntaxTrivia>((comments.Count * 2) + 1);
+        var variables = fieldDeclaration.Declaration.Variables;
+        var variable = variables[variableIndex];
 
-        foreach (var comment in comments)
+        // The first declarator keeps the whitespace in front of its name; a later one stands behind the repeated type
+        // instead of behind a separator, so the whitespace that followed the separator is dropped
+        var declarator = variableIndex == 0
+                             ? variable
+                             : variable.WithoutLeadingTrivia();
+        var updatedField = fieldDeclaration.WithDeclaration(fieldDeclaration.Declaration.WithVariables(SyntaxFactory.SingletonSeparatedList(declarator)));
+
+        if (variableIndex > 0)
         {
-            trivia.Add(SyntaxFactory.Space);
-            trivia.Add(comment);
+            updatedField = updatedField.WithLeadingTrivia();
         }
 
-        var triviaList = SyntaxFactory.TriviaList(trivia);
-        var endsWithSingleLineComment = comments.Count > 0
-                                        && comments[comments.Count - 1].IsKind(SyntaxKind.SingleLineCommentTrivia);
+        // The separator for every non-final declarator and the declaration semicolon for the final declarator become
+        // the generated field's terminator, which keeps the trivia in front of that token
+        var isFinalVariable = variableIndex == variables.Count - 1;
+        var terminator = isFinalVariable ? fieldDeclaration.SemicolonToken : variables.GetSeparator(variableIndex);
 
-        if (endsWithSingleLineComment
-            || nextFieldHasLeadingComment
-            || TokenGapUtilities.HasLineBreak(triviaList))
+        if (isFinalVariable == false)
         {
-            triviaList = triviaList.Add(SyntaxFactory.EndOfLine(_context.EndOfLine));
+            updatedField = updatedField.WithTrailingTrivia();
         }
 
-        return triviaList;
-    }
-
-    /// <summary>
-    /// Builds the leading trivia for a later split field: each comment that preceded its declarator, on a line of its own.
-    /// No indentation is written, because the indentation phase indents those lines (FMT-STRUCT-026)
-    /// </summary>
-    /// <param name="comments">The comments that preceded the declarator</param>
-    /// <returns>The leading trivia</returns>
-    private SyntaxTriviaList BuildLeadingTrivia(List<SyntaxTrivia> comments)
-    {
-        var trivia = new List<SyntaxTrivia>(comments.Count * 2);
-
-        foreach (var comment in comments)
-        {
-            trivia.Add(comment);
-
-            // A single-line documentation comment already terminates its line, so another end-of-line would put a blank
-            // line between the comment and the field it documents. A delimited documentation comment (/** … */) carries
-            // no break and still needs one, which is why the question is asked of the trivia text rather than of its kind
-            if (SyntaxTriviaUtilities.EndsLine(comment) == false)
-            {
-                trivia.Add(SyntaxFactory.EndOfLine(_context.EndOfLine));
-            }
-        }
-
-        return SyntaxFactory.TriviaList(trivia);
+        return updatedField.WithSemicolonToken(updatedField.SemicolonToken.WithLeadingTrivia(terminator.LeadingTrivia));
     }
 
     /// <summary>
@@ -160,9 +146,8 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            // Splitting rebuilds each generated field's trivia from comments only. A preprocessor directive or disabled
-            // text entangled with the declarators or separators would be dropped, so Splits leaves directive-bearing
-            // declarations intact.
+            // Splitting drops the trivia of the separators and of every later declarator's name. A preprocessor directive
+            // or disabled text there would be dropped with it, so Splits leaves directive-bearing declarations intact.
             if (member is FieldDeclarationSyntax fieldDeclaration
                 && Splits(fieldDeclaration))
             {
@@ -175,55 +160,6 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
         }
 
         return SyntaxFactory.List(updatedMembers);
-    }
-
-    /// <summary>
-    /// Splits one eligible field declaration into single-declarator fields
-    /// </summary>
-    /// <param name="fieldDeclaration">Field declaration to split</param>
-    /// <returns>The generated single-declarator fields</returns>
-    private IEnumerable<FieldDeclarationSyntax> SplitField(FieldDeclarationSyntax fieldDeclaration)
-    {
-        var variables = fieldDeclaration.Declaration.Variables;
-
-        return variables.Select((_, variableIndex) => CreateSplitField(fieldDeclaration, variableIndex));
-    }
-
-    /// <summary>
-    /// Creates the generated field for one declarator while preserving its trivia slots
-    /// </summary>
-    /// <param name="fieldDeclaration">Original field declaration</param>
-    /// <param name="variableIndex">Index of the declarator to emit</param>
-    /// <returns>The generated single-declarator field</returns>
-    private FieldDeclarationSyntax CreateSplitField(FieldDeclarationSyntax fieldDeclaration, int variableIndex)
-    {
-        var variables = fieldDeclaration.Declaration.Variables;
-        var variable = variables[variableIndex];
-
-        // Only a later declarator's leading trivia is dropped, because BuildLeadingTrivia rebuilds it below. The
-        // first declarator is carried over unchanged so comments between the type and declarator remain in that slot.
-        // Trailing trivia stays on its declarator so comments are not moved into a leading position.
-        var declarator = variableIndex == 0
-                             ? variable
-                             : variable.WithoutTrivia()
-                                       .WithTrailingTrivia(variable.GetTrailingTrivia());
-        var updatedField = fieldDeclaration.WithDeclaration(fieldDeclaration.Declaration.WithVariables(SyntaxFactory.SingletonSeparatedList(declarator)));
-
-        updatedField = variableIndex == 0
-                           ? updatedField.WithLeadingTrivia(fieldDeclaration.GetLeadingTrivia())
-                           : updatedField.WithLeadingTrivia(BuildLeadingTrivia(GetComments(variable.GetLeadingTrivia())));
-
-        // The separator for every non-final declarator and the declaration semicolon for the final declarator become
-        // the generated field's terminator. Trivia before and after that token remains on the same side.
-        var isFinalVariable = variableIndex == variables.Count - 1;
-        var terminator = isFinalVariable ? fieldDeclaration.SemicolonToken : variables.GetSeparator(variableIndex);
-
-        updatedField = isFinalVariable
-                           ? updatedField.WithTrailingTrivia(fieldDeclaration.GetTrailingTrivia())
-                           : updatedField.WithTrailingTrivia(BuildTrailingTrivia(GetComments(terminator.TrailingTrivia),
-                                                                                 variables[variableIndex + 1].GetLeadingTrivia().Any(SyntaxTriviaUtilities.IsCommentTrivia)));
-
-        return updatedField.WithSemicolonToken(updatedField.SemicolonToken.WithLeadingTrivia(terminator.LeadingTrivia));
     }
 
     #endregion // Methods

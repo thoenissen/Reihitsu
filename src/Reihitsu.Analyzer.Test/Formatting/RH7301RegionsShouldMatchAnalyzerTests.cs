@@ -368,6 +368,35 @@ public class RH7301RegionsShouldMatchAnalyzerTests : BatchCodeFixTestsBase<RH730
     }
 
     /// <summary>
+    /// Verifies that the fix rewrites the description of an end directive written with whitespace between <c>#</c> and
+    /// <c>endregion</c> and keeps that whitespace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task RegionFixKeepsWhitespaceBetweenNumberSignAndEndRegionKeyword()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region Methods
+
+                                    {|#0:#  endregion // Wrong|}
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class TestClass
+                                  {
+                                      #region Methods
+
+                                      #  endregion // Methods
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that every end directive whose description differs from its region's is reported, also in an element body and when only the case differs
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

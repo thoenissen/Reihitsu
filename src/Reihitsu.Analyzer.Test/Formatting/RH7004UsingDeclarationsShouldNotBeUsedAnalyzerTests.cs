@@ -1298,13 +1298,13 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifies that a comment on the line in front of the semicolon stays on the line in front of the closing parenthesis
-    /// the semicolon is rewritten into, laid out as the formatter lays it out
+    /// Verifies that a comment on the line in front of the semicolon withholds the fix: the using statement the fix
+    /// builds would hold the comment on its own line in front of its closing parenthesis, which the formatter refuses
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-FIX-003")]
-    public async Task FixKeepsACommentInFrontOfTheSemicolon()
+    [Requirement("SHARED-FIX-010")]
+    public async Task NoFixIsOfferedForACommentInFrontOfTheSemicolon()
     {
         const string source = """
                               using System.IO;
@@ -1321,25 +1321,7 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
                               }
                               """;
 
-        const string fixedSource = """
-                                   using System.IO;
-
-                                   class C
-                                   {
-                                       void M()
-                                       {
-                                           using (var s = new MemoryStream()
-
-                                           // c
-                                           )
-                                           {
-                                               s.Flush();
-                                           }
-                                       }
-                                   }
-                                   """;
-
-        await Verify(source, fixedSource);
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     /// <summary>

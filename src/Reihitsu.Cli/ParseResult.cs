@@ -12,6 +12,7 @@ namespace Reihitsu.Cli;
 /// <param name="Verbose">Whether --verbose was specified</param>
 /// <param name="Force">Whether --force was specified</param>
 /// <param name="Utf8Bom">Whether --utf8-bom was specified</param>
+/// <param name="SuppressUnsupported">Whether --suppress-unsupported was specified</param>
 /// <param name="ShowHelp">Whether --help was specified</param>
 /// <param name="ShowVersion">Whether --version was specified</param>
 /// <param name="Paths">The list of file/directory paths</param>
@@ -24,6 +25,7 @@ internal readonly record struct ParseResult(bool CheckOnly,
                                             bool Verbose,
                                             bool Force,
                                             bool Utf8Bom,
+                                            bool SuppressUnsupported,
                                             bool ShowHelp,
                                             bool ShowVersion,
                                             IReadOnlyList<string> Paths,

@@ -407,6 +407,256 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : B
         await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5110MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the fix lays out the constraints of the clauses it moves: a clause wrapped behind a comma becomes one
+    /// constraint per line, aligned under the first constraint, and a constraint wrapped behind the colon is joined onto
+    /// the colon's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-003")]
+    public async Task VerifyFixLaysOutWrappedConstraints()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    void M<T>() {|#0:where|} T : class,
+                                        new()
+                                    {
+                                    }
+
+                                    void N<T>() {|#1:where|} T :
+                                        IDisposable
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 internal class TestClass
+                                 {
+                                     void M<T>()
+                                         where T : class,
+                                                   new()
+                                     {
+                                     }
+
+                                     void N<T>()
+                                         where T : IDisposable
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5110MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out a partly wrapped clause one constraint per line under CRLF line endings and keeps them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-003")]
+    public async Task VerifyFixLaysOutWrappedConstraintsWithCrLf()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    void M<T>() {|#0:where|} T : class, IDisposable,
+                                        new()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 internal class TestClass
+                                 {
+                                     void M<T>()
+                                         where T : class,
+                                                   IDisposable,
+                                                   new()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5110MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the spec example: the fix is offered where a comment behind the colon and a comment in front of a comma
+    /// keep their line breaks, and it lays out the lines around them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-003")]
+    public async Task VerifyFixIsOfferedWhereCommentsBlockJoins()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void M<T>() {|#0:where|} T : // c
+                                        class, new()
+                                    {
+                                    }
+
+                                    void N<T>() {|#1:where|} T : class // c
+                                        , new()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void M<T>()
+                                         where T : // c
+                                                   class,
+                                                   new()
+                                     {
+                                     }
+
+                                     void N<T>()
+                                         where T : class // c
+                                                   , new()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5110MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered where a comment behind the type parameter keeps the colon on its own line, and
+    /// that it indents the colon one level deeper than <c>where</c> with the constraints aligned behind it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-003")]
+    public async Task VerifyFixIsOfferedWhereCommentKeepsColonOnItsOwnLine()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void M<T>() {|#0:where|} T // c
+                                        : class, new()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void M<T>()
+                                         where T // c
+                                             : class,
+                                               new()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5110MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered where a directive behind the colon keeps the first constraint on the next line,
+    /// and that it aligns the constraints to the column behind the colon
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-003")]
+    public async Task VerifyFixIsOfferedWhereDirectiveKeepsFirstConstraintOnNextLine()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void M<T>() {|#0:where|} T :
+                                #if !X
+                                        class,
+                                #endif
+                                        new()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void M<T>()
+                                         where T :
+                                 #if !X
+                                                   class,
+                                 #endif
+                                                   new()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5110MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix gives a tight constraint colon the formatter's spacing: one space on each side
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-003")]
+    public async Task VerifyFixSpacesTightConstraintColon()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void M<T>() {|#0:where|} T:class
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void M<T>()
+                                         where T : class
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5110MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a refused comment in a member of the constrained type withholds the fix: the fix formats the
+    /// declaration that owns the constraint clause, which the formatter refuses, although the clause holds no refused
+    /// shape
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task NoFixIsOfferedWhenTheConstrainedDeclarationHoldsACommentTheFormatterRefuses()
+    {
+        const string source = """
+                              internal class Example<T> {|RH5110:where|} T : class
+                              {
+                                  private void M()
+                                  {
+                                      int /* c */ y = 1;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

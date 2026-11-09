@@ -107,7 +107,7 @@ internal static class Program
                 var diffGenerator = new DefaultDiffGenerator();
 
                 var dependencies = new FormatCommandDependencies(fileSystem, console, consoleInput, formatter, diffGenerator);
-                var handler = new FormatCommandHandler(paths.ToArray(), result.CheckOnly, result.DryRun, result.Verbose, result.Force, result.Utf8Bom, result.LanguageVersion, dependencies);
+                var handler = new FormatCommandHandler(paths.ToArray(), result.CheckOnly, result.DryRun, result.Verbose, result.Force, result.Utf8Bom, result.LanguageVersion, dependencies, result.SuppressUnsupported);
 
                 return await handler.ExecuteAsync(cancellationTokenSource.Token).ConfigureAwait(false);
             }
@@ -142,6 +142,7 @@ internal static class Program
         var verbose = false;
         var force = false;
         var utf8Bom = false;
+        var suppressUnsupported = false;
         var showHelp = false;
         var showVersion = false;
         var paths = new List<string>();
@@ -217,6 +218,12 @@ internal static class Program
                     }
                     break;
 
+                case "--suppress-unsupported":
+                    {
+                        suppressUnsupported = true;
+                    }
+                    break;
+
                 case "--help":
                 case "-h":
                     {
@@ -258,7 +265,7 @@ internal static class Program
             argumentError ??= $"Missing value for {LanguageVersionOption}.";
         }
 
-        return new ParseResult(checkOnly, dryRun, verbose, force, utf8Bom, showHelp, showVersion, paths, unknownOption, languageVersion, exceedingLanguageVersion, argumentError);
+        return new ParseResult(checkOnly, dryRun, verbose, force, utf8Bom, suppressUnsupported, showHelp, showVersion, paths, unknownOption, languageVersion, exceedingLanguageVersion, argumentError);
     }
 
     /// <summary>
@@ -278,6 +285,8 @@ internal static class Program
         writer.WriteLine("  --verbose    Show detailed output for each file");
         writer.WriteLine($"  --force      Skip the confirmation prompt shown when more than {FormatCommandHandler.LargeRunConfirmationThreshold} files would be formatted");
         writer.WriteLine("  --utf8-bom   Write processed files as UTF-8 with a byte order mark");
+        writer.WriteLine("  --suppress-unsupported");
+        writer.WriteLine("               Report a file with syntax the formatter does not support as a warning instead of an error; the file is never changed");
         writer.WriteLine("  --lang-version <version>");
         writer.WriteLine("               C# language version to parse and format for, such as 12, 12.0, latest, or preview (default: latest)");
         writer.WriteLine($"               latest selects {LanguageVersionResolver.MaxSupportedLanguageVersion.ToDisplayString()}, the newest supported version; newer values such as preview are lowered to it");

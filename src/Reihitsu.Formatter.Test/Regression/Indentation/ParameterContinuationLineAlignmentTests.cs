@@ -579,11 +579,12 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an indexer parameter sharing its line with a previous parameter keeps its continuation under its
-    /// own first token
+    /// Verifies that an indexer parameter sharing its line with a previous parameter in a wrapped list moves onto its own
+    /// line, and that its continuation stays under its own first token
     /// </summary>
     [TestMethod]
-    public void IndexerParameterOnSharedLineKeepsContinuationUnderItsFirstToken()
+    [Requirement("FMT-BREAK-012")]
+    public void IndexerParameterOnSharedLineMovesToItsOwnLineAndKeepsContinuationUnderItsFirstToken()
     {
         // Arrange
         const string input = """
@@ -597,9 +598,21 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
                                                               int second] => first;
                              }
                              """;
+        const string expected = """
+                                using System;
+
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal int this[int first,
+                                                      [Obsolete] // keep
+                                                      int second] => first;
+                                }
+                                """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -662,7 +675,7 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
                              internal unsafe class Example
                              {
                                  private delegate*<ref // keep
-                                                   int, void> _pointer;
+                                                   int, void> Pointer => null;
                              }
                              """;
 
@@ -862,10 +875,12 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a leading comma of an indexer parameter list is aligned with the parameters
+    /// Verifies that a leading comma of an indexer parameter list moves to the end of the previous parameter's line, and
+    /// that the parameter behind it stays aligned with the first parameter
     /// </summary>
     [TestMethod]
-    public void IndexerLeadingCommaStaysAligned()
+    [Requirement("FMT-BREAK-011")]
+    public void IndexerLeadingCommaMovesToTheEndOfThePreviousParameterLine()
     {
         // Arrange
         const string input = """
@@ -877,9 +892,18 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
                                                    , int second] => first;
                              }
                              """;
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal int this[int first,
+                                                      int second] => first;
+                                }
+                                """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -905,11 +929,12 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the continuation of a parameter that follows a leading comma is aligned with that parameter's
-    /// first token
+    /// Verifies that the leading comma in front of an indexer parameter moves to the end of the previous parameter's line,
+    /// and that the continuation of the parameter behind it is aligned with that parameter's first token
     /// </summary>
     [TestMethod]
-    public void ContinuationOfParameterAfterLeadingCommaIsAlignedWithItsFirstToken()
+    [Requirement("FMT-BREAK-011")]
+    public void ContinuationOfParameterAfterMovedLeadingCommaIsAlignedWithItsFirstToken()
     {
         // Arrange
         const string input = """
@@ -924,9 +949,21 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
                                                      int second] => first;
                              }
                              """;
+        const string expected = """
+                                using System;
+
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal int this[int first,
+                                                      [Obsolete] // keep
+                                                      int second] => first;
+                                }
+                                """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     #endregion // Methods

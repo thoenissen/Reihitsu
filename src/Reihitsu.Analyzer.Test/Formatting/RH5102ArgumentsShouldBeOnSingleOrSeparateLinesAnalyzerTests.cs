@@ -618,6 +618,39 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
         Assert.IsNotEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that the fix is withheld when the argument list it formats holds a lambda whose body declares a local with
+    /// a comment between the declaration's own tokens, which the formatter refuses
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task VerifyNoFixIsOfferedWhenTheArgumentListHoldsADeclarationTheFormatterRefuses()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call{|RH5102:(1, () =>
+                                                         {
+                                                             int /* c */ x = 1;
+                                                             return x;
+                                                         },
+                                             3)|};
+                                    }
+
+                                    void Call(int a, Func<int> b, int c)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

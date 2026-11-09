@@ -188,7 +188,7 @@ public class ReihitsuFormatterNodeBraceTests : FormatterTestsBase
             Assert.AreEqual(expected, secondPass, $"The second pass of FormatNodeInDocumentAsync must not change the output {description}.");
 
             var root = await CreateDocument(input).GetSyntaxRootAsync(TestContext.CancellationToken);
-            var formattedNode = ReihitsuFormatter.FormatNode(selectTarget(root), cancellationToken: TestContext.CancellationToken);
+            var formattedNode = ReihitsuFormatter.FormatNode(selectTarget(root), cancellationToken: TestContext.CancellationToken).Output;
 
             Assert.AreEqual(NormalizeLineEndings(expectedNodeWithLf, endOfLine), formattedNode.ToFullString(), $"Unexpected result of FormatNode on the attached target {description}.");
         }
@@ -204,7 +204,7 @@ public class ReihitsuFormatterNodeBraceTests : FormatterTestsBase
     {
         var document = CreateDocument(text);
         var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
-        var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, selectTarget(root), TestContext.CancellationToken);
+        var result = (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, selectTarget(root), TestContext.CancellationToken)).Output;
 
         return (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
     }

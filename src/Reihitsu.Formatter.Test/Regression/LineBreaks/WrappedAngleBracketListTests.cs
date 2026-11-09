@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -804,7 +804,7 @@ public class WrappedAngleBracketListTests : FormatterTestsBase
                              public class Sample
                              {
                                  private List<System.Collections.Generic.Dictionary<string, // note
-                                                                                    int>> _items;
+                                                                                    int>> Items => null;
                              }
                              """;
         const string expected = """
@@ -813,7 +813,7 @@ public class WrappedAngleBracketListTests : FormatterTestsBase
                                 public class Sample
                                 {
                                     private List<System.Collections.Generic.Dictionary<string, // note
-                                                                                       int>> _items;
+                                                                                       int>> Items => null;
                                 }
                                 """;
 
@@ -921,7 +921,7 @@ public class WrappedAngleBracketListTests : FormatterTestsBase
                              {
                                  private Base<T1 // note
                              , T2
-                             , T3> _field;
+                             , T3> Field => null;
                              }
                              """;
         const string expected = """
@@ -929,7 +929,7 @@ public class WrappedAngleBracketListTests : FormatterTestsBase
                                 {
                                     private Base<T1 // note
                                                  , T2
-                                                 , T3> _field;
+                                                 , T3> Field => null;
                                 }
                                 """;
 

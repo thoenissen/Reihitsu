@@ -60,7 +60,8 @@ An agent is large when `scripts/usage.sh` shows, for its spawn, about 40 respons
 |---|---|
 | Spec author: change doc written | Accept it yourself once the skeptic has run and any amendment it caused is written; its `Visible output changes` go into the output questions before the test implementer (section 5) |
 | Spec author or skeptic: an output question about a case within the run's issues | Collect it for the next batch (section 5); at once when it blocks writing a test (escalation 1) |
-| Spec author or skeptic: an open question about a case outside the run's issues | A follow-up candidate carrying the question (*Follow-ups*) |
+| Spec author or skeptic: an open question about a case outside the run's issues | A follow-up candidate carrying the question (*Follow-ups*); declaring a shape unsupported is escalation 10 instead |
+| Any role: declaring a shape unsupported is an option (`AGENTS.md`, *Special cases do not grow the source*) | Escalation 10, with the next batch; the run refuses the class locally meanwhile |
 | Any role: an internal choice with a recommendation | Decide, record under *Decisions taken*, continue |
 | Skeptic: do not make the change | For an `agent-filed` issue, decide; drop it only when nothing visible is in question. Otherwise escalation 3 |
 | Skeptic or any role: an issue goal that does not make sense | Decide for an `agent-filed` issue when nothing visible is in question; otherwise an output question or a question about a binding goal |
@@ -69,10 +70,13 @@ An agent is large when `scripts/usage.sh` shows, for its spawn, about 40 respons
 | Test implementer or implementer: a test or the spec is wrong | Decide when the asserted output is internal or an unchanged requirement decides it; otherwise an output question |
 | Any role: scope grows, or an adjacent fix | Decide under `README.md`, *Scope*; a new rule is escalation 5 |
 | Any role: architecture finding | Decide under `README.md`, *Architecture findings*, before the next role starts |
+| Any role: a finding on a rare input class (`AGENTS.md`, *Code-fix coverage*) | Widen the refusal: route the withheld fix or the skipped construct to its owner like a repair; never more reasoning (`README.md`, *Architecture findings*). Also, where declaring the shape unsupported is an option (`AGENTS.md`, *Special cases do not grow the source*), escalation 10 |
+| Implementer: a guard needs more than a cheap check | Widen the refusal as above, and escalation 10 where declaring the shape unsupported is an option; escalation 9 only when the class includes code people commonly write |
 | Any role: a safety rail the run cannot repair in scope | Escalation 2, at once |
 | Cleaner: only a suppression or ruleset change resolves a warning | Escalation 6 |
 | Spec checker or auditor: findings | Repair round (section 7) |
-| Auditor: a finding that repeats the class of an earlier audit finding | An architecture finding, instead of a repair round |
+| Auditor: a finding that repeats the class of an earlier audit finding | An architecture finding, instead of a repair round: refuse the class first, and escalation 10 where declaring the shape unsupported is an option |
+| Auditor: production growth that a refusal would have avoided | Replace the growth by withholding the fix or leaving the construct as written, routed like a repair, in any case; escalation 10 where declaring the shape unsupported is an option |
 | Auditor: undecided visible output | An output question, asked at once |
 | Validator: a failure that also exists on `main` | Decide: a follow-up, or an adjacent fix under *Scope* |
 
@@ -87,9 +91,9 @@ Ask output questions in batches (`README.md`, *What reaches the maintainer*), in
 - **Before the test implementer starts**: every visible output change of the change doc, and every output question the spec author and the skeptic raised. When nothing is open, there is no stop.
 - **Before the auditor** (section 6): the questions found since.
 
-When an output question's option makes a code fix lay out, move, or rewrite code (comments, directives, literals, build configurations), ask in the same message whether the fix may be withheld for inputs where that is unsafe (`AGENTS.md`, *Code-fix coverage*). Settling it before the first audit is cheaper than after the sixth.
+When an output question's option makes a code fix lay out, move, or rewrite code (comments, directives, literals, build configurations), ask in the same message whether the fix may be withheld for inputs where that is unsafe. A rare input class needs no question: it is refused (`AGENTS.md`, *Code-fix coverage*); where declaring the shape unsupported is an option, that is also asked, as escalation 10, in the same batch. An escalation 10 raised at or after the auditor is asked before publishing (section 8). Settling it before the first audit is cheaper than after the sixth.
 
-Record each answer under `Maintainer answers` in `00-lead.md`, and carry it out before the next role starts: a visible output change the maintainer chose goes into the change doc's `Decisions` section and the spec, routed to the spec author (continue its agent or spawn a fresh one, section 4); a bug fix or a clarification within the run's issues is routed to its owner like a repair; a case outside the run's issues becomes a follow-up.
+Record each answer under `Maintainer answers` in `00-lead.md`, and carry it out before the next role starts: a visible output change the maintainer chose goes into the change doc's `Decisions` section and the spec, routed to the spec author (continue its agent or spawn a fresh one, section 4); a bug fix or a clarification within the run's issues is routed to its owner like a repair; a case outside the run's issues becomes a follow-up, and so does a shape the maintainer chose to declare in a change of its own.
 
 ## 6. Before the auditor
 
@@ -110,7 +114,7 @@ When the auditor passes with comment or documentation findings only, route them 
 
 1. The validator runs once on the final tree. Any compiled change after that re-runs the validator; a compiled change after the audit also re-runs the auditor.
 2. Run `scripts/lane-check.sh <lane>` on the head and keep its `LANE CHECK:` line.
-3. When `00-lead.md` lists follow-up candidates, spawn the issue manager once with all of them (*Follow-ups*) and keep the issue numbers it returns.
+3. Ask every escalation 10 still open, and wait for the answer. When `00-lead.md` lists follow-up candidates, spawn the issue manager once with all of them (*Follow-ups*) and keep the issue numbers it returns.
 4. Run `scripts/usage.sh` (with `--session <id>` when another session of this project ran meanwhile). Write the run's note, `squad/notes/<yyyy-mm-dd>-<slug>.md`, in the form [`notes/README.md`](notes/README.md) prescribes, with the script's output unchanged under `Usage`, and delete `sdd/work/<slug>/`, in one commit with `[skip ci]`. Prove that nothing else changed since the audit: `git diff --exit-code <audited-sha> HEAD -- . ':(exclude)sdd/work' ':(exclude)squad/notes'`.
 5. `git commit --allow-empty -m "Ready for CI (#<N>)"` (several: `"Ready for CI (#<a>, #<b>, #<c>)"`) and push. This is the run's only commit without `[skip ci]`.
 6. Rewrite the PR title and body from the change, using `.github/PULL_REQUEST_TEMPLATE.md` as it stands: a fresh title, never the placeholder or the issue title; one `Closes #<N>` (or `Refs #<N>`) line per issue; no list of executed tests. The body describes the change, not the run: it never mentions the squad, its roles, lanes, audits, repair rounds, or the `LANE CHECK:` line, and it carries no table. `Summary` states the behavior that changes for a user or caller and names every adjacent fix the run took in and every place the result departs from an issue's text. `Review notes` holds only what a reviewer needs: a safety-rail follow-up first, when there is one; the result of an output question or escalation as a sentence where it shapes the change; a decision the reviewer could reasonably overrule, in one or two sentences; and, for a `Refs` issue, that no caller reaches the case and which callers were checked. `Follow-up work` lists the issues the issue manager created or extended. Delete a section that has nothing to say. Where a check did not run locally, say so in one line under `Review notes`. Everything else about the run — lane, roles run or skipped, the `Decisions taken` table, repair rounds — stays in the run's note and in `00-lead.md`; the note is never linked.
@@ -124,11 +128,11 @@ Watch the published PR until its CI is green. A failure caused by the PR is a fi
 
 ## Escalating
 
-Stop all role work — in a run of several issues, for every issue, not only the one that escalated. An output question is asked in the form of `Output questions` in [`AGENTS.md`](../AGENTS.md#output-questions); any other escalation in the format of `Asking the maintainer` there. Ask everything that is open at that point in one message, then wait for the answer in the chat. Record the answer under `Maintainer answers` in `00-lead.md` before continuing, and continue the agent that waits on it where that agent is still available (section 4).
+Stop all role work — in a run of several issues, for every issue, not only the one that escalated. Output questions and escalation 10 are asked at the times `README.md`, escalations 1 and 10, give. An output question is asked in the form of `Output questions` in [`AGENTS.md`](../AGENTS.md#output-questions); any other escalation in the format of `Asking the maintainer` there. Ask everything that is open at that point in one message, then wait for the answer in the chat. Record the answer under `Maintainer answers` in `00-lead.md` before continuing, and continue the agent that waits on it where that agent is still available (section 4).
 
 ## Follow-ups
 
-Every follow-up candidate — from a handover, an open question outside the run's issues, a narrow fix's structural change, a narrowed part of the run, a failure on `main` — goes into `Follow-up candidates` in `00-lead.md`. You do not ask the maintainer about any of them, and you do not write issues: before publishing, you spawn the issue manager once with the whole list ([`roles/issue-manager.md`](roles/issue-manager.md)). It searches for duplicates, creates or extends each issue labeled `agent-filed`, and returns the issue numbers, which the PR lists under `Follow-up work`. A safety-rail defect that exists only on `main` is filed as a `bug` and named first under the PR's `Review notes`. A follow-up never joins the run; an adjacent fix does, under `README.md`, *Scope*. A candidate that no caller of the repository reaches (`AGENTS.md`, *Supported inputs*) is not a follow-up: drop it, record the drop under *Decisions taken*, and do not pass it to the issue manager.
+Every follow-up candidate — from a handover, an open question outside the run's issues, a narrow fix's structural change, a narrowed part of the run, a failure on `main` — goes into `Follow-up candidates` in `00-lead.md`. You do not ask the maintainer about any of them, and you do not write issues: before publishing, you spawn the issue manager once with the whole list ([`roles/issue-manager.md`](roles/issue-manager.md)). It searches for duplicates, creates or extends each issue labeled `agent-filed`, and returns the issue numbers, which the PR lists under `Follow-up work`. A safety-rail defect that exists only on `main` is filed as a `bug` and named first under the PR's `Review notes`. A follow-up never joins the run; an adjacent fix does, under `README.md`, *Scope*. A candidate that no caller of the repository reaches (`AGENTS.md`, *Supported inputs*), or that only serves a rare input class (`AGENTS.md`, *Code-fix coverage*), is not a follow-up: drop it, record the drop under *Decisions taken*, and do not pass it to the issue manager. A shape the maintainer chose to declare unsupported in a change of its own (escalation 10) is a follow-up even for a rare shape: it carries the answer.
 
 ## Never
 
@@ -140,5 +144,7 @@ Every follow-up candidate — from a handover, an open question outside the run'
 - Ask the maintainer an internal question, or decide an output question yourself.
 - Ship, defer, or accept a safety-rail defect the run causes or keeps in an output it changes.
 - Spawn the next role over an undecided architecture finding, or start a repair round for a finding that repeats an earlier audit finding's class.
+- Answer a finding on a rare input class with more reasoning instead of a wider refusal, or accept a structural change of more than about 100 production lines or a new type without escalation 9.
+- Declare a shape unsupported, or route its declaration to a role, without the maintainer's answer to escalation 10, or drop the option without asking.
 - Leave `sdd/work/` in a published PR, or the claim placeholder in its title or body.
 - Use the `gh` CLI or a raw GitHub API call; use the GitHub MCP server.

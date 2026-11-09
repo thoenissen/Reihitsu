@@ -1269,12 +1269,12 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the created field gets no indentation when a single-line documentation comment, which ends its own line,
-    /// leads the declaration
+    /// Verifies that the created field gets no indentation when a single-line documentation-style comment, which ends its own line,
+    /// leads the declaration in the documentation mode None, where it is an ordinary comment
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-026")]
-    public void FieldCreatedBehindADocumentedDeclarationGetsNoIndentation()
+    public void FieldCreatedBehindADeclarationWithADocumentationStyleCommentInDocumentationModeNoneGetsNoIndentation()
     {
         AssertSplitFields("""
                               /// <summary>Coordinates</summary>
@@ -1283,233 +1283,25 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
                           """
                               /// <summary>Coordinates</summary>
                               private int _x;private int _y;
-                          """);
+                          """,
+                          CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.None));
     }
 
     /// <summary>
-    /// Verifies the second field-split example of FMT-STRUCT-026: <c>private int _x,// h</c> followed by a line <c>_y;</c>
-    /// becomes <c>private int _x; // h</c>, a line break, and <c>private int _y;</c> without indentation
+    /// Verifies that the phase leaves a declaration with a single-line documentation comment as one declaration when the
+    /// documentation mode is Parse
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void SingleLineCommentThatTrailedACommaWithoutASpaceGetsOneSpaceAndTheLineBreakBehindIt()
+    [Requirement("FMT-STRUCT-030")]
+    public void DocumentedDeclarationIsLeftAsOneDeclaration()
     {
         AssertSplitFields("""
-                              private int _x,// h
-                                  _y;
+                              /// <summary>Coordinates</summary>
+                              private int _x, _y;
                           """,
                           """
-                              private int _x; // h
-                          private int _y;
-                          """);
-    }
-
-    /// <summary>
-    /// Verifies that a single-line comment that trailed a separating comma behind several spaces gets exactly one space in front
-    /// of it, whatever the author wrote there
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void SingleLineCommentThatTrailedACommaBehindSeveralSpacesGetsOneSpace()
-    {
-        AssertSplitFields("""
-                              private int _x,    // h
-                                  _y;
-                          """,
-                          """
-                              private int _x; // h
-                          private int _y;
-                          """);
-    }
-
-    /// <summary>
-    /// Verifies that a block comment that trailed a separating comma gets exactly one space in front of it and, because the field
-    /// behind it reads as its own tokens without one, no line break behind it
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void BlockCommentThatTrailedACommaGetsOneSpaceAndNoLineBreakBehindIt()
-    {
-        AssertSplitFields("""
-                              private int _x,/* h */ _y;
-                          """,
-                          """
-                              private int _x; /* h */private int _y;
-                          """);
-    }
-
-    /// <summary>
-    /// Verifies the third field-split example of FMT-STRUCT-026: <c>private int _x,</c> followed by a line <c>/* v */ _y;</c>
-    /// becomes <c>private int _x;</c>, a line break, <c>/* v */</c>, a line break, and <c>private int _y;</c>, the moved comment
-    /// and the created field without indentation
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void BlockCommentMovedInFrontOfACreatedFieldGetsALineBreakBehindItAndNoIndentation()
-    {
-        AssertSplitFields("""
-                              private int _x,
-                                  /* v */ _y;
-                          """,
-                          """
-                              private int _x;
-                          /* v */
-                          private int _y;
-                          """);
-    }
-
-    /// <summary>
-    /// Verifies that a single-line comment moved in front of a created field gets one line break behind it and no indentation
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void SingleLineCommentMovedInFrontOfACreatedFieldGetsALineBreakBehindItAndNoIndentation()
-    {
-        AssertSplitFields("""
-                              private int _x,
-                                  // v
-                                  _y;
-                          """,
-                          """
-                              private int _x;
-                          // v
-                          private int _y;
-                          """);
-    }
-
-    /// <summary>
-    /// Verifies that a single-line documentation comment moved in front of a created field, which ends its own line, gets no
-    /// second line break behind it and no indentation
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void DocumentationCommentMovedInFrontOfACreatedFieldGetsNoSecondLineBreakAndNoIndentation()
-    {
-        AssertSplitFields("""
-                              private int _x,
-                                  /// <summary>Vertical</summary>
-                                  _y;
-                          """,
-                          """
-                              private int _x;
-                          /// <summary>Vertical</summary>
-                          private int _y;
-                          """);
-    }
-
-    /// <summary>
-    /// Verifies the FMT-STRUCT-026 example for a comment that spans lines: a block comment whose closing <c>*/</c> stands on a
-    /// later line than its opening, behind a separating comma, gets one space in front of it and a line break behind it, and the
-    /// created field behind that line break gets no indentation
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void BlockCommentThatSpansLinesBehindACommaGetsALineBreakBehindIt()
-    {
-        AssertSplitFields("""
-                              private int _x, /* a
-                                 b */ _y;
-                          """,
-                          """
-                              private int _x; /* a
-                                 b */
-                          private int _y;
-                          """);
-    }
-
-    /// <summary>
-    /// Verifies the one-line side of the FMT-STRUCT-026 example: a block comment that starts and ends on one line behind a
-    /// separating comma gets one space in front of it and no line break behind it
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void BlockCommentOnOneLineBehindACommaAndASpaceGetsNoLineBreakBehindIt()
-    {
-        AssertSplitFields("""
-                              private int _x, /* a */ _y;
-                          """,
-                          """
-                              private int _x; /* a */private int _y;
-                          """);
-    }
-
-    /// <summary>
-    /// Verifies that the line break is written behind the last comment that trailed a separating comma when an earlier one
-    /// starts and ends on one line and the last one spans lines
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void LastOfTwoCommentsBehindACommaThatSpansLinesGetsALineBreakBehindIt()
-    {
-        AssertSplitFields("""
-                              private int _x, /* a */ /* b
-                                 c */ _y;
-                          """,
-                          """
-                              private int _x; /* a */ /* b
-                                 c */
-                          private int _y;
-                          """);
-    }
-
-    /// <summary>
-    /// Verifies that the line break is written behind the last comment that trailed a separating comma when that comment
-    /// starts and ends on one line and an earlier one spans lines
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void OneLineCommentBehindACommentThatSpansLinesBehindACommaGetsALineBreakBehindIt()
-    {
-        AssertSplitFields("""
-                              private int _x, /* a
-                                 b */ /* c */ _y;
-                          """,
-                          """
-                              private int _x; /* a
-                                 b */ /* c */
-                          private int _y;
-                          """);
-    }
-
-    /// <summary>
-    /// Verifies that a single-line comment behind a comment that spans lines behind a separating comma gets exactly one line
-    /// break behind it
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void SingleLineCommentBehindACommentThatSpansLinesBehindACommaGetsOneLineBreakBehindIt()
-    {
-        AssertSplitFields("""
-                              private int _x, /* a
-                                 b */ // c
-                                  _y;
-                          """,
-                          """
-                              private int _x; /* a
-                                 b */ // c
-                          private int _y;
-                          """);
-    }
-
-    /// <summary>
-    /// Verifies the FMT-STRUCT-026 example with three declarators: each field behind a comment that spans lines starts its
-    /// own line, and the comments' later lines keep the text the author wrote
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void EveryFieldBehindACommentThatSpansLinesStartsItsOwnLine()
-    {
-        AssertSplitFields("""
-                              private int _p, /* a */ /* b
-                                 c */ _q, /* d
-                                 e */ /* f */ _r;
-                          """,
-                          """
-                              private int _p; /* a */ /* b
-                                 c */
-                          private int _q; /* d
-                                 e */ /* f */
-                          private int _r;
+                              /// <summary>Coordinates</summary>
+                              private int _x, _y;
                           """);
     }
 
@@ -1539,14 +1331,16 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
     /// </summary>
     /// <param name="members">The members, indented as in the class, with LF line endings</param>
     /// <param name="expectedMembers">The expected members in the phase output, with LF line endings</param>
-    private static void AssertSplitFields(string members, string expectedMembers)
+    /// <param name="parseOptions">The parse options to use, or <see langword="null"/> for the defaults</param>
+    private static void AssertSplitFields(string members, string expectedMembers, CSharpParseOptions parseOptions = null)
     {
         ForEachLineEnding($"class C\n{{\n{members}\n}}",
                           (output, endOfLine, description) =>
                           {
                               Assert.AreEqual(NormalizeLineEndings($"class C\n{{\n{expectedMembers}\n}}", endOfLine), output.ToFullString(), description);
-                              AssertSameTree(output, description);
-                          });
+                              AssertSameTree(output, description, parseOptions);
+                          },
+                          parseOptions);
     }
 
     /// <summary>

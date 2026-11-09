@@ -356,9 +356,9 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyFormatterTests
 
                              internal class Example
                              {
-                                 private static void Method()
+                                 private static List<int> Method()
                                  {
-                                     var values =
+                                     return
 
                                      /* c */ {|#0:new List<int>
                                      {
@@ -372,9 +372,9 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyFormatterTests
 
                                  internal class Example
                                  {
-                                     private static void Method()
+                                     private static List<int> Method()
                                      {
-                                         var values =
+                                         return
 
                                          /* c */ new List<int>
                                                  {

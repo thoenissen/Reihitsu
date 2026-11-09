@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -478,14 +478,14 @@ public class StrandedDocumentationLineStartTests : FormatterTestsBase
                              class C
                              {
                                  System.Collections.Generic.List<int /// x
-                                         > _l;
+                                         > L => null;
                              }
                              """;
         const string expected = """
                                 class C
                                 {
                                     System.Collections.Generic.List<int /// x
-                                                                    > _l;
+                                                                    > L => null;
                                 }
                                 """;
 

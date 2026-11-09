@@ -537,6 +537,30 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a refused comment in the body of the documented method withholds the fix: the fix formats the
+    /// documented declaration, which the formatter refuses, although the documentation holds no refused shape
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task NoFixIsOfferedWhenTheDocumentedMemberHoldsACommentTheFormatterRefuses()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  /// {|RH8307:<summary><see cref="string"/>
+                                  /// values</summary>|}
+                                  private void Method()
+                                  {
+                                      int /* c */ y = 1;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

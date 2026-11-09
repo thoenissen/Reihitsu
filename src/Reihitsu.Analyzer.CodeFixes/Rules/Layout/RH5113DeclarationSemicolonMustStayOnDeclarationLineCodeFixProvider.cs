@@ -33,7 +33,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineCodeFixProvider 
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, SyntaxNode declarationNode, CancellationToken cancellationToken)
     {
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, declarationNode, cancellationToken).ConfigureAwait(false);
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, declarationNode, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     /// <summary>
@@ -126,7 +126,8 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineCodeFixProvider 
 
             var semicolonToken = GetSemicolonToken(declarationNode);
 
-            if (CanApplyCodeFix(semicolonToken) == false)
+            if (CanApplyCodeFix(semicolonToken) == false
+                || ReihitsuFormatter.FindUnsupportedSyntax(declarationNode) != null)
             {
                 continue;
             }

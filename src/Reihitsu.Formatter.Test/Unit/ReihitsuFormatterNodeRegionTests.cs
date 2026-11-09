@@ -201,12 +201,12 @@ public class ReihitsuFormatterNodeRegionTests : FormatterTestsBase
             var tree = CSharpSyntaxTree.ParseText(NormalizeLineEndings(SpecExampleInput, endOfLine), cancellationToken: TestContext.CancellationToken);
             var target = FindType(tree.GetRoot(TestContext.CancellationToken), "C");
 
-            var firstPass = ReihitsuFormatter.FormatNode(target, cancellationToken: TestContext.CancellationToken).ToFullString();
+            var firstPass = ReihitsuFormatter.FormatNode(target, cancellationToken: TestContext.CancellationToken).Output.ToFullString();
 
             Assert.AreEqual(expected, firstPass, $"First pass mismatch under {DescribeLineEnding(endOfLine)} line endings.");
 
             var secondTree = CSharpSyntaxTree.ParseText(firstPass, cancellationToken: TestContext.CancellationToken);
-            var secondPass = ReihitsuFormatter.FormatNode(FindType(secondTree.GetRoot(TestContext.CancellationToken), "C"), cancellationToken: TestContext.CancellationToken).ToFullString();
+            var secondPass = ReihitsuFormatter.FormatNode(FindType(secondTree.GetRoot(TestContext.CancellationToken), "C"), cancellationToken: TestContext.CancellationToken).Output.ToFullString();
 
             Assert.AreEqual(expected, secondPass, $"Second pass mismatch under {DescribeLineEnding(endOfLine)} line endings.");
         }
@@ -381,7 +381,7 @@ public class ReihitsuFormatterNodeRegionTests : FormatterTestsBase
                 var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
                 var document = project.AddDocument("Test.cs", SourceText.From(NormalizeLineEndings(input, endOfLine)));
 
-                var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
+                var result = (await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken)).Output;
                 var text = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
 
                 Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), text, $"Document output mismatch under {DescribeLineEnding(endOfLine)} line endings.");
@@ -404,7 +404,7 @@ public class ReihitsuFormatterNodeRegionTests : FormatterTestsBase
         {
             var tree = CSharpSyntaxTree.ParseText(NormalizeLineEndings(input, endOfLine), cancellationToken: TestContext.CancellationToken);
 
-            var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+            var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
 
             Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), result.GetText(TestContext.CancellationToken).ToString(), $"Tree output mismatch under {DescribeLineEnding(endOfLine)} line endings.");
         }
@@ -483,12 +483,12 @@ public class ReihitsuFormatterNodeRegionTests : FormatterTestsBase
             var tree = CSharpSyntaxTree.ParseText(NormalizeLineEndings(WithTabs(TabExampleInput), endOfLine), cancellationToken: TestContext.CancellationToken);
             var target = FindType(tree.GetRoot(TestContext.CancellationToken), "C");
 
-            var firstPass = ReihitsuFormatter.FormatNode(target, cancellationToken: TestContext.CancellationToken).ToFullString();
+            var firstPass = ReihitsuFormatter.FormatNode(target, cancellationToken: TestContext.CancellationToken).Output.ToFullString();
 
             Assert.AreEqual(expected, firstPass, $"First pass mismatch under {DescribeLineEnding(endOfLine)} line endings.");
 
             var secondTree = CSharpSyntaxTree.ParseText(firstPass, cancellationToken: TestContext.CancellationToken);
-            var secondPass = ReihitsuFormatter.FormatNode(FindType(secondTree.GetRoot(TestContext.CancellationToken), "C"), cancellationToken: TestContext.CancellationToken).ToFullString();
+            var secondPass = ReihitsuFormatter.FormatNode(FindType(secondTree.GetRoot(TestContext.CancellationToken), "C"), cancellationToken: TestContext.CancellationToken).Output.ToFullString();
 
             Assert.AreEqual(expected, secondPass, $"Second pass mismatch under {DescribeLineEnding(endOfLine)} line endings.");
         }
@@ -605,7 +605,7 @@ public class ReihitsuFormatterNodeRegionTests : FormatterTestsBase
                 var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
                 var document = project.AddDocument("Test.cs", SourceText.From(NormalizeLineEndings(WithTabs(TabExampleInput), endOfLine)));
 
-                var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
+                var result = (await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken)).Output;
                 var text = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
 
                 Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), text, $"Document output mismatch under {DescribeLineEnding(endOfLine)} line endings.");
@@ -688,12 +688,12 @@ public class ReihitsuFormatterNodeRegionTests : FormatterTestsBase
             var tree = CSharpSyntaxTree.ParseText(WithForeignLineBreaks(ForeignLineBreakInput, endOfLine), cancellationToken: TestContext.CancellationToken);
             var target = FindType(tree.GetRoot(TestContext.CancellationToken), "C");
 
-            var firstPass = ReihitsuFormatter.FormatNode(target, cancellationToken: TestContext.CancellationToken).ToFullString();
+            var firstPass = ReihitsuFormatter.FormatNode(target, cancellationToken: TestContext.CancellationToken).Output.ToFullString();
 
             Assert.AreEqual(expected, firstPass, $"First pass mismatch with predominant {DescribeLineEnding(endOfLine)} line endings.");
 
             var secondTree = CSharpSyntaxTree.ParseText(firstPass, cancellationToken: TestContext.CancellationToken);
-            var secondPass = ReihitsuFormatter.FormatNode(FindType(secondTree.GetRoot(TestContext.CancellationToken), "C"), cancellationToken: TestContext.CancellationToken).ToFullString();
+            var secondPass = ReihitsuFormatter.FormatNode(FindType(secondTree.GetRoot(TestContext.CancellationToken), "C"), cancellationToken: TestContext.CancellationToken).Output.ToFullString();
 
             Assert.AreEqual(expected, secondPass, $"Second pass mismatch with predominant {DescribeLineEnding(endOfLine)} line endings.");
         }
@@ -822,8 +822,8 @@ public class ReihitsuFormatterNodeRegionTests : FormatterTestsBase
         var target = targetSelector(root);
 
         return contextSelector == null
-                   ? await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, TestContext.CancellationToken)
-                   : await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, target, contextSelector(root), TestContext.CancellationToken);
+                   ? (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, TestContext.CancellationToken)).Output
+                   : (await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, target, contextSelector(root), TestContext.CancellationToken)).Output;
     }
 
     #endregion // Methods

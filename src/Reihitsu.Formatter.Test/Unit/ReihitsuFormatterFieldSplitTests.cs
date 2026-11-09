@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,8 +22,8 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies the spec example: the comment in front of the later declarator gets the blank line above it that the blank-line
-    /// phase writes, and the other combined field of the class and the combined field of a nested type stay as they are
+    /// Verifies the spec example: the comment in front of the declaration stays on the first field, and the other combined field
+    /// of the class and the combined field of a nested type stay as they are
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
@@ -33,8 +33,8 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 private int _x, // horizontal
-                                             /* vertical */ _y;
+                                 // The coordinates
+                                 private int _x, _y;
                                  private int _a, _b;
 
                                  class D
@@ -47,9 +47,8 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
         const string expected = """
                                 class C
                                 {
-                                    private int _x; // horizontal
-
-                                    /* vertical */
+                                    // The coordinates
+                                    private int _x;
                                     private int _y;
                                     private int _a, _b;
 
@@ -179,27 +178,26 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the spec example: a documentation comment in each gap goes with the member behind it onto the next line, and no
-    /// blank line is written above it
+    /// Verifies the spec example: a documentation comment behind the target goes with the member behind it onto the next line,
+    /// and no blank line is written above it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
     [Requirement("FMT-PIPE-029")]
     [Requirement("FMT-PIPE-018")]
-    public async Task DocumentationCommentsInTheGapsGoWithTheMemberBehindThem()
+    public async Task DocumentationCommentBehindTheTargetGoesWithTheMemberBehindIt()
     {
         const string input = """
                              class C
                              {
-                                 private int _p; /** X. */ private int _x, _y; /** Q. */ private int _q;
+                                 private int _x, _y; /** Q. */ private int _q;
                              }
                              """;
 
         const string expected = """
                                 class C
                                 {
-                                    private int _p;
-                                    /** X. */ private int _x;
+                                    private int _x;
                                     private int _y;
                                     /** Q. */ private int _q;
                                 }
@@ -586,130 +584,6 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the spec example with a member in front of the target on its first line and a comment that spans lines behind
-    /// the separating comma: the first field starts the next line at the member column, the comment ends its line, and the later
-    /// field starts a line of its own at the member column
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
-    [TestMethod]
-    [Requirement("FMT-PIPE-029")]
-    public async Task LaterFieldBehindACommentThatSpansLinesBehindTheSeparatorStartsItsOwnLine()
-    {
-        const string input = """
-                             class C
-                             {
-                                 private int _p; private int _x, /* a
-                                    b */ _y;
-                             }
-                             """;
-
-        const string expected = """
-                                class C
-                                {
-                                    private int _p;
-                                    private int _x; /* a
-                                       b */
-                                    private int _y;
-                                }
-                                """;
-
-        await AssertSplitsTarget(input, expected, "_x", "C");
-    }
-
-    /// <summary>
-    /// Verifies that the later field behind a comment that spans lines behind the separating comma starts its own line at the
-    /// member column when no other member stands on the target's lines
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
-    [TestMethod]
-    [Requirement("FMT-PIPE-029")]
-    public async Task LaterFieldBehindACommentThatSpansLinesStandsAtTheMemberColumn()
-    {
-        const string input = """
-                             class C
-                             {
-                                 private int _x, /* a
-                                    b */ _y;
-                             }
-                             """;
-
-        const string expected = """
-                                class C
-                                {
-                                    private int _x; /* a
-                                       b */
-                                    private int _y;
-                                }
-                                """;
-
-        await AssertSplitsTarget(input, expected, "_x", "C");
-    }
-
-    /// <summary>
-    /// Verifies the spec example with a documentation comment that spans lines in each gap: the documentation comment starts
-    /// the next line with its member, in front of the first field and in front of the member behind the target, and no blank
-    /// line is written above it
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
-    [TestMethod]
-    [Requirement("FMT-PIPE-029")]
-    public async Task MembersBehindADocumentationCommentThatSpansLinesInTheGapsStartTheNextLine()
-    {
-        const string input = """
-                             class C
-                             {
-                                 private int _p; /** a
-                                    b */ private int _x, _y; /** c
-                                    d */ private int _q;
-                             }
-                             """;
-
-        const string expected = """
-                                class C
-                                {
-                                    private int _p;
-                                    /** a
-                                       b */ private int _x;
-                                    private int _y;
-                                    /** c
-                                       d */ private int _q;
-                                }
-                                """;
-
-        await AssertSplitsTarget(input, expected, "_x", "C");
-    }
-
-    /// <summary>
-    /// Verifies that the first field starts the next line with the documentation comment in front of it when the gap in
-    /// front of the target holds a documentation comment that spans lines, and that no blank line is written above it
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
-    [TestMethod]
-    [Requirement("FMT-PIPE-029")]
-    public async Task FirstFieldBehindADocumentationCommentThatSpansLinesInTheGapInFrontStartsTheNextLine()
-    {
-        const string input = """
-                             class C
-                             {
-                                 private int _p; /** a
-                                    b */ private int _x, _y;
-                             }
-                             """;
-
-        const string expected = """
-                                class C
-                                {
-                                    private int _p;
-                                    /** a
-                                       b */ private int _x;
-                                    private int _y;
-                                }
-                                """;
-
-        await AssertSplitsTarget(input, expected, "_x", "C");
-    }
-
-    /// <summary>
     /// Verifies that the member behind the target starts the next line with its documentation comment when the gap behind
     /// the target holds a documentation comment that spans lines, and that no blank line is written above it
     /// </summary>
@@ -733,72 +607,6 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
                                     private int _y;
                                     /** c
                                        d */ private int _q;
-                                }
-                                """;
-
-        await AssertSplitsTarget(input, expected, "_x", "C");
-    }
-
-    /// <summary>
-    /// Verifies the spec example with a comment that spans lines and then a one-line documentation comment in each gap: the
-    /// documentation comment starts the next line with its member, in front of the first field and in front of the member
-    /// behind the target, a comment in front of it stays behind the code in front of it, and no blank line is written above
-    /// it
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
-    [TestMethod]
-    [Requirement("FMT-PIPE-029")]
-    public async Task MembersBehindACommentThatSpansLinesAndADocumentationCommentInTheGapsStartTheNextLine()
-    {
-        const string input = """
-                             class C
-                             {
-                                 private int _p; /* a
-                                    b */ /** c */ private int _x, _y; /* d
-                                    e */ /** f */ private int _q;
-                             }
-                             """;
-
-        const string expected = """
-                                class C
-                                {
-                                    private int _p; /* a
-                                       b */
-                                    /** c */ private int _x;
-                                    private int _y; /* d
-                                       e */
-                                    /** f */ private int _q;
-                                }
-                                """;
-
-        await AssertSplitsTarget(input, expected, "_x", "C");
-    }
-
-    /// <summary>
-    /// Verifies that the first field starts the next line with the documentation comment in front of it when the gap in
-    /// front of the target holds a comment that spans lines and then a one-line documentation comment, and that no blank
-    /// line is written above it
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
-    [TestMethod]
-    [Requirement("FMT-PIPE-029")]
-    public async Task FirstFieldBehindACommentThatSpansLinesAndADocumentationCommentInTheGapInFrontStartsTheNextLine()
-    {
-        const string input = """
-                             class C
-                             {
-                                 private int _p; /* a
-                                    b */ /** c */ private int _x, _y;
-                             }
-                             """;
-
-        const string expected = """
-                                class C
-                                {
-                                    private int _p; /* a
-                                       b */
-                                    /** c */ private int _x;
-                                    private int _y;
                                 }
                                 """;
 
@@ -837,72 +645,6 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the spec example with a one-line comment and then a documentation comment that spans lines in each gap: the
-    /// documentation comment starts the next line with its member, in front of the first field and in front of the member
-    /// behind the target, a comment in front of it stays behind the code in front of it, and no blank line is written above
-    /// it
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
-    [TestMethod]
-    [Requirement("FMT-PIPE-029")]
-    public async Task MembersBehindAOneLineCommentAndADocumentationCommentThatSpansLinesInTheGapsStartTheNextLine()
-    {
-        const string input = """
-                             class C
-                             {
-                                 private int _p; /* a */ /** b
-                                    c */ private int _x, _y; /* d */ /** e
-                                    f */ private int _q;
-                             }
-                             """;
-
-        const string expected = """
-                                class C
-                                {
-                                    private int _p; /* a */
-                                    /** b
-                                       c */ private int _x;
-                                    private int _y; /* d */
-                                    /** e
-                                       f */ private int _q;
-                                }
-                                """;
-
-        await AssertSplitsTarget(input, expected, "_x", "C");
-    }
-
-    /// <summary>
-    /// Verifies that the first field starts the next line with the documentation comment in front of it when the gap in
-    /// front of the target holds a one-line comment and then a documentation comment that spans lines, and that no blank
-    /// line is written above it
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
-    [TestMethod]
-    [Requirement("FMT-PIPE-029")]
-    public async Task FirstFieldBehindAOneLineCommentAndADocumentationCommentThatSpansLinesInTheGapInFrontStartsTheNextLine()
-    {
-        const string input = """
-                             class C
-                             {
-                                 private int _p; /* a */ /** b
-                                    c */ private int _x, _y;
-                             }
-                             """;
-
-        const string expected = """
-                                class C
-                                {
-                                    private int _p; /* a */
-                                    /** b
-                                       c */ private int _x;
-                                    private int _y;
-                                }
-                                """;
-
-        await AssertSplitsTarget(input, expected, "_x", "C");
-    }
-
-    /// <summary>
     /// Verifies that the member behind the target starts the next line with its documentation comment when the gap behind
     /// the target holds a one-line comment and then a documentation comment that spans lines, and that no blank line is
     /// written above it
@@ -927,78 +669,6 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
                                     private int _y; /* d */
                                     /** e
                                        f */ private int _q;
-                                }
-                                """;
-
-        await AssertSplitsTarget(input, expected, "_x", "C");
-    }
-
-    /// <summary>
-    /// Verifies the spec example with a comment that spans lines and then a documentation comment that spans lines in each
-    /// gap: the documentation comment starts the next line with its member, in front of the first field and in front of the
-    /// member behind the target, a comment in front of it stays behind the code in front of it, and no blank line is written
-    /// above it
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
-    [TestMethod]
-    [Requirement("FMT-PIPE-029")]
-    public async Task MembersBehindACommentThatSpansLinesAndADocumentationCommentThatSpansLinesInTheGapsStartTheNextLine()
-    {
-        const string input = """
-                             class C
-                             {
-                                 private int _p; /* a
-                                    b */ /** c
-                                    d */ private int _x, _y; /* e
-                                    f */ /** g
-                                    h */ private int _q;
-                             }
-                             """;
-
-        const string expected = """
-                                class C
-                                {
-                                    private int _p; /* a
-                                       b */
-                                    /** c
-                                       d */ private int _x;
-                                    private int _y; /* e
-                                       f */
-                                    /** g
-                                       h */ private int _q;
-                                }
-                                """;
-
-        await AssertSplitsTarget(input, expected, "_x", "C");
-    }
-
-    /// <summary>
-    /// Verifies that the first field starts the next line with the documentation comment in front of it when the gap in
-    /// front of the target holds a comment that spans lines and then a documentation comment that spans lines, and that no
-    /// blank line is written above it
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
-    [TestMethod]
-    [Requirement("FMT-PIPE-029")]
-    public async Task FirstFieldBehindACommentThatSpansLinesAndADocumentationCommentThatSpansLinesInTheGapInFrontStartsTheNextLine()
-    {
-        const string input = """
-                             class C
-                             {
-                                 private int _p; /* a
-                                    b */ /** c
-                                    d */ private int _x, _y;
-                             }
-                             """;
-
-        const string expected = """
-                                class C
-                                {
-                                    private int _p; /* a
-                                       b */
-                                    /** c
-                                       d */ private int _x;
-                                    private int _y;
                                 }
                                 """;
 
@@ -1039,22 +709,20 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the spec example on the other side of the condition: the target's first token and the first token of the
-    /// member behind it already start their lines, so the documentation comments that span lines behind the code in front
-    /// stay where they stand, although document-level formatting moves each onto a line of its own
+    /// Verifies the spec example on the other side of the condition: the first token of the member behind the target already
+    /// starts its line, so the documentation comment that spans lines behind the target stays where it stands, although
+    /// document-level formatting moves it onto a line of its own
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
     [Requirement("FMT-PIPE-029")]
     [Requirement("FMT-PIPE-010")]
     [Requirement("FMT-PIPE-018")]
-    public async Task DocumentationCommentsThatSpanLinesInFrontOfMembersThatStartTheirLinesStayWhereTheyStand()
+    public async Task DocumentationCommentThatSpansLinesInFrontOfAMemberThatStartsItsLineStaysWhereItStands()
     {
         const string input = """
                              class C
                              {
-                                 private int _p; /** a
-                                    b */
                                  private int _x, _y; /** c
                                     d */
                                  private int _q;
@@ -1064,8 +732,6 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
         const string expected = """
                                 class C
                                 {
-                                    private int _p; /** a
-                                       b */
                                     private int _x;
                                     private int _y; /** c
                                        d */
@@ -1077,20 +743,19 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the other side of the condition with a <c>///</c> comment behind the code in front of the target and behind
-    /// the target: the first token behind each comment already starts its line, so the comments stay where they stand
+    /// Verifies the other side of the condition with a <c>///</c> comment behind the target: the first token behind the comment
+    /// already starts its line, so the comment stays where it stands
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
     [Requirement("FMT-PIPE-029")]
     [Requirement("FMT-PIPE-010")]
     [Requirement("FMT-PIPE-018")]
-    public async Task SingleLineDocumentationCommentsInFrontOfMembersThatStartTheirLinesStayWhereTheyStand()
+    public async Task SingleLineDocumentationCommentInFrontOfAMemberThatStartsItsLineStaysWhereItStands()
     {
         const string input = """
                              class C
                              {
-                                 private int _p; /// a
                                  private int _x, _y; /// c
                                  private int _q;
                              }
@@ -1099,7 +764,6 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
         const string expected = """
                                 class C
                                 {
-                                    private int _p; /// a
                                     private int _x;
                                     private int _y; /// c
                                     private int _q;
@@ -1110,22 +774,20 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a documentation comment that starts its line in front of the target and in front of the member behind it
-    /// keeps its trivia although the token behind it shares its line: the gap holds a line break, so the first field keeps the
-    /// target's line and column behind the comment, and the member behind the target stays as it stands
+    /// Verifies the spec example: a documentation comment that starts its line in front of the member behind the target, with
+    /// that member behind it on that line, keeps its trivia, because the gap holds a line break
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
     [Requirement("FMT-PIPE-029")]
     [Requirement("FMT-PIPE-010")]
     [Requirement("FMT-PIPE-018")]
-    public async Task DocumentationCommentsThatStartTheirLinesInFrontOfMembersOnTheSameLineStayWhereTheyStand()
+    public async Task DocumentationCommentThatStartsItsLineInFrontOfTheMemberBehindTheTargetStaysWhereItStands()
     {
         const string input = """
                              class C
                              {
-                                 private int _p;
-                                 /** x */ private int _x, _y;
+                                 private int _x, _y;
                                  /** q */ private int _q;
                              }
                              """;
@@ -1133,41 +795,9 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
         const string expected = """
                                 class C
                                 {
-                                    private int _p;
-                                    /** x */ private int _x;
+                                    private int _x;
                                     private int _y;
                                     /** q */ private int _q;
-                                }
-                                """;
-
-        await AssertSplitsTarget(input, expected, "_x", "C");
-    }
-
-    /// <summary>
-    /// Verifies the gap in front of the target alone: a documentation comment that starts its line in front of the target,
-    /// with the target's first token behind it on that line, keeps the target's leading trivia, so the first field keeps the
-    /// target's line and column behind the comment
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
-    [TestMethod]
-    [Requirement("FMT-PIPE-029")]
-    [Requirement("FMT-PIPE-018")]
-    public async Task FirstFieldBehindADocumentationCommentThatStartsItsLineInTheGapInFrontKeepsTheTargetsLine()
-    {
-        const string input = """
-                             class C
-                             {
-                                 private int _p;
-                                 /** x */ private int _x, _y;
-                             }
-                             """;
-
-        const string expected = """
-                                class C
-                                {
-                                    private int _p;
-                                    /** x */ private int _x;
-                                    private int _y;
                                 }
                                 """;
 
@@ -1261,7 +891,7 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
                 throw new InvalidOperationException("Expected a syntax root.");
             }
 
-            var result = await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, FindField(root, variableName), FindType(root, typeName), TestContext.CancellationToken);
+            var result = (await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, FindField(root, variableName), FindType(root, typeName), TestContext.CancellationToken)).Output;
 
             return (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
         }

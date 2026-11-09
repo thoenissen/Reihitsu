@@ -5,7 +5,7 @@
 | ID prefix | FMT-BREAK |
 | Status | Active |
 | Code owners | `LineBreakPhase`, `LineBreakBlockRewriter`, `LineBreakInitializerRewriter`, `LineBreakContainedBlockRewriter`, `LineBreakAssignmentRewriter`, `DeclarationSemicolonLineBreakRewriter`, `ListElementInteriorJoinRewriter`, `ListElementInteriorUtilities`, `LineBreakListRewriter`, `PropertyLayoutLineBreakRewriter`, `GenericConstraintLineBreakRewriter`, `DeclarationBraceLineBreakRewriter`, `MemberLineStartRewriter`, `AttributeTargetFormattingRewriter`, `AttributeTargetFormattingShared`, `BinaryOperatorLineBreakRewriter`, `ChainLineBreakRewriter`, `TernaryLineBreakRewriter`, `SwitchCaseWhenLineBreakRewriter`, `BracePlacer`, `TokenGapNormalizer`, `AccessorListLayout`, `LineBreakDetection`, `LineBreakTriviaUtilities` |
-| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-010, FMT-PIPE-021, FMT-PIPE-025, FMT-PIPE-026, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, SHARED-ATTR-014, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-STMT-001 |
+| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-010, FMT-PIPE-014, FMT-PIPE-021, FMT-PIPE-025, FMT-PIPE-026, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, SHARED-ATTR-014, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-STMT-001 |
 
 This spec covers `LineBreakPhase`, the phase of the pipeline that decides where lines break (its position in the phase order is FMT-PIPE-001): brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, the lines that switch sections, their labels, and their first statements start, and `case … when` guards. The phase adds and removes line breaks and keeps the blank lines it finds (FMT-BREAK-030), and it changes tokens only where it shapes an accessor's attribute lists (FMT-BREAK-032). The columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
 
@@ -555,7 +555,7 @@ class C
 
 ### FMT-BREAK-011 — Parameter lists hug their declaration
 
-A comma between parameters MUST stay at the end of the previous parameter's line, and the closing parenthesis MUST stay on the line of the last parameter. This holds for every parameter list — methods, constructors, operators, delegates, local functions, records, primary constructors, anonymous methods, and parenthesized lambdas. The opening parenthesis MUST stay on the declaration line for every one of these parameter lists except a parenthesized lambda's.
+A comma between parameters MUST stay at the end of the previous parameter's line, and the closing parenthesis MUST stay on the line of the last parameter. This holds for every parameter list — methods, constructors, operators, delegates, local functions, records, primary constructors, anonymous methods, parenthesized lambdas, and indexers, whose bracketed parameter list (`this[int a, int b]`) has its brackets in place of the parentheses (FMT-PIPE-014). The opening parenthesis MUST stay on the declaration line for every one of these parameter lists except a parenthesized lambda's; the opening bracket of an indexer's parameter list stays on the line of `this`.
 
 The opening parenthesis of a parenthesized lambda is the lambda's first token unless a modifier or a return type stands in front of it, and this requirement does not move it: the requirement that owns the gap in front of the lambda decides it — inside a list element FMT-BREAK-015 joins it, as the first element of a list FMT-BREAK-012 does, and as an assignment's value FMT-BREAK-016 does — and where no requirement joins that gap, the phase leaves its line break and its blank lines as written (FMT-BREAK-030). A line break that another requirement inserts in front of the lambda — in front of an element of an initializer (FMT-BREAK-021) or of a collection expression (FMT-BREAK-022), or of a list element (FMT-BREAK-012) — stays, as in front of any other expression.
 
@@ -590,6 +590,34 @@ class C
     void N(int a, int b)
     {
     }
+}
+```
+
+Example — an indexer's parameter list is laid out as a method's is: its opening bracket joins `this`, its commas end their lines, and its closing bracket joins the last parameter:
+
+```csharp
+class C
+{
+    int this
+        [int a] => a;
+
+    int this[int a
+             , int b] => a;
+
+    int this[string a, string b
+        ] => 0;
+}
+```
+
+```csharp
+class C
+{
+    int this[int a] => a;
+
+    int this[int a,
+             int b] => a;
+
+    int this[string a, string b] => 0;
 }
 ```
 
@@ -678,7 +706,7 @@ class C
 
 ### FMT-BREAK-012 — A list is on one line or one element per line
 
-An argument list, a parameter list, and an attribute argument list MUST either stay on one line or put every element on its own line. A list that is wrapped anywhere — after its opening parenthesis or between two elements — MUST become one element per line, with the first element on the line of the opening parenthesis. A list written on one line MUST be left on one line.
+An argument list, a parameter list — the bracketed parameter list of an indexer included (FMT-BREAK-011) — and an attribute argument list MUST either stay on one line or put every element on its own line. A list that is wrapped anywhere — after its opening parenthesis or bracket or between two elements — MUST become one element per line, with the first element on the line of the opening parenthesis or bracket. A list written on one line MUST be left on one line.
 
 Why: A partly wrapped list hides elements at the end of a line. Keeping the first element on the opening line lets the remaining elements align under it (FMT-INDENT). RH5101, RH5102, and RH5109 report the same shapes.
 
@@ -722,9 +750,28 @@ class C
 }
 ```
 
+and an indexer's parameter list, wrapped between two of its parameters, gets one parameter per line:
+
+```csharp
+class C
+{
+    int this[int a, int b,
+             int c] => a;
+}
+```
+
+```csharp
+class C
+{
+    int this[int a,
+             int b,
+             int c] => a;
+}
+```
+
 ### FMT-BREAK-013 — A multi-line element splits its list
 
-When an element of an argument, parameter, or attribute argument list spans several lines — a nested wrapped list, a lambda with a block body, an initializer — the list MUST put every element on its own line, as if it were wrapped.
+When an element of an argument, parameter, or attribute argument list spans several lines — a nested wrapped list, a lambda with a block body, an initializer — the list MUST put every element on its own line, as if it were wrapped. This holds for the bracketed parameter list of an indexer as for any other parameter list (FMT-BREAK-011).
 
 Why: An element that spans lines already breaks the list's one-line shape; continuing the list on the element's last line would hide the following elements behind it.
 
@@ -794,7 +841,7 @@ class C<T, U>
 
 ### FMT-BREAK-015 — Wraps inside a list element are joined
 
-A line inside an element of an argument, parameter, attribute argument, tuple, or type-argument list that starts at a token other than the element's first token MUST be joined onto the previous line. A gap whose layout another requirement owns MUST NOT be joined by this rule: list boundaries, the opening parenthesis of a parameter list other than a lambda's, operator wraps of binary, conditional, member-access, postfix, `is`-pattern, and assignment expressions (FMT-BREAK-016 to FMT-BREAK-020), multi-line literals, attribute placement, and every line inside a nested braced, bracketed, or query construct.
+A line inside an element of an argument, parameter, attribute argument, tuple, or type-argument list that starts at a token other than the element's first token MUST be joined onto the previous line. A gap whose layout another requirement owns MUST NOT be joined by this rule: list boundaries, the opening parenthesis of a parameter list other than a lambda's, operator wraps of binary, conditional, member-access, postfix, `is`-pattern, and assignment expressions (FMT-BREAK-016 to FMT-BREAK-020), multi-line literals, attribute placement, and every line inside a nested braced, bracketed, or query construct. The `=` of a parameter's default value is not such an operator wrap: the gap in front of it is a wrap inside the element, and this rule joins it, in a bracketed parameter list as in a parenthesized one (FMT-BREAK-016 defers to it there). The gap behind it is not this rule's: FMT-BREAK-016 places the value, as for every equals-value clause.
 
 Why: A wrap such as `out⏎var value` or `message:⏎"x"` splits one element over two lines without structuring anything. Joining runs before the list layout, so a list that was multi-line only because of such a wrap is laid out as the one-line list it becomes. No analyzer rule reports these wraps; the join is a formatter-only decision.
 
@@ -832,9 +879,11 @@ class C
 
 ### FMT-BREAK-016 — Assignments keep target, operator, and value together
 
-The `=` of an assignment, a variable declarator, or a property initializer MUST stay on the line of its target, and the value MUST start on the line of the `=`. A value that spans several lines starts on the `=` line and keeps its own layout; a collection initializer or collection expression assigned to a target keeps its opening delimiter on the `=` line.
+The operator of an assignment MUST stay on the line of its target, and the value MUST start on the line of the operator. This holds for every assignment operator — `=` and every compound assignment operator, such as `+=`, `-=`, `|=`, `<<=`, and `??=` — and for the `=` of a variable declarator, a property initializer, an enum member's value, and a parameter's default value (FMT-PIPE-014). A value that spans several lines starts on the operator line and keeps its own layout; a collection initializer or collection expression assigned to a target keeps its opening delimiter on the operator line. Inside a parameter list, this requirement does not decide the gap in front of a parameter's default `=`: FMT-BREAK-015 owns it and joins it as a wrap inside a list element, which gives the layout stated here. The value behind the `=` is placed by this requirement, for a parameter's default as for every equals-value clause, so a multi-line literal default starts on the `=` line (`string s = """`) although FMT-BREAK-015 does not join a multi-line literal.
 
-Why: Splitting the target from its value makes the reader search for what is assigned to what. RH5111 reports the same shapes.
+A binary operator is not an assignment operator: `a⏎+ b` is laid out by FMT-BREAK-017, while `a⏎+= b` is joined by this requirement.
+
+Why: Splitting the target from its value makes the reader search for what is assigned to what, whichever operator assigns it and whichever construct the `=` belongs to. RH5111 reports the same shapes for the `=` of an assignment, a declarator, a property, an enum member, and a parameter; the formatter lays out the compound assignment operators alike as well (FMT-PIPE-014).
 
 Example:
 
@@ -867,6 +916,52 @@ class C
         var w = """
                 a
                 """;
+    }
+}
+```
+
+Example — a compound assignment, an enum member's value, and a parameter's default value are laid out as an assignment with `=` is, while a wrapped binary operator keeps its wrap; the parameter list, wrapped only inside its elements, becomes the one-line list it is once they are joined (FMT-BREAK-015 in front of each `=`, this requirement behind it):
+
+```csharp
+enum E
+{
+    A
+        = 1,
+    B =
+        2
+}
+
+class C
+{
+    void M(int a
+               = 1, string s =
+                   null)
+    {
+        a
+            += 1;
+        s ??=
+            "x";
+        a = a
+            + 1;
+    }
+}
+```
+
+```csharp
+enum E
+{
+    A = 1,
+    B = 2
+}
+
+class C
+{
+    void M(int a = 1, string s = null)
+    {
+        a += 1;
+        s ??= "x";
+        a = a
+            + 1;
     }
 }
 ```
@@ -2083,6 +2178,393 @@ class C
         {
             Foo();
         }
+    }
+}
+```
+
+### FMT-BREAK-037 — The constraints of a clause are on one line or one constraint per line
+
+This requirement applies to every `where` clause, whichever declaration owns it — a type, a method, a local function, a delegate, or an extension block.
+
+In this requirement, a line break is one that SHARED-BLANK-008 counts: an end-of-line trivia, or the line break that ends a single-line comment, a `///` comment, or a directive. A line break inside the text of a multi-line comment (`/* … */`) is not one: two tokens that only such a comment puts on different lines of the text are not separated by a line break, for the joins, for whether the clause is wrapped, and for whether a constraint, a comma, or the colon starts a line.
+
+The phase MUST first join the line breaks inside a clause that structure nothing: a line break between the clause's type parameter and its colon MUST be joined, so that the colon stands on the type parameter's line, and a line break between two tokens of one constraint MUST be joined — in a qualified or alias-qualified name, in front of the `<` of a type argument list, in `new()`, `class?`, or `allows ref struct`. The gaps of a type argument list, from its `<` to its `>`, are not this requirement's: FMT-BREAK-014 and FMT-BREAK-015 join them. A line break that those requirements, and the requirements of a type argument's own construct, keep — for example one inside a tuple type argument wrapped over two lines (`IEquatable<(int,⏎ string)>`) — stays, and the constraint then spans two lines.
+
+The clause MUST then be judged as these joins leave it. It is wrapped when a line break separates its colon from its first constraint, when a line break separates its colon from its type parameter because a comment, a directive, or disabled text keeps the join from happening, or when a line break separates two tokens of its constraints, from the first token of the first constraint to the last token of the last one — in front of or behind a comma between two constraints, or inside one constraint where the joins leave it. A wrapped clause MUST become one constraint per line: its first constraint MUST move onto the line of the colon, every later constraint MUST start a line — a line break MUST separate it from the token in front of it — that no other constraint of the clause shares, and every comma between two constraints MUST stand at the end of the line of the constraint in front of it. Where a multi-line comment stands behind a comma, the later constraint behind the comment's closing line does not start a line, and the line break goes behind the comment, which stays behind the comma (FMT-BREAK-001). In a clause that is not wrapped, this requirement changes nothing beyond the joins of the first step, also where multi-line comments put its colon or its constraints on different lines of the text.
+
+A join MUST NOT cross a comment, a directive, or disabled text (FMT-BREAK-001). Where one stands in a gap, the line break stays: a colon kept off the type parameter's line starts its own line and wraps the clause, a first constraint kept off the colon's line starts its own line, a comma kept off the previous line stays at the start of the line of the constraint behind it, and a line break inside a constraint that one keeps wraps the clause. The phase keeps the blank lines of every gap it does not join (FMT-BREAK-030).
+
+Why: A partly wrapped clause hides constraints at the end of a line, as a partly wrapped list hides elements (FMT-BREAK-012). With the first constraint on the colon's line and the commas at the end of the line, as in a parameter list (FMT-BREAK-011), the later constraints have a constraint to align under (FMT-INDENT-032). A wrap between the type parameter and the colon, or inside one constraint, splits one part of the clause over two lines without structuring anything, as FMT-BREAK-015 reasons for wraps inside a list element, and the clause is judged after those joins as a list is. A constraint that a comment or a directive keeps over several lines breaks the clause's one-line shape as a multi-line element breaks a list's (FMT-BREAK-013). A colon that one keeps on its own line already takes the clause off the line of its `where` keyword, so its constraints follow the one-per-line layout of every other wrapped clause instead of a shape of their own. Whether a clause is wrapped, and whether a part of it starts a line, is decided on the same line-start facts as every other list (SHARED-BLANK-008): a line break inside a multi-line comment is part of the comment's text and does not wrap a parameter list either (FMT-BREAK-012; `void N(int a, /* x⏎ y */ int b, int c)` stays on one line), and in a wrapped list a parameter behind such a comment's closing line gets a line of its own behind the comment, as a constraint does here. RH5110 reports only the position of the `where` keyword, so this layout is a formatter-only decision.
+
+Example — a clause wrapped between constraints, behind its colon, or in front of a comma becomes one constraint per line; a clause on one line stays:
+
+```csharp
+using System;
+
+class C
+{
+    void M<T>()
+        where T : class, IComparable<T>,
+            IEquatable<T>, new()
+    {
+    }
+
+    void N<T>()
+        where T :
+            IDisposable
+    {
+    }
+
+    void O<T>()
+        where T :
+            class,
+            new()
+    {
+    }
+
+    void P<T>()
+        where T : class
+            , new()
+    {
+    }
+
+    void Q<T>()
+        where T : class, new()
+    {
+    }
+}
+```
+
+```csharp
+using System;
+
+class C
+{
+    void M<T>()
+        where T : class,
+                  IComparable<T>,
+                  IEquatable<T>,
+                  new()
+    {
+    }
+
+    void N<T>()
+        where T : IDisposable
+    {
+    }
+
+    void O<T>()
+        where T : class,
+                  new()
+    {
+    }
+
+    void P<T>()
+        where T : class,
+                  new()
+    {
+    }
+
+    void Q<T>()
+        where T : class, new()
+    {
+    }
+}
+```
+
+Example — the colon joins the type parameter's line, and a wrap inside a constraint that nothing holds is joined before the clause is judged, so these clauses end on one line:
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    void M<T>()
+        where T
+            : class, new()
+    {
+    }
+
+    void N<T>()
+        where T : class, IDictionary<int,
+            string>, new()
+    {
+    }
+
+    void O<T>()
+        where T : class, System.
+            IDisposable, new()
+    {
+    }
+}
+```
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    void M<T>()
+        where T : class, new()
+    {
+    }
+
+    void N<T>()
+        where T : class, IDictionary<int, string>, new()
+    {
+    }
+
+    void O<T>()
+        where T : class, System.IDisposable, new()
+    {
+    }
+}
+```
+
+Example — a constraint that a comment keeps over two lines wraps its clause; the constraint's inner line follows the constraint:
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    void M<T>()
+        where T : class, IDictionary<int, // c
+            string>, new()
+    {
+    }
+}
+```
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    void M<T>()
+        where T : class,
+                  IDictionary<int, // c
+                              string>,
+                  new()
+    {
+    }
+}
+```
+
+Example — a colon that a comment keeps on its own line wraps its clause, also when its constraints are written on one line; a clause whose colon is joined is judged as usual:
+
+```csharp
+class C
+{
+    void M<T>()
+        where T // c
+            : class, new()
+    {
+    }
+
+    void N<T>()
+        where T
+            : class, new()
+    {
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M<T>()
+        where T // c
+            : class,
+              new()
+    {
+    }
+
+    void N<T>()
+        where T : class, new()
+    {
+    }
+}
+```
+
+Example — comments and directives block a join but not a split: a comment behind the type parameter keeps the colon on the next line, a comment or a directive behind the colon keeps the first constraint on the next line, a comment or a directive in front of a comma keeps the comma at the start of the line, and a comment behind a comma stays behind it:
+
+```csharp
+using System;
+
+class C
+{
+    void M<T>()
+        where T // c
+            : class,
+            new()
+    {
+    }
+
+    void N<T>()
+        where T : // c
+            class,
+            new()
+    {
+    }
+
+    void O<T>()
+        where T :
+#if !X
+            class,
+#endif
+            new()
+    {
+    }
+
+    void P<T>()
+        where T : class // c
+            , new()
+    {
+    }
+
+    void Q<T>()
+        where T : IDisposable
+#if !X
+            , allows ref struct
+#endif
+    {
+    }
+
+    void R<T>()
+        where T : class, /* c */ new(),
+            IDisposable
+    {
+    }
+}
+```
+
+```csharp
+using System;
+
+class C
+{
+    void M<T>()
+        where T // c
+            : class,
+              new()
+    {
+    }
+
+    void N<T>()
+        where T : // c
+                  class,
+                  new()
+    {
+    }
+
+    void O<T>()
+        where T :
+#if !X
+                  class,
+#endif
+                  new()
+    {
+    }
+
+    void P<T>()
+        where T : class // c
+                  , new()
+    {
+    }
+
+    void Q<T>()
+        where T : IDisposable
+#if !X
+                  , allows ref struct
+#endif
+    {
+    }
+
+    void R<T>()
+        where T : class, /* c */
+                  new(),
+                  IDisposable
+    {
+    }
+}
+```
+
+Example — a line break inside a multi-line comment wraps nothing: the comment's closing line does not put the colon (`M`), the first constraint (`N`), a comma (`O`), or a later constraint (`P`) on a line of its own, so these clauses stay as written. In `S`, the line break in front of `IDisposable` wraps the clause; `new()` behind the comment's closing line does not start a line, so a line break goes behind the comment, which stays behind its comma:
+
+```csharp
+using System;
+
+class C
+{
+    void M<T>()
+        where T /* a
+            b */ : class, new()
+    {
+    }
+
+    void N<T>()
+        where T : /* a
+            b */ class, new()
+    {
+    }
+
+    void O<T>()
+        where T : class /* a
+            b */, new()
+    {
+    }
+
+    void P<T>()
+        where T : class, /* a
+            b */ new(), IDisposable
+    {
+    }
+
+    void S<T>()
+        where T : class, /* a
+            b */ new(),
+            IDisposable
+    {
+    }
+}
+```
+
+```csharp
+using System;
+
+class C
+{
+    void M<T>()
+        where T /* a
+            b */ : class, new()
+    {
+    }
+
+    void N<T>()
+        where T : /* a
+            b */ class, new()
+    {
+    }
+
+    void O<T>()
+        where T : class /* a
+            b */, new()
+    {
+    }
+
+    void P<T>()
+        where T : class, /* a
+            b */ new(), IDisposable
+    {
+    }
+
+    void S<T>()
+        where T : class, /* a
+            b */
+                  new(),
+                  IDisposable
+    {
     }
 }
 ```

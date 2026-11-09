@@ -337,8 +337,8 @@ public class HorizontalSpacingRequirementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that one space goes before a brace and around base-list and constructor-initializer
-    /// colons, while interpolation braces keep their spacing
+    /// Verifies that one space goes before a brace and around base-list, constructor-initializer,
+    /// and constraint-clause colons, while interpolation braces keep their spacing
     /// </summary>
     [TestMethod]
     [Requirement("FMT-SPACE-009")]
@@ -366,6 +366,11 @@ public class HorizontalSpacingRequirementTests : FormatterTestsBase
 
                                      return $"{a}";
                                  }
+
+                                 void N<T>()
+                                     where T:class
+                                 {
+                                 }
                              }
                              """;
         const string expected = """
@@ -388,6 +393,11 @@ public class HorizontalSpacingRequirementTests : FormatterTestsBase
                                         var values = new int[] { a };
 
                                         return $"{a}";
+                                    }
+
+                                    void N<T>()
+                                        where T : class
+                                    {
                                     }
                                 }
                                 """;
@@ -674,8 +684,8 @@ public class HorizontalSpacingRequirementTests : FormatterTestsBase
 
                              class C
                              {
-                                 int _a /** x */;
-                                 int _b /** y */ ;
+                                 int P => 1 /** x */;
+                                 int Q => 1 /** y */ ;
 
                                  [Obsolete /** why */ ]
                                  int M(bool c, int b)
@@ -693,8 +703,8 @@ public class HorizontalSpacingRequirementTests : FormatterTestsBase
 
                                 class C
                                 {
-                                    int _a /** x */;
-                                    int _b /** y */;
+                                    int P => 1 /** x */;
+                                    int Q => 1 /** y */;
 
                                     [Obsolete /** why */]
                                     int M(bool c, int b)
@@ -884,25 +894,23 @@ public class HorizontalSpacingRequirementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the specification example: a fixed-size buffer whose <c>fixed</c> keyword carries a block comment glued
-    /// to the type gets one space between the comment and the type
+    /// Verifies the specification example: the spaces between <c>fixed</c> and the type of a fixed-size buffer become one
     /// </summary>
     [TestMethod]
     [Requirement("FMT-SPACE-012")]
-    [Requirement("FMT-SPACE-013")]
-    public void OneSpaceBehindCommentGluedToFixedSizeBufferType()
+    public void SpecExampleOneSpaceBetweenFixedAndTheTypeOfAFixedSizeBuffer()
     {
         // Arrange
         const string input = """
                              unsafe struct S
                              {
-                                 public fixed/* c */int _b[4];
+                                 public fixed  int _b[4];
                              }
                              """;
         const string expected = """
                                 unsafe struct S
                                 {
-                                    public fixed/* c */ int _b[4];
+                                    public fixed int _b[4];
                                 }
                                 """;
 
@@ -911,40 +919,12 @@ public class HorizontalSpacingRequirementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a fixed-size buffer with a space between <c>fixed</c> and a block comment glued to the type keeps
-    /// that space and gets one space between the comment and the type
+    /// Verifies that a block comment between <c>fixed</c> and the type of a fixed-size buffer makes the input unsupported: it
+    /// stands between the field's own tokens, and the formatter returns the input unchanged
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-SPACE-012")]
-    [Requirement("FMT-SPACE-013")]
-    public void OneSpaceBehindSpacedCommentGluedToFixedSizeBufferType()
-    {
-        // Arrange
-        const string input = """
-                             unsafe struct S
-                             {
-                                 public fixed /* c */int _c[4];
-                             }
-                             """;
-        const string expected = """
-                                unsafe struct S
-                                {
-                                    public fixed /* c */ int _c[4];
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that several spaces between a block comment behind <c>fixed</c> and the type of a fixed-size buffer
-    /// become one
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-SPACE-012")]
-    [Requirement("FMT-SPACE-013")]
-    public void SeveralSpacesBehindCommentInFixedSizeBufferBecomeOne()
+    [Requirement("FMT-UNSUP-004")]
+    public void CommentBetweenFixedAndTheTypeOfAFixedSizeBufferIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -953,15 +933,9 @@ public class HorizontalSpacingRequirementTests : FormatterTestsBase
                                  public fixed /* d */  int _d[4];
                              }
                              """;
-        const string expected = """
-                                unsafe struct S
-                                {
-                                    public fixed /* d */ int _d[4];
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupported(input, "/* d */");
     }
 
     /// <summary>

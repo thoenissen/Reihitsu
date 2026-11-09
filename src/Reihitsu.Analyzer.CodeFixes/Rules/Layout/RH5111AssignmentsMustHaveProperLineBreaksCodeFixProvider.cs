@@ -51,8 +51,8 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : CodeFixP
         var contextNode = GetFormattingContextNode(formattingNode);
 
         return contextNode == formattingNode
-                   ? await ReihitsuFormatter.FormatNodeInDocumentAsync(document, formattingNode, cancellationToken).ConfigureAwait(false)
-                   : await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, formattingNode, contextNode, cancellationToken).ConfigureAwait(false);
+                   ? (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, formattingNode, cancellationToken).ConfigureAwait(false)).Output
+                   : (await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, formattingNode, contextNode, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     /// <summary>
@@ -129,7 +129,9 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : CodeFixP
             var diagnosticNode = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
             var assignmentNode = GetFormattingNode(diagnosticNode);
 
-            if (assignmentNode == null || ContainsJoinBlockingTrivia(assignmentNode))
+            if (assignmentNode == null
+                || ContainsJoinBlockingTrivia(assignmentNode)
+                || ReihitsuFormatter.FindUnsupportedSyntax(GetFormattingContextNode(assignmentNode)) != null)
             {
                 continue;
             }

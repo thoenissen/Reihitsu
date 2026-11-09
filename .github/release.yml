@@ -1,7 +1,13 @@
+# Categories for GitHub's "Generate release notes". GitHub sorts a pull request by the labels on the
+# pull request itself, not by the labels of the issues it closes; .github/workflows/pr-labels.yml copies them.
+# A pull request is listed under the first category whose label it carries.
 changelog:
   exclude:
+    labels:
+      - dependencies
     authors:
       - dependabot
+      - dependabot[bot]
   categories:
     - title: Analyzer
       labels:
@@ -15,6 +21,9 @@ changelog:
     - title: Documentation
       labels:
         - documentation
+    - title: Maintenance
+      labels:
+        - maintenance
     - title: Other changes
       labels:
         - "*"

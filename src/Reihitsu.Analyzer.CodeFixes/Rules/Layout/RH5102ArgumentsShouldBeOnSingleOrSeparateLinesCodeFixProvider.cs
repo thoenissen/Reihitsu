@@ -32,7 +32,7 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesCodeFixProvider : Cod
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, ArgumentListSyntax argumentList, CancellationToken cancellationToken)
     {
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, argumentList, cancellationToken).ConfigureAwait(false);
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, argumentList, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     #endregion // Methods
@@ -64,7 +64,9 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesCodeFixProvider : Cod
                 // trivia unconditionally, so a comment behind the closing parenthesis is never crossed. The leading
                 // side stays guarded because that same entry point restores the first token's leading trivia only
                 // when the token does not start a line.
-                if (argumentList != null && SyntaxNodeUtilities.LeadingAndInteriorContainsCommentOrDirective(argumentList) == false)
+                if (argumentList != null
+                    && SyntaxNodeUtilities.LeadingAndInteriorContainsCommentOrDirective(argumentList) == false
+                    && ReihitsuFormatter.FindUnsupportedSyntax(argumentList) == null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5102Title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, argumentList, cancellationToken),

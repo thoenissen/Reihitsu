@@ -13,7 +13,7 @@ This spec covers `TabReplacementPhase`, the TabReplacement sub-phase that the pr
 
 - The indentation of a line and the gaps between tokens on a line. FMT-INDENT and FMT-SPACE decide them later; this phase only replaces the tabs they would otherwise receive.
 - Whitespace at the end of a line and the final line break — FMT-CLEAN.
-- Tabs inside the text of a multi-line raw string literal, which are part of its value. Aligning raw strings whose indentation uses tab characters is a planned extension, tracked in thoenissen/Reihitsu#1432.
+- Tabs inside the text of a multi-line raw string literal, which are part of its value. Aligning such a literal counts each of these tabs as one column (FMT-RAW-001); tab-width alignment of raw strings is a planned extension, tracked in thoenissen/Reihitsu#1432.
 
 ## Requirements
 

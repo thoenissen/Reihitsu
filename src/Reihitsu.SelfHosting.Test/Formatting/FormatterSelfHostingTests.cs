@@ -59,8 +59,8 @@ public sealed class FormatterSelfHostingTests
 
         foreach (var (endOfLine, syntaxTree) in ParseUnderEachLineEnding(relativePath))
         {
-            var firstPass = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, TestContext.CancellationToken);
-            var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
+            var firstPass = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, TestContext.CancellationToken).Output;
+            var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken).Output;
             var firstResult = firstPass.GetRoot(TestContext.CancellationToken).ToFullString();
             var secondResult = secondPass.GetRoot(TestContext.CancellationToken).ToFullString();
 
@@ -91,7 +91,7 @@ public sealed class FormatterSelfHostingTests
         foreach (var (endOfLine, syntaxTree) in ParseUnderEachLineEnding(relativePath))
         {
             var normalized = syntaxTree.GetRoot(TestContext.CancellationToken).ToFullString();
-            var formatted = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, TestContext.CancellationToken);
+            var formatted = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, TestContext.CancellationToken).Output;
             var result = formatted.GetRoot(TestContext.CancellationToken).ToFullString();
 
             if (normalized != result)

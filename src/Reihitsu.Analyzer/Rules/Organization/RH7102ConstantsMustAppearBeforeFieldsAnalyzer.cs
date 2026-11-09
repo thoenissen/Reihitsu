@@ -60,7 +60,10 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzer : DiagnosticAnalyzerB
 
             if (fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword))
             {
-                if (seenNonConstantAccessibilityGroups.Contains(accessibilityGroup))
+                // A conditional directive in the modifiers lets another build configuration compile the constant as a
+                // field, so the verdict on the active modifiers can be wrong for it (SHARED-DIAG-008)
+                if (seenNonConstantAccessibilityGroups.Contains(accessibilityGroup)
+                    && OrderingDeclarationUtilities.HasModifiersSplitByConditionalDirective(fieldDeclaration) == false)
                 {
                     context.ReportDiagnostic(CreateDiagnostic(OrderingDeclarationUtilities.GetDiagnosticLocation(fieldDeclaration)));
                 }

@@ -13,7 +13,7 @@ internal sealed class DefaultSourceFormatter : ISourceFormatter
     #region ISourceFormatter
 
     /// <inheritdoc/>
-    public SyntaxTree FormatSyntaxTree(SyntaxTree syntaxTree, CancellationToken cancellationToken)
+    public FormattingResult<SyntaxTree> FormatSyntaxTree(SyntaxTree syntaxTree, CancellationToken cancellationToken)
     {
         return ReihitsuFormatter.FormatSyntaxTree(syntaxTree, cancellationToken);
     }

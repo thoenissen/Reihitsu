@@ -1178,5 +1178,41 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies the reported example of an omitted type argument behind a comment: the line that starts with the separator
+    /// of the omitted type arguments takes the block column
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-INDENT-015")]
+    public void OmittedTypeArgumentBehindCommentTakesBlockColumn()
+    {
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var type = typeof(Dictionary< // omitted
+                                             ,>);
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var type = typeof(Dictionary< // omitted
+                                        ,>);
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

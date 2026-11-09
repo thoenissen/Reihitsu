@@ -481,6 +481,38 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
         await VerifyNoCodeFixIsOffered(source);
     }
 
+    /// <summary>
+    /// Verifies that a refused comment in the setter withholds the fix for the reported getter: the fix formats the
+    /// property it builds, which the formatter refuses, although the reported getter holds no refused shape
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task NoFixIsOfferedWhenTheOtherAccessorHoldsACommentTheFormatterRefuses()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  private int _value;
+
+                                  public int Value
+                                  {
+                                      set
+                                      {
+                                          int /* c */ y = value;
+                                          _value = y;
+                                      }
+                                      {|RH7107:get|}
+                                      {
+                                          return _value;
+                                      }
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

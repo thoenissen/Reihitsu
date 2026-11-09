@@ -408,6 +408,32 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTes
         await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
     }
 
+    /// <summary>
+    /// Verifies that a refused comment in the else block withholds the fix for the single-lined if block: the fix
+    /// formats the whole if statement, which the formatter refuses, although the reported block holds no refused shape
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task NoFixIsOfferedWhenTheOwningStatementHoldsACommentTheFormatterRefuses()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  private void M(bool a)
+                                  {
+                                      if (a) {|RH5403:{|} M(a); }
+                                      else
+                                      {
+                                          int /* c */ y = 1;
+                                      }
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
