@@ -29,9 +29,11 @@ public static class PlaygroundFormatter
             return new PlaygroundFormatResult(source, false);
         }
 
-        var formattedTree = ReihitsuFormatter.FormatSyntaxTree(syntaxTree);
+        var result = ReihitsuFormatter.FormatSyntaxTree(syntaxTree);
 
-        return new PlaygroundFormatResult(formattedTree.ToString(), true);
+        return result.Unsupported != null
+                   ? new PlaygroundFormatResult(source, false, result.Unsupported)
+                   : new PlaygroundFormatResult(result.Output.ToString(), true);
     }
 
     /// <summary>

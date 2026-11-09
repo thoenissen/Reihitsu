@@ -63,6 +63,26 @@ public abstract class OperatorSpacingCodeFixProviderBase : CodeFixProvider
             return document;
         }
 
+        var node = FindFormattingNode(root, diagnosticSpan);
+
+        if (node == null)
+        {
+            return document;
+        }
+
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, node, cancellationToken).ConfigureAwait(false)).Output;
+    }
+
+    /// <summary>
+    /// Finds the node the fix formats: the smallest node that contains the operator and both neighbouring tokens, so the
+    /// gaps on either side are interior trivia the formatter normalizes, instead of the node's preserved leading or trailing
+    /// trivia
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="diagnosticSpan">The diagnostic's span</param>
+    /// <returns>The node, or <see langword="null"/> when the operator has no token on one of its sides</returns>
+    private static SyntaxNode FindFormattingNode(SyntaxNode root, TextSpan diagnosticSpan)
+    {
         var operatorToken = root.FindToken(diagnosticSpan.Start);
         var previousToken = operatorToken.GetPreviousToken();
         var nextToken = operatorToken.GetNextToken();
@@ -70,15 +90,10 @@ public abstract class OperatorSpacingCodeFixProviderBase : CodeFixProvider
         if (previousToken.RawKind == 0
             || nextToken.RawKind == 0)
         {
-            return document;
+            return null;
         }
 
-        // Format the smallest node that contains the operator and both neighbouring tokens so the
-        // gaps on either side are interior trivia the formatter normalizes, instead of the node's
-        // preserved leading or trailing trivia.
-        var node = root.FindNode(TextSpan.FromBounds(previousToken.SpanStart, nextToken.Span.End));
-
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, node, cancellationToken).ConfigureAwait(false);
+        return root.FindNode(TextSpan.FromBounds(previousToken.SpanStart, nextToken.Span.End));
     }
 
     #endregion // Methods
@@ -95,17 +110,28 @@ public abstract class OperatorSpacingCodeFixProviderBase : CodeFixProvider
     }
 
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
+        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return;
+        }
+
         foreach (var diagnostic in context.Diagnostics)
         {
+            if (FindFormattingNode(root, diagnostic.Location.SourceSpan) is { } node
+                && ReihitsuFormatter.FindUnsupportedSyntax(node) != null)
+            {
+                continue;
+            }
+
             context.RegisterCodeFix(CodeAction.Create(_title,
                                                       token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
                                                       GetType().Name),
                                     diagnostic);
         }
-
-        return Task.CompletedTask;
     }
 
     #endregion // CodeFixProvider

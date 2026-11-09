@@ -32,9 +32,9 @@ public class RH7101DoNotCombineFieldsCodeFixProvider : CodeFixProvider
     /// <param name="fieldDeclaration">Field declaration</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The updated document</returns>
-    private static Task<Document> ApplyCodeFixAsync(Document document, FieldDeclarationSyntax fieldDeclaration, CancellationToken cancellationToken)
+    private static async Task<Document> ApplyCodeFixAsync(Document document, FieldDeclarationSyntax fieldDeclaration, CancellationToken cancellationToken)
     {
-        return ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, fieldDeclaration, fieldDeclaration.Parent, cancellationToken);
+        return (await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, fieldDeclaration, fieldDeclaration.Parent, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     /// <summary>
@@ -89,9 +89,11 @@ public class RH7101DoNotCombineFieldsCodeFixProvider : CodeFixProvider
 
     /// <summary>
     /// Gets the field declaration of a diagnostic when the fix is offered for it: only where the formatter splits the
-    /// declaration, because the fix splits it only by formatting it, and elsewhere it would change nothing. The formatter
-    /// alone decides that, so a declaration it keeps whole — one with a directive, a documentation comment, or a comment in
-    /// the part every field would repeat — is reported without a fix (FMT-PIPE-031, RH7101-005, RH7101-006, RH7101-007)
+    /// declaration, because the fix splits it only by formatting it, and elsewhere it would change nothing, and only where the
+    /// formatter does not refuse the type the fix formats the declaration in. The formatter alone decides both, so a
+    /// declaration it keeps whole — one with a directive or a documentation comment — and a declaration in a type that holds
+    /// a shape the formatter refuses are reported without a fix (FMT-PIPE-031, RH7101-005, RH7101-006, RH7101-007,
+    /// SHARED-FIX-010)
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="diagnostic">Diagnostic</param>
@@ -106,7 +108,8 @@ public class RH7101DoNotCombineFieldsCodeFixProvider : CodeFixProvider
                                .FirstOrDefault();
 
         return fieldDeclaration != null
-               && ReihitsuFormatter.SplitsFieldDeclaration(fieldDeclaration);
+               && ReihitsuFormatter.SplitsFieldDeclaration(fieldDeclaration)
+               && ReihitsuFormatter.FindUnsupportedSyntax(fieldDeclaration.Parent) == null;
     }
 
     #endregion // Methods

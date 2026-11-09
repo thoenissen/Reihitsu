@@ -32,7 +32,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider : CodeFi
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, MethodDeclarationSyntax methodDeclaration, CancellationToken cancellationToken)
     {
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, methodDeclaration, cancellationToken).ConfigureAwait(false);
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, methodDeclaration, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     #endregion // Methods
@@ -63,7 +63,8 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider : CodeFi
                 // The formatter keeps the expression body of an async method whose task type it cannot see, so a fix that
                 // delegates to it would change nothing there; the method stays reported without a fix
                 if (methodDeclaration != null
-                    && ExpressionBodiedTransformUtilities.RequiresAsyncExpressionBodyPreservation(methodDeclaration) == false)
+                    && ExpressionBodiedTransformUtilities.RequiresAsyncExpressionBodyPreservation(methodDeclaration) == false
+                    && ReihitsuFormatter.FindUnsupportedSyntax(methodDeclaration) == null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3202Title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, methodDeclaration, cancellationToken),

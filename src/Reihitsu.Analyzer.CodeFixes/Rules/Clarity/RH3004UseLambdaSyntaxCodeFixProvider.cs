@@ -76,6 +76,22 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
+    /// Creates the lambda expression the fix replaces the anonymous method with, before the formatter lays it out
+    /// </summary>
+    /// <param name="anonymousMethodExpression">Anonymous method expression with a parameter list</param>
+    /// <returns>The lambda expression, with the anonymous method's leading and trailing trivia</returns>
+    private static ExpressionSyntax CreateLambdaExpression(AnonymousMethodExpressionSyntax anonymousMethodExpression)
+    {
+        var asyncPrefix = anonymousMethodExpression.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword)
+                              ? "async "
+                              : string.Empty;
+        var bodyText = GetExpressionBody(anonymousMethodExpression)?.ToString() ?? anonymousMethodExpression.Block.ToString();
+
+        return SyntaxFactory.ParseExpression($"{asyncPrefix}{anonymousMethodExpression.ParameterList} => {bodyText}")
+                            .WithTriviaFrom(anonymousMethodExpression);
+    }
+
+    /// <summary>
     /// Applying the code fix
     /// </summary>
     /// <param name="document">Document</param>
@@ -92,15 +108,9 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
             return document;
         }
 
-        var asyncPrefix = anonymousMethodExpression.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword)
-                              ? "async "
-                              : string.Empty;
         var expressionBody = GetExpressionBody(anonymousMethodExpression);
-        var bodyText = expressionBody?.ToString() ?? anonymousMethodExpression.Block.ToString();
         var formattingAnnotation = new SyntaxAnnotation();
-        var replacementExpression = SyntaxFactory.ParseExpression($"{asyncPrefix}{anonymousMethodExpression.ParameterList} => {bodyText}")
-                                                 .WithTriviaFrom(anonymousMethodExpression)
-                                                 .WithAdditionalAnnotations(formattingAnnotation);
+        var replacementExpression = CreateLambdaExpression(anonymousMethodExpression).WithAdditionalAnnotations(formattingAnnotation);
         var updatedDocument = document.WithSyntaxRoot(root.ReplaceNode(anonymousMethodExpression, replacementExpression));
         var updatedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -111,7 +121,7 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
 
         // The code the fix creates, the parameter list, the arrow, and the braces, is laid out as the formatter lays it
         // out: a block body on lines of its own, aligned under the lambda's anchor
-        var formattedDocument = await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, lambdaExpression, cancellationToken).ConfigureAwait(false);
+        var formattedDocument = (await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, lambdaExpression, cancellationToken).ConfigureAwait(false)).Output;
 
         if (expressionBody != null)
         {
@@ -721,7 +731,8 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
                     && ContainsDiscardedTrivia(anonymousMethodExpression) == false
                     && IsOperandOfCastOrBinaryOperator(anonymousMethodExpression) == false
                     && ContainsDirectiveOrDisabledText(anonymousMethodExpression) == false
-                    && WithholdsFixForSpanningStringOrComment(anonymousMethodExpression, text, GetExpressionBody(anonymousMethodExpression) == null) == false)
+                    && WithholdsFixForSpanningStringOrComment(anonymousMethodExpression, text, GetExpressionBody(anonymousMethodExpression) == null) == false
+                    && ReihitsuFormatter.FindUnsupportedSyntax(CreateLambdaExpression(anonymousMethodExpression)) == null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3004Title,
                                                               token => ApplyCodeFixAsync(context.Document, anonymousMethodExpression, token),

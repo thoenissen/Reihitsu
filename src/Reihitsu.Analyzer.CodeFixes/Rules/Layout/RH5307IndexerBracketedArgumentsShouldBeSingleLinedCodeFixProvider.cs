@@ -32,7 +32,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedCodeFixProvider :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, SyntaxNode formatTarget, CancellationToken cancellationToken)
     {
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, formatTarget, cancellationToken).ConfigureAwait(false);
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, formatTarget, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     /// <summary>
@@ -121,7 +121,8 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedCodeFixProvider :
             {
                 var formatTarget = TryGetFormatTarget(root, diagnostic);
 
-                if (formatTarget != null)
+                if (formatTarget != null
+                    && ReihitsuFormatter.FindUnsupportedSyntax(formatTarget) == null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5307Title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, formatTarget, cancellationToken),

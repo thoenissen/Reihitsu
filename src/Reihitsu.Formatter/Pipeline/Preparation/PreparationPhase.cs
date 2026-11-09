@@ -71,7 +71,7 @@ internal sealed class PreparationPhase : IFormattingPhase
     /// </remarks>
     public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
-        return FormattingPipeline.ExecutePhases(root, context, [this], phaseObserver: null, cancellationToken);
+        return FormattingPipeline.ExecutePhases(root, context, [this], phaseObserver: null, cancellationToken).Output;
     }
 
     #endregion // IFormattingPhase

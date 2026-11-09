@@ -126,7 +126,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
 
         return formattedFieldDeclaration == null
                    ? updatedDocument.Project.Solution
-                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedFieldDeclaration, cancellationToken).ConfigureAwait(false)).Project.Solution;
+                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedFieldDeclaration, cancellationToken).ConfigureAwait(false)).Output.Project.Solution;
     }
 
     /// <summary>
@@ -435,7 +435,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
         foreach (var diagnostic in context.Diagnostics)
         {
             if (root.FindNode(diagnostic.Location.SourceSpan) is PropertyDeclarationSyntax node
-                && TryCreateFieldDeclaration(node, out _)
+                && TryCreateFieldDeclaration(node, out var fieldDeclaration)
+                && ReihitsuFormatter.FindUnsupportedSyntax(fieldDeclaration) == null
                 && HasFieldNameCollision(semanticModel, node) == false
                 && semanticModel?.GetDeclaredSymbol(node, context.CancellationToken) is { } symbol
                 && HasValueSafeFieldType(symbol.Type)

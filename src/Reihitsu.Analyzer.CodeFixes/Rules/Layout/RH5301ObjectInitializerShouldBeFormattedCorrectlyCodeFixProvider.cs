@@ -31,7 +31,7 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyCodeFixProvider : 
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, ExpressionSyntax objectCreationExpression, CancellationToken cancellationToken)
     {
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, objectCreationExpression, cancellationToken).ConfigureAwait(false);
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, objectCreationExpression, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     /// <summary>
@@ -70,7 +70,8 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyCodeFixProvider : 
                 var objectCreationExpression = TryGetObjectCreationExpression(root, diagnostic);
 
                 if (objectCreationExpression is ObjectCreationExpressionSyntax { Initializer: not null }
-                                             or ImplicitObjectCreationExpressionSyntax { Initializer: not null })
+                                             or ImplicitObjectCreationExpressionSyntax { Initializer: not null }
+                    && ReihitsuFormatter.FindUnsupportedSyntax(objectCreationExpression) == null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5301Title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, objectCreationExpression, cancellationToken),

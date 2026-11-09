@@ -130,6 +130,17 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderCodeFixProvi
     }
 
     /// <summary>
+    /// Creates the declaration the fix formats: the declaration with its documentation comment's elements reordered
+    /// </summary>
+    /// <param name="declaration">The declaration that owns the documentation comment</param>
+    /// <param name="documentationComment">The documentation comment</param>
+    /// <returns>The updated declaration</returns>
+    private static SyntaxNode CreateUpdatedDeclaration(SyntaxNode declaration, DocumentationCommentTriviaSyntax documentationComment)
+    {
+        return declaration.ReplaceTrivia(documentationComment.ParentTrivia, SyntaxFactory.Trivia(ReorderElements(documentationComment)));
+    }
+
+    /// <summary>
     /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
@@ -153,8 +164,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderCodeFixProvi
         }
 
         var formattingAnnotation = new SyntaxAnnotation();
-        var updatedDeclaration = declaration.ReplaceTrivia(documentationComment.ParentTrivia, SyntaxFactory.Trivia(ReorderElements(documentationComment)))
-                                            .WithAdditionalAnnotations(formattingAnnotation);
+        var updatedDeclaration = CreateUpdatedDeclaration(declaration, documentationComment).WithAdditionalAnnotations(formattingAnnotation);
         var updatedRoot = root.ReplaceNode(declaration, updatedDeclaration);
         var updatedDocument = document.WithSyntaxRoot(updatedRoot);
         var formattedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -162,7 +172,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderCodeFixProvi
 
         return formattedDeclaration == null
                    ? updatedDocument
-                   : await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedDeclaration, cancellationToken).ConfigureAwait(false);
+                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedDeclaration, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     #endregion // Methods
@@ -190,10 +200,11 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderCodeFixProvi
 
         foreach (var diagnostic in context.Diagnostics)
         {
-            var documentationComment = GetDocumentationComment(root, diagnostic.Location.SourceSpan, out _);
+            var documentationComment = GetDocumentationComment(root, diagnostic.Location.SourceSpan, out var declaration);
 
             if (documentationComment == null
-                || CanReorderElements(documentationComment) == false)
+                || CanReorderElements(documentationComment) == false
+                || ReihitsuFormatter.FindUnsupportedSyntax(CreateUpdatedDeclaration(declaration, documentationComment)) != null)
             {
                 continue;
             }

@@ -31,7 +31,7 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixPro
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, PropertyDeclarationSyntax propertyDeclaration, CancellationToken cancellationToken)
     {
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, propertyDeclaration, cancellationToken).ConfigureAwait(false);
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, propertyDeclaration, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     /// <summary>
@@ -42,7 +42,7 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixPro
     /// <returns><see langword="true"/> when formatting produces a single-lined property; otherwise, <see langword="false"/></returns>
     private static bool CanCollapse(PropertyDeclarationSyntax propertyDeclaration, CancellationToken cancellationToken)
     {
-        var formatted = ReihitsuFormatter.FormatNode(propertyDeclaration, cancellationToken: cancellationToken);
+        var formatted = ReihitsuFormatter.FormatNode(propertyDeclaration, cancellationToken: cancellationToken).Output;
 
         // For shapes the formatter keeps multi-lined (for example multi-line collection or switch expressions) the
         // result still spans several lines, so single-lining is impossible and the action must not be offered
@@ -77,6 +77,7 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixPro
             // Only offer the action when the formatter is actually able to collapse the property. For shapes the
             // formatter keeps multi-lined the formatting is a no-op, so registering would leave the diagnostic unresolved
             if (root.FindNode(diagnostic.Location.SourceSpan) is PropertyDeclarationSyntax propertyDeclaration
+                && ReihitsuFormatter.FindUnsupportedSyntax(propertyDeclaration) == null
                 && CanCollapse(propertyDeclaration, context.CancellationToken))
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5401Title,

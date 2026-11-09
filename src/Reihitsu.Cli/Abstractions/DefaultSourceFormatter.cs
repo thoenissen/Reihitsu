@@ -15,7 +15,13 @@ internal sealed class DefaultSourceFormatter : ISourceFormatter
     /// <inheritdoc/>
     public SyntaxTree FormatSyntaxTree(SyntaxTree syntaxTree, CancellationToken cancellationToken)
     {
-        return ReihitsuFormatter.FormatSyntaxTree(syntaxTree, cancellationToken);
+        return ReihitsuFormatter.FormatSyntaxTree(syntaxTree, cancellationToken).Output;
+    }
+
+    /// <inheritdoc/>
+    public UnsupportedSyntax FindUnsupportedSyntax(SyntaxTree syntaxTree, CancellationToken cancellationToken)
+    {
+        return ReihitsuFormatter.FindUnsupportedSyntax(syntaxTree.GetRoot(cancellationToken));
     }
 
     /// <inheritdoc/>

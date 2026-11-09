@@ -25,6 +25,41 @@ public class RH7107PropertyAccessorsMustFollowOrderCodeFixProvider : CodeFixProv
     #region Methods
 
     /// <summary>
+    /// Creates the member declaration the fix formats: the property or indexer with its <c>get</c> accessor moved in front of
+    /// its <c>set</c> or <c>init</c> accessor
+    /// </summary>
+    /// <param name="memberDeclaration">Property or indexer declaration</param>
+    /// <param name="updatedMemberDeclaration">The updated member declaration</param>
+    /// <returns><see langword="true"/> if an accessor has to move; otherwise, <see langword="false"/></returns>
+    private static bool TryCreateUpdatedMemberDeclaration(MemberDeclarationSyntax memberDeclaration, out MemberDeclarationSyntax updatedMemberDeclaration)
+    {
+        var accessorList = TryGetAccessorList(memberDeclaration);
+
+        if (accessorList == null
+            || AccessorOrderingUtilities.TryGetAccessorMove(accessorList,
+                                                            SyntaxKind.GetAccessorDeclaration,
+                                                            new[] { SyntaxKind.SetAccessorDeclaration, SyntaxKind.InitAccessorDeclaration },
+                                                            out var accessorToMove,
+                                                            out var targetAccessor) == false)
+        {
+            updatedMemberDeclaration = null;
+
+            return false;
+        }
+
+        var updatedAccessorList = AccessorOrderingUtilities.MoveAccessorBefore(accessorList, accessorToMove, targetAccessor);
+
+        updatedMemberDeclaration = memberDeclaration switch
+                                   {
+                                       PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.WithAccessorList(updatedAccessorList),
+                                       IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.WithAccessorList(updatedAccessorList),
+                                       _ => memberDeclaration,
+                                   };
+
+        return true;
+    }
+
+    /// <summary>
     /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
@@ -33,28 +68,16 @@ public class RH7107PropertyAccessorsMustFollowOrderCodeFixProvider : CodeFixProv
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, MemberDeclarationSyntax memberDeclaration, CancellationToken cancellationToken)
     {
-        var accessorList = TryGetAccessorList(memberDeclaration);
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        if (accessorList == null
-            || root == null
-            || AccessorOrderingUtilities.TryGetAccessorMove(accessorList,
-                                                            SyntaxKind.GetAccessorDeclaration,
-                                                            new[] { SyntaxKind.SetAccessorDeclaration, SyntaxKind.InitAccessorDeclaration },
-                                                            out var accessorToMove,
-                                                            out var targetAccessor) == false)
+        if (root == null
+            || TryCreateUpdatedMemberDeclaration(memberDeclaration, out var updatedMemberDeclaration) == false)
         {
             return document;
         }
 
-        var updatedAccessorList = AccessorOrderingUtilities.MoveAccessorBefore(accessorList, accessorToMove, targetAccessor);
         var formattingAnnotation = new SyntaxAnnotation();
-        var updatedMemberDeclaration = memberDeclaration switch
-                                       {
-                                           PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.WithAccessorList(updatedAccessorList),
-                                           IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.WithAccessorList(updatedAccessorList),
-                                           _ => memberDeclaration,
-                                       };
+
         updatedMemberDeclaration = updatedMemberDeclaration.WithAdditionalAnnotations(formattingAnnotation);
 
         var updatedRoot = root.ReplaceNode(memberDeclaration, updatedMemberDeclaration);
@@ -64,7 +87,7 @@ public class RH7107PropertyAccessorsMustFollowOrderCodeFixProvider : CodeFixProv
 
         return formattedMemberDeclaration == null
                    ? updatedDocument
-                   : await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedMemberDeclaration, cancellationToken).ConfigureAwait(false);
+                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedMemberDeclaration, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     /// <summary>
@@ -144,7 +167,9 @@ public class RH7107PropertyAccessorsMustFollowOrderCodeFixProvider : CodeFixProv
             foreach (var diagnostic in context.Diagnostics)
             {
                 if (TryGetMemberDeclaration(root, diagnostic, out var memberDeclaration)
-                    && IsMoveSafe(memberDeclaration))
+                    && IsMoveSafe(memberDeclaration)
+                    && (TryCreateUpdatedMemberDeclaration(memberDeclaration, out var updatedMemberDeclaration) == false
+                        || ReihitsuFormatter.FindUnsupportedSyntax(updatedMemberDeclaration) == null))
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7107Title,
                                                               token => ApplyCodeFixAsync(context.Document, memberDeclaration, token),

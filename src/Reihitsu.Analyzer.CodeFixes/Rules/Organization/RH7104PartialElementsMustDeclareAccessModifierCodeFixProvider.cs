@@ -58,7 +58,7 @@ public class RH7104PartialElementsMustDeclareAccessModifierCodeFixProvider : Cod
 
         return formattedTypeDeclaration == null
                    ? updatedDocument
-                   : await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedTypeDeclaration, cancellationToken).ConfigureAwait(false);
+                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedTypeDeclaration, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     /// <summary>
@@ -136,7 +136,10 @@ public class RH7104PartialElementsMustDeclareAccessModifierCodeFixProvider : Cod
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                if (TryGetTypeDeclaration(root, diagnostic, out var typeDeclaration))
+                // The fix adds accessibility keywords in front of the type's modifiers, which no variable declaration holds, so
+                // the formatter gives the type it builds the answer it gives the type as it stands (SHARED-FIX-010)
+                if (TryGetTypeDeclaration(root, diagnostic, out var typeDeclaration)
+                    && ReihitsuFormatter.FindUnsupportedSyntax(typeDeclaration) == null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7104Title,
                                                               token => ApplyCodeFixAsync(context.Document, typeDeclaration, token),

@@ -38,7 +38,7 @@ public class RH5403StatementMustNotBeOnSingleLineCodeFixProvider : CodeFixProvid
             return document;
         }
 
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, statement, cancellationToken).ConfigureAwait(false);
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, statement, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     #endregion // Methods
@@ -63,7 +63,9 @@ public class RH5403StatementMustNotBeOnSingleLineCodeFixProvider : CodeFixProvid
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                if (root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.FirstAncestorOrSelf<BlockSyntax>() is { } block)
+                if (root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.FirstAncestorOrSelf<BlockSyntax>() is { } block
+                    && (block.Parent?.FirstAncestorOrSelf<StatementSyntax>() is not { } statement
+                        || ReihitsuFormatter.FindUnsupportedSyntax(statement) == null))
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5403Title,
                                                               token => ApplyCodeFixAsync(context.Document, block, token),

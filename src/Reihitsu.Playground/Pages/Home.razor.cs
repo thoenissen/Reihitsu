@@ -1,3 +1,5 @@
+﻿using Reihitsu.Formatter;
+
 namespace Reihitsu.Playground.Pages;
 
 /// <summary>
@@ -32,6 +34,19 @@ public partial class Home
     #region Methods
 
     /// <summary>
+    /// Creates the message for an input the formatter refuses as unsupported, with the one-based line and column of the
+    /// shape's first character and the reason the formatter gives (PLAY-008)
+    /// </summary>
+    /// <param name="unsupported">The shape the formatter refused the input for</param>
+    /// <returns>The message</returns>
+    private static string CreateUnsupportedMessage(UnsupportedSyntax unsupported)
+    {
+        var start = unsupported.Location.GetLineSpan().StartLinePosition;
+
+        return $"The input contains syntax the formatter does not support and was left unchanged: line {start.Line + 1}, column {start.Character + 1} — {unsupported.Reason}.";
+    }
+
+    /// <summary>
     /// Formats the current input and updates the output and error message
     /// </summary>
     private void FormatInput()
@@ -39,7 +54,19 @@ public partial class Home
         var result = PlaygroundFormatter.Format(_input);
 
         _output = result.Text;
-        _errorMessage = result.Formatted ? string.Empty : "The input contains syntax errors and was left unchanged.";
+
+        if (result.Formatted)
+        {
+            _errorMessage = string.Empty;
+        }
+        else if (result.Unsupported != null)
+        {
+            _errorMessage = CreateUnsupportedMessage(result.Unsupported);
+        }
+        else
+        {
+            _errorMessage = "The input contains syntax errors and was left unchanged.";
+        }
     }
 
     #endregion // Methods

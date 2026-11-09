@@ -39,15 +39,27 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesCodeFixProvider : Code
             return document;
         }
 
-        var diagnosticNode = root.FindNode(diagnosticSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
-        var declaration = diagnosticNode.AncestorsAndSelf().FirstOrDefault(static obj => obj is MemberDeclarationSyntax or EnumMemberDeclarationSyntax);
+        var declaration = FindDeclaration(root, diagnosticSpan);
 
         if (declaration == null)
         {
             return document;
         }
 
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, declaration, cancellationToken).ConfigureAwait(false);
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, declaration, cancellationToken).ConfigureAwait(false)).Output;
+    }
+
+    /// <summary>
+    /// Finds the declaration the fix formats: the member or enum member that owns the reported documentation comment
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="diagnosticSpan">The diagnostic's span</param>
+    /// <returns>The declaration, or <see langword="null"/> when there is none</returns>
+    private static SyntaxNode FindDeclaration(SyntaxNode root, TextSpan diagnosticSpan)
+    {
+        var diagnosticNode = root.FindNode(diagnosticSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
+
+        return diagnosticNode.AncestorsAndSelf().FirstOrDefault(static obj => obj is MemberDeclarationSyntax or EnumMemberDeclarationSyntax);
     }
 
     #endregion // Methods
@@ -64,17 +76,28 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesCodeFixProvider : Code
     }
 
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        foreach (var diagnostic in context.Diagnostics)
+        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+
+        if (root == null)
         {
-            context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH8305Title,
-                                                      token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
-                                                      nameof(RH8305SummaryElementMustSpanAtLeastThreeLinesCodeFixProvider)),
-                                    diagnostic);
+            return;
         }
 
-        return Task.CompletedTask;
+        foreach (var diagnostic in context.Diagnostics)
+        {
+            var declaration = FindDeclaration(root, diagnostic.Location.SourceSpan);
+
+            if (declaration != null
+                && ReihitsuFormatter.FindUnsupportedSyntax(declaration) == null)
+            {
+                context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH8305Title,
+                                                          token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
+                                                          nameof(RH8305SummaryElementMustSpanAtLeastThreeLinesCodeFixProvider)),
+                                        diagnostic);
+            }
+        }
     }
 
     #endregion // CodeFixProvider

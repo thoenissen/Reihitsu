@@ -36,18 +36,27 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyCodeFixProvid
             return document;
         }
 
-        // Delegate to the formatter using the enclosing statement (or member) as the target: those
-        // start on their own line, so the formatter's indentation anchor stays consistent and the
-        // whole ternary chain, including nested conditionals, is laid out just like a full format run.
-        var target = conditional.FirstAncestorOrSelf<StatementSyntax>()
-                         ?? (SyntaxNode)conditional.FirstAncestorOrSelf<MemberDeclarationSyntax>();
+        var target = GetFormatTarget(conditional);
 
         if (target == null)
         {
             return document;
         }
 
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, cancellationToken).ConfigureAwait(false);
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, cancellationToken).ConfigureAwait(false)).Output;
+    }
+
+    /// <summary>
+    /// Gets the node the fix formats: the enclosing statement or member. Those start on their own line, so the formatter's
+    /// indentation anchor stays consistent and the whole ternary chain, including nested conditionals, is laid out just like
+    /// a full format run
+    /// </summary>
+    /// <param name="conditional">Conditional expression</param>
+    /// <returns>The node to format, or <see langword="null"/> when there is none</returns>
+    private static SyntaxNode GetFormatTarget(ConditionalExpressionSyntax conditional)
+    {
+        return conditional.FirstAncestorOrSelf<StatementSyntax>()
+                   ?? (SyntaxNode)conditional.FirstAncestorOrSelf<MemberDeclarationSyntax>();
     }
 
     #endregion // Methods
@@ -74,7 +83,9 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyCodeFixProvid
             {
                 var operatorToken = root.FindToken(diagnostic.Location.SourceSpan.Start);
 
-                if (operatorToken.Parent is ConditionalExpressionSyntax)
+                if (operatorToken.Parent is ConditionalExpressionSyntax conditional
+                    && (GetFormatTarget(conditional) is not { } target
+                        || ReihitsuFormatter.FindUnsupportedSyntax(target) == null))
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5308Title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, operatorToken, cancellationToken),

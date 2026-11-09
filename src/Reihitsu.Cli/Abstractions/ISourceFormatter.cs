@@ -1,5 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 
+using Reihitsu.Formatter;
+
 namespace Reihitsu.Cli.Abstractions;
 
 /// <summary>
@@ -16,6 +18,14 @@ internal interface ISourceFormatter
     /// <param name="cancellationToken">A token to monitor for cancellation requests</param>
     /// <returns>The formatted syntax tree</returns>
     SyntaxTree FormatSyntaxTree(SyntaxTree syntaxTree, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Finds the shape for which the formatter refuses a syntax tree as unsupported (FMT-UNSUP-001)
+    /// </summary>
+    /// <param name="syntaxTree">The syntax tree to inspect</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests</param>
+    /// <returns>The first unsupported shape in the tree, or <see langword="null"/> when the formatter does not refuse it</returns>
+    UnsupportedSyntax FindUnsupportedSyntax(SyntaxTree syntaxTree, CancellationToken cancellationToken);
 
     /// <summary>
     /// Determines whether a syntax tree is marked as auto-generated and should not be formatted
