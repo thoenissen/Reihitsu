@@ -186,7 +186,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
     /// modifier, the modifiers stand on one line, a comment or directive between them keeps its place, and the
     /// conversion is withheld when a reordered modifier would cross one (RH2001-004, RH2001-009). A conditional
     /// directive between the modifiers or in front of the type withholds the conversion in any case (RH2001-009), and
-    /// one in front of the first modifier unless its group wraps whole members (RH2001-010). The field gets a new
+    /// one in front of the first modifier, or behind a property without an initializer, unless its group wraps whole
+    /// members (RH2001-010). The field gets a new
     /// name, a new <c>;</c>, and no accessor list, so the trivia of the property's name, of its accessor list, of its
     /// <c>;</c>, and in front of the initializer's <c>=</c> is not carried over. When that trivia holds a comment or a
     /// directive, the field would lose it, and the conversion is withheld (RH2001-007, SHARED-FIX-003)
@@ -198,7 +199,9 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
         if (IsSupportedPropertyShape(node) == false
             || HasConditionalDirectiveBetweenModifiers(node)
             || (node.Modifiers.Count > 0
-                && OrderingDeclarationUtilities.ConditionalGroupsWrapWholeMembers(node.Modifiers[0]) == false))
+                && OrderingDeclarationUtilities.ConditionalGroupsWrapWholeMembers(node.Modifiers[0]) == false)
+            || (node.Initializer == null
+                && OrderingDeclarationUtilities.ConditionalGroupsWrapWholeMembers(node.GetLastToken().GetNextToken()) == false))
         {
             return false;
         }

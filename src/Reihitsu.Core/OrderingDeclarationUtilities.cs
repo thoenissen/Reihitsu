@@ -335,9 +335,10 @@ public static class OrderingDeclarationUtilities
     /// <summary>
     /// Determines whether every conditional group with a directive in the token's leading trivia wraps whole members
     /// of the type body that holds the token (<see cref="WrapsWholeUnitsOf"/>), with no other conditional group
-    /// inside or around it (RH2001-010). The active branch is not read, and no condition is evaluated
+    /// inside it (RH2001-010). A group that lies inside a branch of another group is decided by its own branches. The
+    /// active branch is not read, and no condition is evaluated
     /// </summary>
-    /// <param name="token">Token whose leading trivia is read, such as the first modifier of a member</param>
+    /// <param name="token">Token whose leading trivia is read, such as the first modifier of a member or the token behind a member</param>
     /// <returns><see langword="true"/> if every such group wraps whole members, also when there is none</returns>
     public static bool ConditionalGroupsWrapWholeMembers(SyntaxToken token)
     {
@@ -367,7 +368,7 @@ public static class OrderingDeclarationUtilities
     /// <param name="typeDeclaration">Type declaration</param>
     /// <param name="memberToMove">Member to move</param>
     /// <param name="targetMember">Target member</param>
-    /// <returns><see langword="true"/> if the move would change initializer execution order, or the layout of a type whose declaration holds a conditional directive</returns>
+    /// <returns><see langword="true"/> if the move would change initializer execution order, or the layout of a type whose declaration holds a conditional directive or whose body holds a group in front of the spans that does not wrap whole units</returns>
     internal static bool ChangesInitializerExecutionOrder(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberToMove, MemberDeclarationSyntax targetMember)
     {
         return ChangesMemberOrder(typeDeclaration, false, memberToMove, targetMember);
@@ -473,10 +474,10 @@ public static class OrderingDeclarationUtilities
 
         return ChangesOrder(member => HasInitializer(member) && IsStatic(member))
                || ChangesOrder(member => HasInitializer(member) && IsStatic(member) == false)
-               || ((fieldOrderSetsLayout
-                    || DeclarationHoldsConditionalDirective(typeDeclaration)
-                    || GetGroups(TextSpan.FromBounds(typeDeclaration.OpenBraceToken.Span.End, reorderedSpan.Start)).Any(group => WrapsWholeUnits(typeDeclaration, group) == false))
-                   && ChangesOrder(IsLayoutField));
+               || (ChangesOrder(IsLayoutField)
+                   && (fieldOrderSetsLayout
+                       || DeclarationHoldsConditionalDirective(typeDeclaration)
+                       || GetGroups(TextSpan.FromBounds(typeDeclaration.OpenBraceToken.Span.End, reorderedSpan.Start)).Any(group => WrapsWholeUnits(typeDeclaration, group) == false)));
     }
 
     /// <summary>
@@ -679,10 +680,26 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
+    /// Gets the conditional directives that start inside a span of the tree
+    /// </summary>
+    /// <param name="root">Root of the tree</param>
+    /// <param name="span">Span</param>
+    /// <returns>The conditional directives</returns>
+    private static List<DirectiveTriviaSyntax> GetConditionalDirectives(SyntaxNode root, TextSpan span)
+    {
+        return root.DescendantTrivia(span)
+                   .Where(trivia => span.Contains(trivia.SpanStart))
+                   .Select(trivia => trivia.GetStructure())
+                   .OfType<DirectiveTriviaSyntax>()
+                   .Where(IsConditionalDirective)
+                   .ToList();
+    }
+
+    /// <summary>
     /// Determines whether a conditional group wraps whole units of one unit list, deciding only from where its
     /// directives stand (SHARED-ORDER-008): every directive stands at a boundary of the same list
-    /// (<see cref="GetBoundaryLists"/>), the group wraps whole units of that list with no other conditional group
-    /// inside or around it (<see cref="WrapsWholeUnitsOf"/>), for the accessors of a property or the statements in
+    /// (<see cref="GetBoundaryLists"/>), the group lies inside no branch of another conditional group, it wraps whole
+    /// units of that list with no other conditional group inside it (<see cref="WrapsWholeUnitsOf"/>), for the accessors of a property or the statements in
     /// an accessor's body, no branch holds a <c>field</c> token, and for the accessors of a property, no branch holds
     /// an accessor without a body unless no accessor of the list has one, so that the group cannot decide whether the
     /// property has a backing field. No condition is evaluated
@@ -694,10 +711,15 @@ public static class OrderingDeclarationUtilities
     {
         var groupStart = group[0].SpanStart;
         var groupEnd = group[group.Count - 1].SpanStart;
-        var activeTokens = typeDeclaration.SyntaxTree
-                                          .GetRoot()
-                                          .DescendantTokens(TextSpan.FromBounds(groupStart, groupEnd))
-                                          .Where(token => token.SpanStart > groupStart && token.Span.End <= groupEnd);
+        var root = typeDeclaration.SyntaxTree.GetRoot();
+        var activeTokens = root.DescendantTokens(TextSpan.FromBounds(groupStart, groupEnd))
+                               .Where(token => token.SpanStart > groupStart && token.Span.End <= groupEnd);
+        var directivesInFront = GetConditionalDirectives(root, TextSpan.FromBounds(0, groupStart));
+
+        if (directivesInFront.Count(directive => directive is IfDirectiveTriviaSyntax) != directivesInFront.Count(directive => directive is EndIfDirectiveTriviaSyntax))
+        {
+            return false;
+        }
 
         return group.Select(directive => GetBoundaryLists(typeDeclaration, directive.ParentTrivia.Token))
                     .Aggregate((lists, nextLists) => lists.Intersect(nextLists))
@@ -725,38 +747,24 @@ public static class OrderingDeclarationUtilities
     /// Determines whether a conditional group wraps whole units of a unit list, the one test that every reader of a
     /// group decides by (SHARED-ORDER-008, RH2001-010): the text of each branch the analyzed build excludes, parsed on
     /// its own, reads as whole units of the list (<see cref="ReadsAsWholeUnits"/>), and, when nesting is checked, the
-    /// group ends with <c>#endif</c>, no other conditional group lies inside one of its branches, and it lies inside
-    /// no branch of another group. The active branch is not read, and no condition is evaluated
+    /// group ends with <c>#endif</c> and no other conditional group lies inside one of its branches. Whether the group
+    /// lies inside a branch of another group is not read here. The active branch is not read, and no condition is
+    /// evaluated
     /// </summary>
     /// <param name="group">Directives of the group, from <c>#if</c> to <c>#endif</c></param>
     /// <param name="list">Unit list whose units the branches are read as</param>
-    /// <param name="checksNesting">Whether a nested group does not wrap whole units</param>
+    /// <param name="checksNesting">Whether a group with another group inside a branch does not wrap whole units</param>
     /// <param name="branches">The nodes that hold the parsed units of each excluded branch</param>
     /// <returns><see langword="true"/> if the group wraps whole units</returns>
     private static bool WrapsWholeUnitsOf(IReadOnlyList<DirectiveTriviaSyntax> group, (SyntaxNode Owner, bool OfAttributes) list, bool checksNesting, out List<SyntaxNode> branches)
     {
         branches = new List<SyntaxNode>();
 
-        if (checksNesting)
+        if (checksNesting
+            && (group[group.Count - 1] is not EndIfDirectiveTriviaSyntax
+                || GetConditionalDirectives(list.Owner.SyntaxTree.GetRoot(), TextSpan.FromBounds(group[0].SpanStart + 1, group[group.Count - 1].SpanStart)).Count != group.Count - 2))
         {
-            var conditionalDirectives = list.Owner
-                                            .SyntaxTree
-                                            .GetRoot()
-                                            .DescendantTrivia()
-                                            .Select(trivia => trivia.GetStructure())
-                                            .OfType<DirectiveTriviaSyntax>()
-                                            .Where(IsConditionalDirective)
-                                            .ToList();
-            var groupStart = group[0].SpanStart;
-            var groupEnd = group[group.Count - 1].SpanStart;
-
-            if (group[group.Count - 1] is not EndIfDirectiveTriviaSyntax
-                || conditionalDirectives.Count(directive => directive.SpanStart > groupStart && directive.SpanStart < groupEnd) != group.Count - 2
-                || conditionalDirectives.Count(directive => directive.SpanStart < groupStart && directive is IfDirectiveTriviaSyntax)
-                   != conditionalDirectives.Count(directive => directive.SpanStart < groupStart && directive is EndIfDirectiveTriviaSyntax))
-            {
-                return false;
-            }
+            return false;
         }
 
         var options = list.Owner.SyntaxTree.Options as CSharpParseOptions;
@@ -794,7 +802,8 @@ public static class OrderingDeclarationUtilities
     /// Determines whether a declaration of the type holds a conditional directive in front of its body
     /// (SHARED-ORDER-008), which can make the type's layout depend on the build, so that the type counts as one whose
     /// field order sets its layout: one in the leading trivia of a token behind the declaration's first token, up to
-    /// and including the opening brace, or one in the leading trivia of the first token whose group does not wrap
+    /// and including the opening brace, or, for a declaration that ends in <c>;</c> instead of a body, up to and
+    /// including that <c>;</c>, or one in the leading trivia of the first token whose group does not wrap
     /// whole members in every excluded branch, read without the nesting check (<see cref="WrapsWholeUnitsOf"/>), or
     /// whose excluded branch declares another declaration of the type with an attribute list
     /// (<see cref="DeclaresTypeWithAttributes"/>)
@@ -804,9 +813,12 @@ public static class OrderingDeclarationUtilities
     private static bool DeclarationHoldsConditionalDirective(TypeDeclarationSyntax typeDeclaration)
     {
         var firstToken = typeDeclaration.GetFirstToken();
+        var bodyToken = typeDeclaration.OpenBraceToken.IsKind(SyntaxKind.None)
+                            ? typeDeclaration.SemicolonToken
+                            : typeDeclaration.OpenBraceToken;
 
         return typeDeclaration.DescendantTokens()
-                              .TakeWhile(token => token.SpanStart <= typeDeclaration.OpenBraceToken.SpanStart)
+                              .TakeWhile(token => token.SpanStart <= bodyToken.SpanStart)
                               .SelectMany(token => token.LeadingTrivia.Select(trivia => (Token: token, Directive: trivia.GetStructure() as DirectiveTriviaSyntax)))
                               .Any(entry => entry.Directive != null
                                             && IsConditionalDirective(entry.Directive)
