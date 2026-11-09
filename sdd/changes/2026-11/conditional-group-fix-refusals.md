@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | RH2001-010 (added), RH2001-004 (changed), RH2001-009 (changed), SHARED-ORDER-007 (changed), SHARED-ORDER-008 (changed), SHARED-FIX-009 (changed) |
 | Depends on | [member-move-conditional-groups.md](member-move-conditional-groups.md) |
@@ -123,6 +123,16 @@ After: no fix offered; RH7109 stays reported on `_c`.
 Unchanged and kept, measured the same way: a group of whole members in front of the property for RH2001; a plain partial class, and a partial class with another declaration of it without an attribute list in an `#if` block in front of it, and a group of whole members or whole statements in front of the spans for RH7109; and, for RH7103, the move of a static field behind the group of thoenissen/Reihitsu#1665, which reorders no instance field.
 
 ## Decisions
+
+### The maintainer withholds the three fixes that change no build
+
+The maintainer's answer to the run's first batch of output questions (2026-11-09) chose option A, as recommended, for each of the three cases under *Visible output changes*. No fix is offered for:
+
+1. RH2001 with `[System.Obsolete]` in an excluded branch in front of the property;
+2. RH7109 on a partial class whose other declaration carries a conditional `[System.Serializable]`;
+3. RH7109 with `#if DEBUG static #endif` in front of a member that is neither moved nor crossed, ahead of the moved fields.
+
+In each case the diagnostic stays reported.
 
 ### RH2001 tells whole members from everything else by one parse of each excluded branch
 

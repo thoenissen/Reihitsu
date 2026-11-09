@@ -43,3 +43,7 @@ _None._ The A5 reading keeps `main`'s output for every input it does not have to
 ## Follow-up candidates
 
 _None new._ A6 stays as recorded in `00-lead.md`. The spec now records it as a decided gap, so the follow-up issue can cite SHARED-ORDER-008 for it.
+
+## Addendum: maintainer answers
+
+The maintainer answered output-question batch 1 on 2026-11-09, option A for all three cases, so no fix is offered for (1) RH2001 with `[System.Obsolete]`, (2) RH7109 with a conditional `[System.Serializable]` on the other partial declaration, and (3) RH7109 with `#if DEBUG static #endif`. The change doc records this as the first entry under *Decisions*. Its status is now `Accepted`: sdd/README.md requires that once every listed visible output change has the maintainer's answer, and the lead asked me to set it. The narrowed A5 reading is confirmed as Decision #9 in 00-lead.md.
