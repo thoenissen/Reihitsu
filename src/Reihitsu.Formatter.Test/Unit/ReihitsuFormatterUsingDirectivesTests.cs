@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -46,6 +46,37 @@ public class ReihitsuFormatterUsingDirectivesTests : FormatterTestsBase
                                     using System.Linq;
 
                                     class C{ }
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, root => root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single());
+    }
+
+    /// <summary>
+    /// Verifies that the using block of a document that the formatter refuses as unsupported is organized: the method runs no
+    /// formatting phase but the using phase and refuses no input
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-002")]
+    public async Task UsingBlockOfADocumentWithAnUnsupportedShapeIsOrganized()
+    {
+        const string input = """
+                             namespace N
+                             {
+                                 using System.Linq; using System;
+
+                                 class C{ int /* c */ _a; }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace N
+                                {
+                                    using System;
+                                    using System.Linq;
+
+                                    class C{ int /* c */ _a; }
                                 }
                                 """;
 

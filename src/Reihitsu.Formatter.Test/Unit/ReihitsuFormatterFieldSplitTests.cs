@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,8 +22,8 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies the spec example: the comment in front of the later declarator gets the blank line above it that the blank-line
-    /// phase writes, and the other combined field of the class and the combined field of a nested type stay as they are
+    /// Verifies the spec example: the comment in front of the declaration stays on the first field, and the other combined field
+    /// of the class and the combined field of a nested type stay as they are
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
@@ -33,8 +33,8 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 private int _x, // horizontal
-                                             /* vertical */ _y;
+                                 // The coordinates
+                                 private int _x, _y;
                                  private int _a, _b;
 
                                  class D
@@ -47,9 +47,8 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
         const string expected = """
                                 class C
                                 {
-                                    private int _x; // horizontal
-
-                                    /* vertical */
+                                    // The coordinates
+                                    private int _x;
                                     private int _y;
                                     private int _a, _b;
 
@@ -585,66 +584,6 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the spec example with a member in front of the target on its first line and a comment that spans lines behind
-    /// the separating comma: the first field starts the next line at the member column, the comment ends its line, and the later
-    /// field starts a line of its own at the member column
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
-    [TestMethod]
-    [Requirement("FMT-PIPE-029")]
-    public async Task LaterFieldBehindACommentThatSpansLinesBehindTheSeparatorStartsItsOwnLine()
-    {
-        const string input = """
-                             class C
-                             {
-                                 private int _p; private int _x, /* a
-                                    b */ _y;
-                             }
-                             """;
-
-        const string expected = """
-                                class C
-                                {
-                                    private int _p;
-                                    private int _x; /* a
-                                       b */
-                                    private int _y;
-                                }
-                                """;
-
-        await AssertSplitsTarget(input, expected, "_x", "C");
-    }
-
-    /// <summary>
-    /// Verifies that the later field behind a comment that spans lines behind the separating comma starts its own line at the
-    /// member column when no other member stands on the target's lines
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
-    [TestMethod]
-    [Requirement("FMT-PIPE-029")]
-    public async Task LaterFieldBehindACommentThatSpansLinesStandsAtTheMemberColumn()
-    {
-        const string input = """
-                             class C
-                             {
-                                 private int _x, /* a
-                                    b */ _y;
-                             }
-                             """;
-
-        const string expected = """
-                                class C
-                                {
-                                    private int _x; /* a
-                                       b */
-                                    private int _y;
-                                }
-                                """;
-
-        await AssertSplitsTarget(input, expected, "_x", "C");
-    }
-
-    /// <summary>
     /// Verifies that the member behind the target starts the next line with its documentation comment when the gap behind
     /// the target holds a documentation comment that spans lines, and that no blank line is written above it
     /// </summary>
@@ -952,7 +891,7 @@ public class ReihitsuFormatterFieldSplitTests : FormatterTestsBase
                 throw new InvalidOperationException("Expected a syntax root.");
             }
 
-            var result = await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, FindField(root, variableName), FindType(root, typeName), TestContext.CancellationToken);
+            var result = (await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, FindField(root, variableName), FindType(root, typeName), TestContext.CancellationToken)).Output;
 
             return (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
         }

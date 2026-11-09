@@ -96,16 +96,18 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a field terminator below a stray documentation comment keeps its indentation
+    /// Verifies that a member terminator below a stray documentation comment keeps its indentation. An expression-bodied
+    /// property carries the comment, because a comment in front of a variable declaration's semicolon makes the input
+    /// unsupported
     /// </summary>
     [TestMethod]
     [Requirement("FMT-SPACE-001")]
-    public void KeepsFieldTerminatorIndentationBelowStrayDocumentationComment()
+    public void KeepsMemberTerminatorIndentationBelowStrayDocumentationComment()
     {
         const string input = """
                              public class C
                              {
-                                 private int _value = 1 /// stray
+                                 private int Value => 1 /// stray
                                  ;
                              }
                              """;

@@ -489,6 +489,32 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
         await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
     }
 
+    /// <summary>
+    /// Verifies that a refused comment between the type and the name of the declaration that holds the conditional
+    /// expression withholds the fix: the fix formats that statement, which the formatter refuses, although the
+    /// conditional expression holds no refused shape
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task NoFixIsOfferedWhenTheStatementHoldsACommentTheFormatterRefuses()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  private string M(bool condition)
+                                  {
+                                      string /* c */ value = condition {|RH5308:?|} "1"
+                                                                 : "2";
+
+                                      return value;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

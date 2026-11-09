@@ -1882,15 +1882,15 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
     }
 
     /// <summary>
-    /// Verifies that a comment line between the modifier and the type is neither dropped nor moved away from the code
-    /// it stands with: the fix is withheld, or the comment line stays in front of the field's type and the field is
-    /// laid out as the formatter lays it out
+    /// Verifies that a comment line between the modifier and the type withholds the fix: the field the fix builds would
+    /// hold the comment between its own tokens, which the formatter refuses
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-FIX-003")]
-    [Requirement("SHARED-FIX-007")]
-    public async Task VerifyFixKeepsACommentLineInFrontOfTheType()
+    [Requirement("RH2001-007")]
+    [Requirement("RH2001-009")]
+    [Requirement("SHARED-FIX-010")]
+    public async Task VerifyNoFixIsOfferedForACommentLineInFrontOfTheType()
     {
         const string testData = """
                                 class C
@@ -1901,26 +1901,18 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
                                 }
                                 """;
 
-        const string inPlace = """
-                               class C
-                               {
-                                   private
-                                       // note
-                                       int _value;
-                               }
-                               """;
-
-        await VerifyCodeFixIsWithheldOrProducesOneOf(testData, true, Format(inPlace));
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>
-    /// Verifies that a comment behind the type on the property's line is not dropped: the fix is withheld, or the
-    /// comment stays between the field's type and its name
+    /// Verifies that a comment behind the type on the property's line withholds the fix: the field the fix builds would
+    /// hold the comment between its type and its name, which the formatter refuses
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-FIX-003")]
-    public async Task VerifyFixKeepsACommentBehindTheTypeOnTheSameLine()
+    [Requirement("RH2001-007")]
+    [Requirement("SHARED-FIX-010")]
+    public async Task VerifyNoFixIsOfferedForACommentBehindTheTypeOnTheSameLine()
     {
         const string testData = """
                                 class C
@@ -1929,14 +1921,115 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
                                 }
                                 """;
 
-        const string inPlace = """
-                               class C
-                               {
-                                   private int /* note */ _value;
-                               }
-                               """;
+        await VerifyNoCodeFixIsOffered(testData);
+    }
 
-        await VerifyCodeFixIsWithheldOrProducesOneOf(testData, true, inPlace, Format(inPlace));
+    /// <summary>
+    /// Verifies the specification example of fields the fix would build with a comment the formatter refuses: both
+    /// properties are reported, and no code fix is offered for either
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task VerifyNoFixIsOfferedWhenTheBuiltFieldHoldsACommentTheFormatterRefuses()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int /* note */ {|RH2001:Value|} { get; set; }
+
+                                    private int {|RH2001:Count|} { get; set; } = /* five */ 5;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the initializer's <c>=</c> withholds the fix: the field the fix builds would hold
+    /// it in front of its value
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForACommentInFrontOfTheInitializerValue()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Value|} { get; set; } = /* five */ 5;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment on a line of its own in front of the initializer's value withholds the fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForACommentLineInFrontOfTheInitializerValue(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Value|} { get; set; } =
+                                        // five
+                                        5;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the initializer value's last token on that token's line withholds the fix: the
+    /// field the fix builds would hold it between its value and its <c>;</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForACommentBehindTheInitializerValue()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Value|} { get; set; } = 5 /* five */;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a comment inside the initializer's value, between its first and its last token, does not withhold
+    /// the fix, and stays inside the value of the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyFixIsOfferedForACommentInsideTheInitializerValue()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Value|} { get; set; } = 2 + /* three */ 3;
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private int _value = 2 + /* three */ 3;
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
     }
 
     /// <summary>
@@ -2243,8 +2336,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
     }
 
     /// <summary>
-    /// Verifies the specification example of comments that a reordered modifier would cross: all three properties are
-    /// reported, and no code fix is offered
+    /// Verifies the specification example of comments among the modifiers or in front of the type, whether a reordered
+    /// modifier would cross them or not: all four properties are reported, and no code fix is offered
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -2252,7 +2345,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
     [DataRow("\n")]
     [DataRow("\r\n")]
     [Requirement("RH2001-009")]
-    public async Task VerifyNoFixIsOfferedForACommentThatAReorderedModifierWouldCross(string endOfLine)
+    public async Task VerifyNoFixIsOfferedForACommentAmongTheModifiersOrInFrontOfTheType(string endOfLine)
     {
         const string testData = """
                                 class C
@@ -2262,7 +2355,9 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
                                     static // b
                                     private int {|RH2001:Second|} { get; }
 
-                                    new /* c */ static private int {|RH2001:Third|} { get; }
+                                    private /* c */ static int {|RH2001:Third|} { get; }
+
+                                    private static /* d */ int {|RH2001:Fourth|} { get; }
                                 }
                                 """;
 
@@ -2294,8 +2389,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
     }
 
     /// <summary>
-    /// Verifies the specification example of comments that no modifier crosses: each keeps its place, and
-    /// <c>readonly</c> is written behind a comment that stands at its place
+    /// Verifies that a comment among the modifiers that no modifier crosses withholds the fix as well: the field the fix
+    /// builds would hold the comment, which the formatter refuses
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -2303,7 +2398,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
     [DataRow("\n")]
     [DataRow("\r\n")]
     [Requirement("RH2001-009")]
-    public async Task VerifyFixKeepsACommentThatNoModifierCrosses(string endOfLine)
+    public async Task VerifyNoFixIsOfferedForACommentThatNoModifierCrosses(string endOfLine)
     {
         const string testData = """
                                 class C
@@ -2318,30 +2413,17 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
                                 }
                                 """;
 
-        const string resultData = """
-                                  class C
-                                  {
-                                      private /* a */ static readonly int _first;
-
-                                      private /* b */ static new readonly int _second;
-
-                                      private static /* c */ readonly int _third;
-
-                                      private static /* d */ readonly int _fourth;
-                                  }
-                                  """;
-
-        await Verify(WithEndOfLine(testData, endOfLine), WithEndOfLine(resultData, endOfLine));
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(testData, endOfLine));
     }
 
     /// <summary>
     /// Verifies that a comment in front of the place of <c>readonly</c>, with a modifier that RH7105 puts behind
-    /// <c>readonly</c>, keeps its place and has <c>readonly</c> written behind it
+    /// <c>readonly</c>, withholds the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH2001-009")]
-    public async Task VerifyFixWritesReadonlyBehindACommentInFrontOfUnsafe()
+    public async Task VerifyNoFixIsOfferedForACommentInFrontOfUnsafe()
     {
         const string testData = """
                                 class C
@@ -2350,19 +2432,11 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
                                 }
                                 """;
 
-        const string resultData = """
-                                  class C
-                                  {
-                                      private /* c */ readonly unsafe string _value;
-                                  }
-                                  """;
-
-        await Verify(testData, resultData, test => test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject));
+        await VerifyNoCodeFixIsOffered(testData, test => test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject));
     }
 
     /// <summary>
-    /// Verifies that an end-of-line comment between two modifiers that keep their order keeps its line, and the fix is
-    /// offered
+    /// Verifies that an end-of-line comment between two modifiers that keep their order withholds the fix
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -2370,7 +2444,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
     [DataRow("\n")]
     [DataRow("\r\n")]
     [Requirement("RH2001-009")]
-    public async Task VerifyFixKeepsAnEndOfLineCommentBetweenModifiersThatKeepTheirOrder(string endOfLine)
+    public async Task VerifyNoFixIsOfferedForAnEndOfLineCommentBetweenModifiersThatKeepTheirOrder(string endOfLine)
     {
         const string testData = """
                                 class C
@@ -2380,15 +2454,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
                                 }
                                 """;
 
-        const string resultData = """
-                                  class C
-                                  {
-                                      private // a
-                                      static readonly int _value;
-                                  }
-                                  """;
-
-        await Verify(WithEndOfLine(testData, endOfLine), WithEndOfLine(resultData, endOfLine));
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(testData, endOfLine));
     }
 
     /// <summary>

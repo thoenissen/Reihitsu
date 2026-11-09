@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -255,7 +255,7 @@ public class LineBreakRequirementTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 int _a // c
+                                 int P => 1 // c
                                  ;
                              }
                              """;

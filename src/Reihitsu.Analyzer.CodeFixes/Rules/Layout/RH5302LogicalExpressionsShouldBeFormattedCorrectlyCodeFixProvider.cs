@@ -34,8 +34,8 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider :
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, BinaryExpressionSyntax formattingNode, CancellationToken cancellationToken)
     {
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, formattingNode, cancellationToken)
-                                      .ConfigureAwait(false);
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, formattingNode, cancellationToken)
+                                       .ConfigureAwait(false)).Output;
     }
 
     /// <summary>
@@ -105,6 +105,11 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider :
                 }
 
                 var formattingNode = GetOutermostLogicalExpression(binaryExpression);
+
+                if (ReihitsuFormatter.FindUnsupportedSyntax(formattingNode) != null)
+                {
+                    continue;
+                }
 
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5302Title,
                                                           cancellationToken => ApplyCodeFixAsync(context.Document, formattingNode, cancellationToken),

@@ -107,9 +107,9 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyFormatterTests
 
                              internal class Example
                              {
-                                 private static void Method()
+                                 private static List<int> Method()
                                  {
-                                     List<int> x =
+                                     return
 
                                      /* c */ {|#0:[
                                          1,
@@ -123,9 +123,9 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyFormatterTests
 
                                  internal class Example
                                  {
-                                     private static void Method()
+                                     private static List<int> Method()
                                      {
-                                         List<int> x =
+                                         return
 
                                          /* c */ [
                                                      1,

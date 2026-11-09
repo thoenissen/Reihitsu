@@ -31,7 +31,7 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedCodeFixProvider : C
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, ConstructorDeclarationSyntax constructorDeclaration, CancellationToken cancellationToken)
     {
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, constructorDeclaration, cancellationToken).ConfigureAwait(false);
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, constructorDeclaration, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     #endregion // Methods
@@ -62,7 +62,8 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedCodeFixProvider : C
             var constructorDeclaration = root.FindNode(diagnostic.Location.SourceSpan)
                                              .FirstAncestorOrSelf<ConstructorDeclarationSyntax>();
 
-            if (constructorDeclaration != null)
+            if (constructorDeclaration != null
+                && ReihitsuFormatter.FindUnsupportedSyntax(constructorDeclaration) == null)
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3203Title,
                                                           token => ApplyCodeFixAsync(context.Document, constructorDeclaration, token),

@@ -64,16 +64,7 @@ public abstract class StatementBracesCodeFixProviderBase : CodeFixProvider
             return document;
         }
 
-        var statement = root.FindNode(diagnosticSpan).FirstAncestorOrSelf<StatementSyntax>();
-
-        // The diagnostic targets the unbraced child statement. The statement that owns it as an embedded
-        // statement is the node the formatter needs to rewrite so the braces are inserted around it.
-        var ownerStatement = statement?.Parent switch
-                             {
-                                 IfStatementSyntax ifStatement => ifStatement,
-                                 ElseClauseSyntax { Parent: IfStatementSyntax ifStatement } => ifStatement,
-                                 _ => null,
-                             };
+        var ownerStatement = FindFormattingNode(root, diagnosticSpan);
 
         if (ownerStatement == null)
         {
@@ -83,7 +74,26 @@ public abstract class StatementBracesCodeFixProviderBase : CodeFixProvider
         // Delegating to the formatter wraps the embedded statement in braces and lays out the control-flow
         // statement, preserving the parent header and indentation regardless of whether the child shares the
         // parent's line. Editing the text manually deletes the header when the child is on the parent's line.
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, ownerStatement, cancellationToken).ConfigureAwait(false);
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, ownerStatement, cancellationToken).ConfigureAwait(false)).Output;
+    }
+
+    /// <summary>
+    /// Finds the node the fix formats. The diagnostic targets the unbraced child statement; the statement that owns it as an
+    /// embedded statement is the node the formatter needs to rewrite so the braces are inserted around it
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="diagnosticSpan">The diagnostic's span</param>
+    /// <returns>The owning statement, or <see langword="null"/> when there is none</returns>
+    private static SyntaxNode FindFormattingNode(SyntaxNode root, TextSpan diagnosticSpan)
+    {
+        var statement = root.FindNode(diagnosticSpan).FirstAncestorOrSelf<StatementSyntax>();
+
+        return statement?.Parent switch
+               {
+                   IfStatementSyntax ifStatement => ifStatement,
+                   ElseClauseSyntax { Parent: IfStatementSyntax ifStatement } => ifStatement,
+                   _ => null,
+               };
     }
 
     #endregion // Methods
@@ -100,17 +110,28 @@ public abstract class StatementBracesCodeFixProviderBase : CodeFixProvider
     }
 
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
+        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return;
+        }
+
         foreach (var diagnostic in context.Diagnostics)
         {
+            if (FindFormattingNode(root, diagnostic.Location.SourceSpan) is { } node
+                && ReihitsuFormatter.FindUnsupportedSyntax(node) != null)
+            {
+                continue;
+            }
+
             context.RegisterCodeFix(CodeAction.Create(_title,
                                                       token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
                                                       GetType().Name),
                                     diagnostic);
         }
-
-        return Task.CompletedTask;
     }
 
     #endregion // CodeFixProvider

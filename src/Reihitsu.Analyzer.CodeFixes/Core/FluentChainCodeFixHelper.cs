@@ -37,6 +37,17 @@ internal static class FluentChainCodeFixHelper
     }
 
     /// <summary>
+    /// Determines whether the formatter refuses as unsupported what <see cref="FormatChainAsync"/> formats for a chain: the
+    /// context, or the chain when it has none (SHARED-FIX-010)
+    /// </summary>
+    /// <param name="chainNode">The outermost node of the chain</param>
+    /// <returns><see langword="true"/> if the formatter refuses it; otherwise, <see langword="false"/></returns>
+    public static bool IsFormattingRefused(SyntaxNode chainNode)
+    {
+        return ReihitsuFormatter.FindUnsupportedSyntax(GetContextNode(chainNode) ?? chainNode) != null;
+    }
+
+    /// <summary>
     /// Formats a chain the way formatting the document lays it out. A chain usually starts in the middle of a line, and
     /// its columns depend on the tokens in front of it, so the statement or member that starts the chain's line is
     /// formatted as positional context and only the chain is written back. When that context is not formatted itself —
@@ -50,12 +61,11 @@ internal static class FluentChainCodeFixHelper
     /// <returns>The updated document</returns>
     public static async Task<Document> FormatChainAsync(Document document, SyntaxNode chainNode, CancellationToken cancellationToken)
     {
-        var contextNode = chainNode.Ancestors().FirstOrDefault(static node => node is StatementSyntax or MemberDeclarationSyntax
-                                                                              && SyntaxTokenPositionUtilities.IsFirstOnLine(node.GetFirstToken()));
+        var contextNode = GetContextNode(chainNode);
 
         if (contextNode == null)
         {
-            return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, chainNode, cancellationToken).ConfigureAwait(false);
+            return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, chainNode, cancellationToken).ConfigureAwait(false)).Output;
         }
 
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -69,13 +79,25 @@ internal static class FluentChainCodeFixHelper
 
         var annotatedChain = annotatedRoot.GetAnnotatedNodes(chainAnnotation).Single();
         var annotatedContext = annotatedRoot.GetAnnotatedNodes(contextAnnotation).Single();
-        var chainOnlyDocument = await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(annotatedDocument, annotatedChain, annotatedContext, cancellationToken).ConfigureAwait(false);
-        var contextDocument = await ReihitsuFormatter.FormatNodeInDocumentAsync(annotatedDocument, annotatedContext, cancellationToken).ConfigureAwait(false);
+        var chainOnlyDocument = (await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(annotatedDocument, annotatedChain, annotatedContext, cancellationToken).ConfigureAwait(false)).Output;
+        var contextDocument = (await ReihitsuFormatter.FormatNodeInDocumentAsync(annotatedDocument, annotatedContext, cancellationToken).ConfigureAwait(false)).Output;
         var resultDocument = await HasSameChainLayoutAsync(chainOnlyDocument, contextDocument, chainAnnotation, cancellationToken).ConfigureAwait(false)
                                  ? chainOnlyDocument
                                  : contextDocument;
 
         return await RemoveAnnotationsAsync(resultDocument, chainAnnotation, contextAnnotation, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Gets the statement or member that starts the chain's line, which <see cref="FormatChainAsync"/> formats as positional
+    /// context
+    /// </summary>
+    /// <param name="chainNode">The outermost node of the chain</param>
+    /// <returns>The context, or <see langword="null"/> when no statement or member starts the chain's line</returns>
+    private static SyntaxNode GetContextNode(SyntaxNode chainNode)
+    {
+        return chainNode.Ancestors().FirstOrDefault(static node => node is StatementSyntax or MemberDeclarationSyntax
+                                                                   && SyntaxTokenPositionUtilities.IsFirstOnLine(node.GetFirstToken()));
     }
 
     /// <summary>

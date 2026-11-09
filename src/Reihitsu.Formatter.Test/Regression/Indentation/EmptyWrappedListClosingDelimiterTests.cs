@@ -26,7 +26,7 @@ public class EmptyWrappedListClosingDelimiterTests : FormatterTestsBase
         foreach (var endOfLine in _lineEndings)
         {
             var source = NormalizeLineEndings(input, endOfLine);
-            var output = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(source), default).ToString();
+            var output = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(source), default).Output.ToString();
             var line = Array.Find(output.Split(endOfLine), candidate => candidate.TrimStart().StartsWith(lineStart, StringComparison.Ordinal));
 
             Assert.IsNotNull(line, $"The output under {DescribeLineEnding(endOfLine)} line endings has no line starting with '{lineStart}':{Environment.NewLine}{output}");

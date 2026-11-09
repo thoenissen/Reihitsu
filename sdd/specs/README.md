@@ -18,6 +18,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [formatter/raw-string-alignment.md](formatter/raw-string-alignment.md) | FMT-RAW | `RawStringLineShifts`, `RawStringLiteral`, `RawStringLiteralUtilities` |
 | [formatter/cleanup.md](formatter/cleanup.md) | FMT-CLEAN | `CleanupPhase`, `EndOfLineWhitespace` |
 | [formatter/line-endings.md](formatter/line-endings.md) | FMT-EOL | `LineEndingNormalizationPhase` |
+| [formatter/unsupported-syntax.md](formatter/unsupported-syntax.md) | FMT-UNSUP | `PrecheckPhase`, `FormattingResult<T>`, `UnsupportedSyntax`, `SyntaxNotSupportedException` |
 | [shared/attribute-targets.md](shared/attribute-targets.md) | SHARED-ATTR | `AttributeTargetRuleAnalyzerBase`, `TargetAttributePlacementAnalyzerBase`, `TargetAttributePlacementCodeFixProviderBase`, `TargetAttributeListShapeAnalyzerBase`, `TargetAttributeListShapeCodeFixProviderBase`, `AttributeTargetUtilities`, `AttributeListMergeSeparators` |
 | [shared/blank-line-after-brace-fixes.md](shared/blank-line-after-brace-fixes.md) | SHARED-AFTERBRACE | `BlankLineCodeFixUtilities` |
 | [shared/blank-line-spacing.md](shared/blank-line-spacing.md) | SHARED-BLANK | `BlankLineSpacingPolicy`, `TokenGapAnalysis`, `SyntaxTokenPositionUtilities`, `RegionDirectiveBlankLineUtilities`, `FormattingTextAnalysisUtilities` |

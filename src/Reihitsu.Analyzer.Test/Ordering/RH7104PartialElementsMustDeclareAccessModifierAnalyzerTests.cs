@@ -491,6 +491,29 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Batch
         await Verify(testCode, fixedCode, Diagnostics(RH7104PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, AnalyzerResources.RH7104MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a refused comment in a member of the partial type withholds the fix: the fix formats the type it
+    /// builds with the added access modifier, which the formatter refuses, although the reported name holds no refused
+    /// shape
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task NoFixIsOfferedWhenTheTypeHoldsACommentTheFormatterRefuses()
+    {
+        const string source = """
+                              partial class {|RH7104:TestClass|}
+                              {
+                                  private void M()
+                                  {
+                                      int /* c */ y = 1;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

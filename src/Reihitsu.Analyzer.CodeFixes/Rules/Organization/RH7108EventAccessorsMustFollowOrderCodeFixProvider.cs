@@ -25,6 +25,32 @@ public class RH7108EventAccessorsMustFollowOrderCodeFixProvider : CodeFixProvide
     #region Methods
 
     /// <summary>
+    /// Creates the event declaration the fix formats: the declaration with its <c>add</c> accessor moved in front of its
+    /// <c>remove</c> accessor
+    /// </summary>
+    /// <param name="eventDeclaration">Event declaration</param>
+    /// <param name="updatedEventDeclaration">The updated event declaration</param>
+    /// <returns><see langword="true"/> if an accessor has to move; otherwise, <see langword="false"/></returns>
+    private static bool TryCreateUpdatedEventDeclaration(EventDeclarationSyntax eventDeclaration, out EventDeclarationSyntax updatedEventDeclaration)
+    {
+        if (eventDeclaration.AccessorList == null
+            || AccessorOrderingUtilities.TryGetAccessorMove(eventDeclaration.AccessorList,
+                                                            SyntaxKind.AddAccessorDeclaration,
+                                                            new[] { SyntaxKind.RemoveAccessorDeclaration },
+                                                            out var accessorToMove,
+                                                            out var targetAccessor) == false)
+        {
+            updatedEventDeclaration = null;
+
+            return false;
+        }
+
+        updatedEventDeclaration = eventDeclaration.WithAccessorList(AccessorOrderingUtilities.MoveAccessorBefore(eventDeclaration.AccessorList, accessorToMove, targetAccessor));
+
+        return true;
+    }
+
+    /// <summary>
     /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
@@ -36,19 +62,15 @@ public class RH7108EventAccessorsMustFollowOrderCodeFixProvider : CodeFixProvide
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         if (root == null
-            || eventDeclaration.AccessorList == null
-            || AccessorOrderingUtilities.TryGetAccessorMove(eventDeclaration.AccessorList,
-                                                            SyntaxKind.AddAccessorDeclaration,
-                                                            new[] { SyntaxKind.RemoveAccessorDeclaration },
-                                                            out var accessorToMove,
-                                                            out var targetAccessor) == false)
+            || TryCreateUpdatedEventDeclaration(eventDeclaration, out var updatedEventDeclaration) == false)
         {
             return document;
         }
 
         var formattingAnnotation = new SyntaxAnnotation();
-        var updatedEventDeclaration = eventDeclaration.WithAccessorList(AccessorOrderingUtilities.MoveAccessorBefore(eventDeclaration.AccessorList, accessorToMove, targetAccessor))
-                                                      .WithAdditionalAnnotations(formattingAnnotation);
+
+        updatedEventDeclaration = updatedEventDeclaration.WithAdditionalAnnotations(formattingAnnotation);
+
         var updatedRoot = root.ReplaceNode(eventDeclaration, updatedEventDeclaration);
         var updatedDocument = document.WithSyntaxRoot(updatedRoot);
         var formattedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -56,7 +78,7 @@ public class RH7108EventAccessorsMustFollowOrderCodeFixProvider : CodeFixProvide
 
         return formattedEventDeclaration == null
                    ? updatedDocument
-                   : await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedEventDeclaration, cancellationToken).ConfigureAwait(false);
+                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedEventDeclaration, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     /// <summary>
@@ -101,7 +123,9 @@ public class RH7108EventAccessorsMustFollowOrderCodeFixProvider : CodeFixProvide
             foreach (var diagnostic in context.Diagnostics)
             {
                 if (root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.AncestorsAndSelf().OfType<EventDeclarationSyntax>().FirstOrDefault() is EventDeclarationSyntax eventDeclaration
-                    && IsMoveSafe(eventDeclaration))
+                    && IsMoveSafe(eventDeclaration)
+                    && (TryCreateUpdatedEventDeclaration(eventDeclaration, out var updatedEventDeclaration) == false
+                        || ReihitsuFormatter.FindUnsupportedSyntax(updatedEventDeclaration) == null))
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7108Title,
                                                               token => ApplyCodeFixAsync(context.Document, eventDeclaration, token),

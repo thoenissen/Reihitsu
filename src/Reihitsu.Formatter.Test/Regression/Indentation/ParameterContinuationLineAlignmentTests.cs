@@ -675,7 +675,7 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
                              internal unsafe class Example
                              {
                                  private delegate*<ref // keep
-                                                   int, void> _pointer;
+                                                   int, void> Pointer => null;
                              }
                              """;
 

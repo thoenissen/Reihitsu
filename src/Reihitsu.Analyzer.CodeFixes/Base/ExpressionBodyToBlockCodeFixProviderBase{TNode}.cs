@@ -58,7 +58,18 @@ public abstract class ExpressionBodyToBlockCodeFixProviderBase<TNode> : CodeFixP
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     protected virtual async Task<Document> ApplyCodeFixAsync(Document document, TNode node, CancellationToken cancellationToken)
     {
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, node, cancellationToken).ConfigureAwait(false);
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, node, cancellationToken).ConfigureAwait(false)).Output;
+    }
+
+    /// <summary>
+    /// Gets the node the formatter receives from <see cref="ApplyCodeFixAsync"/>: the node itself, or the context it is
+    /// formatted in, which the fix asks the formatter about when it registers (SHARED-FIX-010)
+    /// </summary>
+    /// <param name="node">Node that owns the reported expression body</param>
+    /// <returns>The node the formatter receives</returns>
+    protected virtual SyntaxNode GetFormattingInput(TNode node)
+    {
+        return node;
     }
 
     #endregion // Methods
@@ -90,7 +101,8 @@ public abstract class ExpressionBodyToBlockCodeFixProviderBase<TNode> : CodeFixP
                 // The formatter keeps the expression body of an async member whose task type it cannot see, so a fix that
                 // delegates to it would change nothing there; the member stays reported without a fix
                 if (node != null
-                    && ExpressionBodiedTransformUtilities.RequiresAsyncExpressionBodyPreservation(node) == false)
+                    && ExpressionBodiedTransformUtilities.RequiresAsyncExpressionBodyPreservation(node) == false
+                    && ReihitsuFormatter.FindUnsupportedSyntax(GetFormattingInput(node)) == null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(_title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, node, cancellationToken),

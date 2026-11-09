@@ -666,7 +666,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
                              internal class Example
                              {
                                  private System.Collections.Generic.List<System. // keep
-                                 Int32> _values;
+                                 Int32> Values => null;
                              }
                              """;
 
@@ -676,7 +676,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
                                 internal class Example
                                 {
                                     private System.Collections.Generic.List<System. // keep
-                                                                            Int32> _values;
+                                                                            Int32> Values => null;
                                 }
                                 """;
 
@@ -698,7 +698,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
                              internal class Example
                              {
                                  private System.Collections.Generic.Dictionary<int // keep
-                                                                               , string> _values;
+                                                                               , string> Values => null;
                              }
                              """;
 

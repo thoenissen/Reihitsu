@@ -302,7 +302,7 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
         var parseOptions = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
         var tree = CSharpSyntaxTree.ParseText(TopLevelInput, parseOptions, cancellationToken: TestContext.CancellationToken);
 
-        var formattedTree = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var formattedTree = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
 
         Assert.AreEqual(parseOptions, formattedTree.Options);
     }
@@ -321,7 +321,7 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
             {
                 var document = CreateDocument(workspace, NormalizeLineEndings(TopLevelInput, endOfLine), LanguageVersion.CSharp11);
 
-                var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
+                var result = (await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken)).Output;
 
                 await AssertDocumentText(result, NormalizeLineEndings(TopLevelBracedExpected, endOfLine), endOfLine);
             }
@@ -370,7 +370,7 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
 
                 Assert.IsNotNull(target);
 
-                var result = await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, target, root, TestContext.CancellationToken);
+                var result = (await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, target, root, TestContext.CancellationToken)).Output;
                 var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
 
                 Assert.StartsWith(NormalizeLineEndings("public class A\n{\n}\n", endOfLine), resultText, $"The empty class must stay braced under {DescribeLineEnding(endOfLine)} line endings.");
@@ -397,7 +397,7 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
 
                 Assert.IsNotNull(target);
 
-                var result = await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, target, root, TestContext.CancellationToken);
+                var result = (await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, target, root, TestContext.CancellationToken)).Output;
                 var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
 
                 Assert.StartsWith(NormalizeLineEndings("public class A;\n", endOfLine), resultText, $"The empty class must convert under {DescribeLineEnding(endOfLine)} line endings.");
@@ -418,7 +418,7 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
                                                   CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp11),
                                                   cancellationToken: TestContext.CancellationToken);
 
-            var result = ReihitsuFormatter.FormatNode(tree.GetRoot(TestContext.CancellationToken), cancellationToken: TestContext.CancellationToken);
+            var result = ReihitsuFormatter.FormatNode(tree.GetRoot(TestContext.CancellationToken), cancellationToken: TestContext.CancellationToken).Output;
 
             Assert.AreEqual(NormalizeLineEndings(TopLevelBracedExpected, endOfLine), result.ToFullString(), $"FormatNode output mismatch under {DescribeLineEnding(endOfLine)} line endings.");
         }
@@ -434,7 +434,7 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
     {
         var detachedRoot = SyntaxFactory.ParseCompilationUnit(TopLevelInput);
 
-        var result = ReihitsuFormatter.FormatNode(detachedRoot, cancellationToken: TestContext.CancellationToken);
+        var result = ReihitsuFormatter.FormatNode(detachedRoot, cancellationToken: TestContext.CancellationToken).Output;
 
         Assert.AreEqual(TopLevelSemicolonExpected, result.ToFullString());
     }
@@ -589,8 +589,8 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
             var csharp11Target = csharp11Tree.GetRoot(TestContext.CancellationToken).DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
             var csharp12Target = csharp12Tree.GetRoot(TestContext.CancellationToken).DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
 
-            var csharp11Result = ReihitsuFormatter.FormatNode(csharp11Target, cancellationToken: TestContext.CancellationToken);
-            var csharp12Result = ReihitsuFormatter.FormatNode(csharp12Target, cancellationToken: TestContext.CancellationToken);
+            var csharp11Result = ReihitsuFormatter.FormatNode(csharp11Target, cancellationToken: TestContext.CancellationToken).Output;
+            var csharp12Result = ReihitsuFormatter.FormatNode(csharp12Target, cancellationToken: TestContext.CancellationToken).Output;
 
             Assert.AreEqual(source, csharp11Result.ToFullString(), $"The C# 11 class must stay braced under {DescribeLineEnding(endOfLine)} line endings.");
             Assert.AreEqual("class Empty;", csharp12Result.ToFullString(), $"The C# 12 class must convert under {DescribeLineEnding(endOfLine)} line endings.");
@@ -610,7 +610,7 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
                                                   CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12),
                                                   cancellationToken: TestContext.CancellationToken);
 
-            var result = ReihitsuFormatter.FormatNode(tree.GetRoot(TestContext.CancellationToken), cancellationToken: TestContext.CancellationToken);
+            var result = ReihitsuFormatter.FormatNode(tree.GetRoot(TestContext.CancellationToken), cancellationToken: TestContext.CancellationToken).Output;
 
             Assert.AreEqual(NormalizeLineEndings(TopLevelSemicolonExpected, endOfLine), result.ToFullString(), $"FormatNode output mismatch under {DescribeLineEnding(endOfLine)} line endings.");
         }
@@ -629,7 +629,7 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
             var source = NormalizeLineEndings(SpecEmptyClassInput, endOfLine);
             var detachedRoot = SyntaxFactory.ParseCompilationUnit(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp11));
 
-            var result = ReihitsuFormatter.FormatNode(detachedRoot, cancellationToken: TestContext.CancellationToken);
+            var result = ReihitsuFormatter.FormatNode(detachedRoot, cancellationToken: TestContext.CancellationToken).Output;
 
             Assert.AreEqual(source, result.ToFullString(), $"The detached C# 11 node must stay braced under {DescribeLineEnding(endOfLine)} line endings.");
         }
@@ -652,8 +652,8 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
             Assert.IsNotNull(csharp11Member);
             Assert.IsNotNull(csharp12Member);
 
-            var csharp11Result = ReihitsuFormatter.FormatNode(csharp11Member, cancellationToken: TestContext.CancellationToken);
-            var csharp12Result = ReihitsuFormatter.FormatNode(csharp12Member, cancellationToken: TestContext.CancellationToken);
+            var csharp11Result = ReihitsuFormatter.FormatNode(csharp11Member, cancellationToken: TestContext.CancellationToken).Output;
+            var csharp12Result = ReihitsuFormatter.FormatNode(csharp12Member, cancellationToken: TestContext.CancellationToken).Output;
 
             Assert.AreEqual(source, csharp11Result.ToFullString(), $"The detached C# 11 member must stay braced under {DescribeLineEnding(endOfLine)} line endings.");
             Assert.AreEqual("class Empty;", csharp12Result.ToFullString(), $"The detached C# 12 member must convert under {DescribeLineEnding(endOfLine)} line endings.");
@@ -676,7 +676,7 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
 
             Assert.AreEqual(NormalizeLineEndings(SpecEmptyClassInput, endOfLine), builtRoot.ToFullString(), $"The built node must match the spec input under {DescribeLineEnding(endOfLine)} line endings.");
 
-            var result = ReihitsuFormatter.FormatNode(builtRoot, cancellationToken: TestContext.CancellationToken);
+            var result = ReihitsuFormatter.FormatNode(builtRoot, cancellationToken: TestContext.CancellationToken).Output;
 
             Assert.AreEqual("class Empty;", result.ToFullString(), $"The built node must convert under {DescribeLineEnding(endOfLine)} line endings.");
         }
@@ -697,8 +697,8 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
             var csharp11Root = CSharpSyntaxTree.Create(parsedRoot, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp11)).GetRoot(TestContext.CancellationToken);
             var csharp12Root = CSharpSyntaxTree.Create(parsedRoot, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12)).GetRoot(TestContext.CancellationToken);
 
-            var csharp11Result = ReihitsuFormatter.FormatNode(csharp11Root, cancellationToken: TestContext.CancellationToken);
-            var csharp12Result = ReihitsuFormatter.FormatNode(csharp12Root, cancellationToken: TestContext.CancellationToken);
+            var csharp11Result = ReihitsuFormatter.FormatNode(csharp11Root, cancellationToken: TestContext.CancellationToken).Output;
+            var csharp12Result = ReihitsuFormatter.FormatNode(csharp12Root, cancellationToken: TestContext.CancellationToken).Output;
 
             Assert.AreEqual(source, csharp11Result.ToFullString(), $"The C# 11 root must stay braced under {DescribeLineEnding(endOfLine)} line endings.");
             Assert.AreEqual("class Empty;", csharp12Result.ToFullString(), $"The C# 12 root must convert under {DescribeLineEnding(endOfLine)} line endings.");
@@ -850,7 +850,7 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
 
             Assert.AreEqual(source, node.ToFullString(), $"The derived node must keep the input text under {DescribeLineEnding(endOfLine)} line endings.");
 
-            var result = ReihitsuFormatter.FormatNode(node, cancellationToken: TestContext.CancellationToken);
+            var result = ReihitsuFormatter.FormatNode(node, cancellationToken: TestContext.CancellationToken).Output;
 
             if (keepsCSharp11)
             {
@@ -879,12 +879,12 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
             var normalizedExpected = NormalizeLineEndings(expected, endOfLine);
             var tree = CSharpSyntaxTree.ParseText(NormalizeLineEndings(input, endOfLine), parseOptions, cancellationToken: TestContext.CancellationToken);
 
-            var actual = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).GetRoot(TestContext.CancellationToken).ToFullString();
+            var actual = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output.GetRoot(TestContext.CancellationToken).ToFullString();
 
             Assert.AreEqual(normalizedExpected, actual, $"FormatSyntaxTree output mismatch under {DescribeLineEnding(endOfLine)} line endings.");
 
             var secondTree = CSharpSyntaxTree.ParseText(actual, parseOptions, cancellationToken: TestContext.CancellationToken);
-            var secondPass = ReihitsuFormatter.FormatSyntaxTree(secondTree, TestContext.CancellationToken).GetRoot(TestContext.CancellationToken).ToFullString();
+            var secondPass = ReihitsuFormatter.FormatSyntaxTree(secondTree, TestContext.CancellationToken).Output.GetRoot(TestContext.CancellationToken).ToFullString();
 
             Assert.AreEqual(normalizedExpected, secondPass, $"FormatSyntaxTree is not idempotent under {DescribeLineEnding(endOfLine)} line endings.");
         }
@@ -909,7 +909,7 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
 
                 Assert.IsNotNull(target);
 
-                var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, TestContext.CancellationToken);
+                var result = (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, TestContext.CancellationToken)).Output;
 
                 await AssertDocumentText(result, NormalizeLineEndings(expected, endOfLine), endOfLine);
             }
@@ -932,7 +932,7 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
             {
                 var document = CreateDocument(workspace, NormalizeLineEndings(input, endOfLine), languageVersion);
 
-                var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
+                var result = (await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken)).Output;
 
                 await AssertDocumentText(result, NormalizeLineEndings(expected, endOfLine), endOfLine);
             }
@@ -961,8 +961,8 @@ public class ReihitsuFormatterLanguageVersionTests : FormatterTestsBase
                 Assert.IsNotNull(target);
 
                 var result = withContext
-                                 ? await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, target, root, TestContext.CancellationToken)
-                                 : await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, TestContext.CancellationToken);
+                                 ? (await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, target, root, TestContext.CancellationToken)).Output
+                                 : (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, TestContext.CancellationToken)).Output;
 
                 await AssertDocumentText(result, NormalizeLineEndings(expected, endOfLine), endOfLine);
             }

@@ -1234,6 +1234,36 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that a refused comment in the else block withholds the fix for the unbraced child: the fix formats the
+    /// whole if statement, which the formatter refuses, although the reported child statement holds no refused shape
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task NoFixIsOfferedWhenTheIfStatementHoldsACommentTheFormatterRefuses()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  private void Method(bool x)
+                                  {
+                                      if (x) {|RH5405:Foo();|}
+                                      else
+                                      {
+                                          int /* c */ y = 1;
+                                      }
+                                  }
+
+                                  private void Foo()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region Methods

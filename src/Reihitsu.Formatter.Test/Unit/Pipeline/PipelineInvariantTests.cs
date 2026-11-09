@@ -150,7 +150,7 @@ public class PipelineInvariantTests : FormatterTestsBase
         {
             var input = NormalizeLineEndings(UserAuthoredContentSource, endOfLine);
             var inputTree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-            var outputTree = ReihitsuFormatter.FormatSyntaxTree(inputTree, TestContext.CancellationToken);
+            var outputTree = ReihitsuFormatter.FormatSyntaxTree(inputTree, TestContext.CancellationToken).Output;
 
             Assert.AreNotEqual(input, outputTree.ToString(), "The input must be reformatted for the test to be meaningful.");
             Assert.AreSequenceEqual(CollectUserAuthoredContent(inputTree.GetRoot(TestContext.CancellationToken)),
@@ -170,7 +170,7 @@ public class PipelineInvariantTests : FormatterTestsBase
         {
             var input = NormalizeLineEndings(RewrittenSyntaxSource, endOfLine);
             var inputTree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-            var outputTree = ReihitsuFormatter.FormatSyntaxTree(inputTree, TestContext.CancellationToken);
+            var outputTree = ReihitsuFormatter.FormatSyntaxTree(inputTree, TestContext.CancellationToken).Output;
             var output = outputTree.ToString();
 
             Assert.Contains("public int A => _a;", output, "The get-only property must be rewritten for the test to be meaningful.");

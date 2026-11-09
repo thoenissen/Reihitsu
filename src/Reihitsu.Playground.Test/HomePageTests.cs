@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 using Bunit;
 
@@ -199,6 +199,55 @@ public class HomePageTests
             var page = context.Render<Home>();
 
             page.Find("#playground-input").Input("public class Sample{ int x }");
+            page.Find("button").Click();
+
+            Assert.HasCount(1, page.FindAll(".playground-message"));
+
+            page.Find("#playground-input").Input("public class Sample{ int x; }");
+            page.Find("button").Click();
+
+            Assert.IsEmpty(page.FindAll(".playground-message"));
+            Assert.AreEqual("public class Sample\n{\n    int x;\n}", page.Find("#playground-output").GetAttribute("value"));
+        }
+    }
+
+    /// <summary>
+    /// Verifies the specification example: input with unsupported syntax is shown unchanged as the output, and the message names
+    /// the line, the column, and the reason below the button
+    /// </summary>
+    [TestMethod]
+    [Requirement("PLAY-008")]
+    public void SpecExampleInputWithUnsupportedSyntaxIsShownUnchangedWithMessage()
+    {
+        using (var context = new BunitContext())
+        {
+            const string input = "class C\n{\n    void M()\n    {\n        int /* c */ a = 1;\n    }\n}";
+
+            var page = context.Render<Home>();
+
+            page.Find("#playground-input").Input(input);
+            page.Find("button").Click();
+
+            var message = page.Find(".playground-message");
+
+            Assert.AreEqual(input, page.Find("#playground-output").GetAttribute("value"));
+            Assert.AreEqual("The input contains syntax the formatter does not support and was left unchanged: line 5, column 13 — a comment between a variable declaration's own tokens.", message.TextContent);
+            Assert.AreEqual("BUTTON", message.PreviousElementSibling?.TagName, "The message must appear below the button.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that the unsupported-syntax message disappears on the next format of an input the formatter does not refuse
+    /// </summary>
+    [TestMethod]
+    [Requirement("PLAY-008")]
+    public void UnsupportedSyntaxMessageDisappearsOnNextSuccessfulFormat()
+    {
+        using (var context = new BunitContext())
+        {
+            var page = context.Render<Home>();
+
+            page.Find("#playground-input").Input("public class Sample{ int /* c */ x; }");
             page.Find("button").Click();
 
             Assert.HasCount(1, page.FindAll(".playground-message"));

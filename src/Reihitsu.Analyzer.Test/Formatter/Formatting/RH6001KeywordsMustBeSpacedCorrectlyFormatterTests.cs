@@ -175,6 +175,7 @@ public class RH6001KeywordsMustBeSpacedCorrectlyFormatterTests : FormatterTestsB
     private static string Format(string source)
     {
         return ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(source), CancellationToken.None)
+                                .Output
                                 .GetText()
                                 .ToString();
     }

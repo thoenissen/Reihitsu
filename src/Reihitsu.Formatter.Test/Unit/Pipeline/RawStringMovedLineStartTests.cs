@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
@@ -528,7 +528,7 @@ public class RawStringMovedLineStartTests : FormatterTestsBase
             AssertAnnotationsKept(normalizedInput, endOfLine);
 
             var tree = CSharpSyntaxTree.ParseText(normalizedInput, cancellationToken: TestContext.CancellationToken);
-            var output = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).GetText(TestContext.CancellationToken).ToString();
+            var output = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output.GetText(TestContext.CancellationToken).ToString();
 
             Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), output, $"Final output under {DescribeLineEnding(endOfLine)} line endings.");
         }

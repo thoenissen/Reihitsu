@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -652,7 +652,7 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 int[] G =
+                                 int[] G { get; } =
                                  /* g
                                   */ { 1, 2 };
                                  int H;
@@ -692,7 +692,7 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 int[] G =
+                                 int[] G { get; } =
 
                                  /* g
                                   */ { 1, 2 };
@@ -724,7 +724,7 @@ public class MultiLineGluedCommentBlankLineTests : FormatterTestsBase
         const string expected = """
                                 class C
                                 {
-                                    int[] G =
+                                    int[] G { get; } =
                                     /* g
                                      */ { 1, 2 };
                                     int H;

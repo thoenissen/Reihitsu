@@ -31,7 +31,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyCodeFixProvide
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, SyntaxNode formatTarget, CancellationToken cancellationToken)
     {
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, formatTarget, cancellationToken).ConfigureAwait(false);
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, formatTarget, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     /// <summary>
@@ -82,7 +82,8 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyCodeFixProvide
             {
                 var formatTarget = TryGetFormatTarget(root, diagnostic);
 
-                if (formatTarget != null)
+                if (formatTarget != null
+                    && ReihitsuFormatter.FindUnsupportedSyntax(formatTarget) == null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5303Title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, formatTarget, cancellationToken),

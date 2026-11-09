@@ -61,7 +61,7 @@ public class DocumentationCommentCollapseGuardTests
                                                                internal class TestClass
                                                                {
                                                                    [field: /** Marks the backing field. */ Obsolete]
-                                                                   public int Value;
+                                                                   public int Value { get; set; }
                                                                }
                                                                """;
 
@@ -124,7 +124,7 @@ public class DocumentationCommentCollapseGuardTests
     {
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: cancellationToken);
         var context = new FormattingContext(endOfLine);
-        var result = FormattingPipeline.Execute(tree.GetRoot(cancellationToken), context, cancellationToken);
+        var result = FormattingPipeline.Execute(tree.GetRoot(cancellationToken), context, cancellationToken).Output;
 
         return result.ToFullString();
     }

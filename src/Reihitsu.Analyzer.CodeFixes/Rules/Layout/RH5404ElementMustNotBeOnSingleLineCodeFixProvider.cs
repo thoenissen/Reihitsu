@@ -31,7 +31,7 @@ public class RH5404ElementMustNotBeOnSingleLineCodeFixProvider : CodeFixProvider
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, BaseTypeDeclarationSyntax declaration, CancellationToken cancellationToken)
     {
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, declaration, cancellationToken).ConfigureAwait(false);
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, declaration, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     #endregion // Methods
@@ -56,7 +56,8 @@ public class RH5404ElementMustNotBeOnSingleLineCodeFixProvider : CodeFixProvider
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                if (root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.FirstAncestorOrSelf<BaseTypeDeclarationSyntax>() is { } declaration)
+                if (root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.FirstAncestorOrSelf<BaseTypeDeclarationSyntax>() is { } declaration
+                    && ReihitsuFormatter.FindUnsupportedSyntax(declaration) == null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5404Title,
                                                               token => ApplyCodeFixAsync(context.Document, declaration, token),

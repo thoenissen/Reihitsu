@@ -615,7 +615,7 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
             {
                 var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
                 var document = project.AddDocument("Test.cs", SourceText.From(NormalizeLineEndings(input, endOfLine)));
-                var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
+                var result = (await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken)).Output;
 
                 Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), (await result.GetTextAsync(TestContext.CancellationToken)).ToString(), $"Unexpected document-level output under {DescribeLineEnding(endOfLine)} line endings.");
             }
@@ -3256,7 +3256,7 @@ public class ReihitsuFormatterNodeBlankLineTests : FormatterTestsBase
 
             Assert.IsNotNull(root, "Expected a syntax root in the test document.");
 
-            var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, selectTarget(root), TestContext.CancellationToken);
+            var result = (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, selectTarget(root), TestContext.CancellationToken)).Output;
 
             return (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
         }

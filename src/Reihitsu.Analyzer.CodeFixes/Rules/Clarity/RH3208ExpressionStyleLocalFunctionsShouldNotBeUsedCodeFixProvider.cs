@@ -103,15 +103,21 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedCodeFixProvider :
 
         if (contextNode == localFunction)
         {
-            return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, localFunction, cancellationToken).ConfigureAwait(false);
+            return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, localFunction, cancellationToken).ConfigureAwait(false)).Output;
         }
 
-        return await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, localFunction, contextNode, cancellationToken).ConfigureAwait(false);
+        return (await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, localFunction, contextNode, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     #endregion // Methods
 
     #region ExpressionBodyToBlockCodeFixProviderBase
+
+    /// <inheritdoc/>
+    protected override SyntaxNode GetFormattingInput(LocalFunctionStatementSyntax node)
+    {
+        return GetLineStartingLabel(node);
+    }
 
     /// <inheritdoc/>
     protected override async Task<Document> ApplyCodeFixAsync(Document document, LocalFunctionStatementSyntax node, CancellationToken cancellationToken)

@@ -35,7 +35,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedCodeFixProvider : Code
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, PropertyDeclarationSyntax propertyDeclaration, CancellationToken cancellationToken)
     {
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, propertyDeclaration, cancellationToken).ConfigureAwait(false);
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, propertyDeclaration, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     /// <summary>
@@ -178,7 +178,8 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedCodeFixProvider : Code
         foreach (var diagnostic in context.Diagnostics)
         {
             if (root.FindNode(diagnostic.Location.SourceSpan) is PropertyDeclarationSyntax propertyDeclaration
-                && CanApplyCodeFix(propertyDeclaration))
+                && CanApplyCodeFix(propertyDeclaration)
+                && ReihitsuFormatter.FindUnsupportedSyntax(propertyDeclaration) == null)
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5408Title,
                                                           token => ApplyCodeFixAsync(context.Document, propertyDeclaration, token),

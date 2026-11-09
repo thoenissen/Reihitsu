@@ -112,7 +112,7 @@ public abstract class TypeMemberOrderingCodeFixProviderBase : CodeFixProvider
 
         return formattedTypeDeclaration == null
                    ? updatedDocument
-                   : await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedTypeDeclaration, cancellationToken).ConfigureAwait(false);
+                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedTypeDeclaration, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     #endregion // Methods
@@ -140,7 +140,8 @@ public abstract class TypeMemberOrderingCodeFixProviderBase : CodeFixProvider
             {
                 if (OrderingDeclarationUtilities.TryGetContainingTypeAndMember(root, diagnostic, out var typeDeclaration, out var memberDeclaration)
                     && TryGetTargetMember(typeDeclaration, memberDeclaration, out var targetMember)
-                    && IsMoveSafe(semanticModel, typeDeclaration, memberDeclaration, targetMember))
+                    && IsMoveSafe(semanticModel, typeDeclaration, memberDeclaration, targetMember)
+                    && ReihitsuFormatter.FindUnsupportedSyntax(OrderingDeclarationUtilities.MoveMemberBefore(typeDeclaration, memberDeclaration, targetMember)) == null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(_title,
                                                               token => ApplyCodeFixAsync(context.Document, typeDeclaration, memberDeclaration, token),

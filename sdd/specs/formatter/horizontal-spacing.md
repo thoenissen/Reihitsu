@@ -534,19 +534,19 @@ class C
 }
 ```
 
-and for a fixed-size buffer, where the space follows a comment glued to the type (FMT-SPACE-013):
+and for a fixed-size buffer:
 
 ```csharp
 unsafe struct S
 {
-    public fixed/* c */int _b[4];
+    public fixed  int _b[4];
 }
 ```
 
 ```csharp
 unsafe struct S
 {
-    public fixed/* c */ int _b[4];
+    public fixed int _b[4];
 }
 ```
 
@@ -644,7 +644,7 @@ class C
 
 When the right token carries a comment in its own leading trivia on the same line (a delimited documentation comment `/** */` written between two tokens), the formatter MUST NOT change the whitespace in front of that comment, also when the left token carries a comment of its own in the gap (FMT-SPACE-013). When a spacing rule decides the token pair, the formatter MUST apply that decision to the whitespace between the comment and the right token: it MUST remove that whitespace when the rule allows no space, and it MUST make it exactly the number of spaces the rule demands otherwise, inserting the space where the author wrote none.
 
-Why: The rules see only the token pair, not the comment. Applying a "no space before `;`" decision to the whitespace in front of the comment would glue the comment to the left token (`_a/** x */;`). The whitespace after the comment is the part the rule actually answers for: leaving a space there would keep one the analyzer rules for semicolons, commas, and attribute brackets report, and leaving it out would keep the pair tighter than the rule demands (`/** sum */+b`). The decision is the same one FMT-SPACE-013 applies behind a comment the left token carries.
+Why: The rules see only the token pair, not the comment. Applying a "no space before `;`" decision to the whitespace in front of the comment would glue the comment to the left token (`1/** x */;`). The whitespace after the comment is the part the rule actually answers for: leaving a space there would keep one the analyzer rules for semicolons, commas, and attribute brackets report, and leaving it out would keep the pair tighter than the rule demands (`/** sum */+b`). The decision is the same one FMT-SPACE-013 applies behind a comment the left token carries.
 
 Example:
 
@@ -653,8 +653,8 @@ using System;
 
 class C
 {
-    int _a /** x */;
-    int _b /** y */ ;
+    int P => 1 /** x */;
+    int Q => 1 /** y */ ;
 
     [Obsolete /** why */ ]
     int M(bool c, int b)
@@ -673,8 +673,8 @@ using System;
 
 class C
 {
-    int _a /** x */;
-    int _b /** y */;
+    int P => 1 /** x */;
+    int Q => 1 /** y */;
 
     [Obsolete /** why */]
     int M(bool c, int b)

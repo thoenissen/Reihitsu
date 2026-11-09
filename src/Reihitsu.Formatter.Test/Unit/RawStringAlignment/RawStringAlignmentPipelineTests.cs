@@ -437,7 +437,7 @@ public class RawStringAlignmentPipelineTests : FormatterTestsBase
             var root = CSharpSyntaxTree.ParseText(NormalizeLineEndings(input, endOfLine), cancellationToken: TestContext.CancellationToken)
                                        .GetRoot(TestContext.CancellationToken);
 
-            var actual = ReihitsuFormatter.FormatNode(root, cancellationToken: TestContext.CancellationToken).ToFullString();
+            var actual = ReihitsuFormatter.FormatNode(root, cancellationToken: TestContext.CancellationToken).Output.ToFullString();
 
             Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), actual, $"FormatNode output mismatch under {DescribeLineEnding(endOfLine)} line endings.");
         }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -85,6 +85,8 @@ public class CodeFixFormatterAccessTests
     [DataRow("Reihitsu.Formatter.Pipeline.Core.Utilities.TriviaListUtilities")]
     [DataRow("Reihitsu.Formatter.Pipeline.LineBreaks.Utilities.LineBreakTriviaUtilities")]
     [DataRow("Reihitsu.Formatter.Data.FormattingContext")]
+    [DataRow("Reihitsu.Formatter.FormattingResult`1")]
+    [DataRow("Reihitsu.Formatter.UnsupportedSyntax")]
     public void BannedTypesExcludeHelpersAndUtilityClasses(string typeName)
     {
         Assert.IsNotNull(FormatterAssembly.GetType(typeName), $"The type {typeName} must exist in the formatter assembly.");
@@ -145,16 +147,30 @@ public class CodeFixFormatterAccessTests
     }
 
     /// <summary>
-    /// Determines whether a formatter type is a helper, utility, or extension class, or a type of the data the phases read
+    /// Determines whether a formatter type is a helper, utility, or extension class, a type of the data the phases read, or a
+    /// result type of the formatting entry points
     /// </summary>
     /// <param name="typeName">Full name of the type</param>
     /// <returns><see langword="true"/> when a code fix may use the type</returns>
     private static bool IsHelperUtilityOrData(string typeName)
     {
-        return typeName.EndsWith("Helpers", StringComparison.Ordinal)
+        return IsEntryPointResult(typeName)
+               || typeName.EndsWith("Helpers", StringComparison.Ordinal)
                || typeName.EndsWith("Utilities", StringComparison.Ordinal)
                || typeName.EndsWith("Extensions", StringComparison.Ordinal)
                || typeName.StartsWith("Reihitsu.Formatter.Data.", StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Whether the type is one of the result types the formatting entry points of <c>ReihitsuFormatter</c> return, which a code
+    /// fix reads to learn whether the formatter refused its formatting (FMT-UNSUP-001, SHARED-FIX-010)
+    /// </summary>
+    /// <param name="typeName">Full name of the formatter type</param>
+    /// <returns><see langword="true"/> for an entry point's result type</returns>
+    private static bool IsEntryPointResult(string typeName)
+    {
+        return typeName == "Reihitsu.Formatter.FormattingResult`1"
+               || typeName == "Reihitsu.Formatter.UnsupportedSyntax";
     }
 
     #endregion // Methods

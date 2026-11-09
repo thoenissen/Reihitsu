@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using NSubstitute;
@@ -12,6 +13,7 @@ using NSubstitute.ExceptionExtensions;
 
 using Reihitsu.Cli.Abstractions;
 using Reihitsu.Cli.Test.Helpers;
+using Reihitsu.Formatter;
 using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Cli.Test.Unit;
@@ -78,14 +80,15 @@ public sealed class FormatCommandHandlerTests
     /// <param name="consoleInput">The console input mock, or <see langword="null"/> to use a default mock</param>
     /// <param name="utf8Bom">Whether to normalize processed files to UTF-8 with a byte order mark</param>
     /// <param name="languageVersion">The C# language version to parse for, or <see langword="null"/> for the newest supported version</param>
+    /// <param name="suppressUnsupported">Whether to report a file the formatter refuses as unsupported as a warning</param>
     /// <returns>A configured <see cref="FormatCommandHandler"/> instance</returns>
-    private static FormatCommandHandler CreateHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, IFileSystem fileSystem, CapturedConsoleOutput console, ISourceFormatter formatter, IDiffGenerator diffGenerator, bool force = false, IConsoleInput consoleInput = null, bool utf8Bom = false, LanguageVersion? languageVersion = null)
+    private static FormatCommandHandler CreateHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, IFileSystem fileSystem, CapturedConsoleOutput console, ISourceFormatter formatter, IDiffGenerator diffGenerator, bool force = false, IConsoleInput consoleInput = null, bool utf8Bom = false, LanguageVersion? languageVersion = null, bool suppressUnsupported = false)
     {
         consoleInput ??= Substitute.For<IConsoleInput>();
 
         var dependencies = new FormatCommandDependencies(fileSystem, console, consoleInput, formatter, diffGenerator);
 
-        return new FormatCommandHandler(paths, checkOnly, dryRun, verbose, force, utf8Bom, languageVersion ?? LanguageVersionResolver.MaxSupportedLanguageVersion, dependencies);
+        return new FormatCommandHandler(paths, checkOnly, dryRun, verbose, force, utf8Bom, languageVersion ?? LanguageVersionResolver.MaxSupportedLanguageVersion, dependencies, suppressUnsupported);
     }
 
     /// <summary>
@@ -112,7 +115,26 @@ public sealed class FormatCommandHandlerTests
     {
         var formattedTree = CSharpSyntaxTree.ParseText(formattedContent);
 
-        formatter.FormatSyntaxTree(Arg.Any<SyntaxTree>(), Arg.Any<CancellationToken>()).Returns(formattedTree);
+        formatter.FormatSyntaxTree(Arg.Any<SyntaxTree>(), Arg.Any<CancellationToken>()).Returns(new FormattingResult<SyntaxTree>(formattedTree, null));
+    }
+
+    /// <summary>
+    /// Sets up the formatter mock to refuse every syntax tree as unsupported through its result: it returns the tree it receives
+    /// unchanged together with the unsupported shape, as the formatter does for a refusal that a phase raises during the run
+    /// </summary>
+    /// <param name="formatter">The source formatter mock</param>
+    /// <param name="reason">The reason of the unsupported shape</param>
+    /// <param name="start">The offset of the first character of the shape in the received tree</param>
+    private static void SetupRefusingFormatter(ISourceFormatter formatter, string reason, int start)
+    {
+        formatter.FormatSyntaxTree(Arg.Any<SyntaxTree>(), Arg.Any<CancellationToken>())
+                 .Returns(callInfo =>
+                          {
+                              var syntaxTree = callInfo.Arg<SyntaxTree>();
+                              var unsupported = new UnsupportedSyntax(reason, Location.Create(syntaxTree, new TextSpan(start, 1)));
+
+                              return new FormattingResult<SyntaxTree>(syntaxTree, unsupported);
+                          });
     }
 
     /// <summary>
@@ -207,7 +229,7 @@ public sealed class FormatCommandHandlerTests
 
         SetupSingleFile(fileSystem, filePath, ValidCsContent);
         formatter.FormatSyntaxTree(Arg.Do<SyntaxTree>(tree => parsedTree = tree), Arg.Any<CancellationToken>())
-                 .Returns(CSharpSyntaxTree.ParseText(ValidCsContent));
+                 .Returns(new FormattingResult<SyntaxTree>(CSharpSyntaxTree.ParseText(ValidCsContent), null));
 
         var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator, languageVersion: languageVersion);
 
@@ -605,6 +627,125 @@ public sealed class FormatCommandHandlerTests
     }
 
     #endregion // Syntax Error Handling
+
+    #region Unsupported Syntax
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> reports a refusal that the formatting result carries, as it
+    /// carries one a phase raises during the run, with the error line, leaves the file unchanged, counts it in the summary, and
+    /// exits with the error code
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    [Requirement("CLI-019")]
+    public async Task ExecuteAsyncRefusalInFormattingResultIsReportedAsError()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+
+        var filePath = "/test/file.cs";
+
+        SetupSingleFile(fileSystem, filePath, UnformattedCsContent);
+        SetupRefusingFormatter(formatter, "a shape a phase refuses", UnformattedCsContent.IndexOf("class", StringComparison.Ordinal));
+
+        var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator);
+
+        var exitCode = await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.AreEqual(ExitCodes.Error, exitCode);
+        Assert.AreSequenceEqual(new[] { "error: /test/file.cs(3,11): unsupported syntax: a shape a phase refuses. The file was left unchanged." }, console.ErrorOutput.ToArray());
+        Assert.AreSequenceEqual(new[] { string.Empty, "Formatted 0 of 1 file(s).", "Skipped 1 file(s) with unsupported syntax." }, console.StandardOutput.ToArray());
+        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> leaves a file whose formatting result carries a refusal
+    /// unchanged also when <c>--utf8-bom</c> would change its encoding
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    [Requirement("CLI-019")]
+    public async Task ExecuteAsyncRefusalInFormattingResultLeavesEncodingUnchanged()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+
+        var filePath = "/test/file.cs";
+
+        SetupSingleFile(fileSystem, filePath, ValidCsContent);
+        SetupRefusingFormatter(formatter, "a shape a phase refuses", 0);
+
+        var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator, utf8Bom: true);
+
+        var exitCode = await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.AreEqual(ExitCodes.Error, exitCode);
+        Assert.AreSequenceEqual(new[] { "error: /test/file.cs(1,1): unsupported syntax: a shape a phase refuses. The file was left unchanged." }, console.ErrorOutput.ToArray());
+        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> in check mode reports a file whose formatting result carries a
+    /// refusal with the error line only, does not count it as needing formatting, and exits with the error code
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    [Requirement("CLI-019")]
+    public async Task ExecuteAsyncCheckModeRefusalInFormattingResultIsReportedOnlyAsError()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+
+        var filePath = "/test/file.cs";
+
+        SetupSingleFile(fileSystem, filePath, UnformattedCsContent);
+        SetupRefusingFormatter(formatter, "a shape a phase refuses", UnformattedCsContent.IndexOf("class", StringComparison.Ordinal));
+
+        var handler = CreateHandler([filePath], checkOnly: true, dryRun: false, verbose: true, fileSystem, console, formatter, diffGenerator);
+
+        var exitCode = await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.AreEqual(ExitCodes.Error, exitCode);
+        Assert.AreSequenceEqual(new[] { "error: /test/file.cs(3,11): unsupported syntax: a shape a phase refuses. The file was left unchanged." }, console.ErrorOutput.ToArray());
+        Assert.AreSequenceEqual(new[] { string.Empty, "0 of 1 file(s) need formatting.", "Skipped 1 file(s) with unsupported syntax." }, console.StandardOutput.ToArray());
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> with <c>--suppress-unsupported</c> reports a refusal that the
+    /// formatting result carries as a warning, leaves the file unchanged, and does not change the exit code
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    [Requirement("CLI-020")]
+    public async Task ExecuteAsyncSuppressedRefusalInFormattingResultIsReportedAsWarning()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+
+        var filePath = "/test/file.cs";
+
+        SetupSingleFile(fileSystem, filePath, UnformattedCsContent);
+        SetupRefusingFormatter(formatter, "a shape a phase refuses", UnformattedCsContent.IndexOf("class", StringComparison.Ordinal));
+
+        var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator, suppressUnsupported: true);
+
+        var exitCode = await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+        Assert.AreSequenceEqual(new[] { "warning: /test/file.cs(3,11): unsupported syntax: a shape a phase refuses. The file was left unchanged." }, console.ErrorOutput.ToArray());
+        Assert.AreSequenceEqual(new[] { string.Empty, "Formatted 0 of 1 file(s).", "Skipped 1 file(s) with unsupported syntax." }, console.StandardOutput.ToArray());
+        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+    }
+
+    #endregion // Unsupported Syntax
 
     #region Check Mode
 
@@ -1212,7 +1353,7 @@ public sealed class FormatCommandHandlerTests
                                                          ? formattedEditedContent
                                                          : FormattedCsContent;
 
-                              return CSharpSyntaxTree.ParseText(formattedContent, cancellationToken: cancellationToken);
+                              return new FormattingResult<SyntaxTree>(CSharpSyntaxTree.ParseText(formattedContent, cancellationToken: cancellationToken), null);
                           });
         consoleInput.IsInteractive.Returns(true);
         consoleInput.ReadLine()

@@ -62,6 +62,7 @@ public class RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsFormatterTest
                              """;
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var actual = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken)
+                                      .Output
                                       .GetRoot(TestContext.CancellationToken)
                                       .ToFullString();
 
@@ -89,6 +90,7 @@ public class RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsFormatterTest
                                 """;
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var actual = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken)
+                                      .Output
                                       .GetRoot(TestContext.CancellationToken)
                                       .ToFullString();
 
@@ -108,6 +110,7 @@ public class RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsFormatterTest
                              """;
         var tree = CSharpSyntaxTree.ParseText(input, new CSharpParseOptions(LanguageVersion.CSharp9), cancellationToken: TestContext.CancellationToken);
         var actual = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken)
+                                      .Output
                                       .GetRoot(TestContext.CancellationToken)
                                       .ToFullString();
 

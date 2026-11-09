@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -139,20 +139,19 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineFormatterTests :
     }
 
     /// <summary>
-    /// Verifies that splitting a combined field whose separator the author put on the next line leaves the
-    /// generated semicolon on that next line, and that the result stays analyzer-clean. The separator terminates
-    /// its declarator exactly as the semicolon terminates the last one, so preserving the author's line break is
-    /// the split doing nothing rather than the formatter choosing a layout; this analyzer exempts the shape
-    /// because a comment sits in the gap
+    /// Verifies that a semicolon the author put on the line behind a comment that ends the declaration's line stays on that
+    /// line, and that the result stays analyzer-clean: this analyzer exempts the shape because a comment sits in the gap. A
+    /// property with an initializer carries the shape, because a comment in front of a variable declaration's semicolon makes
+    /// the input unsupported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifySplitFieldWithLineBrokenSeparatorStaysAnalyzerClean()
+    public async Task VerifySemicolonBehindACommentOnTheLineAboveStaysAnalyzerClean()
     {
         const string testData = """
                                 internal class TestClass
                                 {
-                                    private int _a // c
+                                    private int A { get; } = 1 // c
                                     ;
                                     private int _b;
                                 }

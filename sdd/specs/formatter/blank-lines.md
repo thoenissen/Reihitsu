@@ -1718,7 +1718,7 @@ Above a comment glued to an array initializer's brace or to a chained keyword, t
 ```csharp
 class C
 {
-    int[] G =
+    int[] G { get; } =
 
     /* b */ { 1, 2 };
     int H;
@@ -1749,7 +1749,7 @@ class C
 ```csharp
 class C
 {
-    int[] G =
+    int[] G { get; } =
     /* b */ { 1, 2 };
     int H;
     /* m */ int I;

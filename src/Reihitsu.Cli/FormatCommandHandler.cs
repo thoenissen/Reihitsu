@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Cli.Abstractions;
+using Reihitsu.Formatter;
 using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Cli;
@@ -62,6 +63,12 @@ internal sealed class FormatCommandHandler
     private readonly bool _utf8Bom;
 
     /// <summary>
+    /// Indicates whether a file the formatter refuses as unsupported is reported as a warning that does not change the exit
+    /// code, instead of an error
+    /// </summary>
+    private readonly bool _suppressUnsupported;
+
+    /// <summary>
     /// Parse options carrying the resolved C# language version, so parsing and formatting target the same version
     /// </summary>
     private readonly CSharpParseOptions _parseOptions;
@@ -106,7 +113,8 @@ internal sealed class FormatCommandHandler
     /// <param name="utf8Bom">If <see langword="true"/>, normalize processed files to UTF-8 with a byte order mark</param>
     /// <param name="languageVersion">The resolved C# language version every file is parsed and formatted for</param>
     /// <param name="dependencies">The command dependencies</param>
-    public FormatCommandHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, bool force, bool utf8Bom, LanguageVersion languageVersion, FormatCommandDependencies dependencies)
+    /// <param name="suppressUnsupported">If <see langword="true"/>, report a file the formatter refuses as unsupported as a warning that does not change the exit code</param>
+    public FormatCommandHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, bool force, bool utf8Bom, LanguageVersion languageVersion, FormatCommandDependencies dependencies, bool suppressUnsupported = false)
     {
         ArgumentNullException.ThrowIfNull(paths);
         ArgumentNullException.ThrowIfNull(dependencies);
@@ -122,6 +130,7 @@ internal sealed class FormatCommandHandler
         _verbose = verbose;
         _force = force;
         _utf8Bom = utf8Bom;
+        _suppressUnsupported = suppressUnsupported;
         _parseOptions = CSharpParseOptions.Default.WithLanguageVersion(languageVersion);
         _fileSystem = dependencies.FileSystem;
         _console = dependencies.Console;
@@ -166,11 +175,13 @@ internal sealed class FormatCommandHandler
             return confirmationExitCode.Value;
         }
 
-        var (totalFiles, changedFiles, skippedSyntaxErrors, skippedEncoding, skippedGenerated, errorFiles) = await ProcessFilesAsync(files, cancellationToken).ConfigureAwait(false);
+        var (totalFiles, changedFiles, skippedSyntaxErrors, skippedEncoding, skippedGenerated, errorFiles, skippedUnsupported) = await ProcessFilesAsync(files, cancellationToken).ConfigureAwait(false);
 
-        PrintSummary(totalFiles, changedFiles, skippedSyntaxErrors, skippedEncoding, skippedGenerated, errorFiles);
+        PrintSummary(totalFiles, changedFiles, skippedSyntaxErrors, skippedEncoding, skippedGenerated, errorFiles, skippedUnsupported);
 
-        if (errorFiles > 0)
+        // A file the formatter refuses is one the tool could not do its job on, unless the run reports it as a warning (CLI-017)
+        if (errorFiles > 0
+            || (skippedUnsupported > 0 && _suppressUnsupported == false))
         {
             return ExitCodes.Error;
         }
@@ -240,8 +251,8 @@ internal sealed class FormatCommandHandler
     /// <param name="files">Files to process</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The aggregate file-processing counters</returns>
-    private async Task<(int TotalFiles, int ChangedFiles, int SkippedSyntaxErrors, int SkippedEncoding, int SkippedGenerated, int ErrorFiles)> ProcessFilesAsync(IReadOnlyList<string> files,
-                                                                                                                                                                 CancellationToken cancellationToken)
+    private async Task<(int TotalFiles, int ChangedFiles, int SkippedSyntaxErrors, int SkippedEncoding, int SkippedGenerated, int ErrorFiles, int SkippedUnsupported)> ProcessFilesAsync(IReadOnlyList<string> files,
+                                                                                                                                                                                         CancellationToken cancellationToken)
     {
         var totalFiles = 0;
         var changedFiles = 0;
@@ -249,6 +260,7 @@ internal sealed class FormatCommandHandler
         var skippedEncoding = 0;
         var skippedGenerated = 0;
         var errorFiles = 0;
+        var skippedUnsupported = 0;
 
         foreach (var filePath in files)
         {
@@ -272,9 +284,10 @@ internal sealed class FormatCommandHandler
             skippedEncoding += result.SkippedEncodingCount;
             skippedGenerated += result.SkippedGeneratedCount;
             errorFiles += result.ErrorFileCount;
+            skippedUnsupported += result.SkippedUnsupportedCount;
         }
 
-        return (totalFiles, changedFiles, skippedSyntaxErrors, skippedEncoding, skippedGenerated, errorFiles);
+        return (totalFiles, changedFiles, skippedSyntaxErrors, skippedEncoding, skippedGenerated, errorFiles, skippedUnsupported);
     }
 
     /// <summary>
@@ -311,8 +324,16 @@ internal sealed class FormatCommandHandler
                 return FileProcessResult.SkippedGenerated;
             }
 
-            var formattedTree = _formatter.FormatSyntaxTree(syntaxTree, cancellationToken);
-            var formattedContent = (await formattedTree.GetTextAsync(cancellationToken).ConfigureAwait(false)).ToString();
+            var formattingResult = _formatter.FormatSyntaxTree(syntaxTree, cancellationToken);
+
+            if (formattingResult.Unsupported != null)
+            {
+                ReportUnsupported(filePath, formattingResult.Unsupported);
+
+                return FileProcessResult.SkippedUnsupported;
+            }
+
+            var formattedContent = (await formattingResult.Output.GetTextAsync(cancellationToken).ConfigureAwait(false)).ToString();
             var hasContentChanges = string.Equals(originalContent, formattedContent, StringComparison.Ordinal) == false;
             var hasEncodingChanges = _utf8Bom && IsUtf8WithBom(fileRead.Encoding) == false;
 
@@ -347,6 +368,20 @@ internal sealed class FormatCommandHandler
 
             return FileProcessResult.Error;
         }
+    }
+
+    /// <summary>
+    /// Reports a file the formatter refuses as unsupported on standard error, as an error, or as a warning with
+    /// <c>--suppress-unsupported</c>, with the one-based line and column of the shape's first character (CLI-019, CLI-020)
+    /// </summary>
+    /// <param name="filePath">The file path</param>
+    /// <param name="unsupported">The shape the formatter refuses the file for</param>
+    private void ReportUnsupported(string filePath, UnsupportedSyntax unsupported)
+    {
+        var severity = _suppressUnsupported ? "warning" : "error";
+        var start = unsupported.Location.GetLineSpan().StartLinePosition;
+
+        _console.WriteErrorLine($"{severity}: {filePath}({start.Line + 1},{start.Character + 1}): unsupported syntax: {unsupported.Reason}. The file was left unchanged.");
     }
 
     /// <summary>
@@ -523,7 +558,8 @@ internal sealed class FormatCommandHandler
     /// <param name="skippedEncoding">The number of files skipped because they could not be decoded using their detected encoding</param>
     /// <param name="skippedGenerated">The number of generated files that were skipped</param>
     /// <param name="errorFiles">The number of files that encountered errors during processing</param>
-    private void PrintSummary(int totalFiles, int changedFiles, int skippedSyntaxErrors, int skippedEncoding, int skippedGenerated, int errorFiles)
+    /// <param name="skippedUnsupported">The number of files skipped because the formatter refuses them as unsupported</param>
+    private void PrintSummary(int totalFiles, int changedFiles, int skippedSyntaxErrors, int skippedEncoding, int skippedGenerated, int errorFiles, int skippedUnsupported)
     {
         _console.WriteLine(string.Empty);
 
@@ -548,6 +584,11 @@ internal sealed class FormatCommandHandler
         if (skippedSyntaxErrors > 0)
         {
             _console.WriteLine($"Skipped {skippedSyntaxErrors} file(s) with syntax errors.");
+        }
+
+        if (skippedUnsupported > 0)
+        {
+            _console.WriteLine($"Skipped {skippedUnsupported} file(s) with unsupported syntax.");
         }
 
         if (skippedEncoding > 0)

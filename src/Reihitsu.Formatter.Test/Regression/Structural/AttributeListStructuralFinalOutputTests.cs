@@ -1434,7 +1434,7 @@ public class AttributeListStructuralFinalOutputTests : FormatterTestsBase
 
                 Assert.IsNotNull(method);
 
-                var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, method, TestContext.CancellationToken);
+                var result = (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, method, TestContext.CancellationToken)).Output;
                 var text = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
 
                 Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), text, $"Under {DescribeLineEnding(endOfLine)} line endings.");
@@ -1494,7 +1494,7 @@ public class AttributeListStructuralFinalOutputTests : FormatterTestsBase
     {
         var tree = CSharpSyntaxTree.ParseText(NormalizeLineEndings(input, endOfLine), cancellationToken: TestContext.CancellationToken);
 
-        return ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).GetRoot(TestContext.CancellationToken).ToFullString();
+        return ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output.GetRoot(TestContext.CancellationToken).ToFullString();
     }
 
     #endregion // Methods

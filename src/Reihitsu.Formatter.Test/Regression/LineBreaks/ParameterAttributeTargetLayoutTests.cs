@@ -724,7 +724,7 @@ public class ParameterAttributeTargetLayoutTests : FormatterTestsBase
     {
         var tree = CSharpSyntaxTree.ParseText(input);
 
-        return FormattingPipeline.Execute(tree.GetRoot(), new FormattingContext(endOfLine), CancellationToken.None).ToFullString();
+        return FormattingPipeline.Execute(tree.GetRoot(), new FormattingContext(endOfLine), CancellationToken.None).Output.ToFullString();
     }
 
     #endregion // Helpers

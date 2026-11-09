@@ -2515,6 +2515,33 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     }
 
     /// <summary>
+    /// Verifies that a comment between the type and the name of the declaration that starts the chain's line withholds
+    /// the fix: the fix formats that statement as the chain's context, which the formatter refuses, although the chain
+    /// itself holds no refused shape
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task NoFixIsOfferedWhenTheChainContextHoldsACommentTheFormatterRefuses()
+    {
+        const string source = """
+                              using System.Linq;
+
+                              internal class C
+                              {
+                                  private void M()
+                                  {
+                                      int[] /* c */ a = new[] { 1, 2, 3 }.Where(x => x > 0)
+                                                                         .Select(x => x * 2)
+                                                                             {|RH5201:.|}ToArray();
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
     /// Formats the given source text through the shared formatting pipeline with LF line endings,
     /// the same engine <c>reihitsu-format</c> uses, without going through the CLI
     /// </summary>
@@ -2525,7 +2552,7 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
         var tree = CSharpSyntaxTree.ParseText(rawInput);
         var context = new FormattingContext("\n");
 
-        return FormattingPipeline.Execute(tree.GetRoot(), context, CancellationToken.None).ToFullString();
+        return FormattingPipeline.Execute(tree.GetRoot(), context, CancellationToken.None).Output.ToFullString();
     }
 
     #endregion // Tests

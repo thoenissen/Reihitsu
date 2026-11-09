@@ -33,7 +33,7 @@ public class ElseKeywordClosingBraceAuditFanOutTests : FormatterTestsBase
         var tree = CSharpSyntaxTree.ParseText(input);
         var context = new FormattingContext(endOfLine);
 
-        return FormattingPipeline.Execute(tree.GetRoot(), context, CancellationToken.None).ToFullString();
+        return FormattingPipeline.Execute(tree.GetRoot(), context, CancellationToken.None).Output.ToFullString();
     }
 
     #endregion // Methods

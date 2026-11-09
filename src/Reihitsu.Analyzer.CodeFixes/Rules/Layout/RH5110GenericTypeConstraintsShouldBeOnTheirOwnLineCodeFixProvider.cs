@@ -24,6 +24,17 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineCodeFixProvider :
     #region Methods
 
     /// <summary>
+    /// Finds the declaration the fix formats: the declaration that owns the reported constraint clause
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="diagnosticSpan">The diagnostic's span</param>
+    /// <returns>The declaration, or <see langword="null"/> when there is none</returns>
+    private static SyntaxNode FindDeclaration(SyntaxNode root, TextSpan diagnosticSpan)
+    {
+        return root.FindToken(diagnosticSpan.Start).Parent?.FirstAncestorOrSelf<TypeParameterConstraintClauseSyntax>()?.Parent;
+    }
+
+    /// <summary>
     /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
@@ -39,12 +50,11 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineCodeFixProvider :
             return document;
         }
 
-        var constraintClause = root.FindToken(diagnosticSpan.Start).Parent?.FirstAncestorOrSelf<TypeParameterConstraintClauseSyntax>();
-        var declaration = constraintClause?.Parent;
+        var declaration = FindDeclaration(root, diagnosticSpan);
 
         return declaration == null
                    ? document
-                   : await ReihitsuFormatter.FormatNodeInDocumentAsync(document, declaration, cancellationToken).ConfigureAwait(false);
+                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, declaration, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     #endregion // Methods
@@ -61,17 +71,28 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineCodeFixProvider :
     }
 
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
+        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return;
+        }
+
         foreach (var diagnostic in context.Diagnostics)
         {
+            if (FindDeclaration(root, diagnostic.Location.SourceSpan) is { } declaration
+                && ReihitsuFormatter.FindUnsupportedSyntax(declaration) != null)
+            {
+                continue;
+            }
+
             context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5110Title,
                                                       token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
                                                       nameof(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineCodeFixProvider)),
                                     diagnostic);
         }
-
-        return Task.CompletedTask;
     }
 
     #endregion // CodeFixProvider
