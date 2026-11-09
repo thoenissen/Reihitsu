@@ -1328,8 +1328,8 @@ public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH
 
     /// <summary>
     /// Verifies that a parameter is still reported but not fixed under C# 10 when a caller-argument expression of its
-    /// parameter list is an unqualified <c>nameof</c> of the old name, because before C# 11 that <c>nameof</c> refers to a
-    /// member of the type with the same name, which the rename leaves as it is
+    /// parameter list is an unqualified <c>nameof</c> of the old name, because the exemption is not taken before C# 11:
+    /// the fix is refused from the language version alone, without deciding what the operand refers to
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
