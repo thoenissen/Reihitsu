@@ -1041,7 +1041,7 @@ class C
 class C
 {
     // The coordinates
-    private int _x = Offset(/* horizontal */ 1);
+    private int _x = Offset(/* horizontal */1);
     private int _y; // vertical
 }
 ```
@@ -1599,7 +1599,7 @@ class C
     public int X;
     public int Y;
 
-    private int _first = Offset(/* c */ 1);
+    private int _first = Offset(/* c */1);
     private int _second;
 }
 ```
