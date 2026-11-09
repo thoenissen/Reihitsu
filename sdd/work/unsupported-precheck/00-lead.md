@@ -47,6 +47,7 @@ Batch 2 (from 03-spec-author + lead), answer "9A 10A 11A":
 | 13 | 06 implementer | Precheck runs twice per fix (registration + format) | Accepted, no follow-up | Cost of the maintainer's answer 8A; time only | — | — |
 | 14 | 06 implementer | Scope: 63 production files, formatter +549/−276 | Accepted | Covered by answers 1A and 8A (escalation 9 answered) | — | — |
 | 15 | 06 implementer | FMT-UNSUP spec lists no code owners | Spec author adds the types to the spec header and index | Spec consistency | Internal | f2b7638d…d49a20e3 |
+| 16 | 12 spec checker | Repair round 1: RH7101 rule page still promises comment carry-over; tags FMT-STRUCT-021/023 on three tests not listed in a handover | Spec author narrows the rule-page sentence (and change doc visible change 7); test implementer verifies the three tags and lists them | Same requirement, PR-introduced | Rule page follows the answered outputs (Q5B, Q7A); general-notes already covers comments blocking a fix | pending |
 | 1 | Claim | Branch name | Use the session-designated branch `claude/funny-darwin-l756yr` instead of `claude/issue-1670-<slug>` | The session forbids pushing to any other branch | Branch names are internal | claim commit |
 
 ## Follow-up candidates
@@ -64,7 +65,7 @@ Batch 2 (from 03-spec-author + lead), answer "9A 10A 11A":
 - 06 implementer done (f2b7638d, 3e41e82f): all pass except 3 disputed CLI tests. 07 spec author example fix done (cf3ebad5).
 - 08 test implementer done (b4c97050); 09 spec author done (165d5802).
 - 10 implementer done (d49a20e3): rows 11, 12 carried out; Release build 0 warnings.
-- Next: cleaner (11), then spec checker (12), then auditor.
+- 11 cleaner clean (5d25217f). 12 spec checker: 2 findings (e550d9da) → repair round 1: spec author (13) ∥ test implementer (14); then cleaner, spec checker, auditor.
 - Batch 2 answered. Then: fresh spec author (04) carries Q9–Q11 into change doc/spec, change doc leaves Draft; then test implementer (05).
 - (done) ask batch 2 (Q9–Q11), then test implementer (may start on everything else, but wait: tests lock outputs; ask first).
 - Batch 1 answered (see Maintainer answers). Then: fresh spec author amendment (answers + Decisions 2–4), skeptic not re-run unless amendment adds visible outputs; then test implementer.
