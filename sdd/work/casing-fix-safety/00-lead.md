@@ -25,7 +25,9 @@
 | 2 | Skeptic | #1597 goal "rename the `CallerArgumentExpression` literal" | Dropped; the fix is withheld instead | SHARED-FIX-003 forbids changing a user literal; the issue already allows withholding | Withholding is the issue's own required output; rare class | — |
 | 3 | Skeptic | #1597 refusal shape | Cheap refusal: withhold RH4103 when the new name is a compiler pattern-lookup name; withhold a parameter rename when a `CallerArgumentExpression` string names the old or new name. No binding comparison | Binding comparison is machinery for a rare class (AGENTS.md, Special cases) | Withholding a fix for a rare class | — |
 | 4 | Skeptic | Architecture finding (#1016, #1084): acceptability of the new name decided in several places, none asks the rule's style check | Change the structure in this run: one check in the casing base withholds the fix when the rule would still report the new name | Narrow per-converter fixes would add further copies of the rule; stays within the casing base and its converters | Brings the code back to SHARED-FIX-001 / SHARED-CASING-008; withholding only | — |
-| 5 | Skeptic | Spec clarifications | Spawn the spec author for SHARED-CASING-007 (#1597) and SHARED-CASING-008 (#1016) clarifications | Specs currently contradict SHARED-FIX-003 / leave the inputs out | Clarifications follow existing SHARED-FIX requirements | — |
+| 5 | Skeptic | Spec clarifications | Spawn the spec author for SHARED-CASING-007 (#1597) and SHARED-CASING-008 (#1016) clarifications | Specs currently contradict SHARED-FIX-003 / leave the inputs out | Clarifications follow existing SHARED-FIX requirements | 5fed711 |
+| 6 | Spec author | Change doc for SHARED-CASING-011 (withholds fixes `main` offers, e.g. a lone `getEnumerator`) | No change doc; bug-fix lane holds | Withholding a fix for a rare class (lower-case pattern-method names already violate RH4103) | Withholding for a rare class puts nothing in question (README, What reaches the maintainer) | 5fed711 |
+| 7 | Spec author | Unbuilt list members of SHARED-CASING-011 | Keep the list as written; test implementer covers representative members | Same mechanism; cheap fixed list | Withholding only | 5fed711 |
 
 ## Follow-up candidates
 
@@ -34,4 +36,5 @@
 ## Worklist / next step
 
 - Done: skeptic (01-skeptic.md, eb79b88). No output questions.
-- Next: spec author (clarifications), then test implementer.
+- Done: spec author (02-spec-author.md, 5fed711). No output questions. Lane check: confirmed.
+- Next: test implementer (reproductions incl. #1598 linked-document test).
