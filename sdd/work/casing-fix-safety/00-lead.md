@@ -47,5 +47,6 @@
 - Done: implementer (04-implementer.md, 87ce0ad): 11 failing tests disputed; decisions 8–11.
 - Done: test implementer repair (05-test-implementer.md, 05f7b33): analyzer 7842/0, architecture 117/0 (Debug). Release breaks on RH7110 in CasingAnalyzerBase (cleaner).
 - Done: implementer deleted empty provider (06-implementer.md, e5dffc1); architecture test EveryCodeOwnerNamesAnExistingType red until spec rows removed.
-- Next: spec author removes its owner rows (RH4102.md:11, sdd/specs/README.md:109) → cleaner (RH7110, S2094).
+- Done: spec author removed owner rows (07-spec-author.md, 457db3f); architecture 117/117.
+- Next: cleaner (RH7110 in CasingAnalyzerBase, Release warning-free), then spec checker.
 - (old) implementer for #1597, #1016, #1015, #1084 (note: merging the two RH4102 providers would require changing existing tests that name `RH4102CustomEventNameCasingCodeFixProvider`).
