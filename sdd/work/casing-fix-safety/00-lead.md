@@ -56,5 +56,5 @@
 - Done: cleaner (08-cleaner.md, 5290043): Release 0 warnings.
 - Done: spec checker (09-spec-checker.md, 3d0271b): consistent, no findings.
 - Done: auditor (10-auditor.md, 92ee46f), audited head 5a1e702 vs main b673099: findings 1 (high), 2 (low).
-- Repair round 1 worklist: (1) DONE spec author (11-spec-author.md, 2499cbe); (2) DONE test implementer (12-test-implementer.md, 97b1643; 5 red); (3) DONE implementer (13-implementer.md, ba93a6f; analyzer 7849/0); (3b) spec author rewords SHARED-CASING-012 *Why* (decision 17); then cleaner, spec checker, auditor (repair only), validator.
+- Repair round 1 worklist: (1) DONE spec author (11-spec-author.md, 2499cbe); (2) DONE test implementer (12-test-implementer.md, 97b1643; 5 red); (3) DONE implementer (13-implementer.md, ba93a6f; analyzer 7849/0); (3b) DONE spec author (14-spec-author.md, 776c97b); next: cleaner, spec checker, auditor (repair only), validator. then cleaner, spec checker, auditor (repair only), validator.
 - (old) implementer for #1597, #1016, #1015, #1084 (note: merging the two RH4102 providers would require changing existing tests that name `RH4102CustomEventNameCasingCodeFixProvider`).
