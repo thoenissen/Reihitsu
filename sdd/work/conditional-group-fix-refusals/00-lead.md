@@ -44,6 +44,7 @@ Run lane: **behavior change** (widened from bug fix, Decisions #2). Roles: spec 
 | 15 | 08 auditor (round 1) | Finding #4: a partial declaration ending in `;` with a conditional layout attribute is not read | Repair: read such a declaration (class/struct/record forms), tests, SHARED-ORDER-008 wording | Same requirement as #1667 | Demanded by unchanged SHARED-FIX-003 | 7ef961e, c5fd203, 38bdb6d |
 | 16 | 08 auditor (round 1) | Findings #5 (check order) and #6 (stale `<returns>`) | Implementer repairs both | Low, same file | Internal | 7ef961e, c5fd203, 38bdb6d |
 | 17 | 09 spec author | (a) `#if !RELEASE` around a nested group and the property, `#endif` behind it, stays withheld; (b) behind-the-property check only for properties without initializer; (c) extend RH2001-010 instead of RH2001-011 | Accept all three | (a) a third nesting mode for a rare shape would grow the source (AGENTS, special cases); (b) one cheap check; (c) one test, existing tags | (a) rare class, listed in change doc *Rare-class withholdings* and PR Review notes; (b)(c) keep `main` output / internal | 7ef961e |
+| 18 | 14 auditor (round 1) | Hints: narrower `=`-only check behind the property; merging RH2001's three directive guards; comment cosmetics | Keep as is; no follow-up | `=` check would be a second reading of the branch next to the shared helper (Decision #6); class is rare and listed; cleanup/cosmetics have no defect | Rare class / internal | eddb661 |
 
 ## Follow-up candidates
 
@@ -60,4 +61,5 @@ Run lane: **behavior change** (widened from bug fix, Decisions #2). Roles: spec 
 - Cleaner 06 clean (5bdda45).
 - Spec checker 07 consistent, no findings (fbb4c41).
 - Audit 1 (08, ce0b3eb) on fce5e46: findings #1-#6. Repair round 1 started.
-- Round 1: spec author 09 done (7ef961e); test implementer 10 done (c5fd203, 23 red); implementer 11 done (38bdb6d, all green); cleaner 12 clean (75fb7b9). Spec checker 13 consistent (5ff2a4a). Next: auditor 14 on repair (diff fce5e46..HEAD). Worklist: spec author 09 (RH2001-010 for #1/#2, SHARED-ORDER-008 for #4, change doc #3) -> test implementer 10 (#1 kept, #2 refused, #4 refused, LF/CRLF) -> implementer 11 (#1, #2, #4, #5, #6) -> cleaner -> spec checker -> auditor (repair only) -> validator.
+- Round 1: spec author 09 done (7ef961e); test implementer 10 done (c5fd203, 23 red); implementer 11 done (38bdb6d, all green); cleaner 12 clean (75fb7b9). Spec checker 13 consistent (5ff2a4a). Audit 2 (14, eddb661) on 8eaa395: pass. Audited SHA: 8eaa395f9b5314e9739d3175eb9a8a2908d7908f.
+- Next: validator 15, lane check, issue manager (A6), note, delete sdd/work, trigger, PR. Worklist: spec author 09 (RH2001-010 for #1/#2, SHARED-ORDER-008 for #4, change doc #3) -> test implementer 10 (#1 kept, #2 refused, #4 refused, LF/CRLF) -> implementer 11 (#1, #2, #4, #5, #6) -> cleaner -> spec checker -> auditor (repair only) -> validator.
