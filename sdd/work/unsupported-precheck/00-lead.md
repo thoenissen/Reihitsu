@@ -29,4 +29,6 @@
 
 ## Worklist / next step
 
-- Next: spawn spec author (01).
+- 01 spec author done (89537be): verdict open question; 6 output questions in its handover; change doc Draft.
+- Lane check after 01: confirmed behavior-change.
+- Next: skeptic (02) running; then batch output questions (spec author Q1–6 + skeptic's) before test implementer.
