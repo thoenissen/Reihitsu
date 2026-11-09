@@ -28,6 +28,10 @@
 | 5 | Skeptic | Spec clarifications | Spawn the spec author for SHARED-CASING-007 (#1597) and SHARED-CASING-008 (#1016) clarifications | Specs currently contradict SHARED-FIX-003 / leave the inputs out | Clarifications follow existing SHARED-FIX requirements | 5fed711 |
 | 6 | Spec author | Change doc for SHARED-CASING-011 (withholds fixes `main` offers, e.g. a lone `getEnumerator`) | No change doc; bug-fix lane holds | Withholding a fix for a rare class (lower-case pattern-method names already violate RH4103) | Withholding for a rare class puts nothing in question (README, What reaches the maintainer) | 5fed711 |
 | 7 | Spec author | Unbuilt list members of SHARED-CASING-011 | Keep the list as written; test implementer covers representative members | Same mechanism; cheap fixed list | Withholding only | 5fed711 |
+| 8 | Implementer | Ten new Fix All tests fail only because the test library's default `MarkupHandling` drops the expected RH4xxx markup | Test implementer sets `MarkupMode.Allow` on the fixed states (as existing RH4103/RH4107 tests do); no assertion changes | Harness configuration, not behavior | Asserted outputs unchanged | — |
+| 9 | Implementer | Older test `FixRenamesAQueryMethodThatNoQueryOfAnotherDocumentSees` expects `select` → `Select`, which SHARED-CASING-011 now withholds | Test implementer keeps its SHARED-CASING-009 purpose with a method name outside the SHARED-CASING-011 list; the withheld `select` case is already covered by the new tests | Decisions 3 and 6 accepted withholding for the rare class | Withholding for a rare class | — |
+| 10 | Implementer | Empty `RH4102CustomEventNameCasingCodeFixProvider` kept only for two test helpers (S2094) | Test implementer switches the helpers to `RH4102EventNameCasingCodeFixProvider`; implementer then deletes the empty type | Dead type; one provider now covers both event kinds | Internal type | — |
+| 11 | Implementer | SHARED-CASING-012 check also withholds a positional record property rename that cascades to a primary-constructor parameter named in `CallerArgumentExpression` | Accept; test implementer adds one test locking it | Within SHARED-FIX-003 Run time; rare class | Withholding for a rare class | — |
 
 ## Follow-up candidates
 
@@ -39,4 +43,6 @@
 - Done: spec author (02-spec-author.md, 5fed711). No output questions. Lane check: confirmed.
 - Done: test implementer (03-test-implementer.md, 1c84020). #1597, #1016, #1015, #1084 reproduced (74 red tests); #1598 NOT reproduced (5 green characterization tests in RH4109 tests).
 - #1598 answered: tests only, PR uses `Closes #1598`; #1598 skips the remaining build roles (spec checker and validator still cover its tests).
-- Next: implementer for #1597, #1016, #1015, #1084 (note: merging the two RH4102 providers would require changing existing tests that name `RH4102CustomEventNameCasingCodeFixProvider`).
+- Done: implementer (04-implementer.md, 87ce0ad): 11 failing tests disputed; decisions 8–11.
+- Next: test implementer repair (decisions 8–11), then implementer deletes empty RH4102 custom provider; then cleaner.
+- (old) implementer for #1597, #1016, #1015, #1084 (note: merging the two RH4102 providers would require changing existing tests that name `RH4102CustomEventNameCasingCodeFixProvider`).
