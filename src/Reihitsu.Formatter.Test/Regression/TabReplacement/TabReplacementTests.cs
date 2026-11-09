@@ -250,7 +250,7 @@ public class TabReplacementTests : FormatterTestsBase
             var root = CSharpSyntaxTree.ParseText(NormalizeLineEndings(input, endOfLine), cancellationToken: TestContext.CancellationToken)
                                        .GetRoot(TestContext.CancellationToken);
 
-            var actual = ReihitsuFormatter.FormatNode(root, cancellationToken: TestContext.CancellationToken).ToFullString();
+            var actual = ReihitsuFormatter.FormatNode(root, cancellationToken: TestContext.CancellationToken).Output.ToFullString();
 
             Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), actual, $"FormatNode output mismatch under {DescribeLineEnding(endOfLine)} line endings.");
         }
@@ -282,7 +282,7 @@ public class TabReplacementTests : FormatterTestsBase
                     Assert.Fail("Expected a method declaration in the test document.");
                 }
 
-                var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, method, TestContext.CancellationToken);
+                var result = (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, method, TestContext.CancellationToken)).Output;
                 var actual = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
 
                 Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), actual, $"FormatNodeInDocumentAsync output mismatch under {DescribeLineEnding(endOfLine)} line endings.");

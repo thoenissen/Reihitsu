@@ -102,7 +102,7 @@ public class RH5104CommentsMustBeOnTheirOwnLineFormatterTests : FormatterTestsBa
         var tree = CSharpSyntaxTree.ParseText(source);
         var context = new FormattingContext(endOfLine);
 
-        return FormattingPipeline.Execute(tree.GetRoot(), context, CancellationToken.None).ToFullString();
+        return FormattingPipeline.Execute(tree.GetRoot(), context, CancellationToken.None).Output.ToFullString();
     }
 
     #endregion // Methods

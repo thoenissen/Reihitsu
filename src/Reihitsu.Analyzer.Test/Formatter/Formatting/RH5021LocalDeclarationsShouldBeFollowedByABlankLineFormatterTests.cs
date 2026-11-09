@@ -208,7 +208,7 @@ public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineFormatterTests :
 
         var tree = CSharpSyntaxTree.ParseText(source);
         var context = new FormattingContext(Environment.NewLine);
-        var formatted = FormattingPipeline.Execute(await tree.GetRootAsync(), context, CancellationToken.None).ToFullString();
+        var formatted = FormattingPipeline.Execute(await tree.GetRootAsync(), context, CancellationToken.None).Output.ToFullString();
 
         Assert.AreEqual(source, formatted, "Formatter output should keep compliant code unchanged.");
 
@@ -227,7 +227,7 @@ public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineFormatterTests :
 
         var tree = CSharpSyntaxTree.ParseText(source);
         var context = new FormattingContext(Environment.NewLine);
-        var formatted = FormattingPipeline.Execute(await tree.GetRootAsync(), context, CancellationToken.None).ToFullString();
+        var formatted = FormattingPipeline.Execute(await tree.GetRootAsync(), context, CancellationToken.None).Output.ToFullString();
 
         Assert.AreEqual(expected, formatted, "Formatter output should insert a blank line before the declaration.");
 

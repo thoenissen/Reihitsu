@@ -160,11 +160,11 @@ public class ReihitsuFormatterLineEndingTests
     private void AssertFormatted(string input, string expected)
     {
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var actual = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).ToString();
+        var actual = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output.ToString();
 
         Assert.AreEqual(Escape(expected), Escape(actual));
 
-        var secondPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(actual, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken).ToString();
+        var secondPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(actual, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken).Output.ToString();
 
         Assert.AreEqual(Escape(actual), Escape(secondPass), "The formatter is not idempotent.");
     }

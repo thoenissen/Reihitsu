@@ -709,11 +709,11 @@ public class ReihitsuFormatterDetachedRootTests : FormatterTestsBase
                 var tree = CSharpSyntaxTree.ParseText(NormalizeLineEndings(inputWithLf, endOfLine).Replace(WhitespaceMarker, whitespace), cancellationToken: TestContext.CancellationToken);
                 var node = selectNode(tree.GetRoot(TestContext.CancellationToken));
 
-                var firstPass = ReihitsuFormatter.FormatNode(node, indentLevel, TestContext.CancellationToken);
+                var firstPass = ReihitsuFormatter.FormatNode(node, indentLevel, TestContext.CancellationToken).Output;
 
                 Assert.AreEqual(NormalizeLineEndings(expectedWithLf, endOfLine), firstPass.ToFullString(), $"Unexpected first pass under {description}.");
 
-                var secondPass = ReihitsuFormatter.FormatNode(firstPass, depth, TestContext.CancellationToken);
+                var secondPass = ReihitsuFormatter.FormatNode(firstPass, depth, TestContext.CancellationToken).Output;
 
                 Assert.AreEqual(firstPass.ToFullString(), secondPass.ToFullString(), $"The second pass must not change the result under {description}.");
             }
@@ -740,8 +740,8 @@ public class ReihitsuFormatterDetachedRootTests : FormatterTestsBase
 
                 Assert.IsNull(nodeWithoutParent.Parent, "The copy must have no parent.");
 
-                var attached = ReihitsuFormatter.FormatNode(node, cancellationToken: TestContext.CancellationToken).ToFullString();
-                var detached = ReihitsuFormatter.FormatNode(nodeWithoutParent, depth, TestContext.CancellationToken).ToFullString();
+                var attached = ReihitsuFormatter.FormatNode(node, cancellationToken: TestContext.CancellationToken).Output.ToFullString();
+                var detached = ReihitsuFormatter.FormatNode(nodeWithoutParent, depth, TestContext.CancellationToken).Output.ToFullString();
 
                 Assert.AreEqual(detached, attached, $"The node that is part of a tree must get the result of the node without a parent under {description}.");
             }
@@ -798,8 +798,8 @@ public class ReihitsuFormatterDetachedRootTests : FormatterTestsBase
 
             var target = selectTarget(root);
             var result = selectContext == null
-                             ? await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, TestContext.CancellationToken)
-                             : await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, target, selectContext(root), TestContext.CancellationToken);
+                             ? (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, TestContext.CancellationToken)).Output
+                             : (await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, target, selectContext(root), TestContext.CancellationToken)).Output;
 
             return (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
         }

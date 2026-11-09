@@ -39,6 +39,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
         var cancellationToken = TestContext.CancellationToken;
         var syntaxTree = CSharpSyntaxTree.ParseText(source, cancellationToken: cancellationToken);
         var expectedText = await ReihitsuFormatter.FormatSyntaxTree(syntaxTree, cancellationToken)
+                                                  .Output
                                                   .GetTextAsync(cancellationToken);
         var expected = expectedText.ToString();
         var actual = await ApplyCodeFixAsync(source);
@@ -3079,14 +3080,14 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     }
 
     /// <summary>
-    /// Verifies that the fix of a declarator behind the last line of a multi-line comment keeps the comment and the
-    /// declarator as in the document and puts the wrapped argument under the first argument
+    /// Verifies that the fix of a declarator behind the last line of a multi-line comment that stands behind the
+    /// separating comma is withheld: the fix formats the declarator in its declaration statement, and the formatter
+    /// refuses that statement for the comment between the declaration's own tokens
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5111-004")]
-    [Requirement("FMT-PIPE-017")]
-    public async Task VerifyDeclaratorBehindTheLastLineOfAMultiLineCommentKeepsTheWrappedArgumentUnderTheFirstArgument()
+    [Requirement("SHARED-FIX-010")]
+    public async Task VerifyNoFixIsOfferedForADeclaratorBehindAMultiLineCommentBehindTheSeparatingComma()
     {
         const string testData = """
                                 class C
@@ -3099,30 +3100,14 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
                                     void M()
                                     {
                                         int a = 1, /* x
-                                                      y */ {|#0:b =
+                                                      y */ {|RH5111:b =
                                             Other(1,
                                                   2)|};
                                     }
                                 }
                                 """;
-        const string fixedData = """
-                                 class C
-                                 {
-                                     static int Other(int x, int y)
-                                     {
-                                         return x + y;
-                                     }
 
-                                     void M()
-                                     {
-                                         int a = 1, /* x
-                                                       y */ b = Other(1,
-                                                                      2);
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testData, fixedData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>

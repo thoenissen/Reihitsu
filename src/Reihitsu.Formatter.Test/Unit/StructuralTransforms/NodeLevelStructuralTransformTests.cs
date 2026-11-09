@@ -102,7 +102,7 @@ public class NodeLevelStructuralTransformTests : FormatterTestsBase
             var classDeclaration = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
 
             // Act
-            var result = ReihitsuFormatter.FormatNode(classDeclaration, cancellationToken: TestContext.CancellationToken);
+            var result = ReihitsuFormatter.FormatNode(classDeclaration, cancellationToken: TestContext.CancellationToken).Output;
 
             // Assert
             Assert.AreEqual(expected, result.ToFullString(), $"Node-level formatting must apply the other structural transforms under {DescribeLineEnding(endOfLine)} line endings.");
@@ -134,7 +134,7 @@ public class NodeLevelStructuralTransformTests : FormatterTestsBase
                 Assert.IsNotNull(classDeclaration, "Expected a class declaration in the test document.");
 
                 // Act
-                var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, classDeclaration, TestContext.CancellationToken);
+                var result = (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, classDeclaration, TestContext.CancellationToken)).Output;
                 var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
 
                 // Assert

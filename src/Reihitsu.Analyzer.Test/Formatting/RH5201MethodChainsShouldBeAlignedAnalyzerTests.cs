@@ -2525,7 +2525,7 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
         var tree = CSharpSyntaxTree.ParseText(rawInput);
         var context = new FormattingContext("\n");
 
-        return FormattingPipeline.Execute(tree.GetRoot(), context, CancellationToken.None).ToFullString();
+        return FormattingPipeline.Execute(tree.GetRoot(), context, CancellationToken.None).Output.ToFullString();
     }
 
     #endregion // Tests

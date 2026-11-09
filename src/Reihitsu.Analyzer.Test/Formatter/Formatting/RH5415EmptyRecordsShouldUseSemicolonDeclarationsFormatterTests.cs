@@ -68,6 +68,7 @@ public class RH5415EmptyRecordsShouldUseSemicolonDeclarationsFormatterTests : Fo
                                 """;
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var actual = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken)
+                                      .Output
                                       .GetRoot(TestContext.CancellationToken)
                                       .ToFullString();
 

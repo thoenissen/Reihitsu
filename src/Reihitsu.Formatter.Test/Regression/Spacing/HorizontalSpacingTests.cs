@@ -993,9 +993,9 @@ public class HorizontalSpacingTests : FormatterTestsBase
 
                              class C
                              {
-                                 void M()
+                                 List /* Keep. */ <int> M()
                                  {
-                                     List /* Keep. */ <int> values;
+                                     return null;
                                  }
                              }
                              """;
@@ -1004,9 +1004,9 @@ public class HorizontalSpacingTests : FormatterTestsBase
 
                                 class C
                                 {
-                                    void M()
+                                    List /* Keep. */<int> M()
                                     {
-                                        List /* Keep. */<int> values;
+                                        return null;
                                     }
                                 }
                                 """;
@@ -1034,10 +1034,10 @@ public class HorizontalSpacingTests : FormatterTestsBase
 
                              class C
                              {
-                                 void M()
+                                 List
+                                     /* Keep. */ <int> M()
                                  {
-                                     List
-                                         /* Keep. */ <int> values;
+                                     return null;
                                  }
                              }
                              """;
@@ -1046,10 +1046,10 @@ public class HorizontalSpacingTests : FormatterTestsBase
 
                                 class C
                                 {
-                                    void M()
+                                    List
+                                    /* Keep. */ <int> M()
                                     {
-                                        List
-                                        /* Keep. */ <int> values;
+                                        return null;
                                     }
                                 }
                                 """;

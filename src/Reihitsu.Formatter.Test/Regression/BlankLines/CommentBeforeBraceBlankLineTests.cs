@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
@@ -380,7 +380,7 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 int[] G =
+                                 int[] G { get; } =
                                  // c
 
                                  {
@@ -391,7 +391,7 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
         const string expected = """
                                 class C
                                 {
-                                    int[] G =
+                                    int[] G { get; } =
 
                                     // c
 

@@ -62,7 +62,7 @@ public class AutoPropertyAccessorListCrlfTests
     {
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: cancellationToken);
         var context = new FormattingContext(endOfLine);
-        var result = FormattingPipeline.Execute(tree.GetRoot(cancellationToken), context, cancellationToken);
+        var result = FormattingPipeline.Execute(tree.GetRoot(cancellationToken), context, cancellationToken).Output;
 
         return result.ToFullString();
     }

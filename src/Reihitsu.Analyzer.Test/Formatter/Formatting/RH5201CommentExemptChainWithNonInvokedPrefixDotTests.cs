@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -72,6 +72,7 @@ public class RH5201CommentExemptChainWithNonInvokedPrefixDotTests : FormatterTes
 
         var tree = CSharpSyntaxTree.ParseText(source, cancellationToken: TestContext.CancellationToken);
         var formattedRoot = await ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken)
+                                                   .Output
                                                    .GetRootAsync(TestContext.CancellationToken);
         var formatted = formattedRoot.ToFullString();
 

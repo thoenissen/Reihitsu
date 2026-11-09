@@ -345,7 +345,7 @@ public class NestedListInParameterAlignmentTests : FormatterTestsBase
                              internal class Example
                              {
                                  private (int First // keep
-                                 , int Second) _pair;
+                                 , int Second) Pair => default;
                              }
                              """;
 
@@ -355,7 +355,7 @@ public class NestedListInParameterAlignmentTests : FormatterTestsBase
                                 internal class Example
                                 {
                                     private (int First // keep
-                                             , int Second) _pair;
+                                             , int Second) Pair => default;
                                 }
                                 """;
 

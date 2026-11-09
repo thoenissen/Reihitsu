@@ -2604,7 +2604,7 @@ public class SwitchSectionSharedLocalTests : FormatterTestsBase
     {
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: CancellationToken.None);
 
-        return ReihitsuFormatter.FormatSyntaxTree(tree, CancellationToken.None).GetRoot(CancellationToken.None).ToFullString();
+        return ReihitsuFormatter.FormatSyntaxTree(tree, CancellationToken.None).Output.GetRoot(CancellationToken.None).ToFullString();
     }
 
     #endregion // Methods

@@ -75,7 +75,7 @@ public class ReihitsuFormatterSameLineGapTests : FormatterTestsBase
             var tree = CSharpSyntaxTree.ParseText(source, cancellationToken: TestContext.CancellationToken);
             var argument = tree.GetRoot(TestContext.CancellationToken).DescendantNodes().OfType<ArgumentSyntax>().Single();
 
-            var result = ReihitsuFormatter.FormatNode(argument, cancellationToken: TestContext.CancellationToken);
+            var result = ReihitsuFormatter.FormatNode(argument, cancellationToken: TestContext.CancellationToken).Output;
 
             Assert.AreEqual("f: y => y", result.ToString(), $"Under {DescribeLineEnding(endOfLine)} line endings.");
         }
@@ -185,7 +185,7 @@ public class ReihitsuFormatterSameLineGapTests : FormatterTestsBase
             var source = NormalizeLineEndings($"class C\n{{\n{property}\n}}", endOfLine);
             var tree = CSharpSyntaxTree.ParseText(source, cancellationToken: TestContext.CancellationToken);
             var target = tree.GetRoot(TestContext.CancellationToken).DescendantNodes().OfType<PropertyDeclarationSyntax>().First();
-            var text = ReihitsuFormatter.FormatNode(target, cancellationToken: TestContext.CancellationToken).ToString();
+            var text = ReihitsuFormatter.FormatNode(target, cancellationToken: TestContext.CancellationToken).Output.ToString();
 
             if (result == null)
             {
@@ -220,7 +220,7 @@ public class ReihitsuFormatterSameLineGapTests : FormatterTestsBase
 
                 Assert.IsNotNull(target);
 
-                var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, TestContext.CancellationToken);
+                var result = (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, TestContext.CancellationToken)).Output;
                 var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
 
                 Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), resultText, $"Under {DescribeLineEnding(endOfLine)} line endings.");

@@ -245,7 +245,7 @@ public class ReihitsuFormatterLineEndingIndependenceTests
     {
         var tree = CSharpSyntaxTree.ParseText(text, cancellationToken: TestContext.CancellationToken);
 
-        return ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).ToString();
+        return ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output.ToString();
     }
 
     /// <summary>
@@ -259,7 +259,7 @@ public class ReihitsuFormatterLineEndingIndependenceTests
         {
             var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
             var document = project.AddDocument("Test.cs", SourceText.From(text));
-            var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
+            var result = (await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken)).Output;
 
             return (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
         }

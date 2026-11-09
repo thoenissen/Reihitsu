@@ -1092,7 +1092,7 @@ public class ThrowOperandPrecedenceExpressionBodyTests : FormatterTestsBase
         var tree = CSharpSyntaxTree.ParseText(NormalizeLineEndings(source, "\n"), cancellationToken: CancellationToken.None);
         var context = new FormattingContext("\n", languageVersion: LanguageVersionResolver.Resolve(tree.Options));
 
-        return FormattingPipeline.Execute(tree.GetRoot(CancellationToken.None), context, CancellationToken.None).ToFullString();
+        return FormattingPipeline.Execute(tree.GetRoot(CancellationToken.None), context, CancellationToken.None).Output.ToFullString();
     }
 
     #endregion // Methods

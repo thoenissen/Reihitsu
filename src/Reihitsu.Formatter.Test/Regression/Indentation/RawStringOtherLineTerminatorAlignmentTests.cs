@@ -60,11 +60,11 @@ public class RawStringOtherLineTerminatorAlignmentTests
             var input = $"class C{endOfLine}{{{endOfLine}    void M(){endOfLine}    {{{endOfLine}        var a = \"\"\"{terminator}    Hello{terminator}    \"\"\";{endOfLine}    }}{endOfLine}}}";
             var expected = $"class C{endOfLine}{{{endOfLine}    void M(){endOfLine}    {{{endOfLine}        var a = \"\"\"{terminator}                Hello{terminator}                \"\"\";{endOfLine}    }}{endOfLine}}}";
 
-            var actual = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken).ToString();
+            var actual = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken).Output.ToString();
 
             Assert.AreEqual(Escape(expected), Escape(actual));
 
-            var secondPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(actual, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken).ToString();
+            var secondPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(actual, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken).Output.ToString();
 
             Assert.AreEqual(Escape(actual), Escape(secondPass), "The formatter is not idempotent.");
         }

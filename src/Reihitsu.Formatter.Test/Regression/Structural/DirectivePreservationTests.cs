@@ -50,7 +50,7 @@ public class DirectivePreservationTests
         var parseOptions = new CSharpParseOptions(preprocessorSymbols: _preprocessorSymbols);
         var tree = CSharpSyntaxTree.ParseText(input, parseOptions, cancellationToken: cancellationToken);
         var context = new FormattingContext("\n");
-        var result = FormattingPipeline.Execute(tree.GetRoot(cancellationToken), context, cancellationToken);
+        var result = FormattingPipeline.Execute(tree.GetRoot(cancellationToken), context, cancellationToken).Output;
 
         return result.ToFullString();
     }

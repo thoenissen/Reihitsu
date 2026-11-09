@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -25,19 +25,21 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the spec example: an equals-value target whose <c>new</c> stands behind the last line of a multi-line comment
-    /// is laid out from <c>new</c> where it stands, as document-level formatting lays it out
+    /// is laid out from <c>new</c> where it stands, because the target holds no variable declaration, while document-level
+    /// formatting refuses the document for the comment behind the declaration's <c>=</c>
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
     [Requirement("FMT-PIPE-017")]
     [Requirement("FMT-INDENT-030")]
+    [Requirement("FMT-UNSUP-003")]
     public async Task EqualsValueTargetBehindTheLastLineOfAMultiLineCommentIsLaidOutFromNewWhereItStands()
     {
         const string input = "using System.Collections.Generic;\n\nclass C\n{\n    void M()\n    {\n        var d = /* a\n                   b */ new List<int>\n          {\n            1\n          };\n    }\n}";
         const string expected = "using System.Collections.Generic;\n\nclass C\n{\n    void M()\n    {\n        var d = /* a\n                   b */ new List<int>\n                        {\n                            1\n                        };\n    }\n}";
 
         await AssertFormatsTarget(input, expected, SelectSingle<EqualsValueClauseSyntax>);
-        AssertRuleResult(input, expected);
+        AssertUnsupported(input, "/* a\n                   b */");
     }
 
     /// <summary>
@@ -171,7 +173,8 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that formatting a chain with an equals-value clause as context aligns the wrapped link under the first link of a
-    /// chain behind the last line of a multi-line comment, as document-level formatting does
+    /// chain behind the last line of a multi-line comment, because the context holds no variable declaration, while
+    /// document-level formatting refuses the document for the comment behind the declaration's <c>=</c>
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
@@ -186,7 +189,7 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
                                              expected,
                                              root => root.DescendantNodes().OfType<InvocationExpressionSyntax>().First(),
                                              SelectSingle<EqualsValueClauseSyntax>);
-        AssertRuleResult(input, expected);
+        AssertUnsupported(input, "/* a\n                   b */");
     }
 
     /// <summary>
@@ -625,11 +628,11 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
         {
             var detachedRoot = SyntaxFactory.ParseCompilationUnit(NormalizeLineEndings(input, endOfLine));
 
-            var firstPass = ReihitsuFormatter.FormatNode(detachedRoot, cancellationToken: TestContext.CancellationToken).ToFullString();
+            var firstPass = ReihitsuFormatter.FormatNode(detachedRoot, cancellationToken: TestContext.CancellationToken).Output.ToFullString();
 
             Assert.AreEqual(NormalizeLineEndings(expected, endOfLine), firstPass, $"Unexpected first pass under {DescribeLineEnding(endOfLine)} line endings.");
 
-            var secondPass = ReihitsuFormatter.FormatNode(SyntaxFactory.ParseCompilationUnit(firstPass), cancellationToken: TestContext.CancellationToken).ToFullString();
+            var secondPass = ReihitsuFormatter.FormatNode(SyntaxFactory.ParseCompilationUnit(firstPass), cancellationToken: TestContext.CancellationToken).Output.ToFullString();
 
             Assert.AreEqual(firstPass, secondPass, $"The second pass must not change the output under {DescribeLineEnding(endOfLine)} line endings.");
         }
@@ -1003,8 +1006,8 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
 
             var target = selectTarget(root);
             var result = selectContext == null
-                             ? await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, TestContext.CancellationToken)
-                             : await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, target, selectContext(root), TestContext.CancellationToken);
+                             ? (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, TestContext.CancellationToken)).Output
+                             : (await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, target, selectContext(root), TestContext.CancellationToken)).Output;
 
             return (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
         }

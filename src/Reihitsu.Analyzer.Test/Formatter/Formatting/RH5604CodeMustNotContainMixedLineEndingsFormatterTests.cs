@@ -163,12 +163,12 @@ public class RH5604CodeMustNotContainMixedLineEndingsFormatterTests : FormatterT
     private static async Task AssertExemptInteriorsSurviveNormalization(string input, string expected)
     {
         var syntaxTree = CSharpSyntaxTree.ParseText(input, cancellationToken: CancellationToken.None);
-        var firstTree = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, CancellationToken.None);
+        var firstTree = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, CancellationToken.None).Output;
         var firstTreeText = (await firstTree.GetRootAsync(CancellationToken.None)).ToFullString();
 
         Assert.AreEqual(expected, firstTreeText);
 
-        var secondTree = ReihitsuFormatter.FormatSyntaxTree(firstTree, CancellationToken.None);
+        var secondTree = ReihitsuFormatter.FormatSyntaxTree(firstTree, CancellationToken.None).Output;
 
         Assert.AreEqual(firstTreeText, (await secondTree.GetRootAsync(CancellationToken.None)).ToFullString());
     }
@@ -192,22 +192,22 @@ public class RH5604CodeMustNotContainMixedLineEndingsFormatterTests : FormatterT
                                         AnalyzerResources.RH5604MessageFormat));
 
         var syntaxTree = CSharpSyntaxTree.ParseText(input, cancellationToken: CancellationToken.None);
-        var firstTree = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, CancellationToken.None);
+        var firstTree = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, CancellationToken.None).Output;
         var firstTreeText = (await firstTree.GetRootAsync(CancellationToken.None)).ToFullString();
 
         Assert.AreEqual(expected, firstTreeText);
         await Verify(firstTreeText);
 
-        var secondTree = ReihitsuFormatter.FormatSyntaxTree(firstTree, CancellationToken.None);
+        var secondTree = ReihitsuFormatter.FormatSyntaxTree(firstTree, CancellationToken.None).Output;
 
         Assert.AreEqual(firstTreeText, (await secondTree.GetRootAsync(CancellationToken.None)).ToFullString());
 
         var root = await CSharpSyntaxTree.ParseText(input, cancellationToken: CancellationToken.None).GetRootAsync(CancellationToken.None);
-        var firstNodeText = ReihitsuFormatter.FormatNode(root, cancellationToken: CancellationToken.None).ToFullString();
+        var firstNodeText = ReihitsuFormatter.FormatNode(root, cancellationToken: CancellationToken.None).Output.ToFullString();
         var secondNode = await CSharpSyntaxTree.ParseText(firstNodeText, cancellationToken: CancellationToken.None).GetRootAsync(CancellationToken.None);
 
         Assert.AreEqual(expected, firstNodeText);
-        Assert.AreEqual(firstNodeText, ReihitsuFormatter.FormatNode(secondNode, cancellationToken: CancellationToken.None).ToFullString());
+        Assert.AreEqual(firstNodeText, ReihitsuFormatter.FormatNode(secondNode, cancellationToken: CancellationToken.None).Output.ToFullString());
 
         using (var workspace = new AdhocWorkspace())
         {
@@ -220,14 +220,14 @@ public class RH5604CodeMustNotContainMixedLineEndingsFormatterTests : FormatterT
 
             Assert.IsNotNull(documentRoot);
 
-            var firstDocument = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, documentRoot, CancellationToken.None);
+            var firstDocument = (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, documentRoot, CancellationToken.None)).Output;
             var firstDocumentText = (await firstDocument.GetTextAsync(CancellationToken.None)).ToString();
             var firstDocumentRoot = await firstDocument.GetSyntaxRootAsync(CancellationToken.None);
 
             Assert.AreEqual(expected, firstDocumentText);
             Assert.IsNotNull(firstDocumentRoot);
 
-            var secondDocument = await ReihitsuFormatter.FormatNodeInDocumentAsync(firstDocument, firstDocumentRoot, CancellationToken.None);
+            var secondDocument = (await ReihitsuFormatter.FormatNodeInDocumentAsync(firstDocument, firstDocumentRoot, CancellationToken.None)).Output;
 
             Assert.AreEqual(firstDocumentText, (await secondDocument.GetTextAsync(CancellationToken.None)).ToString());
         }

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 
 using Microsoft.CodeAnalysis;
@@ -19,6 +19,11 @@ namespace Reihitsu.Formatter.Test.Helpers;
 public static class ObservedPipeline
 {
     #region Constants
+
+    /// <summary>
+    /// Name under which the pipeline observer reports the precheck phase, which runs first and changes nothing
+    /// </summary>
+    public const string PrecheckPhaseName = "PrecheckPhase";
 
     /// <summary>
     /// Name under which the pipeline observer reports the TabReplacement sub-phase of the preparation phase
@@ -46,12 +51,13 @@ public static class ObservedPipeline
     }
 
     /// <summary>
-    /// Formats the input, parsed with the given parse options, through the production pipeline and records every phase
+    /// Formats the input, parsed with the given parse options, through the production pipeline and records every phase behind
+    /// the precheck, after verifying that the precheck ran first and changed nothing
     /// </summary>
     /// <param name="input">The source text to format</param>
     /// <param name="endOfLine">The end-of-line sequence of the formatting context</param>
     /// <param name="parseOptions">The parse options, or <see langword="null"/> for the defaults</param>
-    /// <returns>The phases in the order they ran</returns>
+    /// <returns>The phases behind the precheck in the order they ran</returns>
     public static IReadOnlyList<ObservedPhase> Run(string input, string endOfLine, CSharpParseOptions parseOptions)
     {
         var tree = CSharpSyntaxTree.ParseText(input, parseOptions);
@@ -63,7 +69,12 @@ public static class ObservedPipeline
                                    (phaseName, before, after) => phases.Add(new ObservedPhase(phaseName, before, after)),
                                    CancellationToken.None);
 
-        return phases;
+        // The precheck runs first and changes nothing (FMT-PIPE-001); the phases behind it are the ones the callers observe
+        Assert.IsNotEmpty(phases, "The pipeline must report its phases.");
+        Assert.AreEqual(PrecheckPhaseName, phases[0].Name, "The first phase of the pipeline should be the precheck phase.");
+        Assert.AreEqual(phases[0].Input.ToFullString(), phases[0].Output.ToFullString(), "The precheck phase must change nothing.");
+
+        return phases.Skip(1).ToList();
     }
 
     /// <summary>
