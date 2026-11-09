@@ -44,3 +44,8 @@ Verification: open issues without a milestone after the run: none.
 | #1615 | Maintenance | maintenance, analyzer | no | — |
 
 Extra: comment on #877 (cross-link to #1603, item 1).
+
+## 2026-11-09
+
+- #1666, #1667, #1665: milestone 1.2.1 (12); labels unchanged (bug, analyzer, agent-filed already present); triage comment posted (critical, own run together).
+- #1668: milestone vNext (2); added `enhancement` (kept analyzer, maintenance, agent-filed); triage comment posted (closer analysis; refuse any conditional block if the precise check is non-trivial).
