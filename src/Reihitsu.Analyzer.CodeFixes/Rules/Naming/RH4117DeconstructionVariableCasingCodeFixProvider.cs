@@ -23,7 +23,7 @@ public class RH4117DeconstructionVariableCasingCodeFixProvider : CasingCodeFixPr
     /// Constructor
     /// </summary>
     public RH4117DeconstructionVariableCasingCodeFixProvider()
-        : base(RH4117DeconstructionVariableCasingAnalyzer.DiagnosticId, CodeFixResources.RH4117Title, CasingUtilities.ToCamelCase)
+        : base(new RH4117DeconstructionVariableCasingAnalyzer(), CodeFixResources.RH4117Title, CasingUtilities.ToCamelCase)
     {
     }
 

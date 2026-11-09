@@ -23,7 +23,7 @@ public class RH4114PublicPropertyCasingCodeFixProvider : CasingCodeFixProviderBa
     /// Constructor
     /// </summary>
     public RH4114PublicPropertyCasingCodeFixProvider()
-        : base(RH4114PublicPropertyCasingAnalyzer.DiagnosticId, CodeFixResources.RH4114Title, CasingUtilities.ToPascalCase)
+        : base(new RH4114PublicPropertyCasingAnalyzer(), CodeFixResources.RH4114Title, CasingUtilities.ToPascalCase)
     {
     }
 

@@ -23,7 +23,7 @@ public class RH4105MethodParameterCasingCodeFixProvider : CasingCodeFixProviderB
     /// Constructor
     /// </summary>
     public RH4105MethodParameterCasingCodeFixProvider()
-        : base(RH4105MethodParameterCasingAnalyzer.DiagnosticId, CodeFixResources.RH4105Title, CasingUtilities.ToCamelCase)
+        : base(new RH4105MethodParameterCasingAnalyzer(), CodeFixResources.RH4105Title, CasingUtilities.ToCamelCase)
     {
     }
 

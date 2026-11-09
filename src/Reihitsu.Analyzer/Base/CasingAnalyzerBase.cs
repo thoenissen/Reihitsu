@@ -73,6 +73,17 @@ public abstract class CasingAnalyzerBase : DiagnosticAnalyzerBase
     protected abstract IEnumerable<(string Name, Location Location)> GetLocations(SyntaxNode node);
 
     /// <summary>
+    /// Determines whether the rule accepts a name, that is, whether it reports no diagnostic for a declaration it checks
+    /// that carries this name
+    /// </summary>
+    /// <param name="name">The name to check</param>
+    /// <returns><see langword="true"/> if the rule accepts the name; otherwise, <see langword="false"/></returns>
+    internal bool IsValidName(string name)
+    {
+        return _casingValidation(name);
+    }
+
+    /// <summary>
     /// Analyzes the node
     /// </summary>
     /// <param name="context">The syntax node analysis context</param>
@@ -92,7 +103,7 @@ public abstract class CasingAnalyzerBase : DiagnosticAnalyzerBase
     /// <param name="context">The syntax node analysis context</param>
     private void CheckCasing(string name, Location location, SyntaxNodeAnalysisContext context)
     {
-        if (_casingValidation(name) == false)
+        if (IsValidName(name) == false)
         {
             context.ReportDiagnostic(CreateDiagnostic(location));
         }

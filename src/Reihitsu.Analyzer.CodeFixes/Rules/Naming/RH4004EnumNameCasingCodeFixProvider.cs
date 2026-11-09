@@ -23,7 +23,7 @@ public class RH4004EnumNameCasingCodeFixProvider : CasingCodeFixProviderBase<Enu
     /// Constructor
     /// </summary>
     public RH4004EnumNameCasingCodeFixProvider()
-        : base(RH4004EnumNameCasingAnalyzer.DiagnosticId, CodeFixResources.RH4004Title, CasingUtilities.ToPascalCase)
+        : base(new RH4004EnumNameCasingAnalyzer(), CodeFixResources.RH4004Title, CasingUtilities.ToPascalCase)
     {
     }
 

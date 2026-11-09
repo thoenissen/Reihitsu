@@ -23,7 +23,7 @@ public class RH4002ClassNameCasingCodeFixProvider : CasingCodeFixProviderBase<Cl
     /// Constructor
     /// </summary>
     public RH4002ClassNameCasingCodeFixProvider()
-        : base(RH4002ClassNameCasingAnalyzer.DiagnosticId, CodeFixResources.RH4002Title, CasingUtilities.ToPascalCase)
+        : base(new RH4002ClassNameCasingAnalyzer(), CodeFixResources.RH4002Title, CasingUtilities.ToPascalCase)
     {
     }
 

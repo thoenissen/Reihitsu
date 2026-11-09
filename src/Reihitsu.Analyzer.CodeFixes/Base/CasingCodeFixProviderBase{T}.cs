@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.CodeFixes.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
@@ -25,6 +26,11 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     where T : SyntaxNode
 {
     #region Fields
+
+    /// <summary>
+    /// Analyzer of the rule whose diagnostics the provider fixes
+    /// </summary>
+    private readonly CasingAnalyzerBase _analyzer;
 
     /// <summary>
     /// Diagnostic ID
@@ -48,12 +54,13 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="diagnosticId">Diagnostic ID</param>
+    /// <param name="analyzer">Analyzer of the rule whose diagnostics the provider fixes; it decides whether the rule accepts a derived name</param>
     /// <param name="title">Title</param>
     /// <param name="casingConversion">Casing conversion</param>
-    protected CasingCodeFixProviderBase(string diagnosticId, string title, Func<string, string> casingConversion)
+    protected CasingCodeFixProviderBase(CasingAnalyzerBase analyzer, string title, Func<string, string> casingConversion)
     {
-        _diagnosticId = diagnosticId;
+        _analyzer = analyzer;
+        _diagnosticId = analyzer.SupportedDiagnostics[0].Id;
         _title = title;
         _casingConversion = casingConversion;
     }
@@ -687,9 +694,10 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
-    /// Applies a rename only when it is safe: no namespace member collision, no name in excluded code, no Roslyn
-    /// conflict annotation, no changed native entry point, no added compile error, and no change to the properties the
-    /// compiler declares for positional record parameters
+    /// Applies a rename only when it is safe: no method name the compiler looks up implicitly, no namespace member
+    /// collision, no name in excluded code or in a caller-argument expression attribute, no Roslyn conflict annotation,
+    /// no changed native entry point, no added compile error, and no change to the properties the compiler declares for
+    /// positional record parameters
     /// </summary>
     /// <param name="solution">Solution containing the declaration</param>
     /// <param name="documentId">Declaration document</param>
@@ -699,8 +707,9 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <returns>The renamed solution when it is safe; otherwise, <see langword="null"/></returns>
     /// <remarks>
     /// The checks that depend on what the rename reaches take it from <see cref="GetRenameCascadeAsync"/>: the native
-    /// entry points of every cascade member, and the excluded code of every document that can refer to one, searched
-    /// for the new name and for the old names that the cascade before and after the rename gives. The compile
+    /// entry points of every cascade member, the caller-argument expression attributes of every parameter list that
+    /// declares a cascade parameter, and the excluded code of every document that can refer to one, each searched for
+    /// the new name and for the old names that the cascade before and after the rename gives. The compile
     /// error and positional property checks inspect every document of every project the rename changes or that depends
     /// on one of them
     /// </remarks>
@@ -751,7 +760,8 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
 
         var renamedNames = GetOldNames(prepared.Value.Cascade, renamedCascade).Add(identifier);
 
-        if (await ExcludedCodeUtilities.HasExcludedCodeOccurrenceAsync(solution, prepared.Value.Cascade, renamedNames, cancellationToken).ConfigureAwait(false))
+        if (HasCallerArgumentExpressionNaming(prepared.Value.Cascade, renamedNames, cancellationToken)
+            || await ExcludedCodeUtilities.HasExcludedCodeOccurrenceAsync(solution, prepared.Value.Cascade, renamedNames, cancellationToken).ConfigureAwait(false))
         {
             return null;
         }
@@ -766,6 +776,101 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
         }
 
         return renamedSolution;
+    }
+
+    /// <summary>
+    /// Determines whether a rename would give a method that is not a local function a name the compiler looks up for a
+    /// construct that does not write it in source
+    /// </summary>
+    /// <param name="declaredSymbol">Symbol to rename</param>
+    /// <param name="identifier">Proposed identifier</param>
+    /// <returns><see langword="true"/> when the rename is withheld for the name; otherwise, <see langword="false"/></returns>
+    /// <remarks>
+    /// A method renamed to such a name can win the compiler's lookup over the method a construct called before, without a
+    /// compile error and without a reference the renamer could see. The rename is withheld for every such name, whether
+    /// or not a construct would call another method, because telling the two apart would need comparing every such
+    /// construct before and after the rename. A local function is never found by such a lookup
+    /// </remarks>
+    private static bool IsCompilerLookupMethodRename(ISymbol declaredSymbol, string identifier)
+    {
+        // The names that foreach, await foreach, query clauses, await, deconstruction, collection initializers, using,
+        // fixed, and interpolated-string handlers look up
+        return declaredSymbol is IMethodSymbol { MethodKind: not MethodKind.LocalFunction }
+               && identifier is "Add"
+                             or "AppendFormatted"
+                             or "AppendLiteral"
+                             or "Cast"
+                             or "Deconstruct"
+                             or "Dispose"
+                             or "DisposeAsync"
+                             or "GetAsyncEnumerator"
+                             or "GetAwaiter"
+                             or "GetEnumerator"
+                             or "GetPinnableReference"
+                             or "GroupBy"
+                             or "GroupJoin"
+                             or "Join"
+                             or "OrderBy"
+                             or "OrderByDescending"
+                             or "Select"
+                             or "SelectMany"
+                             or "ThenBy"
+                             or "ThenByDescending"
+                             or "Where";
+    }
+
+    /// <summary>
+    /// Determines whether the single argument of an attribute is a <see langword="nameof"/> expression
+    /// </summary>
+    /// <param name="attribute">Attribute</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> when the argument is a <see langword="nameof"/> expression; otherwise, <see langword="false"/></returns>
+    private static bool IsNameofArgument(AttributeData attribute, CancellationToken cancellationToken)
+    {
+        return attribute.ApplicationSyntaxReference?.GetSyntax(cancellationToken) is AttributeSyntax { ArgumentList.Arguments.Count: 1 } attributeSyntax
+               && attributeSyntax.ArgumentList.Arguments[0].Expression is InvocationExpressionSyntax { Expression: IdentifierNameSyntax { Identifier.ValueText: "nameof" } };
+    }
+
+    /// <summary>
+    /// Determines whether a <c>CallerArgumentExpression</c> attribute of a parameter list that declares a parameter of
+    /// the rename cascade names one of the specified names by a constant other than a <see langword="nameof"/> expression
+    /// </summary>
+    /// <param name="cascade">Rename cascade before the rename</param>
+    /// <param name="names">Old names of the cascade and the new name</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> when such an attribute names one of the names; otherwise, <see langword="false"/></returns>
+    /// <remarks>
+    /// The attribute names a parameter by a string, which the renamer does not treat as a reference, so the rename would
+    /// change which parameter it names, or whether it names one, and the parameter that carries it would receive another
+    /// value at run time. A <see langword="nameof"/> argument is a reference, which the rename changes with the parameter
+    /// </remarks>
+    private static bool HasCallerArgumentExpressionNaming(ImmutableArray<ISymbol> cascade, ImmutableHashSet<string> names, CancellationToken cancellationToken)
+    {
+        foreach (var parameter in cascade.OfType<IParameterSymbol>()
+                                         .SelectMany(static parameter => parameter.ContainingSymbol switch
+                                                                         {
+                                                                             IMethodSymbol method => method.Parameters,
+                                                                             IPropertySymbol property => property.Parameters,
+                                                                             _ => ImmutableArray<IParameterSymbol>.Empty
+                                                                         }))
+        {
+            foreach (var attribute in parameter.GetAttributes())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (attribute.AttributeClass is { Name: "CallerArgumentExpressionAttribute" } attributeClass
+                    && string.Equals(attributeClass.ContainingNamespace?.ToDisplayString(), "System.Runtime.CompilerServices", StringComparison.Ordinal)
+                    && attribute.ConstructorArguments.Length == 1
+                    && attribute.ConstructorArguments[0].Value is string name
+                    && names.Contains(name)
+                    && IsNameofArgument(attribute, cancellationToken) == false)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -793,7 +898,8 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
 
         var declaredSymbol = resolved.Value.Symbol;
 
-        if (HasNamespaceCollision(declaredSymbol, identifier, cancellationToken))
+        if (IsCompilerLookupMethodRename(declaredSymbol, identifier)
+            || HasNamespaceCollision(declaredSymbol, identifier, cancellationToken))
         {
             return null;
         }
@@ -868,8 +974,8 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <param name="node">Node</param>
     /// <param name="identifier">The computed replacement identifier when the conversion succeeds</param>
     /// <returns>
-    /// <see langword="true"/> if the conversion produced a valid identifier that differs from the original;
-    /// otherwise, <see langword="false"/>
+    /// <see langword="true"/> if the conversion produced a valid identifier that differs from the original and that the
+    /// rule accepts; otherwise, <see langword="false"/>
     /// </returns>
     private bool TryGetFixedIdentifier(T node, out string identifier)
     {
@@ -888,11 +994,14 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
             return false;
         }
 
-        // The conversion has to yield a valid, non-empty identifier that actually changes the original name; otherwise
-        // there is nothing to fix (for example letterless names such as "_" or "__")
+        // The conversion has to yield a valid, non-empty identifier that actually changes the original name, and the rule
+        // must accept it. Otherwise there is nothing to fix (for example letterless names such as "_" or "__"), or the
+        // fix would leave a name the same rule still reports (for example "_1st" for "__1st", or "I_" for an interface
+        // named "_"), which one application does not correct
         return string.IsNullOrEmpty(identifier) == false
                && string.Equals(identifier, original, StringComparison.Ordinal) == false
-               && SyntaxFacts.IsValidIdentifier(identifier);
+               && SyntaxFacts.IsValidIdentifier(identifier)
+               && _analyzer.IsValidName(identifier);
     }
 
     /// <summary>

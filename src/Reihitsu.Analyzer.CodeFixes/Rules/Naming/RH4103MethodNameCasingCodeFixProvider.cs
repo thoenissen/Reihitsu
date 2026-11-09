@@ -23,7 +23,7 @@ public class RH4103MethodNameCasingCodeFixProvider : CasingCodeFixProviderBase<M
     /// Constructor
     /// </summary>
     public RH4103MethodNameCasingCodeFixProvider()
-        : base(RH4103MethodNameCasingAnalyzer.DiagnosticId, CodeFixResources.RH4103Title, CasingUtilities.ToPascalCase)
+        : base(new RH4103MethodNameCasingAnalyzer(), CodeFixResources.RH4103Title, CasingUtilities.ToPascalCase)
     {
     }
 

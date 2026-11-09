@@ -23,7 +23,7 @@ public class RH4104LocalFunctionNameCasingCodeFixProvider : CasingCodeFixProvide
     /// Constructor
     /// </summary>
     public RH4104LocalFunctionNameCasingCodeFixProvider()
-        : base(RH4104LocalFunctionNameCasingAnalyzer.DiagnosticId, CodeFixResources.RH4104Title, CasingUtilities.ToPascalCase)
+        : base(new RH4104LocalFunctionNameCasingAnalyzer(), CodeFixResources.RH4104Title, CasingUtilities.ToPascalCase)
     {
     }
 
