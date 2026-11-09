@@ -20,7 +20,7 @@ Declaring a shape is an option wherever a shape costs a special case or a refusa
 
 The squad follows it:
 
-- *What reaches the maintainer* lists declaring a shape unsupported as in question, escalation 9 offers it among the refusals, and a new escalation 10 asks it wherever it is an option, also for a shape outside the run's issues: with the next batch of output questions, or before publishing when it is raised at or after the auditor; the run refuses the class locally and keeps working until then, and waits at that point like for every batched question;
+- *What reaches the maintainer* lists declaring a shape unsupported as in question, escalation 9 offers it among the refusals, and a new escalation 10 asks it wherever it is an option, also for a shape outside the run's issues: with the next batch of output questions, or before publishing when it is raised at or after the auditor; the run refuses the class locally and keeps working until then, and waits at that point as for every batched question;
 - *Architecture findings* and the lead's table escalate it for findings on rare classes, guards beyond a cheap check, repeated audit classes, and production growth, while the local refusal is made in any case; *Scope* and *Follow-ups* turn a shape the maintainer wants declared in a change of its own into a follow-up, even for a rare shape; the lead never routes a declaration without the answer and never drops the option without asking;
 - the spec author writes the *Special cases* section, with *Deleted* and *Checked and kept*, into a change doc that declares a shape, and `sdd/README.md`, *Change docs*, names that section;
 - the skeptic names the option wherever it is one, also for a shape the issue is not about, with the shape's exact span, the special cases it would delete, and the common code it would refuse;
@@ -42,9 +42,9 @@ None — no output an end user sees changes. Every shape declared later reaches 
 
 Unlike the other refusals, rarity does not decide it: refusing a whole file and reporting it as an error is visible even for a rare shape.
 
-### The output question names what the shape deletes
+### The declare option shows its whole cost and benefit
 
-The output-question form otherwise shows outputs only. For a new shape, the deleted special cases are the benefit the refused files are weighed against, so one line behind *Why* names them.
+The output-question form otherwise shows outputs only. The declare option shows the input unchanged with the CLI's line and names the fixes no longer offered, because the refusal reaches further than the shape's own construct; one line says whether the shape is declared in this work or in a change of its own; and one line behind *Why* names, in plain words, the special cases the shape would delete — the benefit the refused files are weighed against.
 
 ### Every case where the option exists is escalated
 
@@ -62,7 +62,7 @@ FC-038 to FC-043 prevent the failures the first shape had to rule out: the forma
 
 - **Let the lead declare a rare shape like the other refusals** — rejected: it refuses and reports whole files, which is visible output.
 - **Propose a declaration only for comment or directive shapes that force guards into several phases** — rejected by the maintainer: other shapes can cost special cases too, and the maintainer, not the squad, weighs them.
-- **File a shape outside the run's issues as a follow-up without asking** — rejected by the maintainer: the follow-up would carry a proposal nobody decided, and the run's question is where the cost is known.
+- **File a shape outside the run's issues as a follow-up without asking** — rejected: the maintainer asked that every case be escalated, and a follow-up filed without asking would carry a proposal nobody decided.
 - **Stop the run at once for the escalation** — rejected: the local refusal lets the run continue, so the question waits for the next batch unless a test needs the answer.
 - **Offer "declare in this work" and "declare in a change of its own" as separate output options** — rejected: both give the same output, and where a shape is declared is no output; the declare option names it in one line instead.
 - **State the contract in the squad files** — rejected: the rule has one statement in `AGENTS.md`, and the squad files point to it.
