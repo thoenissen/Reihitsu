@@ -48,7 +48,7 @@ Run lane: **behavior change** (widened from bug fix, Decisions #2). Roles: spec 
 
 ## Follow-up candidates
 
-- A6 (02-skeptic.md, #1667 *Breaking inputs*, *Follow-up candidates*): `partial` declaration with a layout attribute only in excluded code outside the A5 position (m07, m10, other document) — member-moving fixes still reorder fields of a type that has sequential layout in another build. File as `bug` (safety rail existing on `main`), name first in Review notes; carry the output question (keep fix vs refuse instance-field reorders on partial types).
+- Filed as thoenissen/Reihitsu#1678 (16-issue-manager.md). A6 (02-skeptic.md, #1667 *Breaking inputs*, *Follow-up candidates*): `partial` declaration with a layout attribute only in excluded code outside the A5 position (m07, m10, other document) — member-moving fixes still reorder fields of a type that has sequential layout in another build. File as `bug` (safety rail existing on `main`), name first in Review notes; carry the output question (keep fix vs refuse instance-field reorders on partial types).
 
 ## State
 
