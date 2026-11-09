@@ -33,7 +33,7 @@ public class CliUnsupportedSyntaxEndToEndTests
     /// <summary>
     /// A formatted file
     /// </summary>
-    private const string FormattedSource = "class B\n{\n    void M()\n    {\n    }\n}\n";
+    private const string FormattedSource = "class B\n{\n    void M()\n    {\n    }\n}";
 
     /// <summary>
     /// A file the formatter changes

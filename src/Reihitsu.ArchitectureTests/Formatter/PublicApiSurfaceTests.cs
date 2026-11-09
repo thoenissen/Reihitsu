@@ -34,11 +34,11 @@ public class PublicApiSurfaceTests
     }
 
     /// <summary>
-    /// No other type in the formatter assembly may be public than the entry point and the result types its formatting entry
-    /// points return (FMT-UNSUP-001)
+    /// No other type in the formatter assembly may be public than the entry point, the result types its formatting entry
+    /// points return (FMT-UNSUP-001), and the exception a phase refuses its input with (FMT-UNSUP-006)
     /// </summary>
     [TestMethod]
-    public void OnlyReihitsuFormatterAndItsResultTypesShouldBePublicInFormatterAssembly()
+    public void OnlyReihitsuFormatterItsResultTypesAndItsRefusalExceptionShouldBePublicInFormatterAssembly()
     {
         ArchRuleDefinition.Types()
                           .That()
@@ -46,7 +46,7 @@ public class PublicApiSurfaceTests
                           .And()
                           .ArePublic()
                           .Should()
-                          .HaveNameMatching(@"^(ReihitsuFormatter|FormattingResult`1|UnsupportedSyntax)$")
+                          .HaveNameMatching(@"^(ReihitsuFormatter|FormattingResult`1|UnsupportedSyntax|SyntaxNotSupportedException)$")
                           .Check(Assemblies.Implementation);
     }
 
