@@ -103,7 +103,9 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
     }
 
     /// <summary>
-    /// Get leading header span
+    /// Gets the span the header replaces: for a leading run of comments with an old copyright header, the run through
+    /// its last comment and the white space behind it on its line; for a file without leading comments, the white space
+    /// and line breaks in front of the first token; otherwise the empty span at the start of the file
     /// </summary>
     /// <param name="sourceText">Source text</param>
     /// <param name="syntaxRoot">Syntax root</param>
@@ -123,6 +125,8 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
         }
 
         var endPosition = 0;
+        var commentRunEnd = 0;
+        var isBehindLastComment = false;
         var hasComment = false;
         var hasCopyrightComment = false;
 
@@ -133,6 +137,18 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
             {
                 endPosition = trivia.FullSpan.End;
 
+                // The white space behind the run's last comment on its line belongs to the replaced header; the line
+                // break that ends that line does not
+                if (isBehindLastComment
+                    && trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+                {
+                    commentRunEnd = trivia.FullSpan.End;
+                }
+                else
+                {
+                    isBehindLastComment = false;
+                }
+
                 continue;
             }
 
@@ -142,6 +158,8 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
                 hasComment = true;
                 hasCopyrightComment |= trivia.ToString().IndexOf("copyright", StringComparison.OrdinalIgnoreCase) >= 0;
                 endPosition = trivia.FullSpan.End;
+                commentRunEnd = trivia.FullSpan.End;
+                isBehindLastComment = true;
 
                 continue;
             }
@@ -156,6 +174,13 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
             && hasCopyrightComment == false)
         {
             return new TextSpan(0, 0);
+        }
+
+        // An old header is replaced through its last comment only, so the line break that ends that comment's line and
+        // the blank lines behind it stay as the author wrote them
+        if (hasCopyrightComment)
+        {
+            endPosition = commentRunEnd;
         }
 
         return TextSpan.FromBounds(0, Math.Min(endPosition, sourceText.Length));

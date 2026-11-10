@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
 
@@ -44,7 +45,8 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer : DiagnosticA
     /// <param name="context">Context</param>
     private void OnDocumentationCommentTrivia(SyntaxNodeAnalysisContext context)
     {
-        if (context.Node is not DocumentationCommentTriviaSyntax documentationComment)
+        if (context.Node is not DocumentationCommentTriviaSyntax documentationComment
+            || DocumentationAnalysisUtilities.IsPrimaryConstructorRun(context))
         {
             return;
         }

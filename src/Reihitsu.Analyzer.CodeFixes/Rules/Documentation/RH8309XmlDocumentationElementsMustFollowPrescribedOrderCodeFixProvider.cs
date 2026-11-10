@@ -7,14 +7,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Rules.Documentation;
 using Reihitsu.Core;
-using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
 
@@ -72,72 +70,66 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderCodeFixProvi
     }
 
     /// <summary>
-    /// Gets the declaration that owns the reported documentation comment, and that comment
+    /// Gets the reported documentation comment, when it is the first documentation comment of the declaration it
+    /// documents. The fix sorts that comment only: sorting a later comment would have to decide what becomes of the
+    /// blank lines, comments, and directives that separate it from the comments before it
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>
-    /// <param name="declaration">The declaration the comment documents</param>
-    /// <returns>The documentation comment of the declaration, or <see langword="null"/> when there is none</returns>
-    private static DocumentationCommentTriviaSyntax GetDocumentationComment(SyntaxNode root, TextSpan diagnosticSpan, out SyntaxNode declaration)
+    /// <returns>The documentation comment, or <see langword="null"/> when the reported comment is not the first documentation comment of a declaration</returns>
+    private static DocumentationCommentTriviaSyntax GetDocumentationComment(SyntaxNode root, TextSpan diagnosticSpan)
     {
         var diagnosticNode = root.FindNode(diagnosticSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
+        var reportedComment = diagnosticNode.FirstAncestorOrSelf<DocumentationCommentTriviaSyntax>();
+        var declaration = diagnosticNode.AncestorsAndSelf().FirstOrDefault(static node => node is MemberDeclarationSyntax or EnumMemberDeclarationSyntax);
 
-        declaration = diagnosticNode.AncestorsAndSelf().FirstOrDefault(static node => node is MemberDeclarationSyntax or EnumMemberDeclarationSyntax);
+        if (reportedComment == null
+            || declaration == null)
+        {
+            return null;
+        }
 
-        return declaration == null
-                   ? null
-                   : DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
+        var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
+
+        return documentationComment != null
+               && documentationComment.ParentTrivia == reportedComment.ParentTrivia
+                   ? documentationComment
+                   : null;
     }
 
     /// <summary>
-    /// Reorders the top-level XML documentation elements into their canonical order
+    /// Builds the text changes which sort the top-level XML documentation elements into their canonical order. Each
+    /// element's text moves as written into the slot of the element it replaces, so every element keeps its own lines,
+    /// and the text, line breaks, and <c>///</c> exteriors between the elements stay where they are
     /// </summary>
     /// <param name="documentationComment">Documentation comment</param>
-    /// <returns>The documentation comment with reordered elements</returns>
-    private static DocumentationCommentTriviaSyntax ReorderElements(DocumentationCommentTriviaSyntax documentationComment)
+    /// <param name="sourceText">Source text</param>
+    /// <returns>The text changes</returns>
+    private static List<TextChange> CreateReorderChanges(DocumentationCommentTriviaSyntax documentationComment, SourceText sourceText)
     {
-        var content = documentationComment.Content;
-
         // Only canonical elements participate in the reordering. Unknown or custom elements (such as
         // <inheritdoc>, <seealso> or <include>) are tolerated by the analyzer and must keep their original
         // positions, so they are pinned in place while the canonical elements are sorted around them
-        var canonicalElements = content.Where(IsCanonicalElement)
-                                       .ToList();
+        var canonicalElements = documentationComment.Content
+                                                    .Where(IsCanonicalElement)
+                                                    .ToList();
 
         // OrderBy is stable, so canonical elements sharing a rank (such as several <param> tags) keep their
         // original relative order
         var orderedCanonicalElements = canonicalElements.OrderBy(static node => XmlDocumentationElementOrderingUtilities.GetCanonicalElementRank(XmlDocumentationElementOrderingUtilities.GetTagName(node)))
                                                         .ToList();
 
-        var reorderedContent = new List<XmlNodeSyntax>(content.Count);
-        var canonicalIndex = 0;
+        var changes = new List<TextChange>(canonicalElements.Count);
 
-        foreach (var node in content)
+        for (var index = 0; index < canonicalElements.Count; index++)
         {
-            if (IsCanonicalElement(node))
+            if (canonicalElements[index] != orderedCanonicalElements[index])
             {
-                reorderedContent.Add(orderedCanonicalElements[canonicalIndex]);
-
-                canonicalIndex++;
-            }
-            else
-            {
-                reorderedContent.Add(node);
+                changes.Add(new TextChange(canonicalElements[index].Span, sourceText.ToString(orderedCanonicalElements[index].Span)));
             }
         }
 
-        return documentationComment.WithContent(SyntaxFactory.List(reorderedContent));
-    }
-
-    /// <summary>
-    /// Creates the declaration the fix formats: the declaration with its documentation comment's elements reordered
-    /// </summary>
-    /// <param name="declaration">The declaration that owns the documentation comment</param>
-    /// <param name="documentationComment">The documentation comment</param>
-    /// <returns>The updated declaration</returns>
-    private static SyntaxNode CreateUpdatedDeclaration(SyntaxNode declaration, DocumentationCommentTriviaSyntax documentationComment)
-    {
-        return declaration.ReplaceTrivia(documentationComment.ParentTrivia, SyntaxFactory.Trivia(ReorderElements(documentationComment)));
+        return changes;
     }
 
     /// <summary>
@@ -156,23 +148,16 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderCodeFixProvi
             return document;
         }
 
-        var documentationComment = GetDocumentationComment(root, diagnosticSpan, out var declaration);
+        var documentationComment = GetDocumentationComment(root, diagnosticSpan);
 
         if (documentationComment == null)
         {
             return document;
         }
 
-        var formattingAnnotation = new SyntaxAnnotation();
-        var updatedDeclaration = CreateUpdatedDeclaration(declaration, documentationComment).WithAdditionalAnnotations(formattingAnnotation);
-        var updatedRoot = root.ReplaceNode(declaration, updatedDeclaration);
-        var updatedDocument = document.WithSyntaxRoot(updatedRoot);
-        var formattedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var formattedDeclaration = formattedRoot?.GetAnnotatedNodes(formattingAnnotation).FirstOrDefault();
+        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-        return formattedDeclaration == null
-                   ? updatedDocument
-                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedDeclaration, cancellationToken).ConfigureAwait(false)).Output;
+        return document.WithText(sourceText.WithChanges(CreateReorderChanges(documentationComment, sourceText)));
     }
 
     #endregion // Methods
@@ -198,13 +183,15 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderCodeFixProvi
             return;
         }
 
+        var sourceText = await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
+
         foreach (var diagnostic in context.Diagnostics)
         {
-            var documentationComment = GetDocumentationComment(root, diagnostic.Location.SourceSpan, out var declaration);
+            var documentationComment = GetDocumentationComment(root, diagnostic.Location.SourceSpan);
 
             if (documentationComment == null
-                || CanReorderElements(documentationComment) == false
-                || ReihitsuFormatter.FindUnsupportedSyntax(CreateUpdatedDeclaration(declaration, documentationComment)) != null)
+                || DocumentationCommentUtilities.IsWrittenBehindSource(documentationComment.ParentTrivia, sourceText)
+                || CanReorderElements(documentationComment) == false)
             {
                 continue;
             }

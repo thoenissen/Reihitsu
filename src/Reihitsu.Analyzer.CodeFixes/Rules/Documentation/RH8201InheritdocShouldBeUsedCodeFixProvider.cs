@@ -30,17 +30,14 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
     /// </summary>
     /// <param name="endOfLine">End-of-line sequence to use for the trailing line break</param>
     /// <returns>The &lt;inheritdoc/&gt; trivia</returns>
+    /// <remarks>
+    /// The trivia is parsed from text rather than built from syntax factory tokens, because those tokens carry elastic
+    /// trivia, and the code action's post-processing re-formats the lines around elastic trivia: it re-indents the
+    /// comments, directives and the member around the replaced comment and rewrites their line endings
+    /// </remarks>
     private static SyntaxTrivia CreateInheritdocTrivia(string endOfLine)
     {
-        return SyntaxFactory.Trivia(SyntaxFactory.DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia,
-                                                                             SyntaxFactory.List(new XmlNodeSyntax[]
-                                                                                                {
-                                                                                                    SyntaxFactory.XmlText().WithTextTokens(SyntaxFactory.TokenList(SyntaxFactory.XmlTextLiteral(SyntaxFactory.TriviaList(SyntaxFactory.DocumentationCommentExterior("///")), " ", " ", SyntaxFactory.TriviaList()))),
-                                                                                                    SyntaxFactory.XmlNullKeywordElement()
-                                                                                                                 .WithName(SyntaxFactory.XmlName(SyntaxFactory.Identifier("inheritdoc")))
-                                                                                                                 .WithAttributes(SyntaxFactory.List<XmlAttributeSyntax>()),
-                                                                                                    SyntaxFactory.XmlText().WithTextTokens(SyntaxFactory.TokenList(SyntaxFactory.XmlTextNewLine(SyntaxFactory.TriviaList(), endOfLine, endOfLine, SyntaxFactory.TriviaList())))
-                                                                                                })));
+        return SyntaxFactory.ParseLeadingTrivia("/// <inheritdoc/>" + endOfLine)[0];
     }
 
     /// <summary>
@@ -50,17 +47,23 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
     /// <param name="triviaList">List of trivia elements</param>
     /// <param name="endOfLine">End-of-line sequence to use for the trailing line break</param>
     /// <returns>List with replaced element</returns>
+    /// <remarks>
+    /// Every other trivia is kept as written, so the comments, directives, blank lines and the member keep their lines,
+    /// columns and line endings. The &lt;inheritdoc/&gt; line starts where the replaced comment started, because the
+    /// indentation in front of the comment is kept
+    /// </remarks>
     private static IEnumerable<SyntaxTrivia> ReplaceDocumentation(SyntaxTriviaList triviaList, string endOfLine)
     {
         var replaced = false;
         var isLineBreakPending = false;
+        var commentIndentation = default(SyntaxTrivia);
+        var previousTrivia = default(SyntaxTrivia);
 
         foreach (var trivia in triviaList)
         {
             if (isLineBreakPending)
             {
-                // Whitespace between the replaced comment and its line break is dropped along with the line break.
-                // Where no line break follows, the code action's post-processing re-indents the affected lines
+                // Whitespace between the replaced comment and its line break is dropped along with the line break
                 if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
                 {
                     continue;
@@ -71,6 +74,13 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
                 if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
                 {
                     continue;
+                }
+
+                // An ordinary comment followed the */ on its line. The <inheritdoc/> line ends with a line break, so the
+                // comment starts the next line in the column the replaced comment started in
+                if (commentIndentation.IsKind(SyntaxKind.WhitespaceTrivia))
+                {
+                    yield return commentIndentation;
                 }
             }
 
@@ -85,13 +95,26 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
                 // does. The line break that terminated the replaced comment is therefore dropped so the fix does not
                 // introduce a blank line before the member
                 isLineBreakPending = trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
+                commentIndentation = previousTrivia;
 
                 yield return CreateInheritdocTrivia(endOfLine);
+
+                previousTrivia = trivia;
 
                 continue;
             }
 
+            previousTrivia = trivia;
+
             yield return trivia;
+        }
+
+        // The member's first token followed the */ on its line, so it starts the line after <inheritdoc/>, in the column
+        // the replaced comment started in
+        if (isLineBreakPending
+            && commentIndentation.IsKind(SyntaxKind.WhitespaceTrivia))
+        {
+            yield return commentIndentation;
         }
     }
 

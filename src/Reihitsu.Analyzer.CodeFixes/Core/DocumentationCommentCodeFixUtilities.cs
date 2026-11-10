@@ -2,10 +2,12 @@
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter;
 using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Analyzer.CodeFixes.Core;
@@ -47,6 +49,86 @@ internal static class DocumentationCommentCodeFixUtilities
         var insertionText = GetLineBreak(sourceText, affectedLine, root) + DocumentationCommentUtilities.GetContinuationPrefix(sourceText, affectedLine);
 
         return document.WithText(sourceText.Replace(replacementSpan, insertionText));
+    }
+
+    /// <summary>
+    /// Lays out the reported documentation element as the formatter lays it out, and changes nothing else: the other
+    /// lines and elements of the comment, the other comments, and the declaration's code stay as they are written
+    /// </summary>
+    /// <param name="document">Document</param>
+    /// <param name="diagnosticSpan">Span of the reported element</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The updated document</returns>
+    /// <remarks>
+    /// The formatter lays out the comment alone: a copy of the comment, with the indentation in front of its lines
+    /// removed, documents an empty class in a compilation unit of its own, which <see cref="ReihitsuFormatter.FormatNode"/>
+    /// formats. The element at the same position in the formatted comment replaces the reported element, with the
+    /// indentation of the reported element's line in front of each of its further lines. Formatting the declaration
+    /// instead would lay out its code and its other comments too, and would not reach the comment of a declaration
+    /// directly in the compilation unit, whose leading trivia the node-level entry point keeps as written
+    /// </remarks>
+    internal static async Task<Document> LayOutElementAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
+    {
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        if (root == null
+            || TryGetElementToLayOut(root, diagnosticSpan, out var element) == false
+            || element.FirstAncestorOrSelf<DocumentationCommentTriviaSyntax>() is not { } documentationComment)
+        {
+            return document;
+        }
+
+        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
+        var commentText = RemoveLineIndentation(sourceText.ToString(documentationComment.ParentTrivia.FullSpan));
+        var detachedRoot = SyntaxFactory.ParseCompilationUnit($"{commentText}class C{endOfLine}{{{endOfLine}}}{endOfLine}");
+        var formattingResult = ReihitsuFormatter.FormatNode(detachedRoot, cancellationToken: cancellationToken);
+        var elementIndex = documentationComment.DescendantNodes().OfType<XmlElementSyntax>().ToList().IndexOf(element);
+        var formattedElement = formattingResult.Output
+                                               .DescendantTrivia(descendIntoTrivia: true)
+                                               .Select(obj => obj.GetStructure())
+                                               .OfType<DocumentationCommentTriviaSyntax>()
+                                               .FirstOrDefault()
+                                               ?.DescendantNodes()
+                                               .OfType<XmlElementSyntax>()
+                                               .ElementAtOrDefault(elementIndex);
+
+        if (formattingResult.Unsupported != null
+            || formattedElement == null
+            || formattedElement.StartTag.Name.ToString() != element.StartTag.Name.ToString())
+        {
+            return document;
+        }
+
+        var lineText = sourceText.Lines.GetLineFromPosition(element.SpanStart).ToString();
+        var lineIndentation = lineText.Substring(0, lineText.Length - lineText.TrimStart(' ', '\t').Length);
+        var replacementText = string.Join(string.Empty,
+                                          SourceText.From(formattedElement.ToString())
+                                                    .Lines
+                                                    .Select(obj => (obj.LineNumber == 0 ? string.Empty : lineIndentation) + obj.Text.ToString(obj.SpanIncludingLineBreak)));
+
+        return document.WithText(sourceText.Replace(element.Span, replacementText));
+    }
+
+    /// <summary>
+    /// Determines whether the reported documentation element can be laid out by <see cref="LayOutElementAsync"/>: it is
+    /// closed by an end tag of its own, and its documentation comment is a <c>///</c> comment that starts its own line
+    /// instead of following code
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="diagnosticSpan">Span of the reported element</param>
+    /// <returns><see langword="true"/> if the element can be laid out</returns>
+    /// <remarks>
+    /// A comment written behind code stays there, because the fix moves neither the declaration nor the code in front of
+    /// it, and laying the element out there would put documentation lines behind code, which the formatter moves again
+    /// </remarks>
+    internal static bool CanLayOutElement(SyntaxNode root, SourceText sourceText, TextSpan diagnosticSpan)
+    {
+        return TryGetElementToLayOut(root, diagnosticSpan, out var element)
+               && element.FirstAncestorOrSelf<DocumentationCommentTriviaSyntax>() is { } documentationComment
+               && documentationComment.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+               && DocumentationCommentUtilities.IsWrittenBehindSource(documentationComment.ParentTrivia, sourceText) == false;
     }
 
     /// <summary>
@@ -144,6 +226,35 @@ internal static class DocumentationCommentCodeFixUtilities
         return line.EndIncludingLineBreak > line.End
                    ? sourceText.ToString(TextSpan.FromBounds(line.End, line.EndIncludingLineBreak))
                    : ReihitsuFormatterHelpers.DetectEndOfLine(root);
+    }
+
+    /// <summary>
+    /// Removes the horizontal white space at the start of every line of the text
+    /// </summary>
+    /// <param name="text">Text</param>
+    /// <returns>The text with every line starting at its first character that is not horizontal white space</returns>
+    private static string RemoveLineIndentation(string text)
+    {
+        return string.Join(string.Empty,
+                           SourceText.From(text)
+                                     .Lines
+                                     .Select(obj => obj.Text.ToString(obj.SpanIncludingLineBreak).TrimStart(' ', '\t')));
+    }
+
+    /// <summary>
+    /// Gets the reported documentation element, when it is an element closed by an end tag of its own
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="diagnosticSpan">Span of the reported element</param>
+    /// <param name="element">The element</param>
+    /// <returns><see langword="true"/> if the element was found</returns>
+    private static bool TryGetElementToLayOut(SyntaxNode root, TextSpan diagnosticSpan, out XmlElementSyntax element)
+    {
+        element = root.FindNode(diagnosticSpan, findInsideTrivia: true, getInnermostNodeForTie: true) as XmlElementSyntax;
+
+        return element != null
+               && element.Span == diagnosticSpan
+               && DocumentationCommentUtilities.HasOwnEndTag(element);
     }
 
     #endregion // Methods

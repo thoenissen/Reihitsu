@@ -2,12 +2,11 @@
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.CodeFixes.Core;
@@ -33,31 +32,38 @@ public class RH8204DoNotUsePlaceholderElementsCodeFixProvider : CodeFixProvider
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
     {
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var placeholderText = text.ToString(diagnosticSpan);
-        var replacementText = ExtractInnerContent(placeholderText);
+        var replacementText = ExtractInnerContent(root, text, diagnosticSpan);
 
         return document.WithText(text.Replace(diagnosticSpan, replacementText));
     }
 
     /// <summary>
-    /// Extracts the inner content of a placeholder element, unwrapping the placeholder tags
+    /// Extracts the inner content of a placeholder element as it is written, unwrapping the placeholder tags
     /// </summary>
-    /// <param name="placeholderText">The placeholder element text</param>
+    /// <param name="root">Syntax root</param>
+    /// <param name="text">Source text</param>
+    /// <param name="diagnosticSpan">Span of the placeholder element</param>
     /// <returns>The inner content with the placeholder tags removed</returns>
-    private static string ExtractInnerContent(string placeholderText)
+    /// <remarks>
+    /// The content is taken from the source text between the end of the start tag and the start of the end tag, so its
+    /// references, markup, white space and line endings stay exactly as the author wrote them
+    /// </remarks>
+    private static string ExtractInnerContent(SyntaxNode root, SourceText text, TextSpan diagnosticSpan)
     {
-        try
-        {
-            var placeholderElement = XElement.Parse(placeholderText);
+        var node = root?.FindNode(diagnosticSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
 
-            return string.Concat(placeholderElement.Nodes().Select(obj => obj.ToString(SaveOptions.DisableFormatting)));
-        }
-        catch (XmlException)
+        switch (node)
         {
-            // Documentation content is not always well-formed XML (for example unescaped '&' or '<'). Strip the
-            // placeholder tags textually instead of letting the parse failure surface as an unhandled exception
-            return StripPlaceholderTags(placeholderText);
+            case XmlEmptyElementSyntax emptyElement when emptyElement.Span == diagnosticSpan:
+                return string.Empty;
+
+            case XmlElementSyntax element when element.Span == diagnosticSpan:
+                return text.ToString(TextSpan.FromBounds(element.StartTag.Span.End, element.EndTag.Span.Start));
+
+            default:
+                return StripPlaceholderTags(text.ToString(diagnosticSpan));
         }
     }
 
