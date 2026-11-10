@@ -23,7 +23,7 @@ public class RH4120RecordPrimaryConstructorParameterCasingCodeFixProvider : Casi
     /// Constructor
     /// </summary>
     public RH4120RecordPrimaryConstructorParameterCasingCodeFixProvider()
-        : base(RH4120RecordPrimaryConstructorParameterCasingAnalyzer.DiagnosticId, CodeFixResources.RH4120Title, CasingUtilities.ToPascalCase)
+        : base(new RH4120RecordPrimaryConstructorParameterCasingAnalyzer(), CodeFixResources.RH4120Title, CasingUtilities.ToPascalCase)
     {
     }
 

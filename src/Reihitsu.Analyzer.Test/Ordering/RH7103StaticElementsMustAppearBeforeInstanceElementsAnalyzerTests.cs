@@ -2899,6 +2899,104 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
         await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
     }
 
+    /// <summary>
+    /// Verifying the SHARED-ORDER-008 example of a group in front of the moved and the crossed span whose excluded branch
+    /// closes the type's body, for a move that reorders no instance field: moving the static <c>_c</c> in front of the
+    /// instance <c>_a</c> changes no layout in any build, and the fix moves it
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-008")]
+    [Requirement("RH7103-007")]
+    public async Task FixMovesAStaticFieldBehindAGroupInFrontOfTheSpansThatClosesTheTypeAndOpensAStruct(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                              #if X
+                              }
+
+                              public struct D
+                              {
+                              #endif
+                                  private static int _y;
+                                  private int _a;
+                                  private static int {|RH7103:_c|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                   #if X
+                                   }
+
+                                   public struct D
+                                   {
+                                   #endif
+                                       private static int _y;
+                                       private static int _c;
+                                       private int _a;
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that a conditional <c>StructLayout</c> attribute list on another declaration of a partial class keeps a
+    /// move that reorders no instance field: moving the static <c>_c</c> in front of the instance <c>_a</c> changes no
+    /// layout in any build, and the fix moves it
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-008")]
+    [Requirement("RH7103-007")]
+    public async Task FixMovesAStaticFieldOfAPartialClassWhoseOtherDeclarationHoldsAConditionalLayoutAttribute(string endOfLine)
+    {
+        const string source = """
+                              using System.Runtime.InteropServices;
+
+                              #if NET
+                              [StructLayout(LayoutKind.Sequential)]
+                              #endif
+                              public partial class C
+                              {
+                              }
+
+                              public partial class C
+                              {
+                                  private int _a;
+                                  private static int {|RH7103:_c|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.Runtime.InteropServices;
+
+                                   #if NET
+                                   [StructLayout(LayoutKind.Sequential)]
+                                   #endif
+                                   public partial class C
+                                   {
+                                   }
+
+                                   public partial class C
+                                   {
+                                       private static int _c;
+                                       private int _a;
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods

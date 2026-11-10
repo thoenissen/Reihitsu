@@ -434,6 +434,49 @@ public class RH4104LocalFunctionNameCasingAnalyzerTests : BatchCodeFixTestsBase<
         await Verify(testCode, testCode);
     }
 
+    /// <summary>
+    /// Verifies that a local function whose derived name is a name the compiler looks up for other methods is renamed,
+    /// because no such lookup finds a local function
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-011")]
+    [Requirement("RH4104-002")]
+    public async Task FixIsOfferedForALocalFunctionWhoseDerivedNameIsANameTheCompilerLooksUp()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    public int SelectAll()
+                                    {
+                                        int {|RH4104:getEnumerator|}()
+                                        {
+                                            return 1;
+                                        }
+
+                                        return getEnumerator();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     public int SelectAll()
+                                     {
+                                         int GetEnumerator()
+                                         {
+                                             return 1;
+                                         }
+
+                                         return GetEnumerator();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

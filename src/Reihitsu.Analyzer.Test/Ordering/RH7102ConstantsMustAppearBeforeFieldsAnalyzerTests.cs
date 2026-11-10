@@ -1166,6 +1166,52 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
         await VerifyNoCodeFixIsOffered(source);
     }
 
+    /// <summary>
+    /// Verifying that a group in front of the moved and the crossed span whose excluded branch closes the type's body keeps
+    /// the move of a constant, which reorders no instance field, and the fix moves it
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-008")]
+    [Requirement("RH7102-006")]
+    public async Task FixMovesAConstantBehindAGroupInFrontOfTheSpansThatClosesTheTypeAndOpensAStruct(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                              #if X
+                              }
+
+                              public struct D
+                              {
+                              #endif
+                                  private const int Y = 0;
+                                  private int _a;
+                                  private const int {|RH7102:Max|} = 1;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                   #if X
+                                   }
+
+                                   public struct D
+                                   {
+                                   #endif
+                                       private const int Y = 0;
+                                       private const int Max = 1;
+                                       private int _a;
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods

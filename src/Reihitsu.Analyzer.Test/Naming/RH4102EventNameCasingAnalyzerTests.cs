@@ -1,7 +1,18 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Naming;
@@ -735,7 +746,144 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     }
 
     /// <summary>
-    /// Verifies a custom-event code fix with the dedicated internal provider
+    /// Verifies that one Fix All renames a field-like event and an event with accessors of one document, whichever of the
+    /// two it is started from and in every scope
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-002")]
+    [Requirement("RH4102-003")]
+    public async Task FixAllRenamesAFieldLikeEventAndAnEventWithAccessorsTogether()
+    {
+        const string testCode = """
+                                using System;
+
+                                public class C
+                                {
+                                    public event EventHandler dataChanged;
+                                    public event EventHandler saved { add { } remove { } }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 public class C
+                                 {
+                                     public event EventHandler DataChanged;
+                                     public event EventHandler Saved { add { } remove { } }
+                                 }
+                                 """;
+
+        await VerifyFixAllFromEveryDiagnosticAsync(testCode, fixedCode, 2, fixAllEqualsSingleFixes: true);
+    }
+
+    /// <summary>
+    /// Verifies that one Fix All renames both declarators of a field-like event declaration and an event with accessors,
+    /// whichever of the three it is started from and in every scope
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-002")]
+    [Requirement("RH4102-003")]
+    public async Task FixAllRenamesSeveralFieldLikeEventDeclaratorsAndAnEventWithAccessorsTogether()
+    {
+        const string testCode = """
+                                using System;
+
+                                public class C
+                                {
+                                    public event EventHandler saved
+                                    {
+                                        add { }
+                                        remove { }
+                                    }
+
+                                    public event EventHandler opened, closed;
+
+                                    public void Raise()
+                                    {
+                                        opened?.Invoke(this, EventArgs.Empty);
+                                        closed?.Invoke(this, EventArgs.Empty);
+                                        saved += (sender, args) => { };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 public class C
+                                 {
+                                     public event EventHandler Saved
+                                     {
+                                         add { }
+                                         remove { }
+                                     }
+
+                                     public event EventHandler Opened, Closed;
+
+                                     public void Raise()
+                                     {
+                                         Opened?.Invoke(this, EventArgs.Empty);
+                                         Closed?.Invoke(this, EventArgs.Empty);
+                                         Saved += (sender, args) => { };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFixAllFromEveryDiagnosticAsync(testCode, fixedCode, 3, fixAllEqualsSingleFixes: true);
+    }
+
+    /// <summary>
+    /// Verifies that one Fix All skips a field-like event and an event with accessors that would receive the same new
+    /// name in one type, and renames the third event, whichever of the three it is started from
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-010")]
+    [Requirement("RH4102-003")]
+    public async Task FixAllSkipsAFieldLikeEventAndAnEventWithAccessorsThatWouldCollide()
+    {
+        const string testCode = """
+                                using System;
+
+                                public class C
+                                {
+                                    public event EventHandler dataChanged;
+
+                                    public event EventHandler DATA_CHANGED
+                                    {
+                                        add { }
+                                        remove { }
+                                    }
+
+                                    public event EventHandler saved;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 public class C
+                                 {
+                                     public event EventHandler dataChanged;
+
+                                     public event EventHandler DATA_CHANGED
+                                     {
+                                         add { }
+                                         remove { }
+                                     }
+
+                                     public event EventHandler Saved;
+                                 }
+                                 """;
+
+        await VerifyFixAllFromEveryDiagnosticAsync(testCode, fixedCode, 3, fixAllEqualsSingleFixes: false);
+    }
+
+    /// <summary>
+    /// Verifies the code fix on an event with accessors
     /// </summary>
     /// <param name="testCode">Test source</param>
     /// <param name="fixedCode">Expected fixed source</param>
@@ -744,7 +892,7 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     /// <returns>A task that represents the asynchronous operation</returns>
     private static async Task VerifyCustomEvent(string testCode, string fixedCode, int diagnosticCount, bool fixAll = false)
     {
-        var test = new CSharpCodeFixVerifierTest<RH4102EventNameCasingAnalyzer, RH4102CustomEventNameCasingCodeFixProvider>
+        var test = new CSharpCodeFixVerifierTest<RH4102EventNameCasingAnalyzer, RH4102EventNameCasingCodeFixProvider>
                    {
                        TestCode = testCode,
                        FixedCode = fixedCode,
@@ -762,7 +910,7 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     }
 
     /// <summary>
-    /// Verifies a custom-event code fix with the dedicated internal provider in a project that references the given assembly
+    /// Verifies the code fix on an event with accessors in a project that references the given assembly
     /// </summary>
     /// <param name="testCode">Test source with markup for every expected diagnostic</param>
     /// <param name="fixedCode">Expected fixed source</param>
@@ -770,7 +918,7 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     /// <returns>A task that represents the asynchronous operation</returns>
     private static async Task VerifyCustomEventWithReference(string testCode, string fixedCode, MetadataReference reference)
     {
-        var test = new CSharpCodeFixVerifierTest<RH4102EventNameCasingAnalyzer, RH4102CustomEventNameCasingCodeFixProvider>
+        var test = new CSharpCodeFixVerifierTest<RH4102EventNameCasingAnalyzer, RH4102EventNameCasingCodeFixProvider>
                    {
                        TestCode = testCode,
                        FixedCode = fixedCode,
@@ -782,7 +930,290 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
         await test.RunAsync();
     }
 
+    /// <summary>
+    /// Verifies Fix All on a document with several RH4102 diagnostics: for every diagnostic, every code fix provider of
+    /// the analyzer assembly that offers a fix for it, and every Fix All scope, one Fix All application started from that
+    /// diagnostic must produce the expected text, compile, and leave no diagnostic the expected text does not keep.
+    /// Every provider is used, so the test holds however many providers fix RH4102
+    /// </summary>
+    /// <param name="source">Source without markup</param>
+    /// <param name="expected">Expected text after Fix All</param>
+    /// <param name="diagnosticCount">Number of diagnostics the analyzer reports on the source</param>
+    /// <param name="fixAllEqualsSingleFixes">Whether applying the single fixes one after another must give the same text</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyFixAllFromEveryDiagnosticAsync(string source, string expected, int diagnosticCount, bool fixAllEqualsSingleFixes)
+    {
+        var providers = GetEventNameCodeFixProviders();
+
+        using (var workspace = new AdhocWorkspace())
+        {
+            var (solution, documentId) = CreateEventSolution(workspace, source);
+
+            var diagnostics = await GetEventDiagnosticsAsync(solution.GetDocument(documentId)).ConfigureAwait(false);
+
+            Assert.HasCount(diagnosticCount, diagnostics);
+
+            var fixAllRuns = 0;
+
+            foreach (var diagnostic in diagnostics)
+            {
+                var startText = await diagnostic.Location.SourceTree.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
+                var startName = startText.ToString(diagnostic.Location.SourceSpan);
+
+                foreach (var provider in providers)
+                {
+                    var actions = await RegisterActionsAsync(provider, solution.GetDocument(documentId), diagnostic).ConfigureAwait(false);
+
+                    if (actions.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    foreach (var scope in new[] { FixAllScope.Document, FixAllScope.Project, FixAllScope.Solution })
+                    {
+                        var context = new FixAllContext(solution.GetDocument(documentId),
+                                                        provider,
+                                                        scope,
+                                                        actions[0].EquivalenceKey,
+                                                        provider.FixableDiagnosticIds,
+                                                        new EventFixAllDiagnosticProvider(solution, diagnostics),
+                                                        CancellationToken.None);
+                        var fixAllAction = await provider.GetFixAllProvider()
+                                                         .GetFixAsync(context)
+                                                         .ConfigureAwait(false);
+                        var fixedSolution = solution;
+
+                        if (fixAllAction != null)
+                        {
+                            var operation = (await fixAllAction.GetOperationsAsync(CancellationToken.None).ConfigureAwait(false)).OfType<ApplyChangesOperation>()
+                                                                                                                                 .Single();
+
+                            fixedSolution = operation.ChangedSolution;
+                        }
+
+                        var fixedText = (await fixedSolution.GetDocument(documentId).GetTextAsync(CancellationToken.None).ConfigureAwait(false)).ToString();
+
+                        Assert.AreEqual(expected,
+                                        fixedText,
+                                        $"Fix All of {provider.GetType().Name} in scope {scope}, started from '{startName}', produced another text.");
+
+                        var compilation = await fixedSolution.GetDocument(documentId).Project.GetCompilationAsync(CancellationToken.None).ConfigureAwait(false);
+
+                        Assert.IsEmpty(compilation.GetDiagnostics(CancellationToken.None).Where(static item => item.Severity == DiagnosticSeverity.Error),
+                                       $"Fix All of {provider.GetType().Name} in scope {scope}, started from '{startName}', added a compile error.");
+
+                        fixAllRuns++;
+                    }
+                }
+            }
+
+            Assert.IsGreaterThan(0, fixAllRuns, "No provider offered a fix for any diagnostic.");
+
+            if (fixAllEqualsSingleFixes)
+            {
+                var singleFixesText = await ApplySingleFixesOneAfterAnotherAsync(solution, documentId, providers).ConfigureAwait(false);
+
+                Assert.AreEqual(expected, singleFixesText, "Applying the single fixes one after another produced another text.");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Applies the first fix offered for the first diagnostic that has one, again and again, until no diagnostic is
+    /// offered a fix
+    /// </summary>
+    /// <param name="solution">Solution</param>
+    /// <param name="documentId">ID of the document</param>
+    /// <param name="providers">Code fix providers</param>
+    /// <returns>The text of the document after every single fix</returns>
+    private static async Task<string> ApplySingleFixesOneAfterAnotherAsync(Solution solution, DocumentId documentId, IReadOnlyList<CodeFixProvider> providers)
+    {
+        for (var iteration = 0; iteration < 10; iteration++)
+        {
+            var document = solution.GetDocument(documentId);
+            var diagnostics = await GetEventDiagnosticsAsync(document).ConfigureAwait(false);
+            CodeAction action = null;
+
+            foreach (var diagnostic in diagnostics)
+            {
+                foreach (var provider in providers)
+                {
+                    var actions = await RegisterActionsAsync(provider, document, diagnostic).ConfigureAwait(false);
+
+                    if (actions.Count > 0)
+                    {
+                        action = actions[0];
+
+                        break;
+                    }
+                }
+
+                if (action != null)
+                {
+                    break;
+                }
+            }
+
+            if (action == null)
+            {
+                break;
+            }
+
+            var operation = (await action.GetOperationsAsync(CancellationToken.None).ConfigureAwait(false)).OfType<ApplyChangesOperation>()
+                                                                                                           .Single();
+
+            solution = operation.ChangedSolution;
+        }
+
+        return (await solution.GetDocument(documentId).GetTextAsync(CancellationToken.None).ConfigureAwait(false)).ToString();
+    }
+
+    /// <summary>
+    /// Gets every code fix provider of the code fix assembly that fixes RH4102
+    /// </summary>
+    /// <returns>The providers</returns>
+    private static List<CodeFixProvider> GetEventNameCodeFixProviders()
+    {
+        return typeof(RH4102EventNameCasingCodeFixProvider).Assembly
+                                                           .GetTypes()
+                                                           .Where(static type => typeof(CodeFixProvider).IsAssignableFrom(type) && type.IsAbstract == false)
+                                                           .Select(static type => (CodeFixProvider)Activator.CreateInstance(type, nonPublic: true))
+                                                           .Where(static provider => provider.FixableDiagnosticIds.Contains(RH4102EventNameCasingAnalyzer.DiagnosticId))
+                                                           .OrderBy(static provider => provider.GetType().Name, StringComparer.Ordinal)
+                                                           .ToList();
+    }
+
+    /// <summary>
+    /// Creates a solution with one project that holds the source
+    /// </summary>
+    /// <param name="workspace">Workspace</param>
+    /// <param name="source">Source</param>
+    /// <returns>The solution and the ID of the document</returns>
+    private static (Solution Solution, DocumentId DocumentId) CreateEventSolution(AdhocWorkspace workspace, string source)
+    {
+        var projectId = ProjectId.CreateNewId();
+        var documentId = DocumentId.CreateNewId(projectId);
+        var trustedPlatformAssemblies = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string;
+        var references = (trustedPlatformAssemblies?.Split(Path.PathSeparator) ?? []).Select(static path => MetadataReference.CreateFromFile(path));
+        var solution = workspace.CurrentSolution
+                                .AddProject(projectId, "TestProject", "TestProject", LanguageNames.CSharp)
+                                .WithProjectCompilationOptions(projectId, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                                .AddMetadataReferences(projectId, references)
+                                .AddDocument(documentId, "Test.cs", SourceText.From(source));
+
+        return (solution, documentId);
+    }
+
+    /// <summary>
+    /// Gets the RH4102 diagnostics of the document's project
+    /// </summary>
+    /// <param name="document">Document</param>
+    /// <returns>The diagnostics in source order</returns>
+    private static async Task<ImmutableArray<Diagnostic>> GetEventDiagnosticsAsync(Document document)
+    {
+        var compilation = await document.Project.GetCompilationAsync(CancellationToken.None).ConfigureAwait(false);
+        var diagnostics = await compilation.WithAnalyzers(ImmutableArray.Create<DiagnosticAnalyzer>(new RH4102EventNameCasingAnalyzer()))
+                                           .GetAnalyzerDiagnosticsAsync(CancellationToken.None)
+                                           .ConfigureAwait(false);
+
+        return [.. diagnostics.OrderBy(static diagnostic => diagnostic.Location.SourceSpan.Start)];
+    }
+
+    /// <summary>
+    /// Gets the code actions a provider registers for a diagnostic
+    /// </summary>
+    /// <param name="provider">Code fix provider</param>
+    /// <param name="document">Document</param>
+    /// <param name="diagnostic">Diagnostic</param>
+    /// <returns>The registered code actions</returns>
+    private static async Task<List<CodeAction>> RegisterActionsAsync(CodeFixProvider provider, Document document, Diagnostic diagnostic)
+    {
+        var actions = new List<CodeAction>();
+
+        if (provider.FixableDiagnosticIds.Contains(diagnostic.Id))
+        {
+            var context = new CodeFixContext(document,
+                                             diagnostic,
+                                             (action, _) => actions.Add(action),
+                                             CancellationToken.None);
+
+            await provider.RegisterCodeFixesAsync(context).ConfigureAwait(false);
+        }
+
+        return actions;
+    }
+
     #endregion // Tests
+
+    #region Types
+
+#pragma warning disable RH2101 // The provider is a focused test adapter owned by this fixture
+    /// <summary>
+    /// Supplies the diagnostics of the Fix All tests that use every RH4102 provider
+    /// </summary>
+    private sealed class EventFixAllDiagnosticProvider : FixAllContext.DiagnosticProvider
+    {
+        #region Fields
+
+        /// <summary>
+        /// Diagnostics
+        /// </summary>
+        private readonly ImmutableArray<Diagnostic> _diagnostics;
+
+        /// <summary>
+        /// Solution containing the diagnostics
+        /// </summary>
+        private readonly Solution _solution;
+
+        #endregion // Fields
+
+        #region Constructor
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="solution">Solution containing the diagnostics</param>
+        /// <param name="diagnostics">Diagnostics</param>
+        public EventFixAllDiagnosticProvider(Solution solution, ImmutableArray<Diagnostic> diagnostics)
+        {
+            _solution = solution;
+            _diagnostics = diagnostics;
+        }
+
+        #endregion // Constructor
+
+        #region DiagnosticProvider
+
+        /// <inheritdoc/>
+        public override Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+        {
+            var diagnostics = _diagnostics.Where(diagnostic => diagnostic.Location.SourceTree != null
+                                                               && _solution.GetDocument(diagnostic.Location.SourceTree)?.Id == document.Id);
+
+            return Task.FromResult<IEnumerable<Diagnostic>>(diagnostics);
+        }
+
+        /// <inheritdoc/>
+        public override Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<IEnumerable<Diagnostic>>([]);
+        }
+
+        /// <inheritdoc/>
+        public override Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+        {
+            var diagnostics = _diagnostics.Where(diagnostic => diagnostic.Location.SourceTree != null
+                                                               && _solution.GetDocument(diagnostic.Location.SourceTree)?.Project.Id == project.Id);
+
+            return Task.FromResult<IEnumerable<Diagnostic>>(diagnostics);
+        }
+
+        #endregion // DiagnosticProvider
+    }
+
+#pragma warning restore RH2101
+
+    #endregion // Types
 
     #region BatchCodeFixTestsBase
 

@@ -23,7 +23,7 @@ public class RH4115LocalVariableCasingCodeFixProvider : CasingCodeFixProviderBas
     /// Constructor
     /// </summary>
     public RH4115LocalVariableCasingCodeFixProvider()
-        : base(RH4115LocalVariableCasingAnalyzer.DiagnosticId, CodeFixResources.RH4115Title, CasingUtilities.ToCamelCase)
+        : base(new RH4115LocalVariableCasingAnalyzer(), CodeFixResources.RH4115Title, CasingUtilities.ToCamelCase)
     {
     }
 

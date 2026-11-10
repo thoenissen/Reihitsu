@@ -4087,6 +4087,107 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
         await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies that a group in front of the first region block whose place the fix changes, whose excluded branch closes
+    /// the type's body and opens a struct, makes the type count as one whose field order sets its layout: in a build with
+    /// <c>X</c>, the reorder would put <c>_x</c> in front of <c>_handle</c> in the struct <c>D</c>, so no code fix is
+    /// offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task NoCodeFixWhenAGroupInFrontOfTheMovedBlocksClosesTheTypeAndOpensAStruct(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  #region Constants
+
+                                  private const int Zero = 0;
+
+                                  #endregion // Constants
+
+                              #if X
+                              }
+
+                              public struct D : IDisposable
+                              {
+                              #endif
+                                  #region IDisposable
+
+                                  private int _handle;
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private int _x;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a conditional <c>StructLayout</c> attribute list on another declaration of a partial class makes the
+    /// class count as one whose field order sets its layout: in a build with <c>X</c>, the reorder would put <c>_x</c> in
+    /// front of <c>_handle</c>, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7309-006")]
+    [Requirement("SHARED-ORDER-008")]
+    public async Task NoCodeFixWhenAConditionalGroupWrapsTheLayoutAttributeOfAnotherDeclarationOfAPartialClass(string endOfLine)
+    {
+        const string source = """
+                              using System;
+                              using System.Runtime.InteropServices;
+
+                              #if X
+                              [StructLayout(LayoutKind.Sequential)]
+                              #endif
+                              public partial class C
+                              {
+                              }
+
+                              public partial class C : IDisposable
+                              {
+                                  #region IDisposable
+
+                                  private int _handle;
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  {|RH7309:#region Fields|}
+
+                                  private int _x;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods

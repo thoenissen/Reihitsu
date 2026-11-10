@@ -23,7 +23,7 @@ public class RH4011RecordStructNameCasingCodeFixProvider : CasingCodeFixProvider
     /// Constructor
     /// </summary>
     public RH4011RecordStructNameCasingCodeFixProvider()
-        : base(RH4011RecordStructNameCasingAnalyzer.DiagnosticId, CodeFixResources.RH4011Title, CasingUtilities.ToPascalCase)
+        : base(new RH4011RecordStructNameCasingAnalyzer(), CodeFixResources.RH4011Title, CasingUtilities.ToPascalCase)
     {
     }
 
