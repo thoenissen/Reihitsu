@@ -5,7 +5,7 @@
 | ID prefix | SHARED-FIX |
 | Status | Active |
 | Code owners | — |
-| Uses | FMT-PIPE-007, FMT-PIPE-017, FMT-PIPE-018, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, RH2001-009, RH5111-004, RH5303-005, RH7004-004, RH7309-006, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002, SHARED-ORDER-006, SHARED-ORDER-007, SHARED-ORDER-008 |
+| Uses | FMT-PIPE-007, FMT-PIPE-017, FMT-PIPE-018, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, RH2001-009, RH2001-010, RH5111-004, RH5303-005, RH7004-004, RH7309-006, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002, SHARED-ORDER-006, SHARED-ORDER-007, SHARED-ORDER-008 |
 
 This spec covers what holds for every code fix of an analyzer rule, so a rule spec states only what its own fix produces and when it is withheld. It applies to every rule whose header names a code fix, without being listed under `Uses`; SHARED-FIX-002 applies to the rules whose header says `Fix All`.
 
@@ -1105,7 +1105,7 @@ A fix that reads the text of an excluded branch MUST read it so that the reading
 
 A fix decides which conditional directives withhold it from where the directives stand in the syntax tree — the token whose leading trivia holds each directive, and the construct that token begins or ends — never from their conditions. A directive whose place that test does not classify withholds the fix.
 
-A fix that reads no excluded code, and that leaves every conditional directive and its line in place, is governed by SHARED-FIX-003 and SHARED-DIAG-008 alone; this requirement adds nothing to it, such as RH2001's fix, which reads no excluded code and is withheld for every conditional directive between a property's modifiers (RH2001-009).
+A fix that reads no excluded code, and that leaves every conditional directive and its line in place, is governed by SHARED-FIX-003 and SHARED-DIAG-008 alone; this requirement adds nothing to it, such as RH2001's fix where it is withheld for every conditional directive between a property's modifiers (RH2001-009); where RH2001's fix reads the excluded branches of a group in front of a property's first modifier or behind the property, it reads them as this requirement states (RH2001-010).
 
 Each rule's spec states which conditional directives withhold its fix; for the member reordering fixes, this is SHARED-ORDER-008.
 

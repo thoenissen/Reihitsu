@@ -2828,6 +2828,829 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
         await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies the specification example of <c>extern</c> in an excluded branch in front of the first modifier of a
+    /// property of a class: written as a field, a build with <c>DEBUG</c> would declare an extern field, so the property is
+    /// reported and no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAConditionalExternInFrontOfTheFirstModifier(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                              #if DEBUG
+                                  extern
+                              #endif
+                                  private int {|RH2001:Value|} { get; }
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of <c>readonly</c> in an excluded branch in front of the first modifier of a
+    /// property of a struct: with the <c>readonly</c> the fix adds, a build with <c>DEBUG</c> would declare the modifier
+    /// twice, so the property is reported and no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAConditionalReadonlyInFrontOfTheFirstModifierInAStruct(string endOfLine)
+    {
+        const string source = """
+                              struct S
+                              {
+                              #if DEBUG
+                                  readonly
+                              #endif
+                                  private int {|RH2001:Value|} { get; }
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that <c>static</c> in an excluded branch in front of the first modifier withholds the fix: the branch is
+    /// no whole member
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAConditionalStaticInFrontOfTheFirstModifier(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                              #if DEBUG
+                                  static
+                              #endif
+                                  private int {|RH2001:Value|} { get; }
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of an excluded <c>#else</c> branch behind a group of a whole member: without
+    /// <c>DEBUG</c> defined, the <c>#else</c> branch holds <c>extern</c>, so the property is reported and no code fix is
+    /// offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAnExcludedElseBranchHoldingExternBehindAWholeMember(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                              #if !DEBUG
+                                  private int _trace;
+                              #else
+                                  extern
+                              #endif
+                                  private int {|RH2001:Value|} { get; }
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of an excluded branch in front of the member of the active <c>#else</c> branch,
+    /// where only the <c>#endif</c> stands in the leading trivia of the property's first modifier: in a build with
+    /// <c>DEBUG</c>, <c>extern</c> stands in front of the property, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAnExcludedBranchInFrontOfTheMemberOfTheActiveElseBranch(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                              #if DEBUG
+                                  extern
+                              #else
+                                  private int _trace;
+                              #endif
+                                  private int {|RH2001:Value|} { get; }
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an excluded <c>#else</c> branch holding <c>extern</c> withholds the fix when the symbol of the active
+    /// <c>#if</c> branch is defined in the document
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAnExcludedElseBranchHoldingExternWhenTheSymbolIsDefined(string endOfLine)
+    {
+        const string source = """
+                              #define DEBUG
+                              class C
+                              {
+                              #if DEBUG
+                                  private int _trace;
+                              #else
+                                  extern
+                              #endif
+                                  private int {|RH2001:Value|} { get; }
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an excluded <c>#elif</c> branch holding <c>extern</c> withholds the fix, although the excluded
+    /// <c>#if</c> branch holds a whole member: every excluded branch of the group is read
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAnExcludedElifBranchHoldingExternBehindAnExcludedWholeMember(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                              #if DEBUG
+                                  private int _trace;
+                              #elif TRACE
+                                  extern
+                              #endif
+                                  private int {|RH2001:Value|} { get; }
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of an attribute list in an excluded branch in front of the first modifier: the
+    /// branch is no whole member, so the property is reported and no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAConditionalAttributeListInFrontOfTheFirstModifier(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                              #if DEBUG
+                                  [System.Obsolete]
+                              #endif
+                                  private int {|RH2001:Value|} { get; }
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an excluded branch in front of the first modifier that holds text that is not code withholds the fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAnExcludedBranchInFrontOfTheFirstModifierHoldingTextThatIsNotCode(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                              #if DEBUG
+                                  this is not code
+                              #endif
+                                  private int {|RH2001:Value|} { get; }
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a group in front of the first modifier that holds another conditional group withholds the fix, although
+    /// the inner group holds a whole member: the group is nested
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForANestedGroupOfAWholeMemberInFrontOfTheFirstModifier(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                              #if DEBUG
+                              #if TRACE
+                                  private int _trace;
+                              #endif
+                              #endif
+                                  private int {|RH2001:Value|} { get; }
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a group whose <c>#endif</c> stands behind a property without an initializer
+    /// and whose branch holds another group: the group behind the property does not wrap whole members, so no code fix is
+    /// offered, although the group in front of the first modifier holds a whole member
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAGroupBehindThePropertyThatHoldsAnotherGroupInItsBranch(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                              #if !RELEASE
+                                  private int _first;
+                              #if DEBUG
+                                  private int _trace;
+                              #endif
+                                  private int {|RH2001:Value|} { get; }
+                              #endif
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a group of a whole member in front of the first modifier: the fix is offered
+    /// and keeps the group in front of the field
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-004")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyFixKeepsAGroupOfAWholeMemberInFrontOfTheFirstModifier(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                              #if DEBUG
+                                  private int _trace;
+                              #endif
+                                  private int {|RH2001:Value|} { get; }
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                   #if DEBUG
+                                       private int _trace;
+                                   #endif
+                                       private readonly int _value;
+
+                                       int Read() => _value;
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a group whose excluded branches all hold whole members keeps the fix, also when the branches are an
+    /// excluded <c>#if</c> branch in front of an active <c>#else</c> member and only the <c>#endif</c> stands in front of
+    /// the first modifier
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-004")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyFixKeepsAGroupWhoseExcludedBranchInFrontOfTheActiveElseMemberHoldsAWholeMember(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                              #if DEBUG
+                                  private long _trace;
+                              #else
+                                  private int _trace;
+                              #endif
+                                  private int {|RH2001:Value|} { get; }
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                   #if DEBUG
+                                       private long _trace;
+                                   #else
+                                       private int _trace;
+                                   #endif
+                                       private readonly int _value;
+
+                                       int Read() => _value;
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a group in front of the first modifier whose excluded branch holds only a comment keeps the fix: the
+    /// branch is a sequence of no members
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-004")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyFixKeepsAGroupInFrontOfTheFirstModifierWhoseExcludedBranchHoldsOnlyAComment(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                              #if DEBUG
+                                  // Traced
+                              #endif
+                                  private int {|RH2001:Value|} { get; }
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                   #if DEBUG
+                                       // Traced
+                                   #endif
+                                       private readonly int _value;
+
+                                       int Read() => _value;
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of an initializer in an excluded branch behind a property without one: in a
+    /// build with <c>X</c>, the field the fix would write would be followed by <c>= 5;</c>, so no code fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAnExcludedInitializerBehindAPropertyWithoutOne(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int {|RH2001:Value|} { get; }
+                              #if X
+                                  = 5;
+                              #endif
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an initializer in an excluded branch behind the last property of a type body withholds the fix: the
+    /// token behind the property is the closing brace of the type body
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAnExcludedInitializerBehindTheLastPropertyInFrontOfTheClosingBrace(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  int Read() => Value;
+
+                                  private int {|RH2001:Value|} { get; }
+                              #if X
+                                  = 5;
+                              #endif
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an initializer in an excluded branch behind a property without a modifier withholds the fix, as behind
+    /// a property with a modifier
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAnExcludedInitializerBehindAPropertyWithoutAModifier(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  int {|RH2001:Value|} { get; }
+                              #if X
+                                  = 5;
+                              #endif
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a group behind a property without an initializer whose excluded branch holds a modifier of the next
+    /// member withholds the fix: the branch does not read as whole members
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForAConditionalModifierBehindAPropertyWithoutAnInitializer(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int {|RH2001:Value|} { get; }
+                              #if DEBUG
+                                  static
+                              #endif
+                                  private int _other;
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a group behind a property without an initializer that holds another conditional group withholds the
+    /// fix, although the inner group holds a whole member
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyNoCodeFixIsOfferedForANestedGroupOfAWholeMemberBehindAPropertyWithoutAnInitializer(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int {|RH2001:Value|} { get; }
+                              #if DEBUG
+                              #if TRACE
+                                  private int _trace;
+                              #endif
+                              #endif
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a group of a whole member behind a property without an initializer: the fix
+    /// is offered and keeps the group behind the field
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-004")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyFixKeepsAGroupOfAWholeMemberBehindAPropertyWithoutAnInitializer(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int {|RH2001:Value|} { get; }
+                              #if DEBUG
+                                  private int _trace;
+                              #endif
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private readonly int _value;
+                                   #if DEBUG
+                                       private int _trace;
+                                   #endif
+
+                                       int Read() => _value;
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a group behind a property with an initializer: the property ends in
+    /// <c>;</c>, so the excluded <c>static</c> belongs to the next member in every build, and the fix is offered
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-004")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyFixKeepsAConditionalModifierBehindAPropertyWithAnInitializer(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int {|RH2001:Value|} { get; } = 5;
+                              #if DEBUG
+                                  static
+                              #endif
+                                  private int _other;
+
+                                  int Read() => Value;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private readonly int _value = 5;
+                                   #if DEBUG
+                                       static
+                                   #endif
+                                       private int _other;
+
+                                       int Read() => _value;
+                                   }
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a group of a whole member in front of the first modifier inside the active
+    /// branch of a group that wraps the file: the wrapping group has no directive in front of the first modifier or behind
+    /// the property, so it is not read, and the fix is offered as in multi-targeting code
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-004")]
+    [Requirement("RH2001-010")]
+    public async Task VerifyFixKeepsAGroupOfAWholeMemberInsideTheActiveBranchOfAGroupThatWrapsTheFile(string endOfLine)
+    {
+        const string source = """
+                              #define NET
+                              #if NET
+                              class C
+                              {
+                              #if DEBUG
+                                  private int _trace;
+                              #endif
+                                  private int {|RH2001:Value|} { get; }
+
+                                  int Read() => Value;
+                              }
+                              #endif
+                              """;
+
+        const string fixedSource = """
+                                   #define NET
+                                   #if NET
+                                   class C
+                                   {
+                                   #if DEBUG
+                                       private int _trace;
+                                   #endif
+                                       private readonly int _value;
+
+                                       int Read() => _value;
+                                   }
+                                   #endif
+                                   """;
+
+        await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that Fix All replaces the property behind which a group of a whole member stands and leaves the property
+    /// behind which an excluded initializer stands reported without a fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-010")]
+    [Requirement("SHARED-FIX-002")]
+    public async Task VerifyFixAllSkipsThePropertyBehindWhichAnExcludedInitializerStands()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Second|} { get; }
+                                #if DEBUG
+                                    private int _trace;
+                                #endif
+
+                                    private int {|RH2001:Third|} { get; }
+
+                                    private int {|RH2001:First|} { get; }
+                                #if X
+                                    = 5;
+                                #endif
+
+                                    int Read() => First + Second + Third;
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private readonly int _second;
+                                  #if DEBUG
+                                      private int _trace;
+                                  #endif
+
+                                      private readonly int _third;
+
+                                      private int {|RH2001:First|} { get; }
+                                  #if X
+                                      = 5;
+                                  #endif
+
+                                      int Read() => First + _second + _third;
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that Fix All replaces the property behind a group of a whole member and leaves the property behind a group
+    /// holding <c>extern</c> reported without a fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-010")]
+    [Requirement("SHARED-FIX-002")]
+    public async Task VerifyFixAllSkipsThePropertyBehindAConditionalExternInFrontOfTheFirstModifier()
+    {
+        const string testData = """
+                                class C
+                                {
+                                #if DEBUG
+                                    extern
+                                #endif
+                                    private int {|RH2001:First|} { get; }
+
+                                #if DEBUG
+                                    private int _trace;
+                                #endif
+                                    private int {|RH2001:Second|} { get; }
+
+                                    private int {|RH2001:Third|} { get; }
+
+                                    int Read() => First + Second + Third;
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                  #if DEBUG
+                                      extern
+                                  #endif
+                                      private int {|RH2001:First|} { get; }
+
+                                  #if DEBUG
+                                      private int _trace;
+                                  #endif
+                                      private readonly int _second;
+
+                                      private readonly int _third;
+
+                                      int Read() => First + _second + _third;
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
+    }
+
     #endregion // Tests
 
     #region Methods
