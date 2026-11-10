@@ -47,8 +47,8 @@ Formatter runs first (fixes that delegate to the formatter follow them), then 1.
 | 2 | P3 | `/squad #1385 #1398 #1239` | merged #1657 |
 | 3 | P1 | `/squad #963 #1384` | merged #1660 |
 | 4 | P12 | `/squad #1595 #1593 #1616` | merged #1662 |
-| 5 | P10 | `/squad #1597 #1598 #1016 #1015 #1084` | next |
-| 5a | P14 | `/squad #1666 #1667 #1665` | (critical; added 2026-11-09) |
+| 5 | P10 | `/squad #1597 #1598 #1016 #1015 #1084` | merged #1675 |
+| 5a | P14 | `/squad #1666 #1667 #1665` | merged #1677 |
 | 6 | P8 | `/squad #1269 #1342 #1343 #1459` | |
 | 7 | P4 | `/squad #946 #972 #1096 #1076 #1626 #1625` | |
 | 8 | P6 | `/squad #1140 #1141 #1144 #1145 #1094 #1393 #1511 #1561` | |
