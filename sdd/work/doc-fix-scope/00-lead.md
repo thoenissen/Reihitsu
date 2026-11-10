@@ -40,6 +40,11 @@ None in the prompt.
 | 9 | Skeptic | #1459 scope | Widen to every declaration directly in the compilation unit, RH8305 and RH8307; formatter's FMT-PIPE-010 stays | Same class, same cause as #1342 | Output demanded by RH8305-004/RH8307-004 and SHARED-FIX-006 | — |
 | 10 | Skeptic | #1343 RH8308 span | Span runs to the end of the line through references (RH8308-003) | Bug against unchanged requirement | RH8308-003 already demands it | — |
 | 11 | Skeptic | Follow-up: RH8202 `<value>` in a second doc comment | Dropped | Two documentation comments on one declaration is a rare class | — | — |
+| 12 | Spec author | RH8204 whitespace-only placeholder content: `the<placeholder> </placeholder>customer` → `the customer` (today `thecustomer`) | Accept | Maintainer decided "content verbatim" (#1201 Q1, round 7a) | Covered by a maintainer answer | ae70663 |
+| 13 | Spec author | Change doc for the five withheld-fix requirements | None | Rare-class withholding is a decision recorded in the rule spec (AGENTS.md *Code-fix coverage*); bug-fix lane stays | Rare-class withholding | ae70663 |
+| 14 | Spec author | RH8309-007 scope | Narrow: withhold only when the reported element lies in another documentation comment than the one the fix edits | A guard that refuses safely rewritable input is worth narrowing when cheap | Narrower refusal keeps today's fix | — |
+| 15 | Spec author | Follow-up: RH8309 order across two documentation comments not reported | Dropped | Rare class (several doc comments on one declaration) | — | — |
+| 16 | Spec author | Follow-up: RH8402 deletes a non-copyright note in the old header's comment run | Dropped | #1342 states replacing the whole leading comment run is intended (maintainer round 8 item 20) | Decided by the maintainer | — |
 
 ## Follow-up candidates
 
@@ -49,4 +54,5 @@ None in the prompt.
 
 - Done: skeptic (01-skeptic.md, commit 67d5ea7).
 - Q1 answered: A.
-- Next: spec author (coverage widening, RH8402 replace path, RH8401.md, withheld cases RH8309/RH8401, the answer), then test implementer.
+- Done: spec author (02, ae70663); continued once to narrow RH8309-007.
+- Next: test implementer.
