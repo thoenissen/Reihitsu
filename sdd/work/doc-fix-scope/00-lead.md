@@ -68,4 +68,5 @@ None in the prompt.
 - Done: implementer (04, 42eeedd): all handed tests pass; 2 RH8201 tests disputed; architecture finding.
 - Done: spec author (05, ffbb0bb): RH8307-006, FMT-PIPE-032, positional-record examples.
 - Done: test implementer (06, fa68bde).
-- Next: fresh implementer (07): entry point FMT-PIPE-032, remove the copy in LayOutElementAsync, RH7110 warning. Earlier plan: (structural change, decision 22, and decisions 19/21): spec author (RH8307 `/** */` withholding; any spec text the new formatter entry point needs) → test implementer (fix RH8201 inputs, `/** */` RH8307 test) → fresh implementer (entry point, remove the copy).
+- Done: implementer (07, 2ed4500): entry point added, copy removed, all tests pass.
+- Next: cleaner (08) → spec checker (09) → auditor → validator.
