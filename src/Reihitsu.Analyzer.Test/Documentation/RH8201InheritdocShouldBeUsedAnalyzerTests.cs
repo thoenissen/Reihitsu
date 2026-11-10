@@ -264,6 +264,88 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                              }
                                              """;
 
+    /// <summary>
+    /// Specification example source with an indentation other than four spaces per level, indented directives, and a
+    /// member behind the closing delimiter of a delimited documentation comment
+    /// </summary>
+    private const string IndentedSpecificationExampleSource = """
+                                                              /// <summary>
+                                                              /// Base
+                                                              /// </summary>
+                                                              public abstract class B
+                                                              {
+                                                                  /// <summary>
+                                                                  /// Runs
+                                                                  /// </summary>
+                                                                  public abstract void Run();
+
+                                                                  /// <summary>
+                                                                  /// Stops
+                                                                  /// </summary>
+                                                                  public abstract void Stop();
+                                                              }
+
+                                                              /// <summary>
+                                                              /// Derived
+                                                              /// </summary>
+                                                              public class C : B
+                                                              {
+                                                                    #if DEBUG
+                                                                    #endif
+                                                                    ///{|#0: <summary>
+                                                                    /// Runs here
+                                                                    /// </summary>
+                                                              |}      #pragma warning disable CS0168
+                                                                    public override void Run()
+                                                                    {
+                                                                    }
+
+                                                                /**{|#1: <summary>Stops here</summary> */|} public override void Stop()
+                                                                {
+                                                                }
+                                                              }
+                                                              """;
+
+    /// <summary>
+    /// Expected result of the specification example with an indentation other than four spaces per level
+    /// </summary>
+    private const string IndentedSpecificationExampleFixedSource = """
+                                                                   /// <summary>
+                                                                   /// Base
+                                                                   /// </summary>
+                                                                   public abstract class B
+                                                                   {
+                                                                       /// <summary>
+                                                                       /// Runs
+                                                                       /// </summary>
+                                                                       public abstract void Run();
+
+                                                                       /// <summary>
+                                                                       /// Stops
+                                                                       /// </summary>
+                                                                       public abstract void Stop();
+                                                                   }
+
+                                                                   /// <summary>
+                                                                   /// Derived
+                                                                   /// </summary>
+                                                                   public class C : B
+                                                                   {
+                                                                         #if DEBUG
+                                                                         #endif
+                                                                         /// <inheritdoc/>
+                                                                         #pragma warning disable CS0168
+                                                                         public override void Run()
+                                                                         {
+                                                                         }
+
+                                                                     /// <inheritdoc/>
+                                                                     public override void Stop()
+                                                                     {
+                                                                     }
+                                                                   }
+                                                                   """;
+
     #endregion // Test data
 
     #region Methods
@@ -907,11 +989,12 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
     /// <summary>
     /// Verifies that the synthesized &lt;inheritdoc/&gt; trivia replacing a multi-line (/** */) documentation
-    /// comment uses the environment's end-of-line sequence
+    /// comment uses the document's end-of-line sequence, whatever the environment's is
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyMultiLineDocumentationCommentReplacementUsesEnvironmentEndOfLine()
+    [Requirement("RH8201-005")]
+    public async Task VerifyMultiLineDocumentationCommentReplacementUsesDocumentEndOfLine()
     {
         const string testData = """
                                 using System;
@@ -938,7 +1021,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         var fixedSource = await ApplyCodeFixAsync(testData);
 
-        Assert.Contains($"/// <inheritdoc/>{System.Environment.NewLine}        public override void TestMethod()", fixedSource);
+        Assert.Contains("/// <inheritdoc/>\n        public override void TestMethod()", fixedSource);
     }
 
     /// <summary>
@@ -3453,6 +3536,335 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                    #pragma warning disable CS0618
                                        /// <inheritdoc/>
                                    #pragma warning restore CS0618
+                                       public override void Run()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example with an indentation other than four spaces per level: the fix keeps the
+    /// indented directives, the member lines, and the braces in their columns, and puts a member that followed the
+    /// closing delimiter on the line after the inheritdoc line, in the column of the opening delimiter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8201-005")]
+    public async Task VerifySpecificationExampleKeepsIndentationDirectivesAndMemberBehindDelimitedComment()
+    {
+        await Verify(IndentedSpecificationExampleSource, IndentedSpecificationExampleFixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies the specification example with an indentation other than four spaces per level in a document whose
+    /// line breaks are CRLF: every line break of the result is CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8201-005")]
+    public async Task VerifySpecificationExampleKeepsIndentationDirectivesAndMemberBehindDelimitedCommentWithCarriageReturnLineFeed()
+    {
+        await Verify(NormalizeToCarriageReturnLineFeed(IndentedSpecificationExampleSource),
+                     NormalizeToCarriageReturnLineFeed(IndentedSpecificationExampleFixedSource),
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies the first specification example of the fix in a document whose line breaks are CRLF: the ordinary
+    /// comment, the attribute list, and the comment that followed the closing delimiter keep their lines, and every
+    /// line break of the result is CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8201-005")]
+    public async Task VerifySpecificationExampleReplacesCommentWithInheritdocWithCarriageReturnLineFeed()
+    {
+        var source = NormalizeToCarriageReturnLineFeed("""
+                                                       /// <summary>
+                                                       /// Base
+                                                       /// </summary>
+                                                       public abstract class B
+                                                       {
+                                                           /// <summary>
+                                                           /// Runs
+                                                           /// </summary>
+                                                           public abstract void Run();
+
+                                                           /// <summary>
+                                                           /// Stops
+                                                           /// </summary>
+                                                           public abstract void Stop();
+                                                       }
+
+                                                       /// <summary>
+                                                       /// Derived
+                                                       /// </summary>
+                                                       public class C : B
+                                                       {
+                                                           // Ordinary comment
+                                                           ///{|#0: <summary>
+                                                           /// Runs here
+                                                           /// </summary>
+                                                           /// <remarks>
+                                                           /// Differs
+                                                           /// </remarks>
+                                                       |}    [System.Obsolete]
+                                                           public override void Run()
+                                                           {
+                                                           }
+
+                                                           /**{|#1: <summary>Stops here</summary> */|} // Trailing
+                                                           public override void Stop()
+                                                           {
+                                                           }
+                                                       }
+                                                       """);
+        var fixedSource = NormalizeToCarriageReturnLineFeed("""
+                                                            /// <summary>
+                                                            /// Base
+                                                            /// </summary>
+                                                            public abstract class B
+                                                            {
+                                                                /// <summary>
+                                                                /// Runs
+                                                                /// </summary>
+                                                                public abstract void Run();
+
+                                                                /// <summary>
+                                                                /// Stops
+                                                                /// </summary>
+                                                                public abstract void Stop();
+                                                            }
+
+                                                            /// <summary>
+                                                            /// Derived
+                                                            /// </summary>
+                                                            public class C : B
+                                                            {
+                                                                // Ordinary comment
+                                                                /// <inheritdoc/>
+                                                                [System.Obsolete]
+                                                                public override void Run()
+                                                                {
+                                                                }
+
+                                                                /// <inheritdoc/>
+                                                                // Trailing
+                                                                public override void Stop()
+                                                                {
+                                                                }
+                                                            }
+                                                            """);
+
+        await Verify(source, fixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps every line break of a CRLF document as CRLF when nothing but the reported comment
+    /// stands in the member's leading trivia
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8201-005")]
+    public async Task VerifyFixKeepsCarriageReturnLineFeedOfPlainMember()
+    {
+        var source = NormalizeToCarriageReturnLineFeed("""
+                                                       /// <summary>Base</summary>
+                                                       public abstract class B
+                                                       {
+                                                           /// <summary>Runs</summary>
+                                                           public abstract void Run();
+                                                       }
+
+                                                       /// <summary>Derived</summary>
+                                                       public class C : B
+                                                       {
+                                                           ///{|#0: <summary>
+                                                           /// Runs here
+                                                           /// </summary>
+                                                       |}    public override void Run()
+                                                           {
+                                                           }
+                                                       }
+                                                       """);
+        var fixedSource = NormalizeToCarriageReturnLineFeed("""
+                                                            /// <summary>Base</summary>
+                                                            public abstract class B
+                                                            {
+                                                                /// <summary>Runs</summary>
+                                                                public abstract void Run();
+                                                            }
+
+                                                            /// <summary>Derived</summary>
+                                                            public class C : B
+                                                            {
+                                                                /// <inheritdoc/>
+                                                                public override void Run()
+                                                                {
+                                                                }
+                                                            }
+                                                            """);
+
+        await Verify(source, fixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps an indented region directive and the blank line behind it in front of the replaced
+    /// comment, with every line break of a CRLF document kept as CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8201-005")]
+    public async Task VerifyFixKeepsIndentedRegionAndBlankLineWithCarriageReturnLineFeed()
+    {
+        var source = NormalizeToCarriageReturnLineFeed("""
+                                                       /// <summary>Base</summary>
+                                                       public abstract class B
+                                                       {
+                                                           /// <summary>Runs</summary>
+                                                           public abstract void Run();
+                                                       }
+
+                                                       /// <summary>Derived</summary>
+                                                       public class C : B
+                                                       {
+                                                           #region B
+
+                                                           ///{|#0: <summary>
+                                                           /// Runs here
+                                                           /// </summary>
+                                                       |}    public override void Run()
+                                                           {
+                                                           }
+
+                                                           #endregion // B
+                                                       }
+                                                       """);
+        var fixedSource = NormalizeToCarriageReturnLineFeed("""
+                                                            /// <summary>Base</summary>
+                                                            public abstract class B
+                                                            {
+                                                                /// <summary>Runs</summary>
+                                                                public abstract void Run();
+                                                            }
+
+                                                            /// <summary>Derived</summary>
+                                                            public class C : B
+                                                            {
+                                                                #region B
+
+                                                                /// <inheritdoc/>
+                                                                public override void Run()
+                                                                {
+                                                                }
+
+                                                                #endregion // B
+                                                            }
+                                                            """);
+
+        await Verify(source, fixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps an indented nullable directive and an indented delimited ordinary comment between
+    /// the replaced comment and the member in their columns
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8201-005")]
+    public async Task VerifyFixKeepsIndentedNullableDirectiveAndDelimitedCommentBehindComment()
+    {
+        const string source = """
+                              /// <summary>Base</summary>
+                              public abstract class B
+                              {
+                                  /// <summary>Runs</summary>
+                                  public abstract void Run();
+                              }
+
+                              /// <summary>Derived</summary>
+                              public class C : B
+                              {
+                                  ///{|#0: <summary>Runs here</summary>
+                              |}    #nullable enable
+                                  /* Note */
+                                  public override void Run()
+                                  {
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   /// <summary>Base</summary>
+                                   public abstract class B
+                                   {
+                                       /// <summary>Runs</summary>
+                                       public abstract void Run();
+                                   }
+
+                                   /// <summary>Derived</summary>
+                                   public class C : B
+                                   {
+                                       /// <inheritdoc/>
+                                       #nullable enable
+                                       /* Note */
+                                       public override void Run()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps an indented if group with the code it excludes, and its else and endif
+    /// directives, in front of the replaced comment in their columns
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8201-005")]
+    public async Task VerifyFixKeepsIndentedConditionalGroupWithExcludedCodeInFrontOfComment()
+    {
+        const string source = """
+                              /// <summary>Base</summary>
+                              public abstract class B
+                              {
+                                  /// <summary>Runs</summary>
+                                  public abstract void Run();
+                              }
+
+                              /// <summary>Derived</summary>
+                              public class C : B
+                              {
+                                  #if NEVER
+                                  int _excluded;
+                                  #else
+                                  #endif
+                                  ///{|#0: <summary>Runs here</summary>
+                              |}    public override void Run()
+                                  {
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   /// <summary>Base</summary>
+                                   public abstract class B
+                                   {
+                                       /// <summary>Runs</summary>
+                                       public abstract void Run();
+                                   }
+
+                                   /// <summary>Derived</summary>
+                                   public class C : B
+                                   {
+                                       #if NEVER
+                                       int _excluded;
+                                       #else
+                                       #endif
+                                       /// <inheritdoc/>
                                        public override void Run()
                                        {
                                        }

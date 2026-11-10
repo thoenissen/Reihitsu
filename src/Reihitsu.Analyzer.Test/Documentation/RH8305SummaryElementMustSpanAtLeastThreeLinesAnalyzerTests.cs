@@ -512,26 +512,374 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
     }
 
     /// <summary>
-    /// Verifies that a refused comment in the body of the documented method withholds the fix: the fix formats the
-    /// documented declaration, which the formatter refuses, although the summary holds no refused shape
+    /// Verifies that a comment the formatter refuses in the body of the documented method does not withhold the fix:
+    /// the fix changes only the summary, so the body, refused comment included, stays as written
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-FIX-010")]
-    public async Task NoFixIsOfferedWhenTheDocumentedMemberHoldsACommentTheFormatterRefuses()
+    [Requirement("RH8305-004")]
+    public async Task VerifyFixLaysOutSummaryOfMemberThatHoldsACommentTheFormatterRefuses()
     {
         const string source = """
                               internal class TestClass
                               {
-                                  /// {|RH8305:<summary>Summary text</summary>|}
+                                  /// {|#0:<summary>Summary text</summary>|}
                                   private void Method()
                                   {
                                       int /* c */ y = 1;
                                   }
                               }
                               """;
+        const string fixedSource = """
+                                   internal class TestClass
+                                   {
+                                       /// <summary>
+                                       /// Summary text
+                                       /// </summary>
+                                       private void Method()
+                                       {
+                                           int /* c */ y = 1;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example for a type directly in the compilation unit: the fix lays out the summary and
+    /// keeps the other line of the comment and the type's code as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-004")]
+    public async Task VerifySpecificationExampleKeepsTheRestOfATypeDirectlyInTheCompilationUnit()
+    {
+        const string testData = """
+                                /// {|#0:<summary>Runs</summary>|}
+                                ///Text
+                                public class C { int A(int a) => a; }
+                                """;
+        const string fixedData = """
+                                 /// <summary>
+                                 /// Runs
+                                 /// </summary>
+                                 ///Text
+                                 public class C { int A(int a) => a; }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example for a type directly in the compilation unit in a document whose line breaks
+    /// are CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-004")]
+    public async Task VerifySpecificationExampleKeepsTheRestOfATypeDirectlyInTheCompilationUnitWithCarriageReturnLineFeed()
+    {
+        var testData = NormalizeToCarriageReturnLineFeed("""
+                                                         /// {|#0:<summary>Runs</summary>|}
+                                                         ///Text
+                                                         public class C { int A(int a) => a; }
+                                                         """);
+        var fixedData = NormalizeToCarriageReturnLineFeed("""
+                                                          /// <summary>
+                                                          /// Runs
+                                                          /// </summary>
+                                                          ///Text
+                                                          public class C { int A(int a) => a; }
+                                                          """);
+
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the other documentation comment of the declaration and the blank line
+    /// between the two comments stay
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-004")]
+    public async Task VerifySpecificationExampleKeepsOtherDocumentationCommentAndBlankLine()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <remarks>Remarks</remarks>
+
+                                    /// {|#0:<summary>Count</summary>|}
+                                    int B;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <remarks>Remarks</remarks>
+
+                                     /// <summary>
+                                     /// Count
+                                     /// </summary>
+                                     int B;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a summary in a comment that starts behind code is reported, and no fix is
+    /// offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-005")]
+    public async Task VerifyNoCodeFixForSummaryInCommentWrittenBehindCode()
+    {
+        const string source = """
+                              class C
+                              {
+                                  int A; /// {|RH8305:<summary>Value</summary>|}
+                                  int B;
+                              }
+                              """;
 
         await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a summary in a comment that starts behind code is reported and gets no fix in a document whose
+    /// line breaks are CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-005")]
+    public async Task VerifyNoCodeFixForSummaryInCommentWrittenBehindCodeWithCarriageReturnLineFeed()
+    {
+        const string source = """
+                              class C
+                              {
+                                  int A; /// {|RH8305:<summary>Value</summary>|}
+                                  int B;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(source));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps a method body that the formatter would lay out differently as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-004")]
+    public async Task VerifyFixKeepsMethodBodyAsWritten()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// {|#0:<summary>Runs</summary>|}
+                                    void M(){int a=1;
+                                a++;}
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>
+                                     /// Runs
+                                     /// </summary>
+                                     void M(){int a=1;
+                                 a++;}
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the empty body of a documented type in a namespace as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-004")]
+    public async Task VerifyFixKeepsEmptyTypeBodyInNamespace()
+    {
+        const string testData = """
+                                namespace N
+                                {
+                                    /// {|#0:<summary>S</summary>|}
+                                    public class C { }
+                                }
+                                """;
+        const string fixedData = """
+                                 namespace N
+                                 {
+                                     /// <summary>
+                                     /// S
+                                     /// </summary>
+                                     public class C { }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the nested members of a documented type as written: an expression body, a body on
+    /// one line, and a nested member's documentation comment with a missing space and a blank line inside its leading
+    /// trivia
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-004")]
+    public async Task VerifyFixKeepsNestedMembersOfDocumentedTypeAsWritten()
+    {
+        const string testData = """
+                                namespace N
+                                {
+                                    /// {|#0:<summary>S</summary>|}
+                                    public class C
+                                    {
+                                        int A(int a) => a;
+
+                                        void B(){ }
+
+                                        /// <remarks>R</remarks>
+
+                                        ///Text
+                                        int D;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 namespace N
+                                 {
+                                     /// <summary>
+                                     /// S
+                                     /// </summary>
+                                     public class C
+                                     {
+                                         int A(int a) => a;
+
+                                         void B(){ }
+
+                                         /// <remarks>R</remarks>
+
+                                         ///Text
+                                         int D;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps a line of the same comment that the formatter would rewrite as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-004")]
+    public async Task VerifyFixKeepsOtherLineOfTheSameCommentAsWritten()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// {|#0:<summary>Runs</summary>|}
+                                    ///Text
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>
+                                     /// Runs
+                                     /// </summary>
+                                     ///Text
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out the summary of a declaration directly in the compilation unit in one application
+    /// and keeps the declaration's code, for every kind of type declaration and wherever in the file it stands
+    /// </summary>
+    /// <param name="prefix">Code in front of the documented declaration</param>
+    /// <param name="declaration">Documented declaration</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-004")]
+    [DataRow("", "public class C\n{\n}")]
+    [DataRow("", "public class C { }")]
+    [DataRow("", "public struct S\n{\n}")]
+    [DataRow("", "public interface I\n{\n}")]
+    [DataRow("", "public enum E\n{\n    A,\n}")]
+    [DataRow("", "public delegate void D();")]
+    [DataRow("", "public record R(int A);")]
+    [DataRow("public class A\n{\n}\n\n", "public class C\n{\n}")]
+    [DataRow("using System;\n\n", "public class C\n{\n}")]
+    [DataRow("// File header\n\n", "public class C\n{\n}")]
+    public async Task VerifyFixLaysOutSummaryOfDeclarationDirectlyInTheCompilationUnit(string prefix, string declaration)
+    {
+        var testData = $"{prefix}/// {{|#0:<summary>S</summary>|}}\n{declaration}";
+        var fixedData = $"{prefix}/// <summary>\n/// S\n/// </summary>\n{declaration}";
+
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out the summary of a type directly in the compilation unit in a document whose line
+    /// breaks are CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-004")]
+    public async Task VerifyFixLaysOutSummaryOfTypeDirectlyInTheCompilationUnitWithCarriageReturnLineFeed()
+    {
+        await Verify("/// {|#0:<summary>S</summary>|}\r\npublic class C\r\n{\r\n}",
+                     "/// <summary>\r\n/// S\r\n/// </summary>\r\npublic class C\r\n{\r\n}",
+                     Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that Fix All lays out the summaries of two types directly in the compilation unit in one pass
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-004")]
+    public async Task VerifyFixAllLaysOutSummariesOfTypesDirectlyInTheCompilationUnit()
+    {
+        const string testData = """
+                                /// {|#0:<summary>A</summary>|}
+                                public class A { }
+
+                                /// {|#1:<summary>B</summary>|}
+                                public class B { }
+                                """;
+        const string fixedData = """
+                                 /// <summary>
+                                 /// A
+                                 /// </summary>
+                                 public class A { }
+
+                                 /// <summary>
+                                 /// B
+                                 /// </summary>
+                                 public class B { }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat, 2));
     }
 
     #endregion // Tests

@@ -538,18 +538,259 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
     }
 
     /// <summary>
-    /// Verifies that a refused comment in the body of the documented method withholds the fix: the fix formats the
-    /// documented declaration, which the formatter refuses, although the documentation holds no refused shape
+    /// Verifies the specification example for a type directly in the compilation unit: the fix lays out the element and
+    /// keeps the type's code as written
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-FIX-010")]
-    public async Task NoFixIsOfferedWhenTheDocumentedMemberHoldsACommentTheFormatterRefuses()
+    [Requirement("RH8307-004")]
+    public async Task VerifySpecificationExampleKeepsTheRestOfATypeDirectlyInTheCompilationUnit()
+    {
+        const string testData = """
+                                /// <summary>
+                                /// Total
+                                /// </summary>
+                                /// {|#0:<remarks>Sum
+                                /// more</remarks>|}
+                                public class C { int A(int a) => a; }
+                                """;
+        const string fixedData = """
+                                 /// <summary>
+                                 /// Total
+                                 /// </summary>
+                                 /// <remarks>
+                                 /// Sum
+                                 /// more
+                                 /// </remarks>
+                                 public class C { int A(int a) => a; }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example for a type directly in the compilation unit in a document whose line breaks
+    /// are CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-004")]
+    public async Task VerifySpecificationExampleKeepsTheRestOfATypeDirectlyInTheCompilationUnitWithCarriageReturnLineFeed()
+    {
+        var testData = NormalizeToCarriageReturnLineFeed("""
+                                                         /// <summary>
+                                                         /// Total
+                                                         /// </summary>
+                                                         /// {|#0:<remarks>Sum
+                                                         /// more</remarks>|}
+                                                         public class C { int A(int a) => a; }
+                                                         """);
+        var fixedData = NormalizeToCarriageReturnLineFeed("""
+                                                          /// <summary>
+                                                          /// Total
+                                                          /// </summary>
+                                                          /// <remarks>
+                                                          /// Sum
+                                                          /// more
+                                                          /// </remarks>
+                                                          public class C { int A(int a) => a; }
+                                                          """);
+
+        await Verify(testData, fixedData, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: an element in a comment that starts behind code is reported, and no fix is
+    /// offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-005")]
+    public async Task VerifyNoCodeFixForElementInCommentWrittenBehindCode()
+    {
+        const string source = """
+                              class C
+                              {
+                                  int A; /// {|RH8307:<remarks>R
+                                  /// more</remarks>|}
+                                  int B;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a summary in a comment that starts behind code is reported and gets no fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-005")]
+    public async Task VerifyNoCodeFixForSummaryInCommentWrittenBehindCode()
+    {
+        const string source = """
+                              class C
+                              {
+                                  int A; /// {|RH8307:<summary>Total
+                                  /// sum</summary>|}
+                                  int B;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps a method body that the formatter would lay out differently as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-004")]
+    public async Task VerifyFixKeepsMethodBodyAsWritten()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// Runs
+                                    /// </summary>
+                                    /// {|#0:<param name="v">The value
+                                    /// </param>|}
+                                    void M(int v){int a=1;}
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>
+                                     /// Runs
+                                     /// </summary>
+                                     /// <param name="v">The value</param>
+                                     void M(int v){int a=1;}
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the nested members of a documented type as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-004")]
+    public async Task VerifyFixKeepsNestedMembersOfDocumentedTypeAsWritten()
+    {
+        const string testData = """
+                                namespace N
+                                {
+                                    /// {|#0:<summary>Total
+                                    /// sum</summary>|}
+                                    public class C
+                                    {
+                                        int A(int a) => a;
+
+                                        void B(){ }
+
+                                        ///Text
+                                        int D;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 namespace N
+                                 {
+                                     /// <summary>
+                                     /// Total
+                                     /// sum
+                                     /// </summary>
+                                     public class C
+                                     {
+                                         int A(int a) => a;
+
+                                         void B(){ }
+
+                                         ///Text
+                                         int D;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the other documentation comment of the declaration and the blank line between the two
+    /// comments
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-004")]
+    public async Task VerifyFixKeepsOtherDocumentationCommentAndBlankLine()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <remarks>Remarks</remarks>
+
+                                    /// {|#0:<summary>Total
+                                    /// sum</summary>|}
+                                    int B;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <remarks>Remarks</remarks>
+
+                                     /// <summary>
+                                     /// Total
+                                     /// sum
+                                     /// </summary>
+                                     int B;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out the element of a declaration directly in the compilation unit in one application
+    /// and keeps the declaration's code, for several kinds of type declaration and wherever in the file it stands
+    /// </summary>
+    /// <param name="prefix">Code in front of the documented declaration</param>
+    /// <param name="declaration">Documented declaration</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-004")]
+    [DataRow("", "public class C\n{\n}")]
+    [DataRow("", "public struct S\n{\n}")]
+    [DataRow("", "public enum E\n{\n    A,\n}")]
+    [DataRow("", "public delegate void D();")]
+    [DataRow("", "public record R(int A);")]
+    [DataRow("public class A\n{\n}\n\n", "public class C\n{\n}")]
+    [DataRow("using System;\n\n", "public class C\n{\n}")]
+    public async Task VerifyFixLaysOutElementOfDeclarationDirectlyInTheCompilationUnit(string prefix, string declaration)
+    {
+        var testData = $"{prefix}/// {{|#0:<summary>Total\n/// sum</summary>|}}\n{declaration}";
+        var fixedData = $"{prefix}/// <summary>\n/// Total\n/// sum\n/// </summary>\n{declaration}";
+
+        await Verify(testData, fixedData, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment the formatter refuses in the body of the documented method does not withhold the fix:
+    /// the fix changes only the reported element, so the body, refused comment included, stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-004")]
+    public async Task VerifyFixLaysOutElementOfMemberThatHoldsACommentTheFormatterRefuses()
     {
         const string source = """
                               internal class TestClass
                               {
-                                  /// {|RH8307:<summary><see cref="string"/>
+                                  /// {|#0:<summary><see cref="string"/>
                                   /// values</summary>|}
                                   private void Method()
                                   {
@@ -557,8 +798,21 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
                                   }
                               }
                               """;
+        const string fixedSource = """
+                                   internal class TestClass
+                                   {
+                                       /// <summary>
+                                       /// <see cref="string"/>
+                                       /// values
+                                       /// </summary>
+                                       private void Method()
+                                       {
+                                           int /* c */ y = 1;
+                                       }
+                                   }
+                                   """;
 
-        await VerifyNoCodeFixIsOffered(source);
+        await Verify(source, fixedSource, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat));
     }
 
     #endregion // Tests

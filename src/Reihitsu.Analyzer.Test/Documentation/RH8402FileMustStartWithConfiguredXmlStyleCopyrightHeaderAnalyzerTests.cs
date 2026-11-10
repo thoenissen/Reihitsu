@@ -568,6 +568,93 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
                                          "// <copyright file=\"C.cs\" company=\"Example\">\r\n// Copyright (c) Example.\r\n// </copyright>\r\nnamespace N;\r\n\r\nclass C\r\n{\r\n}\r\n");
     }
 
+    /// <summary>
+    /// Verifies the specification example: the fix replaces an old header and keeps the blank line behind it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-006")]
+    public async Task FixReplacesOldHeaderAndKeepsBlankLineBehindIt()
+    {
+        await VerifySpecificationFileFix("// Copyright (c) Old Corp.\n\nnamespace N;\n",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\n\nnamespace N;\n");
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the fix replaces an old header directly in front of the code and writes no
+    /// blank line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-006")]
+    public async Task FixReplacesOldHeaderDirectlyInFrontOfCode()
+    {
+        await VerifySpecificationFileFix("// <copyright file=\"Other.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\nnamespace N;\n",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\nnamespace N;\n");
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps two blank lines behind a replaced old header
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-006")]
+    public async Task FixReplacesOldHeaderAndKeepsTwoBlankLinesBehindIt()
+    {
+        await VerifySpecificationFileFix("// Copyright (c) Old Corp.\n\n\nnamespace N;\n",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\n\n\nnamespace N;\n");
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the blank line between a replaced old header and a preprocessor directive
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-006")]
+    public async Task FixReplacesOldHeaderAndKeepsBlankLineInFrontOfDirective()
+    {
+        await VerifySpecificationFileFix("// Copyright (c) Old Corp.\n\n#nullable enable\nnamespace N;\n",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\n\n#nullable enable\nnamespace N;\n");
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the blank line between a replaced old header and a documentation comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-006")]
+    public async Task FixReplacesOldHeaderAndKeepsBlankLineInFrontOfDocumentationComment()
+    {
+        await VerifySpecificationFileFix("// Copyright (c) Old Corp.\n\n/// <summary>Type</summary>\nclass C\n{\n}\n",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\n\n/// <summary>Type</summary>\nclass C\n{\n}\n");
+    }
+
+    /// <summary>
+    /// Verifies that the fix replaces an old delimited header and puts a line break between the header and code that
+    /// followed the old header on its line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-006")]
+    public async Task FixReplacesOldDelimitedHeaderFollowedByCodeOnItsLine()
+    {
+        await VerifySpecificationFileFix("/* Copyright (c) Old Corp. */ namespace N;\n",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\nnamespace N;\n");
+    }
+
+    /// <summary>
+    /// Verifies the specification example of an old header followed by a blank line in a CRLF file: the blank line and
+    /// every line break stay CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-006")]
+    public async Task FixReplacesOldHeaderAndKeepsBlankLineBehindItWithCarriageReturnLineFeed()
+    {
+        await VerifySpecificationFileFix("// Copyright (c) Old Corp.\r\n\r\nnamespace N;\r\n",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\r\n// Copyright (c) Example.\r\n// </copyright>\r\n\r\nnamespace N;\r\n");
+    }
+
     #endregion // Tests
 
     #region Methods
