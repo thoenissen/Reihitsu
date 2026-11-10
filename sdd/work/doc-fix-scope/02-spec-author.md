@@ -128,3 +128,11 @@ _None._
   So no specified behavior changes. `AGENTS.md` (*Code-fix coverage*) makes withholding for a rare class a rule-local decision recorded in the rule's spec, and the one visible decision (Q1) has the maintainer's answer in `00-lead.md`. RH8402-006 writes down existing behavior plus a bug-fix target demanded by SHARED-FIX-006. The alternative is one change doc for the five withheld cases, which would widen the run to the behavior-change lane (`sdd/README.md`, *When a change doc is required*, "a requirement is added with new behavior"). This is the lead's decision. My recommendation is no change doc.
 - New requirement IDs, inserted in `sdd/specs/requirement-ids.txt`: RH8305-005, RH8307-005, RH8309-006, RH8309-007, RH8401-005, RH8402-006. Each needs a covering test in this PR (`RequirementCoverageTests` fails until the test implementer adds them).
 - `scripts/test.sh --project architecture --filter "SpecStructureTests|SpecConsistencyTests|RuleDocumentation"`: 26 passed (`Uses` rows, ledger order, code owners).
+
+## Amendment after the lead's decision
+
+- Lead decisions: (1) whitespace-only placeholder content kept — accepted; (2) no change doc — accepted; (3) RH8309-007 narrowed.
+- RH8309-007 — renamed *The fix is withheld for a later documentation comment* — changed: the fix is withheld only when the reported comment is not the declaration's first documentation comment (the one the fix edits). A diagnostic in the first comment keeps today's fix, and the later comments stay as they are. The second example now shows that case before and after the fix (blank line and later comment kept).
+- RH8309-004 — coverage changed from "the only documentation comment of its declaration" to "the first documentation comment of its declaration, whether or not later ones follow"; the pointer to RH8309-007 is reworded.
+- The internal choice recorded under #1343 for RH8309-007 (withhold for every declaration with several comments) is superseded.
+- Examples for the tests: RH8309-007, both examples (the first withheld, the second fixed). Also add a `/** */` or ordinary-comment separator variant of the withheld case.
