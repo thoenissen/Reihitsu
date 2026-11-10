@@ -69,4 +69,5 @@ None in the prompt.
 - Done: spec author (05, ffbb0bb): RH8307-006, FMT-PIPE-032, positional-record examples.
 - Done: test implementer (06, fa68bde).
 - Done: implementer (07, 2ed4500): entry point added, copy removed, all tests pass.
-- Next: cleaner (08) → spec checker (09) → auditor → validator.
+- Done: cleaner (08, c6b0a5c, clean); spec checker (09, 1d852e3, consistent).
+- Next: auditor (10) on 1d852e3, base main 8ac5705 → validator.
