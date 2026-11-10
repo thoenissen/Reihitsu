@@ -815,6 +815,166 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
         await Verify(source, fixedSource, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the specification example: no fix is offered for an element of a delimited documentation comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-006")]
+    public async Task VerifySpecificationExampleNoCodeFixForElementOfDelimitedDocumentationComment()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /** <summary>
+                                  Total
+                                  </summary>
+                                  {|RH8307:<remarks>Sum
+                                  more</remarks>|} */
+                                  int A;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that no fix is offered for an element nested in another element of a delimited documentation comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-006")]
+    public async Task VerifyNoCodeFixForNestedElementOfDelimitedDocumentationComment()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /** <summary>
+                                  Total
+                                  </summary>
+                                  <remarks>
+                                  {|RH8307:<para>Sum
+                                  more</para>|}
+                                  </remarks> */
+                                  int A;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that the same nested element in a single-line documentation comment still gets the fix, next to the
+    /// delimited comment that gets none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-004")]
+    [Requirement("RH8307-006")]
+    public async Task VerifyFixForNestedElementOfSingleLineDocumentationComment()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// Total
+                                    /// </summary>
+                                    /// <remarks>
+                                    /// {|#0:<para>Sum
+                                    /// more</para>|}
+                                    /// </remarks>
+                                    int A;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>
+                                     /// Total
+                                     /// </summary>
+                                     /// <remarks>
+                                     /// <para>
+                                     /// Sum
+                                     /// more
+                                     /// </para>
+                                     /// </remarks>
+                                     int A;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: an element in the documentation comment of a positional record is reported
+    /// once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-003")]
+    public async Task VerifySpecificationExampleElementOfPositionalRecordIsReportedOnce()
+    {
+        const string testData = """
+                                /// <summary>
+                                /// Point
+                                /// </summary>
+                                /// {|#0:<remarks>Sum
+                                /// more</remarks>|}
+                                public record R(int A);
+                                """;
+
+        await Verify(testData, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an element in the documentation comment of a type with a primary constructor is reported once,
+    /// wherever the type stands
+    /// </summary>
+    /// <param name="prefix">Code in front of the documented declaration</param>
+    /// <param name="declaration">Documented declaration</param>
+    /// <param name="suffix">Code behind the documented declaration</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-003")]
+    [DataRow("", "public class C(int a)\n{\n    public int A => a;\n}", "")]
+    [DataRow("", "public struct S(int a)\n{\n    public int A => a;\n}", "")]
+    [DataRow("", "public record struct P(int A);", "")]
+    [DataRow("", "public record class Q(int A)\n{\n}", "")]
+    [DataRow("namespace N\n{\n", "public record R(int A);", "\n}")]
+    [DataRow("public class O\n{\n", "public record R(int A);", "\n}")]
+    public async Task VerifyElementOfTypeWithPrimaryConstructorIsReportedOnce(string prefix, string declaration, string suffix)
+    {
+        var testData = $"{prefix}/// <summary>\n/// Point\n/// </summary>\n/// {{|#0:<remarks>Sum\n/// more</remarks>|}}\n{declaration}{suffix}";
+
+        await Verify(testData, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an element in the documentation comment of an explicit constructor is still reported, next to the
+    /// primary constructor whose second run is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-003")]
+    public async Task VerifyElementOfExplicitConstructorIsReportedOnce()
+    {
+        const string testData = """
+                                public class C
+                                {
+                                    /// <summary>
+                                    /// Creates
+                                    /// </summary>
+                                    /// {|#0:<remarks>Sum
+                                    /// more</remarks>|}
+                                    public C()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

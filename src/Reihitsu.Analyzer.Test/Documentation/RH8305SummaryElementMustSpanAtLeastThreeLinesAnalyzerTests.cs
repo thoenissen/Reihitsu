@@ -882,6 +882,66 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
         await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat, 2));
     }
 
+    /// <summary>
+    /// Verifies the specification example: a summary in the documentation comment of a positional record is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-003")]
+    public async Task VerifySpecificationExampleSummaryOfPositionalRecordIsReportedOnce()
+    {
+        const string testData = """
+                                /// {|#0:<summary>Point</summary>|}
+                                public record R(int A);
+                                """;
+
+        await Verify(testData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a summary in the documentation comment of a type with a primary constructor is reported once, wherever
+    /// the type stands
+    /// </summary>
+    /// <param name="prefix">Code in front of the documented declaration</param>
+    /// <param name="declaration">Documented declaration</param>
+    /// <param name="suffix">Code behind the documented declaration</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-003")]
+    [DataRow("", "public class C(int a)\n{\n    public int A => a;\n}", "")]
+    [DataRow("", "public struct S(int a)\n{\n    public int A => a;\n}", "")]
+    [DataRow("", "public record struct P(int A);", "")]
+    [DataRow("", "public record class Q(int A)\n{\n}", "")]
+    [DataRow("namespace N\n{\n", "public record R(int A);", "\n}")]
+    [DataRow("public class O\n{\n", "public record R(int A);", "\n}")]
+    public async Task VerifySummaryOfTypeWithPrimaryConstructorIsReportedOnce(string prefix, string declaration, string suffix)
+    {
+        var testData = $"{prefix}/// {{|#0:<summary>Point</summary>|}}\n{declaration}{suffix}";
+
+        await Verify(testData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a summary in the documentation comment of an explicit constructor is still reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-003")]
+    public async Task VerifySummaryOfExplicitConstructorIsReportedOnce()
+    {
+        const string testData = """
+                                public class C
+                                {
+                                    /// {|#0:<summary>Creates</summary>|}
+                                    public C()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

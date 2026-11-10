@@ -412,7 +412,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                     ///{|#0: <summary>
                                     /// Implementation documentation
                                     /// </summary>
-                                |}        public override event EventHandler TestEvent;
+                                |}    public override event EventHandler TestEvent;
                                 }
                                 """;
 
@@ -575,10 +575,10 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                 internal class TestImplementation : TestBase
                                 {
                                     ///{|#0: <summary>First implementation</summary>
-                                |}        public override event EventHandler First;
+                                |}    public override event EventHandler First;
 
                                     ///{|#1: <summary>Second implementation</summary>
-                                |}        public override event EventHandler Second;
+                                |}    public override event EventHandler Second;
                                 }
                                 """;
 
