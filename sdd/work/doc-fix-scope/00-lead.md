@@ -23,7 +23,7 @@ None in the prompt.
 
 ## Maintainer answers
 
-(none yet)
+- Q1 (#1342; RH8305/RH8307/RH8309, documentation comment written behind code on the same line as code): **A** — withhold the fix for that shape; the diagnostic stays. The #1342 comment's expected in-place layout is dropped.
 
 ## Decisions taken
 
@@ -48,5 +48,5 @@ None in the prompt.
 ## Worklist / next step
 
 - Done: skeptic (01-skeptic.md, commit 67d5ea7).
-- Open: output question 1 (#1342, behind-code doc comment, RH8305/RH8307/RH8309) asked before test implementer.
-- Next after answer: spec author (coverage widening, RH8402 replace path, RH8401.md, withheld cases RH8309/RH8401, the answer), then test implementer.
+- Q1 answered: A.
+- Next: spec author (coverage widening, RH8402 replace path, RH8401.md, withheld cases RH8309/RH8401, the answer), then test implementer.
