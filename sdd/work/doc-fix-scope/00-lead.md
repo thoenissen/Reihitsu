@@ -52,12 +52,15 @@ None in the prompt.
 | 21 | Implementer | RH8307 fix withheld for an element inside `/** */` | Accept (rare class); spec author records it in RH8307 spec, test implementer adds a test | AGENTS.md *Code-fix coverage* | Rare-class withholding | — |
 | 22 | Implementer | Architecture finding: `LayOutElementAsync` re-indents element lines, copying the formatter's `///` prefix decision; no `ReihitsuFormatter` entry point lays out one documentation element | (c) Add a narrow `ReihitsuFormatter` entry point that lays out one documentation element; the fixes call it and the copy goes. (a) keeps a copy (FC-015); (b) renames a type to evade the FMT-PIPE-009 ban | README *Architecture findings*: the narrow fix would itself add a copy; change stays in the formatter, the counterpart the fixes already use; well under 100 lines, no new type | Internal structure; outputs unchanged | — |
 | 23 | Spec author (05) | FMT-PIPE-032 entry point name `FormatDocumentationElementInDocumentAsync`; added lines take the start-tag line's indentation; fixes keep their own registration checks | Accept all three | Matches today's fix output; the formatter now owns the prefix decision | Internal; outputs unchanged | ffbb0bb |
+| 24 | Auditor (10) | Finding #2 RH8402: header text ending in a line break yields an extra blank line | Repair round 1: spec author widens RH8402-006 coverage to that configuration, test implementer adds a test, implementer writes one line break | PR-introduced regression against main | Restores main's output; demanded by RH8402-006 once covered | — |
+| 25 | Auditor (10) | Finding #1 RH8204 dead fallback branch | Repair round 1: implementer deletes the unreachable branch | PR-introduced dead code | Internal | — |
+| 26 | Auditor (10) | RH8309 accessor follow-up candidate | Dropped: the fix is now withheld there (no SHARED-FIX-005 violation left), and accessor documentation is a rare class | — | Rare-class withholding | 2ed4500 |
 
 ## Follow-up candidates
 
-- RH8309 fix makes no progress on an accessor's documentation comment (`get => 0;` with `<remarks>` before `<summary>`): SHARED-FIX-005 — 01-skeptic.md, #1342 section.
 - Other documentation analyzers registered on comment nodes probably report twice on positional records / primary-constructor types; the guard could live in `RegisterSyntaxNodeActionWithDocumentationModeCheck` — 04-implementer.md (not run).
 - RH8307 reports an element inside a `/** */` comment, which now has no fix while RH8304/RH8305/RH8308 do not report there; question: keep reporting without fix (A) or stop reporting (B, recommended) — 05-spec-author.md.
+- RH8307 `ViolatesRule` and the documentation phase's `NeedsLineAlignmentNormalization` are two copies of one predicate (pre-existing); the fix now depends on them agreeing — 10-auditor.md.
 
 ## Worklist / next step
 
@@ -70,4 +73,5 @@ None in the prompt.
 - Done: test implementer (06, fa68bde).
 - Done: implementer (07, 2ed4500): entry point added, copy removed, all tests pass.
 - Done: cleaner (08, c6b0a5c, clean); spec checker (09, 1d852e3, consistent).
-- Next: auditor (10) on 1d852e3, base main 8ac5705 → validator.
+- Done: auditor (10, 9987064): findings #1 (low), #2 (medium). Audited SHA 1d852e3.
+- Repair round 1 (of 3): spec author (11) → test implementer (12) → implementer (13) → cleaner → spec checker → auditor (repair only) → validator.
