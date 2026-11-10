@@ -5,7 +5,7 @@
 | ID prefix | SHARED-FIX |
 | Status | Active |
 | Code owners | — |
-| Uses | FMT-PIPE-007, FMT-PIPE-017, FMT-PIPE-018, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, RH2001-009, RH2001-010, RH5111-004, RH5303-005, RH7004-004, RH7309-006, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002, SHARED-ORDER-006, SHARED-ORDER-007, SHARED-ORDER-008 |
+| Uses | FMT-PIPE-007, FMT-PIPE-017, FMT-PIPE-018, FMT-PIPE-030, FMT-PIPE-032, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, RH2001-009, RH2001-010, RH5111-004, RH5303-005, RH7004-004, RH7309-006, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002, SHARED-ORDER-006, SHARED-ORDER-007, SHARED-ORDER-008 |
 
 This spec covers what holds for every code fix of an analyzer rule, so a rule spec states only what its own fix produces and when it is withheld. It applies to every rule whose header names a code fix, without being listed under `Uses`; SHARED-FIX-002 applies to the rules whose header says `Fix All`.
 
@@ -1139,6 +1139,8 @@ The fix MUST learn this when it registers, before it offers an action, by asking
 - a fix that formats a node of the document with `FormatNodeInDocumentAsync` or `FormatNode` — that node;
 - a fix that formats its target in a context with `FormatNodeInDocumentWithContextAsync` — the context (FMT-UNSUP-002);
 - a fix that builds a node and then formats it — the node it builds, as it would be formatted, not the code it replaces.
+
+A fix that formats only through `OrganizeUsingDirectivesInDocumentAsync` (FMT-PIPE-030) or `FormatDocumentationElementInDocumentAsync` (FMT-PIPE-032) asks nothing: those entry points refuse no input (FMT-UNSUP-002).
 
 The fix MUST NOT decide the question by a check of its own, and MUST NOT offer an action that, once invoked, finds the refusal and changes nothing or leaves its edit unformatted.
 
