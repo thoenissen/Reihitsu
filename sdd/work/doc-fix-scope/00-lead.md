@@ -47,10 +47,15 @@ None in the prompt.
 | 16 | Spec author | Follow-up: RH8402 deletes a non-copyright note in the old header's comment run | Dropped | #1342 states replacing the whole leading comment run is intended (maintainer round 8 item 20) | Decided by the maintainer | — |
 | 17 | Test implementer | Rewrote `NoFixIsOfferedWhenTheDocumentedMemberHoldsACommentTheFormatterRefuses` (RH8305/RH8307/RH8309) to expect the fix offered with the body unchanged | Accept | The withholding existed only because the fix formatted the whole declaration; SHARED-FIX-006 plus the amended -004 requirements demand changing only the element | Output demanded by SHARED-FIX-006 and RH83xx-004 | 6f88024 |
 | 18 | Test implementer | RH8201 `…UsesEnvironmentEndOfLine` → `…UsesDocumentEndOfLine` | Accept | SHARED-FIX-008 | Demanded by SHARED-FIX-008 | 6f88024 |
+| 19 | Implementer | Disputed RH8201 tests `VerifyDiagnosticForFieldLikeOverrideEvent`, `VerifyMultipleFieldLikeOverrideEventsAreFixedInOneFixAllIteration` (input member at column 8, expected column 4) | The test input is wrong; test implementer corrects the input to the class's usual column | RH8201-005 (as amended) keeps the member's lines and columns | Decided by RH8201-005 | — |
+| 20 | Implementer | RH8305/RH8307 analyzers report a positional record's comment twice (type + primary constructor run) | Take in as adjacent fix (guard in the two analyzers, already tested by the compilation-unit rows) | Small defect in components the run changes; a duplicate diagnostic of the same span is a defect | Removes a duplicate of an identical diagnostic | 42eeedd |
+| 21 | Implementer | RH8307 fix withheld for an element inside `/** */` | Accept (rare class); spec author records it in RH8307 spec, test implementer adds a test | AGENTS.md *Code-fix coverage* | Rare-class withholding | — |
+| 22 | Implementer | Architecture finding: `LayOutElementAsync` re-indents element lines, copying the formatter's `///` prefix decision; no `ReihitsuFormatter` entry point lays out one documentation element | (c) Add a narrow `ReihitsuFormatter` entry point that lays out one documentation element; the fixes call it and the copy goes. (a) keeps a copy (FC-015); (b) renames a type to evade the FMT-PIPE-009 ban | README *Architecture findings*: the narrow fix would itself add a copy; change stays in the formatter, the counterpart the fixes already use; well under 100 lines, no new type | Internal structure; outputs unchanged | — |
 
 ## Follow-up candidates
 
 - RH8309 fix makes no progress on an accessor's documentation comment (`get => 0;` with `<remarks>` before `<summary>`): SHARED-FIX-005 — 01-skeptic.md, #1342 section.
+- Other documentation analyzers registered on comment nodes probably report twice on positional records / primary-constructor types; the guard could live in `RegisterSyntaxNodeActionWithDocumentationModeCheck` — 04-implementer.md (not run).
 
 ## Worklist / next step
 
@@ -58,4 +63,5 @@ None in the prompt.
 - Q1 answered: A.
 - Done: spec author (02, ae70663); continued once to narrow RH8309-007.
 - Done: test implementer (03, 6f88024); all four reproduced, 90 failing rows.
-- Next: implementer.
+- Done: implementer (04, 42eeedd): all handed tests pass; 2 RH8201 tests disputed; architecture finding.
+- Next (structural change, decision 22, and decisions 19/21): spec author (RH8307 `/** */` withholding; any spec text the new formatter entry point needs) → test implementer (fix RH8201 inputs, `/** */` RH8307 test) → fresh implementer (entry point, remove the copy).
