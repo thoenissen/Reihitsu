@@ -45,6 +45,8 @@ None in the prompt.
 | 14 | Spec author | RH8309-007 scope | Narrow: withhold only when the reported element lies in another documentation comment than the one the fix edits | A guard that refuses safely rewritable input is worth narrowing when cheap | Narrower refusal keeps today's fix | — |
 | 15 | Spec author | Follow-up: RH8309 order across two documentation comments not reported | Dropped | Rare class (several doc comments on one declaration) | — | — |
 | 16 | Spec author | Follow-up: RH8402 deletes a non-copyright note in the old header's comment run | Dropped | #1342 states replacing the whole leading comment run is intended (maintainer round 8 item 20) | Decided by the maintainer | — |
+| 17 | Test implementer | Rewrote `NoFixIsOfferedWhenTheDocumentedMemberHoldsACommentTheFormatterRefuses` (RH8305/RH8307/RH8309) to expect the fix offered with the body unchanged | Accept | The withholding existed only because the fix formatted the whole declaration; SHARED-FIX-006 plus the amended -004 requirements demand changing only the element | Output demanded by SHARED-FIX-006 and RH83xx-004 | 6f88024 |
+| 18 | Test implementer | RH8201 `…UsesEnvironmentEndOfLine` → `…UsesDocumentEndOfLine` | Accept | SHARED-FIX-008 | Demanded by SHARED-FIX-008 | 6f88024 |
 
 ## Follow-up candidates
 
@@ -55,4 +57,5 @@ None in the prompt.
 - Done: skeptic (01-skeptic.md, commit 67d5ea7).
 - Q1 answered: A.
 - Done: spec author (02, ae70663); continued once to narrow RH8309-007.
-- Next: test implementer.
+- Done: test implementer (03, 6f88024); all four reproduced, 90 failing rows.
+- Next: implementer.
