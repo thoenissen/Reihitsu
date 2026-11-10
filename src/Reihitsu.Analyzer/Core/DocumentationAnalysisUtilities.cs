@@ -472,6 +472,19 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
+    /// Determines whether a syntax node action runs a second time for a node in the documentation of a type with a
+    /// primary constructor. The compiler runs the actions for the nodes of such a declaration once for the type and once
+    /// for its primary constructor, so an analyzer that reports on the documentation comment would report it twice
+    /// </summary>
+    /// <param name="context">Syntax node analysis context</param>
+    /// <returns><see langword="true"/> when the action runs for the primary constructor of the type the node belongs to</returns>
+    internal static bool IsPrimaryConstructorRun(SyntaxNodeAnalysisContext context)
+    {
+        return context.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.Constructor } constructor
+               && constructor.DeclaringSyntaxReferences.Any(reference => reference.GetSyntax(context.CancellationToken) is TypeDeclarationSyntax);
+    }
+
+    /// <summary>
     /// Determines whether inheritance can be identified from syntax only
     /// </summary>
     /// <param name="declaration">Declaration</param>
@@ -624,19 +637,6 @@ internal static class DocumentationAnalysisUtilities
                    TypeDeclarationSyntax => true,
                    _ => false
                };
-    }
-
-    /// <summary>
-    /// Determines whether a syntax node action runs a second time for a node in the documentation of a type with a
-    /// primary constructor. The compiler runs the actions for the nodes of such a declaration once for the type and once
-    /// for its primary constructor, so an analyzer that reports on the documentation comment would report it twice
-    /// </summary>
-    /// <param name="context">Syntax node analysis context</param>
-    /// <returns><see langword="true"/> when the action runs for the primary constructor of the type the node belongs to</returns>
-    internal static bool IsPrimaryConstructorRun(SyntaxNodeAnalysisContext context)
-    {
-        return context.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.Constructor } constructor
-               && constructor.DeclaringSyntaxReferences.Any(reference => reference.GetSyntax(context.CancellationToken) is TypeDeclarationSyntax);
     }
 
     #endregion // Methods

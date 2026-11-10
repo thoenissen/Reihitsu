@@ -60,54 +60,23 @@ internal static class DocumentationCommentCodeFixUtilities
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The updated document</returns>
     /// <remarks>
-    /// The formatter lays out the comment alone: a copy of the comment, with the indentation in front of its lines
-    /// removed, documents an empty class in a compilation unit of its own, which <see cref="ReihitsuFormatter.FormatNode"/>
-    /// formats. The element at the same position in the formatted comment replaces the reported element, with the
-    /// indentation of the reported element's line in front of each of its further lines. Formatting the declaration
-    /// instead would lay out its code and its other comments too, and would not reach the comment of a declaration
-    /// directly in the compilation unit, whose leading trivia the node-level entry point keeps as written
+    /// The layout, the column of the lines the element gains included, is the formatter's alone:
+    /// <see cref="ReihitsuFormatter.FormatDocumentationElementInDocumentAsync"/> lays out the element where it stands.
+    /// Formatting the declaration instead would lay out its code and its other comments too, and would not reach the
+    /// comment of a declaration directly in the compilation unit, whose leading trivia the node-level entry point keeps
+    /// as written
     /// </remarks>
     internal static async Task<Document> LayOutElementAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         if (root == null
-            || TryGetElementToLayOut(root, diagnosticSpan, out var element) == false
-            || element.FirstAncestorOrSelf<DocumentationCommentTriviaSyntax>() is not { } documentationComment)
+            || TryGetElementToLayOut(root, diagnosticSpan, out var element) == false)
         {
             return document;
         }
 
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-        var commentText = RemoveLineIndentation(sourceText.ToString(documentationComment.ParentTrivia.FullSpan));
-        var detachedRoot = SyntaxFactory.ParseCompilationUnit($"{commentText}class C{endOfLine}{{{endOfLine}}}{endOfLine}");
-        var formattingResult = ReihitsuFormatter.FormatNode(detachedRoot, cancellationToken: cancellationToken);
-        var elementIndex = documentationComment.DescendantNodes().OfType<XmlElementSyntax>().ToList().IndexOf(element);
-        var formattedElement = formattingResult.Output
-                                               .DescendantTrivia(descendIntoTrivia: true)
-                                               .Select(obj => obj.GetStructure())
-                                               .OfType<DocumentationCommentTriviaSyntax>()
-                                               .FirstOrDefault()
-                                               ?.DescendantNodes()
-                                               .OfType<XmlElementSyntax>()
-                                               .ElementAtOrDefault(elementIndex);
-
-        if (formattingResult.Unsupported != null
-            || formattedElement == null
-            || formattedElement.StartTag.Name.ToString() != element.StartTag.Name.ToString())
-        {
-            return document;
-        }
-
-        var lineText = sourceText.Lines.GetLineFromPosition(element.SpanStart).ToString();
-        var lineIndentation = lineText.Substring(0, lineText.Length - lineText.TrimStart(' ', '\t').Length);
-        var replacementText = string.Join(string.Empty,
-                                          SourceText.From(formattedElement.ToString())
-                                                    .Lines
-                                                    .Select(obj => (obj.LineNumber == 0 ? string.Empty : lineIndentation) + obj.Text.ToString(obj.SpanIncludingLineBreak)));
-
-        return document.WithText(sourceText.Replace(element.Span, replacementText));
+        return await ReihitsuFormatter.FormatDocumentationElementInDocumentAsync(document, element, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -226,19 +195,6 @@ internal static class DocumentationCommentCodeFixUtilities
         return line.EndIncludingLineBreak > line.End
                    ? sourceText.ToString(TextSpan.FromBounds(line.End, line.EndIncludingLineBreak))
                    : ReihitsuFormatterHelpers.DetectEndOfLine(root);
-    }
-
-    /// <summary>
-    /// Removes the horizontal white space at the start of every line of the text
-    /// </summary>
-    /// <param name="text">Text</param>
-    /// <returns>The text with every line starting at its first character that is not horizontal white space</returns>
-    private static string RemoveLineIndentation(string text)
-    {
-        return string.Join(string.Empty,
-                           SourceText.From(text)
-                                     .Lines
-                                     .Select(obj => obj.Text.ToString(obj.SpanIncludingLineBreak).TrimStart(' ', '\t')));
     }
 
     /// <summary>

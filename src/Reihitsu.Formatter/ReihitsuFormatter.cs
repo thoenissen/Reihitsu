@@ -11,6 +11,7 @@ using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Data.Enumerations;
 using Reihitsu.Formatter.Pipeline;
 using Reihitsu.Formatter.Pipeline.Core.Utilities;
+using Reihitsu.Formatter.Pipeline.DocumentationComments;
 using Reihitsu.Formatter.Pipeline.Precheck;
 using Reihitsu.Formatter.Pipeline.StructuralTransforms.Rewriter;
 using Reihitsu.Formatter.Pipeline.UsingDirectives;
@@ -408,6 +409,37 @@ public static class ReihitsuFormatter
         }
 
         return document.WithSyntaxRoot(root.ReplaceNode(scope, UsingDirectiveOrderingUtilities.WithUsings(scope, organizedUsings)));
+    }
+
+    /// <summary>
+    /// Lays out one element of a single-line documentation comment as the documentation-comment phase lays it out, and
+    /// nothing else of the document (FMT-PIPE-032). The element is laid out where it stands in the document: every line it
+    /// gains starts with the indentation in front of the <c>///</c> on the line of its start tag and ends with the
+    /// document's line ending, so the phase's output is the element's final text
+    /// </summary>
+    /// <param name="document">The Roslyn Document containing the element</param>
+    /// <param name="element">The element, closed by an end tag of its own, in a <c>///</c> comment that starts its own line. Must belong to the document's syntax tree</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A new Document with the element laid out, or the unchanged document when the element is already in a canonical shape</returns>
+    /// <remarks>
+    /// Neither syntax errors (FMT-PIPE-005) nor the generated-code marker (FMT-PIPE-006) are checked, and no input is
+    /// refused as unsupported (FMT-UNSUP-002)
+    /// </remarks>
+    public static async Task<Document> FormatDocumentationElementInDocumentAsync(Document document, XmlElementSyntax element, CancellationToken cancellationToken = default)
+    {
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        if (root == null
+            || element.SyntaxTree != root.SyntaxTree)
+        {
+            return document;
+        }
+
+        var syntaxTree = DocumentationCommentFormattingPhase.LayOutElement(root.SyntaxTree, element, ReihitsuFormatterHelpers.DetectEndOfLine(root), cancellationToken);
+
+        return ReferenceEquals(syntaxTree, root.SyntaxTree)
+                   ? document
+                   : document.WithText(await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false));
     }
 
     /// <summary>
