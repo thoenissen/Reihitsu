@@ -51,11 +51,13 @@ None in the prompt.
 | 20 | Implementer | RH8305/RH8307 analyzers report a positional record's comment twice (type + primary constructor run) | Take in as adjacent fix (guard in the two analyzers, already tested by the compilation-unit rows) | Small defect in components the run changes; a duplicate diagnostic of the same span is a defect | Removes a duplicate of an identical diagnostic | 42eeedd |
 | 21 | Implementer | RH8307 fix withheld for an element inside `/** */` | Accept (rare class); spec author records it in RH8307 spec, test implementer adds a test | AGENTS.md *Code-fix coverage* | Rare-class withholding | — |
 | 22 | Implementer | Architecture finding: `LayOutElementAsync` re-indents element lines, copying the formatter's `///` prefix decision; no `ReihitsuFormatter` entry point lays out one documentation element | (c) Add a narrow `ReihitsuFormatter` entry point that lays out one documentation element; the fixes call it and the copy goes. (a) keeps a copy (FC-015); (b) renames a type to evade the FMT-PIPE-009 ban | README *Architecture findings*: the narrow fix would itself add a copy; change stays in the formatter, the counterpart the fixes already use; well under 100 lines, no new type | Internal structure; outputs unchanged | — |
+| 23 | Spec author (05) | FMT-PIPE-032 entry point name `FormatDocumentationElementInDocumentAsync`; added lines take the start-tag line's indentation; fixes keep their own registration checks | Accept all three | Matches today's fix output; the formatter now owns the prefix decision | Internal; outputs unchanged | ffbb0bb |
 
 ## Follow-up candidates
 
 - RH8309 fix makes no progress on an accessor's documentation comment (`get => 0;` with `<remarks>` before `<summary>`): SHARED-FIX-005 — 01-skeptic.md, #1342 section.
 - Other documentation analyzers registered on comment nodes probably report twice on positional records / primary-constructor types; the guard could live in `RegisterSyntaxNodeActionWithDocumentationModeCheck` — 04-implementer.md (not run).
+- RH8307 reports an element inside a `/** */` comment, which now has no fix while RH8304/RH8305/RH8308 do not report there; question: keep reporting without fix (A) or stop reporting (B, recommended) — 05-spec-author.md.
 
 ## Worklist / next step
 
@@ -64,4 +66,5 @@ None in the prompt.
 - Done: spec author (02, ae70663); continued once to narrow RH8309-007.
 - Done: test implementer (03, 6f88024); all four reproduced, 90 failing rows.
 - Done: implementer (04, 42eeedd): all handed tests pass; 2 RH8201 tests disputed; architecture finding.
-- Next (structural change, decision 22, and decisions 19/21): spec author (RH8307 `/** */` withholding; any spec text the new formatter entry point needs) → test implementer (fix RH8201 inputs, `/** */` RH8307 test) → fresh implementer (entry point, remove the copy).
+- Done: spec author (05, ffbb0bb): RH8307-006, FMT-PIPE-032, positional-record examples.
+- Next: test implementer (06), then fresh implementer (07). Earlier plan: (structural change, decision 22, and decisions 19/21): spec author (RH8307 `/** */` withholding; any spec text the new formatter entry point needs) → test implementer (fix RH8201 inputs, `/** */` RH8307 test) → fresh implementer (entry point, remove the copy).
