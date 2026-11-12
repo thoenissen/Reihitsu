@@ -58,6 +58,7 @@ Bug-fix lane: spec author (clarifications only: RH5002 non-goal deletion per #97
 | 18 | Implementer 05 | Base inserts above a directive, RH3208/RH5030 behind it (`behindLeadingDirectives` flag) | Keep both (today's outputs); unifying is a follow-up carrying an output question | Unifying changes visible output, outside the issues | Both placements are `main`'s output | eca4a0d |
 | 19 | Implementer 05 | `SyntaxTriviaUtilities.ContainsBlankLine` now has no production caller | Delete it and its Core tests in this run (test implementer: tests; implementer: method) | Cleanup the run's change touches; prevents the second measure from coming back (decision #8) | No caller, no output | – |
 | 20 | Implementer 05 | SHARED-BLANK-006 `#endregion`-before-`}` exemption stated twice in `RegionDirectiveBlankLineUtilities` | Change structure now: the new check reuses RH5032's statement of the exemption | Narrow fix added a copy of a rule (README, *Architecture findings*) | Both agree on every input; no output change | – |
+| 21 | Test implementer 06 | RH5011 formatter test: no formatter-stable `break;`-before-`else` input exists | Accept: test reduced to the do-footer case; `else` stays covered by the analyzer tests | The formatter braces unbraced if/else | Asserted outputs unchanged | 859aced |
 | 12 | Skeptic | Spec-diff wording findings (SHARED-STMT-004 undecided-case note, SHARED-BLANK-001 `///`→ also directives, comment sentence wording, initializer example, RH5023 spaces case) | Route all to a fresh spec author after the maintainer's answers | Internal wording; batched with the answers' spec changes | No output changes | – |
 
 ## Follow-up candidates
@@ -80,4 +81,5 @@ Bug-fix lane: spec author (clarifications only: RH5002 non-goal deletion per #97
 - Open spec-author worklist after implementer: Code owners rows for the #1626 owner; SHARED-AFTERBRACE-002 "at least one line break" (decision #15); SHARED-BLANK-001 Why revert only if decision #8 is not done.
 - Implementer done (05, eca4a0d): 89/94 pass; owner of the blank line in front of a statement = `BlankLineCodeFixUtilities.InsertBlankLineBefore` (no new type). Escalation 9 not reached.
 - Follow-up candidate added: unify the blank-line placement around directives between the statement base and RH3208/RH5030 (decision #18).
-- Next: test implementer (06: decisions #17, #19 tests), then implementer (07: decisions #19 method, #20), then spec author (Code owners rows, decision #15), cleaner, spec checker.
+- Test implementer 06 done (859aced).
+- Next: implementer (07: decisions #19 method, #20) and spec author (08: Code owners rows → `BlankLineCodeFixUtilities.InsertBlankLineBefore`, decision #15) in parallel; then cleaner, spec checker.
