@@ -5,7 +5,7 @@
 | ID prefix | SHARED-STMT |
 | Status | Active |
 | Code owners | `StatementShouldBePrecededByABlankLineAnalyzerBase<TStatement>`, `StatementShouldBePrecededByABlankLineCodeFixProviderBase` |
-| Uses | SHARED-BLANK-001, FMT-BLANK-001, SHARED-FIX-008 |
+| Uses | SHARED-BLANK-001, FMT-BLANK-001, FMT-INDENT-003, SHARED-FIX-008 |
 
 This spec covers the rules that ask for a blank line in front of one kind of statement: when such a statement is reported, which statements are never checked, and what the code fix inserts. Each rule that uses this spec names its statement kind, where its diagnostic is located, and any exception of its own. The formatter's counterpart is FMT-BLANK-001.
 
@@ -113,9 +113,9 @@ is not reported by RH5002.
 
 ### SHARED-STMT-004 — The fix inserts one blank line above the statement and its comments
 
-The code fix MUST make exactly one blank line appear in front of the reported statement. When comments sit directly above the statement on their own lines, the blank line MUST go above the first of them. When the statement shares its line with the statement before it, the fix MUST move it to a new line, indented like the statement it follows. Inserted line breaks MUST use the line ending SHARED-FIX-008 specifies.
+The code fix MUST make exactly one blank line appear in front of the reported statement, in front of its first token — for an `await using` or `await foreach` statement, in front of `await`, wherever the rule puts its diagnostic. When comments sit directly above the statement on their own lines, the blank line MUST go above the first of them. When a comment starts the statement's line and stands in front of the statement, the blank line MUST go above that line, and the comment stays in front of the statement — one blank line, also when the comment is a block comment. When the statement shares its line with the statement before it, the fix MUST move it to a new line, indented like the statement it follows: in the column in which the formatter puts the statements of their block or switch section. This holds whether the statement it follows starts its line or not — also when the statement it follows stands behind a `case` label on the last line of that label, such as a label whose `when` clause continues on a second line; the moved statement then takes the column of the section's statements, one level deeper than the label (FMT-INDENT-003), not a column read from the label's continuation line. This requirement does not decide a switch section whose label stands on the line of the switch statement's opening brace. Inserted line breaks MUST use the line ending SHARED-FIX-008 specifies.
 
-Why: A comment directly above the statement describes it, so it stays with the statement; putting the blank line between them would leave the comment describing the code above. The fix changes only the gap in front of the statement.
+Why: A comment directly above the statement describes it, so it stays with the statement; putting the blank line between them would leave the comment describing the code above. The fix changes only the gap in front of the statement. The statement belongs to the same list as the one it follows, so it takes the column the formatter gives that list; a column read from a line that a label's continuation leads is the label's, not the list's.
 
 Example — RH5002:
 
@@ -164,3 +164,64 @@ class C
     }
 }
 ```
+
+Example — the statement follows a statement that stands behind a `case` label spanning two lines, and a statement behind a block comment on its line, for RH5029 and RH5002:
+
+```csharp
+class C
+{
+    void M(int value)
+    {
+        switch (value)
+        {
+            case 1 when
+                Check(value): Method(1); {|RH5029:var|} y = 1;
+                break;
+        }
+
+        value++;
+        /* block */ {|RH5002:if|} (value > 7) { }
+    }
+
+    bool Check(int value)
+    {
+        return value > 0;
+    }
+
+    void Method(int value)
+    {
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int value)
+    {
+        switch (value)
+        {
+            case 1 when
+                Check(value): Method(1);
+
+                var y = 1;
+                break;
+        }
+
+        value++;
+
+        /* block */ if (value > 7) { }
+    }
+
+    bool Check(int value)
+    {
+        return value > 0;
+    }
+
+    void Method(int value)
+    {
+    }
+}
+```
+
+`var y = 1;` takes the column of the section's statements, the column of `break;`, and the block comment in front of `if` keeps its place with exactly one blank line above it.

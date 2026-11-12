@@ -19,7 +19,7 @@ This spec covers the blank-line rules that analyzer, code fixes, and formatter d
 
 ### SHARED-BLANK-001 — A blank line holds nothing but whitespace
 
-Analyzer and formatter MUST count as a blank line only a line between two tokens that holds nothing but whitespace before its line break. A line inside the text of a comment MUST NOT count, even when it is empty.
+Analyzer and formatter MUST count as a blank line only a line between two tokens that holds nothing but whitespace before its line break. A line inside the text of a comment MUST NOT count, even when it is empty. The line directly below a `///` documentation comment is not inside the comment's text: it MUST count as blank when it holds nothing but whitespace, whether it is empty or holds spaces.
 
 Why: A blank line is a visual separator the reader sees between pieces of code. An empty line inside a multi-line block comment belongs to the comment's text and separates nothing; counting it would let a comment satisfy a rule that asks for a separator in front of the code that follows. `TokenGapAnalysis` is the one measure, used by the formatter's blank-line phase and by the code fixes of RH5001–RH5010, RH5012–RH5019, RH5021, and RH5029 to decide how many line breaks to insert.
 
@@ -53,6 +53,30 @@ class C
     }
 }
 ```
+
+Example — the line below the `///` comment is blank, so RH5002 and RH5011 report nothing; the same holds when that line holds spaces before its line break:
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        while (a > 0)
+        {
+            a--;
+
+            break;
+            /// doc
+
+            if (a > 1)
+            {
+            }
+        }
+    }
+}
+```
+
+is not reported.
 
 ### SHARED-BLANK-002 — Trivia starts its line only after a line break that ends the previous content
 
