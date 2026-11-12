@@ -54,6 +54,10 @@ Bug-fix lane: spec author (clarifications only: RH5002 non-goal deletion per #97
 | 14 | Spec author 03 | SHARED-BLANK-001 Why names analyzers as users of `TokenGapAnalysis` | Accept; reverts in a repair round if decision #8 is over budget | Follows decision #8 | Internal wording | 7df80b0 |
 | 15 | Test implementer 04 | SHARED-AFTERBRACE-002 condition also matches a gap with no line break (` /* a */ L();`) | Spec author adds "at least one line break" in the post-implementer spec round (with the Code owners rows) | Matches today's tested output (`L();` stays on the brace's line) | Wording narrows to the tested, unchanged output | – |
 | 16 | Test implementer 04 | Analyzer blank-line check tested through RH5002, RH5029, RH5011 only | Accept | All rules reach it through the two bases' one call | Internal | cfdf0b1 |
+| 17 | Implementer 05 | 5 disputed `VerifyFormatter` tests (RH5011 else/do, RH5024–RH5027 region) whose inputs the formatter changes for unrelated reasons | Tests are wrong: test implementer makes each input formatter-stable, keeping what each asserts about the rule | The formatter output on these inputs is unchanged from `main`; only the test inputs are unstable | Formatter output unchanged; the asserted analyzer outcome is the decided one | – |
+| 18 | Implementer 05 | Base inserts above a directive, RH3208/RH5030 behind it (`behindLeadingDirectives` flag) | Keep both (today's outputs); unifying is a follow-up carrying an output question | Unifying changes visible output, outside the issues | Both placements are `main`'s output | eca4a0d |
+| 19 | Implementer 05 | `SyntaxTriviaUtilities.ContainsBlankLine` now has no production caller | Delete it and its Core tests in this run (test implementer: tests; implementer: method) | Cleanup the run's change touches; prevents the second measure from coming back (decision #8) | No caller, no output | – |
+| 20 | Implementer 05 | SHARED-BLANK-006 `#endregion`-before-`}` exemption stated twice in `RegionDirectiveBlankLineUtilities` | Change structure now: the new check reuses RH5032's statement of the exemption | Narrow fix added a copy of a rule (README, *Architecture findings*) | Both agree on every input; no output change | – |
 | 12 | Skeptic | Spec-diff wording findings (SHARED-STMT-004 undecided-case note, SHARED-BLANK-001 `///`→ also directives, comment sentence wording, initializer example, RH5023 spaces case) | Route all to a fresh spec author after the maintainer's answers | Internal wording; batched with the answers' spec changes | No output changes | – |
 
 ## Follow-up candidates
@@ -64,6 +68,7 @@ Bug-fix lane: spec author (clarifications only: RH5002 non-goal deletion per #97
 - (taken into run as decision #6) RH5026/RH5027 region cycle
 - Formatter: a wrapped `when` condition of a `case` label is put in the column of `case` — carries an output question (A: one level deeper than `case`), 02-skeptic #1096
 - Structural: statement blank-line code fix predicts the indentation phase's column (`ComputeAnchorDerivedIndentation`, shared with RH5103) (02-skeptic, decision #9)
+- Unify the blank line's placement around a directive in the gap: statement base inserts above, RH3208/RH5030 behind (05-implementer, decision #18; visible, carries an output question)
 - One answer for "statement behind a multi-line comment" across RH5011, RH5030, the code-fix base (02-skeptic, decision #11)
 
 ## Worklist / next step
@@ -73,4 +78,6 @@ Bug-fix lane: spec author (clarifications only: RH5002 non-goal deletion per #97
 - Spec amendment done (03). Code owners rows wait for the implementer's choice of owner type (repair round for spec author).
 - Tests written (04, cfdf0b1): 94 failing tests reproduce #946, #972, #1096, #1076, #1625.
 - Open spec-author worklist after implementer: Code owners rows for the #1626 owner; SHARED-AFTERBRACE-002 "at least one line break" (decision #15); SHARED-BLANK-001 Why revert only if decision #8 is not done.
-- Next: implementer (05).
+- Implementer done (05, eca4a0d): 89/94 pass; owner of the blank line in front of a statement = `BlankLineCodeFixUtilities.InsertBlankLineBefore` (no new type). Escalation 9 not reached.
+- Follow-up candidate added: unify the blank-line placement around directives between the statement base and RH3208/RH5030 (decision #18).
+- Next: test implementer (06: decisions #17, #19 tests), then implementer (07: decisions #19 method, #20), then spec author (Code owners rows, decision #15), cleaner, spec checker.
