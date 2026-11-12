@@ -114,16 +114,21 @@ public class RH5025OpeningBraceMustNotBePrecededByBlankLineFormatterTests : Form
         const string input = """
                              class C
                              {
-                                 System.Collections.Generic.Dictionary<string, int> _d = new()
+                                 void M()
                                  {
-                                     { "a", 1 },
+                                     var d = new System.Collections.Generic.Dictionary<string, int>
+                                             {
+                                                 { "a", 1 },
+
                                      #region A
 
-                                     { "b", 2 },
+                                                 { "b", 2 },
+
                                      #endregion // A
 
-                                     { "c", 3 },
-                                 };
+                                                 { "c", 3 }
+                                             };
+                                 }
                              }
                              """;
 

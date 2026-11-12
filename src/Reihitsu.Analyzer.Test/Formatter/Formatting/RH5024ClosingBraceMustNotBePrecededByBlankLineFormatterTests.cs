@@ -102,6 +102,7 @@ public class RH5024ClosingBraceMustNotBePrecededByBlankLineFormatterTests : Form
                                      #region R
 
                                  }
+
                                  #endregion // R
                              }
                              """;

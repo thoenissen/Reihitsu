@@ -71,9 +71,11 @@ public class RH5027WhileDoFooterMustNotBePrecededByBlankLineFormatterTests : For
                                      {
                                          a++;
                                      }
+
                                      #region R
 
                                      while (a < 3);
+
                                      #endregion // R
                                  }
                              }

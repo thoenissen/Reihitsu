@@ -74,11 +74,13 @@ public class RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineFormatterTe
                                      if (a > 0)
                                      {
                                      }
+
                                      #region R
 
                                      else
                                      {
                                      }
+
                                      #endregion // R
                                  }
                              }
