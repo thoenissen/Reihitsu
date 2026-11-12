@@ -104,5 +104,6 @@ Bug-fix lane: spec author (clarifications only: RH5002 non-goal deletion per #97
 - Spec author 24 (2ea0336), test implementer 25 (526ebbf: 12 failing reproductions) done. Decision #31 narrows the wording.
 - Spec author 26 (9c87631) done.
 - Implementer 27 (663da84) done; one test disputed → decision #33.
-- Next: test implementer 28 (decision #33), cleaner 29, spec checker 30, auditor 31 (since 9906bb7).
+- Test implementer 28 (fc5ff89), cleaner 29 (af60316) clean, spec checker 30 (d028e40) consistent.
+- Next: auditor 31 (since 9906bb7).
 - Follow-up candidate added: inside an initializer, a statement moved inside a block on a `case` label's line takes the label's column (pre-existing; fits decision #9's follow-up).
