@@ -31,7 +31,9 @@ Bug-fix lane: spec author (clarifications only: RH5002 non-goal deletion per #97
 
 ## Maintainer answers
 
-(none yet)
+- Batch 1, Q1 (RH5011-001 doc-comment clause): **A** — keep reporting a `break` followed by a `///` comment with no blank line; same fix as today; delete the "holds no documentation comment" clause from RH5011-001.
+- Batch 1, Q2 (SHARED-STMT-004 column of the moved statement inside an initializer after a multi-line `case … when` label): **A** — the column of the section's other statements as written (column of `break;`), no prediction of the formatter.
+- Batch 1, Q3 (RH3208 `int L() => 1; /* a⏎    b */ L();`): **A** — `} /* a⏎    b */⏎⏎    L();` (blank line, `L();` at the block's indentation, no trailing whitespace); produced through the #1626 single owner of the blank line in front of a statement.
 
 ## Decisions taken
 
@@ -62,6 +64,6 @@ Bug-fix lane: spec author (clarifications only: RH5002 non-goal deletion per #97
 
 ## Worklist / next step
 
-- Output-question batch 1 asked (before test implementer): Q1 RH5011-001 doc-comment clause (02 OQ1), Q2 SHARED-STMT-004 column in an initializer (02 OQ2), Q3 RH3208 output (02 OQ4, replaces 01 OQ2). Waiting for answers.
+- Output-question batch 1 asked (before test implementer): Q1 RH5011-001 doc-comment clause (02 OQ1), Q2 SHARED-STMT-004 column in an initializer (02 OQ2), Q3 RH3208 output (02 OQ4, replaces 01 OQ2). Answered 1A, 2A, 3A.
 - PR note: the RH5002 non-goal #972's comment mentions is already absent on main.
 - Next after answers: fresh spec author (answers + decision #12 wording), then test implementer.
