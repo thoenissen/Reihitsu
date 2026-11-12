@@ -21,10 +21,11 @@ internal static class BlankLineCodeFixUtilities
     #region Methods
 
     /// <summary>
-    /// Determines whether <see cref="InsertBlankLineBefore"/> can give the statement that starts with the given token a
+    /// Determines whether <see cref="TryInsertBlankLineBefore"/> can give the statement that starts with the given token a
     /// column. It cannot when the statement shares its line with the token before it, so it would be moved, and it sits in a
     /// switch section inside an object initializer or anonymous object whose statements stand only behind a <c>case</c>
-    /// label's continuation line: the text then holds no column of the section (SHARED-STMT-004), and the fix is withheld
+    /// label's continuation line: the text then holds no column of the section (SHARED-STMT-004,
+    /// SHARED-AFTERBRACE-002), and a caller withholds its fix when it registers
     /// </summary>
     /// <param name="root">Syntax root of a document that contains <paramref name="token"/></param>
     /// <param name="token">First token of the statement that should be preceded by a blank line</param>
@@ -44,7 +45,8 @@ internal static class BlankLineCodeFixUtilities
     /// trivia, so every comment in front of the token stays with it below the new blank line. Otherwise the token shares
     /// a line with the token before it — directly, or behind a comment that holds every line break of the gap — and the
     /// gap is rebuilt: the whitespace at the end of the previous line is removed, and the token moves onto a new line
-    /// below one blank line, indented like the statements of its block or switch section
+    /// below one blank line, indented like the statements of its block or switch section. Where the text holds no such
+    /// column (<see cref="CanInsertBlankLineBefore"/>), nothing is inserted and no column is guessed
     /// </summary>
     /// <param name="root">Syntax root of a document that contains <paramref name="token"/></param>
     /// <param name="token">First token of the statement that should be preceded by a blank line</param>
@@ -52,8 +54,9 @@ internal static class BlankLineCodeFixUtilities
     /// Whether the inserted line break goes directly after the last preprocessor directive in the leading trivia
     /// (SHARED-AFTERBRACE-001) rather than at its start
     /// </param>
-    /// <returns>The updated syntax root</returns>
-    public static SyntaxNode InsertBlankLineBefore(SyntaxNode root, SyntaxToken token, bool behindLeadingDirectives)
+    /// <param name="updatedRoot">The updated syntax root, or <paramref name="root"/> unchanged when nothing is inserted</param>
+    /// <returns><see langword="false"/> if the statement would be moved and the text holds no column for it</returns>
+    public static bool TryInsertBlankLineBefore(SyntaxNode root, SyntaxToken token, bool behindLeadingDirectives, out SyntaxNode updatedRoot)
     {
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var previousToken = token.GetPreviousToken();
@@ -67,27 +70,37 @@ internal static class BlankLineCodeFixUtilities
                                   : 0;
             var newLeadingTrivia = leadingTrivia.Insert(insertIndex, SyntaxFactory.EndOfLine(endOfLine));
 
-            return root.ReplaceToken(token, token.WithLeadingTrivia(newLeadingTrivia));
+            updatedRoot = root.ReplaceToken(token, token.WithLeadingTrivia(newLeadingTrivia));
+
+            return true;
+        }
+
+        if (TryGetIndentation(root, token, previousToken, out var indentation) == false)
+        {
+            updatedRoot = root;
+
+            return false;
         }
 
         var newPreviousToken = previousToken.WithTrailingTrivia(TrimTrailingWhitespace(previousToken.TrailingTrivia));
-        var updatedToken = token.WithLeadingTrivia(CreateBlankLineLeadingTrivia(root, token, previousToken, endOfLine));
+        var updatedToken = token.WithLeadingTrivia(CreateBlankLineLeadingTrivia(token, indentation, endOfLine));
 
-        return root.ReplaceTokens([previousToken, token],
-                                  (originalToken, _) => originalToken == previousToken
-                                                            ? newPreviousToken
-                                                            : updatedToken);
+        updatedRoot = root.ReplaceTokens([previousToken, token],
+                                         (originalToken, _) => originalToken == previousToken
+                                                                   ? newPreviousToken
+                                                                   : updatedToken);
+
+        return true;
     }
 
     /// <summary>
     /// Builds the target token's leading trivia after moving it onto a new line below a blank line
     /// </summary>
-    /// <param name="root">Syntax root</param>
     /// <param name="token">Target token</param>
-    /// <param name="previousToken">Token before the target</param>
+    /// <param name="indentation">Indentation of the target's new line</param>
     /// <param name="endOfLine">Line-ending sequence</param>
     /// <returns>The rebuilt leading trivia</returns>
-    private static SyntaxTriviaList CreateBlankLineLeadingTrivia(SyntaxNode root, SyntaxToken token, SyntaxToken previousToken, string endOfLine)
+    private static SyntaxTriviaList CreateBlankLineLeadingTrivia(SyntaxToken token, string indentation, string endOfLine)
     {
         var targetLeadingTrivia = token.LeadingTrivia;
         var suffixStart = 0;
@@ -102,10 +115,6 @@ internal static class BlankLineCodeFixUtilities
                                         SyntaxFactory.EndOfLine(endOfLine),
                                         SyntaxFactory.EndOfLine(endOfLine)
                                     };
-
-        // A caller that withholds its fix where the text holds no column of the section checks CanInsertBlankLineBefore
-        // first; any other caller gets the continuation line's whitespace in that case
-        TryGetIndentation(root, token, previousToken, out var indentation);
 
         if (indentation.Length > 0)
         {
@@ -151,8 +160,8 @@ internal static class BlankLineCodeFixUtilities
     /// <param name="token">Target token</param>
     /// <param name="previousToken">Token before the target</param>
     /// <param name="indentation">
-    /// Indentation to apply to the target after moving it to its own line; when the text holds no column of the target's
-    /// switch section, the leading whitespace of the label's continuation line
+    /// Indentation to apply to the target after moving it to its own line; <see langword="null"/> when the text holds no
+    /// column of the target's switch section
     /// </param>
     /// <returns><see langword="false"/> if the text holds no column of the target's switch section</returns>
     private static bool TryGetIndentation(SyntaxNode root, SyntaxToken token, SyntaxToken previousToken, out string indentation)
@@ -198,7 +207,7 @@ internal static class BlankLineCodeFixUtilities
     /// line of a label that spans several lines, its whitespace is neither the label's nor the section's column, so the
     /// column is read from another statement of the section that starts its own line, such as the section's
     /// <c>break;</c>. Without such a statement, the text holds no column of the section: the method returns
-    /// <see langword="false"/> and gives the continuation line's whitespace unchanged. A label that is not
+    /// <see langword="false"/> and gives no column. A label that is not
     /// itself first on its own line - the whole <c>switch</c> statement written on one physical line, for example - has no
     /// whitespace run that equals its column, so that shape is left unchanged
     /// </summary>
@@ -207,7 +216,7 @@ internal static class BlankLineCodeFixUtilities
     /// <param name="switchSection">Switch section that owns <paramref name="targetStatement"/></param>
     /// <param name="anchorLine">Line on which the target's preceding sibling starts</param>
     /// <param name="anchorLineIndentation">The anchor line's own leading whitespace</param>
-    /// <param name="indentation">Indentation to apply to the target</param>
+    /// <param name="indentation">Indentation to apply to the target; <see langword="null"/> when the text holds no column of the section</param>
     /// <returns><see langword="false"/> if the text holds no column of the section</returns>
     private static bool TryGetSwitchSectionIndentation(SourceText sourceText, StatementSyntax targetStatement, SwitchSectionSyntax switchSection, TextLine anchorLine, string anchorLineIndentation, out string indentation)
     {
@@ -225,7 +234,7 @@ internal static class BlankLineCodeFixUtilities
 
         if (lineStartingStatement == null)
         {
-            indentation = anchorLineIndentation;
+            indentation = null;
 
             return false;
         }

@@ -68,7 +68,9 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
             return document;
         }
 
-        return document.WithSyntaxRoot(BlankLineCodeFixUtilities.InsertBlankLineBefore(syntaxRoot, statement.GetFirstToken(), behindLeadingDirectives: false));
+        return BlankLineCodeFixUtilities.TryInsertBlankLineBefore(syntaxRoot, statement.GetFirstToken(), behindLeadingDirectives: false, out var updatedRoot)
+                   ? document.WithSyntaxRoot(updatedRoot)
+                   : document;
     }
 
     #endregion // Methods

@@ -72,6 +72,18 @@ public abstract class ExpressionBodyToBlockCodeFixProviderBase<TNode> : CodeFixP
         return node;
     }
 
+    /// <summary>
+    /// Determines whether the fix can be delivered for the node beyond the formatter's own refusals. A rule whose fix also
+    /// edits code next to the node withholds the fix where that edit cannot be made
+    /// </summary>
+    /// <param name="root">Syntax root of the document that contains <paramref name="node"/></param>
+    /// <param name="node">Node that owns the reported expression body</param>
+    /// <returns><see langword="true"/> if the fix can be registered</returns>
+    protected virtual bool CanRegisterCodeFix(SyntaxNode root, TNode node)
+    {
+        return true;
+    }
+
     #endregion // Methods
 
     #region CodeFixProvider
@@ -102,7 +114,8 @@ public abstract class ExpressionBodyToBlockCodeFixProviderBase<TNode> : CodeFixP
                 // delegates to it would change nothing there; the member stays reported without a fix
                 if (node != null
                     && ExpressionBodiedTransformUtilities.RequiresAsyncExpressionBodyPreservation(node) == false
-                    && ReihitsuFormatter.FindUnsupportedSyntax(GetFormattingInput(node)) == null)
+                    && ReihitsuFormatter.FindUnsupportedSyntax(GetFormattingInput(node)) == null
+                    && CanRegisterCodeFix(root, node))
                 {
                     context.RegisterCodeFix(CodeAction.Create(_title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, node, cancellationToken),

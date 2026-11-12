@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.CodeFixes.Base;
@@ -109,9 +110,51 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedCodeFixProvider :
         return (await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, localFunction, contextNode, cancellationToken).ConfigureAwait(false)).Output;
     }
 
+    /// <summary>
+    /// Gets the statement that follows the local function in its owning statement list
+    /// </summary>
+    /// <param name="element">The list element that ends with the local function</param>
+    /// <returns>The next statement, or <see langword="null"/> when the local function is the last statement or not in a list</returns>
+    private static StatementSyntax GetNextStatement(StatementSyntax element)
+    {
+        var statements = GetOwningStatements(element);
+        var index = statements.IndexOf(element);
+
+        return index < 0 || index == statements.Count - 1
+                   ? null
+                   : statements[index + 1];
+    }
+
     #endregion // Methods
 
     #region ExpressionBodyToBlockCodeFixProviderBase
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// The fix puts a blank line between the new closing brace and the next statement, and moves that statement below a
+    /// comment that holds every line break of the gap (SHARED-AFTERBRACE-002). It is withheld where that statement would be
+    /// moved and the owner of the blank line finds no column for it in the text. The local function keeps its first line
+    /// when it is converted, so the owner's decision is taken on the original text: the gap below the local function
+    /// already spans lines, the next statement is not the terminal <c>break</c> that needs no blank line behind a closing
+    /// brace, and the owner cannot place the statement
+    /// </remarks>
+    protected override bool CanRegisterCodeFix(SyntaxNode root, LocalFunctionStatementSyntax node)
+    {
+        var element = GetListElement(node);
+        var nextStatement = GetNextStatement(element);
+
+        if (nextStatement == null
+            || BlankLineSpacingPolicy.RequiresBlankLineBehindClosingBrace(SyntaxKind.CloseBraceToken, BlankLineSpacingPolicy.IsTerminalDirectSwitchSectionBreak(nextStatement)) == false)
+        {
+            return true;
+        }
+
+        var lastLine = element.GetLastToken().GetLocation().GetLineSpan().EndLinePosition.Line;
+        var nextLine = nextStatement.GetFirstToken().GetLocation().GetLineSpan().StartLinePosition.Line;
+
+        return lastLine == nextLine
+               || BlankLineCodeFixUtilities.CanInsertBlankLineBefore(root, nextStatement.GetFirstToken());
+    }
 
     /// <inheritdoc/>
     protected override SyntaxNode GetFormattingInput(LocalFunctionStatementSyntax node)
@@ -125,11 +168,9 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedCodeFixProvider :
         // Formatting a single node never decides the gap below it, while the blank-line-after-closing-brace rule does.
         // When the closing brace this conversion creates ends directly above the next statement of the same list, the
         // two are separated by a blank line so the fix does not raise that rule on its own brace.
-        var element = GetListElement(node);
-        var statements = GetOwningStatements(element);
-        var index = statements.IndexOf(element);
+        var nextStatement = GetNextStatement(GetListElement(node));
 
-        if (index < 0 || index == statements.Count - 1)
+        if (nextStatement == null)
         {
             return await FormatAsync(document, node, cancellationToken).ConfigureAwait(false);
         }
@@ -143,7 +184,6 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedCodeFixProvider :
 
         // The formatter replaces only the local function, so the tracked next statement survives the rewrite unchanged and
         // its predecessor in the list is the element that now ends with the converted body
-        var nextStatement = statements[index + 1];
         var trackedDocument = document.WithSyntaxRoot(root.TrackNodes(node, nextStatement));
         var trackedRoot = await trackedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var formattedDocument = await FormatAsync(trackedDocument, trackedRoot.GetCurrentNode(node), cancellationToken).ConfigureAwait(false);
@@ -164,7 +204,10 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedCodeFixProvider :
             return formattedDocument;
         }
 
-        return formattedDocument.WithSyntaxRoot(BlankLineCodeFixUtilities.InsertBlankLineBefore(formattedRoot, formattedNextStatement.GetFirstToken(), behindLeadingDirectives: true));
+        // Where the owner finds no column for the moved statement, CanRegisterCodeFix has already withheld the fix
+        return BlankLineCodeFixUtilities.TryInsertBlankLineBefore(formattedRoot, formattedNextStatement.GetFirstToken(), behindLeadingDirectives: true, out var updatedRoot)
+                   ? formattedDocument.WithSyntaxRoot(updatedRoot)
+                   : document;
     }
 
     #endregion // ExpressionBodyToBlockCodeFixProviderBase
