@@ -129,7 +129,9 @@ class C
 
 When at least one line break stands between the closing brace and the next statement and every such line break lies inside a comment, so that the statement starts behind the comment on the comment's last line, the RH3208 code fix MUST move the statement onto a new line below the comment's last line, with exactly one blank line in front of it, indented like the statements of its block or switch section. The comment keeps its text and its place behind the brace, and no whitespace stays at the end of its last line. Inserted line breaks MUST use the line ending SHARED-FIX-008 specifies. The RH5030 code fix withholds itself there instead (RH5030-003).
 
-Why: Inserting only a line break at the start of the statement's leading trivia, as SHARED-AFTERBRACE-001 does, would land behind the comment, leave whitespace at the end of its line, and start the statement at the first column. Moving the statement out from behind the comment gives the output that the statement blank-line fixes give for a statement behind a comment that starts behind the statement before it (SHARED-STMT-004), and that the formatter gives for the same input.
+Inside an object initializer or anonymous object, the RH3208 code fix MUST NOT be offered when the statement it would move stands in the cell SHARED-STMT-004 withholds its fix for, read with the converted local function as the statement it follows: the local function starts on a continuation line of a `case` label, and no statement of the switch section other than the statement it would move starts its own line. The diagnostic is still reported. The fix stays offered when another statement of the section starts its own line, such as a `break;` below, and when the local function starts on the label's first line.
+
+Why: Inserting only a line break at the start of the statement's leading trivia, as SHARED-AFTERBRACE-001 does, would land behind the comment, leave whitespace at the end of its line, and start the statement at the first column. Moving the statement out from behind the comment gives the output that the statement blank-line fixes give for a statement behind a comment that starts behind the statement before it (SHARED-STMT-004), and that the formatter gives for the same input. In the initializer cell, the text holds no column of the switch section, for the reason SHARED-STMT-004 gives; the class is rare, so the RH3208 fix is withheld there as the statement fixes are, rather than moving the statement to a column read from the label's continuation line (`AGENTS.md`, *Code-fix coverage*).
 
 Example — RH3208:
 
@@ -181,6 +183,44 @@ class C
         {
             return 1;
         } /* a */ L();
+    }
+}
+```
+
+Example — inside an object initializer, the local function stands behind a `case` label's continuation line, and no other statement of the section starts its own line; the continuation is one level deeper than the label in the first section and in the label's column in the second. RH3208 reports both, and no code fix is offered:
+
+```csharp
+class Holder
+{
+    public System.Func<int, int> F { get; set; }
+}
+
+class C
+{
+    Holder Create()
+    {
+        return new Holder
+        {
+            F = value =>
+            {
+                switch (value)
+                {
+                    case 1 when
+                        Check(value): int One() {|RH3208:=> 1|}; /* a
+                        b */ One(); return 1;
+                    case 2 when
+                    Check(value): int Two() {|RH3208:=> 2|}; /* a
+                    b */ Two(); return 2;
+                    default:
+                        return 0;
+                }
+            },
+        };
+    }
+
+    static bool Check(int value)
+    {
+        return value > 0;
     }
 }
 ```
