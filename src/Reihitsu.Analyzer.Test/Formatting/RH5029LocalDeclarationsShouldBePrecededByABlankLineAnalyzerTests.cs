@@ -580,14 +580,15 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies that, when the switch-section label itself is not first on its own line - the whole
-    /// <c>switch</c> statement written on one physical line - the shared base cannot compensate: no whitespace
-    /// run on that line equals the label's column, so the line's own leading whitespace is used unchanged. No
-    /// requirement decides this shape; the test characterizes today's output.
+    /// Verifies that, inside an object initializer, a local declaration on the line of a whole <c>switch</c> statement
+    /// written on one physical line is still reported but not fixed: the <c>switch</c> keyword starts that line, which is
+    /// neither the first token of a statement of the section's list nor a label of the switch, so the line holds no column
+    /// of the list as written
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDiagnosticDoesNotCompensateWhenSwitchLabelItselfIsNotFirstOnItsLine()
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyNoCodeFixWhenWholeSwitchStatementStandsOnOneLineInsideInitializer()
     {
         const string testCode = """
                                 internal class RH5029
@@ -596,7 +597,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
                                     {
                                         Handler = value =>
                                         {
-                                            switch (value) { case 0: Method(1); {|#0:var|} y = 1; break; }
+                                            switch (value) { case 0: Method(1); {|RH5029:var|} y = 1; break; }
                                         }
                                     };
 
@@ -610,30 +611,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 internal class RH5029
-                                 {
-                                     private readonly Config _config = new Config
-                                     {
-                                         Handler = value =>
-                                         {
-                                             switch (value) { case 0: Method(1);
-
-                                             var y = 1; break; }
-                                         }
-                                     };
-
-                                     private static void Method(int value)
-                                     {
-                                     }
-                                 }
-                                 internal sealed class Config
-                                 {
-                                     public System.Action<int> Handler { get; set; }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode, Diagnostics(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5029MessageFormat));
+        await VerifyNoCodeFixIsOffered(testCode);
     }
 
     /// <summary>
