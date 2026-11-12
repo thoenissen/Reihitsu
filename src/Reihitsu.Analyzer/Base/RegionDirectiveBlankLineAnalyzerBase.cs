@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -69,19 +67,14 @@ public abstract class RegionDirectiveBlankLineAnalyzerBase : DiagnosticAnalyzerB
         var closeBraceStartLineIndices = FormattingTextAnalysisUtilities.GetLineIndicesBeginningWithToken(root,
                                                                                                           sourceText,
                                                                                                           static token => token.IsKind(SyntaxKind.CloseBraceToken));
-        var noCloseBraceExemptions = new HashSet<int>();
 
         foreach (var trivia in regionDirectives)
         {
             var directiveLine = sourceText.Lines.GetLineFromPosition(trivia.SpanStart);
             var directiveLineIndex = directiveLine.LineNumber;
-            var closeBraceExemptions = trivia.GetStructure() is EndRegionDirectiveTriviaSyntax
-                                           ? closeBraceStartLineIndices
-                                           : noCloseBraceExemptions;
-
             var isMissing = _requirePrecedingBlankLine
                                 ? RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineBefore(sourceText, directiveLineIndex, openBraceEndLineIndices)
-                                : RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineAfter(sourceText, directiveLineIndex, closeBraceExemptions);
+                                : RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineAfter(sourceText, directiveLineIndex, trivia.GetStructure() is EndRegionDirectiveTriviaSyntax, closeBraceStartLineIndices);
 
             if (isMissing)
             {
