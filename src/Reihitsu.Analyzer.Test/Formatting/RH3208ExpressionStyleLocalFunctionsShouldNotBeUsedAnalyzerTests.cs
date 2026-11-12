@@ -2047,6 +2047,164 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
                      });
     }
 
+    /// <summary>
+    /// Verifies that inside an object initializer, an expression-bodied local function on the continuation line of a
+    /// multi-line case label is still reported but not fixed when the next statement stands behind a comment that holds
+    /// every line break, no other statement of the section starts its own line, and the continuation line starts in the column of the label
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-AFTERBRACE-002")]
+    public async Task VerifyNoCodeFixWhenStatementBehindCommentSharesLabelContinuationLineAtLabelColumn()
+    {
+        const string testCode = """
+                                internal class RH3208
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 2 when
+                                                Check(value): int M() {|RH3208:=> 1|}; /* a
+                                                b */ M(); return;
+                                            }
+                                        }
+                                    };
+
+                                    private static bool Check(int value)
+                                    {
+                                        return true;
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that inside an object initializer, an expression-bodied local function on the continuation line of a
+    /// multi-line case label is still reported but not fixed when the next statement stands behind a comment that holds
+    /// every line break, no other statement of the section starts its own line, and the continuation line is indented deeper than the label
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-AFTERBRACE-002")]
+    public async Task VerifyNoCodeFixWhenStatementBehindCommentSharesLabelContinuationLineDeeperThanLabel()
+    {
+        const string testCode = """
+                                internal class RH3208
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 2 when
+                                                    Check(value): int M() {|RH3208:=> 1|}; /* a
+                                                    b */ M(); return;
+                                            }
+                                        }
+                                    };
+
+                                    private static bool Check(int value)
+                                    {
+                                        return true;
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that inside an object initializer, the statement behind a comment that holds every line break, on the
+    /// continuation line of a multi-line case label, moves to the column of the section's statement that starts its own line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-AFTERBRACE-002")]
+    public async Task VerifyStatementBehindCommentOnLabelContinuationLineTakesColumnOfLineStartingStatement()
+    {
+        const string testCode = """
+                                internal class RH3208
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 2 when
+                                                Check(value): int M() {|RH3208:=> 1|}; /* a
+                                                b */ M();
+                                                    break;
+                                            }
+                                        }
+                                    };
+
+                                    private static bool Check(int value)
+                                    {
+                                        return true;
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+        const string fixedCode = """
+                                 internal class RH3208
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 case 2 when
+                                                 Check(value): int M()
+                                                               {
+                                                                   return 1;
+                                                               } /* a
+                                                 b */
+
+                                                     M();
+                                                     break;
+                                             }
+                                         }
+                                     };
+
+                                     private static bool Check(int value)
+                                     {
+                                         return true;
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

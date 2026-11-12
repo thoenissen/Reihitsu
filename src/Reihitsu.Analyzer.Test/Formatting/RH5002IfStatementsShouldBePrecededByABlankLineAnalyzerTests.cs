@@ -1138,6 +1138,36 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
     }
 
     /// <summary>
+    /// Verifies the spec example: the empty line directly below an if directive whose condition is not defined is the first
+    /// line of an inactive branch and lies inside disabled text, so it does not count as a blank line and the if statement
+    /// below the comment line under the endif directive is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    public async Task VerifyDiagnosticForSpecExampleEmptyLineInsideDisabledText()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                #if NEVER_DEFINED
+
+                                #endif
+                                        // note
+                                        {|RH5002:if|} (a > 1)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
     /// Verifies the empty line directly below a pragma directive is blank, so the if statement below the comment line
     /// under it is not reported
     /// </summary>
