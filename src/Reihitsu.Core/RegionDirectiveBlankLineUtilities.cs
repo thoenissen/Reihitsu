@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Reihitsu.Core;
@@ -74,6 +76,51 @@ public static class RegionDirectiveBlankLineUtilities
         return directiveLineIndex < sourceText.Lines.Count - 1
                && FormattingTextAnalysisUtilities.IsBlankLine(sourceText, directiveLineIndex + 1) == false
                && closeBraceStartLineIndices.Contains(directiveLineIndex + 1) == false;
+    }
+
+    /// <summary>
+    /// Determines whether the blank lines directly above a target line follow a region directive that requires the blank
+    /// line below it (SHARED-BLANK-006), so a rule that deletes blank lines in front of the target must not report them. The
+    /// nearest line above the target that is not blank has to start with an active <c>#region</c>, or with an active
+    /// <c>#endregion</c> when the target line does not begin with a closing brace <c>}</c>, which exempts only
+    /// <c>#endregion</c>
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="targetLineIndex">Zero-based index of the line below the blank lines</param>
+    /// <returns><see langword="true"/> when the blank lines above the target follow a region directive that requires one</returns>
+    public static bool FollowsRegionDirectiveRequiringBlankLine(SyntaxNode root, SourceText sourceText, int targetLineIndex)
+    {
+        var directiveLineIndex = FormattingTextAnalysisUtilities.FindPreviousNonBlankLineIndex(sourceText, targetLineIndex);
+
+        if (directiveLineIndex < 0)
+        {
+            return false;
+        }
+
+        var directiveLine = sourceText.Lines[directiveLineIndex];
+        var contentStart = directiveLine.Start + FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, directiveLine)).Length;
+
+        switch (root.FindTrivia(contentStart).GetStructure())
+        {
+            case RegionDirectiveTriviaSyntax { IsActive: true }:
+                {
+                    return true;
+                }
+
+            case EndRegionDirectiveTriviaSyntax { IsActive: true }:
+                {
+                    var targetContent = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[targetLineIndex]).TrimStart();
+
+                    return targetContent.Length == 0
+                           || targetContent[0] != '}';
+                }
+
+            default:
+                {
+                    return false;
+                }
+        }
     }
 
     #endregion // Methods

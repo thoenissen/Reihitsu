@@ -59,17 +59,29 @@ public abstract class WhitespaceSpanRemovalCodeFixProviderBase : CodeFixProvider
     #region Methods
 
     /// <summary>
-    /// Applies the code fix by removing the diagnostic span
+    /// Gets the span the fix removes for a reported span. By default it is the reported span itself; a derived rule may
+    /// widen it to more whitespace around it, so the removed span stays whitespace-only
+    /// </summary>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="diagnosticSpan">Diagnostic span, which holds only whitespace</param>
+    /// <returns>The span to remove</returns>
+    private protected virtual TextSpan GetRemovalSpan(SourceText sourceText, TextSpan diagnosticSpan)
+    {
+        return diagnosticSpan;
+    }
+
+    /// <summary>
+    /// Applies the code fix by removing the span <see cref="GetRemovalSpan"/> gives for the diagnostic span
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The updated document</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
+    private async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
     {
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-        return document.WithText(sourceText.Replace(diagnosticSpan, string.Empty));
+        return document.WithText(sourceText.Replace(GetRemovalSpan(sourceText, diagnosticSpan), string.Empty));
     }
 
     #endregion // Methods

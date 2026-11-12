@@ -196,7 +196,9 @@ public static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
-    /// Enumerates blank lines that are immediately preceded by another blank line
+    /// Enumerates blank lines that end with a line break and are immediately preceded by another blank line. The last line
+    /// of a text, which ends with no line break, is not a blank line of a run even when it holds nothing or only whitespace:
+    /// the end of the file is not a line (RH5023-001)
     /// </summary>
     /// <param name="sourceText">Source text</param>
     /// <param name="excludedLineIndices">Line indices that should be ignored</param>
@@ -211,10 +213,13 @@ public static class FormattingTextAnalysisUtilities
                 continue;
             }
 
-            if (IsBlankLine(sourceText, lineIndex)
+            var line = sourceText.Lines[lineIndex];
+
+            if (line.EndIncludingLineBreak > line.End
+                && IsBlankLine(sourceText, lineIndex)
                 && IsBlankLine(sourceText, lineIndex - 1))
             {
-                yield return sourceText.Lines[lineIndex];
+                yield return line;
             }
         }
     }

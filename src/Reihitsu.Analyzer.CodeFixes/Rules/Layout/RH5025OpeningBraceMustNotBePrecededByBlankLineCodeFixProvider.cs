@@ -21,7 +21,7 @@ public class RH5025OpeningBraceMustNotBePrecededByBlankLineCodeFixProvider : Bla
     /// Constructor
     /// </summary>
     public RH5025OpeningBraceMustNotBePrecededByBlankLineCodeFixProvider()
-        : base(RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, CodeFixResources.RH5025Title)
+        : base(RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, CodeFixResources.RH5025Title, removesRun: true)
     {
     }
 

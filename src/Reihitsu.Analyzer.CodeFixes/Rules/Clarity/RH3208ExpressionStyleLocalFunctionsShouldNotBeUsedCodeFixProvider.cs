@@ -164,7 +164,7 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedCodeFixProvider :
             return formattedDocument;
         }
 
-        return formattedDocument.WithSyntaxRoot(BlankLineCodeFixUtilities.InsertBlankLineBefore(formattedRoot, formattedNextStatement.GetFirstToken()));
+        return formattedDocument.WithSyntaxRoot(BlankLineCodeFixUtilities.InsertBlankLineBefore(formattedRoot, formattedNextStatement.GetFirstToken(), behindLeadingDirectives: true));
     }
 
     #endregion // ExpressionBodyToBlockCodeFixProviderBase

@@ -39,7 +39,7 @@ public class RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer : Diagnostic
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree
+    /// Analyzes the syntax tree. A blank line below a region directive that requires it is not reported (RH5024-001)
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
@@ -52,6 +52,11 @@ public class RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer : Diagnostic
 
         foreach (var blankLine in FormattingTextAnalysisUtilities.EnumeratePrecedingBlankLines(sourceText, closeBraceLineIndices))
         {
+            if (RegionDirectiveBlankLineUtilities.FollowsRegionDirectiveRequiringBlankLine(root, sourceText, blankLine.LineNumber + 1))
+            {
+                continue;
+            }
+
             context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(blankLine.Start, blankLine.EndIncludingLineBreak))));
         }
     }

@@ -54,7 +54,7 @@ public class RH5030BlankLineAfterClosingBraceCodeFixProvider : CodeFixProvider
             return document;
         }
 
-        return document.WithSyntaxRoot(BlankLineCodeFixUtilities.InsertBlankLineBefore(root, nextToken));
+        return document.WithSyntaxRoot(BlankLineCodeFixUtilities.InsertBlankLineBefore(root, nextToken, behindLeadingDirectives: true));
     }
 
     /// <summary>

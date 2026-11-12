@@ -59,7 +59,22 @@ public abstract class StatementShouldBeFollowedByABlankLineAnalyzerBase<TStateme
     protected abstract SyntaxToken GetNextToken(TStatement statement);
 
     /// <summary>
-    /// Analyze statement
+    /// Determines whether a token continues a statement that holds the analyzed statement rather than starting a new one:
+    /// the <c>else</c> keyword of an <c>if</c> statement or the <c>while</c> keyword of a <c>do</c> statement (RH5011-008)
+    /// </summary>
+    /// <param name="nextToken">Token that follows the analyzed statement</param>
+    /// <returns><see langword="true"/> if the token continues the enclosing statement</returns>
+    private static bool ContinuesEnclosingStatement(SyntaxToken nextToken)
+    {
+        return nextToken.IsKind(SyntaxKind.ElseKeyword)
+               || (nextToken.IsKind(SyntaxKind.WhileKeyword)
+                   && nextToken.Parent is DoStatementSyntax);
+    }
+
+    /// <summary>
+    /// Analyze statement. Blank lines are counted with <see cref="TokenGapAnalysis"/>, the one measure of SHARED-BLANK-001,
+    /// so a line holding only whitespace directly below a trivia that ends with its own line break - a <c>///</c> comment
+    /// or a directive - counts as blank
     /// </summary>
     /// <param name="context">Context</param>
     private void OnStatement(SyntaxNodeAnalysisContext context)
@@ -69,11 +84,13 @@ public abstract class StatementShouldBeFollowedByABlankLineAnalyzerBase<TStateme
             var nextToken = GetNextToken(statement);
 
             if (nextToken.IsKind(SyntaxKind.CloseBraceToken) == false
-                && nextToken.IsKind(SyntaxKind.None) == false)
+                && nextToken.IsKind(SyntaxKind.None) == false
+                && ContinuesEnclosingStatement(nextToken) == false)
             {
-                var trivia = statement.GetTrailingTrivia().Concat(nextToken.LeadingTrivia);
+                var lastToken = statement.GetLastToken();
+                var trivia = lastToken.TrailingTrivia.Concat(nextToken.LeadingTrivia);
 
-                if (SyntaxTriviaUtilities.ContainsBlankLine(trivia) == false
+                if (TokenGapAnalysis.Between(lastToken, nextToken).BlankLineCount == 0
                     && SyntaxTriviaUtilities.IsFollowedByDirective(trivia) == false)
                 {
                     context.ReportDiagnostic(CreateDiagnostic(GetLocation(statement)));
