@@ -112,5 +112,7 @@ Bug-fix lane: spec author (clarifications only: RH5002 non-goal deletion per #97
 - Repair round 2: test implementer 32 (8092fa5), cleaner 33 (ec7d86c) clean, spec checker 34 (200bb52) consistent.
 - Audit 35 (d76f77f): #7, #8 closed; #9 → decision #35.
 - Test implementer 36 (e1c49b3), cleaner 37 (1988f81) clean, spec checker 38 (b3cd1cd) consistent.
-- Next: auditor 39 (since e24ebec, limited per decision #35), validator 40.
+- Audit 39 (2d53daa): **pass**; findings #1–#9 closed. Audited SHA: c3a58b23215b0d921f4ad3024d4f9b6f12f5ec25.
+- Follow-up candidate reason (maintainer cost question): the statement blank-line fixes compute columns themselves instead of delegating layout to the formatter; this caused the repeated initializer-column findings.
+- Next: validator 40, lane check, issue manager, note, publish.
 - Follow-up candidate added: inside an initializer, a statement moved inside a block on a `case` label's line takes the label's column (pre-existing; fits decision #9's follow-up).
