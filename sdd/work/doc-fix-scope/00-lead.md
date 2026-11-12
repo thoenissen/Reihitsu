@@ -55,6 +55,8 @@ None in the prompt.
 | 24 | Auditor (10) | Finding #2 RH8402: header text ending in a line break yields an extra blank line | Repair round 1: spec author widens RH8402-006 coverage to that configuration, test implementer adds a test, implementer writes one line break | PR-introduced regression against main | Restores main's output; demanded by RH8402-006 once covered | — |
 | 25 | Auditor (10) | Finding #1 RH8204 dead fallback branch | Repair round 1: implementer deletes the unreachable branch | PR-introduced dead code | Internal | — |
 | 26 | Auditor (10) | RH8309 accessor follow-up candidate | Dropped: the fix is now withheld there (no SHARED-FIX-005 violation left), and accessor documentation is a rare class | — | Rare-class withholding | 2ed4500 |
+| 27 | Repair 1 | RH8402-005 clarification for a header ending in a line break (11-spec-author) | No change; the insert path already writes one line break | Spec checker may raise it if it misreads | Insert path output unchanged | — |
+| 28 | Implementer (13) | Follow-up: insert path with a file starting with a blank line then a non-copyright comment, header ending in a line break (not probed) | Dropped | Rare class, unprobed, outside the paths the run changes | — | — |
 
 ## Follow-up candidates
 
@@ -74,4 +76,5 @@ None in the prompt.
 - Done: implementer (07, 2ed4500): entry point added, copy removed, all tests pass.
 - Done: cleaner (08, c6b0a5c, clean); spec checker (09, 1d852e3, consistent).
 - Done: auditor (10, 9987064): findings #1 (low), #2 (medium). Audited SHA 1d852e3.
-- Repair round 1 (of 3): spec author (11) → test implementer (12) → implementer (13) → cleaner → spec checker → auditor (repair only) → validator.
+- Repair round 1 (of 3): spec author (11, 5edb2548), test implementer (12, 5672b193), implementer (13, 261ad231) done.
+- Next: cleaner (14) → spec checker (15) → auditor (16, repair only, since 1d852e3) → validator (17).
