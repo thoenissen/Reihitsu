@@ -126,9 +126,15 @@ When the statement shares its line with the statement before it, the fix MUST mo
 
 Both hold whether the statement it follows starts its line or not — also when the statement it follows stands behind a `case` label on the last line of that label, such as a label whose `when` clause continues on a second line: the moved statement then takes the column of the section's statements, such as the column of the `break;` below it, not a column read from the label's continuation line. Inserted line breaks MUST use the line ending SHARED-FIX-008 specifies.
 
-Inside an object initializer or anonymous object, the fix MUST NOT be offered for a statement it would move when the statement it follows starts on a continuation line of a `case` label — a line inside the label that starts behind the label's first token — and no statement of the switch section other than the reported one starts its own line. The diagnostic is still reported. The fix stays offered when another statement of the section starts its own line, such as a `break;` below, and when the statement it follows starts on the label's first line.
+Inside an object initializer or anonymous object, the fix reads that column from the line on which the statement it follows — the statement before it in the same block or switch section — starts, and only when one of these starts that line, with nothing but whitespace in front of it on the line:
 
-Why: A comment directly above the statement describes it, so it stays with the statement; putting the blank line between them would leave the comment describing the code above. A comment that starts behind the statement before it belongs to that statement's line, so the statement moves out from behind it, as the formatter does. The fix changes only the gap in front of the statement. The statement belongs to the same list as the one it follows, so it takes that list's column; a column read from a line that a label's continuation leads is the label's, not the list's. Inside an initializer, the formatter's column depends on how it anchors the whole initializer, which a fix of one gap cannot know without predicting the indentation phase; the column of the list as written is the one the reader sees next to the moved statement. When the section's statements stand only behind the label, the text holds no column of the section at all: the continuation line's whitespace is the label's layout, deeper or not, and any column the fix chose would be a prediction. The class is rare — a statement behind a label is an RH5103 violation already — so the fix is withheld for it rather than taught to predict the formatter (`AGENTS.md`, *Code-fix coverage*).
+- the first token of a statement of the same block or switch section — the statement it follows or an earlier one: the moved statement takes that line's column;
+- the first token of a label of its switch section: the moved statement takes the column one indentation level deeper than that line's;
+- a token inside a label of its switch section behind the label's first token, so that the line is a continuation line of the label: the moved statement takes the column of another statement of the section that starts its own line, such as a `break;` below.
+
+In every other case the fix MUST NOT be offered for a statement it would move, and the diagnostic is still reported: when that line starts with the last line of a comment, a comment of any kind, a wrapped continuation of an earlier statement, a statement nested inside an earlier one such as the unbraced body of an `if`, or the closing brace of an earlier block, and when it is a continuation line of a label and no statement of the section other than the reported one starts its own line. A statement the fix does not move keeps the fix wherever it stands.
+
+Why: A comment directly above the statement describes it, so it stays with the statement; putting the blank line between them would leave the comment describing the code above. A comment that starts behind the statement before it belongs to that statement's line, so the statement moves out from behind it, as the formatter does. The fix changes only the gap in front of the statement. The statement belongs to the same list as the one it follows, so it takes that list's column; a column read from a line that a label's continuation leads is the label's, not the list's. Inside an initializer, the formatter's column depends on how it anchors the whole initializer, which a fix of one gap cannot know without predicting the indentation phase; the column of the list as written is the one the reader sees next to the moved statement. Only a line that a statement of the list or a label of the section starts holds the list's column as written; the whitespace in front of anything else — a comment's last line, a wrapped argument, a nested statement, a closing brace, a label's continuation — is that construct's layout, and any column the fix derived from it would be a prediction. When the section's statements stand only behind a label that spans lines, the text holds no column of the section at all. The class is rare — the statement the fix would move shares its line with another statement, an RH5103 violation already — so the fix is withheld for the whole class, keyed on what starts the line, rather than taught to predict the formatter construct by construct (`AGENTS.md`, *Code-fix coverage*).
 
 Example — RH5002:
 
@@ -335,3 +341,29 @@ class C
     }
 }
 ```
+
+Example — inside an object initializer, the statement follows a statement that starts on the last line of a block comment, so no statement or label starts that line. RH5002 reports the `if`, and no code fix is offered:
+
+```csharp
+class Holder
+{
+    public System.Action<int> A { get; set; }
+}
+
+class C
+{
+    Holder Create()
+    {
+        return new Holder
+        {
+            A = value =>
+            {
+                value++; /* x
+                        y */ value++; {|RH5002:if|} (value > 2) { }
+            },
+        };
+    }
+}
+```
+
+Had `value++; value++; if (value > 2) { }` stood on one line that `value++;` starts, the fix would be offered and the `if` would take the column of that line.
