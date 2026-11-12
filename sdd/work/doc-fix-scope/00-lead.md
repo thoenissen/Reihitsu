@@ -77,4 +77,5 @@ None in the prompt.
 - Done: cleaner (08, c6b0a5c, clean); spec checker (09, 1d852e3, consistent).
 - Done: auditor (10, 9987064): findings #1 (low), #2 (medium). Audited SHA 1d852e3.
 - Repair round 1 (of 3): spec author (11, 5edb2548), test implementer (12, 5672b193), implementer (13, 261ad231) done.
-- Next: cleaner (14) → spec checker (15) → auditor (16, repair only, since 1d852e3) → validator (17).
+- Done: cleaner (14), spec checker (15, consistent), auditor (16, 8630b3ed): PASS. Audited SHA 54b50c9c.
+- Next: validator (17) → lane check → issue manager (follow-ups) → note, delete sdd/work → trigger commit → PR body.
