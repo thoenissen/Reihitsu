@@ -4,7 +4,7 @@
 |---|---|
 | ID prefix | SHARED-STMT |
 | Status | Active |
-| Code owners | `StatementShouldBePrecededByABlankLineAnalyzerBase<TStatement>`, `StatementShouldBePrecededByABlankLineCodeFixProviderBase` |
+| Code owners | `StatementShouldBePrecededByABlankLineAnalyzerBase<TStatement>`, `StatementShouldBePrecededByABlankLineCodeFixProviderBase`, `BlankLineCodeFixUtilities` |
 | Uses | SHARED-BLANK-001, FMT-BLANK-001, FMT-INDENT-003, SHARED-FIX-008 |
 
 This spec covers the rules that ask for a blank line in front of one kind of statement: when such a statement is reported, which statements are never checked, and what the code fix inserts. Each rule that uses this spec names its statement kind, where its diagnostic is located, and any exception of its own. The formatter's counterpart is FMT-BLANK-001.
