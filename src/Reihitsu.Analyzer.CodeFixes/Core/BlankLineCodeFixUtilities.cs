@@ -226,7 +226,7 @@ internal static class BlankLineCodeFixUtilities
         }
 
         if (isLabelOfSwitch
-            && label.GetFirstToken() != lineStartToken)
+            && label?.GetFirstToken() != lineStartToken)
         {
             var lineStartingStatement = ((SwitchSectionSyntax)targetStatement.Parent).Statements.FirstOrDefault(statement => statement != targetStatement
                                                                                                                              && StartsLineBehindComments(sourceText, statement.GetFirstToken()));
