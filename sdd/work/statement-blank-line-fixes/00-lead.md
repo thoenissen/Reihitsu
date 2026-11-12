@@ -64,6 +64,7 @@ Bug-fix lane: spec author (clarifications only: RH5002 non-goal deletion per #97
 | 24 | Auditor 11 | Findings #2, #3 (text) and the "one owner" summary hint | Repair: spec author (SHARED-WS-001 admits a whole whitespace-only run; SHARED-BLANK-001 excludes a line inside disabled text), implementer (the two base-class summaries, `BlankLineCodeFixUtilities` summary) | Text only | No output change | – |
 | 25 | Implementer 14 | RH3208 in the decision #23 shape | ~~Drop as follow-up~~ — superseded by #26: the premise ("keeps main's column") was wrong per 17-auditor | – | – | – |
 | 26 | Auditor 17 | Finding #4 repeats #1's class (RH3208 calls the owner without the refusal check) — architecture finding, not a repair round | Refuse the class for RH3208 too, structurally: the owner of the blank line must not hand a fallback column to any caller in the refused cell, and RH3208 withholds its fix there (no no-op fix, SHARED-FIX-005); record the gap in SHARED-AFTERBRACE-002; RH3208 tests for both cells; also pin SHARED-BLANK-001's disabled-text example with a test | Rare class (README, *Refuse the class first*); a repeated class must not be repaired member by member | Withholding a fix for a rare class puts nothing in question | – |
+| 27 | Implementer 20 | `CanRegisterCodeFix` hook on `ExpressionBodyToBlockCodeFixProviderBase`; RH3208's original-tree line check restates one condition of `RequiresBlankLineAfterClosingBrace` | Accept both; auditor 23 checks the restated condition | `RegisterCodeFixesAsync` is sealed; the registration-time check needs the original tree | Internal | 9989052 |
 | 12 | Skeptic | Spec-diff wording findings (SHARED-STMT-004 undecided-case note, SHARED-BLANK-001 `///`→ also directives, comment sentence wording, initializer example, RH5023 spaces case) | Route all to a fresh spec author after the maintainer's answers | Internal wording; batched with the answers' spec changes | No output changes | – |
 
 ## Follow-up candidates
@@ -92,5 +93,5 @@ Bug-fix lane: spec author (clarifications only: RH5002 non-goal deletion per #97
 - Cleaner 09 (47b0eda): clean. Spec checker 10 (0451767): consistent, no findings.
 - Audit 1 (11, e996463) at cf077d0: findings #1 high, #2/#3 low text.
 - Repair round 1 done; audit 17 (23c967f): #1–#3 closed; #4 repeats #1 → architecture decision #26 (does not use a repair round).
-- Next: spec author 18 + test implementer 19 (parallel), implementer 20, cleaner 21, spec checker 22, auditor 23 (since 78abfaf).
+- Decision #26: spec author 18 (1b173d6), test implementer 19 (f042be5), implementer 20 (9989052) done. Next: cleaner 21, spec checker 22, auditor 23 (since 78abfaf).
 - Follow-up candidate added: inside an initializer, a statement moved inside a block on a `case` label's line takes the label's column (pre-existing; fits decision #9's follow-up).
