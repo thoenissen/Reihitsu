@@ -38,11 +38,19 @@ Bug-fix lane: spec author (clarifications only: RH5002 non-goal deletion per #97
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name | Use the session's required branch `claude/nice-thompson-cq0rqf` instead of `claude/batch-946-<slug>` | The execution environment allows pushing only to that branch | Branch names are internal | claim commit |
+| 2 | Spec author | No change doc | Accepted: no change doc | #1076/#1096 decided as bugs by the maintainer; #946/#972 required by shared specs | Bug fixes back to decided requirements | 176b419 |
+| 3 | Spec author | Add RH5011-008 exception to the RH5011 rule page? | No | Rule pages list no exceptions or corner cases (AGENTS.md key conventions) | Rule page unchanged | – |
+| 4 | Spec author | Remove the object-initializer limitation paragraph from 20 shared-base rule pages | Accepted | #1096's decision asks to remove the sentence documenting the limitation; it is also implementation detail | Covered by the maintainer's #1096 decision | 176b419 |
 
 ## Follow-up candidates
 
-(none yet)
+- RH5103's fix over-indents a statement after a multi-line `case` label; fix like #1096 and remove the RH5103 page sentence (01-spec-author)
+- A switch written on one line inside an initializer is undecided by SHARED-STMT-004 and RH5103 (01-spec-author)
+- Narrow RH5030-003 once the gap can be rebuilt (#1626 says "later"; visible, maintainer decides) (01-spec-author)
+- Possible RH5026/RH5027 vs RH5032 cycle with `#region` before `else` / `do` footer — rare; skeptic to check (01-spec-author)
 
 ## Worklist / next step
 
-- Next: spawn spec author (clarifications), then skeptic.
+- Pending output questions (batch before test implementer): (1) RH5005/RH5006 diagnostic location on `await using`/`await foreach` — 01-spec-author OQ1; (2) RH3208 output for `int L() => 1; /* a⏎b */ L();` — 01-spec-author OQ2.
+- PR note: the RH5002 non-goal #972's comment mentions is already absent on main.
+- Next: skeptic (02), then ask the output-question batch.
