@@ -1,7 +1,7 @@
 # Lead — statement-blank-line-fixes (CI repair after publish)
 
 - PR: thoenissen/Reihitsu#1683, branch `claude/nice-thompson-cq0rqf`, lane bug fix. Issues: #946, #972, #1096, #1076, #1626, #1625.
-- Audited SHA: c3a58b23215b0d921f4ad3024d4f9b6f12f5ec25. The run's earlier handovers were deleted before publishing; the run note is `squad/notes/2026-11-12-statement-blank-line-fixes.md`.
+- Audited SHA: c3a58b23215b0d921f4ad3024d4f9b6f12f5ec25. The run's earlier handovers were deleted before publishing.
 - Repair round 3 of 3 (CI repair).
 
 ## CI finding
