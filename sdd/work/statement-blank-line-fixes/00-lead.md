@@ -85,4 +85,5 @@ Bug-fix lane: spec author (clarifications only: RH5002 non-goal deletion per #97
 - Follow-up candidate added: unify the blank-line placement around directives between the statement base and RH3208/RH5030 (decision #18).
 - Test implementer 06 done (859aced).
 - Implementer 07 (0420faf) and spec author 08 (27237e0) done; all test projects green in Debug.
-- Next: cleaner (09), spec checker (10).
+- Cleaner 09 (47b0eda): clean. Spec checker 10 (0451767): consistent, no findings.
+- Next: build, auditor (11).
