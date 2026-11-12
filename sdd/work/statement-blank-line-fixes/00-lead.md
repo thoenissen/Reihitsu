@@ -50,6 +50,8 @@ Bug-fix lane: spec author (clarifications only: RH5002 non-goal deletion per #97
 | 9 | Skeptic | Architecture finding 2: code fix predicts the indentation column (#1096 Q1) | Fix narrowly (add the level only on a line that starts with the label's first token); structural cause becomes a follow-up | Rare class (RH5103); maintainer decided the output | Depends on OQ2 answer | – |
 | 10 | Skeptic | Architecture finding 3: region exemption missing in four deleting rules | One shared cheap check used by RH5024–RH5027 | Avoids four copies of one rule | Same as #6 | – |
 | 11 | Skeptic | Architecture finding 4: four answers to "statement behind a multi-line comment" | Run takes #1626 only as far as OQ4 needs; unifying RH5011/RH5030 is a follow-up | Keeps scope bound to the run's issues | RH5030-003 narrowing is visible and not asked here | – |
+| 13 | Spec author 03 | Initializer column wording: "as written" vs decision #9's algorithm | Accept "as written"; decision #9's narrow fix must produce that column (read from a statement that starts its own line in the section) | Maintainer answer 2A | Answer 2A covers it | 7df80b0 |
+| 14 | Spec author 03 | SHARED-BLANK-001 Why names analyzers as users of `TokenGapAnalysis` | Accept; reverts in a repair round if decision #8 is over budget | Follows decision #8 | Internal wording | 7df80b0 |
 | 12 | Skeptic | Spec-diff wording findings (SHARED-STMT-004 undecided-case note, SHARED-BLANK-001 `///`→ also directives, comment sentence wording, initializer example, RH5023 spaces case) | Route all to a fresh spec author after the maintainer's answers | Internal wording; batched with the answers' spec changes | No output changes | – |
 
 ## Follow-up candidates
@@ -66,4 +68,5 @@ Bug-fix lane: spec author (clarifications only: RH5002 non-goal deletion per #97
 
 - Output-question batch 1 asked (before test implementer): Q1 RH5011-001 doc-comment clause (02 OQ1), Q2 SHARED-STMT-004 column in an initializer (02 OQ2), Q3 RH3208 output (02 OQ4, replaces 01 OQ2). Answered 1A, 2A, 3A.
 - PR note: the RH5002 non-goal #972's comment mentions is already absent on main.
-- Next after answers: fresh spec author (answers + decision #12 wording), then test implementer.
+- Spec amendment done (03). Code owners rows wait for the implementer's choice of owner type (repair round for spec author).
+- Next: test implementer (04).
