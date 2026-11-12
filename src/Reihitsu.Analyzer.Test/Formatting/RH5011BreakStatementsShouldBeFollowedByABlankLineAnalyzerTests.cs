@@ -1129,6 +1129,412 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
                      Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5011MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the spec example: the empty line directly below a documentation comment behind a break statement is blank,
+    /// so the break statement is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    public async Task VerifyNoDiagnosticForSpecExampleEmptyLineBelowDocumentationComment()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        while (a > 0)
+                                        {
+                                            a--;
+
+                                            break;
+                                            /// doc
+
+                                            if (a > 1)
+                                            {
+                                            }
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the line directly below a documentation comment behind a break statement that holds only spaces is blank,
+    /// so the break statement is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    public async Task VerifyNoDiagnosticWhenLineBelowDocumentationCommentHoldsSpaces()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        while (a > 0)
+                                        {
+                                            break;
+                                            /// doc
+                                            ····
+                                            a++;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(ExpandWhitespaceMarkers(testCode));
+    }
+
+    /// <summary>
+    /// Verifies the line directly below a documentation comment behind a break statement that holds only spaces is blank
+    /// also when documentation comments are not parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    public async Task VerifyNoDiagnosticWhenLineBelowDocumentationCommentHoldsSpacesWithDocumentationModeNone()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        while (a > 0)
+                                        {
+                                            break;
+                                            /// doc
+                                            ····
+                                            a++;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(ExpandWhitespaceMarkers(testCode), test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies the line directly below a documentation comment behind a break statement that holds only spaces is blank
+    /// under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    public async Task VerifyNoDiagnosticWhenLineBelowDocumentationCommentHoldsSpacesWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        while (a > 0)
+                                        {
+                                            break;
+                                            /// doc
+                                            ····
+                                            a++;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(ExpandWhitespaceMarkers(NormalizeToCarriageReturnLineFeed(testCode)));
+    }
+
+    /// <summary>
+    /// Verifies the empty line directly below a pragma directive that follows a comment behind a break statement is blank,
+    /// so the break statement is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    public async Task VerifyNoDiagnosticWhenEmptyLineFollowsPragmaDirectiveBelowComment()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        while (a > 0)
+                                        {
+                                            break;
+                                            // c
+                                #pragma warning disable CS0168
+
+                                            a++;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a break statement followed by a documentation comment and a statement, with no blank line, is reported,
+    /// and the fix puts the blank line below the break statement, above the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-001")]
+    public async Task VerifyDiagnosticAndFixWhenDocumentationCommentDirectlyFollowsBreak()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        while (a > 0)
+                                        {
+                                            {|RH5011:break|};
+                                            /// doc
+                                            a++;
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         while (a > 0)
+                                         {
+                                             break;
+
+                                             /// doc
+                                             a++;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a break statement in front of else or in front of the footer of a do statement is not
+    /// reported, while a break statement in front of a while statement is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-008")]
+    public async Task VerifyBreakBeforeContinuingKeywordIsNotReportedForSpecExample()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        while (true)
+                                        {
+                                            if (a > 0) break; else a++;
+
+                                            if (a > 1)
+                                                break;
+                                            else
+                                                a--;
+
+                                            do break; while (a > 2);
+
+                                            do
+                                                break;
+                                            while (a > 3);
+
+                                            {|RH5011:break|};
+                                            while (a > 4) a--;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a break statement in front of else on the same line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-008")]
+    public async Task VerifyBreakBeforeElseOnSameLineIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        while (true)
+                                        {
+                                            if (a > 0) break; else a++;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a break statement in front of else on the next line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-008")]
+    public async Task VerifyBreakBeforeElseOnNextLineIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        while (true)
+                                        {
+                                            if (a > 1)
+                                                break;
+                                            else
+                                                a--;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a break statement in front of the footer of a do statement on the same line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-008")]
+    public async Task VerifyBreakBeforeDoStatementFooterOnSameLineIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        while (true)
+                                        {
+                                            do break; while (a > 2);
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a break statement in front of the footer of a do statement on the next line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-008")]
+    public async Task VerifyBreakBeforeDoStatementFooterOnNextLineIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        while (true)
+                                        {
+                                            do
+                                                break;
+                                            while (a > 3);
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a break statement in front of else on the next line is not reported under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-008")]
+    public async Task VerifyBreakBeforeElseIsNotReportedWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        while (true)
+                                        {
+                                            if (a > 1)
+                                                break;
+                                            else
+                                                a--;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
+    /// <summary>
+    /// Verifies a break statement in front of a while statement, whose while keyword starts a new statement, is reported
+    /// and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-008")]
+    public async Task VerifyBreakBeforeWhileStatementIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        while (true)
+                                        {
+                                            {|RH5011:break|};
+                                            while (a > 4) a--;
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         while (true)
+                                         {
+                                             break;
+
+                                             while (a > 4) a--;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

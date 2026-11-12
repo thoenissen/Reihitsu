@@ -57,5 +57,35 @@ public class RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineFormatterTe
                               Diagnostics(RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5026MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies code with a blank line directly below a region directive is left unchanged by the formatter and not
+    /// reported, so the formatter and the analyzer agree
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5026-005")]
+    public async Task VerifyFormatterKeepsBlankLineBelowRegionDirectiveAndAnalyzerReportsNothing()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(int a)
+                                 {
+                                     if (a > 0)
+                                     {
+                                     }
+                                     #region R
+
+                                     else
+                                     {
+                                     }
+                                     #endregion // R
+                                 }
+                             }
+                             """;
+
+        await VerifyFormatter(input);
+    }
+
     #endregion // Tests
 }

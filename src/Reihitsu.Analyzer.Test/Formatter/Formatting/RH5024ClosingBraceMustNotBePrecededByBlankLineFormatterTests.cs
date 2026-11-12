@@ -85,5 +85,29 @@ public class RH5024ClosingBraceMustNotBePrecededByBlankLineFormatterTests : Form
                               Diagnostics(RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5024MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies code with a blank line directly below a region directive is left unchanged by the formatter and not
+    /// reported, so the formatter and the analyzer agree
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5024-001")]
+    public async Task VerifyFormatterKeepsBlankLineBelowRegionDirectiveAndAnalyzerReportsNothing()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     #region R
+
+                                 }
+                                 #endregion // R
+                             }
+                             """;
+
+        await VerifyFormatter(input);
+    }
+
     #endregion // Tests
 }

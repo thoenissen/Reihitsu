@@ -400,6 +400,217 @@ public class RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzerTests : Batch
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode), actual);
     }
 
+    /// <summary>
+    /// Verifies the spec example: one application of the fix deletes the reported blank line together with the rest of its
+    /// run of blank lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5024-005")]
+    [Requirement("SHARED-FIX-001")]
+    public async Task VerifyFixDeletesRunOfBlankLinesAboveClosingBraceInOneApplication()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        M();
+
+                                {|RH5024:
+                                |}    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         M();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix deletes the reported blank line together with the rest of its run of blank
+    /// lines under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5024-005")]
+    [Requirement("SHARED-FIX-001")]
+    public async Task VerifyFixDeletesRunOfBlankLinesAboveClosingBraceInOneApplicationWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        M();
+
+                                {|RH5024:
+                                |}    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         M();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode),
+                     NormalizeToCarriageReturnLineFeed(fixedCode),
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a blank line, or a run of blank lines, directly below a region directive and above a
+    /// closing brace is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5024-001")]
+    public async Task VerifyRunOfBlankLinesBelowRegionDirectiveAboveClosingBraceIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        #region R
+
+                                    }
+                                    #endregion // R
+
+                                    void N()
+                                    {
+                                        #region S
+
+
+                                    }
+                                    #endregion // S
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a blank line directly below a region directive and above the closing brace of a type is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5024-001")]
+    public async Task VerifyBlankLineBelowRegionDirectiveAboveClosingBraceOfTypeIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                    }
+
+                                    #region R
+
+                                }
+                                #endregion // R
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a blank line directly below a region directive and above a closing brace is not reported under CRLF line
+    /// endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5024-001")]
+    public async Task VerifyBlankLineBelowRegionDirectiveAboveClosingBraceIsNotReportedWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        #region R
+
+                                    }
+                                    #endregion // R
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
+    /// <summary>
+    /// Verifies one Fix All application deletes the runs of blank lines above two closing braces of one document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5024-005")]
+    [Requirement("SHARED-FIX-001")]
+    public async Task VerifyFixAllDeletesRunsOfBlankLinesAboveTwoClosingBracesInOneIteration()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        M();
+
+                                {|RH5024:
+                                |}    }
+
+                                    void N()
+                                    {
+                                        N();
+
+                                {|RH5024:
+                                |}    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         M();
+                                     }
+
+                                     void N()
+                                     {
+                                         N();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 2;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

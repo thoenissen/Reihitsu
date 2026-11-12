@@ -327,6 +327,274 @@ public class RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzerTes
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode), actual);
     }
 
+    /// <summary>
+    /// Verifies the spec example: one application of the fix deletes the reported blank line together with the rest of its
+    /// run of blank lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5026-004")]
+    [Requirement("SHARED-FIX-001")]
+    public async Task VerifyFixDeletesRunOfBlankLinesAboveChainedKeywordInOneApplication()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a > 0)
+                                        {
+                                        }
+
+                                {|RH5026:
+                                |}        else
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         if (a > 0)
+                                         {
+                                         }
+                                         else
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix deletes the reported blank line together with the rest of its run of blank
+    /// lines under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5026-004")]
+    [Requirement("SHARED-FIX-001")]
+    public async Task VerifyFixDeletesRunOfBlankLinesAboveChainedKeywordInOneApplicationWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a > 0)
+                                        {
+                                        }
+
+                                {|RH5026:
+                                |}        else
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         if (a > 0)
+                                         {
+                                         }
+                                         else
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode),
+                     NormalizeToCarriageReturnLineFeed(fixedCode),
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a blank line directly below a region directive and above else is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5026-005")]
+    public async Task VerifyBlankLineBelowRegionDirectiveAboveElseIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a > 0)
+                                        {
+                                        }
+                                        #region R
+
+                                        else
+                                        {
+                                        }
+                                        #endregion // R
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a blank line directly below an endregion directive and above catch is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5026-005")]
+    public async Task VerifyBlankLineBelowEndRegionDirectiveAboveCatchIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        #region R
+                                        try
+                                        {
+                                            a++;
+                                        }
+                                        #endregion // R
+
+                                        catch
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a run of two blank lines directly below a region directive and above else is not reported by this rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5026-005")]
+    public async Task VerifyRunOfBlankLinesBelowRegionDirectiveAboveElseIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a > 0)
+                                        {
+                                        }
+                                        #region R
+
+
+                                        else
+                                        {
+                                        }
+                                        #endregion // R
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a blank line directly below a region directive and above else is not reported under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5026-005")]
+    public async Task VerifyBlankLineBelowRegionDirectiveAboveElseIsNotReportedWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a > 0)
+                                        {
+                                        }
+                                        #region R
+
+                                        else
+                                        {
+                                        }
+                                        #endregion // R
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
+    /// <summary>
+    /// Verifies a blank line whose nearest line above that is not blank holds a comment, and which stands above else,
+    /// stays reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5026-005")]
+    public async Task VerifyBlankLineBelowCommentAboveElseIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a > 0)
+                                        {
+                                        }
+                                        // note
+                                {|RH5026:
+                                |}        else
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         if (a > 0)
+                                         {
+                                         }
+                                         // note
+                                         else
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

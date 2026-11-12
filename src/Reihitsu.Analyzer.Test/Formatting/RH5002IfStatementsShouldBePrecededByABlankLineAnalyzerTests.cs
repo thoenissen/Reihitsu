@@ -305,6 +305,913 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
         await Verify(testCode, fixedCode, test => test.NumberOfIncrementalIterations = 1);
     }
 
+    /// <summary>
+    /// Verifies the spec example of comments that end on the statement's line: a block comment that starts the statement's
+    /// line and a comment that starts an earlier line each get exactly one blank line above the line they start on, and a
+    /// comment that starts behind the statement before it makes the fix move the statement below it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixInsertsOneBlankLineForSpecExampleOfCommentsEndingOnStatementLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                        /* block */ {|RH5002:if|} (a > 1) { }
+
+                                        a++;
+                                        /* a
+                                        b */ {|RH5002:if|} (a > 2) { }
+
+                                        a++; /* a
+                                        b */ {|RH5002:if|} (a > 3) { }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a++;
+
+                                         /* block */ if (a > 1) { }
+
+                                         a++;
+
+                                         /* a
+                                         b */ if (a > 2) { }
+
+                                         a++; /* a
+                                         b */
+
+                                         if (a > 3) { }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 3;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix inserts exactly one blank line above a block comment that starts the reported
+    /// statement's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixInsertsOneBlankLineAboveBlockCommentStartingStatementLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                        /* block */ {|RH5002:if|} (a > 7) { }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a++;
+
+                                         /* block */ if (a > 7) { }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix inserts exactly one blank line above a block comment that starts the reported
+    /// statement's line under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixInsertsOneBlankLineAboveBlockCommentStartingStatementLineWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                        /* block */ {|RH5002:if|} (a > 7) { }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a++;
+
+                                         /* block */ if (a > 7) { }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode),
+                     NormalizeToCarriageReturnLineFeed(fixedCode),
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix inserts exactly one blank line above a multi-line comment that starts its own
+    /// line and ends on the reported statement's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixInsertsOneBlankLineAboveMultiLineCommentEndingOnStatementLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                        /* a
+                                        b */ {|RH5002:if|} (a > 7) { }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a++;
+
+                                         /* a
+                                         b */ if (a > 7) { }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix inserts exactly one blank line above a comment line that stands above a block
+    /// comment starting the reported statement's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixInsertsOneBlankLineAboveCommentLineAboveBlockCommentStartingStatementLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                        /* above */
+                                        /* block */ {|RH5002:if|} (a > 7) { }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a++;
+
+                                         /* above */
+                                         /* block */ if (a > 7) { }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix inserts exactly one blank line above two block comments that start the reported
+    /// statement's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixInsertsOneBlankLineAboveTwoBlockCommentsStartingStatementLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                        /* x */ /* y */ {|RH5002:if|} (a > 7) { }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a++;
+
+                                         /* x */ /* y */ if (a > 7) { }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix inserts exactly one blank line above a block comment that starts the reported
+    /// statement's line when a line comment ends the previous statement's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixInsertsOneBlankLineAboveBlockCommentWhenLineCommentEndsPreviousLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++; // x
+                                        /* b */ {|RH5002:if|} (a > 7) { }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a++; // x
+
+                                         /* b */ if (a > 7) { }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix inserts exactly one blank line above a delimited documentation comment that
+    /// starts the reported statement's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixInsertsOneBlankLineAboveDelimitedDocumentationCommentStartingStatementLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                        /** d */ {|RH5002:if|} (a > 7) { }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a++;
+
+                                         /** d */ if (a > 7) { }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix moves a statement out from behind a multi-line comment that starts behind the
+    /// statement before it and holds every line break between them, with one blank line and no whitespace at the end of
+    /// the comment's last line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixMovesStatementBehindCommentStartingBehindPreviousStatement()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++; /* a
+                                        b */ {|RH5002:if|} (a > 7) { }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a++; /* a
+                                         b */
+
+                                         if (a > 7) { }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix moves a statement out from behind a multi-line comment that starts behind the
+    /// statement before it under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixMovesStatementBehindCommentStartingBehindPreviousStatementWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++; /* a
+                                        b */ {|RH5002:if|} (a > 7) { }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a++; /* a
+                                         b */
+
+                                         if (a > 7) { }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode),
+                     NormalizeToCarriageReturnLineFeed(fixedCode),
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix inserts exactly one blank line above a comment line that a line comment ends
+    /// before the reported statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixInsertsOneBlankLineAboveBlockCommentLineEndedByLineComment()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                        /* b */ // c
+                                        {|RH5002:if|} (a > 7) { }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a++;
+
+                                         /* b */ // c
+                                         if (a > 7) { }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix moves a statement that shares its line with the statement before it and a block
+    /// comment between them to a new line, leaving the comment behind the statement before it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixMovesStatementBehindSingleLineCommentSharingPreviousStatementLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++; /* c */ {|RH5002:if|} (a > 7) { }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a++; /* c */
+
+                                         if (a > 7) { }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that inside an object initializer, an if statement that follows a statement behind a case label spanning
+    /// two lines takes the column of break
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyMovedIfStatementTakesSectionColumnWhenLabelSpansMultipleLinesInsideObjectInitializer()
+    {
+        const string testCode = """
+                                internal class RH5002
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 1 when
+                                                    Check(value): Method(1); {|RH5002:if|} (value > 2) { }
+                                                    break;
+                                            }
+                                        }
+                                    };
+
+                                    private static bool Check(int value)
+                                    {
+                                        return true;
+                                    }
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+        const string fixedCode = """
+                                 internal class RH5002
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 case 1 when
+                                                     Check(value): Method(1);
+
+                                                     if (value > 2) { }
+                                                     break;
+                                             }
+                                         }
+                                     };
+
+                                     private static bool Check(int value)
+                                     {
+                                         return true;
+                                     }
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies the spec example: the empty line directly below a documentation comment is blank, so the if statement
+    /// below it is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    public async Task VerifyNoDiagnosticForSpecExampleEmptyLineBelowDocumentationComment()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        while (a > 0)
+                                        {
+                                            a--;
+
+                                            break;
+                                            /// doc
+
+                                            if (a > 1)
+                                            {
+                                            }
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the line directly below a documentation comment that holds only spaces is blank, so the if statement below
+    /// it is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    public async Task VerifyNoDiagnosticWhenLineBelowDocumentationCommentHoldsSpaces()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        while (a > 0)
+                                        {
+                                            a--;
+
+                                            break;
+                                            /// doc
+                                            ····
+                                            if (a > 1)
+                                            {
+                                            }
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(ExpandWhitespaceMarkers(testCode));
+    }
+
+    /// <summary>
+    /// Verifies the line directly below a documentation comment that holds only spaces is blank also when documentation
+    /// comments are not parsed, so the if statement below it is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    public async Task VerifyNoDiagnosticWhenLineBelowDocumentationCommentHoldsSpacesWithDocumentationModeNone()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        while (a > 0)
+                                        {
+                                            a--;
+
+                                            break;
+                                            /// doc
+                                            ····
+                                            if (a > 1)
+                                            {
+                                            }
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(ExpandWhitespaceMarkers(testCode), test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies the line directly below a documentation comment that holds only spaces is blank under CRLF line endings,
+    /// so the if statement below it is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    public async Task VerifyNoDiagnosticWhenLineBelowDocumentationCommentHoldsSpacesWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        while (a > 0)
+                                        {
+                                            a--;
+
+                                            break;
+                                            /// doc
+                                            ····
+                                            if (a > 1)
+                                            {
+                                            }
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(ExpandWhitespaceMarkers(NormalizeToCarriageReturnLineFeed(testCode)));
+    }
+
+    /// <summary>
+    /// Verifies the empty line directly below a documentation comment is blank when a comment line stands between it and
+    /// the if statement, so the if statement is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    public async Task VerifyNoDiagnosticWhenBlankLineBelowDocumentationCommentPrecedesCommentLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                        /// doc
+
+                                        // note
+                                        if (a > 1)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: the empty line directly below an endif directive is blank, so the if statement below the
+    /// comment line under it is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    public async Task VerifyNoDiagnosticForSpecExampleEmptyLineBelowEndIfDirective()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                #if DEBUG
+                                        a--;
+                                #endif
+
+                                        // note
+                                        if (a > 1)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the line directly below an endif directive that holds only spaces is blank, so the if statement below the
+    /// comment line under it is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    public async Task VerifyNoDiagnosticWhenLineBelowEndIfDirectiveHoldsSpaces()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                #if DEBUG
+                                        a--;
+                                #endif
+                                                ····
+                                        // note
+                                        if (a > 1)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(ExpandWhitespaceMarkers(testCode));
+    }
+
+    /// <summary>
+    /// Verifies the line directly below an endif directive that holds only spaces is blank under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    public async Task VerifyNoDiagnosticWhenLineBelowEndIfDirectiveHoldsSpacesWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                #if DEBUG
+                                        a--;
+                                #endif
+                                                ····
+                                        // note
+                                        if (a > 1)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(ExpandWhitespaceMarkers(NormalizeToCarriageReturnLineFeed(testCode)));
+    }
+
+    /// <summary>
+    /// Verifies the empty line directly below a pragma directive is blank, so the if statement below the comment line
+    /// under it is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    public async Task VerifyNoDiagnosticWhenEmptyLineFollowsPragmaDirective()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                #pragma warning disable CS0168
+
+                                        // note
+                                        if (a > 1)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies an if statement directly below a documentation comment, with no blank line, stays reported and the fix
+    /// puts the blank line above the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyDiagnosticWhenDocumentationCommentDirectlyPrecedesIfStatement()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                        /// doc
+                                        {|RH5002:if|} (a > 1)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a++;
+
+                                         /// doc
+                                         if (a > 1)
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

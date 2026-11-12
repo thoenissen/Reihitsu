@@ -53,5 +53,47 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineFormatterTests :
                               ExpectedDiagnostic(RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 16, AnalyzerResources.RH5006MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the formatter puts the blank line in front of await of an await foreach statement, so the diagnostic on
+    /// the foreach keyword is cleared
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5006-002")]
+    public async Task VerifyFormatterInsertsBlankLineAboveAwaitOfAwaitForeachStatement()
+    {
+        const string input = """
+                             class C
+                             {
+                                 async System.Threading.Tasks.Task M(System.Collections.Generic.IAsyncEnumerable<int> items)
+                                 {
+                                     var sum = 0;
+                                     await foreach (var item in items)
+                                     {
+                                         sum += item;
+                                     }
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     async System.Threading.Tasks.Task M(System.Collections.Generic.IAsyncEnumerable<int> items)
+                                     {
+                                         var sum = 0;
+
+                                         await foreach (var item in items)
+                                         {
+                                             sum += item;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 15, 6, 22, AnalyzerResources.RH5006MessageFormat));
+    }
+
     #endregion // Tests
 }

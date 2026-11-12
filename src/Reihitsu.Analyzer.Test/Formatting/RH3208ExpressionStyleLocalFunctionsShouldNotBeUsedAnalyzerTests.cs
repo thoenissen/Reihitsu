@@ -1715,6 +1715,338 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
         await VerifyNoCodeFixIsOffered(source);
     }
 
+    /// <summary>
+    /// Verifies the spec example: when every line break between the new closing brace and the next statement lies inside a
+    /// comment, one application of the fix moves the statement below the comment with one blank line, at the column of the
+    /// block's statements, and leaves no whitespace at the end of the comment's last line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-AFTERBRACE-002")]
+    [Requirement("RH3208-002")]
+    public async Task VerifyStatementBehindCommentHoldingEveryLineBreakMovesBelowComment()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int L() {|RH3208:=> 1|}; /* a
+                                        b */ L();
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         int L()
+                                         {
+                                             return 1;
+                                         } /* a
+                                         b */
+
+                                         L();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix moves a statement behind a comment that holds every line break below the
+    /// comment under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-AFTERBRACE-002")]
+    [Requirement("RH3208-002")]
+    public async Task VerifyStatementBehindCommentHoldingEveryLineBreakMovesBelowCommentWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int L() {|RH3208:=> 1|}; /* a
+                                        b */ L();
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         int L()
+                                         {
+                                             return 1;
+                                         } /* a
+                                         b */
+
+                                         L();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode),
+                     NormalizeToCarriageReturnLineFeed(fixedCode),
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one Fix All application converts two local functions of one document and moves the statement behind the
+    /// comment that follows each below that comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-AFTERBRACE-002")]
+    [Requirement("RH3208-002")]
+    public async Task VerifyFixAllMovesStatementsBehindCommentsHoldingEveryLineBreakInOneIteration()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int L() {|RH3208:=> 1|}; /* a
+                                        b */ L();
+                                    }
+
+                                    void N()
+                                    {
+                                        int K() {|RH3208:=> 2|}; /* c
+                                        d */ K();
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         int L()
+                                         {
+                                             return 1;
+                                         } /* a
+                                         b */
+
+                                         L();
+                                     }
+
+                                     void N()
+                                     {
+                                         int K()
+                                         {
+                                             return 2;
+                                         } /* c
+                                         d */
+
+                                         K();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 2;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix moves a statement of a switch section that stands behind a comment holding
+    /// every line break below the comment, at the column of the section's statements
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-AFTERBRACE-002")]
+    [Requirement("RH3208-002")]
+    public async Task VerifyStatementBehindCommentHoldingEveryLineBreakMovesBelowCommentInSwitchSection()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                int L() {|RH3208:=> 1|}; /* a
+                                                b */ L();
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int value)
+                                     {
+                                         switch (value)
+                                         {
+                                             case 1:
+                                                 int L()
+                                                 {
+                                                     return 1;
+                                                 } /* a
+                                                 b */
+
+                                                 L();
+                                                 break;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that when a line break outside the comment ends the comment's last line, one application of the fix
+    /// inserts one blank line in front of the next statement and moves nothing
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-AFTERBRACE-001")]
+    [Requirement("RH3208-002")]
+    public async Task VerifyStatementBelowCommentEndingItsLineGetsOneBlankLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int L() {|RH3208:=> 1|}; /* a
+                                        b */
+                                        L();
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         int L()
+                                         {
+                                             return 1;
+                                         } /* a
+                                         b */
+
+                                         L();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Characterizes that a statement behind a comment on the line of the local function, with no line break in front of
+    /// it, stays on the line of the new closing brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyStatementBehindSingleLineCommentStaysOnClosingBraceLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int L() {|RH3208:=> 1|}; /* a */ L();
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         int L()
+                                         {
+                                             return 1;
+                                         } /* a */ L();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Characterizes that a statement on the line of the local function, with no comment and no line break in front of it,
+    /// stays on the line of the new closing brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyStatementOnLocalFunctionLineStaysOnClosingBraceLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int L() {|RH3208:=> 1|}; L();
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         int L()
+                                         {
+                                             return 1;
+                                         } L();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

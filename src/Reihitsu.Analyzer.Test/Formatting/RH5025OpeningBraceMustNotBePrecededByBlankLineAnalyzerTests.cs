@@ -655,6 +655,227 @@ public class RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzerTests : Batch
         await Verify(testCode, fixedCode, Diagnostics(RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5025MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the spec example: one application of the fix deletes the reported blank line together with the rest of its
+    /// run of blank lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-004")]
+    [Requirement("SHARED-FIX-001")]
+    public async Task VerifyFixDeletesRunOfBlankLinesAboveOpeningBraceInOneApplication()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+
+                                {|RH5025:
+                                |}    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix deletes the reported blank line together with the rest of its run of blank
+    /// lines under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-004")]
+    [Requirement("SHARED-FIX-001")]
+    public async Task VerifyFixDeletesRunOfBlankLinesAboveOpeningBraceInOneApplicationWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+
+                                {|RH5025:
+                                |}    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode),
+                     NormalizeToCarriageReturnLineFeed(fixedCode),
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a blank line directly below a region or endregion directive and above the opening brace
+    /// of an initializer element is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-007")]
+    public async Task VerifyBlankLineBelowRegionDirectivesAboveInitializerElementIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    System.Collections.Generic.Dictionary<string, int> _d = new()
+                                    {
+                                        { "a", 1 },
+                                        #region A
+
+                                        { "b", 2 },
+                                        #endregion // A
+
+                                        { "c", 3 },
+                                    };
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a blank line directly below a region directive between a method header and its opening brace is not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-007")]
+    public async Task VerifyBlankLineBelowRegionDirectiveAboveMethodBodyIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    #region R
+
+                                    {
+                                    }
+                                    #endregion // R
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a run of two blank lines directly below a region directive and above an opening brace is not reported by
+    /// this rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-007")]
+    public async Task VerifyRunOfBlankLinesBelowRegionDirectiveAboveOpeningBraceIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    #region R
+
+
+                                    {
+                                    }
+                                    #endregion // R
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a blank line directly below a region directive and above the opening brace of an initializer element is
+    /// not reported under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-007")]
+    public async Task VerifyBlankLineBelowRegionDirectiveAboveOpeningBraceIsNotReportedWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    System.Collections.Generic.Dictionary<string, int> _d = new()
+                                    {
+                                        { "a", 1 },
+                                        #region A
+
+                                        { "b", 2 },
+                                        #endregion // A
+                                    };
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
+    /// <summary>
+    /// Verifies a blank line whose nearest line above that is not blank holds a comment, and which stands above the
+    /// opening brace of an initializer element, stays reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5025-007")]
+    public async Task VerifyBlankLineBelowCommentAboveInitializerElementIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    System.Collections.Generic.Dictionary<string, int> _d = new()
+                                    {
+                                        { "a", 1 },
+                                        // A
+                                {|RH5025:
+                                |}        { "b", 2 },
+                                    };
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     System.Collections.Generic.Dictionary<string, int> _d = new()
+                                     {
+                                         { "a", 1 },
+                                         // A
+                                         { "b", 2 },
+                                     };
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

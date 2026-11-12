@@ -582,8 +582,8 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     /// <summary>
     /// Verifies that, when the switch-section label itself is not first on its own line - the whole
     /// <c>switch</c> statement written on one physical line - the shared base cannot compensate: no whitespace
-    /// run on that line equals the label's column, so the line's own leading whitespace is used unchanged. This
-    /// is a documented limitation rather than a defect.
+    /// run on that line equals the label's column, so the line's own leading whitespace is used unchanged. No
+    /// requirement decides this shape; the test characterizes today's output.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -918,16 +918,14 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     /// <summary>
-    /// Characterizes the documented limitation for a switch label that itself spans multiple physical lines,
-    /// such as a <c>case</c> pattern with a <c>when</c> clause: the target statement shares a physical line with
-    /// the label's own continuation line rather than with a preceding sibling statement, so the anchor column
-    /// read from that line is the continuation's own column, not the label's first-line column, and the fix adds
-    /// one indentation level too many. This is a known, documented limitation (see RH5103.md), not a defect this
-    /// test expects to be fixed - it pins today's accepted behavior so a future change to it is deliberate.
+    /// Verifies that inside an object initializer, a statement moved out from behind a statement that stands on the
+    /// continuation line of a <c>case</c> label spanning two lines takes the column of the section's statements as
+    /// written, the column of <c>break;</c>, not a column read from the label's continuation line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDiagnosticOverIndentsWhenLabelSpansMultipleLinesAndPrecedingStatementSharesItsContinuationLine()
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyMovedStatementTakesSectionColumnWhenLabelSpansMultipleLinesAndPrecedingStatementSharesItsContinuationLine()
     {
         const string testCode = """
                                 internal class RH5029
@@ -972,7 +970,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
                                                  case 1 when
                                                      Check(value): Method(1);
 
-                                                         var y = 1;
+                                                     var y = 1;
                                                      break;
                                              }
                                          }
@@ -1409,6 +1407,720 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
                                         const int e = 1;
 
                                         return d + e;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix inserts exactly one blank line above a block comment that starts the reported
+    /// local declaration's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixInsertsOneBlankLineAboveBlockCommentStartingDeclarationLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                        /* block */ {|RH5029:var|} b = a;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a++;
+
+                                         /* block */ var b = a;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies the spec example: inside an object initializer, the statement that follows a statement behind a case label
+    /// spanning two lines takes the column of break, the section's statements as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyMovedStatementTakesSectionColumnForSpecExampleInsideObjectInitializer()
+    {
+        const string testCode = """
+                                class Holder
+                                {
+                                    public System.Action<int> A { get; set; }
+                                }
+
+                                class C
+                                {
+                                    Holder Create()
+                                    {
+                                        return new Holder
+                                        {
+                                            A = value =>
+                                            {
+                                                switch (value)
+                                                {
+                                                    case 1 when
+                                                        Check(value): Method(1); {|RH5029:var|} y = 1;
+                                                        break;
+                                                }
+                                            },
+                                        };
+                                    }
+
+                                    static bool Check(int value)
+                                    {
+                                        return value > 0;
+                                    }
+
+                                    static void Method(int value)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class Holder
+                                 {
+                                     public System.Action<int> A { get; set; }
+                                 }
+
+                                 class C
+                                 {
+                                     Holder Create()
+                                     {
+                                         return new Holder
+                                         {
+                                             A = value =>
+                                             {
+                                                 switch (value)
+                                                 {
+                                                     case 1 when
+                                                         Check(value): Method(1);
+
+                                                         var y = 1;
+                                                         break;
+                                                 }
+                                             },
+                                         };
+                                     }
+
+                                     static bool Check(int value)
+                                     {
+                                         return value > 0;
+                                     }
+
+                                     static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that inside an object initializer, the statement that follows a statement behind a case label spanning two
+    /// lines takes the column of break under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyMovedStatementTakesSectionColumnWhenLabelSpansMultipleLinesWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 1 when
+                                                    Check(value): Method(1); {|RH5029:var|} y = 1;
+                                                    break;
+                                            }
+                                        }
+                                    };
+
+                                    private static bool Check(int value)
+                                    {
+                                        return true;
+                                    }
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 case 1 when
+                                                     Check(value): Method(1);
+
+                                                     var y = 1;
+                                                     break;
+                                             }
+                                         }
+                                     };
+
+                                     private static bool Check(int value)
+                                     {
+                                         return true;
+                                     }
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode),
+                     NormalizeToCarriageReturnLineFeed(fixedCode),
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that inside an object initializer, the statement that follows a statement behind a case label whose when
+    /// clause starts the continuation line takes the column of break
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyMovedStatementTakesSectionColumnWhenWhenClauseStartsContinuationLine()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 1
+                                                    when Check(value): Method(1); {|RH5029:var|} y = 1;
+                                                    break;
+                                            }
+                                        }
+                                    };
+
+                                    private static bool Check(int value)
+                                    {
+                                        return true;
+                                    }
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 case 1
+                                                     when Check(value): Method(1);
+
+                                                     var y = 1;
+                                                     break;
+                                             }
+                                         }
+                                     };
+
+                                     private static bool Check(int value)
+                                     {
+                                         return true;
+                                     }
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that inside an object initializer, the statement that follows a statement behind the second of two case
+    /// labels, which spans two lines, takes the column of break
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyMovedStatementTakesSectionColumnWhenSecondOfTwoLabelsSpansMultipleLines()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 0:
+                                                case 1 when
+                                                    Check(value): Method(1); {|RH5029:var|} y = 1;
+                                                    break;
+                                            }
+                                        }
+                                    };
+
+                                    private static bool Check(int value)
+                                    {
+                                        return true;
+                                    }
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 case 0:
+                                                 case 1 when
+                                                     Check(value): Method(1);
+
+                                                     var y = 1;
+                                                     break;
+                                             }
+                                         }
+                                     };
+
+                                     private static bool Check(int value)
+                                     {
+                                         return true;
+                                     }
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that inside an object initializer, the statement that follows a statement behind a case label whose guard
+    /// spans three lines takes the column of break
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyMovedStatementTakesSectionColumnWhenGuardSpansThreeLines()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 1 when
+                                                    Check(value) &&
+                                                    Check(value + 1): Method(1); {|RH5029:var|} y = 1;
+                                                    break;
+                                            }
+                                        }
+                                    };
+
+                                    private static bool Check(int value)
+                                    {
+                                        return true;
+                                    }
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 case 1 when
+                                                     Check(value) &&
+                                                     Check(value + 1): Method(1);
+
+                                                     var y = 1;
+                                                     break;
+                                             }
+                                         }
+                                     };
+
+                                     private static bool Check(int value)
+                                     {
+                                         return true;
+                                     }
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that inside an anonymous object, the statement that follows a statement behind a case label spanning two
+    /// lines takes the column of break
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyMovedStatementTakesSectionColumnWhenLabelSpansMultipleLinesInsideAnonymousObject()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    public object Create()
+                                    {
+                                        return new
+                                        {
+                                            Handler = (System.Action<int>)(value =>
+                                            {
+                                                switch (value)
+                                                {
+                                                    case 1 when
+                                                        Check(value): Method(1); {|RH5029:var|} y = 1;
+                                                        break;
+                                                }
+                                            }),
+                                        };
+                                    }
+
+                                    private static bool Check(int value)
+                                    {
+                                        return true;
+                                    }
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     public object Create()
+                                     {
+                                         return new
+                                         {
+                                             Handler = (System.Action<int>)(value =>
+                                             {
+                                                 switch (value)
+                                                 {
+                                                     case 1 when
+                                                         Check(value): Method(1);
+
+                                                         var y = 1;
+                                                         break;
+                                                 }
+                                             }),
+                                         };
+                                     }
+
+                                     private static bool Check(int value)
+                                     {
+                                         return true;
+                                     }
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that inside an object initializer, the statement that follows a statement starting its own line below a
+    /// case label spanning two lines takes the column of break
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyMovedStatementKeepsSectionColumnWhenPrecedingStatementStartsItsOwnLineBelowMultiLineLabel()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 1 when
+                                                    Check(value):
+                                                    Method(1); {|RH5029:var|} y = 1;
+                                                    break;
+                                            }
+                                        }
+                                    };
+
+                                    private static bool Check(int value)
+                                    {
+                                        return true;
+                                    }
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 case 1 when
+                                                     Check(value):
+                                                     Method(1);
+
+                                                     var y = 1;
+                                                     break;
+                                             }
+                                         }
+                                     };
+
+                                     private static bool Check(int value)
+                                     {
+                                         return true;
+                                     }
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that in a method body, outside any initializer, the statement that follows a statement behind a case label
+    /// spanning two lines takes the column of its nesting depth, the column of break
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyMovedStatementTakesNestingColumnWhenLabelSpansMultipleLinesInMethodBody()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    public void Execute(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1 when
+                                                Check(value): Method(1); {|RH5029:var|} y = 1;
+                                                break;
+                                        }
+                                    }
+
+                                    private static bool Check(int value)
+                                    {
+                                        return true;
+                                    }
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 internal class RH5029
+                                 {
+                                     public void Execute(int value)
+                                     {
+                                         switch (value)
+                                         {
+                                             case 1 when
+                                                 Check(value): Method(1);
+
+                                                 var y = 1;
+                                                 break;
+                                         }
+                                     }
+
+                                     private static bool Check(int value)
+                                     {
+                                         return true;
+                                     }
+
+                                     private static void Method(int value)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies the empty line directly below an endif directive is blank, so the local declaration below the comment line
+    /// under it is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    public async Task VerifyNoDiagnosticWhenEmptyLineFollowsEndIfDirective()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a++;
+                                #if DEBUG
+                                        a--;
+                                #endif
+
+                                        // note
+                                        var b = a;
                                     }
                                 }
                                 """;

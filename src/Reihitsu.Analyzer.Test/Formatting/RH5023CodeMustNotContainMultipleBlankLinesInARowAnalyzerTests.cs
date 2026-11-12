@@ -482,6 +482,98 @@ public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Bat
         await Verify(testCode, fixedCode, test => test.NumberOfIncrementalIterations = 2);
     }
 
+    /// <summary>
+    /// Verifies the spec example: a file that ends with one blank line is not reported, because the position after its last
+    /// line break holds no line break and is not a line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5023-001")]
+    public async Task VerifyEndOfFileAfterOneBlankLineIsNotReported()
+    {
+        await Verify("class C\n{\n}\n\n");
+    }
+
+    /// <summary>
+    /// Verifies a file that ends with one blank line is not reported under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5023-001")]
+    public async Task VerifyEndOfFileAfterOneBlankLineIsNotReportedWithCarriageReturnLineFeed()
+    {
+        await Verify("class C\r\n{\r\n}\r\n\r\n");
+    }
+
+    /// <summary>
+    /// Verifies the spec example: of a file that ends with two blank lines, only the second, which ends with a line break, is
+    /// reported, and one application of the fix leaves a file that is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5023-001")]
+    public async Task VerifyOnlySecondBlankLineAtEndOfFileIsReportedAndFixedInOneApplication()
+    {
+        await Verify("class C\n{\n}\n\n{|RH5023:\n|}",
+                     "class C\n{\n}\n\n",
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that of a file that ends with two blank lines, only the second is reported and one application of the fix
+    /// leaves a file that is not reported under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5023-001")]
+    public async Task VerifyOnlySecondBlankLineAtEndOfFileIsReportedAndFixedInOneApplicationWithCarriageReturnLineFeed()
+    {
+        await Verify("class C\r\n{\r\n}\r\n\r\n{|RH5023:\r\n|}",
+                     "class C\r\n{\r\n}\r\n\r\n",
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a last line that holds only spaces and no line break, below one blank line, is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5023-001")]
+    public async Task VerifyLastLineHoldingOnlySpacesWithoutLineBreakIsNotReported()
+    {
+        await Verify("class C\n{\n}\n\n    ");
+    }
+
+    /// <summary>
+    /// Verifies a file that ends with a comment line and one blank line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5023-001")]
+    public async Task VerifyEndOfFileAfterCommentAndOneBlankLineIsNotReported()
+    {
+        await Verify("class C\n{\n}\n// c\n\n");
+    }
+
+    /// <summary>
+    /// Verifies a file that ends with a directive line and one blank line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5023-001")]
+    public async Task VerifyEndOfFileAfterDirectiveAndOneBlankLineIsNotReported()
+    {
+        await Verify("class C\n{\n}\n#if X\n#endif\n\n");
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
