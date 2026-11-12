@@ -94,6 +94,13 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
             foreach (var diagnostic in context.Diagnostics)
             {
                 var token = root.FindToken(diagnostic.Location.SourceSpan.Start);
+                var statement = token.Parent?.FirstAncestorOrSelf<StatementSyntax>();
+
+                if (statement == null
+                    || BlankLineCodeFixUtilities.CanInsertBlankLineBefore(root, statement.GetFirstToken()) == false)
+                {
+                    continue;
+                }
 
                 context.RegisterCodeFix(CodeAction.Create(_title,
                                                           cancellationToken => ApplyCodeFixAsync(context.Document, token, cancellationToken),

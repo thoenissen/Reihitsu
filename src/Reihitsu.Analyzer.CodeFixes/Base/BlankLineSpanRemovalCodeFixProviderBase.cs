@@ -5,9 +5,11 @@ using Reihitsu.Core;
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
 /// <summary>
-/// Code fix provider base class for blank-line rules whose fix removes the reported diagnostic span. A
-/// named specialization of <see cref="WhitespaceSpanRemovalCodeFixProviderBase"/> so blank-line rules read
-/// distinctly from spacing rules while sharing its whitespace-only guard instead of duplicating it
+/// Code fix provider base class for blank-line rules whose fix removes blank lines. It shares the whitespace-only
+/// guard of <see cref="WhitespaceSpanRemovalCodeFixProviderBase"/>, which inspects the reported span. A rule that
+/// reports one line of a run of blank lines names the whole run as its deleted span (SHARED-WS-001): the fix then
+/// widens the reported line to every blank line directly above and below it, which holds nothing but whitespace, so
+/// one application removes the run. Any other rule removes the reported span only
 /// </summary>
 public abstract class BlankLineSpanRemovalCodeFixProviderBase : WhitespaceSpanRemovalCodeFixProviderBase
 {

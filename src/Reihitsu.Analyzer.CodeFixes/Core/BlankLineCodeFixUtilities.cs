@@ -12,12 +12,31 @@ using Reihitsu.Formatter.Utilities;
 namespace Reihitsu.Analyzer.CodeFixes.Core;
 
 /// <summary>
-/// Shared helpers for code fixes that insert blank lines. This is the one owner of the blank line a code fix puts in front
-/// of a statement (SHARED-STMT-004, SHARED-AFTERBRACE-001, SHARED-AFTERBRACE-002)
+/// Shared helpers for code fixes that insert blank lines. It owns the blank line that the statement blank-line fixes, the
+/// RH3208 fix, and the RH5030 fix put in front of a statement (SHARED-STMT-004, SHARED-AFTERBRACE-001,
+/// SHARED-AFTERBRACE-002); the RH5011 fix still inserts its blank line below <c>break</c> with its own code
 /// </summary>
 internal static class BlankLineCodeFixUtilities
 {
     #region Methods
+
+    /// <summary>
+    /// Determines whether <see cref="InsertBlankLineBefore"/> can give the statement that starts with the given token a
+    /// column. It cannot when the statement shares its line with the token before it, so it would be moved, and it sits in a
+    /// switch section inside an object initializer or anonymous object whose statements stand only behind a <c>case</c>
+    /// label's continuation line: the text then holds no column of the section (SHARED-STMT-004), and the fix is withheld
+    /// </summary>
+    /// <param name="root">Syntax root of a document that contains <paramref name="token"/></param>
+    /// <param name="token">First token of the statement that should be preceded by a blank line</param>
+    /// <returns><see langword="true"/> if the blank line can be inserted</returns>
+    public static bool CanInsertBlankLineBefore(SyntaxNode root, SyntaxToken token)
+    {
+        var previousToken = token.GetPreviousToken();
+
+        return previousToken.IsKind(SyntaxKind.None)
+               || SyntaxTriviaUtilities.AreSeparatedByEndOfLine(previousToken, token)
+               || TryGetIndentation(root, token, previousToken, out _);
+    }
 
     /// <summary>
     /// Inserts a blank line in front of the given token, the first token of a statement. When a line break outside any
@@ -83,7 +102,10 @@ internal static class BlankLineCodeFixUtilities
                                         SyntaxFactory.EndOfLine(endOfLine),
                                         SyntaxFactory.EndOfLine(endOfLine)
                                     };
-        var indentation = GetIndentation(root, token, previousToken);
+
+        // A caller that withholds its fix where the text holds no column of the section checks CanInsertBlankLineBefore
+        // first; any other caller gets the continuation line's whitespace in that case
+        TryGetIndentation(root, token, previousToken, out var indentation);
 
         if (indentation.Length > 0)
         {
@@ -123,19 +145,25 @@ internal static class BlankLineCodeFixUtilities
     /// itself has an unbraced embedded body ("if (Check()) Baz();"), <paramref name="previousToken"/> sits inside that
     /// embedded statement, one level deeper than the sibling whose column the target must actually match. When that line is
     /// led by a label of the target's own switch statement, its whitespace is the label's column rather than the section's
-    /// (see <see cref="GetSwitchSectionIndentation"/>)
+    /// (see <see cref="TryGetSwitchSectionIndentation"/>)
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="token">Target token</param>
     /// <param name="previousToken">Token before the target</param>
-    /// <returns>Indentation to apply to the target after moving it to its own line</returns>
-    private static string GetIndentation(SyntaxNode root, SyntaxToken token, SyntaxToken previousToken)
+    /// <param name="indentation">
+    /// Indentation to apply to the target after moving it to its own line; when the text holds no column of the target's
+    /// switch section, the leading whitespace of the label's continuation line
+    /// </param>
+    /// <returns><see langword="false"/> if the text holds no column of the target's switch section</returns>
+    private static bool TryGetIndentation(SyntaxNode root, SyntaxToken token, SyntaxToken previousToken, out string indentation)
     {
         var targetStatement = token.Parent?.FirstAncestorOrSelf<StatementSyntax>();
 
         if (targetStatement == null)
         {
-            return string.Empty;
+            indentation = string.Empty;
+
+            return true;
         }
 
         if (SyntaxIndentationUtilities.HasAnchorScopeAncestor(targetStatement))
@@ -144,17 +172,21 @@ internal static class BlankLineCodeFixUtilities
             var previousStatement = GetPrecedingSiblingStatement(targetStatement);
             var anchorPosition = previousStatement?.SpanStart ?? previousToken.SpanStart;
             var previousLine = sourceText.Lines.GetLineFromPosition(anchorPosition);
-            var indentation = FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, previousLine));
+            var anchorLineIndentation = FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, previousLine));
 
             if (targetStatement.Parent is SwitchSectionSyntax switchSection)
             {
-                return GetSwitchSectionIndentation(sourceText, targetStatement, switchSection, previousLine, indentation);
+                return TryGetSwitchSectionIndentation(sourceText, targetStatement, switchSection, previousLine, anchorLineIndentation, out indentation);
             }
 
-            return indentation;
+            indentation = anchorLineIndentation;
+
+            return true;
         }
 
-        return new string(' ', SyntaxIndentationUtilities.ComputeStatementIndentLevel(targetStatement) * SyntaxIndentationUtilities.IndentSize);
+        indentation = new string(' ', SyntaxIndentationUtilities.ComputeStatementIndentLevel(targetStatement) * SyntaxIndentationUtilities.IndentSize);
+
+        return true;
     }
 
     /// <summary>
@@ -165,7 +197,8 @@ internal static class BlankLineCodeFixUtilities
     /// (<see cref="SyntaxIndentationUtilities.ComputeAnchorDerivedIndentation"/>). When the anchor line is the continuation
     /// line of a label that spans several lines, its whitespace is neither the label's nor the section's column, so the
     /// column is read from another statement of the section that starts its own line, such as the section's
-    /// <c>break;</c>. Without such a statement, the continuation line's whitespace is used unchanged. A label that is not
+    /// <c>break;</c>. Without such a statement, the text holds no column of the section: the method returns
+    /// <see langword="false"/> and gives the continuation line's whitespace unchanged. A label that is not
     /// itself first on its own line - the whole <c>switch</c> statement written on one physical line, for example - has no
     /// whitespace run that equals its column, so that shape is left unchanged
     /// </summary>
@@ -174,14 +207,17 @@ internal static class BlankLineCodeFixUtilities
     /// <param name="switchSection">Switch section that owns <paramref name="targetStatement"/></param>
     /// <param name="anchorLine">Line on which the target's preceding sibling starts</param>
     /// <param name="anchorLineIndentation">The anchor line's own leading whitespace</param>
-    /// <returns>Indentation to apply to the target</returns>
-    private static string GetSwitchSectionIndentation(SourceText sourceText, StatementSyntax targetStatement, SwitchSectionSyntax switchSection, TextLine anchorLine, string anchorLineIndentation)
+    /// <param name="indentation">Indentation to apply to the target</param>
+    /// <returns><see langword="false"/> if the text holds no column of the section</returns>
+    private static bool TryGetSwitchSectionIndentation(SourceText sourceText, StatementSyntax targetStatement, SwitchSectionSyntax switchSection, TextLine anchorLine, string anchorLineIndentation, out string indentation)
     {
         var contentStart = anchorLine.Start + anchorLineIndentation.Length;
 
         if (IsWithinLabelContinuation(switchSection, contentStart) == false)
         {
-            return SyntaxIndentationUtilities.ComputeAnchorDerivedIndentation(targetStatement, anchorLine, anchorLineIndentation);
+            indentation = SyntaxIndentationUtilities.ComputeAnchorDerivedIndentation(targetStatement, anchorLine, anchorLineIndentation);
+
+            return true;
         }
 
         var lineStartingStatement = switchSection.Statements.FirstOrDefault(statement => statement != targetStatement
@@ -189,12 +225,16 @@ internal static class BlankLineCodeFixUtilities
 
         if (lineStartingStatement == null)
         {
-            return anchorLineIndentation;
+            indentation = anchorLineIndentation;
+
+            return false;
         }
 
         var statementLine = sourceText.Lines.GetLineFromPosition(lineStartingStatement.SpanStart);
 
-        return FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, statementLine));
+        indentation = FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, statementLine));
+
+        return true;
     }
 
     /// <summary>
