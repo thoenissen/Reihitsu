@@ -113,9 +113,20 @@ is not reported by RH5002.
 
 ### SHARED-STMT-004 — The fix inserts one blank line above the statement and its comments
 
-The code fix MUST make exactly one blank line appear in front of the reported statement, in front of its first token — for an `await using` or `await foreach` statement, in front of `await`, wherever the rule puts its diagnostic. When comments sit directly above the statement on their own lines, the blank line MUST go above the first of them. When a comment starts the statement's line and stands in front of the statement, the blank line MUST go above that line, and the comment stays in front of the statement — one blank line, also when the comment is a block comment. When the statement shares its line with the statement before it, the fix MUST move it to a new line, indented like the statement it follows: in the column in which the formatter puts the statements of their block or switch section. This holds whether the statement it follows starts its line or not — also when the statement it follows stands behind a `case` label on the last line of that label, such as a label whose `when` clause continues on a second line; the moved statement then takes the column of the section's statements, one level deeper than the label (FMT-INDENT-003), not a column read from the label's continuation line. This requirement does not decide a switch section whose label stands on the line of the switch statement's opening brace. Inserted line breaks MUST use the line ending SHARED-FIX-008 specifies.
+The code fix MUST make exactly one blank line appear in front of the reported statement, in front of its first token — for an `await using` or `await foreach` statement, in front of `await`, wherever the rule puts its diagnostic. Where that blank line goes depends on the comments in front of the statement:
 
-Why: A comment directly above the statement describes it, so it stays with the statement; putting the blank line between them would leave the comment describing the code above. The fix changes only the gap in front of the statement. The statement belongs to the same list as the one it follows, so it takes the column the formatter gives that list; a column read from a line that a label's continuation leads is the label's, not the list's.
+- When comments stand directly above the statement on lines of their own, the blank line MUST go above the first of them.
+- When a comment that ends on the statement's line in front of the statement starts a line — the statement's own line, or an earlier line when the comment spans several lines — the blank line MUST go above the line on which that comment starts, and the comment stays in front of the statement. This holds for a block comment too.
+- When a comment that ends on the statement's line in front of the statement starts behind the statement before it, so that every line break between the two statements lies inside that comment, the fix MUST move the statement to a new line below the comment's last line, with the blank line above it. The comment keeps its text and its place, and no whitespace stays at the end of its last line.
+
+When the statement shares its line with the statement before it, the fix MUST move it to a new line. A statement the fix moves MUST be indented like the statements of its block or switch section:
+
+- Outside an object initializer or anonymous object, it takes the column of its nesting depth, the column in which the formatter puts the statements of its block or switch section (FMT-INDENT-003).
+- Inside an object initializer or anonymous object, it takes the column at which the statements of its block or switch section start their lines as written. The fix reads that column from the text and does not predict how the formatter lays out the initializer.
+
+Both hold whether the statement it follows starts its line or not — also when the statement it follows stands behind a `case` label on the last line of that label, such as a label whose `when` clause continues on a second line: the moved statement then takes the column of the section's statements, such as the column of the `break;` below it, not a column read from the label's continuation line. Inserted line breaks MUST use the line ending SHARED-FIX-008 specifies.
+
+Why: A comment directly above the statement describes it, so it stays with the statement; putting the blank line between them would leave the comment describing the code above. A comment that starts behind the statement before it belongs to that statement's line, so the statement moves out from behind it, as the formatter does. The fix changes only the gap in front of the statement. The statement belongs to the same list as the one it follows, so it takes that list's column; a column read from a line that a label's continuation leads is the label's, not the list's. Inside an initializer, the formatter's column depends on how it anchors the whole initializer, which a fix of one gap cannot know without predicting the indentation phase; the column of the list as written is the one the reader sees next to the moved statement.
 
 Example — RH5002:
 
@@ -165,31 +176,22 @@ class C
 }
 ```
 
-Example — the statement follows a statement that stands behind a `case` label spanning two lines, and a statement behind a block comment on its line, for RH5029 and RH5002:
+Example — a comment that ends on the statement's line: a block comment that starts the statement's line, a comment that starts an earlier line, and a comment that starts behind the statement before it, for RH5002:
 
 ```csharp
 class C
 {
-    void M(int value)
+    void M(int a)
     {
-        switch (value)
-        {
-            case 1 when
-                Check(value): Method(1); {|RH5029:var|} y = 1;
-                break;
-        }
+        a++;
+        /* block */ {|RH5002:if|} (a > 1) { }
 
-        value++;
-        /* block */ {|RH5002:if|} (value > 7) { }
-    }
+        a++;
+        /* a
+        b */ {|RH5002:if|} (a > 2) { }
 
-    bool Check(int value)
-    {
-        return value > 0;
-    }
-
-    void Method(int value)
-    {
+        a++; /* a
+        b */ {|RH5002:if|} (a > 3) { }
     }
 }
 ```
@@ -197,31 +199,97 @@ class C
 ```csharp
 class C
 {
-    void M(int value)
+    void M(int a)
     {
-        switch (value)
+        a++;
+
+        /* block */ if (a > 1) { }
+
+        a++;
+
+        /* a
+        b */ if (a > 2) { }
+
+        a++; /* a
+        b */
+
+        if (a > 3) { }
+    }
+}
+```
+
+Example — inside an object initializer, the statement follows a statement that stands behind a `case` label spanning two lines, for RH5029:
+
+```csharp
+class Holder
+{
+    public System.Action<int> A { get; set; }
+}
+
+class C
+{
+    Holder Create()
+    {
+        return new Holder
         {
-            case 1 when
-                Check(value): Method(1);
-
-                var y = 1;
-                break;
-        }
-
-        value++;
-
-        /* block */ if (value > 7) { }
+            A = value =>
+            {
+                switch (value)
+                {
+                    case 1 when
+                        Check(value): Method(1); {|RH5029:var|} y = 1;
+                        break;
+                }
+            },
+        };
     }
 
-    bool Check(int value)
+    static bool Check(int value)
     {
         return value > 0;
     }
 
-    void Method(int value)
+    static void Method(int value)
     {
     }
 }
 ```
 
-`var y = 1;` takes the column of the section's statements, the column of `break;`, and the block comment in front of `if` keeps its place with exactly one blank line above it.
+```csharp
+class Holder
+{
+    public System.Action<int> A { get; set; }
+}
+
+class C
+{
+    Holder Create()
+    {
+        return new Holder
+        {
+            A = value =>
+            {
+                switch (value)
+                {
+                    case 1 when
+                        Check(value): Method(1);
+
+                        var y = 1;
+                        break;
+                }
+            },
+        };
+    }
+
+    static bool Check(int value)
+    {
+        return value > 0;
+    }
+
+    static void Method(int value)
+    {
+    }
+}
+```
+
+`var y = 1;` takes the column of the section's statements as written, the column of `break;`, not one level deeper than the label's continuation line. The same input in a method body, outside an initializer, gives the same column, there as the column of the statement's nesting depth.
