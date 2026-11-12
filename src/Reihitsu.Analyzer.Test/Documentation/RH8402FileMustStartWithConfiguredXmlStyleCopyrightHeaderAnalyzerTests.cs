@@ -36,6 +36,11 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     private const string SpecificationCopyrightText = "// <copyright file=\"{fileName}\" company=\"{company}\">\n// Copyright (c) {company}.\n// </copyright>";
 
     /// <summary>
+    /// Copyright text of the specification examples whose configured header ends with a line break
+    /// </summary>
+    private const string SpecificationCopyrightTextEndingInLineBreak = SpecificationCopyrightText + "\n";
+
+    /// <summary>
     /// Path of the file that the specification examples check
     /// </summary>
     private const string SpecificationFilePath = "/0/C.cs";
@@ -655,6 +660,89 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
                                          "// <copyright file=\"C.cs\" company=\"Example\">\r\n// Copyright (c) Example.\r\n// </copyright>\r\n\r\nnamespace N;\r\n");
     }
 
+    /// <summary>
+    /// Verifies the specification example of a configured header that ends with a line break: the header replaces an
+    /// old header directly in front of the code and writes no blank line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-006")]
+    public async Task FixWithHeaderEndingInLineBreakReplacesOldHeaderDirectlyInFrontOfCode()
+    {
+        await VerifySpecificationFileFix("// Copyright (c) Old Corp.\nnamespace N;\n",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\nnamespace N;\n",
+                                         SpecificationCopyrightTextEndingInLineBreak);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a configured header that ends with a line break in a CRLF file: no blank
+    /// line is written and every line break stays CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-006")]
+    public async Task FixWithHeaderEndingInLineBreakReplacesOldHeaderDirectlyInFrontOfCodeWithCarriageReturnLineFeed()
+    {
+        await VerifySpecificationFileFix("// Copyright (c) Old Corp.\r\nnamespace N;\r\n",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\r\n// Copyright (c) Example.\r\n// </copyright>\r\nnamespace N;\r\n",
+                                         SpecificationCopyrightTextEndingInLineBreak);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a configured header that ends with a line break: the header replaces an
+    /// old header followed by a blank line and exactly one blank line stays
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-006")]
+    public async Task FixWithHeaderEndingInLineBreakReplacesOldHeaderAndKeepsBlankLineBehindIt()
+    {
+        await VerifySpecificationFileFix("// Copyright (c) Old Corp.\n\nnamespace N;\n",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\n\nnamespace N;\n",
+                                         SpecificationCopyrightTextEndingInLineBreak);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a configured header that ends with a line break in a CRLF file: exactly
+    /// one blank line stays and every line break stays CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-006")]
+    public async Task FixWithHeaderEndingInLineBreakReplacesOldHeaderAndKeepsBlankLineBehindItWithCarriageReturnLineFeed()
+    {
+        await VerifySpecificationFileFix("// Copyright (c) Old Corp.\r\n\r\nnamespace N;\r\n",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\r\n// Copyright (c) Example.\r\n// </copyright>\r\n\r\nnamespace N;\r\n",
+                                         SpecificationCopyrightTextEndingInLineBreak);
+    }
+
+    /// <summary>
+    /// Verifies that a configured header that ends with a line break keeps two blank lines behind a replaced old header
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-006")]
+    public async Task FixWithHeaderEndingInLineBreakReplacesOldHeaderAndKeepsTwoBlankLinesBehindIt()
+    {
+        await VerifySpecificationFileFix("// Copyright (c) Old Corp.\n\n\nnamespace N;\n",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\n\n\nnamespace N;\n",
+                                         SpecificationCopyrightTextEndingInLineBreak);
+    }
+
+    /// <summary>
+    /// Verifies that a configured header that ends with a line break separates code that followed the old delimited
+    /// header on its line with its own line break and adds none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-006")]
+    public async Task FixWithHeaderEndingInLineBreakReplacesOldDelimitedHeaderFollowedByCodeOnItsLine()
+    {
+        await VerifySpecificationFileFix("/* Copyright (c) Old Corp. */ namespace N;\n",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\nnamespace N;\n",
+                                         SpecificationCopyrightTextEndingInLineBreak);
+    }
+
     #endregion // Tests
 
     #region Methods
@@ -746,7 +834,20 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     private static async Task VerifySpecificationFileFix(string source, string fixedSource)
     {
-        var configuration = CreateSpecificationConfiguration();
+        await VerifySpecificationFileFix(source, fixedSource, SpecificationCopyrightText);
+    }
+
+    /// <summary>
+    /// Verifies the diagnostic and the code fix on the file that the specification examples check, with the given
+    /// configured copyright text
+    /// </summary>
+    /// <param name="source">Text of the checked file</param>
+    /// <param name="fixedSource">Expected text after the fix</param>
+    /// <param name="copyrightText">Configured copyright text</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifySpecificationFileFix(string source, string fixedSource, string copyrightText)
+    {
+        var configuration = CreateCopyrightConfiguration(copyrightText, ("company", "Example"));
 
         await Verify(source,
                      fixedSource,
