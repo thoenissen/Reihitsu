@@ -72,6 +72,7 @@ Bug-fix lane: spec author (clarifications only: RH5002 non-goal deletion per #97
 | 32 | Spec author 26 | Fallback uses the comment-tolerant "starts its line"; fallback limited to the own section; another section's label continuation counts | Accept all three | Consistent with decision #31 and `main`'s label-region handling | Rare class; no output in question | 9c87631 |
 | 33 | Implementer 27 | `VerifyDiagnosticDoesNotCompensateWhenSwitchLabelItselfIsNotFirstOnItsLine` (switch on one line inside an initializer) expects a guessed fix the spec now refuses | (a): the test becomes "no code fix offered" | Rare class (RH5103 inside an initializer); the test itself called the column undecided; refusing needs no code | Withholding a fix for a rare class puts nothing in question | – |
 | 34 | Auditor 31 | Findings #7, #8: test gaps (comment tail in leading trivia; both sides of the comment-tolerant fallback) | Repair round 2: test implementer adds the three RH5029 tests; #8 is a test gap, not a class to refuse | Same requirement; code already correct on head | No output change | – |
+| 35 | Auditor 35 | Finding #9 repeats #8 (third untested qualifier of the label-continuation fallback); no defect, code correct | Handled as an architecture finding, not a repair round: nothing to refuse; close every remaining axis the auditor enumerated in one step with the two RH5029 tests it names; then cleaner, spec checker, and a final audit limited to whether those tests pin mutants D and E | The auditor listed all remaining axes, so one step closes the class | No output change | – |
 | 12 | Skeptic | Spec-diff wording findings (SHARED-STMT-004 undecided-case note, SHARED-BLANK-001 `///`→ also directives, comment sentence wording, initializer example, RH5023 spaces case) | Route all to a fresh spec author after the maintainer's answers | Internal wording; batched with the answers' spec changes | No output changes | – |
 
 ## Follow-up candidates
@@ -109,5 +110,6 @@ Bug-fix lane: spec author (clarifications only: RH5002 non-goal deletion per #97
 - Audit 31 (6e2400f) at 7f5f965: #5, #6 closed; #7, #8 medium test gaps → repair round 2.
 - Repair rounds used: 2.
 - Repair round 2: test implementer 32 (8092fa5), cleaner 33 (ec7d86c) clean, spec checker 34 (200bb52) consistent.
-- Next: auditor 35 (since 7f5f965), then validator 36.
+- Audit 35 (d76f77f): #7, #8 closed; #9 → decision #35.
+- Next: test implementer 36, cleaner 37, spec checker 38, auditor 39 (since e24ebec), validator 40.
 - Follow-up candidate added: inside an initializer, a statement moved inside a block on a `case` label's line takes the label's column (pre-existing; fits decision #9's follow-up).
