@@ -1,0 +1,64 @@
+Role: auditor
+Commit: 78abfaff20614ce8921024195a46c033994e7c62
+Verdict: findings
+
+My prompt carried no intended fix, suspected cause, or hoped-for verdict.
+
+## Scope
+Repair delta `cf077d09a951958263b6257a37a9881d2d476fb2..78abfaff20614ce8921024195a46c033994e7c62` (repair round 1, decisions #23–#25). Head checked out, tree clean. Base `origin/main` c884fcc2548db02e608e82fc8e5f386029e34439, equal to `git ls-remote origin refs/heads/main`, and an ancestor of head. `scripts/lane-check.sh bug-fix`: confirmed. The repair changes 4 production files, 1 test file, and 3 shared specs, matching 12-spec-author, 13-test-implementer, and 14-implementer. The specs changed only as decisions #23 and #24 routed them, so scope did not grow. Evidence for the unchanged parts is byte-identical to 11-auditor and is reused.
+
+I traced the code statically and ran fixtures in the scratchpad with `scripts/apply-fix.sh <ID> <dir> --no-install`, LF and CRLF, then deleted them. I re-ran no test suite: 14-implementer's analyzer and architecture runs and 15-cleaner's Release build are later than the last compiled change (b1c4295).
+
+Previous findings:
+- **#1: closed.** Both cells it listed as failing now withhold the fix: the continuation at the label's column with no other line-starting statement, and the continuation deeper than the label with none. Each cell has a test. The cells it listed as holding still hold. Probes: the preceding statement starts on the continuation line and spans two lines, giving no fix (spec: withheld). A `default` section below has a line-starting `break;`, giving no fix (spec: "no statement of the switch section", so withheld). With `case 4:⏎case 5 when⏎Check(value): Method(5); var v = 5; …⏎    return;`, the statement goes to the column of `return;`. With a block comment between the two statements and `// note` above `return;`, it goes to the column of `return;`. The first statement of a section behind the label is not reported. All give the same result under LF and CRLF. One member that #1's enumeration did not name still fails: the RH3208 caller of the same owner (#4).
+- **#2: closed.** SHARED-WS-001 now lets a rule name its run, and RH5022-004 and RH5024–RH5027 state which side their run reaches. The two class summaries describe a guard over the reported span and a widening by whitespace-only lines only, which matches `GetRemovalSpan`.
+- **#3: closed.** SHARED-BLANK-001 now excludes a line inside disabled text. That matches `TokenGapAnalysis` and the formatter, and the new example is `main`'s output.
+
+## Findings
+| # | Severity | Location | Failure class | Repeats | Scope relation | What goes wrong | Suggested change |
+|---|---|---|---|---|---|---|---|
+| 4 | high | `src/Reihitsu.Analyzer.CodeFixes/Rules/Clarity/RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedCodeFixProvider.cs:167` → `BlankLineCodeFixUtilities.CreateBlankLineLeadingTrivia` (`:106-108`, `TryGetIndentation` result ignored) | FC-016, FC-027 | #1 | same requirement (#1625, SHARED-AFTERBRACE-002) | The repair placed the refusal of #1's cell in one caller of the owner, the statement base (`CanInsertBlankLineBefore`). RH3208 calls the same `InsertBlankLineBefore`, and in the same cell it still gets the fallback column read from the label's continuation line. Counterexample, inside an object initializer's lambda: `case 2 when⏎                Check(value): int M() => 1; /* a⏎                b */ M(); return;` (continuation in the label's column 16, no statement of the section starts its own line). RH3208 gives `} /* a⏎                b */⏎⏎                M(); return;`, so `M();` lands at column 16. That is the label's column, one level shallower than a section's statements. SHARED-AFTERBRACE-002 says the moved statement MUST be "indented like the statements of its block or switch section", and SHARED-STMT-004 now says this text holds no such column. The same section with a `break;` that starts its own line gives column 20 (holds). The deeper cell (continuation at 20) gives 20, a column read from the continuation line, which is right only by coincidence. LF and CRLF agree. On `main` this cell was #1625's own defect: `main`'s `InsertBlankLineBefore` only inserted a line break, which left a trailing space behind the comment and `M();` at column 0. The run fixes #1625 in general, but in this cell it neither fixes it as SHARED-AFTERBRACE-002 says nor withholds the fix, and #1625 asks for one or the other. Decision #25 dropped this cell on the premise that RH3208 "keeps main's column". Its column is the pre-repair head's; `main`'s is column 0 with trailing whitespace. Members: the RH3208 caller in both cells of #1 (at the label's column: fails; deeper: column read from the continuation line, coincidentally right); the RH5030 caller cannot reach the rebuild path (`CanRegisterCodeFix`, 11-auditor), so it holds. | Refuse this class for RH3208: withhold its fix in the cell (for example, decided on the original tree with the existing `CanInsertBlankLineBefore` for the next statement), and record the gap in SHARED-AFTERBRACE-002. |
+
+Visible output (check 10): the two new tests expect "no code fix offered" for a rare class (an RH5103 violation inside an initializer). Under `AGENTS.md`, *Code-fix coverage*, withholding a fix for a rare class is local and silent and is the rule's decision (decision #23). No `undecided output`. The repair changes no rule page.
+
+## Guard scope
+| Decision | Inspected span | Counterpart predicate | Agreement | Verdict |
+|---|---|---|---|---|
+| Fix registered for a statement (`StatementShouldBePrecededByABlankLineCodeFixProviderBase.RegisterCodeFixesAsync` → `CanInsertBlankLineBefore`) | `FirstAncestorOrSelf<StatementSyntax>()` of the diagnostic token, then `GetFirstToken()`; the previous token; the gap between them (`AreSeparatedByEndOfLine`); in the rebuild case `TryGetIndentation` | `ApplyCodeFixAsync` → `InsertBlankLineBefore`: same statement expression, same token, same branch conditions (`None` ∥ `AreSeparatedByEndOfLine` → insert; otherwise rebuild with `TryGetIndentation`) | The guard mirrors the owner's branches exactly. It returns false only where the rebuild path's column has no source (`TryGetSwitchSectionIndentation`, `lineStartingStatement == null`). Fix All (BatchFixer) skips withheld diagnostics. | holds for the 20 SHARED-STMT-004 rules |
+| Same decision for the other callers of `InsertBlankLineBefore` | RH3208: none (`RequiresBlankLineAfterClosingBrace` only); RH5030: `CanRegisterCodeFix` (`AreSeparatedByEndOfLine`, insert path only) | `CanInsertBlankLineBefore` | RH5030: cannot reach the rebuild path, holds. RH3208: reaches it and is not guarded. | finding #4 |
+| "Statement it follows starts on a continuation line" (SHARED-STMT-004 new paragraph) | Line of `previousStatement.SpanStart` (preceding sibling in the section); `IsWithinLabelContinuation` over every label of the switch statement, `(SpanStart, Span.End)` | Spec: "a line inside the label that starts behind the label's first token"; "no statement of the switch section other than the reported one starts its own line" → `Statements.Where(s => s != target && StartsLine(s.GetFirstToken()))` (strict: nothing but whitespace in front) | Same span and same boundary. A multi-line preceding statement is anchored at its start, as the spec says. A line-starting statement of another section does not count, as the spec says. | holds |
+
+## Policy ownership
+| Policy | Owners found by rg | Verdict |
+|---|---|---|
+| Whether the text holds a column for a moved statement in an initializer's switch section | `rg -n "CanInsertBlankLineBefore\|TryGetSwitchSectionIndentation\|TryGetIndentation" src --glob '!*Test*/**'`: decided once in `BlankLineCodeFixUtilities.TryGetSwitchSectionIndentation`. `CanInsertBlankLineBefore` exposes it and is called only from the statement base. | One owner of the decision, but its refusal is applied per caller, and one caller (RH3208) does not apply it (#4) |
+| Insert vs. rebuild branch condition | `CanInsertBlankLineBefore` and `InsertBlankLineBefore` (same expression, same type); RH5030 `CanRegisterCodeFix` (pre-existing, 11-auditor) | Same expression in one type; parity by identity. ok |
+| Column of the moved statement | `BlankLineCodeFixUtilities` and `RH5103…CodeFixProvider` → `ComputeAnchorDerivedIndentation` | Unchanged since 11-auditor (decision #9). ok |
+
+## Assertion adequacy
+| Test | Invariant | Falsifying observation | Helper | Verdict |
+|---|---|---|---|---|
+| RH5029 `VerifyNoCodeFixWhenOnlyStatementsOfSectionShareLabelContinuationLineDeeperThanLabel` | Diagnostic reported, no action registered, continuation deeper than the label | Any registered action (it failed on 2f6a269 with "No code fix may be offered … [230..233)") | `VerifyNoCodeFixIsOffered`: `Verify(source)` exact diagnostics, then every fixable diagnostic of the plain source gets no action | adequate. LF only, but the decision is syntactic; my fixtures confirm CRLF |
+| RH5029 `VerifyNoCodeFixWhenOnlyStatementsOfSectionShareLabelContinuationLineAtLabelColumn` | Same, continuation in the label's column (#1's counterexample) | Same ("… [226..229)") | same | adequate |
+| The other side of the new condition | Fix offered with the `break;` column when a line-starting statement exists | — | The ten existing `VerifyMovedStatementTakesSectionColumn…`/`…KeepsSectionColumn…` tests, exact text, 1/1 iterations | adequate (FC-003 both sides) |
+
+## Failure classes dismissed
+- FC-001, FC-002: the guard inspects the same token and gap as the rewrite and mirrors its branches. The spec qualifiers ("inside an object initializer or anonymous object", "starts on a continuation line", "no statement … other than the reported one starts its own line") are explicit conditions (`HasAnchorScopeAncestor`, `IsWithinLabelContinuation`, `StartsLine`).
+- FC-003: both sides are tested (new tests and the existing present-statement tests).
+- FC-004, FC-005, FC-019, FC-020, FC-021: the repair adds no edit; it withholds one. A comment between the statements does not change the decision (probe above).
+- FC-006, FC-018, FC-022–FC-026, FC-029, FC-036: no rewrite, literal, rename, or token re-resolution in the repair.
+- FC-007, FC-008, FC-009: a withheld diagnostic gets no action, BatchFixer skips it, and every offered action inserts a line break.
+- FC-010–FC-014, FC-028, FC-038–FC-043: no formatter, precheck, or analyzer reporting code changed; no unsupported shape touched.
+- FC-015: covered under Policy ownership.
+- FC-017, FC-033, FC-034, FC-035: the helper asserts both the diagnostic and the absence of an action. The inputs are #1's counterexample cells. Expected values are "no fix", taken from the spec paragraph, not from patched code.
+- FC-030: no change to what RH3208 formats.
+- FC-031: the summaries of `CanInsertBlankLineBefore`, `TryGetIndentation`, `TryGetSwitchSectionIndentation`, the inline comment in `CreateBlankLineLeadingTrivia`, the two removal-base summaries, and the `BlankLineCodeFixUtilities` class summary describe the new code. No `TODO` and no tracker number.
+- FC-032: no compiled change after the runs the handovers cite.
+- FC-037: the repair makes no text-only claim on compiled files.
+
+## Architecture findings
+#4 repeats the class of #1. Both concern the same decision, the column of a statement that the rebuild path moves in an initializer's switch section when the text holds no column of the section. Both fail between the same components: `BlankLineCodeFixUtilities` (`TryGetSwitchSectionIndentation`) and the indentation SHARED-STMT-004 and SHARED-AFTERBRACE-002 require. #1's enumeration did not name the caller axis. The structural cause is that the owner decides "no column here" but still returns a fallback column from `InsertBlankLineBefore`. Each caller must therefore remember to ask `CanInsertBlankLineBefore` first, and RH3208 does not. The input class is rare (an RH5103 violation inside an initializer, with a local function and a comment holding every line break), so *Refuse the class first* applies.
+
+## Hints
+- Pre-existing, unchanged by the run, and a member of the follow-up candidate already recorded in `00-lead.md` (a statement moved inside a block on a `case` label's line takes the label's column). It also holds on a continuation line. Inside an initializer, `case 2 when⏎                    Check(value): { Method(2); var z = 2; }` gives `var z = 2;` the continuation line's whitespace, because the block branch of `TryGetIndentation` reads the anchor line unchanged, as `main` did. Structural cause: the same as #4 (a column read from the text where the text holds none for the block).
+- No test pins the new SHARED-BLANK-001 example (first line of an inactive branch is not blank, RH5002 reported). It is `main`'s behavior, and 12-spec-author left a characterization test to the test implementer, who did not write one.
