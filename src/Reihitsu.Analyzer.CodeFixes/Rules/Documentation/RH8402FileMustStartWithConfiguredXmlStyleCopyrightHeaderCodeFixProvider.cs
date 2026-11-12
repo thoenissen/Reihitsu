@@ -49,7 +49,7 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
         expectedHeader = CopyrightHeaderTemplateResolver.NormalizeLineEndings(expectedHeader, sourceText);
 
         var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var replaceSpan = GetLeadingHeaderSpan(sourceText, syntaxRoot);
+        var replaceSpan = GetLeadingHeaderSpan(sourceText, syntaxRoot, EndsWithLineBreak(expectedHeader));
         var replacementText = EnsureHeaderIsSeparatedFromCode(expectedHeader, sourceText, replaceSpan.End);
 
         return document.WithText(sourceText.WithChanges(new TextChange(replaceSpan, replacementText)));
@@ -65,8 +65,7 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
     private static string EnsureHeaderIsSeparatedFromCode(string header, SourceText sourceText, int contentStart)
     {
         if (contentStart >= sourceText.Length
-            || header.EndsWith("\n", StringComparison.Ordinal)
-            || header.EndsWith("\r", StringComparison.Ordinal))
+            || EndsWithLineBreak(header))
         {
             return header;
         }
@@ -80,6 +79,17 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
         }
 
         return header + GetPreferredLineEnding(sourceText);
+    }
+
+    /// <summary>
+    /// Checks whether the header ends with a line break
+    /// </summary>
+    /// <param name="header">Header</param>
+    /// <returns><see langword="true"/> if the header ends with a line break</returns>
+    private static bool EndsWithLineBreak(string header)
+    {
+        return header.EndsWith("\n", StringComparison.Ordinal)
+               || header.EndsWith("\r", StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -104,13 +114,15 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
 
     /// <summary>
     /// Gets the span the header replaces: for a leading run of comments with an old copyright header, the run through
-    /// its last comment and the white space behind it on its line; for a file without leading comments, the white space
-    /// and line breaks in front of the first token; otherwise the empty span at the start of the file
+    /// its last comment and the white space behind it on its line, together with the line break that ends that line when
+    /// the header ends with a line break of its own; for a file without leading comments, the white space and line breaks
+    /// in front of the first token; otherwise the empty span at the start of the file
     /// </summary>
     /// <param name="sourceText">Source text</param>
     /// <param name="syntaxRoot">Syntax root</param>
+    /// <param name="headerEndsWithLineBreak">Whether the header ends with a line break</param>
     /// <returns>Leading header span</returns>
-    private static TextSpan GetLeadingHeaderSpan(SourceText sourceText, SyntaxNode syntaxRoot)
+    private static TextSpan GetLeadingHeaderSpan(SourceText sourceText, SyntaxNode syntaxRoot, bool headerEndsWithLineBreak)
     {
         if (syntaxRoot == null)
         {
@@ -126,6 +138,7 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
 
         var endPosition = 0;
         var commentRunEnd = 0;
+        var commentRunLineEnd = 0;
         var isBehindLastComment = false;
         var hasComment = false;
         var hasCopyrightComment = false;
@@ -138,15 +151,19 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
                 endPosition = trivia.FullSpan.End;
 
                 // The white space behind the run's last comment on its line belongs to the replaced header; the line
-                // break that ends that line does not
-                if (isBehindLastComment
-                    && trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+                // break that ends that line only belongs to it when the header brings a line break of its own
+                if (isBehindLastComment)
                 {
-                    commentRunEnd = trivia.FullSpan.End;
-                }
-                else
-                {
-                    isBehindLastComment = false;
+                    commentRunLineEnd = trivia.FullSpan.End;
+
+                    if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+                    {
+                        commentRunEnd = trivia.FullSpan.End;
+                    }
+                    else
+                    {
+                        isBehindLastComment = false;
+                    }
                 }
 
                 continue;
@@ -159,6 +176,7 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
                 hasCopyrightComment |= trivia.ToString().IndexOf("copyright", StringComparison.OrdinalIgnoreCase) >= 0;
                 endPosition = trivia.FullSpan.End;
                 commentRunEnd = trivia.FullSpan.End;
+                commentRunLineEnd = trivia.FullSpan.End;
                 isBehindLastComment = true;
 
                 continue;
@@ -177,10 +195,13 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
         }
 
         // An old header is replaced through its last comment only, so the line break that ends that comment's line and
-        // the blank lines behind it stay as the author wrote them
+        // the blank lines behind it stay as the author wrote them. A header that ends with a line break takes the place
+        // of that line break, so the file keeps exactly one line break there
         if (hasCopyrightComment)
         {
-            endPosition = commentRunEnd;
+            endPosition = headerEndsWithLineBreak
+                              ? commentRunLineEnd
+                              : commentRunEnd;
         }
 
         return TextSpan.FromBounds(0, Math.Min(endPosition, sourceText.Length));

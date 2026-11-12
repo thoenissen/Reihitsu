@@ -47,53 +47,18 @@ public class RH8204DoNotUsePlaceholderElementsCodeFixProvider : CodeFixProvider
     /// <param name="diagnosticSpan">Span of the placeholder element</param>
     /// <returns>The inner content with the placeholder tags removed</returns>
     /// <remarks>
-    /// The content is taken from the source text between the end of the start tag and the start of the end tag, so its
-    /// references, markup, white space and line endings stay exactly as the author wrote them
+    /// The analyzer reports the span of an <see cref="XmlElementSyntax"/> or an <see cref="XmlEmptyElementSyntax"/>, so
+    /// the node found for that span is the element itself. The content of an element is taken from the source text
+    /// between the end of the start tag and the start of the end tag, so its references, markup, white space and line
+    /// endings stay exactly as the author wrote them; an empty element has no content
     /// </remarks>
     private static string ExtractInnerContent(SyntaxNode root, SourceText text, TextSpan diagnosticSpan)
     {
         var node = root?.FindNode(diagnosticSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
 
-        switch (node)
-        {
-            case XmlEmptyElementSyntax emptyElement when emptyElement.Span == diagnosticSpan:
-                return string.Empty;
-
-            case XmlElementSyntax element when element.Span == diagnosticSpan:
-                return text.ToString(TextSpan.FromBounds(element.StartTag.Span.End, element.EndTag.Span.Start));
-
-            default:
-                return StripPlaceholderTags(text.ToString(diagnosticSpan));
-        }
-    }
-
-    /// <summary>
-    /// Removes the outer placeholder tags textually, keeping the inner content untouched
-    /// </summary>
-    /// <param name="placeholderText">The placeholder element text</param>
-    /// <returns>The inner content with the surrounding tags removed</returns>
-    private static string StripPlaceholderTags(string placeholderText)
-    {
-        var openingEnd = placeholderText.IndexOf('>');
-
-        if (openingEnd < 0)
-        {
-            return placeholderText;
-        }
-
-        if (openingEnd > 0 && placeholderText[openingEnd - 1] == '/')
-        {
-            return string.Empty;
-        }
-
-        var closingStart = placeholderText.LastIndexOf('<');
-
-        if (closingStart <= openingEnd)
-        {
-            return string.Empty;
-        }
-
-        return placeholderText.Substring(openingEnd + 1, closingStart - openingEnd - 1);
+        return node is XmlElementSyntax element
+                   ? text.ToString(TextSpan.FromBounds(element.StartTag.Span.End, element.EndTag.Span.Start))
+                   : string.Empty;
     }
 
     #endregion // Methods
