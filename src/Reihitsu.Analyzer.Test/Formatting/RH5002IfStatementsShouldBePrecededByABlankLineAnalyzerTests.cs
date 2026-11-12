@@ -1242,6 +1242,41 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Batch
                      });
     }
 
+    /// <summary>
+    /// Verifies the SHARED-STMT-004 example: inside an object initializer, the if statement follows a statement that starts
+    /// on the last line of a block comment, so no statement or label starts that line; the diagnostic is reported and no
+    /// code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyNoCodeFixForSpecExampleStatementStartingOnLastLineOfBlockCommentInsideObjectInitializer()
+    {
+        const string testCode = """
+                                class Holder
+                                {
+                                    public System.Action<int> A { get; set; }
+                                }
+
+                                class C
+                                {
+                                    Holder Create()
+                                    {
+                                        return new Holder
+                                        {
+                                            A = value =>
+                                            {
+                                                value++; /* x
+                                                        y */ value++; {|RH5002:if|} (value > 2) { }
+                                            },
+                                        };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

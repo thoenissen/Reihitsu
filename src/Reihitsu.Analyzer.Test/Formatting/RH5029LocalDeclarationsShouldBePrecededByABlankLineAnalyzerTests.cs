@@ -2187,6 +2187,248 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     /// <summary>
+    /// Verifies that inside an object initializer, a local declaration that shares its line with the statement in front of
+    /// it is still reported but not fixed when that statement starts on a line that begins with the last line of a multi-
+    /// line comment, so that line holds no column of the block's statements
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyNoCodeFixWhenPrecedingStatementStartsOnLastLineOfMultiLineCommentInsideObjectInitializer()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            Method(0); /* x
+                                                    y */ Method(1); {|RH5029:var|} y = 1;
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+
+                                    private static void Add(int left, int right)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that inside an object initializer, a local declaration that shares its line with the statement in front of
+    /// it is still reported but not fixed when that statement starts on a line that begins with the wrapped argument of an
+    /// earlier statement, so that line holds no column of the block's statements
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyNoCodeFixWhenPrecedingStatementStartsOnWrappedArgumentLineInsideObjectInitializer()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            Add(value,
+                                                1); Method(1); {|RH5029:var|} y = 1;
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+
+                                    private static void Add(int left, int right)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that inside an object initializer, a local declaration that shares its line with the statement in front of
+    /// it is still reported but not fixed when that statement starts on a line that begins with the unbraced embedded
+    /// statement of an earlier if statement, so that line holds no column of the block's statements
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyNoCodeFixWhenPrecedingStatementStartsOnLineOfNestedUnbracedStatementInsideObjectInitializer()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            if (value > 2)
+                                                Method(0); Method(1); {|RH5029:var|} y = 1;
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+
+                                    private static void Add(int left, int right)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that inside an object initializer, a local declaration that shares its line with the statement in front of
+    /// it is still reported but not fixed when that statement starts on a line of a switch section that begins with the
+    /// last line of a multi-line comment behind the case label
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyNoCodeFixWhenPrecedingStatementStartsOnLastLineOfMultiLineCommentInSwitchSectionInsideObjectInitializer()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 1: /* x
+                                                        y */ Method(1); {|RH5029:var|} y = 1; return;
+                                            }
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+
+                                    private static void Add(int left, int right)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that inside an object initializer, a local declaration that shares its line with the statement in front of
+    /// it is still reported but not fixed when that statement starts on a line that begins with the closing brace of an
+    /// earlier block statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyNoCodeFixWhenPrecedingStatementStartsOnLineOfClosingBraceOfEarlierBlockInsideObjectInitializer()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            if (value > 2)
+                                            {
+                                                Method(0);
+                                            } Method(1); {|RH5029:var|} y = 1;
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that inside an object initializer, the local declarations behind the continuation lines of multi-line case
+    /// labels are reported and not fixed, although the statement of the default section starts its own line, because only a
+    /// statement of the declaration's own section counts
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyNoCodeFixWhenOnlyAnotherSectionsStatementStartsItsOwnLine()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 1 when
+                                                    value > 0: Method(1); {|RH5029:var|} y = 1; return;
+                                                case 2 when
+                                                value > 1: Method(2); {|RH5029:var|} z = 2; return;
+                                                default:
+                                                    return;
+                                            }
+                                        }
+                                    };
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+
+                                    private static void Add(int left, int right)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
     /// Verifies the empty line directly below an endif directive is blank, so the local declaration below the comment line
     /// under it is not reported
     /// </summary>

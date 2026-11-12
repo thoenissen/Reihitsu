@@ -2205,6 +2205,497 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
                      });
     }
 
+    /// <summary>
+    /// Verifies that inside an object initializer, the statement behind a comment that holds every line break is still
+    /// reported but not fixed when the local function in front of it starts on a line that begins with the last line of a
+    /// multi-line comment, so that line holds no column of the block's statements
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-AFTERBRACE-002")]
+    public async Task VerifyNoCodeFixWhenLocalFunctionStartsOnLastLineOfMultiLineCommentInsideObjectInitializer()
+    {
+        const string testCode = """
+                                internal class RH3208
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            var a = value; /* x
+                                                    y */ int M() {|RH3208:=> 1|}; /* a
+                                            b */ M();
+                                        }
+                                    };
+
+                                    private static int Add(int left, int right)
+                                    {
+                                        return left + right;
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that inside an object initializer, the statement behind a comment that holds every line break is still
+    /// reported but not fixed when the local function in front of it starts on a line that begins with the wrapped argument
+    /// of an earlier statement, so that line holds no column of the block's statements
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-AFTERBRACE-002")]
+    public async Task VerifyNoCodeFixWhenLocalFunctionStartsOnWrappedArgumentLineInsideObjectInitializer()
+    {
+        const string testCode = """
+                                internal class RH3208
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            var a = Add(value,
+                                                        1); int M() {|RH3208:=> 1|}; /* a
+                                            b */ M();
+                                        }
+                                    };
+
+                                    private static int Add(int left, int right)
+                                    {
+                                        return left + right;
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that inside an object initializer, the statement behind a comment that holds every line break is still
+    /// reported but not fixed when the local function in front of it starts on a line that begins with the unbraced
+    /// embedded statement of an earlier if statement, so that line holds no column of the block's statements
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-AFTERBRACE-002")]
+    public async Task VerifyNoCodeFixWhenLocalFunctionStartsOnLineOfNestedUnbracedStatementInsideObjectInitializer()
+    {
+        const string testCode = """
+                                internal class RH3208
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            var a = value;
+                                            if (a > 2)
+                                                a--; int M() {|RH3208:=> 1|}; /* a
+                                            b */ M();
+                                        }
+                                    };
+
+                                    private static int Add(int left, int right)
+                                    {
+                                        return left + right;
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that inside an object initializer, the statement behind a comment that holds every line break is still
+    /// reported but not fixed when the local function in front of it starts on a line of a switch section that begins with
+    /// the last line of a multi-line comment behind the case label
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-AFTERBRACE-002")]
+    public async Task VerifyNoCodeFixWhenLocalFunctionStartsOnLastLineOfMultiLineCommentInSwitchSectionInsideObjectInitializer()
+    {
+        const string testCode = """
+                                internal class RH3208
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 1: /* x
+                                                        y */ int M() {|RH3208:=> 1|}; /* a
+                                                b */ M(); return;
+                                            }
+                                        }
+                                    };
+
+                                    private static int Add(int left, int right)
+                                    {
+                                        return left + right;
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that inside an object initializer, the statement behind a comment that holds every line break is still
+    /// reported but not fixed when the local function in front of it starts on a line that begins with the closing brace of
+    /// an earlier block statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-AFTERBRACE-002")]
+    public async Task VerifyNoCodeFixWhenLocalFunctionStartsOnLineOfClosingBraceOfEarlierBlockInsideObjectInitializer()
+    {
+        const string testCode = """
+                                internal class RH3208
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            if (value > 2)
+                                            {
+                                                value--;
+                                            } int M() {|RH3208:=> 1|}; /* a
+                                            b */ M();
+                                        }
+                                    };
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the SHARED-AFTERBRACE-002 example: inside an object initializer, the local function starts on the
+    /// continuation line of a wrapped argument list, so no statement or label starts that line; the diagnostic is reported
+    /// and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-AFTERBRACE-002")]
+    public async Task VerifyNoCodeFixForSpecExampleWhereLocalFunctionStartsOnWrappedArgumentLine()
+    {
+        const string testCode = """
+                                class Holder
+                                {
+                                    public System.Func<int, int> F { get; set; }
+                                }
+
+                                class C
+                                {
+                                    Holder Create()
+                                    {
+                                        return new Holder
+                                        {
+                                            F = value =>
+                                            {
+                                                var a = Add(value,
+                                                            1); int M() {|RH3208:=> 1|}; /* a
+                                                b */ M();
+                                                return a;
+                                            },
+                                        };
+                                    }
+
+                                    static int Add(int left, int right)
+                                    {
+                                        return left + right;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the SHARED-AFTERBRACE-002 example: inside an object initializer, both local functions behind a case label's
+    /// continuation line are reported and not fixed, although the statement of the default section starts its own line,
+    /// because only a statement of the moved statement's own section counts
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-AFTERBRACE-002")]
+    public async Task VerifyNoCodeFixForSpecExampleWhereOnlyAnotherSectionsStatementStartsItsOwnLine()
+    {
+        const string testCode = """
+                                class Holder
+                                {
+                                    public System.Func<int, int> F { get; set; }
+                                }
+
+                                class C
+                                {
+                                    Holder Create()
+                                    {
+                                        return new Holder
+                                        {
+                                            F = value =>
+                                            {
+                                                switch (value)
+                                                {
+                                                    case 1 when
+                                                        Check(value): int One() {|RH3208:=> 1|}; /* a
+                                                        b */ One(); return 1;
+                                                    case 2 when
+                                                    Check(value): int Two() {|RH3208:=> 2|}; /* a
+                                                    b */ Two(); return 2;
+                                                    default:
+                                                        return 0;
+                                                }
+                                            },
+                                        };
+                                    }
+
+                                    static bool Check(int value)
+                                    {
+                                        return value > 0;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that inside an object initializer, the statement behind a comment that holds every line break moves to the
+    /// column of the local function in front of it when that local function starts its own line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-AFTERBRACE-002")]
+    public async Task VerifyStatementBehindCommentTakesColumnOfLocalFunctionStartingItsLineInsideObjectInitializer()
+    {
+        const string testCode = """
+                                internal class RH3208
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            var a = value;
+                                            int M() {|RH3208:=> 1|}; /* a
+                                            b */ M();
+                                        }
+                                    };
+
+                                    private static int Add(int left, int right)
+                                    {
+                                        return left + right;
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+        const string fixedCode = """
+                                 internal class RH3208
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             var a = value;
+                                             int M()
+                                             {
+                                                 return 1;
+                                             } /* a
+                                             b */
+
+                                             M();
+                                         }
+                                     };
+
+                                     private static int Add(int left, int right)
+                                     {
+                                         return left + right;
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that inside an object initializer, the statement behind a comment that holds every line break moves to the
+    /// column of an earlier statement of the block when the local function in front of it shares that statement's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-AFTERBRACE-002")]
+    public async Task VerifyStatementBehindCommentTakesColumnOfEarlierStatementStartingItsLineInsideObjectInitializer()
+    {
+        const string testCode = """
+                                internal class RH3208
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            var a = value; int M() {|RH3208:=> 1|}; /* a
+                                            b */ M();
+                                        }
+                                    };
+
+                                    private static int Add(int left, int right)
+                                    {
+                                        return left + right;
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+        const string fixedCode = """
+                                 internal class RH3208
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             var a = value; int M()
+                                                            {
+                                                                return 1;
+                                                            } /* a
+                                             b */
+
+                                             M();
+                                         }
+                                     };
+
+                                     private static int Add(int left, int right)
+                                     {
+                                         return left + right;
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that inside an object initializer, the statement behind a comment that holds every line break moves one
+    /// level deeper than the case label when the local function in front of it shares the label's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-AFTERBRACE-002")]
+    public async Task VerifyStatementBehindCommentTakesSectionColumnWhenLocalFunctionSharesCaseLabelLineInsideObjectInitializer()
+    {
+        const string testCode = """
+                                internal class RH3208
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 1: int M() {|RH3208:=> 1|}; /* a
+                                                b */ M();
+                                                    break;
+                                            }
+                                        }
+                                    };
+
+                                    private static int Add(int left, int right)
+                                    {
+                                        return left + right;
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+        const string fixedCode = """
+                                 internal class RH3208
+                                 {
+                                     private readonly Config _config = new Config
+                                     {
+                                         Handler = value =>
+                                         {
+                                             switch (value)
+                                             {
+                                                 case 1: int M()
+                                                         {
+                                                             return 1;
+                                                         } /* a
+                                                 b */
+
+                                                     M();
+                                                     break;
+                                             }
+                                         }
+                                     };
+
+                                     private static int Add(int left, int right)
+                                     {
+                                         return left + right;
+                                     }
+                                 }
+                                 internal sealed class Config
+                                 {
+                                     public System.Action<int> Handler { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
