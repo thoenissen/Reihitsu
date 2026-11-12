@@ -40,17 +40,28 @@ Bug-fix lane: spec author (clarifications only: RH5002 non-goal deletion per #97
 | 1 | Claim | Branch name | Use the session's required branch `claude/nice-thompson-cq0rqf` instead of `claude/batch-946-<slug>` | The execution environment allows pushing only to that branch | Branch names are internal | claim commit |
 | 2 | Spec author | No change doc | Accepted: no change doc | #1076/#1096 decided as bugs by the maintainer; #946/#972 required by shared specs | Bug fixes back to decided requirements | 176b419 |
 | 3 | Spec author | Add RH5011-008 exception to the RH5011 rule page? | No | Rule pages list no exceptions or corner cases (AGENTS.md key conventions) | Rule page unchanged | – |
-| 4 | Spec author | Remove the object-initializer limitation paragraph from 20 shared-base rule pages | Accepted | #1096's decision asks to remove the sentence documenting the limitation; it is also implementation detail | Covered by the maintainer's #1096 decision | 176b419 |
+| 4 | Spec author | Remove the object-initializer limitation paragraph from 20 shared-base rule pages | Accepted | #1096's decision asks to remove the sentence documenting the limitation; it is also implementation detail (AGENTS.md rule-page convention; PR states that reason) | Covered by the maintainer's #1096 decision and the rule-page convention | 176b419 |
+| 5 | Skeptic | 01-spec-author OQ1: RH5005/RH5006 diagnostic location on `await using`/`await foreach` | Not asked; keep it on `using`/`foreach`, record the location in RH5005-002/RH5006-002 | Today's output, consistent with RH7004 | Location unchanged from `main` | – |
+| 6 | Skeptic | 02 OQ3: RH5026/RH5027 report the blank line below a region directive (cycle with RH5032) | Not asked; take in as adjacent fix: not reported, same as RH5024/RH5025 | Same class as the #1076 region instances the maintainer decided (the blank line SHARED-BLANK-006 requires stays); same analyzers the run already changes | Brings the code back to unchanged SHARED-BLANK-006, as the maintainer's #1076 answer decided for the sibling rules | – |
+| 7 | Skeptic | #972 goal names RH5001–RH5010, RH5012–RH5019 only | Widen to every rule on the base (RH5021, RH5029 too) | Same base, same defect | SHARED-STMT-004 already demands one blank line | – |
+| 8 | Skeptic | Architecture finding 1: two blank-line measures (`ContainsBlankLine` vs `TokenGapAnalysis`) | Change the structure in this run: the two analyzer bases measure blank lines with the one measure; implementer reports if it exceeds ~100 production lines or needs a new type | The failing class includes common code (`#endif⏎⏎// note⏎if`); a narrow fix keeps two statements of SHARED-BLANK-001 | Brings analyzers back to unchanged SHARED-BLANK-001 | – |
+| 9 | Skeptic | Architecture finding 2: code fix predicts the indentation column (#1096 Q1) | Fix narrowly (add the level only on a line that starts with the label's first token); structural cause becomes a follow-up | Rare class (RH5103); maintainer decided the output | Depends on OQ2 answer | – |
+| 10 | Skeptic | Architecture finding 3: region exemption missing in four deleting rules | One shared cheap check used by RH5024–RH5027 | Avoids four copies of one rule | Same as #6 | – |
+| 11 | Skeptic | Architecture finding 4: four answers to "statement behind a multi-line comment" | Run takes #1626 only as far as OQ4 needs; unifying RH5011/RH5030 is a follow-up | Keeps scope bound to the run's issues | RH5030-003 narrowing is visible and not asked here | – |
+| 12 | Skeptic | Spec-diff wording findings (SHARED-STMT-004 undecided-case note, SHARED-BLANK-001 `///`→ also directives, comment sentence wording, initializer example, RH5023 spaces case) | Route all to a fresh spec author after the maintainer's answers | Internal wording; batched with the answers' spec changes | No output changes | – |
 
 ## Follow-up candidates
 
 - RH5103's fix over-indents a statement after a multi-line `case` label; fix like #1096 and remove the RH5103 page sentence (01-spec-author)
 - A switch written on one line inside an initializer is undecided by SHARED-STMT-004 and RH5103 (01-spec-author)
 - Narrow RH5030-003 once the gap can be rebuilt (#1626 says "later"; visible, maintainer decides) (01-spec-author)
-- Possible RH5026/RH5027 vs RH5032 cycle with `#region` before `else` / `do` footer — rare; skeptic to check (01-spec-author)
+- (taken into run as decision #6) RH5026/RH5027 region cycle
+- Formatter: a wrapped `when` condition of a `case` label is put in the column of `case` — carries an output question (A: one level deeper than `case`), 02-skeptic #1096
+- Structural: statement blank-line code fix predicts the indentation phase's column (`ComputeAnchorDerivedIndentation`, shared with RH5103) (02-skeptic, decision #9)
+- One answer for "statement behind a multi-line comment" across RH5011, RH5030, the code-fix base (02-skeptic, decision #11)
 
 ## Worklist / next step
 
-- Pending output questions (batch before test implementer): (1) RH5005/RH5006 diagnostic location on `await using`/`await foreach` — 01-spec-author OQ1; (2) RH3208 output for `int L() => 1; /* a⏎b */ L();` — 01-spec-author OQ2.
+- Output-question batch 1 asked (before test implementer): Q1 RH5011-001 doc-comment clause (02 OQ1), Q2 SHARED-STMT-004 column in an initializer (02 OQ2), Q3 RH3208 output (02 OQ4, replaces 01 OQ2). Waiting for answers.
 - PR note: the RH5002 non-goal #972's comment mentions is already absent on main.
-- Next: skeptic (02), then ask the output-question batch.
+- Next after answers: fresh spec author (answers + decision #12 wording), then test implementer.
