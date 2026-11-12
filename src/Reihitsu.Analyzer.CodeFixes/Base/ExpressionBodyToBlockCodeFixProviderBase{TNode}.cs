@@ -110,8 +110,11 @@ public abstract class ExpressionBodyToBlockCodeFixProviderBase<TNode> : CodeFixP
                 var node = root.FindNode(diagnostic.Location.SourceSpan)
                                .FirstAncestorOrSelf<TNode>();
 
-                // The formatter keeps the expression body of an async member whose task type it cannot see, so a fix that
-                // delegates to it would change nothing there; the member stays reported without a fix
+                // The member stays reported without a fix wherever the fix could not deliver its result: the formatter keeps
+                // the expression body of an async member whose task type it cannot see, so delegating to it would change
+                // nothing; the formatter refuses input that holds a shape it does not support; and a derived provider can
+                // withhold the fix for an input its own conversion cannot handle, such as a statement it would have to move
+                // to a column the text does not hold
                 if (node != null
                     && ExpressionBodiedTransformUtilities.RequiresAsyncExpressionBodyPreservation(node) == false
                     && ReihitsuFormatter.FindUnsupportedSyntax(GetFormattingInput(node)) == null
