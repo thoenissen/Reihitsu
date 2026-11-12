@@ -67,7 +67,9 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer : Diagnostic
     }
 
     /// <summary>
-    /// Attempts to get the first meaningful text span inside the XML text node
+    /// Attempts to get the span of the first meaningful text inside the XML text node: from its first character that is
+    /// not white space to the end of the text on that line. Character and entity references are tokens of their own
+    /// inside the text, so the span runs through every token up to the line break or the end of the text node
     /// </summary>
     /// <param name="textSyntax">XML text syntax</param>
     /// <param name="cancellationToken">Cancellation token</param>
@@ -77,9 +79,23 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer : Diagnostic
     {
         span = default;
 
+        var start = -1;
+
         foreach (var token in textSyntax.TextTokens)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            if (start >= 0)
+            {
+                if (token.IsKind(SyntaxKind.XmlTextLiteralNewLineToken))
+                {
+                    break;
+                }
+
+                span = TextSpan.FromBounds(start, token.Span.End);
+
+                continue;
+            }
 
             var tokenText = token.Text;
 
@@ -87,14 +103,15 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer : Diagnostic
             {
                 if (char.IsWhiteSpace(tokenText[index]) == false)
                 {
-                    span = TextSpan.FromBounds(token.SpanStart + index, token.Span.End);
+                    start = token.SpanStart + index;
+                    span = TextSpan.FromBounds(start, token.Span.End);
 
-                    return true;
+                    break;
                 }
             }
         }
 
-        return false;
+        return start >= 0;
     }
 
     /// <summary>

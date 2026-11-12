@@ -5,7 +5,7 @@
 | ID prefix | FMT-UNSUP |
 | Status | Active |
 | Code owners | `PrecheckPhase`, `FormattingResult<T>`, `UnsupportedSyntax`, `SyntaxNotSupportedException` |
-| Uses | FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-STRUCT-021, SHARED-FIX-010 |
+| Uses | FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-STRUCT-021, SHARED-FIX-010 |
 
 This spec covers the formatter's *Unsupported* outcome: the input shapes the formatter refuses as a whole, the precheck phase that finds them before any other phase runs (FMT-PIPE-001), a phase's refusal of a shape the precheck does not find, what every entry point returns for a refused input, and the query that tells a code fix whether the formatter refuses a node. Each unsupported shape is a requirement of this spec; a shape is declared here so that no phase has to handle it.
 
@@ -29,7 +29,7 @@ Every formatting entry point of `ReihitsuFormatter` — `FormatDocumentAsync`, `
 
 When the input holds several unsupported shapes, the reason and the location MUST be those of the shape that starts first in the text.
 
-`OrganizeUsingDirectivesInDocumentAsync` refuses no input (FMT-UNSUP-002) and keeps its return type; `SplitsFieldDeclaration` answers a question and keeps its return type (FMT-PIPE-031).
+`OrganizeUsingDirectivesInDocumentAsync` and `FormatDocumentationElementInDocumentAsync` refuse no input (FMT-UNSUP-002) and return the document (FMT-PIPE-030, FMT-PIPE-032); `SplitsFieldDeclaration` answers a question and keeps its return type (FMT-PIPE-031).
 
 Why: Rare comment and directive shapes have cost analysis, spec text, and special cases in the phases, and many of them ended in leaving the construct as written anyway, silently and decided again for every phase. Refusing the whole input removes the shape from every phase at once: a phase that never sees it needs no guard for it. Formatting the rest of the input would put the phases back next to the shape, and they would need their guards again. Reporting the refusal tells the user why the input was left as written, which the silent outcome did not. A result object makes the outcome part of every call: no caller can format and overlook a refusal, and the CLI, the Playground, and the code fixes all have to report it or withhold on it. One location per input keeps the report one line; the first shape in the text is the one a user meets first, and after rewriting it the next run names the next one.
 
@@ -71,7 +71,7 @@ The formatter MUST decide whether an input is unsupported on exactly the node it
 - `FormatNodeInDocumentAsync` — its target;
 - `FormatNodeInDocumentWithContextAsync` — its context, with the target in it.
 
-`OrganizeUsingDirectivesInDocumentAsync` runs no formatting phase but the using phase (FMT-PIPE-030) and MUST NOT refuse an input under this spec. `SplitsFieldDeclaration` answers a question and formats nothing (FMT-PIPE-031). An input that FMT-PIPE-005 or FMT-PIPE-006 returns unchanged is not reported as unsupported: those requirements apply first.
+`OrganizeUsingDirectivesInDocumentAsync` runs no formatting phase but the using phase (FMT-PIPE-030) and MUST NOT refuse an input under this spec. `FormatDocumentationElementInDocumentAsync` lays out one documentation element and runs no formatting phase on the document (FMT-PIPE-032), and MUST NOT refuse an input under this spec either: no shape this spec declares can stand inside a documentation element. `SplitsFieldDeclaration` answers a question and formats nothing (FMT-PIPE-031). An input that FMT-PIPE-005 or FMT-PIPE-006 returns unchanged is not reported as unsupported: those requirements apply first.
 
 Why: One check site gives one answer. A second check in an entry point would restate the list of unsupported shapes, and the two statements could drift apart. Checking the context of `FormatNodeInDocumentWithContextAsync`, not only its target, follows from what its phases receive: they format the whole context, so an unsupported shape anywhere in it reaches them.
 

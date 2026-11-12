@@ -410,6 +410,92 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
         Assert.AreEqual(fixedData, changedText.ToString());
     }
 
+    /// <summary>
+    /// Verifies the specification example: with a byte order mark in front of the second line's slashes, both lines are
+    /// reported and no code fix is offered for either
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8401-005")]
+    public async Task VerifyNoCodeFixForByteOrderMarkInFrontOfSecondLine()
+    {
+        var source = string.Concat("class C\n",
+                                   "{\n",
+                                   "    void M()\n",
+                                   "    {\n",
+                                   "        {|RH8401:///|} first\n",
+                                   "        ﻿{|RH8401:///|} second\n",
+                                   "    }\n",
+                                   "}\n");
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that with a substitute character in front of the second line's slashes, both lines are reported and no
+    /// code fix is offered for either
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8401-005")]
+    public async Task VerifyNoCodeFixForSubstituteCharacterInFrontOfSecondLine()
+    {
+        var source = string.Concat("class C\n",
+                                   "{\n",
+                                   "    void M()\n",
+                                   "    {\n",
+                                   "        {|RH8401:///|} first\n",
+                                   "        \u001A{|RH8401:///|} second\n",
+                                   "    }\n",
+                                   "}\n");
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that with a byte order mark in front of the third of four lines, every line is reported and no code fix
+    /// is offered for any of them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8401-005")]
+    public async Task VerifyNoCodeFixForByteOrderMarkInFrontOfThirdOfFourLines()
+    {
+        var source = string.Concat("class C\n",
+                                   "{\n",
+                                   "    void M()\n",
+                                   "    {\n",
+                                   "        {|RH8401:///|} first\n",
+                                   "        {|RH8401:///|} second\n",
+                                   "        ﻿{|RH8401:///|} third\n",
+                                   "        {|RH8401:///|} fourth\n",
+                                   "    }\n",
+                                   "}\n");
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that with a byte order mark in front of the second line's slashes in a document whose line breaks are
+    /// CRLF, both lines are reported and no code fix is offered for either
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8401-005")]
+    public async Task VerifyNoCodeFixForByteOrderMarkInFrontOfSecondLineWithCarriageReturnLineFeed()
+    {
+        var source = string.Concat("class C\r\n",
+                                   "{\r\n",
+                                   "    void M()\r\n",
+                                   "    {\r\n",
+                                   "        {|RH8401:///|} first\r\n",
+                                   "        ﻿{|RH8401:///|} second\r\n",
+                                   "    }\r\n",
+                                   "}\r\n");
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region Methods

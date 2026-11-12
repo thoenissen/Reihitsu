@@ -71,6 +71,33 @@ internal static class DirectDocumentationSyntaxChecker
     }
 
     /// <summary>
+    /// Gets every XML node with the specified tag name which documents the member itself, at the top level of the
+    /// comment or nested in another element, in source order
+    /// </summary>
+    /// <param name="documentationComment">Documentation comment</param>
+    /// <param name="tagName">Tag name</param>
+    /// <returns>The matching nodes</returns>
+    /// <remarks>
+    /// Like <see cref="GetFirstDocumentingTag"/>, this skips anything inside a <c>&lt;code&gt;</c> or
+    /// <c>&lt;example&gt;</c> sample. A fix which removes the tag <see cref="GetFirstDocumentingTag"/> reports uses
+    /// it to remove every such tag of the comment in one application
+    /// </remarks>
+    internal static ImmutableArray<XmlNodeSyntax> GetDocumentingTags(DocumentationCommentTriviaSyntax documentationComment, string tagName)
+    {
+        if (documentationComment == null)
+        {
+            return [];
+        }
+
+        return documentationComment.DescendantNodes()
+                                   .Where(obj => obj is XmlElementSyntax or XmlEmptyElementSyntax)
+                                   .Cast<XmlNodeSyntax>()
+                                   .Where(obj => string.Equals(XmlDocumentationElementOrderingUtilities.GetTagName(obj), tagName, StringComparison.OrdinalIgnoreCase))
+                                   .Where(obj => IsInsideSample(obj) == false)
+                                   .ToImmutableArray();
+    }
+
+    /// <summary>
     /// Gets the XML nodes with the specified tag name. Top-level nodes win; when the documentation comment has no
     /// top-level match the search falls back to nested nodes, including content inside samples
     /// </summary>

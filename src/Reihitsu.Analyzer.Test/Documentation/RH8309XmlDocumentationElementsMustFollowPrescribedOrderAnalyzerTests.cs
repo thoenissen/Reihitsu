@@ -1430,14 +1430,13 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     }
 
     /// <summary>
-    /// Verifies that a refused comment in the body of the documented method withholds the fix: the fix formats the
-    /// declaration it builds with the reordered documentation, which the formatter refuses, although the documentation
-    /// holds no refused shape
+    /// Verifies that a comment the formatter refuses in the body of the documented method does not withhold the fix:
+    /// the fix changes only the order of the elements, so the body, refused comment included, stays as written
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-FIX-010")]
-    public async Task NoFixIsOfferedWhenTheDocumentedMemberHoldsACommentTheFormatterRefuses()
+    [Requirement("RH8309-004")]
+    public async Task VerifyFixSortsElementsOfMemberThatHoldsACommentTheFormatterRefuses()
     {
         const string source = """
                               internal class TestClass
@@ -1446,7 +1445,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                   /// Adds two numbers.
                                   /// </summary>
                                   /// <returns>The sum.</returns>
-                                  /// {|RH8309:<param name="a">First value.</param>|}
+                                  /// {|#0:<param name="a">First value.</param>|}
                                   /// <param name="b">Second value.</param>
                                   public int Add(int a, int b)
                                   {
@@ -1456,8 +1455,454 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                   }
                               }
                               """;
+        const string fixedSource = """
+                                   internal class TestClass
+                                   {
+                                       /// <summary>
+                                       /// Adds two numbers.
+                                       /// </summary>
+                                       /// <param name="a">First value.</param>
+                                       /// <param name="b">Second value.</param>
+                                       /// <returns>The sum.</returns>
+                                       public int Add(int a, int b)
+                                       {
+                                           int /* c */ sum = a + b;
+
+                                           return sum;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example for a type directly in the compilation unit: the fix sorts the elements and
+    /// keeps the type's code as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-004")]
+    public async Task VerifySpecificationExampleKeepsTheRestOfATypeDirectlyInTheCompilationUnit()
+    {
+        const string testData = """
+                                /// <remarks>Remarks</remarks>
+                                /// {|#0:<summary>
+                                /// Runs
+                                /// </summary>|}
+                                public class C { void I<T>() { } }
+                                """;
+        const string fixedData = """
+                                 /// <summary>
+                                 /// Runs
+                                 /// </summary>
+                                 /// <remarks>Remarks</remarks>
+                                 public class C { void I<T>() { } }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example for a type directly in the compilation unit in a document whose line breaks
+    /// are CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-004")]
+    public async Task VerifySpecificationExampleKeepsTheRestOfATypeDirectlyInTheCompilationUnitWithCarriageReturnLineFeed()
+    {
+        var testData = NormalizeToCarriageReturnLineFeed("""
+                                                         /// <remarks>Remarks</remarks>
+                                                         /// {|#0:<summary>
+                                                         /// Runs
+                                                         /// </summary>|}
+                                                         public class C { void I<T>() { } }
+                                                         """);
+        var fixedData = NormalizeToCarriageReturnLineFeed("""
+                                                          /// <summary>
+                                                          /// Runs
+                                                          /// </summary>
+                                                          /// <remarks>Remarks</remarks>
+                                                          public class C { void I<T>() { } }
+                                                          """);
+
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps an expression-bodied method and each element's own lines as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-004")]
+    public async Task VerifyFixKeepsExpressionBodyAndElementLinesAsWritten()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <returns>Sum</returns>
+                                    /// {|#0:<summary>Adds</summary>|}
+                                    /// <param name="a">First</param>
+                                    int Add(int a) => a;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>Adds</summary>
+                                     /// <param name="a">First</param>
+                                     /// <returns>Sum</returns>
+                                     int Add(int a) => a;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the empty body of a documented type in a namespace and the nested members as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-004")]
+    public async Task VerifyFixKeepsTypeBodyAndNestedMembersAsWritten()
+    {
+        const string testData = """
+                                namespace N
+                                {
+                                    /// <remarks>R</remarks>
+                                    /// {|#0:<summary>
+                                    /// S
+                                    /// </summary>|}
+                                    public class C { }
+
+                                    /// <remarks>R</remarks>
+                                    /// {|#1:<summary>
+                                    /// T
+                                    /// </summary>|}
+                                    public class D
+                                    {
+                                        int A(int a) => a;
+
+                                        void B(){ }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 namespace N
+                                 {
+                                     /// <summary>
+                                     /// S
+                                     /// </summary>
+                                     /// <remarks>R</remarks>
+                                     public class C { }
+
+                                     /// <summary>
+                                     /// T
+                                     /// </summary>
+                                     /// <remarks>R</remarks>
+                                     public class D
+                                     {
+                                         int A(int a) => a;
+
+                                         void B(){ }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a comment that starts behind code is reported, and no fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-006")]
+    public async Task VerifyNoCodeFixForCommentWrittenBehindCode()
+    {
+        const string source = """
+                              class C
+                              {
+                                  int A; /// <remarks>R</remarks>
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int B;
+                              }
+                              """;
 
         await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a comment that starts behind code is reported and gets no fix in a document whose line breaks are
+    /// CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-006")]
+    public async Task VerifyNoCodeFixForCommentWrittenBehindCodeWithCarriageReturnLineFeed()
+    {
+        const string source = """
+                              class C
+                              {
+                                  int A; /// <remarks>R</remarks>
+                                  /// {|RH8309:<summary>
+                                  /// S
+                                  /// </summary>|}
+                                  int B;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(source));
+    }
+
+    /// <summary>
+    /// Verifies that an element out of order in a later documentation comment of the declaration is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-001")]
+    public async Task VerifyElementOutOfOrderInLaterDocumentationCommentIsReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// Adds
+                                    /// </summary>
+
+                                    /// <remarks>Remarks</remarks>
+                                    /// {|#0:<param name="a">First</param>|}
+                                    int Add(int a)
+                                    {
+                                        return a;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: an element out of order in a later documentation comment, separated from the
+    /// first by a blank line, is reported, and no fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-007")]
+    public async Task VerifyNoCodeFixForLaterDocumentationCommentAfterBlankLine()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <summary>
+                                  /// Adds
+                                  /// </summary>
+
+                                  /// <remarks>Remarks</remarks>
+                                  /// {|RH8309:<param name="a">First</param>|}
+                                  int Add(int a)
+                                  {
+                                      return a;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that no fix is offered for an element out of order in a later documentation comment that an ordinary
+    /// comment separates from the first
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-007")]
+    public async Task VerifyNoCodeFixForLaterDocumentationCommentAfterOrdinaryComment()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <summary>
+                                  /// Adds
+                                  /// </summary>
+                                  // Note
+                                  /// <remarks>Remarks</remarks>
+                                  /// {|RH8309:<param name="a">First</param>|}
+                                  int Add(int a)
+                                  {
+                                      return a;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that no fix is offered for an element out of order in a later documentation comment when the first
+    /// documentation comment is a delimited one
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-007")]
+    public async Task VerifyNoCodeFixForLaterDocumentationCommentAfterDelimitedDocumentationComment()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /** <summary>Adds</summary> */
+                                  /// <remarks>Remarks</remarks>
+                                  /// {|RH8309:<param name="a">First</param>|}
+                                  int Add(int a)
+                                  {
+                                      return a;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that no fix is offered for an element out of order in a later documentation comment that a
+    /// preprocessor directive separates from the first
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-007")]
+    public async Task VerifyNoCodeFixForLaterDocumentationCommentAfterDirective()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <summary>
+                                  /// Adds
+                                  /// </summary>
+                                  #pragma warning disable CS0168
+                                  /// <remarks>Remarks</remarks>
+                                  /// {|RH8309:<param name="a">First</param>|}
+                                  int Add(int a)
+                                  {
+                                      return a;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that no fix is offered for an element out of order in a later documentation comment in a document
+    /// whose line breaks are CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-007")]
+    public async Task VerifyNoCodeFixForLaterDocumentationCommentWithCarriageReturnLineFeed()
+    {
+        const string source = """
+                              class C
+                              {
+                                  /// <summary>
+                                  /// Adds
+                                  /// </summary>
+
+                                  /// <remarks>Remarks</remarks>
+                                  /// {|RH8309:<param name="a">First</param>|}
+                                  int Add(int a)
+                                  {
+                                      return a;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(source));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: when the first documentation comment is reported, the fix sorts it and keeps
+    /// the blank line and the later comment as they are
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-004")]
+    [Requirement("RH8309-007")]
+    public async Task VerifySpecificationExampleSortsFirstCommentAndKeepsLaterComment()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <remarks>Remarks</remarks>
+                                    /// {|#0:<summary>
+                                    /// Runs
+                                    /// </summary>|}
+
+                                    /// <param name="a">First</param>
+                                    void Run(int a)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>
+                                     /// Runs
+                                     /// </summary>
+                                     /// <remarks>Remarks</remarks>
+
+                                     /// <param name="a">First</param>
+                                     void Run(int a)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a sorted first comment in a document whose line breaks are CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-007")]
+    public async Task VerifySpecificationExampleSortsFirstCommentAndKeepsLaterCommentWithCarriageReturnLineFeed()
+    {
+        var testData = NormalizeToCarriageReturnLineFeed("""
+                                                         class C
+                                                         {
+                                                             /// <remarks>Remarks</remarks>
+                                                             /// {|#0:<summary>
+                                                             /// Runs
+                                                             /// </summary>|}
+
+                                                             /// <param name="a">First</param>
+                                                             void Run(int a)
+                                                             {
+                                                             }
+                                                         }
+                                                         """);
+        var fixedData = NormalizeToCarriageReturnLineFeed("""
+                                                          class C
+                                                          {
+                                                              /// <summary>
+                                                              /// Runs
+                                                              /// </summary>
+                                                              /// <remarks>Remarks</remarks>
+
+                                                              /// <param name="a">First</param>
+                                                              void Run(int a)
+                                                              {
+                                                              }
+                                                          }
+                                                          """);
+
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
     }
 
     #endregion // Tests

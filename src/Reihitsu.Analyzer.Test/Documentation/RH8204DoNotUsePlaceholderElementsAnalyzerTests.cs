@@ -452,7 +452,274 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : BatchCodeFixTestsB
         await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(source));
     }
 
+    /// <summary>
+    /// Verifies the specification example of content kept as written: references, a greater-than sign, the quotes and
+    /// empty-element form of a nested element, and white-space-only content stay as they are
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8204-003")]
+    public async Task VerifySpecificationExampleKeepsContentAsWritten()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Saves the {|#0:<placeholder>a &#32; <see cref='C'/> b</placeholder>|}
+                              /// </summary>
+                              public class C
+                              {
+                                  /// <summary>
+                                  /// Runs if {|#1:<placeholder>a > b</placeholder>|}
+                                  /// </summary>
+                                  public void Run()
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Stops the{|#2:<placeholder> </placeholder>|}customer
+                                  /// </summary>
+                                  public void Stop()
+                                  {
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   /// <summary>
+                                   /// Saves the a &#32; <see cref='C'/> b
+                                   /// </summary>
+                                   public class C
+                                   {
+                                       /// <summary>
+                                       /// Runs if a > b
+                                       /// </summary>
+                                       public void Run()
+                                       {
+                                       }
+
+                                       /// <summary>
+                                       /// Stops the customer
+                                       /// </summary>
+                                       public void Stop()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps a character reference in the content as a reference
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8204-003")]
+    public async Task VerifyCodeFixKeepsCharacterReferenceInContent()
+    {
+        await VerifyPlaceholderContentIsKept("a &#32; b");
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps a greater-than sign in the content as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8204-003")]
+    public async Task VerifyCodeFixKeepsGreaterThanSignInContent()
+    {
+        await VerifyPlaceholderContentIsKept("a > b");
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the single quotes and the empty-element form of a nested element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8204-003")]
+    public async Task VerifyCodeFixKeepsQuotesAndEmptyElementFormOfNestedElement()
+    {
+        await VerifyPlaceholderContentIsKept("see <see cref='C'/>");
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps content of white space only
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8204-003")]
+    public async Task VerifyCodeFixKeepsWhiteSpaceOnlyContent()
+    {
+        await VerifyPlaceholderContentIsKept("   ");
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps entity references for quotes as references
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8204-003")]
+    public async Task VerifyCodeFixKeepsQuoteEntityReferencesInContent()
+    {
+        await VerifyPlaceholderContentIsKept("&quot;a&quot; &apos;b&apos;");
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps a CDATA section in the content as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8204-003")]
+    public async Task VerifyCodeFixKeepsCdataSectionInContent()
+    {
+        await VerifyPlaceholderContentIsKept("a <![CDATA[x < y]]> b");
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps an XML comment in the content as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8204-003")]
+    public async Task VerifyCodeFixKeepsXmlCommentInContent()
+    {
+        await VerifyPlaceholderContentIsKept("a <!-- note --> b");
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the attributes of a nested element and the attribute of the placeholder does not
+    /// reach the result
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8204-003")]
+    public async Task VerifyCodeFixKeepsAttributesOfNestedElement()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Saves {|#0:<placeholder hint="h">the <c  lang = 'x' >value</c></placeholder>|} now
+                              /// </summary>
+                              public class C
+                              {
+                              }
+                              """;
+        const string fixedSource = """
+                                   /// <summary>
+                                   /// Saves the <c  lang = 'x' >value</c> now
+                                   /// </summary>
+                                   public class C
+                                   {
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the first specification example of the fix in a document whose line breaks are CRLF: the line break
+    /// inside the content stays CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8204-003")]
+    public async Task VerifySpecificationExampleReplacesPlaceholderWithItsContentWithCarriageReturnLineFeed()
+    {
+        var source = NormalizeToCarriageReturnLineFeed("""
+                                                       /// <summary>
+                                                       /// Saves the {|#0:<placeholder>current
+                                                       /// customer</placeholder>|} now
+                                                       /// </summary>
+                                                       public class C
+                                                       {
+                                                           /// <summary>
+                                                           /// Runs {|#1:<placeholder/>|} quickly
+                                                           /// </summary>
+                                                           public void Run()
+                                                           {
+                                                           }
+
+                                                           /// <summary>
+                                                           /// Handles {|#2:<placeholder>a & b</placeholder>|}
+                                                           /// </summary>
+                                                           public void Stop()
+                                                           {
+                                                           }
+                                                       }
+                                                       """);
+        var fixedSource = NormalizeToCarriageReturnLineFeed("""
+                                                            /// <summary>
+                                                            /// Saves the current
+                                                            /// customer now
+                                                            /// </summary>
+                                                            public class C
+                                                            {
+                                                                /// <summary>
+                                                                /// Runs  quickly
+                                                                /// </summary>
+                                                                public void Run()
+                                                                {
+                                                                }
+
+                                                                /// <summary>
+                                                                /// Handles a & b
+                                                                /// </summary>
+                                                                public void Stop()
+                                                                {
+                                                                }
+                                                            }
+                                                            """);
+
+        await Verify(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the CRLF line break inside the content of a placeholder in a CRLF document, applied
+    /// to that placeholder's diagnostic alone
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8204-003")]
+    public async Task VerifyCodeFixKeepsCarriageReturnLineFeedInsideContent()
+    {
+        var source = "/// <summary>\r\n/// Saves the <placeholder>current\r\n/// customer</placeholder> now\r\n/// </summary>\r\npublic class C\r\n{\r\n}\r\n";
+        var expected = "/// <summary>\r\n/// Saves the current\r\n/// customer now\r\n/// </summary>\r\npublic class C\r\n{\r\n}\r\n";
+
+        var actual = await ApplyCodeFixAsync(source);
+
+        Assert.AreEqual(expected, actual);
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Verifies that the fix replaces a placeholder with the given content and keeps the content character for
+    /// character
+    /// </summary>
+    /// <param name="content">Content of the placeholder, as written in the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyPlaceholderContentIsKept(string content)
+    {
+        var source = $$"""
+                       /// <summary>
+                       /// Saves {|#0:<placeholder>{{content}}</placeholder>|} now
+                       /// </summary>
+                       public class C
+                       {
+                       }
+                       """;
+        var fixedSource = $$"""
+                            /// <summary>
+                            /// Saves {{content}} now
+                            /// </summary>
+                            public class C
+                            {
+                            }
+                            """;
+
+        await Verify(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat));
+    }
+
+    #endregion // Methods
 
     #region BatchCodeFixTestsBase
 

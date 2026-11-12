@@ -5,7 +5,7 @@
 | ID prefix | FMT-PIPE |
 | Status | Active |
 | Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `PreparationPhase`, `FormattingContext`, `PrecedingTokenFacts`, `RootListPosition`, `RootConstruct`, `RootConstructExtensions`, `TriviaFact`, `FluentChainBoundary`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities`, `BlockWrapTriviaUtilities` |
-| Uses | RH3208-003, RH7101-005, RH7101-006, RH7201-004, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-COMMENT-012, SHARED-DIAG-001, SHARED-DOC-004, SHARED-FIX-001, SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-006, SHARED-FIX-007, SHARED-FIX-010, SHARED-USING-009, SHARED-USING-010, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BLANK-018, FMT-BREAK-001, FMT-BREAK-006, FMT-BREAK-007, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-BREAK-033, FMT-BREAK-036, FMT-CLEAN-001, FMT-CLEAN-005, FMT-CLEAN-007, FMT-CLEAN-008, FMT-DOC-001, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-018, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-028, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-023, FMT-STRUCT-026, FMT-STRUCT-030, FMT-SWITCH-003, FMT-SWITCH-008, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, FMT-USING-003, FMT-USING-010 |
+| Uses | RH3208-003, RH7101-005, RH7101-006, RH7201-004, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-COMMENT-012, SHARED-DIAG-001, SHARED-DOC-004, SHARED-FIX-001, SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-006, SHARED-FIX-007, SHARED-FIX-010, SHARED-USING-009, SHARED-USING-010, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BLANK-018, FMT-BREAK-001, FMT-BREAK-006, FMT-BREAK-007, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-BREAK-033, FMT-BREAK-036, FMT-CLEAN-001, FMT-CLEAN-005, FMT-CLEAN-007, FMT-CLEAN-008, FMT-DOC-001, FMT-DOC-003, FMT-DOC-005, FMT-DOC-008, FMT-DOC-009, FMT-DOC-010, FMT-DOC-011, FMT-DOC-012, FMT-DOC-013, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-018, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-028, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-023, FMT-STRUCT-026, FMT-STRUCT-030, FMT-SWITCH-003, FMT-SWITCH-008, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, FMT-USING-003, FMT-USING-010 |
 
 This spec covers what holds for the formatter as a whole: the public entry points, the fixed phase order, and the invariants every phase must keep. What an individual phase decides is specified in that phase's own spec.
 
@@ -274,7 +274,7 @@ Given to `FormatNode` without a parent, the class `Empty` from a tree parsed as 
 
 ### FMT-PIPE-009 — Host-independent entry points
 
-The formatter MUST expose its behavior through `ReihitsuFormatter` on Roslyn objects — `FormatDocumentAsync`, `FormatSyntaxTree`, `FormatNode`, `FormatNodeInDocumentAsync`, `FormatNodeInDocumentWithContextAsync`, `OrganizeUsingDirectivesInDocumentAsync` (FMT-PIPE-030), and `SplitsFieldDeclaration` (FMT-PIPE-031) — and MUST NOT read files, the console, or configuration itself. `FormatDocumentAsync` and `FormatSyntaxTree` MUST produce the same text for the same input and language version. A code fix MUST reach a formatter phase or structural transform only through these members: it MUST NOT run a phase, a transform, or another rewriter a phase runs, nor call a member of one, nor use `FormattingPipeline`. The rule is keyed on those types, not on a namespace: a formatter helper or utility class that is none of them stays callable, such as `ReihitsuFormatterHelpers` or a utilities class that a transform also calls, like `ExpressionBodiedTransformUtilities`, wherever it is declared.
+The formatter MUST expose its behavior through `ReihitsuFormatter` on Roslyn objects — `FormatDocumentAsync`, `FormatSyntaxTree`, `FormatNode`, `FormatNodeInDocumentAsync`, `FormatNodeInDocumentWithContextAsync`, `OrganizeUsingDirectivesInDocumentAsync` (FMT-PIPE-030), `SplitsFieldDeclaration` (FMT-PIPE-031), and `FormatDocumentationElementInDocumentAsync` (FMT-PIPE-032) — and MUST NOT read files, the console, or configuration itself. `FormatDocumentAsync` and `FormatSyntaxTree` MUST produce the same text for the same input and language version. A code fix MUST reach a formatter phase or structural transform only through these members: it MUST NOT run a phase, a transform, or another rewriter a phase runs, nor call a member of one, nor use `FormattingPipeline`. The rule is keyed on those types, not on a namespace: a formatter helper or utility class that is none of them stays callable, such as `ReihitsuFormatterHelpers` or a utilities class that a transform also calls, like `ExpressionBodiedTransformUtilities`, wherever it is declared.
 
 Why: The CLI, the analyzer code fixes, and the Playground share one engine. Keeping file access and reporting out of the formatter means every host formats identically and a host-specific behavior can never leak into another host. A code fix that runs a phase or a transform on its own takes that component out of the pipeline, so the component has to lay out its own output for the fix, and a change to the pipeline's division of work cannot see the fix; through `ReihitsuFormatter`, every path a code fix takes into the formatter is one this spec names.
 
@@ -1775,3 +1775,66 @@ class C
 ```
 
 the method returns false for `X, Y`, and true for `Width, Height`, for `_first, _second`, and for `_g, _h`; `FindUnsupportedSyntax` returns the comment `/* c */` of `_first, _second` for that declaration and for the class. In the documentation mode `None`, the method returns true for `X, Y` as well.
+
+### FMT-PIPE-032 — The documentation entry point lays out one documentation element
+
+`FormatDocumentationElementInDocumentAsync` is given a document and one XML element of a single-line (`///`) documentation comment in that document. It MUST replace the element's text, from the start of its start tag through the end of its end tag, with the text the documentation-comment phase gives that element when it formats the comment: a summary spans at least three lines (FMT-DOC-008), content that starts on the start-tag line and continues below it is moved off that line or collapsed onto it (FMT-DOC-009), an element already in a canonical shape is left as it is (FMT-DOC-010), and the content is kept, with the nested elements that need it rebuilt in the same run (FMT-DOC-011).
+
+The entry point MUST change nothing outside the element: the text in front of its start tag and behind its end tag on their lines, the `///` separator in front of the start tag, the comment's other lines and elements, the declaration's other documentation comments and the blank lines between them, the documented code, and the rest of the document stay as they are written, also where the formatter would lay them out differently. It MUST run no other phase and no other requirement of the documentation-comment phase on the document: it does not move the comment (FMT-DOC-001), does not normalize the separator of a line outside the element (FMT-DOC-005), and decides no line's column (FMT-INDENT), so its output is the element's final text in that document.
+
+The element MUST be laid out where it stands in the document, not as a copy in a root of its own (FMT-PIPE-023 does not apply to this entry point):
+
+- Each line the element's new text has after its first line MUST start with the spaces and tabs that stand in front of the `///` on the line of the element's start tag, followed by `///` and what the phase writes behind it (FMT-DOC-011). A byte order mark or other text in front of that `///` is not repeated.
+- Each line break in the element's new text MUST be the document's line ending (FMT-PIPE-007).
+
+It checks neither syntax errors (FMT-PIPE-005) nor the generated-code marker (FMT-PIPE-006), refuses no input as unsupported (FMT-UNSUP-002), and returns the document, not a formatting result object.
+
+This requirement decides the input the RH8305 and RH8307 code fixes pass (`AGENTS.md`, *Supported inputs*): an element the rule reports, closed by its own end tag, in a `///` documentation comment of a declaration that starts its own line and that FMT-DOC-013 does not leave as written, in a document without syntax errors. An element of a comment written behind code (FMT-DOC-003), of a comment that holds an element without an end tag of its own (FMT-DOC-013), or of a delimited comment (FMT-DOC-012), and an element without an end tag of its own, are not passed, and this requirement does not decide them.
+
+Why: The RH8305 and RH8307 fixes must give the reported element the formatter's layout and change nothing else (SHARED-FIX-006, SHARED-FIX-007). Every node-level entry point formats a node and everything in it, and keeps the leading trivia of a root child as written (FMT-PIPE-010), so none of them lays out one element of a comment, while a code fix may not call the phase that does (FMT-PIPE-009). An entry point of its own names the path from the fixes into the formatter, and leaves the element's layout, the column of its added lines included, to the formatter alone instead of to a copy of that decision in the fixes, so a change to the phase is seen as a change to the fixes. Taking the column of the element's own line keeps the element's lines together where the author indented the comment's lines differently, without deciding the column of any line the fix does not rewrite. An element the entry point has laid out is in a canonical shape, so formatting the document later leaves its text as it is (FMT-DOC-010) and only the indentation phase may move its lines with the rest of the comment.
+
+Example — `FormatDocumentationElementInDocumentAsync` with the `<remarks>` element as the element, as the RH8307 fix passes it; the summary, which the phase would also lay out, the `///Text` line, and the class stay as written:
+
+```csharp
+/// <summary>Total</summary>
+/// <remarks>Sum
+/// more</remarks>
+///Text
+public class C { int A(int a) => a; }
+```
+
+```csharp
+/// <summary>Total</summary>
+/// <remarks>
+/// Sum
+/// more
+/// </remarks>
+///Text
+public class C { int A(int a) => a; }
+```
+
+Example — the same with the `<summary>` element of a member, as the RH8305 fix passes it; the lines the element gains start with the spaces in front of the `///` of its own line, and the comment's other line keeps its column:
+
+```csharp
+class C
+{
+        /// <summary>Runs</summary>
+    /// <remarks>Remarks</remarks>
+    void M()
+    {
+    }
+}
+```
+
+```csharp
+class C
+{
+        /// <summary>
+        /// Runs
+        /// </summary>
+    /// <remarks>Remarks</remarks>
+    void M()
+    {
+    }
+}
+```
