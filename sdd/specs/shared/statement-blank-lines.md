@@ -126,7 +126,9 @@ When the statement shares its line with the statement before it, the fix MUST mo
 
 Both hold whether the statement it follows starts its line or not — also when the statement it follows stands behind a `case` label on the last line of that label, such as a label whose `when` clause continues on a second line: the moved statement then takes the column of the section's statements, such as the column of the `break;` below it, not a column read from the label's continuation line. Inserted line breaks MUST use the line ending SHARED-FIX-008 specifies.
 
-Why: A comment directly above the statement describes it, so it stays with the statement; putting the blank line between them would leave the comment describing the code above. A comment that starts behind the statement before it belongs to that statement's line, so the statement moves out from behind it, as the formatter does. The fix changes only the gap in front of the statement. The statement belongs to the same list as the one it follows, so it takes that list's column; a column read from a line that a label's continuation leads is the label's, not the list's. Inside an initializer, the formatter's column depends on how it anchors the whole initializer, which a fix of one gap cannot know without predicting the indentation phase; the column of the list as written is the one the reader sees next to the moved statement.
+Inside an object initializer or anonymous object, the fix MUST NOT be offered for a statement it would move when the statement it follows starts on a continuation line of a `case` label — a line inside the label that starts behind the label's first token — and no statement of the switch section other than the reported one starts its own line. The diagnostic is still reported. The fix stays offered when another statement of the section starts its own line, such as a `break;` below, and when the statement it follows starts on the label's first line.
+
+Why: A comment directly above the statement describes it, so it stays with the statement; putting the blank line between them would leave the comment describing the code above. A comment that starts behind the statement before it belongs to that statement's line, so the statement moves out from behind it, as the formatter does. The fix changes only the gap in front of the statement. The statement belongs to the same list as the one it follows, so it takes that list's column; a column read from a line that a label's continuation leads is the label's, not the list's. Inside an initializer, the formatter's column depends on how it anchors the whole initializer, which a fix of one gap cannot know without predicting the indentation phase; the column of the list as written is the one the reader sees next to the moved statement. When the section's statements stand only behind the label, the text holds no column of the section at all: the continuation line's whitespace is the label's layout, deeper or not, and any column the fix chose would be a prediction. The class is rare — a statement behind a label is an RH5103 violation already — so the fix is withheld for it rather than taught to predict the formatter (`AGENTS.md`, *Code-fix coverage*).
 
 Example — RH5002:
 
@@ -293,3 +295,43 @@ class C
 ```
 
 `var y = 1;` takes the column of the section's statements as written, the column of `break;`, not one level deeper than the label's continuation line. The same input in a method body, outside an initializer, gives the same column, there as the column of the statement's nesting depth.
+
+Example — inside an object initializer, the statement follows a statement behind a `case` label's continuation line, and no other statement of the section starts its own line; the continuation is one level deeper than the label in the first section and in the label's column in the second. RH5029 reports both, and no code fix is offered:
+
+```csharp
+class Holder
+{
+    public System.Func<int, int> F { get; set; }
+}
+
+class C
+{
+    Holder Create()
+    {
+        return new Holder
+        {
+            F = value =>
+            {
+                switch (value)
+                {
+                    case 1 when
+                        Check(value): Method(1); {|RH5029:var|} y = 1; return y;
+                    case 2 when
+                    Check(value): Method(2); {|RH5029:var|} z = 2; return z;
+                    default:
+                        return 0;
+                }
+            },
+        };
+    }
+
+    static bool Check(int value)
+    {
+        return value > 0;
+    }
+
+    static void Method(int value)
+    {
+    }
+}
+```
