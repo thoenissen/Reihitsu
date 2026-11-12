@@ -70,6 +70,7 @@ Bug-fix lane: spec author (clarifications only: RH5002 non-goal deletion per #97
 | 30 | Spec author 24 | Literal reading of decision #28 (own section's label only; only whitespace before the leading token; fallback only on label continuations; a line started by an earlier block's `}` refused) withdraws the fix from a few cells offered today | Accept as written | All cells hold two statements on one line inside an initializer (RH5103) — rare; a simple cheap check beats a wider exception list | Withholding a fix for a rare class puts nothing in question | 2ea0336 |
 | 31 | Test implementer 25 | Spec 24's literal wording refuses 4 existing RH5029 fix tests (`main` outputs): comment in front of the leading token on its own line; another section's label or statement starting the line | Narrow the spec wording, keep the 4 tests: a line counts as started by a statement or label when only whitespace and comments that start on that same line stand in front of its first token, and inside a switch, statements and labels of any section of the same switch count; a comment's tail from an earlier line still refuses. Amends decision #30 | Keeps correct `main` outputs; the failing members of finding #5 stay refused; still a cheap trivia check | Keeps `main`'s output for those inputs | – |
 | 32 | Spec author 26 | Fallback uses the comment-tolerant "starts its line"; fallback limited to the own section; another section's label continuation counts | Accept all three | Consistent with decision #31 and `main`'s label-region handling | Rare class; no output in question | 9c87631 |
+| 33 | Implementer 27 | `VerifyDiagnosticDoesNotCompensateWhenSwitchLabelItselfIsNotFirstOnItsLine` (switch on one line inside an initializer) expects a guessed fix the spec now refuses | (a): the test becomes "no code fix offered" | Rare class (RH5103 inside an initializer); the test itself called the column undecided; refusing needs no code | Withholding a fix for a rare class puts nothing in question | – |
 | 12 | Skeptic | Spec-diff wording findings (SHARED-STMT-004 undecided-case note, SHARED-BLANK-001 `///`→ also directives, comment sentence wording, initializer example, RH5023 spaces case) | Route all to a fresh spec author after the maintainer's answers | Internal wording; batched with the answers' spec changes | No output changes | – |
 
 ## Follow-up candidates
@@ -102,5 +103,6 @@ Bug-fix lane: spec author (clarifications only: RH5002 non-goal deletion per #97
 - Repair rounds used: 1 (architecture decisions #26, #28 do not count).
 - Spec author 24 (2ea0336), test implementer 25 (526ebbf: 12 failing reproductions) done. Decision #31 narrows the wording.
 - Spec author 26 (9c87631) done.
-- Next: implementer 27, cleaner 28, spec checker 29, auditor 30 (since 9906bb7).
+- Implementer 27 (663da84) done; one test disputed → decision #33.
+- Next: test implementer 28 (decision #33), cleaner 29, spec checker 30, auditor 31 (since 9906bb7).
 - Follow-up candidate added: inside an initializer, a statement moved inside a block on a `case` label's line takes the label's column (pre-existing; fits decision #9's follow-up).
