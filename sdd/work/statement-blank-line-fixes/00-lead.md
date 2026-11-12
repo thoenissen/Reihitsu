@@ -108,5 +108,6 @@ Bug-fix lane: spec author (clarifications only: RH5002 non-goal deletion per #97
 - Test implementer 28 (fc5ff89), cleaner 29 (af60316) clean, spec checker 30 (d028e40) consistent.
 - Audit 31 (6e2400f) at 7f5f965: #5, #6 closed; #7, #8 medium test gaps → repair round 2.
 - Repair rounds used: 2.
-- Next: test implementer 32, cleaner 33, spec checker 34, auditor 35 (since 7f5f965), then validator.
+- Repair round 2: test implementer 32 (8092fa5), cleaner 33 (ec7d86c) clean, spec checker 34 (200bb52) consistent.
+- Next: auditor 35 (since 7f5f965), then validator 36.
 - Follow-up candidate added: inside an initializer, a statement moved inside a block on a `case` label's line takes the label's column (pre-existing; fits decision #9's follow-up).
