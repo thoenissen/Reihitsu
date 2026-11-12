@@ -2101,6 +2101,92 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     /// <summary>
+    /// Verifies that inside an object initializer, the local declaration that follows a statement on the continuation line
+    /// of a multi-line case label is still reported but not fixed when no statement of the section starts its own line and
+    /// the continuation line is indented deeper than the label
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyNoCodeFixWhenOnlyStatementsOfSectionShareLabelContinuationLineDeeperThanLabel()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 1 when
+                                                    Check(value): Method(1); {|RH5029:var|} y = 1; return;
+                                            }
+                                        }
+                                    };
+
+                                    private static bool Check(int value)
+                                    {
+                                        return true;
+                                    }
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that inside an object initializer, the local declaration that follows a statement on the continuation line
+    /// of a multi-line case label is still reported but not fixed when no statement of the section starts its own line and
+    /// the continuation line starts in the column of the label
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyNoCodeFixWhenOnlyStatementsOfSectionShareLabelContinuationLineAtLabelColumn()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    private readonly Config _config = new Config
+                                    {
+                                        Handler = value =>
+                                        {
+                                            switch (value)
+                                            {
+                                                case 1 when
+                                                Check(value): Method(1); {|RH5029:var|} y = 1; return;
+                                            }
+                                        }
+                                    };
+
+                                    private static bool Check(int value)
+                                    {
+                                        return true;
+                                    }
+
+                                    private static void Method(int value)
+                                    {
+                                    }
+                                }
+                                internal sealed class Config
+                                {
+                                    public System.Action<int> Handler { get; set; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
     /// Verifies the empty line directly below an endif directive is blank, so the local declaration below the comment line
     /// under it is not reported
     /// </summary>
