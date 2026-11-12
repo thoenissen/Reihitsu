@@ -71,6 +71,7 @@ Bug-fix lane: spec author (clarifications only: RH5002 non-goal deletion per #97
 - Formatter: a wrapped `when` condition of a `case` label is put in the column of `case` — carries an output question (A: one level deeper than `case`), 02-skeptic #1096
 - Structural: statement blank-line code fix predicts the indentation phase's column (`ComputeAnchorDerivedIndentation`, shared with RH5103) (02-skeptic, decision #9)
 - Unify the blank line's placement around a directive in the gap: statement base inserts above, RH3208/RH5030 behind (05-implementer, decision #18; visible, carries an output question)
+- Formatter's `BlankLineRegionDirectiveRewriter.EnsureBlankLineAfterRegionDirectives` states the SHARED-BLANK-006 `#endregion`-before-`}` exemption a third time; could call `RegionDirectiveBlankLineUtilities.RequiresBlankLineBelow` (07-implementer; pre-existing, no output change)
 - One answer for "statement behind a multi-line comment" across RH5011, RH5030, the code-fix base (02-skeptic, decision #11)
 
 ## Worklist / next step
@@ -83,4 +84,5 @@ Bug-fix lane: spec author (clarifications only: RH5002 non-goal deletion per #97
 - Implementer done (05, eca4a0d): 89/94 pass; owner of the blank line in front of a statement = `BlankLineCodeFixUtilities.InsertBlankLineBefore` (no new type). Escalation 9 not reached.
 - Follow-up candidate added: unify the blank-line placement around directives between the statement base and RH3208/RH5030 (decision #18).
 - Test implementer 06 done (859aced).
-- Next: implementer (07: decisions #19 method, #20) and spec author (08: Code owners rows → `BlankLineCodeFixUtilities.InsertBlankLineBefore`, decision #15) in parallel; then cleaner, spec checker.
+- Implementer 07 (0420faf) and spec author 08 (27237e0) done; all test projects green in Debug.
+- Next: cleaner (09), spec checker (10).
