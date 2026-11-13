@@ -167,11 +167,13 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
     }
 
     /// <summary>
-    /// Verifies that the code fix updates all exact occurrences in the matching endregion text
+    /// Verifies that the code fix leaves an endregion text unchanged that repeats the region name twice, because it is
+    /// not exactly the region name
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCodeFixUpdatesAllMatchingEndRegionOccurrences()
+    [Requirement("RH7302-005")]
+    public async Task VerifyCodeFixLeavesAnEndRegionTextThatRepeatsTheNameTwiceUnchanged()
     {
         const string testData = """
                                 internal class RH7302
@@ -194,7 +196,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
                                          var value = true;
                                          return value;
                                      }
-                                     #endregion // Members Members
+                                     #endregion // members members
                                  }
                                  """;
 
@@ -464,6 +466,155 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
 
                                      #region Helpers
                                      #endregion // other
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: an <c>#endregion</c> that contains the name together with other text stays
+    /// unchanged, also where the name occurs inside a word, and one that is exactly the name behind <c>//</c> is renamed
+    /// with its spacing kept
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7302-005")]
+    public async Task CodeFixLeavesAnEndRegionThatSaysMoreThanTheNameUnchanged(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH7302:#region members|}
+                                    #endregion // end of members
+
+                                    {|RH7302:#region a|}
+                                    #endregion // a cat
+
+                                    {|RH7302:#region items|}
+                                    #endregion   //items
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     #region Members
+                                     #endregion // end of members
+
+                                     #region A
+                                     #endregion // a cat
+
+                                     #region Items
+                                     #endregion   //Items
+                                 }
+                                 """;
+
+        await Verify(testData.Replace("\r\n", "\n").Replace("\n", endOfLine), fixedData.Replace("\r\n", "\n").Replace("\n", endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the specification example: whitespace behind the <c>#region</c> description is not part of it, so the
+    /// <c>#endregion</c> that repeats the name is renamed, and the <c>#region</c> line keeps its trailing whitespace
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7302-005")]
+    public async Task CodeFixRenamesTheEndRegionWhenTheRegionLineEndsWithWhitespace(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH7302:#region members··|}
+                                    int _a;
+                                    #endregion // members
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     #region Members··
+                                     int _a;
+                                     #endregion // Members
+                                 }
+                                 """;
+
+        var source = testData.Replace("·", " ").Replace("\r\n", "\n").Replace("\n", endOfLine);
+        var fixedSource = fixedData.Replace("·", " ").Replace("\r\n", "\n").Replace("\n", endOfLine);
+
+        await Verify(source, fixedSource);
+
+        Assert.AreEqual(fixedSource, await ApplyCodeFixAsync(source.Replace("{|RH7302:", string.Empty).Replace("|}", string.Empty)));
+    }
+
+    /// <summary>
+    /// Verifying the specification example: the <c>#endregion</c> keyword is never renamed, also where the region's name is
+    /// part of it; an <c>#endregion</c> without text stays unchanged, and one whose description is exactly the name has only
+    /// that description renamed
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7302-005")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task CodeFixNeverRenamesTheEndRegionKeyword(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH7302:#region end|}
+                                    #endregion
+
+                                    {|RH7302:#region e|}
+                                    #endregion // e
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     #region End
+                                     #endregion
+
+                                     #region E
+                                     #endregion // E
+                                 }
+                                 """;
+
+        await Verify(testData.Replace("\r\n", "\n").Replace("\n", endOfLine), fixedData.Replace("\r\n", "\n").Replace("\n", endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that the code fix leaves the <c>#endregion</c> keyword unchanged for a region named <c>region</c>, whose
+    /// name is part of the keyword, and renames the description behind it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7302-005")]
+    public async Task CodeFixLeavesTheEndRegionKeywordOfARegionNamedRegionUnchanged()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH7302:#region region|}
+                                    #endregion // region
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     #region Region
+                                     #endregion // Region
                                  }
                                  """;
 

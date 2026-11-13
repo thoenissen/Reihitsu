@@ -468,6 +468,35 @@ public class RH7106ProtectedMustComeBeforeInternalAnalyzerTests : BatchCodeFixTe
         await VerifyNoCodeFixIsOffered(source);
     }
 
+    /// <summary>
+    /// Verifying the reported example: the fix swaps only the two accessibility keywords, and the spacing and the expression
+    /// body of the method stay as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task FixKeepsTheSpacingAndTheExpressionBodyOfTheMethod(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  internal {|RH7106:protected|} int M( ) => 1;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       protected internal int M( ) => 1;
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

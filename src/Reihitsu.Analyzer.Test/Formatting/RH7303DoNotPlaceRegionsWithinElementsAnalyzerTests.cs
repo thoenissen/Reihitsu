@@ -335,6 +335,323 @@ public class RH7303DoNotPlaceRegionsWithinElementsAnalyzerTests : BatchCodeFixTe
         await VerifyNoCodeFixIsOffered(source);
     }
 
+    /// <summary>
+    /// Verifying the specification example: the blank lines the removal leaves doubled, or at the start and the end of a
+    /// body, go
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7303-004")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task CodeFixRemovesTheBlankLinesTheRemovalLeavesDoubledOrAtTheEdgesOfABody(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
+
+                                        {|RH7303:#region Work|}
+
+                                        x++;
+                                        {|RH7303:#endregion // Work|}
+                                        x--;
+                                    }
+
+                                    void N()
+                                    {
+
+                                        {|RH7303:#region Work|}
+                                        var y = 1;
+                                        {|RH7303:#endregion // Work|}
+
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var x = 1;
+
+                                         x++;
+                                         x--;
+                                     }
+
+                                     void N()
+                                     {
+                                         var y = 1;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData.Replace("\r\n", "\n").Replace("\n", endOfLine), fixedData.Replace("\r\n", "\n").Replace("\n", endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the specification example: the start and the end of the body of an initializer are the lines behind its
+    /// opening and in front of its closing brace, and the blank lines the removal leaves there go
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7303-004")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task CodeFixRemovesTheBlankLinesTheRemovalLeavesInsideTheBracesOfAnInitializer()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int[] M()
+                                    {
+                                        return new[]
+                                               {
+
+                                                   {|RH7303:#region Values|}
+                                                   1,
+                                                   2
+                                                   {|RH7303:#endregion|}
+
+                                               };
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int[] M()
+                                     {
+                                         return new[]
+                                                {
+                                                    1,
+                                                    2
+                                                };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifying that the blank lines the removal leaves at the start and the end of an accessor list go
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task CodeFixRemovesTheBlankLinesTheRemovalLeavesInsideAnAccessorList()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _a;
+
+                                    public int A
+                                    {
+
+                                        {|RH7303:#region Accessors|}
+                                        get { return _a; }
+                                        set { _a = value; }
+                                        {|RH7303:#endregion|}
+
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     private int _a;
+
+                                     public int A
+                                     {
+                                         get { return _a; }
+                                         set { _a = value; }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifying that the blank lines the removal leaves behind the opening and in front of the closing brace of a switch
+    /// statement go
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task CodeFixRemovesTheBlankLinesTheRemovalLeavesInsideTheBracesOfASwitchStatement()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+
+                                            {|RH7303:#region Cases|}
+                                            case 1:
+                                                break;
+                                            {|RH7303:#endregion|}
+
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M(int x)
+                                     {
+                                         switch (x)
+                                         {
+                                             case 1:
+                                                 break;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifying that a single blank line the removal leaves behind a <c>case</c> label is not at a brace and stays
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task CodeFixKeepsASingleBlankLineBehindACaseLabel()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+
+                                                {|RH7303:#region Work|}
+                                                x++;
+                                                {|RH7303:#endregion|}
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M(int x)
+                                     {
+                                         switch (x)
+                                         {
+                                             case 1:
+
+                                                 x++;
+                                                 break;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifying that two blank lines that hold only whitespace and that the removal leaves next to each other count as a
+    /// doubled blank line, of which one goes
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task CodeFixRemovesOneOfTwoWhitespaceOnlyBlankLinesTheRemovalLeavesDoubled()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
+                                ········
+                                        {|RH7303:#region Work|}
+                                ········
+                                        x++;
+                                        {|RH7303:#endregion|}
+                                        x--;
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var x = 1;
+                                 ········
+                                         x++;
+                                         x--;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(testData.Replace("·", " "),
+                                                     false,
+                                                     fixedData.Replace("·", " "),
+                                                     fixedData.Replace("·", string.Empty));
+    }
+
+    /// <summary>
+    /// Verifying the specification example: no blank line is inserted behind a statement that ends with a closing brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7303-004")]
+    public async Task CodeFixInsertsNoBlankLineBehindAStatementThatEndsWithAClosingBrace()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M(bool a)
+                                    {
+                                        if (a)
+                                        {
+                                        }
+                                        {|RH7303:#region Work|}
+                                        a = !a;
+                                        {|RH7303:#endregion // Work|}
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M(bool a)
+                                     {
+                                         if (a)
+                                         {
+                                         }
+                                         a = !a;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -887,14 +887,13 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : BatchCodeFi
     }
 
     /// <summary>
-    /// Verifies that the fix of a type that holds a region pair with a tab behind each region keyword turns each tab into four
-    /// spaces and keeps the rest of both region directives (<c>→</c> stands for a tab)
+    /// Verifies that the fix of a type that holds a region pair with a tab behind each region keyword reorders only the
+    /// modifiers and keeps both region directives as written, tabs included (<c>→</c> stands for a tab)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("FMT-PIPE-028")]
-    [Requirement("FMT-TAB-002")]
-    public async Task FixOfTypeWithRegionPairReplacesTabsBehindRegionKeywords()
+    [Requirement("SHARED-FIX-006")]
+    public async Task FixOfTypeWithRegionPairKeepsTabsBehindRegionKeywords()
     {
         const string testCode = """
                                 namespace N
@@ -915,16 +914,16 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : BatchCodeFi
                                  {
                                      public static class C
                                      {
-                                         #region    bar
+                                         #region→bar
 
                                          private static int _a;
 
-                                         #endregion    // Stale
+                                         #endregion→// Stale
                                      }
                                  }
                                  """;
 
-        await Verify(testCode.Replace("→", "\t"), fixedCode, Diagnostics(RH7105DeclarationKeywordsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7105MessageFormat));
+        await Verify(testCode.Replace("→", "\t"), fixedCode.Replace("→", "\t"), Diagnostics(RH7105DeclarationKeywordsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7105MessageFormat));
     }
 
     /// <summary>
@@ -1064,13 +1063,14 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : BatchCodeFi
     }
 
     /// <summary>
-    /// Verifies that a refused comment in the body of the member whose modifiers are reordered withholds the fix: the
-    /// fix formats the member it builds, which the formatter refuses, although the modifiers hold no refused shape
+    /// Verifies that a comment the formatter refuses in the body of the member whose modifiers are reordered no longer
+    /// withholds the fix, which rewrites the modifiers without formatting the member
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-FIX-006")]
     [Requirement("SHARED-FIX-010")]
-    public async Task NoFixIsOfferedWhenTheBodyOfTheReorderedMemberHoldsACommentTheFormatterRefuses()
+    public async Task FixIsOfferedWhenTheBodyOfTheReorderedMemberHoldsACommentTheFormatterRefuses()
     {
         const string source = """
                               internal class C
@@ -1082,7 +1082,91 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : BatchCodeFi
                               }
                               """;
 
-        await VerifyNoCodeFixIsOffered(source);
+        const string fixedSource = """
+                                   internal class C
+                                   {
+                                       public static void M()
+                                       {
+                                           int /* c */ y = 1;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying the reported example: the fix reorders only the modifiers of an expression-bodied method, which keeps its
+    /// expression body
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("SHARED-MODORDER-002")]
+    public async Task FixKeepsTheExpressionBodyOfTheReorderedMethod(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  {|RH7105:override|} public string ToString() => "";
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       public override string ToString() => "";
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that the fix reorders only the modifiers of an operator, which keeps its expression body
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-006")]
+    public async Task FixKeepsTheExpressionBodyOfTheReorderedOperator()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  {|RH7105:static|} public C operator +(C a, C b) => a;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       public static C operator +(C a, C b) => a;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying that the fix reorders only the modifiers of a type, and the members of the type stay as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-006")]
+    public async Task FixOfATypeLeavesItsMembersAsWritten()
+    {
+        const string source = """
+                              {|RH7105:static|} public class D { static int M( ) => 1; }
+                              """;
+
+        const string fixedSource = """
+                                   public static class D { static int M( ) => 1; }
+                                   """;
+
+        await Verify(source, fixedSource);
     }
 
     #endregion // Tests

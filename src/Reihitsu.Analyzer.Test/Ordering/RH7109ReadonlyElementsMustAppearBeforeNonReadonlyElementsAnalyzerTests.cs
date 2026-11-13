@@ -6081,6 +6081,422 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
                      });
     }
 
+    /// <summary>
+    /// Verifying the specification example: a field that moves into a slot indented as it is keeps the column of its
+    /// continuation line, although formatting the result would align that line under the initializer
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    [Requirement("RH7109-005")]
+    public async Task ContinuationLineOfAMovedFieldKeepsItsColumn(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+                                  private readonly int {|RH7109:_b|} = 1
+                                          + 2;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private readonly int _b = 1
+                                               + 2;
+                                       private int _a;
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: a field indented deeper than its slot moves every one of its lines by the
+    /// shift of its first token
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FieldIndentedDeeperThanItsSlotMovesAllItsLinesByTheSameShift(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+                                      private readonly int {|RH7109:_b|} = 1
+                                          + 2;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private readonly int _b = 1
+                                           + 2;
+                                       private int _a;
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that a line break inside the moved field stays where it is written, although formatting the result
+    /// would join the semicolon to the line in front of it
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task LineBreakInsideTheMovedFieldStays(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+                                  private readonly int {|RH7109:_b|}
+                                      ;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private readonly int _b
+                                           ;
+                                       private int _a;
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that an expression-bodied method the fix neither moves nor crosses keeps its expression body
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-006")]
+    public async Task UntouchedExpressionBodiedMethodKeepsItsBodyWhenAFieldMoves()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+                                  private readonly int {|RH7109:_b|};
+
+                                  private static int Log(string name) => 0;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private readonly int _b;
+                                       private int _a;
+
+                                       private static int Log(string name) => 0;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: the moved field shares its line with the field in front of it, so no code fix
+    /// is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenTheMovedFieldSharesItsLineWithTheFieldInFrontOfIt()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a; private readonly int {|RH7109:_b|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: the target shares its line with the opening brace of the type, so no code fix
+    /// is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenTheTargetSharesItsLineWithTheOpeningBraceOfTheType()
+    {
+        const string source = """
+                              class C
+                              {   private int _a;
+                                  private readonly int {|RH7109:_b|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when the moved field shares its line with the field behind it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    public async Task NoCodeFixWhenTheMovedFieldSharesItsLineWithTheFieldBehindIt()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+                                  private readonly int {|RH7109:_b|}; private int _c;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when the moved field shares its line with the closing brace of the type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    public async Task NoCodeFixWhenTheMovedFieldSharesItsLineWithTheClosingBraceOfTheType()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+                                  private readonly int {|RH7109:_b|}; }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: whole lines move, and the comment behind the moved field on its line moves
+    /// with it
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-009")]
+    public async Task CommentBehindTheMovedFieldMovesWithIt(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+                                  private readonly int {|RH7109:_b|}; // cached
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private readonly int _b; // cached
+                                       private int _a;
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: a field indented deeper than its slot that holds a verbatim string over two
+    /// lines is reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-010")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenAShiftedFieldHoldsAVerbatimStringOverTwoLines()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+                                      private readonly string {|RH7109:_b|} = @"x
+                              y";
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: indented as its slot, a field that holds a verbatim string over two lines moves,
+    /// and the string keeps its lines
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-010")]
+    public async Task FieldIndentedAsItsSlotMovesWithAVerbatimStringOverTwoLines(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+                                  private readonly string {|RH7109:_b|} = @"x
+                              y";
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private readonly string _b = @"x
+                                   y";
+                                       private int _a;
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when a field indented deeper than its slot holds a comment over two lines in
+    /// front of its first token
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-010")]
+    public async Task NoCodeFixWhenAShiftedFieldHoldsACommentOverTwoLinesInItsLeadingTrivia()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+                                      /* one
+                                         two */
+                                      private readonly int {|RH7109:_b|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a field indented as its slot moves with a comment over two lines in front of its first token, and the
+    /// comment keeps its lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-010")]
+    public async Task FieldIndentedAsItsSlotMovesWithACommentOverTwoLinesInItsLeadingTrivia()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+                                  /* one
+                                        two */
+                                  private readonly int {|RH7109:_b|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       /* one
+                                             two */
+                                       private readonly int _b;
+                                       private int _a;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying that a comment the formatter refuses in another member of the type no longer withholds the fix, which
+    /// moves the field without formatting the type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("SHARED-FIX-010")]
+    public async Task FixIsOfferedWhenAnotherMemberOfTheTypeHoldsACommentTheFormatterRefuses()
+    {
+        const string source = """
+                              internal class C
+                              {
+                                  private int _a;
+                                  private readonly int {|RH7109:_b|};
+
+                                  private void M()
+                                  {
+                                      int /* c */ y = 1;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   internal class C
+                                   {
+                                       private readonly int _b;
+                                       private int _a;
+
+                                       private void M()
+                                       {
+                                           int /* c */ y = 1;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Characterizes the input that a report described as moving a blank line into an active <c>#else</c> branch: a field
+    /// moved across an expression-bodied property with a conditional pair in its body is reported, and no code fix is
+    /// offered, so the reported layout change does not occur
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoCodeFixWhenTheMoveCrossesAPropertyWithAConditionalPairInItsBody()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+
+                                  public int P =>
+                              #if DEBUG
+                                      1;
+                              #else
+                                      2;
+                              #endif
+
+                                  private int _e;
+                                  private readonly int {|RH7109:_c|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region Methods

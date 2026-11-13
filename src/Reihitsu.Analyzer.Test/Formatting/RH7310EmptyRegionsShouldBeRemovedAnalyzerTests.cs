@@ -687,6 +687,72 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
         AssertFormattingChangesNothing(NormalizeToCarriageReturnLineFeed(RegionsBetweenMembersFixedCode));
     }
 
+    /// <summary>
+    /// Verifying the specification example: removing a region at the start and one at the end of a type body removes the
+    /// blank lines the removals leave there
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task CodeFixRemovesTheBlankLinesTheRemovalLeavesAtTheStartAndTheEndOfABody(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+
+                                    {|RH7310:#region Fields|}
+                                    #endregion // Fields
+                                    int _a;
+
+                                    {|RH7310:#region Methods|}
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int _a;
+                                 }
+                                 """;
+
+        await Verify(testData.Replace("\r\n", "\n").Replace("\n", endOfLine), fixedData.Replace("\r\n", "\n").Replace("\n", endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the reported example: removing the last region of a type body removes the blank line the removal leaves in
+    /// front of the closing brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task CodeFixRemovesTheBlankLineTheRemovalLeavesInFrontOfTheClosingBrace()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int _a;
+
+                                    {|RH7310:#region Methods|}
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int _a;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
