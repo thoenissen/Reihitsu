@@ -62,4 +62,5 @@ Spec author (clarifications only: rule-spec coverage sentences for #1071/#1268, 
 - Repair round 1: spec author 09 fixed Uses lists (8ceb205); architecture 117/117. Cleaner skipped (spec text only).
 - 10 spec checker consistent (0703015).
 - 11 auditor (5df37b7): #1071, #1268, #974 pass; #1289 two high findings (decision 11).
-- Repair round 2 (round 1 = Uses lists): test implementer (12) adds tests for the auditor's counterexamples → implementer (13) → cleaner → spec checker → auditor (repair only) → validator.
+- 12 test implementer: 13 new RH2109 tests (8ebbe37), all fail on head, pass on main analyzer.
+- Repair round 2 (round 1 = Uses lists): test implementer (12, done) adds tests for the auditor's counterexamples → implementer (13) → cleaner → spec checker → auditor (repair only) → validator.
