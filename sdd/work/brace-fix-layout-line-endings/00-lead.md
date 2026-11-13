@@ -30,12 +30,23 @@ _None yet._
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name: playbook prescribes `claude/batch-1416-…`; the session mandates `claude/laughing-wozniak-azmh7x` | Use the session branch | Session environment allows pushing only to that branch | Branch name only | claim commit |
 | 2 | Claim | Lane of #1416 and #1388 (bodies say behavior change) | Bug fix | Maintainer triage comments on both issues moved them to the bug-fix lane with spec clarifications | Lane only | — |
+| 3 | Skeptic | #1388 `FormatNode` instance (via RH5401) | Dropped with its FMT-PIPE-007 goal; FMT-PIPE-007 unchanged | No caller reaches it: `FormatNode` output only feeds the `'\n'` test in `CanCollapse` (02-skeptic) | Unreachable case | — |
+| 4 | Skeptic | #1388 RH5405 CRLF comment instance and RH7004 instance do not reproduce | Characterization tests only; issue stays `Closes` (RH5011, RH8304, RH7309, lone-`\r` instances remain real) | 02-skeptic measured both green on c2866ea | Characterization only | — |
+| 5 | Skeptic | `} else M();` — else stays behind new `}` | Accept spec author's SHARED-BRACE-002 reading | Decided by maintainer #1220 Q3 | Covered by a maintainer answer | c14bb8c |
+| 6 | Skeptic | #1142 tab-indented list (spec author Q4) | Not asked; copy the tab (`\t[A]`/`\t[B]`), spec author drops the spaces-only restriction in SHARED-ATTR-017 | #1109 Q1 reading A includes the tab row | Covered by maintainer answer #1109 Q1 | — |
+| 7 | Skeptic | Rare-class withholds for brace fixes: other code in front of the owning `if`/`else` on its line; directive between header and body (also fixes FC-009 no-op offer); tab on the owner's or a moving body line | Withhold; stated in SHARED-BRACE-002 | Rare classes (`AGENTS.md`, Code-fix coverage); cheap checks | Rare input class | — |
+| 8 | Skeptic | Brace-fix line endings: SHARED-FIX-008 first vs second paragraph | Second paragraph (withhold in lone-`\r`/mixed documents when the moved body holds a line break), because the body is moved as text, like RH7004 | Mechanism decides; existing helper makes it cheap | Rare documents (lone `\r`/mixed) | — |
+| 9 | Skeptic | RH7309 in lone-`\r`/mixed documents | SHARED-FIX-008 second paragraph: withhold | Moves text without the formatter, like RH7004 | Rare documents | — |
+| 10 | Skeptic | Architecture finding: `ReihitsuFormatter.WriteBackTrailingTrivia` and cleanup/preparation phases both own the end of the target's last line; FMT-PIPE-010 vs SHARED-FIX-008 | Fix narrowly: the brace fixes stop delegating the whole `if` and wrap text (removes them from the class); file the write-back structural change (RH3202 etc., FMT-PIPE-010 alignment) as a follow-up | Cause spans all 29 formatter-delegating fixes, beyond the run's components | The follow-up carries it | — |
 
 ## Follow-up candidates
 
-_None yet._
+- Formatter write-back of the target's trailing trivia undoes cleanup and line-ending normalization (RH3202 `=> _value;···` → `}···`; lone-`\r` behind target for every formatter-delegating fix); align FMT-PIPE-010 with SHARED-FIX-008 — 02-skeptic (#1627 architecture finding, follow-up candidates).
+- RH8402 copies the first line's line break and hard-codes `\n` for a one-line file (by code) — 02-skeptic, Whole run.
 
 ## Worklist / next step
 
 - Done: claim, draft PR #1691, prepare.sh; spec author 01 (c14bb8c, 4 output questions; flagged `} else M();` as a visible difference to add to the batch; FormatNode instance of #1388 possibly unreachable).
-- Next: skeptic 02, then output-question batch 1 (spec author's 4 + `} else` + skeptic's), then test implementer.
+- Done: skeptic 02 (bb1c18e).
+- Now: batch 1 asked — Q1 multi-line body on header line (rec C), Q2 `} b++;` (rec A), Q3 blank line header/body (rec A), Q4 #1627 trailing whitespace (rec A), escalation 10 directive before unbraced body (rec: do not declare). Waiting.
+- Then: spec author amendment (decisions 6–9 + answers), then test implementer.
