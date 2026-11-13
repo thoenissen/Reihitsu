@@ -978,6 +978,184 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     }
 
     /// <summary>
+    /// Verifies that when the line of the converted method begins with the continuation of a sibling's wrapped
+    /// initializer, the fix does not separate the method from the sibling, and lays out the block from the method's
+    /// column, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3202-002")]
+    public async Task FixLeavesTheMethodOnALineThatBeginsWithTheContinuationOfASiblingsInitializer()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int _a = Compute(1,
+                                                     2); int Get() {|RH3202:=> _a|};
+
+                                    static int Compute(int a, int b)
+                                    {
+                                        return a;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int _a = Compute(1,
+                                                      2); int Get()
+                                                          {
+                                                              return _a;
+                                                          }
+
+                                     static int Compute(int a, int b)
+                                     {
+                                         return a;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that when the line of the converted method begins with a statement inside a sibling's body, the fix does
+    /// not separate the method from the sibling's closing brace, and lays out the block from the method's column, under
+    /// LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3202-002")]
+    public async Task FixLeavesTheMethodOnALineThatBeginsWithAStatementOfASiblingsBody()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int _a;
+
+                                    void A()
+                                    {
+                                        A(); } int Get() {|RH3202:=> _a|};
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int _a;
+
+                                     void A()
+                                     {
+                                         A(); } int Get()
+                                                {
+                                                    return _a;
+                                                }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that when the line of the converted method begins with the closing line of a sibling's verbatim string,
+    /// the fix does not separate the method from the sibling, and the result is the one the fix gave before the
+    /// shared-line separation existed, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3202-002")]
+    public async Task FixLeavesTheMethodOnALineThatBeginsWithTheClosingLineOfASiblingsVerbatimString()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string _s = @"a
+                                b"; int Get() {|RH3202:=> 1|};
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     string _s = @"a
+                                 b"; int Get()
+                                     {
+                                         return 1;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that when the line of the converted method begins with the tail of the method's own multi-line comment,
+    /// the fix does not separate the member behind it, and the result is the one the fix gave before the shared-line
+    /// separation existed, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3202-002")]
+    public async Task FixLeavesTheMemberBehindOnALineThatBeginsWithTheTailOfAMultiLineComment()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int _a;
+
+                                    /* a
+                                       b */ int Get() {|RH3202:=> _a|}; int _y;
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int _a;
+
+                                     /* a
+                                        b */ int Get()
+                                     {
+                                         return _a;
+                                     } int _y;
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that when the converted method is the first token of its line behind a comment that starts on that line,
+    /// the fix still gives the member behind it a line of its own in the column of the line, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3202-002")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixSeparatesTheMemberBehindWhenTheConvertedMethodBeginsItsLineBehindAComment()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int _a;
+
+                                    /* c */ int Get() {|RH3202:=> _a|}; int _y;
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int _a;
+
+                                     /* c */ int Get()
+                                     {
+                                         return _a;
+                                     }
+                                     int _y;
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
     /// Verifies the diagnostics marked in the source and the fix result under LF and under CRLF
     /// </summary>
     /// <param name="testCode">The source with markup and LF line endings</param>
