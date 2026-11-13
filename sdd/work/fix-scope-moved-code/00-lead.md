@@ -24,11 +24,12 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 2 | Spec author | #1604 goal: offer RH3004 fix for blocks with multi-line raw strings | Dropped from this run; follow-up candidate | Contradicts unchanged RH3004-007/008; would be a behavior change outside the bug-fix lane | The RH3004 output stays as on main | 57f49a2 |
 | 1 | Claim | Branch name `claude/batch-969-<slug>` vs. the session's mandated branch | Use `claude/dreamy-planck-yry5n0` | The session environment allows pushing only to that branch | Branch names are internal | claim commit |
 
 ## Follow-up candidates
 
-(none yet)
+- RH3004 fix offered for blocks with multi-line raw string literals (behavior change; from #1604 goal) — 01-spec-author.md
 
 ## Audited SHA
 
@@ -36,4 +37,5 @@
 
 ## Open worklist / next step
 
-- Next: spawn spec author (clarifications), then skeptic.
+- Done: spec author 01 (57f49a2): clarifications RH7302-005, RH7303-004; output questions Q1–Q3; withholding options W1, W2.
+- Next: skeptic; then batch Q1–Q3 (+ skeptic's) to the maintainer before the test implementer.
