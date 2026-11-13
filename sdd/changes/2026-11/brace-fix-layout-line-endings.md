@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | SHARED-BRACE-002 (clarified: aligned to SHARED-FIX-006/007/008, a body that ends the document; changed: which body lines move, code behind the body, whitespace at the end of the body's line), SHARED-BRACE-003 (added), SHARED-FIX-007 (clarified: the brace fixes' lines and tab withhold), SHARED-FIX-008 (changed: the brace fixes and the RH7309 fix join the moves that are withheld for a foreign line break), RH7309-007 (added), RH5011-004, RH8304-004 (clarified: the detected line ending, also in a lone-`\r` document), SHARED-ATTR-017 (clarified: only the reported list changes; the whitespace in front of a further list is a copy, a tab included), SHARED-ATTR-022 (added), SHARED-ATTR-023 (added), RH5502-003, RH5504-003, RH5506-003, RH5508-003, RH5510-003, RH5512-003, RH5514-004, RH5516-003, RH5518-003, RH5520-003, RH5522-003, RH5526-003, RH5528-003, RH5531-005 (clarified: each further list starts a new line), RH5502-004, RH5504-004, RH5506-004, RH5508-004, RH5510-004, RH5512-004, RH5514-005, RH5516-004, RH5518-004, RH5520-004, RH5522-004, RH5526-004, RH5528-004, RH5531-006 (changed: withheld where SHARED-ATTR-022 and SHARED-ATTR-023 withhold) |
+| Affected requirements | SHARED-BRACE-002 (clarified: aligned to SHARED-FIX-006/007/008, a body that ends the document; changed: which body lines move, code behind the body, whitespace at the end of the body's line), SHARED-BRACE-003 (added), SHARED-FIX-007 (clarified: the brace fixes' lines and tab withhold), SHARED-FIX-008 (changed: the brace fixes and the RH7309 fix join the moves that are withheld for a foreign line break), RH7309-007 (added), RH5011-004, RH8304-004 (clarified: the detected line ending, also in a lone-`\r` document), SHARED-ATTR-017 (clarified: only the reported list changes; the whitespace in front of a further list is a copy, a tab included), SHARED-ATTR-022 (added: withheld behind a `{` on the list's line that is still open there), SHARED-ATTR-023 (added), RH5502-003, RH5504-003, RH5506-003, RH5508-003, RH5510-003, RH5512-003, RH5514-004, RH5516-003, RH5518-003, RH5520-003, RH5522-003, RH5526-003, RH5528-003, RH5531-005 (clarified: each further list starts a new line), RH5502-004, RH5504-004, RH5506-004, RH5508-004, RH5510-004, RH5512-004, RH5514-005, RH5516-004, RH5518-004, RH5520-004, RH5522-004, RH5526-004, RH5528-004, RH5531-006 (changed: withheld where SHARED-ATTR-022 and SHARED-ATTR-023 withhold) |
 | Depends on | [Moved code keeps its lines](moved-code-keeps-its-lines.md) |
 
 ## What
@@ -14,7 +14,7 @@
 - **The brace fixes and the RH7309 fix move code as written** (SHARED-FIX-008, second paragraph; RH7309-007). Both are now in the class of fixes that move code without the formatter. Such a fix is withheld when the code it moves holds a line break other than the detected line ending. For RH7309 that code is a region block whose place changes.
 - **RH5011 and RH8304 write the detected line ending** (RH5011-004, RH8304-004). In an all-CRLF or all-LF document this is the line ending they already wrote. In a document whose line breaks are all a lone `\r`, it is `\n`. In a mixed document, it is the detected line ending, not the line's own break.
 - **The attribute-list split fixes change only the reported list** (SHARED-ATTR-017; RH5502 to RH5531). Each list after the first starts a new line, behind a character-for-character copy of the whitespace at the start of the reported list's line, a tab included. Everything else on the list's line and on every other line stays as written: a list or comment in front, a list or the declaration behind, and the indentation, comments, and directives around it. The inserted line breaks are the detected line ending.
-- **The split fixes are withheld for a list on the line of the `{` that opens the body holding its declaration** (SHARED-ATTR-022): the accessor list of an accessor, the type of a member, the namespace of a type, or the block of a local function. The diagnostic stays.
+- **The split fixes are withheld for a list behind a `{` on its line that is still open there** (SHARED-ATTR-022): a `{` in front of the list on the list's line whose `}` does not stand in front of the list on that line, whatever the `{` opens — the accessor list of an accessor, the type of a member, the namespace of a type, the block of a local function or of a lambda, a switch statement. The diagnostic stays. A `{` closed in front of the list, as in `void M() { } [A, B] void N() { }`, and a `{` on a line above do not withhold the fix.
 - **The split fixes are withheld for a line break they would copy or keep in another line ending** (SHARED-ATTR-023): a line break in the target specifier, such as between `field:` and the first attribute, and a line break inside the list, from `[` through `]`, other than the detected line ending, which includes every line break inside a list in a document whose line breaks are all a lone `\r`. The diagnostic stays.
 
 ## Why
@@ -700,7 +700,7 @@ After:
     }
 ```
 
-### RH5514, RH5506 · Attribute split fixes — a list behind the `{` of a type, a namespace, or a block
+### RH5514, RH5506 · Attribute split fixes — a list behind a `{` on its line that is still open there
 
 ```csharp
 namespace N { [A, B] class E { } }
@@ -734,7 +734,64 @@ class D
 }
 ```
 
-After: no fix offered for any of the three lists; the diagnostics stay. The other split rules behave alike for the declarations they report. A list on a line whose `{` opens another body, as in `void M() { } [A, B] void N() { }`, is split as a list that shares its line: `void M() { } [A]` ⏎ `[B] void N() { }`.
+After: no fix offered for any of the three lists; the diagnostics stay. The other split rules behave alike for the declarations they report.
+
+The same holds where the open `{` belongs to code further out than the declaration the list belongs to — a lambda in a statement or a field initializer, a local function in a switch section:
+
+```csharp
+class C2 { Func<int> f = [A, B] () => 1; }
+
+class D
+{
+    void O() { Func<int> f = [A, B] () => 1; }
+
+    void P(int x)
+    {
+        switch (x) { case 1: [A, B] void L() { } break; }
+    }
+}
+```
+
+Before (RH5514, each fix on its own):
+
+```csharp
+class C2 { Func<int> f = [A]
+    [B] () => 1; }
+
+class D
+{
+    void O() { Func<int> f = [A]
+        [B] () => 1; }
+
+    void P(int x)
+    {
+        switch (x) { case 1:
+                [A]
+                [B] void L() { } break; }
+    }
+}
+```
+
+After: no fix offered for any of the three lists; the diagnostics stay. RH5528 behaves alike for `[return: A, B]` on such a lambda.
+
+A list on a line whose `{` in front of it is closed there, as in `void M() { } [A, B] void N() { }`, is split as a list that shares its line: `void M() { } [A]` ⏎ `[B] void N() { }`. A lambda in a block whose `{` stands on a line above is split as SHARED-ATTR-017 states:
+
+```csharp
+    void M()
+    {
+        Func<int> f = [A, B] () => 1;
+    }
+```
+
+After:
+
+```csharp
+    void M()
+    {
+        Func<int> f = [A]
+        [B] () => 1;
+    }
+```
 
 ### RH5518 · Field-targeted attributes must be in separate lists — a line break in the target specifier
 
@@ -806,9 +863,9 @@ Maintainer, answer 5, A. The shape is not declared unsupported. The brace fixes 
 
 Maintainer, answer 6, A. A misindented body and each of its continuation lines keep their columns. The indentation rules still report them.
 
-### A split list on the line of the `{` that opens the body holding its declaration gets no fix
+### A split list behind a `{` on its line that is still open there gets no fix
 
-Maintainer, answer 7, B, for `public int Value { [field: First, Second] get => 1; }`. The lead widened the scope twice. First to every reported list on the line of the accessor list's `{` (decision 14): that is the same cause, a cheaper check, and the only shape in which RH5531 meets the case. Then, after the audit, to every reported list on the line of the `{` that opens the body holding its declaration — a type, a namespace, or a block (decision 18): the whitespace at the start of that line is again the indentation of the code that owns the braces, which gives the same odd output. Each widening withholds a fix for a rare class (SHARED-ATTR-022).
+Maintainer, answer 7, B, for `public int Value { [field: First, Second] get => 1; }`. The lead widened the scope twice. First to every reported list on the line of the accessor list's `{` (decision 14): that is the same cause, a cheaper check, and the only shape in which RH5531 meets the case. Then, after the audit, to every reported list on the line of the `{` that opens the body holding its declaration — a type, a namespace, or a block (decision 18): the whitespace at the start of that line is again the indentation of the code that owns the braces, which gives the same odd output. Then, after the second audit, the list of bodies was replaced by the condition behind all of them (decision 23): a `{` in front of the list on the list's line whose `}` does not stand in front of the list on that line. The audit found the same output for lists whose open `{` belongs to code further out than the declaration — a lambda in a statement or a field initializer, a local function in a switch section — which a list of the bodies that hold a declaration directly does not reach. A class that came back is refused as a whole rather than enumerated again, and the condition is a scan of the tokens in front of the list on its line. Each widening withholds a fix for a rare class (SHARED-ATTR-022); a `{` closed in front of the list, as in `void M() { } [A, B] void N() { }`, still gets the fix.
 
 ### A split is withheld for a line break it would copy or keep in another line ending
 
@@ -858,5 +915,6 @@ Lead, decision 13. A header that spans several lines puts the braces below its l
 - **Split a list behind the accessor list's `{` by laying out the accessor list over several lines** (answer 7, A) — rejected: it changes the declaration beyond the reported list.
 - **Keep the brace fixes under SHARED-FIX-008's first paragraph and rewrite kept line breaks to the detected line ending** — rejected (decision 8). The body is moved as text, and the withhold is one existing cheap check.
 - **Keep the split output on the line of a type's, namespace's, or block's `{`** (`class C { [A]` ⏎ `[B] void M() { } }`) — rejected (decision 18): it is the layout answer 7 rejected for an accessor list, from the same cause.
+- **Withhold the split only for the bodies that hold a declaration directly, and add the owners further out one by one** (the lambda's statement or field, the switch section) — rejected (decision 23): the same class came back after the first enumeration, and the open `{` on the list's line is the one condition behind every member.
 - **Rewrite a line break the split keeps inside an attribute to the detected line ending, and drop a line break in the target specifier** — rejected (decision 19): the split keeps the attributes as written, and a withhold is one cheap check of the list.
 - **Fix the formatter's write-back of a target's trailing trivia, the cause behind the whitespace and lone `\r` behind `}`, in this change** — rejected (decision 10). It concerns every fix that delegates to the formatter and is a follow-up of its own. The brace fixes leave that class because they no longer format the `if` statement.

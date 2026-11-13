@@ -537,7 +537,7 @@ Example: see SHARED-ATTR-013 and SHARED-ATTR-015.
 
 The code fix of a rule that requires one attribute per list MUST replace the reported list with one list per attribute, in the order the attributes were written, each list with the reported list's specifier, and MUST change nothing else (SHARED-FIX-006). The first list stays where the reported list starts. Each list after the first MUST start a new line, behind the whitespace that stands at the start of the line on which the reported list starts, as written. What stands in front of the reported list on its line — a comment or another attribute list — stays in front of the first list, and what follows the reported list on its line — a comment, whitespace, another attribute list, or the declaration the list belongs to — stays behind the last list. The line breaks between the new lists are the only line breaks the fix writes, and they MUST use the line ending SHARED-FIX-008 specifies.
 
-This holds wherever the list stands: every other line, its indentation, the comments and directives on it, and whitespace at the end of a line stay as written, also where the braces around the list are indented differently from the list, a comment or a directive above or below the list stands in another column, a line ends in whitespace, or the list shares its line with other code, except where SHARED-ATTR-022 withholds the fix for a list on the line of the `{` that opens the body holding its declaration, and where SHARED-ATTR-023 withholds it for a line break the fix would copy or keep in another line ending. The whitespace in front of each further list is a copy of the whitespace at the start of the reported list's line, character for character, also where it holds a tab: the fix neither replaces a tab with spaces nor counts it as a column.
+This holds wherever the list stands: every other line, its indentation, the comments and directives on it, and whitespace at the end of a line stay as written, also where the braces around the list are indented differently from the list, a comment or a directive above or below the list stands in another column, a line ends in whitespace, or the list shares its line with other code, except where SHARED-ATTR-022 withholds the fix for a list behind a `{` on its line that is still open there, and where SHARED-ATTR-023 withholds it for a line break the fix would copy or keep in another line ending. The whitespace in front of each further list is a copy of the whitespace at the start of the reported list's line, character for character, also where it holds a tab: the fix neither replaces a tab with spaces nor counts it as a column.
 
 Why: The fix makes only the change the diagnostic asks for: the attributes keep their order and their target, and each further attribute gets a line of its own at the indentation the reported list's line already has. The code around the list is a layout the author chose, and placing the declaration or a neighbouring list on a line of its own is the job of the placement rules, which report it on their own.
 
@@ -919,29 +919,39 @@ namespace N
 }
 ```
 
-### SHARED-ATTR-022 — The split fix is withheld on the line of the brace that opens the body holding the declaration
+### SHARED-ATTR-022 — The split fix is withheld behind a `{` on the list's line that is still open there
 
-The code fix of a rule that requires one attribute per list MUST NOT be offered when the reported list starts on the line on which the `{` stands that opens the body directly holding the declaration the list belongs to:
+The code fix of a rule that requires one attribute per list MUST NOT be offered when a `{` stands in front of the reported list on the line on which the list starts and the `}` that closes that `{` does not stand in front of the list on that line.
 
-- the accessor list that holds an accessor;
-- the type declaration — a class, struct, record, interface, or enum — that holds a member, a nested type, a delegate, or an enum member;
-- the namespace declaration with braces that holds a type or a delegate;
-- the block that holds a local function.
+- **Which `{`.** Every `{` token counts, whatever it opens: a type, a namespace, an accessor list, a block, a switch statement, an initializer, or any other body. A `{` inside a literal, a comment, or disabled text is not a token and does not count.
+- **In front of the list on its line.** Only a `{` whose token starts on the line of the reported list's `[`, in front of the `[`, counts. A `{` on a line above, and a `{` behind the list on its line, such as the body of the method the list belongs to, do not withhold the fix.
+- **Not closed in front of the list.** A `{` whose `}` stands in front of the list on that line, such as the body of a method in front of the list, does not withhold the fix. One `{` that is still open there is enough, also behind a `{` that is closed.
 
-What stands between that `{` and the list on their line does not matter. The diagnostic is still reported. When that `{` stands on a line above the line on which the reported list starts, the fix is offered as SHARED-ATTR-017 states. A `{` on the list's line that opens another body, such as the body of a method in front of the list, does not withhold the fix, and neither does a list whose declaration no `{` directly holds, such as a list on a parameter, a type in a file-scoped namespace, or a top-level local function.
+What stands between that `{` and the list on their line does not matter. The diagnostic is still reported. Where the fix is not withheld, it is offered as SHARED-ATTR-017 states.
 
-Why: On the line of that `{`, the whitespace at the start of the line is the indentation of the code that owns the braces — the property, indexer, or event of an accessor list, the type of a member, the namespace of a type, the statement or member that owns a block — not of the declaration the list belongs to. A further list started behind it, as SHARED-ATTR-017 states, would stand in front of the declaration, the rest of the body, and its `}`, at the column of the code that owns the braces, which is a layout nobody writes. Laying the body out over several lines instead would change code beyond the reported list (SHARED-FIX-006). An attribute list behind such a `{` on its line is rare, and comparing the line of the `{` with the line of the list is a cheap check.
+Why: On a line on which a `{` is still open when the list starts, the whitespace at the start of the line is the indentation of the code that owns that `{` or of code further out — the property of an accessor list, the type of a member, the namespace of a type, the member or statement that owns a block, the switch statement of a section — not of the declaration the list belongs to. A further list started behind it, as SHARED-ATTR-017 states, would stand in front of the rest of that body and its `}`, at the column of the code that owns the braces, which is a layout nobody writes. Laying the body out over several lines instead would change code beyond the reported list (SHARED-FIX-006). An attribute list behind an open `{` on its line is rare, and scanning the tokens in front of the list on its line for a `{` without its `}` is a cheap check. It replaces a list of the bodies that hold a declaration directly, which missed the lists whose `{` belongs to code further out, such as a lambda in a statement.
 
-Example — the `{` that opens the body holding the declaration on the line of the reported list:
+Example — a `{` in front of the reported list on its line that is still open there:
 
 ```csharp
 namespace N { {|RH5506:[A, B]|} class E { } }
 
 class C { {|RH5514:[A, B]|} void M() { } }
 
+class C2 { Func<int> f = {|RH5514:[A, B]|} () => 1; }
+
+class C3 { void M() { } {|RH5514:[A, B]|} void N() { } }
+
 class D
 {
     void N() { {|RH5514:[A, B]|} void L() { } }
+
+    void O() { Func<int> f = {|RH5514:[A, B]|} () => 1; }
+
+    void P(int x)
+    {
+        switch (x) { case 1: {|RH5514:[A, B]|} void L() { } break; }
+    }
 
     public int Value { {|RH5518:[field: First, Second]|} get => 1; }
 
@@ -950,9 +960,9 @@ class D
 }
 ```
 
-is reported, and no code fix is offered.
+is reported, and no code fix is offered. In `C3`, the body of `M` is closed in front of the list, but the body of `C3` is still open.
 
-Example — RH5518, the accessor list's `{` on a line above the reported list:
+Example — RH5518 and RH5514, the `{` on a line above the reported list:
 
 ```csharp
 class C
@@ -964,6 +974,11 @@ class C
 
     public int Other {
         {|RH5518:[field: First, Second]|} get => 1; }
+
+    void M()
+    {
+        Func<int> f = {|RH5514:[A, B]|} () => 1;
+    }
 }
 ```
 
@@ -979,10 +994,16 @@ class C
     public int Other {
         [field: First]
         [field: Second] get => 1; }
+
+    void M()
+    {
+        Func<int> f = [A]
+        [B] () => 1;
+    }
 }
 ```
 
-Example — RH5514, a `{` on the line of the reported list that opens another body:
+Example — RH5514, a `{` in front of the reported list on its line that is closed there:
 
 ```csharp
 class C
@@ -999,7 +1020,24 @@ class C
 }
 ```
 
-The `{` on the list's line opens the body of `M`, not the body of `C` that holds `N`, so the fix is offered as SHARED-ATTR-017 states.
+Example — RH5514, a `{` inside a literal in front of the reported list on its line:
+
+```csharp
+class C
+{
+    string s = "{"; {|RH5514:[A, B]|} void N() { }
+}
+```
+
+```csharp
+class C
+{
+    string s = "{"; [A]
+    [B] void N() { }
+}
+```
+
+The `{` of the literal is not a token, and the `{` of the body of `N` stands behind the list, so the fix is offered as SHARED-ATTR-017 states.
 
 ### SHARED-ATTR-023 — The split fix is withheld for a line break it would copy or keep in another line ending
 
