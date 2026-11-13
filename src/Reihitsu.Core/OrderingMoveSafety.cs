@@ -70,10 +70,12 @@ public static class OrderingMoveSafety
     /// shift of its first token to the column of the target node's first token (SHARED-FIX-007); a line
     /// that holds nothing but comments, the first of them in column 0, and the line of a directive other than
     /// <c>#region</c> and <c>#endregion</c>, keep their column. A shift is refused when the moved node holds a line that
-    /// starts inside a string literal or a comment that spans lines, or a line of disabled text, or when a left shift would
-    /// cut a line off at column 0 (SHARED-ORDER-010). Crossed nodes that share a line move together as one block. The
+    /// starts inside a string of any kind or a comment that spans lines, or a line of disabled text, or when a left shift
+    /// would cut a line off at column 0 (SHARED-ORDER-010). Crossed nodes that share a line move together as one block. The
     /// move is also refused when the leading trivia of the moved node or of the target starts behind code, such as a
-    /// documentation comment written behind the code in front of it (SHARED-ORDER-009, SHARED-DOC-004)
+    /// documentation comment written behind the code in front of it (SHARED-ORDER-009, SHARED-DOC-004), and when the
+    /// lines it moves hold a line break other than the document's line ending, which the move would keep as written
+    /// (SHARED-FIX-008)
     /// </summary>
     /// <typeparam name="TNode">List node type</typeparam>
     /// <param name="nodes">List the move operates on</param>
@@ -104,7 +106,8 @@ public static class OrderingMoveSafety
             || IsLineStart(targetNode.FullSpan.Start, lines) == false
             || StartsItsLine(nodeToMove, lines) == false
             || IsLineStart(nodeToMove.FullSpan.Start, lines) == false
-            || EndsItsLine(nodeToMove, lines) == false)
+            || EndsItsLine(nodeToMove, lines) == false
+            || LineEndingUtilities.HoldsOtherLineBreak(text, TextSpan.FromBounds(targetNode.FullSpan.Start, nodeToMove.FullSpan.End), LineEndingUtilities.DetectEndOfLine(root)))
         {
             return false;
         }

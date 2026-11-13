@@ -252,6 +252,33 @@ public static class SyntaxNodeUtilities
     }
 
     /// <summary>
+    /// Gets the spans of the strings and comments in a span that start on one line and end on a later one: string literals
+    /// of any kind, a UTF-8, verbatim, or raw one included, interpolated strings of any kind, and delimited comments. A
+    /// string is decided as a whole node, so a line of an interpolated string that starts at the brace of a hole or at the
+    /// closing quote lies inside it. This is the one decision of which strings and comments withhold a fix that moves or
+    /// rewrites lines because their lines cannot move without changing their content (RH3004-008, RH7004-007,
+    /// SHARED-ORDER-010)
+    /// </summary>
+    /// <param name="node">Node that holds the span</param>
+    /// <param name="span">Span; a string or comment that overlaps it counts</param>
+    /// <returns>The spans of the strings and comments that span lines</returns>
+    public static IEnumerable<TextSpan> GetStringsAndCommentsSpanningLines(SyntaxNode node, TextSpan span)
+    {
+        var syntaxTree = node.SyntaxTree;
+
+        return node.DescendantNodes(span)
+                   .Where(static descendant => descendant is InterpolatedStringExpressionSyntax
+                                               || descendant.IsKind(SyntaxKind.StringLiteralExpression)
+                                               || descendant.IsKind(SyntaxKind.Utf8StringLiteralExpression))
+                   .Select(static descendant => descendant.Span)
+                   .Concat(node.DescendantTrivia(span)
+                               .Where(static trivia => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+                               .Select(static trivia => trivia.Span))
+                   .Where(carrierSpan => carrierSpan.OverlapsWith(span)
+                                         && IsSingleLineSpan(syntaxTree, carrierSpan) == false);
+    }
+
+    /// <summary>
     /// Determines whether a line span starts and ends on the same source line
     /// </summary>
     /// <param name="lineSpan">Line span</param>

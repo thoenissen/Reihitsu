@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -230,7 +232,8 @@ public static class SyntaxIndentationUtilities
     /// <see cref="KeepsItsColumn"/> keeps in their column. A blank line, which holds only whitespace outside a token, a
     /// comment, and disabled text, is written empty. Each character counts as one column, a tab included: a right shift
     /// writes spaces in front of a line, and a left shift removes whitespace characters from its start. A shift is refused
-    /// when a line of the span starts inside a token or a comment that spans lines, or is a line of disabled text, none of
+    /// when a line of the span starts inside a string or a comment that spans lines
+    /// (<see cref="SyntaxNodeUtilities.GetStringsAndCommentsSpanningLines"/>), or is a line of disabled text, none of
     /// which can move without changing its content, and when a left shift would remove more characters from a moving line
     /// than whitespace starts it with (SHARED-ORDER-010, RH7004-007); a shift of zero moves no line and is never refused
     /// </summary>
@@ -245,6 +248,7 @@ public static class SyntaxIndentationUtilities
         shiftedText = null;
 
         var builder = new StringBuilder();
+        var spanningContent = SyntaxNodeUtilities.GetStringsAndCommentsSpanningLines(root, span).ToList();
 
         for (var lineNumber = text.Lines.GetLineFromPosition(span.Start).LineNumber; lineNumber < text.Lines.Count && text.Lines[lineNumber].Start < span.End; lineNumber++)
         {
@@ -252,7 +256,7 @@ public static class SyntaxIndentationUtilities
             var lineText = text.ToString(TextSpan.FromBounds(line.Start, System.Math.Min(line.EndIncludingLineBreak, span.End)));
 
             if (line.Start >= span.Start
-                && StartsInsideContent(root, line.Start))
+                && StartsInsideContent(root, spanningContent, line.Start))
             {
                 if (shift != 0)
                 {
@@ -328,6 +332,37 @@ public static class SyntaxIndentationUtilities
                    || firstTrivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
                    || firstTrivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
                && root.FindToken(position).SpanStart >= lineEnd;
+    }
+
+    /// <summary>
+    /// Determines whether the whitespace in front of the first character of a moving line of a span holds a tab
+    /// (RH3004-006, RH7004-007): every line that starts in the span, holds text in front of the span's end, and does not
+    /// keep its column (<see cref="KeepsItsColumn"/>). A tab there has no single column count, so a fix that lays such a
+    /// line out in a column of its own is withheld rather than measured. A tab on a blank line, in front of a line that
+    /// keeps its column, or behind the first character of a line is not looked at
+    /// </summary>
+    /// <param name="root">Root of the document</param>
+    /// <param name="text">Text of the document</param>
+    /// <param name="span">Span; its first line is looked at when the span starts at the start of that line</param>
+    /// <returns><see langword="true"/> if a moving line has a tab in front of its first character</returns>
+    public static bool HoldsTabInFrontOfMovingLine(SyntaxNode root, SourceText text, TextSpan span)
+    {
+        for (var lineNumber = text.Lines.GetLineFromPosition(span.Start).LineNumber; lineNumber < text.Lines.Count && text.Lines[lineNumber].Start < span.End; lineNumber++)
+        {
+            var line = text.Lines[lineNumber];
+            var textEnd = System.Math.Min(line.End, span.End);
+            var indentationEnd = GetIndentationEnd(text, line.Start, textEnd);
+
+            if (line.Start >= span.Start
+                && indentationEnd < textEnd
+                && text.ToString(TextSpan.FromBounds(line.Start, indentationEnd)).IndexOf('\t') >= 0
+                && KeepsItsColumn(root, text, line, span.End) == false)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -513,28 +548,24 @@ public static class SyntaxIndentationUtilities
     }
 
     /// <summary>
-    /// Determines whether a line starts inside a token or a comment that spans lines, or in disabled text, none of which
+    /// Determines whether a line starts inside a string or a comment that spans lines, or in disabled text, none of which
     /// can move without changing its content
     /// </summary>
     /// <param name="root">Root of the document</param>
+    /// <param name="spanningContent">Spans of the strings and comments that span lines (<see cref="SyntaxNodeUtilities.GetStringsAndCommentsSpanningLines"/>)</param>
     /// <param name="position">Start of the line</param>
     /// <returns><see langword="true"/> if the line starts inside such content</returns>
-    private static bool StartsInsideContent(SyntaxNode root, int position)
+    private static bool StartsInsideContent(SyntaxNode root, List<TextSpan> spanningContent, int position)
     {
-        var token = root.FindToken(position);
-
-        if (token.SpanStart < position
-            && position < token.Span.End)
+        if (spanningContent.Any(contentSpan => contentSpan.Start < position && position < contentSpan.End))
         {
             return true;
         }
 
         var trivia = root.FindTrivia(position);
 
-        return (trivia.IsKind(SyntaxKind.DisabledTextTrivia) && trivia.Span.Contains(position))
-               || ((trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
-                   && trivia.SpanStart < position
-                   && position < trivia.Span.End);
+        return trivia.IsKind(SyntaxKind.DisabledTextTrivia)
+               && trivia.Span.Contains(position);
     }
 
     /// <summary>

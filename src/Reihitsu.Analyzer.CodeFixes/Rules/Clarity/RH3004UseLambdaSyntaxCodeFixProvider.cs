@@ -196,11 +196,14 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
 
         var laterLinesText = string.Empty;
 
+        // The registration guards withhold every block whose lines cannot move, and the deltas put no moving line left of
+        // column 0, so the shift is not refused; should a guard drift, the fix changes nothing rather than writing a
+        // layout no requirement asks for
         if (laterLineNumber < originalText.Lines.Count
             && originalText.Lines[laterLineNumber].Start < contentEnd
             && SyntaxIndentationUtilities.TryShiftMovedLines(originalRoot, originalText, TextSpan.FromBounds(originalText.Lines[laterLineNumber].Start, contentEnd), laterColumnDelta, out laterLinesText) == false)
         {
-            return formattedDocument;
+            return originalDocument;
         }
 
         var content = new StringBuilder();
@@ -362,62 +365,40 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Determines whether the anonymous method, from its first token through the block's closing brace, its parameter
-    /// list included, holds a string literal or interpolated string of any kind, or a delimited comment, that starts on
-    /// one line and ends on a later one and so withholds the fix. On both paths, such a string or comment withholds the fix
-    /// when a later line of it starts with <c>#</c> behind lexer whitespace: that line can be a directive in another
-    /// build, where every edit the fix makes behind it can change a string's value. Where the fix keeps the block as a
-    /// block body, every such string or comment withholds the fix, because the fix moves the block's lines and no reading
-    /// of the text alone tells which of them are safe to move in every build
+    /// Determines whether the lines of the anonymous method withhold the fix. On both paths, a string of any kind or a
+    /// delimited comment that spans lines (<see cref="SyntaxNodeUtilities.GetStringsAndCommentsSpanningLines"/>) withholds
+    /// it when a later line of it starts with <c>#</c> behind lexer whitespace: that line can be a directive in another
+    /// build, where every edit the fix makes behind it can change a string's value (RH3004-008). Where the fix keeps the
+    /// block as a block body, it moves the block's lines, so every such string or comment withholds it, because no reading
+    /// of the text alone tells which of its lines are safe to move in every build, and so do a tab in front of a moving line
+    /// (RH3004-006) and a line break in the block other than the document's line ending, which the moved lines would keep
+    /// (SHARED-FIX-008)
     /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="text">Text of the document</param>
     /// <param name="anonymousMethodExpression">Anonymous method expression</param>
-    /// <param name="text">Text of the document</param>
-    /// <param name="keepsBlockBody">Whether the fix keeps the block as the lambda's block body</param>
-    /// <returns><see langword="true"/> if a string or a delimited comment that spans lines withholds the fix, <see langword="false"/> otherwise</returns>
-    private static bool WithholdsFixForSpanningStringOrComment(AnonymousMethodExpressionSyntax anonymousMethodExpression, SourceText text, bool keepsBlockBody)
+    /// <returns><see langword="true"/> if the lines of the anonymous method withhold the fix, <see langword="false"/> otherwise</returns>
+    private static bool WithholdsFixForLines(SyntaxNode root, SourceText text, AnonymousMethodExpressionSyntax anonymousMethodExpression)
     {
-        var span = anonymousMethodExpression.Span;
-        var syntaxTree = anonymousMethodExpression.SyntaxTree;
+        var keepsBlockBody = GetExpressionBody(anonymousMethodExpression) == null;
 
-        return anonymousMethodExpression.DescendantNodes()
-                                        .Where(IsString)
-                                        .Select(stringExpression => stringExpression.Span)
-                                        .Concat(anonymousMethodExpression.DescendantTrivia()
-                                                                         .Where(trivia => (trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
-                                                                                          && span.Contains(trivia.Span))
-                                                                         .Select(trivia => trivia.Span))
-                                        .Any(carrierSpan => SyntaxNodeUtilities.IsSingleLineSpan(syntaxTree, carrierSpan) == false
-                                                            && (keepsBlockBody || ContainsLineStartingWithHash(text, carrierSpan)));
-    }
-
-    /// <summary>
-    /// Determines whether the whitespace in front of the first character of a line the block-body path moves holds a tab
-    /// (RH3004-006): every line of the block after its opening brace's line that is not blank, except a line that starts
-    /// with the closing brace, which the formatter lays out. A tab there has no single column count, so the fix is
-    /// withheld rather than measured
-    /// </summary>
-    /// <param name="block">Block of the anonymous method</param>
-    /// <param name="text">Text of the document</param>
-    /// <returns><see langword="true"/> if a moving line has a tab in front of its first character</returns>
-    private static bool HoldsTabInFrontOfMovingLine(BlockSyntax block, SourceText text)
-    {
-        var firstLineNumber = text.Lines.GetLineFromPosition(block.OpenBraceToken.SpanStart).LineNumber + 1;
-        var lastLineNumber = text.Lines.GetLineFromPosition(block.CloseBraceToken.SpanStart).LineNumber;
-
-        for (var lineNumber = firstLineNumber; lineNumber <= lastLineNumber; lineNumber++)
+        if (SyntaxNodeUtilities.GetStringsAndCommentsSpanningLines(anonymousMethodExpression, anonymousMethodExpression.Span)
+                               .Any(carrierSpan => keepsBlockBody || ContainsLineStartingWithHash(text, carrierSpan)))
         {
-            var line = text.Lines[lineNumber];
-            var indentationEnd = SkipIndentation(text, line.Start, line.End);
-
-            if (indentationEnd < line.End
-                && indentationEnd != block.CloseBraceToken.SpanStart
-                && text.ToString(TextSpan.FromBounds(line.Start, indentationEnd)).IndexOf('\t') >= 0)
-            {
-                return true;
-            }
+            return true;
         }
 
-        return false;
+        if (keepsBlockBody == false)
+        {
+            return false;
+        }
+
+        var block = anonymousMethodExpression.Block;
+        var firstMovingLineNumber = text.Lines.GetLineFromPosition(block.OpenBraceToken.SpanStart).LineNumber + 1;
+
+        return LineEndingUtilities.HoldsOtherLineBreak(text, block.Span, LineEndingUtilities.DetectEndOfLine(root))
+               || (firstMovingLineNumber <= text.Lines.GetLineFromPosition(block.CloseBraceToken.SpanStart).LineNumber
+                   && SyntaxIndentationUtilities.HoldsTabInFrontOfMovingLine(root, text, TextSpan.FromBounds(text.Lines[firstMovingLineNumber].Start, block.CloseBraceToken.SpanStart)));
     }
 
     /// <summary>
@@ -452,19 +433,6 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// Determines whether a node is a string: a string literal, also a UTF-8 or raw one, or an interpolated string
-    /// expression
-    /// </summary>
-    /// <param name="node">Node</param>
-    /// <returns><see langword="true"/> for a string</returns>
-    private static bool IsString(SyntaxNode node)
-    {
-        return node is InterpolatedStringExpressionSyntax
-               || node.IsKind(SyntaxKind.StringLiteralExpression)
-               || node.IsKind(SyntaxKind.Utf8StringLiteralExpression);
     }
 
     /// <summary>
@@ -579,9 +547,7 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
                     && ContainsDiscardedTrivia(anonymousMethodExpression) == false
                     && IsOperandOfCastOrBinaryOperator(anonymousMethodExpression) == false
                     && ContainsDirectiveOrDisabledText(anonymousMethodExpression) == false
-                    && WithholdsFixForSpanningStringOrComment(anonymousMethodExpression, text, GetExpressionBody(anonymousMethodExpression) == null) == false
-                    && (GetExpressionBody(anonymousMethodExpression) != null
-                        || HoldsTabInFrontOfMovingLine(anonymousMethodExpression.Block, text) == false)
+                    && WithholdsFixForLines(root, text, anonymousMethodExpression) == false
                     && ReihitsuFormatter.FindUnsupportedSyntax(CreateLambdaExpression(anonymousMethodExpression)) == null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3004Title,

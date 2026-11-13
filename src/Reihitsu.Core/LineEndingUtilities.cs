@@ -4,6 +4,7 @@ using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Reihitsu.Core;
 
@@ -177,6 +178,32 @@ public static class LineEndingUtilities
     public static bool ContainsLineTerminator(string text)
     {
         return text.Any(IsLineTerminator);
+    }
+
+    /// <summary>
+    /// Determines whether a span of a text holds a line break other than the given line ending, such as an LF in a CRLF
+    /// document or a lone carriage return: a fix that copies the span as written would keep that line break, so it is
+    /// withheld for such a span (SHARED-FIX-008)
+    /// </summary>
+    /// <param name="text">The text</param>
+    /// <param name="span">The span to inspect; a line break counts when it starts inside the span</param>
+    /// <param name="endOfLine">The line ending every line break should have (<see cref="DetectEndOfLine"/>)</param>
+    /// <returns><see langword="true"/> when the span holds another line break; otherwise, <see langword="false"/></returns>
+    public static bool HoldsOtherLineBreak(SourceText text, TextSpan span, string endOfLine)
+    {
+        for (var lineNumber = text.Lines.GetLineFromPosition(span.Start).LineNumber; lineNumber < text.Lines.Count && text.Lines[lineNumber].End < span.End; lineNumber++)
+        {
+            var line = text.Lines[lineNumber];
+
+            if (line.End >= span.Start
+                && line.EndIncludingLineBreak > line.End
+                && text.ToString(TextSpan.FromBounds(line.End, line.EndIncludingLineBreak)) != endOfLine)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

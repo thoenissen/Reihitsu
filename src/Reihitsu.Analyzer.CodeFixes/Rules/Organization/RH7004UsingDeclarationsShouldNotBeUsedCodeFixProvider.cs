@@ -62,12 +62,14 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
     /// statements between them are moved code: every line of them moves one indentation level deeper and otherwise stays
     /// as written (SHARED-FIX-007), so no blank line is inserted or removed (SHARED-FIX-006). A comment behind the
     /// declaration at the end of its line stays behind the header (RH7004-004). When no statement follows the declaration
-    /// and code follows it on its line, the block is empty and the text behind the semicolon stays behind the block. The
-    /// changes are refused when a line of the statements cannot move or the first statement starts on the line of the
-    /// declaration (RH7004-007), when a comment or directive stands in front of the semicolon, which would end up on a
-    /// line of its own in front of the closing parenthesis, and when code stands in front of the declaration on its line
-    /// or the last statement shares its line with the closing brace of the block, where the new braces would need a line
-    /// break the author did not write
+    /// and code follows it on its line, the block is empty and the text behind the semicolon stays behind the block. Every
+    /// line break the fix writes is the document's line ending (SHARED-FIX-008). The changes are refused when a line of the
+    /// statements cannot move, a tab stands in front of the declaration or of a moving line, or the first statement starts
+    /// on the line of the declaration (RH7004-007), when the statements hold a line break other than the document's line
+    /// ending (SHARED-FIX-008), when a comment or directive stands in front of the semicolon, which would end up on a line
+    /// of its own in front of the closing parenthesis, and when code stands in front of the declaration on its line or the
+    /// last statement shares its line with the closing brace of the block, where the new braces would need a line break
+    /// the author did not write
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="usingDeclaration">Using declaration</param>
@@ -100,6 +102,13 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
         }
 
         var indentation = text.ToString(TextSpan.FromBounds(declarationLine.Start, declarationLine.Start + text.ToString(declarationLine.Span).TakeWhile(character => character is ' ' or '\t').Count()));
+
+        if (indentation.IndexOf('\t') >= 0)
+        {
+            return false;
+        }
+
+        var endOfLine = LineEndingUtilities.DetectEndOfLine(root);
         var openParenChange = new TextChange(new TextSpan(usingDeclaration.Declaration.SpanStart, 0), "(");
 
         if (lines.GetLineFromPosition(movedSpan.Start).Start != movedSpan.Start)
@@ -111,8 +120,6 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
 
             // No statement follows the declaration, and code follows it on its line: the block stays empty, and the text
             // behind the semicolon stays behind the block's closing brace, in front of that code
-            var endOfLine = GetEndOfLine(text, declarationLine);
-
             changes = [
                           openParenChange,
                           new TextChange(usingDeclaration.SemicolonToken.Span, $"){endOfLine}{indentation}{{{endOfLine}{indentation}}}")
@@ -122,38 +129,20 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
         }
 
         if (lines.GetLineFromPosition(movedSpan.End).Start != movedSpan.End
+            || LineEndingUtilities.HoldsOtherLineBreak(text, movedSpan, endOfLine)
+            || SyntaxIndentationUtilities.HoldsTabInFrontOfMovingLine(root, text, movedSpan)
             || SyntaxIndentationUtilities.TryShiftMovedLines(root, text, movedSpan, IndentationSize, out var movedText) == false)
         {
             return false;
         }
 
-        var lineBreak = GetEndOfLine(text, lines.GetLineFromPosition(movedSpan.Start - 1));
-
         changes = [
                       openParenChange,
                       new TextChange(usingDeclaration.SemicolonToken.Span, ")"),
-                      new TextChange(movedSpan, $"{indentation}{{{lineBreak}{movedText}{indentation}}}{lineBreak}")
+                      new TextChange(movedSpan, $"{indentation}{{{endOfLine}{movedText}{indentation}}}{endOfLine}")
                   ];
 
         return true;
-    }
-
-    /// <summary>
-    /// Gets the line break the fix writes: the one that ends the given line, or the first line break of the document when
-    /// the line has none
-    /// </summary>
-    /// <param name="text">Text of the document</param>
-    /// <param name="line">Line</param>
-    /// <returns>The line break</returns>
-    private static string GetEndOfLine(SourceText text, TextLine line)
-    {
-        var lineWithBreak = line.EndIncludingLineBreak > line.End
-                                ? line
-                                : text.Lines[0];
-
-        return lineWithBreak.EndIncludingLineBreak > lineWithBreak.End
-                   ? text.ToString(TextSpan.FromBounds(lineWithBreak.End, lineWithBreak.EndIncludingLineBreak))
-                   : "\n";
     }
 
     /// <summary>
