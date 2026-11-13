@@ -69,5 +69,3 @@ Batch 1 (before test implementer), all answered as recommended:
 - Done: spec author 07 (2fa97c8): SHARED-ATTR-022.
 - Done: test implementer 08 (ce57cc9): 7 red SHARED-ATTR-022 tests.
 - Now: implementer 09 (SHARED-ATTR-022 withhold), then cleaner.
-- Open: spec author rewords RH5011-004 lone-`\r` sentence (decision 11) before the cleaner.
-- Then: test implementer.
