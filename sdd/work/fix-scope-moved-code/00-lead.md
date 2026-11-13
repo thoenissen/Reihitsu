@@ -32,6 +32,8 @@ Batch 1 (asked as chat questions 1–6; skeptic/spec-author IDs in brackets):
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 29 | Implementer 13 | Zero-shift member moves now also write whitespace-only lines empty | Accept | SHARED-FIX-007 states it for all moved code; main does the same (11) | Unchanged from main | eac59e0 |
+| 30 | Implementer 13 | `UsesListsExactlyTheReferencedRequirements`: RH3004.md references FMT-PIPE-017 without listing it | Spec author 11 continued for the fix | Spec structure | Internal | — |
 | 26 | Implementer 10 | RH3004 with tab indentation: shared rule counts a tab as 1 column, old private shifter as 4 → visible change (16 vs 25 spaces) | Neither A nor B: RH3004 withholds its block-body fix when the indentation of a line it would shift holds a tab (rare: RH5601 reports tabs). Cheap check | A visible change no requirement demands would be in question; refusing a rare class is not | Rare-class refusal | — |
 | 27 | Implementer 10 | Whitespace-only blank lines in moved code: kept as written now, emptied on main (RH3004 old shifter and RH7004 via formatter) | The shared helper writes a whitespace-only line in the moved span empty (main's output for both fixes); SHARED-FIX-007 states it | Keeps main's visible output; one cheap rule | Unchanged from main | — |
 | 28 | Implementer 10 | Release build error RH7305 in RH7109 test file | Cleaner | Formatting/warnings belong to the cleaner | Test code | — |
@@ -83,6 +85,6 @@ Batch 1 (asked as chat questions 1–6; skeptic/spec-author IDs in brackets):
 - Done: test implementer 05 (5bd3a7b): all reproduced; #1604 (d) not reproduced (characterization). 98 failing tests.
 - Done: spec author 06 (c3c16cf).
 - Done: implementer 07 (9a3dded, 10c718c): all tests pass; +700/-242 production, ~470 in three Core helpers.
-- Escalation 9 answered A. Spec author 08 done (840e68b). Test implementer 09 done (ba8db8e, 8 failing rows). Implementer 10 done (1341a2c): all pass, net production +136. Spec author 11 done (bffd78a; change-doc tab refusal accepted by lead as rare class). Test implementer 12 done (a689780, 10 failing). Next: implementer 13, cleaner 14. Structural round: repair-like structural round (decisions 19–23) — spec author, test implementer, implementer — then cleaner.
+- Escalation 9 answered A. Spec author 08 done (840e68b). Test implementer 09 done (ba8db8e, 8 failing rows). Implementer 10 done (1341a2c): all pass, net production +136. Spec author 11 done (bffd78a; change-doc tab refusal accepted by lead as rare class). Test implementer 12 done (a689780, 10 failing). Implementer 13 done (eac59e0; net production +156). Next: spec author 11 continued (decision 30), cleaner 14, spec checker 15, merge main, build, auditor 16. Structural round: repair-like structural round (decisions 19–23) — spec author, test implementer, implementer — then cleaner.
 - (old) Next: fresh spec author writes the answers into the specs (and change doc if sdd/README requires one); then test implementer.
 - (old) Next after answers: then batch Q1–Q3 (+ skeptic's) to the maintainer before the test implementer.
