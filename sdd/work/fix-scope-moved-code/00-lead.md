@@ -69,6 +69,7 @@ Batch 1 (asked as chat questions 1–6; skeptic/spec-author IDs in brackets):
 - Done: spec author 03 (0a3211b): specs + change doc; open Q7 (one-line accessor lists). Q7 answered B.
 - Done: spec author 04 (6de86b6): Q7 B in specs. Change doc accepted by the lead.
 - Done: test implementer 05 (5bd3a7b): all reproduced; #1604 (d) not reproduced (characterization). 98 failing tests.
-- Next: spec author 06 (decisions 15–17, text only), then implementer 07.
+- Done: spec author 06 (c3c16cf).
+- Next: implementer 07.
 - (old) Next: fresh spec author writes the answers into the specs (and change doc if sdd/README requires one); then test implementer.
 - (old) Next after answers: then batch Q1–Q3 (+ skeptic's) to the maintainer before the test implementer.
