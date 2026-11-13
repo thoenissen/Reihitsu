@@ -102,3 +102,4 @@ Batch 1 (before test implementer), all answered as recommended:
 - Spec checker 28 consistent; auditor 29 (edb8441): F8 closed, F9 medium, F10 low. Repair round 3: test implementer 30, implementer 31, cleaner 32, spec checker 33, auditor 34, validator.
 - Test implementer 30 done (59a4b14). Now implementer 31 (F10).
 - Implementer 31 done (b7152a5). Now cleaner 32.
+- Cleaner 32 clean. Now spec checker 33 and auditor 34 (repair round 3 since 809714e).
