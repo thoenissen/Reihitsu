@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -92,12 +91,9 @@ public abstract class RegionDirectiveBlankLineCodeFixProviderBase : CodeFixProvi
         var closeBraceStartLineIndices = FormattingTextAnalysisUtilities.GetLineIndicesBeginningWithToken(root,
                                                                                                           sourceText,
                                                                                                           static token => token.IsKind(SyntaxKind.CloseBraceToken));
-        var directiveTrivia = root.FindTrivia(diagnosticSpan.Start, findInsideTrivia: true);
-        var closeBraceExemptions = directiveTrivia.GetStructure() is EndRegionDirectiveTriviaSyntax
-                                       ? closeBraceStartLineIndices
-                                       : new HashSet<int>();
+        var isEndRegion = root.FindTrivia(diagnosticSpan.Start, findInsideTrivia: true).GetStructure() is EndRegionDirectiveTriviaSyntax;
 
-        return RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineAfter(sourceText, directiveLineIndex, closeBraceExemptions)
+        return RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineAfter(sourceText, directiveLineIndex, isEndRegion, closeBraceStartLineIndices)
                    ? document.WithText(sourceText.Replace(new TextSpan(sourceText.Lines[directiveLineIndex + 1].Start, 0), endOfLine))
                    : document;
     }

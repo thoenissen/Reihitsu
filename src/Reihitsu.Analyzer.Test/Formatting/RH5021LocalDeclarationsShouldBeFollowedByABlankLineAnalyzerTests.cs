@@ -581,6 +581,46 @@ public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzerTests : 
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies one application of the fix inserts exactly one blank line above a block comment that starts the line of
+    /// the statement that follows a local declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixInsertsOneBlankLineAboveBlockCommentStartingStatementLineAfterDeclaration()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        var b = a;
+                                        /* block */ {|RH5021:a|}++;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         var b = a;
+
+                                         /* block */ a++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

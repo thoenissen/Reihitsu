@@ -65,7 +65,8 @@ public class RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzer : Diagnosti
     }
 
     /// <summary>
-    /// Analyzes a <c>do</c> statement and reports the blank line directly above its footer's line
+    /// Analyzes a <c>do</c> statement and reports the blank line directly above its footer's line, unless it lies below a
+    /// region directive that requires it (RH5027-005)
     /// </summary>
     /// <param name="context">Context</param>
     private void OnDoStatement(SyntaxNodeAnalysisContext context)
@@ -81,7 +82,8 @@ public class RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzer : Diagnosti
 
         if (whileLineIndex == 0
             || StartsWithFooter(sourceText, doStatement, whileLine) == false
-            || FormattingTextAnalysisUtilities.IsBlankLine(sourceText, whileLineIndex - 1) == false)
+            || FormattingTextAnalysisUtilities.IsBlankLine(sourceText, whileLineIndex - 1) == false
+            || RegionDirectiveBlankLineUtilities.FollowsRegionDirectiveRequiringBlankLine(doStatement.SyntaxTree.GetRoot(context.CancellationToken), sourceText, whileLineIndex))
         {
             return;
         }

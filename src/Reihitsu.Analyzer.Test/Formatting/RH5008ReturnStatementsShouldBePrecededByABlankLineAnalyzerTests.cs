@@ -602,6 +602,86 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : B
         await Verify(testCode, fixedCode, Diagnostics(RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5008MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies one application of the fix inserts exactly one blank line above a block comment that starts the reported
+    /// return statement's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixInsertsOneBlankLineAboveBlockCommentStartingReturnLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a)
+                                    {
+                                        a++;
+                                        /* block */ {|RH5008:return|} a;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(int a)
+                                     {
+                                         a++;
+
+                                         /* block */ return a;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix inserts exactly one blank line above a block comment that starts the reported
+    /// return statement's line under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixInsertsOneBlankLineAboveBlockCommentStartingReturnLineWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a)
+                                    {
+                                        a++;
+                                        /* block */ {|RH5008:return|} a;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(int a)
+                                     {
+                                         a++;
+
+                                         /* block */ return a;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode),
+                     NormalizeToCarriageReturnLineFeed(fixedCode),
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -53,5 +53,35 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineFormatterTests : Form
                               ExpectedDiagnostic(RH5002IfStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 11, AnalyzerResources.RH5002MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies code with a blank line directly below an endif directive, above a comment line and an if statement, is
+    /// left unchanged by the formatter and not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BLANK-001")]
+    public async Task VerifyFormatterKeepsBlankLineBelowEndIfDirectiveAndAnalyzerReportsNothing()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(int a)
+                                 {
+                                     a++;
+                             #if DEBUG
+                                     a--;
+                             #endif
+
+                                     // note
+                                     if (a > 1)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
+
+        await VerifyFormatter(input);
+    }
+
     #endregion // Tests
 }

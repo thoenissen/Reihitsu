@@ -21,7 +21,7 @@ public class RH5027WhileDoFooterMustNotBePrecededByBlankLineCodeFixProvider : Bl
     /// Constructor
     /// </summary>
     public RH5027WhileDoFooterMustNotBePrecededByBlankLineCodeFixProvider()
-        : base(RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, CodeFixResources.RH5027Title)
+        : base(RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, CodeFixResources.RH5027Title, removesRun: true)
     {
     }
 

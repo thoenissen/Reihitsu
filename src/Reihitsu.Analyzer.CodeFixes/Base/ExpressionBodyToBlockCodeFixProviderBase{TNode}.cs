@@ -72,6 +72,18 @@ public abstract class ExpressionBodyToBlockCodeFixProviderBase<TNode> : CodeFixP
         return node;
     }
 
+    /// <summary>
+    /// Determines whether the fix can be delivered for the node beyond the formatter's own refusals. A rule whose fix also
+    /// edits code next to the node withholds the fix where that edit cannot be made
+    /// </summary>
+    /// <param name="root">Syntax root of the document that contains <paramref name="node"/></param>
+    /// <param name="node">Node that owns the reported expression body</param>
+    /// <returns><see langword="true"/> if the fix can be registered</returns>
+    protected virtual bool CanRegisterCodeFix(SyntaxNode root, TNode node)
+    {
+        return true;
+    }
+
     #endregion // Methods
 
     #region CodeFixProvider
@@ -98,11 +110,15 @@ public abstract class ExpressionBodyToBlockCodeFixProviderBase<TNode> : CodeFixP
                 var node = root.FindNode(diagnostic.Location.SourceSpan)
                                .FirstAncestorOrSelf<TNode>();
 
-                // The formatter keeps the expression body of an async member whose task type it cannot see, so a fix that
-                // delegates to it would change nothing there; the member stays reported without a fix
+                // The member stays reported without a fix wherever the fix could not deliver its result: the formatter keeps
+                // the expression body of an async member whose task type it cannot see, so delegating to it would change
+                // nothing; the formatter refuses input that holds a shape it does not support; and a derived provider can
+                // withhold the fix for an input its own conversion cannot handle, such as a statement it would have to move
+                // to a column the text does not hold
                 if (node != null
                     && ExpressionBodiedTransformUtilities.RequiresAsyncExpressionBodyPreservation(node) == false
-                    && ReihitsuFormatter.FindUnsupportedSyntax(GetFormattingInput(node)) == null)
+                    && ReihitsuFormatter.FindUnsupportedSyntax(GetFormattingInput(node)) == null
+                    && CanRegisterCodeFix(root, node))
                 {
                     context.RegisterCodeFix(CodeAction.Create(_title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, node, cancellationToken),

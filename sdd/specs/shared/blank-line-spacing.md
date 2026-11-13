@@ -19,9 +19,9 @@ This spec covers the blank-line rules that analyzer, code fixes, and formatter d
 
 ### SHARED-BLANK-001 — A blank line holds nothing but whitespace
 
-Analyzer and formatter MUST count as a blank line only a line between two tokens that holds nothing but whitespace before its line break. A line inside the text of a comment MUST NOT count, even when it is empty.
+Analyzer and formatter MUST count as a blank line only a line between two tokens that holds nothing but whitespace before its line break. A line inside the text of a comment MUST NOT count, even when it is empty; a line inside disabled text — the code of an inactive `#if`, `#elif`, or `#else` branch — MUST NOT count either. The line directly below a trivia whose own text ends with its line break — a `///` documentation comment or a preprocessor directive — is not inside that trivia's text: it MUST count as blank when it holds nothing but whitespace, whether it is empty or holds spaces, unless it is itself inside disabled text, as the first line of an inactive branch is.
 
-Why: A blank line is a visual separator the reader sees between pieces of code. An empty line inside a multi-line block comment belongs to the comment's text and separates nothing; counting it would let a comment satisfy a rule that asks for a separator in front of the code that follows. `TokenGapAnalysis` is the one measure, used by the formatter's blank-line phase and by the code fixes of RH5001–RH5010, RH5012–RH5019, RH5021, and RH5029 to decide how many line breaks to insert.
+Why: A blank line is a visual separator the reader sees between pieces of code. An empty line inside a multi-line block comment belongs to the comment's text and separates nothing; counting it would let a comment satisfy a rule that asks for a separator in front of the code that follows. A `///` comment and a directive carry the line break that ends their own line, so the line below them starts behind that line break like any other line. An empty line in an inactive branch belongs to the text the compiler skips, like the text of a comment, and analyzer and formatter both read that text as one piece of content. `TokenGapAnalysis` is the one measure, used by the formatter's blank-line phase and by the analyzers of RH5001–RH5019, RH5021, and RH5029 to decide whether a blank line is there.
 
 Example — the empty line inside the block comment does not separate the following comment:
 
@@ -50,6 +50,71 @@ class C
 
         // next
         x++;
+    }
+}
+```
+
+Example — the line below the `///` comment is blank, so RH5002 and RH5011 report nothing; the same holds when that line holds spaces before its line break:
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        while (a > 0)
+        {
+            a--;
+
+            break;
+            /// doc
+
+            if (a > 1)
+            {
+            }
+        }
+    }
+}
+```
+
+is not reported.
+
+Example — the line below `#endif` is blank, so RH5002 reports nothing; the same holds when that line holds spaces before its line break:
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        a++;
+#if DEBUG
+        a--;
+#endif
+
+        // note
+        if (a > 1)
+        {
+        }
+    }
+}
+```
+
+is not reported.
+
+Example — the empty line below `#if NEVER_DEFINED` is the first line of an inactive branch and lies inside disabled text, so it does not count, and RH5002 reports the `if` behind the comment, unlike the `#endif` example above, where the blank line lies below the closing directive:
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        a++;
+#if NEVER_DEFINED
+
+#endif
+        // note
+        {|RH5002:if|} (a > 1)
+        {
+        }
     }
 }
 ```

@@ -375,6 +375,44 @@ public class RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzerTests : B
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode), actual);
     }
 
+    /// <summary>
+    /// Verifies the inputs on which the rules for blank lines above else and above the footer of a do statement report
+    /// nothing are not reported by this rule either, so neither fix undoes the other
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenBlankLineFollowsRegionDirectivesInFrontOfChainedKeywordAndFooter()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a > 0)
+                                        {
+                                        }
+                                        #region R
+
+                                        else
+                                        {
+                                        }
+                                        #endregion // R
+
+                                        do
+                                        {
+                                            a++;
+                                        }
+                                        #region S
+
+                                        while (a < 3);
+                                        #endregion // S
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

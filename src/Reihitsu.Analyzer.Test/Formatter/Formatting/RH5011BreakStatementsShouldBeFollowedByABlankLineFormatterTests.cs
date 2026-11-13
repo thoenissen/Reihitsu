@@ -151,5 +151,32 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineFormatterTests : F
         await VerifyFormatter(source);
     }
 
+    /// <summary>
+    /// Verifies code with a break statement directly above the footer of a do statement is left unchanged by the formatter
+    /// and not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-008")]
+    public async Task VerifyFormatterKeepsBreakDirectlyAboveDoStatementFooterAndAnalyzerReportsNothing()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(int a)
+                                 {
+                                     while (true)
+                                     {
+                                         do
+                                             break;
+                                         while (a > 3);
+                                     }
+                                 }
+                             }
+                             """;
+
+        await VerifyFormatter(input);
+    }
+
     #endregion // Tests
 }

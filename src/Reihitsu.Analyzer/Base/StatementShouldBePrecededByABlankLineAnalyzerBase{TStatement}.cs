@@ -84,7 +84,9 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
     }
 
     /// <summary>
-    /// Analyze statement
+    /// Analyze statement. Blank lines are counted with <see cref="TokenGapAnalysis"/>, the one measure of SHARED-BLANK-001,
+    /// so a line holding only whitespace directly below a trivia that ends with its own line break - a <c>///</c> comment
+    /// or a directive - counts as blank
     /// </summary>
     /// <param name="context">Context</param>
     private void OnStatement(SyntaxNodeAnalysisContext context)
@@ -97,9 +99,10 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
 
             if (previousToken.IsAnyKindOf(SyntaxKind.OpenBraceToken, SyntaxKind.ColonToken, SyntaxKind.None) == false)
             {
-                var trivia = previousToken.TrailingTrivia.Concat(statement.GetLeadingTrivia());
+                var firstToken = statement.GetFirstToken();
+                var trivia = previousToken.TrailingTrivia.Concat(firstToken.LeadingTrivia);
 
-                if (SyntaxTriviaUtilities.ContainsBlankLine(trivia) == false
+                if (TokenGapAnalysis.Between(previousToken, firstToken).BlankLineCount == 0
                     && SyntaxTriviaUtilities.IsPrecededByDirective(trivia) == false)
                 {
                     context.ReportDiagnostic(CreateDiagnostic(GetLocation(statement)));
