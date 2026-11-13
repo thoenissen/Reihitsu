@@ -901,11 +901,13 @@ public class RH5513MethodAttributesMustFollowPlacementRulesAnalyzerTests : Batch
     }
 
     /// <summary>
-    /// Characterizes the fix in tab-indented code: the tabs in front of the attribute list stay, and the declaration is
-    /// indented with spaces to the attribute list's column at a tab width of four, under LF and CRLF
+    /// Verifies the fix in tab-indented code: the tabs in front of the attribute list stay, and the declaration is
+    /// indented with four spaces for each enclosing brace, under LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5513-004")]
+    [Requirement("SHARED-ATTR-008")]
     public async Task FixInTabIndentedCodeIndentsTheDeclarationWithSpacesToTheAttributeListsColumn()
     {
         const string testCode = "using System;\n\nnamespace N\n{\n\tclass C\n\t{\n\t\tvoid M()\n\t\t{\n\t\t\t[Obsolete] void L()\n\t\t\t{\n\t\t\t}\n\t\t}\n\t}\n}";

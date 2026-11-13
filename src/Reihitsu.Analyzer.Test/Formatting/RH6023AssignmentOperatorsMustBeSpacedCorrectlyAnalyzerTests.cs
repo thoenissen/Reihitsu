@@ -480,7 +480,7 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH6023-002")]
-    [Requirement("FMT-PIPE-024")]
+    [Requirement("SHARED-OPSPACE-004")]
     public async Task VerifyFixKeepsTheWrappedLinkOfAnAssignedMemberBehindAMemberBinding()
     {
         const string testData = """
@@ -584,7 +584,7 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH6023-002")]
-    [Requirement("FMT-PIPE-024")]
+    [Requirement("SHARED-OPSPACE-004")]
     public async Task VerifyFixKeepsTheWrappedLinkOfAnAssignedMemberBehindAnElementBinding()
     {
         const string testData = """
@@ -688,7 +688,7 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH6023-002")]
-    [Requirement("FMT-PIPE-024")]
+    [Requirement("SHARED-OPSPACE-004")]
     public async Task VerifyFixKeepsTheWrappedLinksOfALongerAssignedChain()
     {
         const string testData = """
@@ -742,7 +742,7 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH6023-002")]
-    [Requirement("FMT-PIPE-024")]
+    [Requirement("SHARED-OPSPACE-004")]
     public async Task VerifyFixKeepsAnAssignedMemberOnOneLineBehindAMemberBinding()
     {
         const string testData = """
@@ -792,7 +792,7 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH6023-002")]
-    [Requirement("FMT-PIPE-024")]
+    [Requirement("SHARED-OPSPACE-004")]
     public async Task VerifyFixOnAnAssignedMemberBindingKeepsItOnItsLine()
     {
         const string testData = """
@@ -842,7 +842,6 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH6023-002")]
-    [Requirement("FMT-PIPE-024")]
     [Requirement("SHARED-OPSPACE-004")]
     public async Task VerifyFixKeepsTheWrappedLinkOfAnAssignedMemberWhoseValueIsWrapped()
     {
