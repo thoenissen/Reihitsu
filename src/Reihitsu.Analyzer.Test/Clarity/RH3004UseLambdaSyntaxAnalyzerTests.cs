@@ -3699,6 +3699,51 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     }
 
     /// <summary>
+    /// Verifies that a later statement line that starts with a comment in column 0 holds code, so it is no comment line
+    /// and moves by the shift of the first statement line, like the other statement lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixMovesALaterStatementLineThatStartsWithAColumnZeroCommentByTheShift()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> b = {|RH3004:delegate|} (int x)
+                                        {
+                                            Console.WriteLine(x);
+                                /* note */ Console.WriteLine(x + 1);
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<int> b = (int x) =>
+                                                         {
+                                                             Console.WriteLine(x);
+                                                 /* note */ Console.WriteLine(x + 1);
+                                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
     /// Verifies the specification example of a first statement line that starts with a comment in column 0 in a
     /// document whose line breaks are CRLF, and keeps those line breaks
     /// </summary>

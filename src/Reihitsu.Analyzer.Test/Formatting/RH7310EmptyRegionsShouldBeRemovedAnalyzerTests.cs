@@ -624,6 +624,44 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
     }
 
     /// <summary>
+    /// Verifying that, where the removal joins the blank line in front of <c>#region</c> with the blank lines behind it,
+    /// the blank line in front stays as written and those behind go; the blank lines hold different whitespace, so the
+    /// result shows which one stayed
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task CodeFixKeepsTheBlankLineInFrontOfTheRemovedRegionWhereTheRemovalJoinsBlankLines(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int _a;
+                                ··
+                                    {|RH7310:#region Methods|}
+                                ········
+                                    #endregion // Methods
+                                ······
+                                    int _b;
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int _a;
+                                 ··
+                                     int _b;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData.Replace("·", " "), fixedData.Replace("·", " "), endOfLine);
+    }
+
+    /// <summary>
     /// Verifies that the code fix removes the region and the blank lines after it with their carriage-return line-feed line breaks and leaves every other line unchanged
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

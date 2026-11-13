@@ -614,6 +614,51 @@ public class RH7303DoNotPlaceRegionsWithinElementsAnalyzerTests : BatchCodeFixTe
     }
 
     /// <summary>
+    /// Verifying that, where the removal joins the blank line in front of <c>#region</c> with the blank line behind it,
+    /// the blank line in front stays as written and the one behind goes; the two blank lines hold different whitespace,
+    /// so the result shows which one stayed
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task CodeFixKeepsTheBlankLineInFrontOfTheRemovedRegionWhereTheRemovalJoinsTwoBlankLines(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
+                                ··
+                                        {|RH7303:#region Work|}
+                                ········
+                                        x++;
+                                        {|RH7303:#endregion|}
+                                        x--;
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var x = 1;
+                                 ··
+                                         x++;
+                                         x--;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData.Replace("·", " "), fixedData.Replace("·", " "), endOfLine);
+    }
+
+    /// <summary>
     /// Verifying the specification example: no blank line is inserted behind a statement that ends with a closing brace
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

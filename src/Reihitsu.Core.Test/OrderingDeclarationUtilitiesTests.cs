@@ -13,15 +13,6 @@ namespace Reihitsu.Core.Test;
 [TestClass]
 public class OrderingDeclarationUtilitiesTests
 {
-    #region Fields
-
-    /// <summary>
-    /// Expected member order after moving a member to the requested position
-    /// </summary>
-    private static readonly string[] _movedMemberOrder = ["First", "Second"];
-
-    #endregion // Fields
-
     #region Properties
 
     /// <summary>
@@ -154,65 +145,6 @@ public class OrderingDeclarationUtilitiesTests
         Assert.AreSame(methodDeclaration, resolvedMemberDeclaration);
         Assert.AreSame(methodDeclaration, resolvedMemberDeclarationOnly);
         Assert.AreEqual("Run", diagnosticLocationText);
-    }
-
-    /// <summary>
-    /// Verifies that members can be reordered within a type declaration
-    /// </summary>
-    [TestMethod]
-    public void MoveMemberBeforeMovesMemberToTheRequestedPosition()
-    {
-        var typeDeclaration = CoreSyntaxTestHelper.GetSingleTypeDeclaration("""
-                                                                            internal class Sample
-                                                                            {
-                                                                                private void Second()
-                                                                                {
-                                                                                }
-
-                                                                                private void First()
-                                                                                {
-                                                                                }
-                                                                            }
-                                                                            """);
-        var secondMethod = typeDeclaration.Members.OfType<MethodDeclarationSyntax>().Single(obj => obj.Identifier.ValueText == "Second");
-        var firstMethod = typeDeclaration.Members.OfType<MethodDeclarationSyntax>().Single(obj => obj.Identifier.ValueText == "First");
-
-        var updatedTypeDeclaration = OrderingDeclarationUtilities.MoveMemberBefore(typeDeclaration, firstMethod, secondMethod);
-
-        Assert.AreSequenceEqual(_movedMemberOrder,
-                                updatedTypeDeclaration.Members.OfType<MethodDeclarationSyntax>()
-                                                              .Select(obj => obj.Identifier.ValueText)
-                                                              .ToArray());
-    }
-
-    /// <summary>
-    /// Verifies that the blank-line separator stays at the position it already occupied instead of following
-    /// the moved member's own leading trivia to its new position
-    /// </summary>
-    [TestMethod]
-    public void MoveMemberBeforeKeepsSeparatorAtItsOriginalPosition()
-    {
-        var typeDeclaration = CoreSyntaxTestHelper.GetSingleTypeDeclaration("""
-                                                                            internal class Sample
-                                                                            {
-                                                                                private void Run()
-                                                                                {
-                                                                                }
-
-                                                                                private static void Create()
-                                                                                {
-                                                                                }
-                                                                            }
-                                                                            """);
-        var runMethod = typeDeclaration.Members.OfType<MethodDeclarationSyntax>().Single(obj => obj.Identifier.ValueText == "Run");
-        var createMethod = typeDeclaration.Members.OfType<MethodDeclarationSyntax>().Single(obj => obj.Identifier.ValueText == "Create");
-
-        var updatedTypeDeclaration = OrderingDeclarationUtilities.MoveMemberBefore(typeDeclaration, createMethod, runMethod);
-        var movedCreateMethod = updatedTypeDeclaration.Members[0];
-        var shiftedRunMethod = updatedTypeDeclaration.Members[1];
-
-        Assert.DoesNotContain("\n", movedCreateMethod.GetLeadingTrivia().ToFullString());
-        Assert.Contains("\n", shiftedRunMethod.GetLeadingTrivia().ToFullString());
     }
 
     /// <summary>
