@@ -28,6 +28,7 @@ Batch 1 (before test implementer), all answered as recommended:
 3. RH5405, blank line between header and body → A: removed, as on `main`.
 4. #1627, trailing whitespace at end of body line → A: stays on the body's line, nothing behind `}`.
 5. Escalation 10, directive/disabled text between header and unbraced body → A: not declared; brace fixes withheld for it.
+6. RH5405, body below `if` not indented one level deeper (`if (a)⏎          M(a, b);`) → A: the body keeps its own column (every line of a body below its header stays).
 
 ## Decisions taken
 
@@ -55,5 +56,6 @@ Batch 1 (before test implementer), all answered as recommended:
 - Done: skeptic 02 (bb1c18e).
 - Done: batch 1 answered (all as recommended).
 - Done: spec author 03 (5360bf8): SHARED-BRACE-003 (withholds), RH7309-007, SHARED-ATTR-017 tabs.
-- Now: output question 6 asked (RH5405 body below `if` not indented one level: A keep column, rec; B shift like RH7004). Waiting.
+- Done: Q6 answered A.
+- Now: spec author 04 (state answer 6 in SHARED-BRACE-002), then test implementer.
 - Then: test implementer.
