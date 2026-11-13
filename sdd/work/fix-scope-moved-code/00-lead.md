@@ -31,6 +31,10 @@ Batch 1 (asked as chat questions 1–6; skeptic/spec-author IDs in brackets):
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 15 | Test implementer 05 | SHARED-FIX-003 RH7004 example ("offered with and without DEBUG") vs RH7004-007 | RH7004-007 wins; spec author corrects the SHARED-FIX-003 sentence | Decision 4 | Rare-class refusal, decided | — |
+| 16 | Test implementer 05 | RH7302-005 example span ends before trailing spaces vs RH7302-003 | RH7302-003 wins; spec author corrects the example markup | Unchanged requirement decides | Decided by RH7302-003 | — |
+| 17 | Test implementer 05 | Column-0 comment in the moved declaration's own leading trivia with non-zero shift (SHARED-ORDER-002 vs SHARED-FIX-007) | SHARED-FIX-007's line rule applies (keeps column 0); spec author states it; no extra test (rare: non-zero shift needs a misindented member, RH5204) | One per-line rule, no special case | Rare class | — |
+| 18 | Test implementer 05 | Visible changes demanded by unchanged requirements/decision 6 (3 blank lines above moved member kept; empty partial types keep braces after RH7104; tabs behind region keywords kept by RH7105; 7 fixes now offered next to refused comments) | Accept; name in PR review notes | Demanded by SHARED-FIX-006/007 and decision 6 | Unchanged requirements decide | 5bd3a7b |
 | 10 | Spec author 03 | Change doc `sdd/changes/2026-11/moved-code-keeps-its-lines.md` required (#969, #1335, #1604) | Widen lane bug fix → behavior change; lane check confirms | Answers give output that is not today's behavior and add refusals | Visible changes all answered by the maintainer (batch 1) | 0a3211b |
 | 11 | Spec author 03 | Second skeptic pass on the amended specs? | No; accept change doc once Q7 is answered and written; spec checker and auditor check it | The amendment carries out maintainer answers; skeptic already ran on the premise | Internal process | — |
 | 12 | Spec author 03 | RH7004 withheld when a statement starts on the declaration's line | Accept (rare: RH5103 reports it; main writes `}     }`) | Rare-class refusal | Rare-class refusal | 0a3211b |
@@ -64,6 +68,7 @@ Batch 1 (asked as chat questions 1–6; skeptic/spec-author IDs in brackets):
 - Answers received (see Maintainer answers).
 - Done: spec author 03 (0a3211b): specs + change doc; open Q7 (one-line accessor lists). Q7 answered B.
 - Done: spec author 04 (6de86b6): Q7 B in specs. Change doc accepted by the lead.
-- Next: test implementer (05).
+- Done: test implementer 05 (5bd3a7b): all reproduced; #1604 (d) not reproduced (characterization). 98 failing tests.
+- Next: spec author 06 (decisions 15–17, text only), then implementer 07.
 - (old) Next: fresh spec author writes the answers into the specs (and change doc if sdd/README requires one); then test implementer.
 - (old) Next after answers: then batch Q1–Q3 (+ skeptic's) to the maintainer before the test implementer.
