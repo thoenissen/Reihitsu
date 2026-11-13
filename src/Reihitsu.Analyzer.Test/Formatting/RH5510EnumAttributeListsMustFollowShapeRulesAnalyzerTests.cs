@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -202,6 +202,7 @@ public class RH5510EnumAttributeListsMustFollowShapeRulesAnalyzerTests : BatchCo
     [TestMethod]
     [Requirement("RH5510-003")]
     [Requirement("SHARED-ATTR-017")]
+    [Requirement("SHARED-FIX-008")]
     public async Task VerifyCodeFixGivesEachEnumAttributeAListOfItsOwnWithCarriageReturnLineFeed()
     {
         const string testData = """
@@ -233,6 +234,8 @@ public class RH5510EnumAttributeListsMustFollowShapeRulesAnalyzerTests : BatchCo
         await Verify(NormalizeToCarriageReturnLineFeed(testData),
                      NormalizeToCarriageReturnLineFeed(fixedData),
                      Diagnostics(RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5510MessageFormat));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(RemoveMarkup(testData))), "Every line break the fix inserts must be CRLF.");
     }
 
     #endregion // Tests

@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -595,6 +595,55 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
                                                                .GetLocation());
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that the line break the split fix inserts into a multi-line accessor list is CRLF in a CRLF document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5531-005")]
+    [Requirement("SHARED-ATTR-017")]
+    [Requirement("SHARED-FIX-008")]
+    public async Task VerifySplitFixWritesCarriageReturnLineFeedInACarriageReturnLineFeedDocument()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P
+                                    {
+                                        [A, B]
+                                        get;
+                                        set;
+                                    }
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int P
+                                     {
+                                         [A]
+                                         [B]
+                                         get;
+                                         set;
+                                     }
+                                 }
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData)));
     }
 
     #endregion // Tests

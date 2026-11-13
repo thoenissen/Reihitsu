@@ -228,6 +228,7 @@ public class RH5504ModuleAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
     [TestMethod]
     [Requirement("RH5504-003")]
     [Requirement("SHARED-ATTR-017")]
+    [Requirement("SHARED-FIX-008")]
     public async Task VerifyCodeFixGivesEachModuleAttributeAListOfItsOwnWithCarriageReturnLineFeed()
     {
         const string testData = """
@@ -259,6 +260,8 @@ public class RH5504ModuleAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
         await Verify(NormalizeToCarriageReturnLineFeed(testData),
                      NormalizeToCarriageReturnLineFeed(fixedData),
                      Diagnostics(RH5504ModuleAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5504MessageFormat));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(RemoveMarkup(testData))), "Every line break the fix inserts must be CRLF.");
     }
 
     #endregion // Tests

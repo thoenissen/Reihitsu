@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -200,6 +200,7 @@ public class RH5526DelegateAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
     [TestMethod]
     [Requirement("RH5526-003")]
     [Requirement("SHARED-ATTR-017")]
+    [Requirement("SHARED-FIX-008")]
     public async Task VerifyCodeFixGivesEachDelegateAttributeAListOfItsOwnWithCarriageReturnLineFeed()
     {
         const string testData = """
@@ -227,6 +228,8 @@ public class RH5526DelegateAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
         await Verify(NormalizeToCarriageReturnLineFeed(testData),
                      NormalizeToCarriageReturnLineFeed(fixedData),
                      Diagnostics(RH5526DelegateAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5526MessageFormat));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(RemoveMarkup(testData))), "Every line break the fix inserts must be CRLF.");
     }
 
     #endregion // Tests
