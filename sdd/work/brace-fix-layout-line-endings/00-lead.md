@@ -45,6 +45,8 @@ Batch 1 (before test implementer), all answered as recommended:
 | 9 | Skeptic | RH7309 in lone-`\r`/mixed documents | SHARED-FIX-008 second paragraph: withhold | Moves text without the formatter, like RH7004 | Rare documents | — |
 | 10 | Skeptic | Architecture finding: `ReihitsuFormatter.WriteBackTrailingTrivia` and cleanup/preparation phases both own the end of the target's last line; FMT-PIPE-010 vs SHARED-FIX-008 | Fix narrowly: the brace fixes stop delegating the whole `if` and wrap text (removes them from the class); file the write-back structural change (RH3202 etc., FMT-PIPE-010 alignment) as a follow-up | Cause spans all 29 formatter-delegating fixes, beyond the run's components | The follow-up carries it | — |
 | 11 | Test implementer | RH5011-004 lone-`\r` sentence read literally gives `break;\r\n` (one CRLF, no blank line) | Accept the test's output `break;\n\r            default:` (one `\n` inserted, every input `\r` stays lone, a blank line exists); spec author rewords RH5011-004's sentence after the implementer | The only output that meets RH5011 and SHARED-FIX-008 together | Only all-lone-`\r` documents (rare); no other reading yields a correct fix | 7b3bed7 |
+| 12 | Implementer | 13 `FixAllCorrectsEveryDiagnostic` tests (RH5502…RH5531 except RH5514) assert `[Second]⏎[Third]` | Tests are wrong; align to SHARED-ATTR-017 (`[Second] [Third]`) and the iteration count as RH5514's was — test implementer repair | Maintainer answer #1109 Q1 reading A (only the reported list changes) decides it | Covered by a maintainer answer | — |
+| 13 | Implementer | Multi-line header (`if (a &&⏎ b) M();`): "on the header line" read by the header's last line (`)`/`else`), not the `if` keyword's line | Accept the implementer's reading; spec author words SHARED-BRACE-002/003 by the header's last line | The literal reading would put `{` inside the condition | Spec wording; the one output that compiles sensibly | 0d126cf |
 
 ## Follow-up candidates
 
@@ -60,6 +62,8 @@ Batch 1 (before test implementer), all answered as recommended:
 - Done: Q6 answered A.
 - Done: spec author 04 (cf5de70).
 - Done: test implementer 05 (7b3bed7): 110 red reproductions; RH7004 not reproduced (characterization).
-- Now: implementer 06.
+- Done: implementer 06 (0d126cf): 110 pass; 15 disputed tests.
+- Now: output question 7 asked (RH5518/RH5528 split of an accessor list on a one-line property). Waiting.
+- Then: test implementer repair (decision 12 + answer 7), spec author (decisions 11, 13 wording), implementer if needed, cleaner.
 - Open: spec author rewords RH5011-004 lone-`\r` sentence (decision 11) before the cleaner.
 - Then: test implementer.
