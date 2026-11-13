@@ -1205,6 +1205,205 @@ public class RH5514MethodAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
     }
 
     /// <summary>
+    /// Verifies the spec example: a list of a lambda in a field initializer, on the line of the <c>{</c> of the class that
+    /// holds the field, is reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task SplitFixIsWithheldForALambdaInAFieldInitializerOnTheLineOfTheBraceOfTheClass()
+    {
+        const string testData = """
+                                class C2 { System.Func<int> f = {|RH5514:[A, B]|} () => 1; }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData + AttributeDeclarations);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a <c>{</c> that is closed in front of the list on its line does not cancel a <c>{</c> that
+    /// is still open there, so the list is reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task SplitFixIsWithheldBehindAClosedBodyWhileTheBraceOfTheClassIsStillOpenOnTheLineOfTheList()
+    {
+        const string testData = """
+                                class C3 { void M() { } {|RH5514:[A, B]|} void N() { } }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData + AttributeDeclarations);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a list of a lambda in a statement, on the line of the <c>{</c> of the block that holds the
+    /// statement, is reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task SplitFixIsWithheldForALambdaInAStatementOnTheLineOfTheBraceOfTheBlock()
+    {
+        const string testData = """
+                                class D
+                                {
+                                    void O() { System.Func<int> f = {|RH5514:[A, B]|} () => 1; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData + AttributeDeclarations);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a list of a local function in a switch section, on the line of the <c>{</c> of the switch
+    /// statement, is reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task SplitFixIsWithheldForALocalFunctionInASwitchSectionOnTheLineOfTheBraceOfTheSwitchStatement()
+    {
+        const string testData = """
+                                class D
+                                {
+                                    void P(int x)
+                                    {
+                                        switch (x) { case 1: {|RH5514:[A, B]|} void L() { } break; }
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData + AttributeDeclarations);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a list of a lambda in a statement of a block whose <c>{</c> stands on a line above the list
+    /// is split, and the further list starts a new line, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-022")]
+    [Requirement("SHARED-ATTR-017")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task SplitFixIsOfferedForALambdaInAStatementBelowTheLineOfTheBraceOfTheBlock(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        System.Func<int> f = {|RH5514:[A, B]|} () => 1;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         System.Func<int> f = [A]
+                                         [B] () => 1;
+                                     }
+                                 }
+                                 """;
+
+        await VerifySplitFix(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a <c>{</c> inside a string literal in front of the list on its line is not a token and does
+    /// not withhold the fix, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-022")]
+    [Requirement("SHARED-ATTR-017")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task SplitFixIsOfferedBehindABraceInsideAStringLiteralOnTheLineOfTheList(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string s = "{"; {|RH5514:[A, B]|} void N() { }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     string s = "{"; [A]
+                                     [B] void N() { }
+                                 }
+                                 """;
+
+        await VerifySplitFix(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>{</c> inside a comment in front of the list on its line is not a token and does not withhold the
+    /// fix, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-022")]
+    [Requirement("SHARED-ATTR-017")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task SplitFixIsOfferedBehindABraceInsideACommentOnTheLineOfTheList(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /* { */ {|RH5514:[A, B]|} void N() { }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /* { */ [A]
+                                     [B] void N() { }
+                                 }
+                                 """;
+
+        await VerifySplitFix(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the <c>{</c> of an interpolation in front of the list on its line is closed there and does not
+    /// withhold the fix, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-022")]
+    [Requirement("SHARED-ATTR-017")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task SplitFixIsOfferedBehindAClosedInterpolationOnTheLineOfTheList(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string s = $"{1}"; {|RH5514:[A, B]|} void N() { }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     string s = $"{1}"; [A]
+                                     [B] void N() { }
+                                 }
+                                 """;
+
+        await VerifySplitFix(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
     /// Verifies the spec example: in a CRLF document, an LF inside the argument list of an attribute withholds the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

@@ -691,6 +691,30 @@ public class RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzerTests : 
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies that a return-specifier list of a lambda in a statement, on the line of the <c>{</c> of the block that holds the statement, is reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task VerifyDiagnosticWithoutCodeFixForReturnSpecifierListOfALambdaOnTheLineOfTheBraceOfTheBlock()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void O() { System.Func<int> f = {|RH5528:[return: A, B]|} () => 1; }
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
