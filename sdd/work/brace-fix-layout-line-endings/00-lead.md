@@ -100,3 +100,4 @@ Batch 1 (before test implementer), all answered as recommended:
 - Spec checker 26: 1 finding (decision 24). Now spec author 27 (rewording), then spec checker 28, auditor 29, validator.
 - Spec author 27 done (dcc8733). Now spec checker 28 and auditor 29 (audits decision 23/24 changes since e7a0c2e).
 - Spec checker 28 consistent; auditor 29 (edb8441): F8 closed, F9 medium, F10 low. Repair round 3: test implementer 30, implementer 31, cleaner 32, spec checker 33, auditor 34, validator.
+- Test implementer 30 done (59a4b14). Now implementer 31 (F10).
