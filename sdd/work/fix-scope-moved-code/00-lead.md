@@ -32,6 +32,7 @@ Batch 1 (asked as chat questions 1–6; skeptic/spec-author IDs in brackets):
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 46 | Spec checker 30 | RH7004-007 and SHARED-FIX-008 text names only "the code it moves", code checks the rewritten declaration too | Spec author widens the three sentences to "moves or rewrites" (text only; prove with verify-text-only) | Spec must state the refusal | Rare-class refusal, text | — |
 | 45 | Decision-43 repair | Cleaner run after implementer 28 | Skipped: implementer ran format.sh (0 of 2 changed) and the lead's Release build is 0 warnings/0 errors at 182d7e4 | The cleaner would have nothing to do | Internal | — |
 | 43 | Auditor 26 | #2 open for RH7004 + #4 repeats its class (foreign line break in the declaration / its trailing line break not checked; RH7004 checks a narrower span than it rewrites) | Architecture finding → refuse the class: RH7004 runs `HoldsOtherLineBreak` over the whole rewritten span (declaration start through moved end) on both paths, incl. the empty-block path. Not a repair round. Tests n1, n2, n3, n5, n6 | README: repeated class → refuse | Rare-class refusal (SHARED-FIX-008 unchanged) | — |
 | 44 | Auditor 26 | #5 stale summary of `TryShiftMovedLines` | Implementer corrects the summary in the same change | Text only | Internal | — |
