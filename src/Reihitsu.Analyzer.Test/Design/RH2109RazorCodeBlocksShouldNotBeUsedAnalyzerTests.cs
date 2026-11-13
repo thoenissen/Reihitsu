@@ -651,8 +651,8 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Verifying that opening braces inside a C# string, a character literal, and a line comment do not keep the code
-    /// block open, so markup text after the block is not read as C# and the directive behind it is reported
+    /// Verifying that opening braces inside a C# string, a character literal, and a line comment of a code block change
+    /// nothing, so the directive behind the block is reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -951,8 +951,8 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Verifying that an opening brace in the markup text of a templated delegate inside a code block does not keep the
-    /// block open, so the directive after the block is reported
+    /// Verifying that an opening brace in the markup text of a templated delegate inside a code block changes nothing, so
+    /// the directive after the block is reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -974,8 +974,8 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Verifying that a block comment opener in the markup text of a templated delegate inside a code block starts no
-    /// comment, so the directive after the block is reported
+    /// Verifying that a block comment opener in the markup text of a templated delegate inside a code block changes
+    /// nothing, so the directive after the block is reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -997,8 +997,8 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Verifying that an opening brace in the markup text of a templated delegate inside a <c>@functions</c> block does
-    /// not keep the block open, so the directive after the block is reported
+    /// Verifying that an opening brace in the markup text of a templated delegate inside a <c>@functions</c> block
+    /// changes nothing, so the directive after the block is reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1020,7 +1020,7 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
 
     /// <summary>
     /// Verifying that a block comment opener in the markup text of a templated delegate inside a <c>@functions</c>
-    /// block starts no comment, so the directive after the block is reported
+    /// block changes nothing, so the directive after the block is reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
