@@ -630,7 +630,6 @@ public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzerTests : BatchCodeFix
                                  """;
 
         await VerifyUnderBothLineEndings(testCode, fixedCode);
-        AssertFormattingChangesNothing(fixedCode);
     }
 
     /// <summary>

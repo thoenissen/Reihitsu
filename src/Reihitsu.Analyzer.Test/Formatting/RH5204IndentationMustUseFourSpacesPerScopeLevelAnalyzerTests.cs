@@ -1738,11 +1738,12 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
     /// <summary>
     /// Verifies that a closing brace separated from a documentation comment written behind code by a blank line is
-    /// reported, and the fix moves it to the column of its type
+    /// reported, and the fix moves it to the column of its type and keeps the blank line in front of it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5204-001")]
+    [Requirement("RH5204-006")]
     public async Task VerifyClosingBraceBehindStrayDocumentationCommentAndBlankLineIsDetectedAndFixed()
     {
         const string testData = """
@@ -1756,6 +1757,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                  internal class C
                                  {
                                      internal int A; /// x
+
                                  }
                                  """;
 
@@ -1838,20 +1840,20 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
     /// <summary>
     /// Verifies that the fix on the misindented braces and body of an unbraced embedded <c>if</c> that starts behind the last
-    /// line of a multi-line comment places them in the columns of the embedded statement and corrects every diagnostic in one
-    /// application
+    /// line of a multi-line comment places them in the columns of the embedded statement, with one application for each
+    /// diagnostic and one Fix All application
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5204-006")]
     [Requirement("SHARED-FIX-001")]
-    public async Task VerifyEmbeddedIfBehindMultiLineCommentIsFixedInOnePass()
+    public async Task VerifyEmbeddedIfBehindMultiLineCommentIsFixedWithOneApplicationPerDiagnostic()
     {
         await Verify(EmbeddedIfBehindMultiLineCommentTestData,
                      EmbeddedIfBehindMultiLineCommentFixedData,
                      static test =>
                             {
-                                test.NumberOfIncrementalIterations = 1;
+                                test.NumberOfIncrementalIterations = 2;
                                 test.NumberOfFixAllIterations = 1;
                             },
                      Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat, 2));
@@ -1859,20 +1861,20 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
     /// <summary>
     /// Verifies that the fix on the misindented braces and body of an unbraced embedded <c>if</c> that starts behind the last
-    /// line of a multi-line comment places them in the columns of the embedded statement and corrects every diagnostic in one
-    /// application, with CRLF line endings
+    /// line of a multi-line comment places them in the columns of the embedded statement, with one application for each
+    /// diagnostic and one Fix All application, with CRLF line endings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5204-006")]
     [Requirement("SHARED-FIX-001")]
-    public async Task VerifyEmbeddedIfBehindMultiLineCommentIsFixedInOnePassWithCarriageReturnLineFeed()
+    public async Task VerifyEmbeddedIfBehindMultiLineCommentIsFixedWithOneApplicationPerDiagnosticWithCarriageReturnLineFeed()
     {
         await Verify(NormalizeToCarriageReturnLineFeed(EmbeddedIfBehindMultiLineCommentTestData),
                      NormalizeToCarriageReturnLineFeed(EmbeddedIfBehindMultiLineCommentFixedData),
                      static test =>
                             {
-                                test.NumberOfIncrementalIterations = 1;
+                                test.NumberOfIncrementalIterations = 2;
                                 test.NumberOfFixAllIterations = 1;
                             },
                      Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat, 2));
@@ -2546,7 +2548,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
         return new FixAllScenario(testData,
                                   fixedData,
                                   Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat, 6),
-                                  static config => config.NumberOfFixAllIterations = 2);
+                                  static config => config.NumberOfFixAllIterations = 1);
     }
 
     #endregion // BatchCodeFixTestsBase

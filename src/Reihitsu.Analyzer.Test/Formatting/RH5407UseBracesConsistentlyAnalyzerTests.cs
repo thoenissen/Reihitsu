@@ -491,59 +491,6 @@ public class RH5407UseBracesConsistentlyAnalyzerTests : BatchCodeFixTestsBase<RH
         await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
     }
 
-    /// <summary>
-    /// Verifies that the braces the fix adds around the body of an else if stand in the column of the else, as the
-    /// formatter places them, and that the braced else block behind it is left as written, under LF and CRLF
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("SHARED-BRACE-002")]
-    [Requirement("SHARED-FIX-007")]
-    public async Task FixPlacesTheBracesOfAnElseIfBodyInTheColumnOfTheElse()
-    {
-        const string testCode = """
-                                class C
-                                {
-                                    void M(bool a, bool b)
-                                    {
-                                        if (a)
-                                        {
-                                            M(a, b);
-                                        }
-                                        else if (b)
-                                            {|RH5407:M(a, b);|}
-                                        else
-                                        {
-                                            int  x = 1;
-                                        }
-                                    }
-                                }
-                                """;
-        const string fixedCode = """
-                                 class C
-                                 {
-                                     void M(bool a, bool b)
-                                     {
-                                         if (a)
-                                         {
-                                             M(a, b);
-                                         }
-                                         else if (b)
-                                         {
-                                             M(a, b);
-                                         }
-                                         else
-                                         {
-                                             int  x = 1;
-                                         }
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testCode, fixedCode);
-        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
-    }
-
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

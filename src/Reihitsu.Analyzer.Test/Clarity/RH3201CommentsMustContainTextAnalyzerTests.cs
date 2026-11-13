@@ -231,12 +231,14 @@ public class RH3201CommentsMustContainTextAnalyzerTests : BatchCodeFixTestsBase<
     }
 
     /// <summary>
-    /// Verifying empty multi-line comment with newlines is reported and fixed
+    /// Verifying empty multi-line comment with newlines is reported and fixed, and that the fix leaves no empty line behind
+    /// the opening brace
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH3201-001")]
     [Requirement("RH3201-004")]
+    [Requirement("SHARED-FIX-007")]
     public async Task EmptyMultiLineCommentWithNewlinesIsReportedAndFixed()
     {
         const string testCode = """
@@ -256,7 +258,6 @@ public class RH3201CommentsMustContainTextAnalyzerTests : BatchCodeFixTestsBase<
                                  {
                                      public void Run()
                                      {
-
                                          var value = 1;
                                      }
                                  }
@@ -593,11 +594,13 @@ public class RH3201CommentsMustContainTextAnalyzerTests : BatchCodeFixTestsBase<
     }
 
     /// <summary>
-    /// Characterizes that the fix of a whitespace-only block comment that spans several lines leaves an empty line
+    /// Verifies that the fix of a whitespace-only block comment that spans several lines behind the opening brace of a type
+    /// leaves no empty line behind the brace
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfBlockCommentSpanningSeveralLinesLeavesAnEmptyLine()
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixOfBlockCommentSpanningSeveralLinesLeavesNoEmptyLine()
     {
         const string testCode = """
                                 class C
@@ -612,7 +615,6 @@ public class RH3201CommentsMustContainTextAnalyzerTests : BatchCodeFixTestsBase<
         const string expectedCode = """
                                     class C
                                     {
-
                                         int _a;
                                     }
                                     """;

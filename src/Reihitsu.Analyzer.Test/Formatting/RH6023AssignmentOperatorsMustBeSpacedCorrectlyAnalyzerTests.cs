@@ -527,12 +527,12 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
 
     /// <summary>
     /// Verifies that the fix on an assignment inside a conditional access, where the member of a compound assignment stands on its own line behind a member binding, puts one space on both
-    /// sides of the operator and keeps the layout of the chain, under LF and CRLF
+    /// sides of the operator and leaves the wrapped link in its column, under LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH6023-002")]
-    [Requirement("FMT-PIPE-024")]
+    [Requirement("SHARED-OPSPACE-004")]
     public async Task VerifyFixKeepsTheWrappedLinkOfACompoundAssignedMemberBehindAMemberBinding()
     {
         const string testData = """
@@ -569,7 +569,7 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
                                      void M(A a)
                                      {
                                          a?.B
-                                           .C += 5;
+                                          .C += 5;
                                      }
                                  }
                                  """;
@@ -631,12 +631,12 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
 
     /// <summary>
     /// Verifies that the fix on an assignment inside a conditional access, where the assigned member stands on its own line behind a nested conditional access, puts one space on both
-    /// sides of the operator and keeps the layout of the chain, under LF and CRLF
+    /// sides of the operator and leaves the wrapped link in its column, under LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH6023-002")]
-    [Requirement("FMT-PIPE-024")]
+    [Requirement("SHARED-OPSPACE-004")]
     public async Task VerifyFixKeepsTheWrappedLinkOfAnAssignedMemberInANestedConditionalAccess()
     {
         const string testData = """
@@ -673,7 +673,7 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
                                      void M(A a)
                                      {
                                          a?.B?.B
-                                              .C = 5;
+                                             .C = 5;
                                      }
                                  }
                                  """;

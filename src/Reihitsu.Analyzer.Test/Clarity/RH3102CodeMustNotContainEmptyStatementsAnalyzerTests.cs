@@ -474,12 +474,13 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
     }
 
     /// <summary>
-    /// Characterizes that removing an empty statement behind another statement on the same line joins the next line
-    /// to that line
+    /// Verifies that removing an empty statement behind another statement on the same line leaves the next statement on
+    /// its own line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfEmptyStatementBehindAStatementJoinsTheNextLine()
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixOfEmptyStatementBehindAStatementKeepsTheNextLineOnItsOwn()
     {
         const string testCode = """
                                 class C
@@ -497,7 +498,8 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
                                     {
                                         void M(int a)
                                         {
-                                            a++;         a++;
+                                            a++;
+                                            a++;
                                         }
                                     }
                                     """;

@@ -741,32 +741,48 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
     }
 
     /// <summary>
-    /// Verifies that a refused comment in a lambda operand withholds the fix: the fix formats the binary expression
-    /// around the operator, which the formatter refuses, although the operator holds no refused shape
+    /// Verifies that a comment the formatter refuses in a lambda operand does not withhold the fix: the fix changes only
+    /// the gaps next to the operator and leaves the operand, with its comment, as written, under LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-FIX-010")]
-    public async Task NoFixIsOfferedWhenTheBinaryExpressionHoldsACommentTheFormatterRefuses()
+    [Requirement("SHARED-OPSPACE-004")]
+    public async Task FixIsOfferedWhenAnOperandHoldsACommentTheFormatterRefuses()
     {
-        const string source = """
-                              using System;
+        const string testCode = """
+                                using System;
 
-                              internal class C
-                              {
-                                  private int Get(Func<int> value)
-                                  {
-                                      return Get(() =>
-                                                 {
-                                                     int /* c */ y = 1;
+                                internal class C
+                                {
+                                    private int Get(Func<int> value)
+                                    {
+                                        return Get(() =>
+                                                   {
+                                                       int /* c */ y = 1;
 
-                                                     return y;
-                                                 }){|RH6024:+|}1;
-                                  }
-                              }
-                              """;
+                                                       return y;
+                                                   }){|RH6024:+|}1;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
 
-        await VerifyNoCodeFixIsOffered(source);
+                                 internal class C
+                                 {
+                                     private int Get(Func<int> value)
+                                     {
+                                         return Get(() =>
+                                                    {
+                                                        int /* c */ y = 1;
+
+                                                        return y;
+                                                    }) + 1;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
     }
 
     /// <summary>
