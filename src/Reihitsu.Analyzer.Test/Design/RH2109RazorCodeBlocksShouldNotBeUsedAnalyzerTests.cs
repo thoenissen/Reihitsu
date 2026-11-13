@@ -585,7 +585,12 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
                                    """";
 
         await Verify(TestCode,
-                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     test =>
+                     {
+                         // The source holds "$$", which markup parsing would remove as a position marker
+                         test.TestState.MarkupHandling = MarkupMode.None;
+                         test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource));
+                     },
                      RazorCodeBlockSpan("Counter.razor", 1, 1),
                      RazorCodeBlockSpan("Counter.razor", 7, 1));
     }
