@@ -767,9 +767,9 @@ class C
 
 ### SHARED-ATTR-021 — The separate-line fix is withheld when the enclosing brace is off its depth column
 
-The code fix of a rule that requires the list on its own line MUST NOT be offered for a list outside every initializer and anonymous object (SHARED-ATTR-009) when the innermost opening brace that encloses the list, of the kinds SHARED-ATTR-008 counts, stands on a line that is not indented four spaces for each such brace that encloses it. The diagnostic is still reported. A list whose innermost enclosing brace stands on a line indented that way is fixed as SHARED-ATTR-008 states, as in its examples.
+The code fix of a rule that requires the list on its own line MUST NOT be offered for a list outside every initializer and anonymous object (SHARED-ATTR-009) when the innermost opening brace that encloses the list, of the kinds SHARED-ATTR-008 counts, stands on a line that is not indented four spaces for each such brace that encloses it. The diagnostic is still reported. A list whose innermost enclosing brace stands on a line indented that way is fixed as SHARED-ATTR-008 states, as in its examples. In the indentation of the brace's line, each tab MUST count as four spaces and every other whitespace character as one.
 
-Why: SHARED-ATTR-008 indents the declaration by its nesting depth, which matches the formatter only where the enclosing brace sits at its own depth. A brace the formatter aligns to something else, such as a lambda's block aligned to the lambda in a wrapped argument (FMT-INDENT-028), puts the declaration in a column the nesting depth cannot give, and computing that column would repeat the formatter's indentation in the fix. Such a brace around an attribute list is rare.
+Why: SHARED-ATTR-008 indents the declaration by its nesting depth, which matches the formatter only where the enclosing brace sits at its own depth. A brace the formatter aligns to something else, such as a lambda's block aligned to the lambda in a wrapped argument (FMT-INDENT-028), puts the declaration in a column the nesting depth cannot give, and computing that column would repeat the formatter's indentation in the fix. Such a brace around an attribute list is rare. Code indented with tabs is common, and counting a tab as four spaces finds its braces at their depth, so the fix stays offered for it.
 
 Example — RH5513:
 
@@ -795,3 +795,20 @@ class C
 ```
 
 is reported, and no code fix is offered.
+
+Example — RH5513, tab-indented: in the input below, `→` stands for a tab. The method block's brace is enclosed by the namespace and the class, and its line is indented with two tabs, which count as eight columns, its depth column, so the code fix is offered and indents the declaration with spaces as SHARED-ATTR-008 states. Indented with two spaces instead of two tabs, the brace would be off its depth column, and no code fix would be offered.
+
+```text
+namespace N
+{
+→class C
+→{
+→→void M()
+→→{
+→→→{|RH5513:[A]|} void L()
+→→→{
+→→→}
+→→}
+→}
+}
+```
