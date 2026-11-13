@@ -595,6 +595,154 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
         Assert.DoesNotContain(codeFixProvider => codeFixProvider.DiagnosticId == RH0001ConfigurationFileMustBeValidAnalyzer.DiagnosticId, codeFixProviders);
     }
 
+    /// <summary>
+    /// Verifies that a token after the root object is invalid JSON syntax, reported at its first character
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-003")]
+    public async Task TokenAfterRootObjectIsInvalidJson()
+    {
+        await VerifyConfiguration("{ } junk", InvalidConfiguration("The configuration file contains invalid JSON syntax.", 1, 5));
+    }
+
+    /// <summary>
+    /// Verifies that a second value after the root object is invalid JSON syntax, reported at its first character
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-003")]
+    public async Task SecondValueAfterRootObjectIsInvalidJson()
+    {
+        await VerifyConfiguration("{ } { }", InvalidConfiguration("The configuration file contains invalid JSON syntax.", 1, 5));
+    }
+
+    /// <summary>
+    /// Verifies that a line comment after the root object is invalid JSON syntax, reported at the slash that starts it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-003")]
+    public async Task LineCommentAfterRootObjectIsInvalidJson()
+    {
+        await VerifyConfiguration("{ } // c", InvalidConfiguration("The configuration file contains invalid JSON syntax.", 1, 5));
+    }
+
+    /// <summary>
+    /// Verifies that a block comment after the root object is invalid JSON syntax, reported at the slash that starts it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-003")]
+    public async Task BlockCommentAfterRootObjectIsInvalidJson()
+    {
+        await VerifyConfiguration("{ } /* c */", InvalidConfiguration("The configuration file contains invalid JSON syntax.", 1, 5));
+    }
+
+    /// <summary>
+    /// Verifies that a token on a later line after the root object is reported on that line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-003")]
+    public async Task TokenOnLaterLineAfterRootObjectIsInvalidJson()
+    {
+        await VerifyConfiguration("{\n}\n\n  junk\n", InvalidConfiguration("The configuration file contains invalid JSON syntax.", 4, 3));
+    }
+
+    /// <summary>
+    /// Verifies that a token on a later line after the root object is reported on that line in a file with CRLF line
+    /// endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-003")]
+    public async Task TokenOnLaterLineAfterRootObjectWithCarriageReturnLineFeedIsInvalidJson()
+    {
+        await VerifyConfiguration("{\r\n}\r\n\r\n  junk\r\n", InvalidConfiguration("The configuration file contains invalid JSON syntax.", 4, 3));
+    }
+
+    /// <summary>
+    /// Verifies that white space that is not JSON white space after the root object is invalid JSON syntax, reported at
+    /// its character position
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-002")]
+    [Requirement("RH0001-003")]
+    public async Task NonJsonWhiteSpaceAfterRootObjectIsInvalidJson()
+    {
+        await VerifyConfiguration("{ \"naming\": { \"allowedNamespaceDeclarations\": [ \"Nämespace\" ] } }\u00A0",
+                                  InvalidConfiguration("The configuration file contains invalid JSON syntax.", 1, 66));
+    }
+
+    /// <summary>
+    /// Verifies that spaces, tabs, and line breaks after the root object leave the file valid
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-003")]
+    public async Task JsonWhiteSpaceAfterRootObjectIsValid()
+    {
+        await VerifyConfiguration("{ }  \t\r\n\n\t  \r\n");
+    }
+
+    /// <summary>
+    /// Verifies that a file with content after its root object is not validated further, so an unknown section of the
+    /// root object is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-003")]
+    public async Task ContentAfterRootObjectReportsOnlyInvalidJson()
+    {
+        await VerifyConfiguration("{ \"formatting\": 1 } junk", InvalidConfiguration("The configuration file contains invalid JSON syntax.", 1, 21));
+    }
+
+    /// <summary>
+    /// Verifies that the root object's own problems are still reported when only white space follows it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-004")]
+    public async Task UnknownSectionIsReportedWhenOnlyWhiteSpaceFollowsRootObject()
+    {
+        await VerifyConfiguration("{ \"formatting\": 1 }\n  \n", InvalidConfiguration("Unknown configuration section 'formatting'.", 1, 4));
+    }
+
+    /// <summary>
+    /// Verifies that content after a root array is invalid JSON syntax, and that the root is not validated further
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-003")]
+    public async Task ContentAfterRootArrayReportsOnlyInvalidJson()
+    {
+        await VerifyConfiguration("[ ] junk", InvalidConfiguration("The configuration file contains invalid JSON syntax.", 1, 5));
+    }
+
+    /// <summary>
+    /// Verifies that content after a root string is invalid JSON syntax, and that the root is not validated further
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-003")]
+    public async Task ContentAfterRootStringReportsOnlyInvalidJson()
+    {
+        await VerifyConfiguration("\"a\" junk", InvalidConfiguration("The configuration file contains invalid JSON syntax.", 1, 5));
+    }
+
+    /// <summary>
+    /// Verifies that a root array followed only by white space is reported as a root that is not an object
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-004")]
+    public async Task RootArrayFollowedOnlyByWhiteSpaceIsReportedAsNotAnObject()
+    {
+        await VerifyConfiguration("[ ]  \n", InvalidConfiguration("The configuration root must be a JSON object.", 1, 1));
+    }
+
     #endregion // Tests
 
     #region Methods
@@ -623,6 +771,17 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     {
         return Diagnostic(RH0001ConfigurationFileMustBeValidAnalyzer.DiagnosticId).WithLocation(configurationPath, line, column)
                                                                                   .WithMessage(string.Format(AnalyzerResources.RH0001MessageFormat, message));
+    }
+
+    /// <summary>
+    /// Verifies the analyzer with the given text of <c>reihitsu.json</c>
+    /// </summary>
+    /// <param name="configuration">Text of the configuration file</param>
+    /// <param name="expected">Expected diagnostics</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyConfiguration(string configuration, params DiagnosticResult[] expected)
+    {
+        await Verify(TestCode, test => test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration)), expected);
     }
 
     #endregion // Methods
