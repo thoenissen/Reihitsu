@@ -38,3 +38,9 @@ Derivations:
 scripts/format.sh src/Reihitsu.Analyzer.Test/Formatting/RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests.cs src/Reihitsu.Analyzer.Test/Formatting/RH5513MethodAttributesMustFollowPlacementRulesAnalyzerTests.cs  (0 of 2 changed)
 scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests|FullyQualifiedName~RH5513MethodAttributesMustFollowPlacementRulesAnalyzerTests"  (52 passed)
 scripts/test.sh --project architecture  (117 passed)
+
+## Amendment
+
+After d50e9f8 (11-spec-author, lead decision 26), SHARED-ATTR-021 says a tab in the brace's line counts as four spaces. Its new example, a method in a class in a namespace with tab indentation, is the input of `RH5513…Tests.FixInTabIndentedCodeIndentsTheDeclarationWithSpacesToTheAttributeListsColumn`. The brace line `→→{` counts as eight columns, its depth column, so the fix is offered. The test now carries RH5513-004, SHARED-ATTR-008 and SHARED-ATTR-021. I changed no assertion, which closes the observation under *Not covered*.
+
+Commands: `scripts/format.sh` on the RH5513 test file (0 of 1 changed); `scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH5513MethodAttributesMustFollowPlacementRulesAnalyzerTests"` (25 passed); `scripts/test.sh --project architecture` (117 passed).

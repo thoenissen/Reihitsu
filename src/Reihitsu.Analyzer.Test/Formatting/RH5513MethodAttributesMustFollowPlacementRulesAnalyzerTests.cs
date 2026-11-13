@@ -908,6 +908,7 @@ public class RH5513MethodAttributesMustFollowPlacementRulesAnalyzerTests : Batch
     [TestMethod]
     [Requirement("RH5513-004")]
     [Requirement("SHARED-ATTR-008")]
+    [Requirement("SHARED-ATTR-021")]
     public async Task FixInTabIndentedCodeIndentsTheDeclarationWithSpacesToTheAttributeListsColumn()
     {
         const string testCode = "using System;\n\nnamespace N\n{\n\tclass C\n\t{\n\t\tvoid M()\n\t\t{\n\t\t\t[Obsolete] void L()\n\t\t\t{\n\t\t\t}\n\t\t}\n\t}\n}";
