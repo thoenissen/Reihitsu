@@ -37,5 +37,5 @@ _None yet._
 
 ## Worklist / next step
 
-- Done: claim, draft PR #1691, prepare.sh.
-- Next: spec author (clarifications), then skeptic.
+- Done: claim, draft PR #1691, prepare.sh; spec author 01 (c14bb8c, 4 output questions; flagged `} else M();` as a visible difference to add to the batch; FormatNode instance of #1388 possibly unreachable).
+- Next: skeptic 02, then output-question batch 1 (spec author's 4 + `} else` + skeptic's), then test implementer.
