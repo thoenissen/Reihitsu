@@ -54,8 +54,10 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBa
 
     /// <summary>
     /// Finds every <c>@code</c> directive that opens a block. A directive starts a line after optional white space;
-    /// Razor comments, HTML comments, and the escape <c>@@</c> are text, and the C# of a <c>@code</c> or <c>@functions</c>
-    /// block, up to its closing brace, is skipped, so its comments and literals are text as well
+    /// a Razor or HTML comment whose opener starts a line, and the escape <c>@@</c>, are text, and the C# of a <c>@code</c>
+    /// or <c>@functions</c> block, up to its closing brace, is skipped, so its comments and literals are text as well.
+    /// An opener behind other text on its line may sit in C#, an attribute value, or script text that is not lexed here,
+    /// so it opens nothing, and a directive after it stays reported
     /// </summary>
     /// <param name="text">Text of the Razor file</param>
     /// <returns>The positions of the <c>@</c> of every reported directive</returns>
@@ -66,11 +68,11 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBa
 
         while (position < text.Length)
         {
-            if (StartsWith(text, position, "@*"))
+            if (StartsWith(text, position, "@*") && StartsLine(text, position))
             {
                 position = SkipPast(text, position + 2, "*@");
             }
-            else if (StartsWith(text, position, "<!--"))
+            else if (StartsWith(text, position, "<!--") && StartsLine(text, position))
             {
                 position = SkipPast(text, position + 4, "-->");
             }
@@ -100,11 +102,12 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBa
 
     /// <summary>
     /// Skips a C# block from its opening brace to its matching closing brace. The C# lexer decides which braces are tokens,
-    /// so braces inside comments and literals are not counted; a Razor comment inside the block is skipped as a whole
+    /// so braces inside comments and literals are not counted; a Razor comment inside the block is skipped as a whole.
+    /// Template markup (<c>@&lt;</c>) is not C#, so the skip stops there, and the rest of the block is scanned as markup
     /// </summary>
     /// <param name="text">Text of the Razor file</param>
     /// <param name="openBracePosition">Position of the block's opening brace</param>
-    /// <returns>The position behind the closing brace, or the end of the text when the block is not closed</returns>
+    /// <returns>The position behind the closing brace or behind the start of template markup, or the end of the text when the block is not closed</returns>
     private static int SkipCSharpBlock(string text, int openBracePosition)
     {
         var depth = 0;
@@ -121,6 +124,11 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBa
                     resumePosition = SkipPast(text, token.SpanStart + 2, "*@");
 
                     break;
+                }
+
+                if (StartsWith(text, token.SpanStart, "@<"))
+                {
+                    return token.SpanStart + 2;
                 }
 
                 if (token.IsKind(SyntaxKind.OpenBraceToken))
