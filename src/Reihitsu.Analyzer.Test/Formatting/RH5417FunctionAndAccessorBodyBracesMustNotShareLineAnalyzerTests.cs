@@ -1204,6 +1204,91 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
         await Verify(testCode, test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp10)));
     }
 
+    /// <summary>
+    /// Verifies the SHARED-FIX-007 example: a member that shares its line with the fixed member gets a line of its own,
+    /// and the fixed member that shares its line with an earlier member starts on the next line, without blank lines, under
+    /// LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixGivesTheFixedMemberAndTheMemberOnItsLineLinesOfTheirOwn()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M() {|RH5417:{|} } int _x;
+
+                                    int _y; void P() {|RH5417:{|} }
+
+                                    int N() {|RH5417:{|} return 1; }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                     }
+                                     int _x;
+
+                                     int _y;
+                                     void P()
+                                     {
+                                     }
+
+                                     int N()
+                                     {
+                                         return 1;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that two methods on one line are each moved to lines of their own, with their braces in the column of the
+    /// members, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixPutsTwoMethodsOnOneLineOnLinesOfTheirOwn()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M() {|RH5417:{|} } void N() {|RH5417:{|} }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                     }
+                                     void N()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the diagnostics marked in the source and the fix result under LF and under CRLF
+    /// </summary>
+    /// <param name="testCode">The source with markup and LF line endings</param>
+    /// <param name="fixedCode">The fixed source with LF line endings</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyUnderBothLineEndings(string testCode, string fixedCode)
+    {
+        await Verify(testCode, fixedCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
     #endregion // Tests
 
     #region Methods

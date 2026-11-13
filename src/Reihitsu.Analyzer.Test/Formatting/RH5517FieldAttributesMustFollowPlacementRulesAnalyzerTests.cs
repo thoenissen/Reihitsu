@@ -252,6 +252,29 @@ public class RH5517FieldAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
                      Diagnostics(RH5517FieldAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5517MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that for a field in a type whose opening brace is not indented at its depth, the diagnostic is reported
+    /// and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-021")]
+    [Requirement("RH5517-004")]
+    public async Task NoFixIsOfferedWhenTheTypesOpeningBraceIsOffItsDepthColumn()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                  {
+                                    {|RH5517:[Obsolete]|} int _a;
+                                  }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

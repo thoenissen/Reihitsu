@@ -769,6 +769,188 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
         await VerifyNoCodeFixIsOffered(source);
     }
 
+    /// <summary>
+    /// Verifies the specification example: the fix puts one space in the gap without a line break and leaves the wrapped
+    /// gap and the operator on their lines, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-OPSPACE-004")]
+    public async Task FixLeavesAWrappedGapAndTheOperatorOnItsLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a, int b)
+                                    {
+                                        _ = a{|RH6024:+|}
+                                            b;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a, int b)
+                                     {
+                                         _ = a +
+                                             b;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix leaves a lambda in the operand's argument list as written, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-OPSPACE-004")]
+    public async Task FixLeavesALambdaInTheOperandAsWritten()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        _ = a{|RH6024:+|}N(a, () => { return 1; });
+                                    }
+
+                                    int N(int a, Func<int> f)
+                                    {
+                                        return a;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         _ = a + N(a, () => { return 1; });
+                                     }
+
+                                     int N(int a, Func<int> f)
+                                     {
+                                         return a;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a gap that holds a line break and a comment stays as written and the fix puts one space only in the
+    /// gap behind the operator, without inserting a blank line, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-OPSPACE-004")]
+    public async Task FixLeavesAGapWithALineBreakAndACommentAsWritten()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a, int b)
+                                    {
+                                        _ = a
+                                            /* c */ {|RH6024:+|}b;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a, int b)
+                                     {
+                                         _ = a
+                                             /* c */ + b;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All puts one space around every operator of a chain of additions
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-OPSPACE-004")]
+    public async Task FixAllPutsOneSpaceAroundEveryOperatorOfAChain()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a, int b, int c)
+                                    {
+                                        return a{|RH6024:+|}b{|RH6024:+|}c;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(int a, int b, int c)
+                                     {
+                                         return a + b + c;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All puts one space around nested comparison and logical operators
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-OPSPACE-004")]
+    public async Task FixAllPutsOneSpaceAroundNestedComparisonAndLogicalOperators()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(int a, int b)
+                                    {
+                                        return a{|RH6024:==|}b{|RH6024:&&|}b{|RH6024:>|}0;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(int a, int b)
+                                     {
+                                         return a == b && b > 0;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the diagnostics marked in the source and the fix result under LF and under CRLF
+    /// </summary>
+    /// <param name="testCode">The source with markup and LF line endings</param>
+    /// <param name="fixedCode">The fixed source with LF line endings</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyUnderBothLineEndings(string testCode, string fixedCode)
+    {
+        await Verify(testCode, fixedCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

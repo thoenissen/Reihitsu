@@ -1043,6 +1043,615 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
         await Verify(testData, fixedData, Diagnostics(RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH5103MessageFormat, 6));
     }
 
+    /// <summary>
+    /// Verifies that a statement behind an if statement whose embedded statement is on its line on the same line is moved onto its own line in the column of the
+    /// preceding statement, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-003")]
+    public async Task FixMovesAStatementBehindAnIfStatementWithAnEmbeddedStatement()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void N(int x, IDisposable d)
+                                    {
+                                        if (x > 0) M(); {|RH5103:M();|}
+                                    }
+
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void N(int x, IDisposable d)
+                                     {
+                                         if (x > 0) M();
+                                         M();
+                                     }
+
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a statement behind an if statement with an else clause whose embedded statement is on its line on the same line is moved onto its own line in the column of the
+    /// preceding statement, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-003")]
+    public async Task FixMovesAStatementBehindAnIfElseStatement()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void N(int x, IDisposable d)
+                                    {
+                                        if (x > 0) M(); else M(); {|RH5103:M();|}
+                                    }
+
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void N(int x, IDisposable d)
+                                     {
+                                         if (x > 0) M(); else M();
+                                         M();
+                                     }
+
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a statement behind an if statement with an empty block on the same line is moved onto its own line in the column of the
+    /// preceding statement, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-003")]
+    public async Task FixMovesAStatementBehindAnIfStatementWithABlock()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void N(int x, IDisposable d)
+                                    {
+                                        if (x > 0) { } {|RH5103:M();|}
+                                    }
+
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void N(int x, IDisposable d)
+                                     {
+                                         if (x > 0) { }
+                                         M();
+                                     }
+
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a statement behind a while loop whose embedded statement is on its line on the same line is moved onto its own line in the column of the
+    /// preceding statement, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-003")]
+    public async Task FixMovesAStatementBehindAWhileLoop()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void N(int x, IDisposable d)
+                                    {
+                                        while (x > 0) M(); {|RH5103:M();|}
+                                    }
+
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void N(int x, IDisposable d)
+                                     {
+                                         while (x > 0) M();
+                                         M();
+                                     }
+
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a statement behind a for loop with an empty block on the same line is moved onto its own line in the column of the
+    /// preceding statement, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-003")]
+    public async Task FixMovesAStatementBehindAForLoop()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void N(int x, IDisposable d)
+                                    {
+                                        for (;;) { } {|RH5103:M();|}
+                                    }
+
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void N(int x, IDisposable d)
+                                     {
+                                         for (;;) { }
+                                         M();
+                                     }
+
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a statement behind a foreach loop with an empty block on the same line is moved onto its own line in the column of the
+    /// preceding statement, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-003")]
+    public async Task FixMovesAStatementBehindAForEachLoop()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void N(int x, IDisposable d)
+                                    {
+                                        foreach (var c in "ab") { } {|RH5103:M();|}
+                                    }
+
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void N(int x, IDisposable d)
+                                     {
+                                         foreach (var c in "ab") { }
+                                         M();
+                                     }
+
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a statement behind a using statement with an empty block on the same line is moved onto its own line in the column of the
+    /// preceding statement, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-003")]
+    public async Task FixMovesAStatementBehindAUsingStatement()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void N(int x, IDisposable d)
+                                    {
+                                        using (d) { } {|RH5103:M();|}
+                                    }
+
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void N(int x, IDisposable d)
+                                     {
+                                         using (d) { }
+                                         M();
+                                     }
+
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a statement behind a lock statement with an empty block on the same line is moved onto its own line in the column of the
+    /// preceding statement, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-003")]
+    public async Task FixMovesAStatementBehindALockStatement()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void N(int x, IDisposable d)
+                                    {
+                                        lock (d) { } {|RH5103:M();|}
+                                    }
+
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void N(int x, IDisposable d)
+                                     {
+                                         lock (d) { }
+                                         M();
+                                     }
+
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a statement behind a try statement with a finally block on the same line is moved onto its own line in the column of the
+    /// preceding statement, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-003")]
+    public async Task FixMovesAStatementBehindATryStatement()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void N(int x, IDisposable d)
+                                    {
+                                        try { } finally { } {|RH5103:M();|}
+                                    }
+
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void N(int x, IDisposable d)
+                                     {
+                                         try { } finally { }
+                                         M();
+                                     }
+
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a statement behind a checked statement on the same line is moved onto its own line in the column of the
+    /// preceding statement, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-003")]
+    public async Task FixMovesAStatementBehindACheckedStatement()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void N(int x, IDisposable d)
+                                    {
+                                        checked { } {|RH5103:M();|}
+                                    }
+
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void N(int x, IDisposable d)
+                                     {
+                                         checked { }
+                                         M();
+                                     }
+
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a statement behind a labeled statement on the same line is moved onto its own line in the column of the
+    /// preceding statement, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-003")]
+    public async Task FixMovesAStatementBehindALabeledStatement()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void N(int x, IDisposable d)
+                                    {
+                                        L: M(); {|RH5103:M();|}
+                                    }
+
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void N(int x, IDisposable d)
+                                     {
+                                         L: M();
+                                         M();
+                                     }
+
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a statement behind a local function on the same line is moved onto its own line in the column of the
+    /// preceding statement, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-003")]
+    public async Task FixMovesAStatementBehindALocalFunction()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void N(int x, IDisposable d)
+                                    {
+                                        void F() { } {|RH5103:M();|}
+                                    }
+
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void N(int x, IDisposable d)
+                                     {
+                                         void F() { }
+                                         M();
+                                     }
+
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: in a block whose opening brace stands on the line of the preceding statement,
+    /// the statement is reported and no code fix is offered, in a lambda block and in a method body
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-005")]
+    public async Task NoFixIsOfferedInABlockWhoseOpeningBraceIsOnTheLineOfThePrecedingStatement()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        Action a = () => { M(); {|RH5103:M();|} };
+                                    }
+
+                                    void O() { M(); {|RH5103:M();|} }
+
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
+    /// <summary>
+    /// Verifies that in a block whose opening brace stands on an earlier line, at the end of the line of its owner, the fix
+    /// is offered and moves the statement into the column of the preceding statement, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5103-005")]
+    public async Task FixIsOfferedInABlockWhoseOpeningBraceIsOnAnEarlierLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void N() {
+                                        M(); {|RH5103:M();|}
+                                    }
+
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void N() {
+                                         M();
+                                         M();
+                                     }
+
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the diagnostics marked in the source and the fix result under LF and under CRLF
+    /// </summary>
+    /// <param name="testCode">The source with markup and LF line endings</param>
+    /// <param name="fixedCode">The fixed source with LF line endings</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyUnderBothLineEndings(string testCode, string fixedCode)
+    {
+        await Verify(testCode, fixedCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

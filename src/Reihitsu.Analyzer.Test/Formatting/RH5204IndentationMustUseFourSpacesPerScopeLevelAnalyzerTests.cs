@@ -40,8 +40,8 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                                                     """;
 
     /// <summary>
-    /// Result of the fix on <see cref="EmbeddedIfBehindMultiLineCommentTestData"/>: the braces stand one level deeper than the
-    /// <c>while</c>, the body one level deeper than the braces
+    /// Result of the fix on <see cref="EmbeddedIfBehindMultiLineCommentTestData"/>: the reported braces stand one level deeper
+    /// than the <c>while</c>; the body, which is not reported, keeps its column
     /// </summary>
     private const string EmbeddedIfBehindMultiLineCommentFixedData = """
                                                                      class C
@@ -52,7 +52,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                                                                  /* note
                                                                                  */ if (b)
                                                                                  {
-                                                                                     X();
+                                                                             X();
                                                                                  }
                                                                          }
 
@@ -1764,7 +1764,8 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
     /// <summary>
     /// Verifies that a misindented statement on the line behind a documentation comment written behind the previous
-    /// statement is reported, and that the fix lays out the block as the formatter does, in one pass
+    /// statement is reported, and that the fix moves only the reported line and leaves the comment where it stands, in one
+    /// pass
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1787,9 +1788,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                  {
                                      internal void M()
                                      {
-                                         var x = 1;
-
-                                         /// stray
+                                         var x = 1; /// stray
                                          return;
                                      }
                                  }
@@ -1800,7 +1799,8 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
 
     /// <summary>
     /// Verifies that a misindented <c>if</c> statement on the line behind a documentation comment written behind the
-    /// previous statement is reported together with its braces, and that the fix lays out the block as the formatter does
+    /// previous statement is reported together with its braces, and that the fix moves only the reported lines and leaves
+    /// the comment where it stands
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1825,9 +1825,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                  {
                                      internal void M()
                                      {
-                                         var x = 1;
-
-                                         /// stray
+                                         var x = 1; /// stray
                                          if (x > 0)
                                          {
                                          }
@@ -1881,27 +1879,631 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     }
 
     /// <summary>
-    /// Verifies that a refused comment in another statement of the block withholds the fix: the fix formats the block
-    /// that starts above the misindented line, which the formatter refuses, although the misindented statement holds no
-    /// refused shape
+    /// Verifies the specification example: the fix moves only the reported line and leaves the rest of the body, its
+    /// spacing, its unbraced body and its blank lines as written, under LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-FIX-010")]
-    public async Task NoFixIsOfferedWhenTheFormattingScopeHoldsACommentTheFormatterRefuses()
+    [Requirement("RH5204-006")]
+    public async Task FixMovesOnlyTheReportedLineAndLeavesTheRestOfTheBodyAsWritten()
     {
-        const string source = """
-                              internal class C
-                              {
-                                  private void M()
-                                  {
-                                      int /* c */ y = 1;
-                                       {|RH5204:return|};
-                                  }
-                              }
-                              """;
+        const string testCode = """
+                                class C
+                                {
+                                    int M(bool a)
+                                    {
+                                        if (a) M(a);
+                                        int  y = 1;
+                                          {|RH5204:return|} y;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(bool a)
+                                     {
+                                         if (a) M(a);
+                                         int  y = 1;
+                                         return y;
+                                     }
+                                 }
+                                 """;
 
-        await VerifyNoCodeFixIsOffered(source);
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix on a misindented else keyword moves only the else line and leaves the unbraced bodies of
+    /// the if statement as written, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-006")]
+    public async Task FixMovesOnlyTheMisindentedElseAndLeavesTheUnbracedBodiesAsWritten()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a)
+                                    {
+                                        if (a)
+                                            M(a);
+                                          {|RH5204:else|}
+                                            M(!a);
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a)
+                                     {
+                                         if (a)
+                                             M(a);
+                                         else
+                                             M(!a);
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a wrapped argument below the reported line keeps its column, under LF and
+    /// CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-006")]
+    public async Task FixKeepsTheColumnOfAWrappedArgumentBelowTheReportedLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a, int b)
+                                    {
+                                      {|RH5204:return|} M(1,
+                                               2);
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(int a, int b)
+                                     {
+                                         return M(1,
+                                                2);
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix on a misindented member leaves the unformatted spacing of the member's own line and of the
+    /// type around it as written, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-006")]
+    public async Task FixMovesOnlyTheReportedMemberLineAndKeepsTheSpacingBehindItsFirstToken()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int  _a;
+                                      {|RH5204:private|}  int  _b;
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int  _a;
+                                     private  int  _b;
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the first type of a file behind a documentation comment is moved to column
+    /// zero in one application, and its empty body is not rewritten, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-006")]
+    public async Task FixMovesTheFirstTypeOfAFileBehindADocumentationComment()
+    {
+        const string testCode = """
+                                /// <summary>x</summary>
+                                    {|RH5204:public|} class C
+                                {
+                                }
+                                """;
+        const string fixedCode = """
+                                 /// <summary>x</summary>
+                                 public class C
+                                 {
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the first type of a file behind a directive is moved to column zero in one application, under LF and
+    /// CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-006")]
+    public async Task FixMovesTheFirstTypeOfAFileBehindADirective()
+    {
+        const string testCode = """
+                                #nullable enable
+                                    {|RH5204:public|} class C
+                                {
+                                }
+                                """;
+        const string fixedCode = """
+                                 #nullable enable
+                                 public class C
+                                 {
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the first type of a file without leading trivia other than its indentation is moved to column zero in
+    /// one application, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-006")]
+    public async Task FixMovesTheFirstTypeOfAFileWithoutLeadingTrivia()
+    {
+        const string testCode = """
+                                    {|RH5204:public|} class C
+                                {
+                                }
+                                """;
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the first type of a file behind a line comment is moved to column zero and its one-line body is not
+    /// re-indented, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-006")]
+    public async Task FixMovesTheFirstTypeOfAFileBehindALineCommentAndKeepsItsBody()
+    {
+        const string testCode = """
+                                // header
+                                    {|RH5204:class|} C
+                                { int _a; }
+                                """;
+        const string fixedCode = """
+                                 // header
+                                 class C
+                                 { int _a; }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a namespace that starts a file is moved to column zero and its body is not reformatted, under LF and
+    /// CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-006")]
+    public async Task FixMovesANamespaceThatStartsTheFileAndKeepsItsBody()
+    {
+        const string testCode = """
+                                    {|RH5204:namespace|} N
+                                { class C { } }
+                                """;
+        const string fixedCode = """
+                                 namespace N
+                                 { class C { } }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a misindented comment that starts a file is moved to column zero and the type below it is not
+    /// rewritten, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-006")]
+    public async Task FixMovesAMisindentedCommentThatStartsTheFile()
+    {
+        const string testCode = """
+                                    {|RH5204:// header|}
+                                class C
+                                {
+                                }
+                                """;
+        const string fixedCode = """
+                                 // header
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix on a later top-level type moves only its line and leaves the type in front of it as written,
+    /// under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-006")]
+    public async Task FixMovesALaterTopLevelTypeAndLeavesTheTypeInFrontOfItAsWritten()
+    {
+        const string testCode = """
+                                class A { int  _a; }
+
+                                  {|RH5204:class|} B
+                                {
+                                }
+                                """;
+        const string fixedCode = """
+                                 class A { int  _a; }
+
+                                 class B
+                                 {
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix on a type in a file-scoped namespace moves only its line, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-006")]
+    public async Task FixMovesATypeInAFileScopedNamespaceAndKeepsItsEmptyBody()
+    {
+        const string testCode = """
+                                namespace N;
+
+                                  {|RH5204:class|} B
+                                {
+                                }
+                                """;
+        const string fixedCode = """
+                                 namespace N;
+
+                                 class B
+                                 {
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a refused comment elsewhere in the block does not withhold the fix, because the fix replaces only the
+    /// whitespace in front of the reported line and formats nothing
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-006")]
+    public async Task FixIsOfferedWhenAnotherStatementOfTheBlockHoldsACommentTheFormatterRefuses()
+    {
+        const string testCode = """
+                                internal class C
+                                {
+                                    private void M()
+                                    {
+                                        int /* c */ y = 1;
+                                         {|RH5204:return|};
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 internal class C
+                                 {
+                                     private void M()
+                                     {
+                                         int /* c */ y = 1;
+                                         return;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a case label behind the closing line of a multi-line documentation comment that starts its line does
+    /// not start its line and is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("SHARED-BLANK-008")]
+    public async Task CaseLabelBehindTheClosingLineOfAMultiLineDocumentationCommentIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                break;
+                                            /** a
+                                b */ case 2:
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
+    /// <summary>
+    /// Verifies that a case label behind the closing line of a multi-line block comment that starts its line does not
+    /// start its line and is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("SHARED-BLANK-008")]
+    public async Task CaseLabelBehindTheClosingLineOfAMultiLineBlockCommentIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                break;
+                                            /* a
+                                b */ case 2:
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
+    /// <summary>
+    /// Verifies that a closing brace behind the closing line of a multi-line block comment that starts its line is not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("SHARED-BLANK-008")]
+    public async Task ClosingBraceBehindTheClosingLineOfAMultiLineCommentOnItsOwnLineIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        M();
+                                        /* a
+                                b */ }
+                                }
+                                """;
+
+        await Verify(testCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
+    /// <summary>
+    /// Verifies that an opening brace behind the closing line of a multi-line block comment that starts its line is not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("SHARED-BLANK-008")]
+    public async Task OpeningBraceBehindTheClosingLineOfAMultiLineCommentIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        if (x > 0)
+                                        /* a
+                                b */ {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
+    /// <summary>
+    /// Verifies that an else keyword behind the closing line of a multi-line block comment that starts its line is not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("SHARED-BLANK-008")]
+    public async Task ElseBehindTheClosingLineOfAMultiLineCommentIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        if (x > 0)
+                                        {
+                                        }
+                                        /* a
+                                b */ else
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
+    /// <summary>
+    /// Verifies that a catch keyword behind the closing line of a multi-line block comment that starts its line is not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("SHARED-BLANK-008")]
+    public async Task CatchBehindTheClosingLineOfAMultiLineCommentIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        try
+                                        {
+                                        }
+                                        /* a
+                                b */ catch
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
+    /// <summary>
+    /// Verifies that a return statement behind the closing line of a multi-line block comment that starts its line is not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("SHARED-BLANK-008")]
+    public async Task ReturnBehindTheClosingLineOfAMultiLineCommentIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        /* a
+                                b */ return;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
+    /// <summary>
+    /// Verifies that a member modifier behind the closing line of a multi-line block comment that starts its line is not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-001")]
+    [Requirement("SHARED-BLANK-008")]
+    public async Task MemberBehindTheClosingLineOfAMultiLineCommentIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    private int _a;
+                                    /* a
+                                b */ private int _b;
+                                }
+                                """;
+
+        await Verify(testCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
+    /// <summary>
+    /// Verifies that a misindented multi-line comment in front of a statement that stands behind its closing line is
+    /// reported on the comment, and that the fix moves only the comment's first line, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-002")]
+    [Requirement("RH5204-006")]
+    public async Task MisindentedMultiLineCommentInFrontOfAStatementBehindItsClosingLineIsReportedAndFixed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                    {|RH5204:/* a
+                                b */|} return;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         /* a
+                                 b */ return;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the diagnostics marked in the source and the fix result under LF and under CRLF
+    /// </summary>
+    /// <param name="testCode">The source with markup and LF line endings</param>
+    /// <param name="fixedCode">The fixed source with LF line endings</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyUnderBothLineEndings(string testCode, string fixedCode)
+    {
+        await Verify(testCode, fixedCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
     }
 
     #endregion // Tests

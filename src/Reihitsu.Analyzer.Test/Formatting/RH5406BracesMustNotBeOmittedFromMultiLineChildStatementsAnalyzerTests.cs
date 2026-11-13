@@ -585,6 +585,61 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTes
         await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
     }
 
+    /// <summary>
+    /// Verifies that the braces the fix adds around a multi-line body of an else if stand in the column of the else, as the
+    /// formatter places them, and that the if block in front is left as written, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixPlacesTheBracesOfAMultiLineElseIfBodyInTheColumnOfTheElse()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, bool b)
+                                    {
+                                        if (a)
+                                        {
+                                            int  x = 1;
+                                        }
+                                        else if (b)
+                                            {|RH5406:Other(1,
+                                                  2);|}
+                                    }
+
+                                    void Other(int value1, int value2)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, bool b)
+                                     {
+                                         if (a)
+                                         {
+                                             int  x = 1;
+                                         }
+                                         else if (b)
+                                         {
+                                             Other(1,
+                                                   2);
+                                         }
+                                     }
+
+                                     void Other(int value1, int value2)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

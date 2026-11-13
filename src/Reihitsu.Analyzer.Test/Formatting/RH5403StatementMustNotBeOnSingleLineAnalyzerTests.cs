@@ -434,6 +434,191 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTes
         await VerifyNoCodeFixIsOffered(source);
     }
 
+    /// <summary>
+    /// Verifies the specification example: the fix lays out each reported block and leaves the statement in front, the
+    /// unreported else if block and the header of each statement as written, and places the block of an else if in the
+    /// column of the else, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5403-003")]
+    public async Task FixLaysOutOnlyTheReportedBlocksAndLeavesTheRestOfTheStatementAsWritten()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, bool b)
+                                    {
+                                        int  x = 1;
+                                        if (a) {|RH5403:{|} M(a, b); }
+                                        else if (b)
+                                        {
+                                            x  = 2;
+                                        }
+                                        else if (x > 1) {|RH5403:{|} M(a, b); }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, bool b)
+                                     {
+                                         int  x = 1;
+                                         if (a)
+                                         {
+                                             M(a, b);
+                                         }
+                                         else if (b)
+                                         {
+                                             x  = 2;
+                                         }
+                                         else if (x > 1)
+                                         {
+                                             M(a, b);
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix on the block of an else leaves the unformatted if block in front of it as written, under LF
+    /// and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5403-003")]
+    public async Task FixOnTheElseBlockLeavesTheIfBlockAsWritten()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a)
+                                    {
+                                        if (a)
+                                        {
+                                            int  x = 1;
+                                        }
+                                        else {|RH5403:{|} M(a); }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a)
+                                     {
+                                         if (a)
+                                         {
+                                             int  x = 1;
+                                         }
+                                         else
+                                         {
+                                             M(a);
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix inserts no blank line in front of the statement whose block it lays out, and puts the closing
+    /// brace of the block on its own line, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5403-003")]
+    public async Task FixInsertsNoBlankLineInFrontOfTheStatement()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a)
+                                    {
+                                        while (a) { }
+                                        do {|RH5403:{|} M(a); } while (a);
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a)
+                                     {
+                                         while (a) { }
+                                         do
+                                         {
+                                             M(a);
+                                         }
+                                         while (a);
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the block of an else if on the line of its condition is laid out in the column of the else, as the
+    /// formatter lays it out, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5403-003")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixLaysOutTheBlockOfAnElseIfInTheColumnOfTheElse()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, bool b)
+                                    {
+                                        if (a)
+                                        {
+                                            M(a, b);
+                                        }
+                                        else if (b) {|RH5403:{|} M(a, b); }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, bool b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a, b);
+                                         }
+                                         else if (b)
+                                         {
+                                             M(a, b);
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+        AssertFormattingChangesNothing(fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the diagnostics marked in the source and the fix result under LF and under CRLF
+    /// </summary>
+    /// <param name="testCode">The source with markup and LF line endings</param>
+    /// <param name="fixedCode">The fixed source with LF line endings</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyUnderBothLineEndings(string testCode, string fixedCode)
+    {
+        await Verify(testCode, fixedCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -589,6 +589,149 @@ public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzerTests : BatchCodeFix
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies the specification example: a comment line between the comma and the reported argument is moved into the
+    /// argument's alignment column together with the argument, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5203-003")]
+    public async Task FixMovesACommentLineAboveTheArgumentIntoTheAlignmentColumn()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(1,
+                                 // two
+                                 {|RH5203:2|});
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void N()
+                                     {
+                                         M(1,
+                                           // two
+                                           2);
+                                     }
+
+                                     void M(params int[] values)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+        AssertFormattingChangesNothing(fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that two comment lines between the comma and the reported argument are both moved into the alignment
+    /// column, and the blank line between them stays, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5203-003")]
+    public async Task FixMovesEveryCommentLineAboveTheArgumentAndKeepsTheBlankLineBetweenThem()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(1,
+                                 // two
+
+                                    // three
+                                 {|RH5203:2|});
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void N()
+                                     {
+                                         M(1,
+                                           // two
+
+                                           // three
+                                           2);
+                                     }
+
+                                     void M(params int[] values)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the comma stays on its line and only the reported argument moves, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5203-003")]
+    public async Task FixLeavesACommentBehindTheCommaOnItsLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(1, // one
+                                 {|RH5203:2|});
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void N()
+                                     {
+                                         M(1, // one
+                                           2);
+                                     }
+
+                                     void M(params int[] values)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the diagnostics marked in the source and the fix result under LF and under CRLF
+    /// </summary>
+    /// <param name="testCode">The source with markup and LF line endings</param>
+    /// <param name="fixedCode">The fixed source with LF line endings</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyUnderBothLineEndings(string testCode, string fixedCode)
+    {
+        await Verify(testCode, fixedCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

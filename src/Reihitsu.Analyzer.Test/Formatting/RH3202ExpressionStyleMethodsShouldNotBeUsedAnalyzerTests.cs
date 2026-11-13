@@ -856,6 +856,40 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
         await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a member behind the converted expression body on its line starts on the line after the new closing
+    /// brace, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixPutsAMemberBehindTheExpressionBodyOnTheNextLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    private int _value;
+
+                                    public int GetValue() {|RH3202:=> _value|}; private int _x;
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     private int _value;
+
+                                     public int GetValue()
+                                     {
+                                         return _value;
+                                     }
+                                     private int _x;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

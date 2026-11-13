@@ -573,6 +573,73 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that removing a comma behind a space leaves no whitespace at the end of the line, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixLeavesNoTrailingWhitespaceWhereTheCommaStoodBehindASpace()
+    {
+        const string testCode = """
+                                enum E
+                                {
+                                    A,
+                                    B {|RH5409:,|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 enum E
+                                 {
+                                     A,
+                                     B
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+        AssertFormattingChangesNothing(fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that removing a comma that starts the line of the closing brace leaves the brace in the column the
+    /// formatter gives it, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixPutsTheClosingBraceBehindARemovedCommaInItsColumn()
+    {
+        const string testCode = """
+                                enum E
+                                {
+                                    A,
+                                    B
+                                    {|RH5409:,|} }
+                                """;
+        const string fixedCode = """
+                                 enum E
+                                 {
+                                     A,
+                                     B
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+        AssertFormattingChangesNothing(fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the diagnostics marked in the source and the fix result under LF and under CRLF
+    /// </summary>
+    /// <param name="testCode">The source with markup and LF line endings</param>
+    /// <param name="fixedCode">The fixed source with LF line endings</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyUnderBothLineEndings(string testCode, string fixedCode)
+    {
+        await Verify(testCode, fixedCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

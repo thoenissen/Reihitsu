@@ -41,7 +41,7 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
 
     /// <summary>
     /// Result of the fix on <see cref="ElseIfWithTrailingCommentTestCode"/>: the comment stays behind the condition; the braces
-    /// stand in the column of the <c>if</c>'s first token
+    /// stand in the column of the <c>else</c>, as the formatter places them
     /// </summary>
     private const string ElseIfWithTrailingCommentFixedCode = """
                                                               class C
@@ -53,9 +53,9 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
                                                                           Foo();
                                                                       }
                                                                       else if (y) // note
-                                                                           {
-                                                                               Foo();
-                                                                           }
+                                                                      {
+                                                                          Foo();
+                                                                      }
                                                                   }
 
                                                                   void Foo()
@@ -442,11 +442,12 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
     }
 
     /// <summary>
-    /// Verifies that the fix inserts the blank line that separates the braced statement from a preceding declaration statement
+    /// Verifies that the fix inserts no blank line between the braced statement and a preceding declaration statement
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyBlankLineIsInsertedAboveFixedStatementAfterDeclaration()
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyNoBlankLineIsInsertedAboveFixedStatementAfterDeclaration()
     {
         const string testData = """
                                 internal class TestClass
@@ -467,7 +468,6 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
                                      int Method(int value)
                                      {
                                          var copy = value;
-
                                          if (copy > 0)
                                          {
                                              copy++;
@@ -482,11 +482,12 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
     }
 
     /// <summary>
-    /// Verifies that the fix inserts the blank line that separates the braced statement from a preceding closing brace
+    /// Verifies that the fix inserts no blank line between the braced statement and a preceding closing brace
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyBlankLineIsInsertedAboveFixedStatementAfterClosingBrace()
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyNoBlankLineIsInsertedAboveFixedStatementAfterClosingBrace()
     {
         const string testData = """
                                 internal class TestClass
@@ -513,7 +514,6 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
                                          {
                                              value--;
                                          }
-
                                          if (value > 0)
                                          {
                                              value++;
@@ -528,11 +528,12 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
     }
 
     /// <summary>
-    /// Verifies that fixing two adjacent statements inserts the blank line above each of them
+    /// Verifies that fixing two adjacent statements inserts no blank line above either of them
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyBlankLinesAreInsertedAboveAdjacentFixedStatements()
+    [Requirement("SHARED-BRACE-002")]
+    public async Task VerifyNoBlankLinesAreInsertedAboveAdjacentFixedStatements()
     {
         const string testData = """
                                 internal class TestClass
@@ -555,12 +556,10 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
                                      int Method(int value)
                                      {
                                          var copy = value;
-
                                          if (copy > 0)
                                          {
                                              copy++;
                                          }
-
                                          if (copy > 1)
                                          {
                                              copy--;
@@ -1262,6 +1261,194 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
                               """;
 
         await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the fix wraps the reported body and leaves the unformatted spacing of the
+    /// statement in front and of the else block as written, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task FixWrapsOnlyTheReportedBodyAndLeavesTheRestOfTheStatementAsWritten()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, bool b)
+                                    {
+                                        int  x = 1;
+                                        if (a) {|RH5405:M(a, b);|}
+                                        else
+                                        {
+                                            x  = 2;
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, bool b)
+                                     {
+                                         int  x = 1;
+                                         if (a)
+                                         {
+                                             M(a, b);
+                                         }
+                                         else
+                                         {
+                                             x  = 2;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix on the body of an if leaves the condition and the unformatted spacing of the following
+    /// statement as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    public async Task FixLeavesTheConditionAndTheFollowingStatementAsWritten()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a==1)
+                                            {|RH5405:M(a);|}
+                                        int  y = a;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         if (a==1)
+                                         {
+                                             M(a);
+                                         }
+                                         int  y = a;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the braces the fix adds around the body of an else if stand in the column of the else, as the
+    /// formatter places them, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixPlacesTheBracesOfAnElseIfBodyInTheColumnOfTheElse()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, bool b)
+                                    {
+                                        if (a)
+                                        {
+                                            M(a, b);
+                                        }
+                                        else if (b)
+                                            {|RH5405:M(a, b);|}
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, bool b)
+                                     {
+                                         if (a)
+                                         {
+                                             M(a, b);
+                                         }
+                                         else if (b)
+                                         {
+                                             M(a, b);
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+        AssertFormattingChangesNothing(fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the braces the fix adds around the body of an else if on the line of its condition stand in the
+    /// column of the else, also when the chain is nested one block deeper, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixPlacesTheBracesOfANestedElseIfBodyOnTheLineOfItsConditionInTheColumnOfTheElse()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, bool b)
+                                    {
+                                        while (a)
+                                        {
+                                            if (b)
+                                            {
+                                                M(a, b);
+                                            }
+                                            else if (a) {|RH5405:M(a, b);|}
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, bool b)
+                                     {
+                                         while (a)
+                                         {
+                                             if (b)
+                                             {
+                                                 M(a, b);
+                                             }
+                                             else if (a)
+                                             {
+                                                 M(a, b);
+                                             }
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+        AssertFormattingChangesNothing(fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the diagnostics marked in the source and the fix result under LF and under CRLF
+    /// </summary>
+    /// <param name="testCode">The source with markup and LF line endings</param>
+    /// <param name="fixedCode">The fixed source with LF line endings</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyUnderBothLineEndings(string testCode, string fixedCode)
+    {
+        await Verify(testCode, fixedCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
     }
 
     #endregion // Tests
