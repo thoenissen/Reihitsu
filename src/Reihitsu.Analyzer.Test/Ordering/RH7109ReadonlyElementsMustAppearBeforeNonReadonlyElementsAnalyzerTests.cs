@@ -6498,8 +6498,6 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
         await VerifyNoCodeFixIsOffered(source);
     }
 
-    #endregion // Tests
-
     /// <summary>
     /// Verifying the specification example: no code fix is offered when a shift to the left would cut a moving line of
     /// the field off at column 0, because the comment line holds two whitespace characters and the shift removes four
@@ -6669,6 +6667,8 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
 
         await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
     }
+
+    #endregion // Tests
 
     #region Methods
 
