@@ -57,6 +57,7 @@ Batch 1 (before test implementer), all answered as recommended:
 | 20 | Auditor 14 | F4–F7 (RH7309 stay-in-place test; stale Fix All comments; private indent constant; unreachable separator branch) | Repair: test implementer (F4, F5), implementer (F6, F7) | PR-introduced | Nothing visible | — |
 | 21 | Implementer 17 | Two RH5405 end-of-file tests' CRLF rows feed a document with no line break, whose detected ending is `Environment.NewLine` (FMT-PIPE-007) | Tests are wrong: give each document a line break before the `if` so both rows detect their ending (test implementer) | Unchanged FMT-PIPE-007 decides it; asserted output was platform-dependent | Unchanged requirement decides it | — |
 | 22 | Implementer 17 | F7 cleanup also deletes `ResolvePlacementMode`, abstract `DefaultPlacementMode` and 16 provider overrides | Accept (deletions only, cleanup the run's change touches) | Dead code left by the F7 repair | No behavior change | 4b94245 |
+| 23 | Auditor 21 | F8 repeats F2's class (list owner one scope further out from a `{` on the list's line: lambda in statement/field initializer, local function in switch section) | Architecture finding, refuse the class: withhold the split fix whenever a `{` stands in front of the reported list on the list's line and is not closed by a `}` before the list on that line (cheap scan of that line's tokens); replaces the owner-kind enumeration of SHARED-ATTR-022. Not a repair round | A repeated class is refused, not enumerated again (`squad/README.md`, Architecture findings) | Withholding a fix for a rare class; `void M() { } [A, B] void N() { }` stays offered | — |
 
 ## Follow-up candidates
 
@@ -89,3 +90,4 @@ Batch 1 (before test implementer), all answered as recommended:
 - Test implementer 18 done (2b4963b). Now cleaner 19.
 - Cleaner 19 clean. Now spec checker 20.
 - Spec checker 20 consistent. Now auditor 21 (repair only, previous audited head 53c7cd0).
+- Auditor 21 (e9ef643): F1–F7 closed; F8 repeats F2 → decision 23 (structural refusal, no repair round). Now spec author 22, test implementer 23, implementer 24, cleaner 25, spec checker 26, auditor 27, validator.
