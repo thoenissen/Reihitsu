@@ -1278,6 +1278,107 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
     }
 
     /// <summary>
+    /// Verifies the specification example: when the line of the fixed member begins with the header of a type written
+    /// on one line, the fix does not separate the member behind it, and lays out the body from the member's column,
+    /// under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5417-003")]
+    public async Task FixLeavesTheMembersOnTheLinesOfAMemberOfATypeWrittenOnOneLine()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    class C { void M() {|RH5417:{|} } int _x; }
+                                }
+                                """;
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     class C { void M()
+                                               {
+                                               } int _x; }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that when the line of the fixed member begins with the header of a type written on one line, the fix
+    /// does not separate the member in front of it, and lays out the body from the member's column, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5417-003")]
+    public async Task FixLeavesTheMemberInFrontOnTheLineOfAMemberOfATypeWrittenOnOneLine()
+    {
+        const string testCode = """
+                                class C { int _x; void M() {|RH5417:{|} } }
+                                """;
+        const string fixedCode = """
+                                 class C { int _x; void M()
+                                                   {
+                                                   } }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a member behind the fixed member, separated from it by a comment on their line, stays behind the
+    /// comment on the line of the closing brace, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixKeepsACommentBetweenTheFixedMemberAndTheMemberBehindItAndDoesNotSeparateThem()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M() {|RH5417:{|} } /* c */ int _x;
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                     } /* c */ int _x;
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fixed member, separated from the member in front of it by a comment on their line, stays
+    /// behind the comment, and its body is laid out from its column, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixKeepsACommentBetweenTheMemberInFrontAndTheFixedMemberAndDoesNotSeparateThem()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int _y; /* c */ void P() {|RH5417:{|} }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int _y; /* c */ void P()
+                                                     {
+                                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
     /// Verifies the diagnostics marked in the source and the fix result under LF and under CRLF
     /// </summary>
     /// <param name="testCode">The source with markup and LF line endings</param>

@@ -720,6 +720,240 @@ public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzerTests : BatchCodeFix
     }
 
     /// <summary>
+    /// Verifies the specification example: an argument behind a <c>/* */</c> comment on its line is reported, and no
+    /// code fix is offered, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5203-003")]
+    public async Task NoFixIsOfferedWhenADelimitedCommentStandsInFrontOfTheArgumentOnItsLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(1,
+                                           /* two */ {|RH5203:2|});
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOfferedUnderBothLineEndings(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an argument behind a <c>/** */</c> comment on its line is reported, and no code fix is offered,
+    /// under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5203-003")]
+    public async Task NoFixIsOfferedWhenADelimitedDocumentationCommentStandsInFrontOfTheArgumentOnItsLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(1,
+                                           /** two */ {|RH5203:2|});
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOfferedUnderBothLineEndings(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an argument behind a <c>/* */</c> comment on its line below a <c>//</c> comment line is reported,
+    /// and no code fix is offered, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5203-003")]
+    public async Task NoFixIsOfferedWhenADelimitedCommentBelowACommentLineStandsInFrontOfTheArgumentOnItsLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(1,
+                                          // one
+                                           /* two */ {|RH5203:2|});
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOfferedUnderBothLineEndings(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an argument written directly behind a <c>/* */</c> comment on its line, without a space, is
+    /// reported, and no code fix is offered, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5203-003")]
+    public async Task NoFixIsOfferedWhenADelimitedCommentIsWrittenDirectlyAgainstTheArgument()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(1,
+                                           /*two*/{|RH5203:2|});
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOfferedUnderBothLineEndings(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an argument behind the closing line of a <c>/* */</c> comment that spans several lines is
+    /// reported, and no code fix is offered, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5203-003")]
+    public async Task NoFixIsOfferedWhenTheArgumentStandsBehindTheEndOfAMultiLineComment()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(1,
+                                          /* a
+                                          b */ {|RH5203:2|});
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOfferedUnderBothLineEndings(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>/* */</c> comment on its own line between the comma and the reported argument is moved into
+    /// the alignment column together with the argument, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5203-003")]
+    public async Task FixMovesADelimitedCommentLineAboveTheArgumentIntoTheAlignmentColumn()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(1,
+                                 /* two */
+                                 {|RH5203:2|});
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void N()
+                                     {
+                                         M(1,
+                                           /* two */
+                                           2);
+                                     }
+
+                                     void M(params int[] values)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>/** */</c> comment on its own line between the comma and the reported argument stays in its
+    /// column, and only the argument moves, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5203-003")]
+    public async Task FixLeavesADelimitedDocumentationCommentLineAboveTheArgumentInItsColumn()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(1,
+                                 /** two */
+                                 {|RH5203:2|});
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void N()
+                                     {
+                                         M(1,
+                                  /** two */
+                                           2);
+                                     }
+
+                                     void M(params int[] values)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the diagnostics marked in the source and that no code fix is offered, under LF and under CRLF
+    /// </summary>
+    /// <param name="testCode">The source with markup and LF line endings</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyNoCodeFixIsOfferedUnderBothLineEndings(string testCode)
+    {
+        await VerifyNoCodeFixIsOffered(testCode);
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
+    /// <summary>
     /// Verifies the diagnostics marked in the source and the fix result under LF and under CRLF
     /// </summary>
     /// <param name="testCode">The source with markup and LF line endings</param>

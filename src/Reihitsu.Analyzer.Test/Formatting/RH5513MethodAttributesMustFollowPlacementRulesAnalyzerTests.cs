@@ -918,6 +918,40 @@ public class RH5513MethodAttributesMustFollowPlacementRulesAnalyzerTests : Batch
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode)));
     }
 
+    /// <summary>
+    /// Verifies that an attribute list behind a field, separated from it by a comment on their line, stays behind the
+    /// comment, and only the method moves to the next line, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixKeepsACommentBetweenAFieldAndTheAttributeListAndDoesNotSeparateThem()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    int _a; /* c */ {|RH5513:[Obsolete]|} void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     int _a; /* c */ [Obsolete]
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

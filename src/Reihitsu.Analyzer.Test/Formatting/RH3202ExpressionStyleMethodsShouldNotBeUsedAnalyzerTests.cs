@@ -890,6 +890,105 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
         await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
     }
 
+    /// <summary>
+    /// Verifies the specification example: when the line of the converted method begins with the header of a type
+    /// written on one line, the fix separates neither the member in front of it nor the member behind it, and lays out
+    /// the block from the method's column, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3202-002")]
+    public async Task FixLeavesTheMembersOnTheLinesOfAMethodOfATypeWrittenOnOneLine()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    class C { int _value; public int GetValue() {|RH3202:=> _value|}; private int _x; }
+                                }
+                                """;
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     class C { int _value; public int GetValue()
+                                                           {
+                                                               return _value;
+                                                           } private int _x; }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a member behind the converted method, separated from it by a comment on their line, stays behind
+    /// the comment on the line of the new closing brace, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixKeepsACommentBetweenTheConvertedMethodAndTheMemberBehindItAndDoesNotSeparateThem()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    private int _value;
+
+                                    public int GetValue() {|RH3202:=> _value|}; /* c */ private int _x;
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     private int _value;
+
+                                     public int GetValue()
+                                     {
+                                         return _value;
+                                     } /* c */ private int _x;
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the converted method, separated from the member in front of it by a comment on their line, stays
+    /// behind the comment, and its block is laid out from its column, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixKeepsACommentBetweenTheMemberInFrontAndTheConvertedMethodAndDoesNotSeparateThem()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    private int _value; /* c */ public int GetValue() {|RH3202:=> _value|};
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     private int _value; /* c */ public int GetValue()
+                                                                 {
+                                                                     return _value;
+                                                                 }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the diagnostics marked in the source and the fix result under LF and under CRLF
+    /// </summary>
+    /// <param name="testCode">The source with markup and LF line endings</param>
+    /// <param name="fixedCode">The fixed source with LF line endings</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyUnderBothLineEndings(string testCode, string fixedCode)
+    {
+        await Verify(testCode, fixedCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
