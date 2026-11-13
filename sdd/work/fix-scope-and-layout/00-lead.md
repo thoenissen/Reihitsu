@@ -83,6 +83,6 @@ The maintainer raised no objection to the narrowing of #1140 and the withheld ra
 - Spec amendment f85c954. Implementer done (04, ba83087/f2875e4): 18 red tests, growth 408 lines + new type.
 - Spec author 05 (1e9a5f7) restored RH5403/statement-braces specs; test implementer 06 (d979e84): 7 red brace tests await production revert; decision 23 no defect; RH3102 duplicate characterization test kept (harmless).
 - Implementer 07 (0b12f75): all tests pass; no new type; net production +87 lines (330+/243-). Decision 20 carried out.
-- Cleaner 08 clean (43087b1). Spec checker 09 (f36127b): findings → repair round 1 (decision 25): test implementer 10 (beb8ec6) done; spec author 11 (decision 26), spec checker 12, then auditor.
+- Cleaner 08 clean (43087b1). Spec checker 09 (f36127b): findings → repair round 1 (decision 25): test implementer 10 (beb8ec6) done; spec author 11 (d50e9f8), tag amendment eb50771, spec checker 12 (d3c17e1) consistent. Build green. Auditor 13 on head d3c17e1, base main d6a01ee.
 - Repair (not a repair round; narrowing + test disputes): spec author 05 and test implementer 06 in parallel, then implementer 07.
 - (old) Next: implementer; spec author amendment for decision 16 in parallel. (old: spec author (clarifications RH5204-006, RH5203-003 per answer, RH5103-003 withheld class, RH5205 withheld class, RH5513/SHARED-ATTR withheld class), then test implementer.
