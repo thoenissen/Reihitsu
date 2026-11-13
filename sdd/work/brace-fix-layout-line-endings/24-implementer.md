@@ -1,5 +1,5 @@
 Role: implementer
-Commit: <filled by the commit that adds this file; parent 35bab1d>
+Commit: 247db7c (code); handover follow-up commit records it
 Verdict: tests pass
 
 The prompt named only the change asked (make the red tests of `23-test-implementer.md` pass); it carried no intended fix, suspected cause, or hoped-for verdict.
