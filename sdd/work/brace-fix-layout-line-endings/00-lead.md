@@ -86,3 +86,4 @@ Batch 1 (before test implementer), all answered as recommended:
 - Now: repair round 2 — (F2, F3 into SHARED-ATTR-022/017 and change doc), test implementer 16 (F1–F5), implementer 17 (F1–F3, F6, F7), cleaner 18, spec checker 19, auditor 20 (repair only), validator.
 - Repair round 2: test implementer 16 done (056e213; 24 red). Now implementer 17.
 - Repair round 2: implementer 17 done (4b94245): 2 disputed tests (decision 21). Now test implementer 18 (decision 21), then cleaner 19, spec checker 20, auditor 21, validator.
+- Test implementer 18 done (2b4963b). Now cleaner 19.
