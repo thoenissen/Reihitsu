@@ -63,6 +63,7 @@ Batch 1 (asked as chat questions 1–6; skeptic/spec-author IDs in brackets):
 - Asked batch 1 (Q1–Q5) to the maintainer; waiting.
 - Answers received (see Maintainer answers).
 - Done: spec author 03 (0a3211b): specs + change doc; open Q7 (one-line accessor lists). Q7 answered B.
-- Next after Q7: route Q7 answer to spec author (continue/fresh), then test implementer.
+- Done: spec author 04 (6de86b6): Q7 B in specs. Change doc accepted by the lead.
+- Next: test implementer (05).
 - (old) Next: fresh spec author writes the answers into the specs (and change doc if sdd/README requires one); then test implementer.
 - (old) Next after answers: then batch Q1–Q3 (+ skeptic's) to the maintainer before the test implementer.
