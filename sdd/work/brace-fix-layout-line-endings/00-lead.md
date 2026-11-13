@@ -28,6 +28,7 @@ Batch 1 (before test implementer), all answered as recommended:
 3. RH5405, blank line between header and body → A: removed, as on `main`.
 4. #1627, trailing whitespace at end of body line → A: stays on the body's line, nothing behind `}`.
 5. Escalation 10, directive/disabled text between header and unbraced body → A: not declared; brace fixes withheld for it.
+7. RH5518/RH5528, reported list behind a property's `{` on a one-line accessor list (`public int Value { [field: First, Second] get => 1; }`) → B: no fix offered; the diagnostic stays.
 6. RH5405, body below `if` not indented one level deeper (`if (a)⏎          M(a, b);`) → A: the body keeps its own column (every line of a body below its header stays).
 
 ## Decisions taken
@@ -63,7 +64,7 @@ Batch 1 (before test implementer), all answered as recommended:
 - Done: spec author 04 (cf5de70).
 - Done: test implementer 05 (7b3bed7): 110 red reproductions; RH7004 not reproduced (characterization).
 - Done: implementer 06 (0d126cf): 110 pass; 15 disputed tests.
-- Now: output question 7 asked (RH5518/RH5528 split of an accessor list on a one-line property). Waiting.
-- Then: test implementer repair (decision 12 + answer 7), spec author (decisions 11, 13 wording), implementer if needed, cleaner.
+- Done: answer 7 = B.
+- Now: spec author 07 (answer 7 into SHARED-ATTR-017; decisions 11, 13 wording), then test implementer 08 (decision 12, answer 7 tests), then implementer 09 (answer 7 withhold), then cleaner.
 - Open: spec author rewords RH5011-004 lone-`\r` sentence (decision 11) before the cleaner.
 - Then: test implementer.
