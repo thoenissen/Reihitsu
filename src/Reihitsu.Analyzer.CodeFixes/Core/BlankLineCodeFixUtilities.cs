@@ -118,7 +118,10 @@ internal static class BlankLineCodeFixUtilities
     /// <summary>
     /// Formats a member through the formatter after giving it lines of its own (SHARED-FIX-007, shared line): a whitespace
     /// gap to a sibling member on the member's first or last line becomes a line break, and the code behind that line
-    /// break starts in the column of the line on which the member starts
+    /// break starts in the column of the line on which the member starts. That column is a member column only when the
+    /// line begins with a member of the same list, the member itself or one in front of it; on any other line, such as
+    /// one that begins with the header of a type written on one line, no gap is broken and only the member is formatted
+    /// (RH5417-003, RH3202-002)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="member">Member</param>
@@ -135,13 +138,22 @@ internal static class BlankLineCodeFixUtilities
         }
 
         var endOfLine = SyntaxFactory.EndOfLine(ReihitsuFormatterHelpers.DetectEndOfLine(root));
-        var indentation = SyntaxFactory.Whitespace(GetLineIndentation(sourceText, sourceText.Lines.GetLineFromPosition(member.SpanStart)));
+        var memberLine = sourceText.Lines.GetLineFromPosition(member.SpanStart);
+        var indentation = SyntaxFactory.Whitespace(GetLineIndentation(sourceText, memberLine));
+        var lineStartToken = root.FindToken(memberLine.Start);
+
+        if (lineStartToken.SpanStart < memberLine.Start)
+        {
+            lineStartToken = lineStartToken.GetNextToken();
+        }
+
+        var lineBeginsWithMember = lineStartToken.Parent?.FirstAncestorOrSelf<MemberDeclarationSyntax>(obj => obj.Parent == member.Parent) != null;
         var firstToken = member.GetFirstToken();
         var lastToken = member.GetLastToken();
         var previousToken = firstToken.GetPreviousToken();
         var nextToken = lastToken.GetNextToken();
-        var breaksBefore = SharesLineWithSiblingMember(member, previousToken, firstToken);
-        var breaksAfter = SharesLineWithSiblingMember(member, lastToken, nextToken);
+        var breaksBefore = lineBeginsWithMember && SharesLineWithSiblingMember(member, previousToken, firstToken);
+        var breaksAfter = lineBeginsWithMember && SharesLineWithSiblingMember(member, lastToken, nextToken);
         var newMember = member.ReplaceTokens([firstToken, lastToken],
                                              (original, rewritten) =>
                                              {

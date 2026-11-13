@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Layout;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 
@@ -116,7 +117,10 @@ public class RH5203MultiLineArgumentsShouldBeAlignedCodeFixProvider : CodeFixPro
                 var node = root.FindNode(diagnostic.Location.SourceSpan);
                 var argument = node as ArgumentSyntax ?? node.FirstAncestorOrSelf<ArgumentSyntax>();
 
-                if (argument != null)
+                // The fix aligns an argument only when nothing but whitespace stands in front of it on its line; behind a
+                // comment on that line, it is withheld (RH5203-003)
+                if (argument != null
+                    && SyntaxTokenPositionUtilities.StartsLine(argument.GetFirstToken()))
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5203Title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, argument, cancellationToken),
