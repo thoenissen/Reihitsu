@@ -57,6 +57,8 @@ The end of the body's last line is decided as follows. A comment behind the body
 - **The `else` of the same `if` statement** stays on that line behind the closing brace, separated from it by one space, with what follows it.
 - **Any other code**, such as the next statement, starts its own line below the closing brace, in the column of the closing brace. The whitespace in front of it on the body's line is not kept.
 
+When nothing follows the body's last line, because the body, with the comments behind it, ends the document without a line break behind it, the fix is offered as for any other body: it creates the line break in front of the closing brace, and it writes none behind it, so the document still ends without a line break. This is the case for a top-level statement at the end of a file without a final line break.
+
 Every line break the fix creates MUST be the line ending SHARED-FIX-008 specifies. The line breaks the fix keeps are moved code; SHARED-BRACE-003 withholds the fix where one of them is another line ending.
 
 Why: The diagnostic names the body, so wrapping it is the whole correction; the header, the other branch, and the blank lines around the statement are a layout the author chose (SHARED-FIX-006). The braces are new code, so they get the layout the formatter gives them, in one application, and code that would stand behind a brace the fix created goes onto the line the formatter gives it, except the `else`, which the fix must not move. The body is code the author wrote and laid out; reformatting it on the way would hide the braces in a diff of layout changes nobody asked for, while the formatter and the layout rules still correct it on their own. A blank line directly below the header would stand behind the new opening brace, where the formatter lays out none. Formatting the document keeps a comment behind the body with the statement it describes; a second copy behind the closing brace would change the text the author wrote. Whitespace at the end of the body's line belongs to that line, which the fix moves as written; the closing brace is new code and gets none.
@@ -459,6 +461,21 @@ class C
 ```
 
 The three spaces stay at the end of the body's line, and nothing stands behind the closing brace. The same holds without the comment, for `M(a, b);···`, and for a body on the line of its `if`, `if (a) M(a, b);···`; RH5406 and RH5407 behave alike.
+
+Example — RH5405, a body that ends the document, in a file of top-level statements without a final line break:
+
+```csharp
+if (args.Length > 0) {|RH5405:System.Console.WriteLine();|}
+```
+
+```csharp
+if (args.Length > 0)
+{
+    System.Console.WriteLine();
+}
+```
+
+No line break stands behind the closing brace, as none stood behind the body. Likewise, `if (args.Length > 0)` ⏎ `    System.Console.WriteLine(); // c` at the end of such a file becomes the same statement with `// c` behind the body, inside the block, and the closing brace on the last line, with nothing behind it.
 
 Example — line endings: in a document whose line breaks are all CRLF, every line break of the result of the first example is CRLF, the three the fix creates included; in a document whose line breaks are all LF, every one is LF. In a document whose line breaks are all a lone `\r`, or whose line breaks mix line endings, SHARED-BRACE-003 decides whether the fix is offered.
 

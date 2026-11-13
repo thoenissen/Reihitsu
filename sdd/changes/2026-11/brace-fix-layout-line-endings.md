@@ -4,17 +4,18 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | SHARED-BRACE-002 (clarified: aligned to SHARED-FIX-006/007/008; changed: which body lines move, code behind the body, whitespace at the end of the body's line), SHARED-BRACE-003 (added), SHARED-FIX-007 (clarified: the brace fixes' lines and tab withhold), SHARED-FIX-008 (changed: the brace fixes and the RH7309 fix join the moves that are withheld for a foreign line break), RH7309-007 (added), RH5011-004, RH8304-004 (clarified: the detected line ending, also in a lone-`\r` document), SHARED-ATTR-017 (clarified: only the reported list changes; the whitespace in front of a further list is a copy, a tab included), SHARED-ATTR-022 (added), RH5502-003, RH5504-003, RH5506-003, RH5508-003, RH5510-003, RH5512-003, RH5514-004, RH5516-003, RH5518-003, RH5520-003, RH5522-003, RH5526-003, RH5528-003, RH5531-005 (clarified: each further list starts a new line), RH5502-004, RH5504-004, RH5516-004, RH5518-004, RH5520-004, RH5528-004, RH5531-006 (changed: withheld where SHARED-ATTR-022 withholds) |
+| Affected requirements | SHARED-BRACE-002 (clarified: aligned to SHARED-FIX-006/007/008, a body that ends the document; changed: which body lines move, code behind the body, whitespace at the end of the body's line), SHARED-BRACE-003 (added), SHARED-FIX-007 (clarified: the brace fixes' lines and tab withhold), SHARED-FIX-008 (changed: the brace fixes and the RH7309 fix join the moves that are withheld for a foreign line break), RH7309-007 (added), RH5011-004, RH8304-004 (clarified: the detected line ending, also in a lone-`\r` document), SHARED-ATTR-017 (clarified: only the reported list changes; the whitespace in front of a further list is a copy, a tab included), SHARED-ATTR-022 (added), SHARED-ATTR-023 (added), RH5502-003, RH5504-003, RH5506-003, RH5508-003, RH5510-003, RH5512-003, RH5514-004, RH5516-003, RH5518-003, RH5520-003, RH5522-003, RH5526-003, RH5528-003, RH5531-005 (clarified: each further list starts a new line), RH5502-004, RH5504-004, RH5506-004, RH5508-004, RH5510-004, RH5512-004, RH5514-005, RH5516-004, RH5518-004, RH5520-004, RH5522-004, RH5526-004, RH5528-004, RH5531-006 (changed: withheld where SHARED-ATTR-022 and SHARED-ATTR-023 withhold) |
 | Depends on | [Moved code keeps its lines](moved-code-keeps-its-lines.md) |
 
 ## What
 
-- **The brace fixes wrap only the body** (SHARED-BRACE-002; RH5405, RH5406, RH5407). The fix no longer formats the whole `if` statement. It wraps the reported body in braces and changes nothing else: the header with its spacing and comments, the other body, and the blank lines around the statement stay as written, and no blank line is inserted. The braces start their own lines in the column of the first token of the line on which the owning `if` or `else` starts — the `else` for an `else if`, the closing brace for `} else`. A body on the header's last line moves below `{`, one level deeper. A body below the header's last line keeps every line in its column, whatever its indentation, continuation lines included. Code behind the body on its line starts its own line below `}`, except the `else` of the same `if`, which stays behind `}`. Whitespace at the end of the body's line stays there, and none is written behind `}`. A comment behind the body stays inside the block, once.
+- **The brace fixes wrap only the body** (SHARED-BRACE-002; RH5405, RH5406, RH5407). The fix no longer formats the whole `if` statement. It wraps the reported body in braces and changes nothing else: the header with its spacing and comments, the other body, and the blank lines around the statement stay as written, and no blank line is inserted. The braces start their own lines in the column of the first token of the line on which the owning `if` or `else` starts — the `else` for an `else if`, the closing brace for `} else`. A body on the header's last line moves below `{`, one level deeper. A body below the header's last line keeps every line in its column, whatever its indentation, continuation lines included. Code behind the body on its line starts its own line below `}`, except the `else` of the same `if`, which stays behind `}`. Whitespace at the end of the body's line stays there, and none is written behind `}`. A comment behind the body stays inside the block, once. A body that ends the document without a line break behind it gets the fix like any other, and the document still ends without one.
 - **The brace fixes are withheld where they cannot wrap the body as written** (SHARED-BRACE-003): a body on the header's last line that spans several lines; other code in front of the owning `if` or `else` on its line; a directive or disabled text between the header and the body; a tab in front of the owning `if` or `else`; and a line break in the moved code other than the detected line ending, which includes every document whose line breaks are all a lone `\r`. The diagnostic stays in each case.
 - **The brace fixes and the RH7309 fix move code as written** (SHARED-FIX-008, second paragraph; RH7309-007). Both are now in the class of fixes that move code without the formatter. Such a fix is withheld when the code it moves holds a line break other than the detected line ending. For RH7309 that code is a region block whose place changes.
 - **RH5011 and RH8304 write the detected line ending** (RH5011-004, RH8304-004). In an all-CRLF or all-LF document this is the line ending they already wrote. In a document whose line breaks are all a lone `\r`, it is `\n`. In a mixed document, it is the detected line ending, not the line's own break.
 - **The attribute-list split fixes change only the reported list** (SHARED-ATTR-017; RH5502 to RH5531). Each list after the first starts a new line, behind a character-for-character copy of the whitespace at the start of the reported list's line, a tab included. Everything else on the list's line and on every other line stays as written: a list or comment in front, a list or the declaration behind, and the indentation, comments, and directives around it. The inserted line breaks are the detected line ending.
-- **The split fixes are withheld for a list on the line of its accessor list's `{`** (SHARED-ATTR-022). The diagnostic stays.
+- **The split fixes are withheld for a list on the line of the `{` that opens the body holding its declaration** (SHARED-ATTR-022): the accessor list of an accessor, the type of a member, the namespace of a type, or the block of a local function. The diagnostic stays.
+- **The split fixes are withheld for a line break they would copy or keep in another line ending** (SHARED-ATTR-023): a line break in the target specifier, such as between `field:` and the first attribute, and a line break inside the list, from `[` through `]`, other than the detected line ending, which includes every line break inside a list in a document whose line breaks are all a lone `\r`. The diagnostic stays.
 
 ## Why
 
@@ -22,7 +23,7 @@ thoenissen/Reihitsu#1416 and thoenissen/Reihitsu#1627 report that the brace fixe
 
 ## Visible output changes
 
-The outputs on `main` were measured with `scripts/apply-fix.sh` on `c2866ea`, LF and CRLF alike, with one application of the fix. The outputs after the change were measured the same way on the run's branch. The lone-`\r` and mixed-document rows were measured by the run's tests, because `apply-fix.sh` runs only LF and CRLF. Where no fix is offered, the diagnostic stays.
+The outputs on `main` were measured with `scripts/apply-fix.sh` on `c2866ea`, LF and CRLF alike, with one application of the fix. The outputs after the change were measured the same way on the run's branch. The lone-`\r` and mixed-document rows were measured by the run's tests, because `apply-fix.sh` runs only LF and CRLF. Where no fix is offered, the diagnostic stays. The entries added after the audit, for a list behind the `{` of a type, a namespace, or a block, and for a line break in the target specifier, were measured the same way on `166e3dd`, a later `main` that changed none of these fixes.
 
 ### RH5405 · Braces must not be omitted — the header, the body, and the blank lines stay
 
@@ -699,6 +700,74 @@ After:
     }
 ```
 
+### RH5514, RH5506 · Attribute split fixes — a list behind the `{` of a type, a namespace, or a block
+
+```csharp
+namespace N { [A, B] class E { } }
+
+class C { [A, B] void M() { } }
+
+class D
+{
+    void N() { [A, B] void L() { } }
+}
+```
+
+Before (each fix on its own):
+
+```csharp
+namespace N {
+    [A]
+    [B]
+    class E { } }
+
+class C {
+    [A]
+    [B]
+    void M() { } }
+
+class D
+{
+    void N() {
+        [A]
+        [B] void L() { } }
+}
+```
+
+After: no fix offered for any of the three lists; the diagnostics stay. The other split rules behave alike for the declarations they report. A list on a line whose `{` opens another body, as in `void M() { } [A, B] void N() { }`, is split as a list that shares its line: `void M() { } [A]` ⏎ `[B] void N() { }`.
+
+### RH5518 · Field-targeted attributes must be in separate lists — a line break in the target specifier
+
+```csharp
+    [field:
+        A, B]
+    int _f;
+```
+
+Before:
+
+```csharp
+    [field:
+        A]
+    [field:
+B]
+    int _f;
+```
+
+After: no fix offered; the diagnostic stays. With the line break between the attributes, `[field: A,` ⏎ `B]`, the fix is offered and gives `[field: A]` ⏎ `[field: B]`.
+
+### RH5502 to RH5531 · Attribute split fixes — another line ending inside the list
+
+```csharp
+    [A(1,
+      2), B]
+    void M()
+    {
+    }
+```
+
+In a document whose line breaks are CRLF, except the line break inside the argument list of `A`, which is LF. Before: the fix is offered. After: no fix offered; the diagnostic stays. In a document whose line breaks are all a lone `\r`, no fix is offered for a list that holds a line break; a list on one line is still split, with `\n` between the new lists. In an all-LF or all-CRLF document, the list is split, and the line break inside `A` stays as written.
+
 ### Unchanged
 
 Several cases give the same output on `main` and after the change:
@@ -706,7 +775,8 @@ Several cases give the same output on `main` and after the change:
 - a comment behind the body (`M(a, b); // trail`), which stays inside the block once;
 - blank lines and a comment between the `if` and its body;
 - the RH5405 CRLF comment instance and the RH7004 instance of #1388;
-- RH5011, RH8304, and RH7309 in all-LF and all-CRLF documents.
+- RH5011, RH8304, and RH7309 in all-LF and all-CRLF documents;
+- a body that ends a file of top-level statements without a final line break, such as `if (args.Length > 0) System.Console.WriteLine();`, which gets `{`, the body, and `}` on lines of their own, with no line break behind `}`.
 
 Rule pages are unchanged. Their examples are bodies below the `if` and lists on their own line, whose output does not change, and a diagnostic without a fix is covered by `documentation/rules/general-notes.md`.
 
@@ -736,9 +806,17 @@ Maintainer, answer 5, A. The shape is not declared unsupported. The brace fixes 
 
 Maintainer, answer 6, A. A misindented body and each of its continuation lines keep their columns. The indentation rules still report them.
 
-### A split list on the line of its accessor list's `{` gets no fix
+### A split list on the line of the `{` that opens the body holding its declaration gets no fix
 
-Maintainer, answer 7, B, for `public int Value { [field: First, Second] get => 1; }`. The lead widened the scope (decision 14) to every reported list on the line of the accessor list's `{` (SHARED-ATTR-022). That is the same cause, a cheaper check, and the only shape in which RH5531 meets the case.
+Maintainer, answer 7, B, for `public int Value { [field: First, Second] get => 1; }`. The lead widened the scope twice. First to every reported list on the line of the accessor list's `{` (decision 14): that is the same cause, a cheaper check, and the only shape in which RH5531 meets the case. Then, after the audit, to every reported list on the line of the `{` that opens the body holding its declaration — a type, a namespace, or a block (decision 18): the whitespace at the start of that line is again the indentation of the code that owns the braces, which gives the same odd output. Each widening withholds a fix for a rare class (SHARED-ATTR-022).
+
+### A split is withheld for a line break it would copy or keep in another line ending
+
+Lead, decision 19. The split writes each new list as the specifier followed by one attribute, as written. A line break in the target specifier would be repeated in front of every attribute, and a line break inside an attribute in another line ending would stay in the changed code, against the first paragraph of SHARED-FIX-008. Both are rare classes, found with a cheap check, so the fix is withheld for them (SHARED-ATTR-023).
+
+### A body that ends the document gets the fix
+
+Lead, decision 17. SHARED-BRACE-002 demands the fix wherever SHARED-BRACE-003 does not withhold it, and SHARED-BRACE-003 names no end-of-file case. A body that ends a file of top-level statements without a final line break gets its braces, and no line break is written behind `}`, as on `main`. The requirement is unchanged; it now states the case with an example.
 
 ### An `else` behind the new `}` stays there
 
@@ -779,4 +857,6 @@ Lead, decision 13. A header that spans several lines puts the braces below its l
 - **Move a misindented body one level inside the braces** (answer 6, B) — rejected: it needs a shift and new withholds, and the indentation rules report the line anyway.
 - **Split a list behind the accessor list's `{` by laying out the accessor list over several lines** (answer 7, A) — rejected: it changes the declaration beyond the reported list.
 - **Keep the brace fixes under SHARED-FIX-008's first paragraph and rewrite kept line breaks to the detected line ending** — rejected (decision 8). The body is moved as text, and the withhold is one existing cheap check.
+- **Keep the split output on the line of a type's, namespace's, or block's `{`** (`class C { [A]` ⏎ `[B] void M() { } }`) — rejected (decision 18): it is the layout answer 7 rejected for an accessor list, from the same cause.
+- **Rewrite a line break the split keeps inside an attribute to the detected line ending, and drop a line break in the target specifier** — rejected (decision 19): the split keeps the attributes as written, and a withhold is one cheap check of the list.
 - **Fix the formatter's write-back of a target's trailing trivia, the cause behind the whitespace and lone `\r` behind `}`, in this change** — rejected (decision 10). It concerns every fix that delegates to the formatter and is a follow-up of its own. The brace fixes leave that class because they no longer format the `if` statement.
