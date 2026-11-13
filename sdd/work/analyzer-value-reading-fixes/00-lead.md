@@ -29,12 +29,20 @@ Spec author (clarifications only: rule-spec coverage sentences for #1071/#1268, 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name | Use the session's designated branch `claude/keen-ptolemy-bznmq5` | Harness forbids pushing to other branches | Internal | claim commit |
+| 2 | Skeptic | #974: CLI goal | Drop; the CLI loads no `reihitsu.json` | Skeptic 02 | Nothing changes | — |
+| 3 | Skeptic | #974: RH0001 side of the spec author's question | Decided by unchanged RH0001-003 ("one problem", no further validation): only the syntax error is reported; only RH4009 is asked | Skeptic 02 | Unchanged requirement decides it | — |
+| 4 | Skeptic | RH0001-003 wording | Say "JSON white space" | Skeptic 02; avoids Unicode reading | Normative "not valid JSON" decides | spec author amendment |
+| 5 | Skeptic | RH4009-002 dash clause restating SHARED-DIAG-002 | Keep only the reference; keep the "entries compared as written" sentence, with a test | Skeptic 02 | Follows from unchanged "exactly one of the entries" + SHARED-DIAG-002 | spec author amendment |
+| 6 | Skeptic | #1071 RH4009 implementation | Reuse `NamespaceCasingHelper.GetLocations` rather than a private copy (recommendation to implementer via handover) | Skeptic 02 | Internal | — |
+| 7 | Skeptic | #1289 scope | Narrow option: Razor/HTML comments, `@@`, letter/digit-before-`@` everywhere; C# comments and literals only inside `@code`/`@functions` blocks; C# kinds in `@{ }`, control-flow and expression hosts stay reported → follow-up. Escalation 9 if it exceeds ~100 production lines or needs a new type | Issue instances say "within a code block"; covers common member (multi-line `@* *@` around a block) | Remaining hosts keep today's output | — |
 
 ## Follow-up candidates
 
-(none yet)
+- RH4009 nested namespace declarations (`namespace A { namespace B { } }`): no spec decides which name is compared — skeptic 02, #1071
+- RH2109 `@code {` inside C# comments/literals in `@{ }`, control-flow, and expression hosts (outside `@code`/`@functions` blocks) — decision 7, skeptic 02, #1289
 
 ## Worklist / next step
 
 - 01 spec author done (575d1a7): specs clarified for all four; one output question open for #974 (config with content after root object: RH0001 only syntax error + RH4009 silent [A, recommended] vs. also unknown section + RH4009 reports [B]); batched before test implementer.
-- Next: skeptic (02) running; then ask the output-question batch.
+- 02 skeptic done (11f0710): all four proceed. Output batch asked (Q1 Unicode escape names RH4001/RH4009; Q2 RH4009 with content after root; Q3 RH2109 mid-line `@code`). Waiting for answers.
+- After answers: spec author amendment (decisions 4, 5 + answers), then test implementer.
