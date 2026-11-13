@@ -78,5 +78,7 @@ The maintainer raised no objection to the narrowing of #1140 and the withheld ra
 - Spec author done (02-spec-author.md, b92e71f); lane check confirmed bug-fix.
 - Test implementer done (03, abe294f): all reproduced except #1393 (characterization, answer 3).
 - Spec amendment f85c954. Implementer done (04, ba83087/f2875e4): 18 red tests, growth 408 lines + new type.
+- Spec author 05 (1e9a5f7) restored RH5403/statement-braces specs; test implementer 06 (d979e84): 7 red brace tests await production revert; decision 23 no defect; RH3102 duplicate characterization test kept (harmless).
+- Next: implementer 07 (revert brace production, fold helper into existing type).
 - Repair (not a repair round; narrowing + test disputes): spec author 05 and test implementer 06 in parallel, then implementer 07.
 - (old) Next: implementer; spec author amendment for decision 16 in parallel. (old: spec author (clarifications RH5204-006, RH5203-003 per answer, RH5103-003 withheld class, RH5205 withheld class, RH5513/SHARED-ATTR withheld class), then test implementer.
