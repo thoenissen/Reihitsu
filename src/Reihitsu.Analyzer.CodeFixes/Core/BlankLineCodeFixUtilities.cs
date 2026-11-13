@@ -119,9 +119,12 @@ internal static class BlankLineCodeFixUtilities
     /// Formats a member through the formatter after giving it lines of its own (SHARED-FIX-007, shared line): a whitespace
     /// gap to a sibling member on the member's first or last line becomes a line break, and the code behind that line
     /// break starts in the column of the line on which the member starts. That column is a member column only when the
-    /// line begins with a member of the same list, the member itself or one in front of it; on any other line, such as
-    /// one that begins with the header of a type written on one line, no gap is broken and only the member is formatted
-    /// (RH5417-003, RH3202-002)
+    /// line begins with a member of the same list, the member itself or one in front of it: the line's first token starts
+    /// the line behind nothing but whitespace and comments whose text starts on that line, and it is the first token of
+    /// such a member. On any other line, such as one that begins with the header of a type written on one line, the
+    /// continuation of a sibling's initializer, a statement of a sibling's body, the tail of a multi-line literal, or the
+    /// tail of a comment that starts on an earlier line, no gap is broken and only the member is formatted (RH5417-003,
+    /// RH3202-002)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="member">Member</param>
@@ -140,14 +143,12 @@ internal static class BlankLineCodeFixUtilities
         var endOfLine = SyntaxFactory.EndOfLine(ReihitsuFormatterHelpers.DetectEndOfLine(root));
         var memberLine = sourceText.Lines.GetLineFromPosition(member.SpanStart);
         var indentation = SyntaxFactory.Whitespace(GetLineIndentation(sourceText, memberLine));
-        var lineStartToken = root.FindToken(memberLine.Start);
-
-        if (lineStartToken.SpanStart < memberLine.Start)
-        {
-            lineStartToken = lineStartToken.GetNextToken();
-        }
-
-        var lineBeginsWithMember = lineStartToken.Parent?.FirstAncestorOrSelf<MemberDeclarationSyntax>(obj => obj.Parent == member.Parent) != null;
+        var lineStartToken = GetLineStartToken(root, memberLine);
+        var lineBeginsWithMember = StartsLineBehindComments(sourceText, lineStartToken)
+                                   && lineStartToken.Parent?.AncestorsAndSelf()
+                                                           .OfType<MemberDeclarationSyntax>()
+                                                           .TakeWhile(obj => obj.GetFirstToken() == lineStartToken)
+                                                           .Any(obj => obj.Parent == member.Parent) == true;
         var firstToken = member.GetFirstToken();
         var lastToken = member.GetLastToken();
         var previousToken = firstToken.GetPreviousToken();
@@ -264,12 +265,7 @@ internal static class BlankLineCodeFixUtilities
             var sourceText = root.SyntaxTree.GetText();
             var previousStatement = GetPrecedingSiblingStatement(targetStatement);
             var anchorLine = sourceText.Lines.GetLineFromPosition(previousStatement?.SpanStart ?? previousToken.SpanStart);
-            var lineStartToken = root.FindToken(anchorLine.Start);
-
-            if (lineStartToken.SpanStart < anchorLine.Start)
-            {
-                lineStartToken = lineStartToken.GetNextToken();
-            }
+            var lineStartToken = GetLineStartToken(root, anchorLine);
 
             return TryGetListIndentation(sourceText, targetStatement, lineStartToken, anchorLine, out indentation);
         }
@@ -355,6 +351,22 @@ internal static class BlankLineCodeFixUtilities
                                               .Where(trivia => trivia.Span.End > lineStart && trivia.SpanStart < token.SpanStart)
                                               .All(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)
                                                              || (SyntaxTriviaUtilities.IsCommentTrivia(trivia) && trivia.SpanStart >= lineStart));
+    }
+
+    /// <summary>
+    /// Gets the first token that starts on a line or behind it; a token that starts on an earlier line and reaches into the
+    /// line, such as a multi-line literal, is skipped
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="line">Line</param>
+    /// <returns>The first token that starts at or behind the start of <paramref name="line"/></returns>
+    private static SyntaxToken GetLineStartToken(SyntaxNode root, TextLine line)
+    {
+        var lineStartToken = root.FindToken(line.Start);
+
+        return lineStartToken.SpanStart < line.Start
+                   ? lineStartToken.GetNextToken()
+                   : lineStartToken;
     }
 
     /// <summary>
