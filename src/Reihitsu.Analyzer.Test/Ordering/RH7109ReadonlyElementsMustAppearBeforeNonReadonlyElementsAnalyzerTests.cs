@@ -6668,6 +6668,230 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
         await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
     }
 
+    /// <summary>
+    /// Verifying the specification example: a field indented less deeply than its slot holds an interpolated verbatim
+    /// string whose second line starts at a hole; the shift to the right would write whitespace into the string's value,
+    /// so no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-010")]
+    [Requirement("RH7109-006")]
+    public async Task NoCodeFixWhenARightShiftedFieldHoldsAnInterpolatedVerbatimStringWhoseSecondLineStartsAtAHole()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+                                private readonly string {|RH7109:_b|} = $@"a
+                              {nameof(C)}";
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when a field indented less deeply than its slot holds an interpolated
+    /// verbatim string whose second line starts at the closing quote
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-010")]
+    public async Task NoCodeFixWhenARightShiftedFieldHoldsAnInterpolatedVerbatimStringWhoseSecondLineStartsAtTheClosingQuote()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+                                private readonly string {|RH7109:_b|} = $@"a{nameof(C)}
+                              ";
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when a field indented less deeply than its slot holds an interpolated string
+    /// whose hole spans lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-010")]
+    public async Task NoCodeFixWhenARightShiftedFieldHoldsAnInterpolatedStringWhoseHoleSpansLines()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+                                private readonly string {|RH7109:_b|} = $"{1
+                                    + 1}";
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when a field indented deeper than its slot holds an interpolated verbatim
+    /// string whose second line starts with whitespace in front of a hole
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-010")]
+    public async Task NoCodeFixWhenALeftShiftedFieldHoldsAnInterpolatedVerbatimStringOverTwoLines()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+                                      private readonly string {|RH7109:_b|} = $@"a
+                                  {nameof(C)}";
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a field indented as its slot moves with an interpolated verbatim string whose second line starts at
+    /// a hole, and the string keeps its lines
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-010")]
+    public async Task FieldIndentedAsItsSlotMovesWithAnInterpolatedVerbatimStringOverTwoLines(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+                                  private readonly string {|RH7109:_b|} = $@"a
+                              {nameof(C)}";
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private readonly string _b = $@"a
+                                   {nameof(C)}";
+                                       private int _a;
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: the moved field holds an LF line break in a document whose line breaks are
+    /// otherwise CRLF, so no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task NoCodeFixWhenTheMovedFieldHoldsALineBreakOtherThanTheDocumentsLineEnding()
+    {
+        var source = NormalizeToCarriageReturnLineFeed("""
+                                                       class C
+                                                       {
+                                                           private int _a;
+                                                           private readonly int {|RH7109:_b|} ={LF}
+                                                               1;
+                                                       }
+                                                       """).Replace("{LF}\r\n", "\n");
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: with every line break alike, the field that holds a line break moves in front
+    /// of <c>_a</c>, and every line break of the result is the document's line ending
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-008")]
+    public async Task MovedFieldThatHoldsALineBreakMovesWhenEveryLineBreakIsAlike(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+                                  private readonly int {|RH7109:_b|} =
+                                      1;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private readonly int _b =
+                                           1;
+                                       private int _a;
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered in a document whose line breaks are all a lone carriage return, where the
+    /// moved field holds a line break
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task NoCodeFixWhenTheMovedFieldHoldsALoneCarriageReturnLineBreak()
+    {
+        var source = """
+                     class C
+                     {
+                         private int _a;
+                         private readonly int {|RH7109:_b|} = 1
+                             + 2;
+                     }
+                     """.Replace("\r\n", "\n").Replace("\n", "\r");
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that an LF line break outside the moved code, in a document whose line breaks are otherwise CRLF, does not
+    /// withhold the fix, and stays as it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task LineBreakOtherThanTheDocumentsLineEndingOutsideTheMovedCodeKeepsTheFix()
+    {
+        var source = NormalizeToCarriageReturnLineFeed("""
+                                                       class C{LF}
+                                                       {
+                                                           private int _a;
+                                                           private readonly int _b =
+                                                               1;
+                                                       }
+                                                       """).Replace("{LF}\r\n", "\n");
+
+        var fixedSource = NormalizeToCarriageReturnLineFeed("""
+                                                            class C{LF}
+                                                            {
+                                                                private readonly int _b =
+                                                                    1;
+                                                                private int _a;
+                                                            }
+                                                            """).Replace("{LF}\r\n", "\n");
+
+        Assert.AreEqual(fixedSource, await ApplyCodeFixAsync(source));
+    }
+
     #endregion // Tests
 
     #region Methods

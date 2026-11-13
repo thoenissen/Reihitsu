@@ -5263,6 +5263,164 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                      });
     }
 
+    /// <summary>
+    /// Verifies a block holding an interpolated verbatim string written with <c>@$"</c> whose continuation line starts
+    /// with a hole: the diagnostic is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForAnAtDollarInterpolatedStringWhoseContinuationLineStartsWithAHole()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<string> b = {|RH3004:delegate|} (string name)
+                                        {
+                                            var s = @$"Hello
+                                {name}";
+                                            Console.WriteLine(s);
+                                        };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a block holding a regular interpolated string whose hole spans lines: the diagnostic is reported and no
+    /// code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForARegularInterpolatedStringWhoseHoleSpansLines()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> b = {|RH3004:delegate|} (int x)
+                                        {
+                                            var s = $"{x
+                                                + 1}";
+                                            Console.WriteLine(s);
+                                        };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the block-body fix is withheld when the statements it moves hold an LF line break in a document
+    /// whose line breaks are otherwise CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task FixWithheldWhenTheBlockHoldsALineBreakOtherThanTheDocumentsLineEnding()
+    {
+        var testCode = NormalizeToCarriageReturnLineFeed("""
+                                                         using System;
+
+                                                         class C
+                                                         {
+                                                             void M()
+                                                             {
+                                                                 Action<int> b = {|RH3004:delegate|} (int x)
+                                                                 {
+                                                                     Console.WriteLine(x);{LF}
+                                                                     Console.WriteLine(x);
+                                                                 };
+                                                             }
+                                                         }
+                                                         """).Replace("{LF}\r\n", "\n");
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the block-body fix is withheld in a document whose line breaks are all a lone carriage return, where
+    /// the block it moves holds line breaks
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task FixWithheldWhenTheBlockHoldsLoneCarriageReturnLineBreaks()
+    {
+        var testCode = """
+                       using System;
+
+                       class C
+                       {
+                           void M()
+                           {
+                               Action<int> b = {|RH3004:delegate|} (int x)
+                               {
+                                   Console.WriteLine(x);
+                                   Console.WriteLine(x);
+                               };
+                           }
+                       }
+                       """.Replace("\r\n", "\n").Replace("\n", "\r");
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an LF line break outside the code the fix changes, in a document whose line breaks are otherwise
+    /// CRLF, does not withhold the block-body fix, which writes CRLF and leaves that line break as it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task LineBreakOtherThanTheDocumentsLineEndingOutsideTheChangedCodeKeepsTheFix()
+    {
+        var testCode = NormalizeToCarriageReturnLineFeed("""
+                                                         using System;{LF}
+
+                                                         class C
+                                                         {
+                                                             void M()
+                                                             {
+                                                                 Action<int> b = delegate (int x)
+                                                                 {
+                                                                     Console.WriteLine(x);
+                                                                     Console.WriteLine(x);
+                                                                 };
+                                                             }
+                                                         }
+                                                         """).Replace("{LF}\r\n", "\n");
+
+        var expectedCode = NormalizeToCarriageReturnLineFeed("""
+                                                             using System;{LF}
+
+                                                             class C
+                                                             {
+                                                                 void M()
+                                                                 {
+                                                                     Action<int> b = (int x) =>
+                                                                                     {
+                                                                                         Console.WriteLine(x);
+                                                                                         Console.WriteLine(x);
+                                                                                     };
+                                                                 }
+                                                             }
+                                                             """).Replace("{LF}\r\n", "\n");
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+    }
+
     #endregion // Tests
 
     #region Methods

@@ -721,6 +721,251 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
         await VerifyNoCodeFixIsOffered(source);
     }
 
+    /// <summary>
+    /// Verifying the specification example: a comment between the accessors of a list on one line withholds the swap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7107-005")]
+    public async Task NoCodeFixWhenACommentStandsBetweenTheAccessorsOfAListOnOneLine()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A { set { } /* s */ {|RH7107:get|} => 1; }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a comment behind the last accessor of a list on one line withholds the swap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7107-005")]
+    public async Task NoCodeFixWhenACommentStandsBehindTheLastAccessorOfAListOnOneLine()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A { set { } {|RH7107:get|} => 1; /* g */ }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a comment in front of the first accessor of a list on one line withholds the swap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7107-005")]
+    public async Task NoCodeFixWhenACommentStandsInFrontOfTheFirstAccessorOfAListOnOneLine()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A { /* c */ set { } {|RH7107:get|} => 1; }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: a comment inside an accessor of a list on one line travels with its accessor
+    /// when the accessors swap places within the line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7107-004")]
+    public async Task CommentInsideAnAccessorTravelsWithItWhenTheAccessorsSwapWithinTheLine(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A { set { /* s */ } {|RH7107:get|} => 1; }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       public int A { get => 1; set { /* s */ } }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that a comment inside the expression body of the moved accessor travels with it when the accessors swap
+    /// places within the line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7107-004")]
+    public async Task CommentInsideTheExpressionBodyOfTheMovedAccessorTravelsWithIt()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A { set { } {|RH7107:get|} => /* one */ 1; }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       public int A { get => /* one */ 1; set { } }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying that a comment behind the closing brace of an accessor list on one line stands outside the list and does
+    /// not withhold the swap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7107-004")]
+    public async Task CommentBehindTheClosingBraceOfAListOnOneLineKeepsTheSwap()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A { set { } {|RH7107:get|} => 1; } // value
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       public int A { get => 1; set { } } // value
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying that accessors on one line still swap places in a document whose line breaks are all a lone carriage
+    /// return, because the swap moves no line break; every line break stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    [Requirement("SHARED-ORDER-009")]
+    public async Task AccessorsOnOneLineSwapInADocumentWhoseLineBreaksAreLoneCarriageReturns()
+    {
+        var source = """
+                     class C
+                     {
+                         public int A { set { } get => 1; }
+                     }
+                     """.Replace("\r\n", "\n").Replace("\n", "\r");
+
+        var fixedSource = """
+                          class C
+                          {
+                              public int A { get => 1; set { } }
+                          }
+                          """.Replace("\r\n", "\n").Replace("\n", "\r");
+
+        Assert.AreEqual(fixedSource, await ApplyCodeFixAsync(source));
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered for an accessor list over several lines when the crossed accessor holds LF
+    /// line breaks in a document whose line breaks are otherwise CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task NoCodeFixWhenTheCrossedAccessorHoldsALineBreakOtherThanTheDocumentsLineEnding()
+    {
+        var source = NormalizeToCarriageReturnLineFeed("""
+                                                       class C
+                                                       {
+                                                           public int A
+                                                           {
+                                                               set{LF}
+                                                               {{LF}
+                                                               }
+                                                               {|RH7107:get|} => 1;
+                                                           }
+                                                       }
+                                                       """).Replace("{LF}\r\n", "\n");
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered for an accessor list over several lines in a document whose line breaks are
+    /// all a lone carriage return
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task NoCodeFixForAnAccessorListOverSeveralLinesWhoseLineBreaksAreLoneCarriageReturns()
+    {
+        var source = """
+                     class C
+                     {
+                         public int A
+                         {
+                             set
+                             {
+                             }
+                             {|RH7107:get|} => 1;
+                         }
+                     }
+                     """.Replace("\r\n", "\n").Replace("\n", "\r");
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when a <c>get</c> accessor indented less deeply than its slot holds an
+    /// interpolated verbatim string whose second line starts at a hole
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-010")]
+    [Requirement("RH7107-005")]
+    public async Task NoCodeFixWhenARightShiftedAccessorHoldsAnInterpolatedVerbatimStringWhoseSecondLineStartsAtAHole()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public string A
+                                  {
+                                      set
+                                      {
+                                      }
+                                    {|RH7107:get|} => $@"a
+                              {nameof(C)}";
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

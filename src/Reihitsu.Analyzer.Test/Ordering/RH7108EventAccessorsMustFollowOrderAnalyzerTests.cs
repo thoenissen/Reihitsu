@@ -528,6 +528,113 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
         await VerifyNoCodeFixIsOffered(source);
     }
 
+    /// <summary>
+    /// Verifying that a comment between the event accessors of a list on one line withholds the swap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7108-005")]
+    public async Task NoCodeFixWhenACommentStandsBetweenTheEventAccessorsOfAListOnOneLine()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  private Action _handlers;
+
+                                  public event Action Changed { remove => _handlers -= value; /* r */ {|RH7108:add|} => _handlers += value; }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a comment behind the last event accessor of a list on one line withholds the swap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7108-005")]
+    public async Task NoCodeFixWhenACommentStandsBehindTheLastEventAccessorOfAListOnOneLine()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  private Action _handlers;
+
+                                  public event Action Changed { remove => _handlers -= value; {|RH7108:add|} => _handlers += value; /* a */ }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a comment in front of the first event accessor of a list on one line withholds the swap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7108-005")]
+    public async Task NoCodeFixWhenACommentStandsInFrontOfTheFirstEventAccessorOfAListOnOneLine()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  private Action _handlers;
+
+                                  public event Action Changed { /* c */ remove => _handlers -= value; {|RH7108:add|} => _handlers += value; }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a comment inside an event accessor of a list on one line travels with its accessor when the
+    /// accessors swap places within the line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7108-004")]
+    public async Task CommentInsideAnEventAccessorTravelsWithItWhenTheAccessorsSwapWithinTheLine(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  private Action _handlers;
+
+                                  public event Action Changed { remove { _handlers -= value; /* r */ } {|RH7108:add|} { _handlers += value; } }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+
+                                   class C
+                                   {
+                                       private Action _handlers;
+
+                                       public event Action Changed { add { _handlers += value; } remove { _handlers -= value; /* r */ } }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
