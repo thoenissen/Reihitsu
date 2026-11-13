@@ -31,7 +31,11 @@ Bug-fix lane: skeptic (premise) → spec author (only for clarifications) → te
 
 ## Maintainer answers
 
-_None yet._
+1. RH5204 scope (#1140, #1511) — **A**: the fix moves only the reported line; RH5204-006 changes accordingly (the whole-scope formatting is dropped).
+2. RH5203 comment line above an argument (#1144) — **A**: the comment line is aligned with the argument; RH5203-003 changes accordingly.
+3. Escalation 4, #1393 not reproduced — **A**: add a characterization test with the issue's input (LF, CRLF) and link with `Closes #1393`, noting it was resolved before the run.
+4. Escalation 10, token behind a multi-line comment's closing line — **A**: not declared; RH5204's analyzer stops reporting a token that does not start its line (SHARED-BLANK-008).
+The maintainer raised no objection to the narrowing of #1140 and the withheld rare classes (decisions 3–9).
 
 ## Decisions taken
 
@@ -56,5 +60,5 @@ _None yet._
 
 ## Worklist / next step
 
-- Skeptic done (01-skeptic.md, 2402f9b). Waiting for maintainer: output questions RH5204 scope, RH5203 comment line; escalation 4 (#1393); escalation 10 (#1561 shape); confirmation of narrowing #1140 (shown for visibility).
-- Next after answers: spec author (clarifications RH5204-006, RH5203-003 per answer, RH5103-003 withheld class, RH5205 withheld class, RH5513/SHARED-ATTR withheld class), then test implementer.
+- Skeptic done (01-skeptic.md, 2402f9b). Answers received (1A 2A 3A 4A). Was waiting for maintainer: output questions RH5204 scope, RH5203 comment line; escalation 4 (#1393); escalation 10 (#1561 shape); confirmation of narrowing #1140 (shown for visibility).
+- Next: spec author (clarifications RH5204-006, RH5203-003 per answer, RH5103-003 withheld class, RH5205 withheld class, RH5513/SHARED-ATTR withheld class), then test implementer.
