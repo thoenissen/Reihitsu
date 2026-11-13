@@ -117,6 +117,26 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
     }
 
     /// <summary>
+    /// Determines whether the attribute list is attached to an accessor and starts on the line of the <c>{</c> of the
+    /// accessor list that holds the accessor (SHARED-ATTR-022). The whitespace at the start of that line is the
+    /// indentation of the declaration that owns the accessor list, so a further list started behind it would stand at the
+    /// wrong column, in front of the rest of the accessor list
+    /// </summary>
+    /// <param name="attributeList">Attribute list</param>
+    /// <returns><see langword="true"/> when the split fix is withheld for the list</returns>
+    private static bool StartsOnTheLineOfTheAccessorListBrace(AttributeListSyntax attributeList)
+    {
+        if (attributeList.Parent is not AccessorDeclarationSyntax { Parent: AccessorListSyntax accessorList })
+        {
+            return false;
+        }
+
+        var tree = attributeList.SyntaxTree;
+
+        return tree.GetLineSpan(accessorList.OpenBraceToken.Span).StartLinePosition.Line == tree.GetLineSpan(attributeList.Span).StartLinePosition.Line;
+    }
+
+    /// <summary>
     /// Applies merged-list fix for all matching sibling lists
     /// </summary>
     /// <param name="document">Document</param>
@@ -181,10 +201,12 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
         if (listShapeMode == TargetAttributeListShapeMode.SplitLists)
         {
             // Mirrors the analyzer base: the formatter keeps the lists of an inline auto-property accessor merged, so
-            // splitting one would only be undone again
+            // splitting one would only be undone again. A list with a comment or directive inside is withheld
+            // (SHARED-ATTR-019), and so is an accessor's list on the line of the accessor list's brace (SHARED-ATTR-022)
             return attributeList.Attributes.Count > 1
                    && SyntaxNodeUtilities.InteriorContainsCommentOrDirective(attributeList) == false
-                   && AttributeTargetUtilities.IsAttributeListOnInlineAutoPropertyAccessor(attributeList) == false;
+                   && AttributeTargetUtilities.IsAttributeListOnInlineAutoPropertyAccessor(attributeList) == false
+                   && StartsOnTheLineOfTheAccessorListBrace(attributeList) == false;
         }
 
         var owner = attributeList.Parent;
