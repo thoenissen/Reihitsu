@@ -43,6 +43,7 @@ Spec author (clarifications only: rule-spec coverage sentences for #1071/#1268, 
 
 ## Follow-up candidates
 
+- `sdd/README.md` (Analyzer specs) says `shared/diagnostics.md` applies without being listed under `Uses`, but `SpecStructureTests` requires referenced SHARED-DIAG IDs to be listed — reword the rulebook — spec author 09
 - SHARED-DIAG-002 does not name Unicode escapes for every rule; Q1 was written only into RH4001/RH4009 — spec author 03
 - RH4009 nested namespace declarations (`namespace A { namespace B { } }`): no spec decides which name is compared — skeptic 02, #1071
 - RH2109 `@code {` inside C# comments/literals in `@{ }`, control-flow, and expression hosts (outside `@code`/`@functions` blocks); after Q3 the remaining gap is a `@code {` starting its own line inside a multi-line C# comment or literal in those hosts, which RH2109-001/SHARED-DIAG-003 still require not reported (bug against the unchanged spec) — decision 7, skeptic 02, spec author 03, #1289
@@ -57,4 +58,5 @@ Spec author (clarifications only: rule-spec coverage sentences for #1071/#1268, 
 - 06 fixture repaired (0eb9d98); RH2109 33/33.
 - 07 cleaner clean (e85cfc0).
 - 08 spec checker: findings (e6dfe88) — `Uses` header missing in RH4001, RH4009, RH2003, RH2109 specs (architecture test fails).
-- Repair round 1: fresh spec author (09) for the Uses lists; then cleaner skipped (text only), spec checker again, then auditor.
+- Repair round 1: spec author 09 fixed Uses lists (8ceb205); architecture 117/117. Cleaner skipped (spec text only).
+- Next: spec checker (10), then auditor.
