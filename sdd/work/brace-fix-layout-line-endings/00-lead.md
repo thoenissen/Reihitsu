@@ -74,4 +74,5 @@ Batch 1 (before test implementer), all answered as recommended:
 - Done: cleaner 10 (5f57eca): clean.
 - Done: spec checker 11 (d451af9): one finding (change doc).
 - Repair round 1: spec author 12 (c8ec980) change doc, accepted by lead. Cleaner skipped (text only).
-- Now: spec checker 13, then auditor 14.
+- Done: spec checker 13 (39557b5): consistent. Merged origin/main 166e3dd (no overlap).
+- Now: auditor 14 against base 166e3dd2690edc7ed9cfd593d3e7d8eee8764c1b.
