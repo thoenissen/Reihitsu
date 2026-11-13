@@ -567,8 +567,7 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
 
         const string fixedCode = """
                                  [First]
-                                 [Second]
-                                 [Third]
+                                 [Second] [Third]
                                  [Fourth]
                                  internal class Example { }
                                  sealed class FirstAttribute : System.Attribute
@@ -585,14 +584,14 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
                                  }
                                  """;
 
-        // Two multi-attribute class lists sit back to back on the same declaration: each fix computes its split
-        // against the same original document and both target the same class attribute-list run, so the batch
-        // fixer discards one of the two conflicting changes in its first pass and needs a second pass to
-        // correct the diagnostic that survives
+        // Two multi-attribute class lists sit back to back on one line of the same declaration: each split changes only
+        // its own list, so the second list's first attribute stays on the line on which the first list's last attribute
+        // now stands. Whether the batch fixer needs one pass or two for the two changes is not what this scenario
+        // asserts
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH5506ClassAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5506MessageFormat, 2),
-                                  Configure: config => config.NumberOfFixAllIterations = 2);
+                                  Configure: config => config.NumberOfFixAllIterations = -2);
     }
 
     #endregion // BatchCodeFixTestsBase

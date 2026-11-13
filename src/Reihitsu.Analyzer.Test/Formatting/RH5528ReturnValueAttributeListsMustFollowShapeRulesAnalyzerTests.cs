@@ -237,11 +237,13 @@ public class RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies that a merged return-specifier list is still reported when an accessor has an expression body, because the formatter expands the accessor list
+    /// Verifies that a merged return-specifier list on the line of the accessor list's opening brace is still reported, and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDiagnosticForMergedReturnSpecifierListOnSingleLinePropertyAccessorWithExpressionBody()
+    [Requirement("RH5528-004")]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task VerifyDiagnosticWithoutCodeFixForMergedReturnSpecifierListOnSingleLinePropertyAccessorWithExpressionBody()
     {
         const string testData = """
                                 internal class Example
@@ -255,25 +257,18 @@ public class RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzerTests : 
                                 {
                                 }
                                 """;
-        const string fixedData = """
-                                 internal class Example
-                                 {
-                                     public int Value {
-                                         [return: First]
-                                         [return: Second]
-                                         get => 1; }
-                                 }
-                                 sealed class FirstAttribute : System.Attribute
-                                 {
-                                 }
-                                 sealed class SecondAttribute : System.Attribute
-                                 {
-                                 }
-                                 """;
 
         await Verify(testData,
-                     fixedData,
                      Diagnostics(RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5528MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(RemoveMarkup(testData),
+                                                   RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AttributeListSyntax>()
+                                                               .First(list => list.Attributes.Count > 1)
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     /// <summary>
@@ -578,6 +573,124 @@ public class RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzerTests : 
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(RemoveMarkup(testData))), "Every line break the fix inserts must be CRLF.");
     }
 
+    /// <summary>
+    /// Verifies the spec example: a return-specifier list on the line of the accessor list's opening brace is still reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5528-004")]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task VerifyDiagnosticWithoutCodeFixForReturnSpecifierListOnTheLineOfTheAccessorListBrace()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P { {|#0:[return: A, B]|} get => 1; }
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     Diagnostics(RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5528MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(RemoveMarkup(testData),
+                                                   RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AttributeListSyntax>()
+                                                               .First(list => list.Attributes.Count > 1)
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that a return-specifier list behind an earlier accessor, on the line of the accessor list's opening brace, is still reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task VerifyDiagnosticWithoutCodeFixForReturnSpecifierListBehindAnEarlierAccessorOnTheLineOfTheAccessorListBrace()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int _p;
+
+                                    int P { get => _p; {|#0:[return: A, B]|} set { _p = value; } }
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     Diagnostics(RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5528MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(RemoveMarkup(testData),
+                                                   RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AttributeListSyntax>()
+                                                               .First(list => list.Attributes.Count > 1)
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that a return-specifier list on a line below the accessor list's opening brace is split, and the accessor stays behind the last list, under LF and CRLF line endings, line endings included
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-022")]
+    [Requirement("SHARED-ATTR-017")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyCodeFixSplitsAReturnSpecifierListBelowTheLineOfTheAccessorListBrace(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P
+                                    {
+                                        {|RH5528:[return: A, B]|} get => 1;
+                                    }
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int P
+                                     {
+                                         [return: A]
+                                         [return: B] get => 1;
+                                     }
+                                 }
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
@@ -609,8 +722,7 @@ public class RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzerTests : 
                                  internal class Example
                                  {
                                      [return: First]
-                                     [return: Second]
-                                     [return: Third]
+                                     [return: Second] [return: Third]
                                      [return: Fourth]
                                      internal int M() => 0;
                                  }
@@ -628,14 +740,14 @@ public class RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzerTests : 
                                  }
                                  """;
 
-        // Two multi-attribute return-value lists sit back to back on the same declaration: each fix computes
-        // its split against the same original document and both target the same return-value attribute-list
-        // run, so the batch fixer discards one of the two conflicting changes in its first pass and needs a
-        // second pass to correct the diagnostic that survives
+        // Two multi-attribute return-value lists sit back to back on one line of the same declaration: each split
+        // changes only its own list, so the second list's first attribute stays on the line on which the first list's
+        // last attribute now stands. Whether the batch fixer needs one pass or two for the two changes is not what this
+        // scenario asserts
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5528MessageFormat, 2),
-                                  Configure: config => config.NumberOfFixAllIterations = 2);
+                                  Configure: config => config.NumberOfFixAllIterations = -2);
     }
 
     #endregion // BatchCodeFixTestsBase

@@ -2669,6 +2669,178 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
         await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testCode, "\r"));
     }
 
+    /// <summary>
+    /// Verifies the spec example: a header whose condition spans several lines decides by its last line, so a body behind
+    /// the closing parenthesis moves below the opening brace and a body below it keeps its line, under LF and CRLF line
+    /// endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task FixDecidesWhereTheBodyStartsByTheLastLineOfAHeaderThatSpansSeveralLines(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, bool b)
+                                    {
+                                        if (a &&
+                                            b) {|RH5405:M(a, b);|}
+
+                                        if (a &&
+                                            b)
+                                            {|RH5405:M(a, b);|}
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, bool b)
+                                     {
+                                         if (a &&
+                                             b)
+                                         {
+                                             M(a, b);
+                                         }
+
+                                         if (a &&
+                                             b)
+                                         {
+                                             M(a, b);
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        var sourceWithEndOfLine = ConvertEndOfLine(testCode, endOfLine);
+        var fixedSourceWithEndOfLine = ConvertEndOfLine(fixedCode, endOfLine);
+
+        await Verify(sourceWithEndOfLine, fixedSourceWithEndOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a body behind the closing parenthesis of a header that spans several lines moves below the opening
+    /// brace, and that the braces take the column of the if, under LF and CRLF line endings, line endings included
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task FixMovesABodyBehindTheLastLineOfAHeaderThatSpansSeveralLinesBelowTheOpeningBrace(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, bool b)
+                                    {
+                                        if (a &&
+                                            b) {|RH5405:M(a, b);|}
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, bool b)
+                                     {
+                                         if (a &&
+                                             b)
+                                         {
+                                             M(a, b);
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a body below the closing parenthesis of a header that spans several lines keeps its line, under LF and
+    /// CRLF line endings, line endings included
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task FixKeepsABodyBelowTheLastLineOfAHeaderThatSpansSeveralLinesOnItsLine(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, bool b)
+                                    {
+                                        if (a &&
+                                            b)
+                                              {|RH5405:M(a, b);|}
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, bool b)
+                                     {
+                                         if (a &&
+                                             b)
+                                         {
+                                               M(a, b);
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a line break inside a delimited comment between the header and the body does not count as one between
+    /// them: the body starts on the header's last line, the comment stays behind the closing parenthesis, and the body
+    /// moves below the opening brace, under LF and CRLF line endings, line endings included
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task FixKeepsAMultiLineDelimitedCommentBehindTheHeaderAndMovesTheBodyBelowTheOpeningBrace(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, int b)
+                                    {
+                                        if (a) /* x
+                                            y */ {|RH5405:M(a, b);|}
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, int b)
+                                     {
+                                         if (a) /* x
+                                             y */
+                                         {
+                                             M(a, b);
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
     #endregion // Tests
 
     #region Methods

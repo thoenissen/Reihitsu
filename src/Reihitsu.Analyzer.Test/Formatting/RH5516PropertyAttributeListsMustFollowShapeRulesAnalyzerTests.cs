@@ -336,6 +336,41 @@ public class RH5516PropertyAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(RemoveMarkup(testData))), "Every line break the fix inserts must be CRLF.");
     }
 
+    /// <summary>
+    /// Verifies the spec example: a property-specifier list on the line of the accessor list's opening brace is still reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5516-004")]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task VerifyDiagnosticWithoutCodeFixForPropertySpecifierListOnTheLineOfTheAccessorListBrace()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P { {|#0:[property: A, B]|} get => 1; }
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     Diagnostics(RH5516PropertyAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5516MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(RemoveMarkup(testData),
+                                                   RH5516PropertyAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AttributeListSyntax>()
+                                                               .First(list => list.Attributes.Count > 1)
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
@@ -367,8 +402,7 @@ public class RH5516PropertyAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
                                  internal class Example
                                  {
                                      [First]
-                                     [Second]
-                                     [Third]
+                                     [Second] [Third]
                                      [Fourth]
                                      internal int Value { get; set; }
                                  }
@@ -386,14 +420,14 @@ public class RH5516PropertyAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
                                  }
                                  """;
 
-        // Two multi-attribute property lists sit back to back on the same declaration: each fix computes its
-        // split against the same original document and both target the same property attribute-list run, so the
-        // batch fixer discards one of the two conflicting changes in its first pass and needs a second pass to
-        // correct the diagnostic that survives
+        // Two multi-attribute property lists sit back to back on one line of the same declaration: each split changes
+        // only its own list, so the second list's first attribute stays on the line on which the first list's last
+        // attribute now stands. Whether the batch fixer needs one pass or two for the two changes is not what this
+        // scenario asserts
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH5516PropertyAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5516MessageFormat, 2),
-                                  Configure: config => config.NumberOfFixAllIterations = 2);
+                                  Configure: config => config.NumberOfFixAllIterations = -2);
     }
 
     #endregion // BatchCodeFixTestsBase

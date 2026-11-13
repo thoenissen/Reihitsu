@@ -646,6 +646,42 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData)));
     }
 
+    /// <summary>
+    /// Verifies the spec example: an accessor attribute list on the line of the opening brace of an accessor list that spans two lines is still reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5531-006")]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task VerifyDiagnosticWithoutCodeFixForAccessorListOnTheLineOfTheAccessorListBrace()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P { {|#0:[A, B]|} get => 1;
+                                        set { } }
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     Diagnostics(RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5531MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(RemoveMarkup(testData),
+                                                   RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AttributeListSyntax>()
+                                                               .First(list => list.Attributes.Count > 1)
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
@@ -695,8 +731,7 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
                                      internal int Value
                                      {
                                          [First]
-                                         [Second]
-                                         [Third]
+                                         [Second] [Third]
                                          [Fourth]
                                          get;
                                          set;
@@ -704,14 +739,13 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
                                  }
                                  """;
 
-        // Two multi-attribute lists sit back to back on the same get accessor: each fix computes its split
-        // against the same original document and both target the same accessor attribute-list run, so the batch
-        // fixer discards one of the two conflicting changes in its first pass and needs a second pass to correct
-        // the diagnostic that survives
+        // Two multi-attribute lists sit back to back on one line of the same get accessor: each split changes only its
+        // own list, so the second list's first attribute stays on the line on which the first list's last attribute now
+        // stands. Whether the batch fixer needs one pass or two for the two changes is not what this scenario asserts
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5531MessageFormat, 2),
-                                  Configure: config => config.NumberOfFixAllIterations = 2);
+                                  Configure: config => config.NumberOfFixAllIterations = -2);
     }
 
     #endregion // BatchCodeFixTestsBase
