@@ -1237,6 +1237,53 @@ public class RH5514MethodAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
     }
 
     /// <summary>
+    /// Verifies that each <c>{</c> pairs with the <c>}</c> that closes it: a body that holds a nested closed block, all in
+    /// front of the reported list on its line, leaves no <c>{</c> open there, so the fix is offered and the further list
+    /// starts a new line, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-022")]
+    [Requirement("SHARED-ATTR-017")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task SplitFixIsOfferedBehindANestedClosedBodyOnTheLineOfTheList(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M() { if (true) { } } {|RH5514:[A, B]|} void N() { }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M() { if (true) { } } [A]
+                                     [B] void N() { }
+                                 }
+                                 """;
+
+        await VerifySplitFix(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a body that holds a nested closed block in front of the list on its line does not cancel the <c>{</c>
+    /// of the class that is still open there, so the list is reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task SplitFixIsWithheldBehindANestedClosedBodyWhileTheBraceOfTheClassIsStillOpenOnTheLineOfTheList()
+    {
+        const string testData = """
+                                class C3 { void M() { if (true) { } } {|RH5514:[A, B]|} void N() { } }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData + AttributeDeclarations);
+    }
+
+    /// <summary>
     /// Verifies the spec example: a list of a lambda in a statement, on the line of the <c>{</c> of the block that holds the
     /// statement, is reported, and no code fix is offered
     /// </summary>
