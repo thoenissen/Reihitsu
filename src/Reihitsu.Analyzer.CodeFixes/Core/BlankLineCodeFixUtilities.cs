@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -7,14 +9,16 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter;
 using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Analyzer.CodeFixes.Core;
 
 /// <summary>
-/// Shared helpers for code fixes that insert blank lines. It owns the blank line that the statement blank-line fixes, the
-/// RH3208 fix, and the RH5030 fix put in front of a statement (SHARED-STMT-004, SHARED-AFTERBRACE-001,
-/// SHARED-AFTERBRACE-002); the RH5011 fix still inserts its blank line below <c>break</c> with its own code
+/// Shared helpers for code fixes that insert blank lines or give a member lines of its own. It owns the blank line that the
+/// statement blank-line fixes, the RH3208 fix, and the RH5030 fix put in front of a statement (SHARED-STMT-004,
+/// SHARED-AFTERBRACE-001, SHARED-AFTERBRACE-002); the RH5011 fix still inserts its blank line below <c>break</c> with its
+/// own code
 /// </summary>
 internal static class BlankLineCodeFixUtilities
 {
@@ -92,6 +96,87 @@ internal static class BlankLineCodeFixUtilities
                                                                    : updatedToken);
 
         return true;
+    }
+
+    /// <summary>
+    /// Determines whether a member shares a line with a sibling member: one of two adjacent tokens on the member's first or
+    /// last line belongs to another member of the same list, and the gap between them holds nothing but whitespace
+    /// </summary>
+    /// <param name="member">Member</param>
+    /// <param name="left">Token in front of the gap</param>
+    /// <param name="right">Token behind the gap</param>
+    /// <returns><see langword="true"/> if the gap separates the member from a sibling on one line</returns>
+    public static bool SharesLineWithSiblingMember(MemberDeclarationSyntax member, SyntaxToken left, SyntaxToken right)
+    {
+        var siblingToken = left.SpanStart < member.SpanStart ? left : right;
+
+        return siblingToken.Parent?.FirstAncestorOrSelf<MemberDeclarationSyntax>(obj => obj.Parent == member.Parent) is { } sibling
+               && sibling != member
+               && left.TrailingTrivia.Concat(right.LeadingTrivia).All(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
+    }
+
+    /// <summary>
+    /// Formats a member through the formatter after giving it lines of its own (SHARED-FIX-007, shared line): a whitespace
+    /// gap to a sibling member on the member's first or last line becomes a line break, and the code behind that line
+    /// break starts in the column of the line on which the member starts. That column is a member column only when the
+    /// line begins with a member of the same list, the member itself or one in front of it: the line's first token starts
+    /// the line behind nothing but whitespace and comments whose text starts on that line, and it is the first token of
+    /// such a member. On any other line, such as one that begins with the header of a type written on one line, the
+    /// continuation of a sibling's initializer, a statement of a sibling's body, the tail of a multi-line literal, or the
+    /// tail of a comment that starts on an earlier line, no gap is broken and only the member is formatted (RH5417-003,
+    /// RH3202-002)
+    /// </summary>
+    /// <param name="document">Document</param>
+    /// <param name="member">Member</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The updated document</returns>
+    public static async Task<Document> FormatMemberOnLinesOfItsOwnAsync(Document document, MemberDeclarationSyntax member, CancellationToken cancellationToken)
+    {
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return document;
+        }
+
+        var endOfLine = SyntaxFactory.EndOfLine(ReihitsuFormatterHelpers.DetectEndOfLine(root));
+        var memberLine = sourceText.Lines.GetLineFromPosition(member.SpanStart);
+        var indentation = SyntaxFactory.Whitespace(GetLineIndentation(sourceText, memberLine));
+        var lineStartToken = GetLineStartToken(root, memberLine);
+        var lineBeginsWithMember = StartsLineBehindComments(sourceText, lineStartToken)
+                                   && lineStartToken.Parent?.AncestorsAndSelf()
+                                                           .OfType<MemberDeclarationSyntax>()
+                                                           .TakeWhile(obj => obj.GetFirstToken() == lineStartToken)
+                                                           .Any(obj => obj.Parent == member.Parent) == true;
+        var firstToken = member.GetFirstToken();
+        var lastToken = member.GetLastToken();
+        var previousToken = firstToken.GetPreviousToken();
+        var nextToken = lastToken.GetNextToken();
+        var breaksBefore = lineBeginsWithMember && SharesLineWithSiblingMember(member, previousToken, firstToken);
+        var breaksAfter = lineBeginsWithMember && SharesLineWithSiblingMember(member, lastToken, nextToken);
+        var newMember = member.ReplaceTokens([firstToken, lastToken],
+                                             (original, rewritten) =>
+                                             {
+                                                 if (original == firstToken && breaksBefore)
+                                                 {
+                                                     rewritten = rewritten.WithLeadingTrivia(indentation);
+                                                 }
+
+                                                 return original == lastToken && breaksAfter ? rewritten.WithTrailingTrivia(endOfLine) : rewritten;
+                                             });
+        var annotation = new SyntaxAnnotation();
+        var newDocument = document.WithSyntaxRoot(root.ReplaceSyntax([member],
+                                                                     (_, _) => newMember.WithAdditionalAnnotations(annotation),
+                                                                     new[] { breaksBefore ? previousToken : default, breaksAfter ? nextToken : default }.Where(obj => obj.RawKind != 0),
+                                                                     (original, _) => original == previousToken ? original.WithTrailingTrivia(endOfLine) : original.WithLeadingTrivia(indentation),
+                                                                     [],
+                                                                     (_, rewritten) => rewritten));
+        var node = (await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))?.GetAnnotatedNodes(annotation).First();
+
+        return node == null
+                   ? document
+                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(newDocument, node, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     /// <summary>
@@ -180,12 +265,7 @@ internal static class BlankLineCodeFixUtilities
             var sourceText = root.SyntaxTree.GetText();
             var previousStatement = GetPrecedingSiblingStatement(targetStatement);
             var anchorLine = sourceText.Lines.GetLineFromPosition(previousStatement?.SpanStart ?? previousToken.SpanStart);
-            var lineStartToken = root.FindToken(anchorLine.Start);
-
-            if (lineStartToken.SpanStart < anchorLine.Start)
-            {
-                lineStartToken = lineStartToken.GetNextToken();
-            }
+            var lineStartToken = GetLineStartToken(root, anchorLine);
 
             return TryGetListIndentation(sourceText, targetStatement, lineStartToken, anchorLine, out indentation);
         }
@@ -271,6 +351,22 @@ internal static class BlankLineCodeFixUtilities
                                               .Where(trivia => trivia.Span.End > lineStart && trivia.SpanStart < token.SpanStart)
                                               .All(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)
                                                              || (SyntaxTriviaUtilities.IsCommentTrivia(trivia) && trivia.SpanStart >= lineStart));
+    }
+
+    /// <summary>
+    /// Gets the first token that starts on a line or behind it; a token that starts on an earlier line and reaches into the
+    /// line, such as a multi-line literal, is skipped
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="line">Line</param>
+    /// <returns>The first token that starts at or behind the start of <paramref name="line"/></returns>
+    private static SyntaxToken GetLineStartToken(SyntaxNode root, TextLine line)
+    {
+        var lineStartToken = root.FindToken(line.Start);
+
+        return lineStartToken.SpanStart < line.Start
+                   ? lineStartToken.GetNextToken()
+                   : lineStartToken;
     }
 
     /// <summary>

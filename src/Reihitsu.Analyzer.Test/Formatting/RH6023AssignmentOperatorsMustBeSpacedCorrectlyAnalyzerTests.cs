@@ -480,7 +480,7 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH6023-002")]
-    [Requirement("FMT-PIPE-024")]
+    [Requirement("SHARED-OPSPACE-004")]
     public async Task VerifyFixKeepsTheWrappedLinkOfAnAssignedMemberBehindAMemberBinding()
     {
         const string testData = """
@@ -527,12 +527,12 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
 
     /// <summary>
     /// Verifies that the fix on an assignment inside a conditional access, where the member of a compound assignment stands on its own line behind a member binding, puts one space on both
-    /// sides of the operator and keeps the layout of the chain, under LF and CRLF
+    /// sides of the operator and leaves the wrapped link in its column, under LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH6023-002")]
-    [Requirement("FMT-PIPE-024")]
+    [Requirement("SHARED-OPSPACE-004")]
     public async Task VerifyFixKeepsTheWrappedLinkOfACompoundAssignedMemberBehindAMemberBinding()
     {
         const string testData = """
@@ -569,7 +569,7 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
                                      void M(A a)
                                      {
                                          a?.B
-                                           .C += 5;
+                                          .C += 5;
                                      }
                                  }
                                  """;
@@ -584,7 +584,7 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH6023-002")]
-    [Requirement("FMT-PIPE-024")]
+    [Requirement("SHARED-OPSPACE-004")]
     public async Task VerifyFixKeepsTheWrappedLinkOfAnAssignedMemberBehindAnElementBinding()
     {
         const string testData = """
@@ -631,12 +631,12 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
 
     /// <summary>
     /// Verifies that the fix on an assignment inside a conditional access, where the assigned member stands on its own line behind a nested conditional access, puts one space on both
-    /// sides of the operator and keeps the layout of the chain, under LF and CRLF
+    /// sides of the operator and leaves the wrapped link in its column, under LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH6023-002")]
-    [Requirement("FMT-PIPE-024")]
+    [Requirement("SHARED-OPSPACE-004")]
     public async Task VerifyFixKeepsTheWrappedLinkOfAnAssignedMemberInANestedConditionalAccess()
     {
         const string testData = """
@@ -673,7 +673,7 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
                                      void M(A a)
                                      {
                                          a?.B?.B
-                                              .C = 5;
+                                             .C = 5;
                                      }
                                  }
                                  """;
@@ -688,7 +688,7 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH6023-002")]
-    [Requirement("FMT-PIPE-024")]
+    [Requirement("SHARED-OPSPACE-004")]
     public async Task VerifyFixKeepsTheWrappedLinksOfALongerAssignedChain()
     {
         const string testData = """
@@ -742,7 +742,7 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH6023-002")]
-    [Requirement("FMT-PIPE-024")]
+    [Requirement("SHARED-OPSPACE-004")]
     public async Task VerifyFixKeepsAnAssignedMemberOnOneLineBehindAMemberBinding()
     {
         const string testData = """
@@ -792,7 +792,7 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH6023-002")]
-    [Requirement("FMT-PIPE-024")]
+    [Requirement("SHARED-OPSPACE-004")]
     public async Task VerifyFixOnAnAssignedMemberBindingKeepsItOnItsLine()
     {
         const string testData = """
@@ -837,12 +837,12 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
 
     /// <summary>
     /// Verifies that the fix on an assignment inside a conditional access, where the assigned member and the value each stand on their own line behind a member binding, keeps the line break in front
-    /// of the assigned member and moves the value onto the line of the operator, under LF and CRLF
+    /// of the assigned member and the wrapped value on its line, under LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH6023-002")]
-    [Requirement("FMT-PIPE-024")]
+    [Requirement("SHARED-OPSPACE-004")]
     public async Task VerifyFixKeepsTheWrappedLinkOfAnAssignedMemberWhoseValueIsWrapped()
     {
         const string testData = """
@@ -880,12 +880,151 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
                                      void M(A a)
                                      {
                                          a?.B
-                                           .C = 5;
+                                           .C =
+                                             5;
                                      }
                                  }
                                  """;
 
         await VerifyUnderBothLineEndings(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the fix leaves a lambda and an array initializer on the right of the operator
+    /// as written, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-OPSPACE-004")]
+    public async Task FixLeavesALambdaAndAnArrayInitializerAsWritten()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M(int a, int b)
+                                    {
+                                        Action f{|RH6023:=|}() => { M(a, b); };
+                                        var x{|RH6023:=|}new[] {1,2};
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M(int a, int b)
+                                     {
+                                         Action f = () => { M(a, b); };
+                                         var x = new[] {1,2};
+                                     }
+                                 }
+                                 """;
+
+        await VerifyBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped gap behind the operator stays as written and the operator stays on its line, under LF and
+    /// CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-OPSPACE-004")]
+    public async Task FixLeavesAWrappedGapBehindTheOperatorAsWritten()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a{|RH6023:=|}
+                                            1;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a =
+                                             1;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped gap in front of the operator stays as written and the operator stays on its line, under LF
+    /// and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-OPSPACE-004")]
+    public async Task FixLeavesAWrappedGapInFrontOfTheOperatorAsWritten()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a
+                                            {|RH6023:=|}1;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a
+                                             = 1;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All puts one space around an assignment nested in an element access and around the assignment
+    /// that contains it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-OPSPACE-004")]
+    public async Task FixAllPutsOneSpaceAroundNestedAssignments()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M(Dictionary<int, int> d, int k)
+                                    {
+                                        d[k{|RH6023:=|}1]{|RH6023:=|}2;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     void M(Dictionary<int, int> d, int k)
+                                     {
+                                         d[k = 1] = 2;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyBothLineEndings(testCode, fixedCode);
     }
 
     /// <summary>
@@ -898,6 +1037,18 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
     {
         await Verify(testData, fixedData, Diagnostics(RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6023MessageFormat));
         await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6023MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the diagnostics marked in the source and the fix result under LF and under CRLF
+    /// </summary>
+    /// <param name="testCode">The source with markup and LF line endings</param>
+    /// <param name="fixedCode">The fixed source with LF line endings</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyBothLineEndings(string testCode, string fixedCode)
+    {
+        await Verify(testCode, fixedCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
     }
 
     #endregion // Tests

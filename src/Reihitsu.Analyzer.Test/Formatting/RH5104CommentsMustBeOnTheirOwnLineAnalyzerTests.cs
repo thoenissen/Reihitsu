@@ -1425,6 +1425,41 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzerTests : BatchCodeFixTests
         await Verify(testData, fixedData, static test => test.FixedState.MarkupHandling = MarkupMode.Allow);
     }
 
+    /// <summary>
+    /// Characterizes the fix on a comment behind the second of two statements: the comment moves above the statement
+    /// without a blank line in front of it, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5104-005")]
+    public async Task FixMovesACommentBehindTheSecondOfTwoStatementsAboveItWithoutABlankLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        M();
+                                        M(); {|RH5104:// second|}
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         M();
+                                         // second
+                                         M();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

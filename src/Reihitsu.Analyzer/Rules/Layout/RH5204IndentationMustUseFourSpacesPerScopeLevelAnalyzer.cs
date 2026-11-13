@@ -64,7 +64,9 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     /// <summary>
     /// Aligns comments that start their line to the indentation of the token they precede. A documentation comment that
     /// Roslyn files as leading trivia of the token but that is written behind the preceding code shares that code's line,
-    /// whose indentation belongs to the code; the formatter's comment alignment uses the same predicate
+    /// whose indentation belongs to the code; the formatter's comment alignment uses the same predicate. A token behind the
+    /// closing line of a multi-line comment does not start its line (SHARED-BLANK-008): its expected indentation still
+    /// aligns the comment, but its own line is not checked
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="expectedIndentationByLine">Expected indentation by line</param>
@@ -87,6 +89,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
             }
 
             var leadingTrivia = token.LeadingTrivia;
+            var endsMultiLineCommentOnLine = false;
 
             for (var triviaIndex = 0; triviaIndex < leadingTrivia.Count; triviaIndex++)
             {
@@ -97,13 +100,24 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
                     continue;
                 }
 
-                var commentLine = trivia.GetLocation().GetLineSpan().StartLinePosition.Line;
+                var lineSpan = trivia.GetLocation().GetLineSpan();
+                var commentLine = lineSpan.StartLinePosition.Line;
+
+                endsMultiLineCommentOnLine |= (trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+                                              && commentLine < tokenLine
+                                              && lineSpan.EndLinePosition.Line == tokenLine;
 
                 if (commentLine != tokenLine
                     && TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, triviaIndex))
                 {
                     expectedIndentationByLine[commentLine] = (alignColumn, trivia.GetLocation());
                 }
+            }
+
+            if (endsMultiLineCommentOnLine
+                && expectation.Location.SourceSpan == token.Span)
+            {
+                expectedIndentationByLine.Remove(tokenLine);
             }
         }
     }
@@ -171,8 +185,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     /// Sets the indentation for region directives. A directive inside a branch the compiler skipped is left where the
     /// author wrote it, matching the formatter's <c>LayoutComputer.SetDirectiveIndentation</c>: the code
     /// around it is untouched disabled text, so re-indenting the directive alone would half-format a region nobody
-    /// compiles. Because the code fix's directive path reads this same map, the analyzer and the formatter would
-    /// otherwise write different text for identical input
+    /// compiles. The analyzer and the formatter therefore leave identical input unchanged
     /// </summary>
     /// <param name="token">Token</param>
     /// <param name="parent">Syntax node that owns the token</param>

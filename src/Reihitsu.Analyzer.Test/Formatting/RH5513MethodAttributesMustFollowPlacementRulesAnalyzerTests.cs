@@ -781,6 +781,177 @@ public class RH5513MethodAttributesMustFollowPlacementRulesAnalyzerTests : Batch
                      Diagnostics(RH5513MethodAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5513MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the fix on an attribute list that shares its line with a field in front of it gives the list and the
+    /// declaration lines of their own, as the formatter lays them out, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixPutsTheAttributeListBehindAFieldOnALineOfItsOwn()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    int _a; {|RH5513:[Obsolete]|} void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     int _a;
+                                     [Obsolete]
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: for a local function in a lambda block whose opening brace is aligned to the
+    /// lambda in a wrapped argument, off its depth column, the diagnostic is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-021")]
+    [Requirement("RH5513-005")]
+    public async Task NoFixIsOfferedWhenTheEnclosingBraceIsOffItsDepthColumn()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Run(1, () =>
+                                               {
+                                                   {|RH5513:[Obsolete]|} void L()
+                                                   {
+                                                   }
+                                               });
+                                    }
+
+                                    void Run(int a, Action f)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
+    /// <summary>
+    /// Verifies that for a local function in a lambda block whose opening brace stands at its depth column, the fix is
+    /// offered and indents the declaration by its nesting depth, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-021")]
+    [Requirement("SHARED-ATTR-008")]
+    public async Task FixIsOfferedWhenTheEnclosingLambdaBraceIsAtItsDepthColumn()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action f = () =>
+                                        {
+                                            {|RH5513:[Obsolete]|} void L()
+                                            {
+                                            }
+                                        };
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action f = () =>
+                                         {
+                                             [Obsolete]
+                                             void L()
+                                             {
+                                             }
+                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
+    /// <summary>
+    /// Verifies the fix in tab-indented code: the tabs in front of the attribute list stay, and the declaration is
+    /// indented with four spaces for each enclosing brace, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5513-004")]
+    [Requirement("SHARED-ATTR-008")]
+    [Requirement("SHARED-ATTR-021")]
+    public async Task FixInTabIndentedCodeIndentsTheDeclarationWithSpacesToTheAttributeListsColumn()
+    {
+        const string testCode = "using System;\n\nnamespace N\n{\n\tclass C\n\t{\n\t\tvoid M()\n\t\t{\n\t\t\t[Obsolete] void L()\n\t\t\t{\n\t\t\t}\n\t\t}\n\t}\n}";
+        const string fixedCode = "using System;\n\nnamespace N\n{\n\tclass C\n\t{\n\t\tvoid M()\n\t\t{\n\t\t\t[Obsolete]\n            void L()\n\t\t\t{\n\t\t\t}\n\t\t}\n\t}\n}";
+
+        Assert.AreEqual(fixedCode, await ApplyCodeFixAsync(testCode));
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode)));
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list behind a field, separated from it by a comment on their line, stays behind the
+    /// comment, and only the method moves to the next line, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixKeepsACommentBetweenAFieldAndTheAttributeListAndDoesNotSeparateThem()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    int _a; /* c */ {|RH5513:[Obsolete]|} void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     int _a; /* c */ [Obsolete]
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

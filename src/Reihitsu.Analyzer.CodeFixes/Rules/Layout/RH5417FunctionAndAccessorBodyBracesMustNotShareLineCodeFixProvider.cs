@@ -1,4 +1,4 @@
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Formatter;
 
@@ -33,15 +34,16 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider 
     #region Methods
 
     /// <summary>
-    /// Applies the code fix to a member declaration whose body can be formatted safely as a unit
+    /// Applies the code fix to a member declaration whose body can be formatted safely as a unit. A member that shares its
+    /// line with another member is first separated from it, so that both stand on lines of their own (SHARED-FIX-007)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="member">Member declaration whose braces share a line</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The updated document</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, MemberDeclarationSyntax member, CancellationToken cancellationToken)
+    private static Task<Document> ApplyCodeFixAsync(Document document, MemberDeclarationSyntax member, CancellationToken cancellationToken)
     {
-        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, member, cancellationToken).ConfigureAwait(false)).Output;
+        return BlankLineCodeFixUtilities.FormatMemberOnLinesOfItsOwnAsync(document, member, cancellationToken);
     }
 
     /// <summary>
@@ -72,7 +74,8 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider 
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider()
     {
-        return WellKnownFixAllProviders.BatchFixer;
+        // Two members on one line are separated by the fixes of both, so the fixes run one after another
+        return DocumentOrderFixAllProvider.Create(new RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer());
     }
 
     /// <inheritdoc/>

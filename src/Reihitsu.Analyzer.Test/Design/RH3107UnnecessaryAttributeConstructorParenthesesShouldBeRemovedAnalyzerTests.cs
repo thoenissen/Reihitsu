@@ -358,6 +358,34 @@ public class RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnal
         Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
     }
 
+    /// <summary>
+    /// Verifies that removing empty attribute parentheses between two comments leaves one space between the comments
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixLeavesOneSpaceBetweenTheCommentsAroundTheRemovedParentheses()
+    {
+        const string testCode = """
+                                using System;
+
+                                [Obsolete /* a */ {|RH3107:( )|} /* b */]
+                                class C
+                                {
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 [Obsolete /* a */ /* b */]
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

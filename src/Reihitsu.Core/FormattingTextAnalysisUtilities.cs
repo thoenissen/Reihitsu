@@ -305,6 +305,37 @@ public static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
+    /// Determines whether the gap between two adjacent tokens violates single-space operator spacing: it holds nothing
+    /// but spaces and tabs, and it is not exactly one space. A gap with a line break or a comment is no violation
+    /// </summary>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="start">Inclusive start of the gap</param>
+    /// <param name="end">Exclusive end of the gap</param>
+    /// <returns><see langword="true"/> if the gap is a spacing violation</returns>
+    public static bool IsOperatorGapViolation(SourceText sourceText, int start, int end)
+    {
+        if (end <= start)
+        {
+            return true;
+        }
+
+        for (var index = start; index < end; index++)
+        {
+            var character = sourceText[index];
+
+            if (character == '\n'
+                || character == '\r'
+                || (character != ' ' && character != '\t'))
+            {
+                return false;
+            }
+        }
+
+        return end - start != 1
+               || sourceText[start] != ' ';
+    }
+
+    /// <summary>
     /// Determines whether the specified token is part of an interpolated string
     /// </summary>
     /// <param name="token">Token to inspect</param>
@@ -365,36 +396,6 @@ public static class FormattingTextAnalysisUtilities
         {
             lineIndices.Add(lineIndex);
         }
-    }
-
-    /// <summary>
-    /// Determines whether the gap between two adjacent tokens violates single-space operator spacing
-    /// </summary>
-    /// <param name="sourceText">Source text</param>
-    /// <param name="start">Inclusive start of the gap</param>
-    /// <param name="end">Exclusive end of the gap</param>
-    /// <returns><see langword="true"/> if the gap is a spacing violation</returns>
-    private static bool IsOperatorGapViolation(SourceText sourceText, int start, int end)
-    {
-        if (end <= start)
-        {
-            return true;
-        }
-
-        for (var index = start; index < end; index++)
-        {
-            var character = sourceText[index];
-
-            if (character == '\n'
-                || character == '\r'
-                || (character != ' ' && character != '\t'))
-            {
-                return false;
-            }
-        }
-
-        return end - start != 1
-               || sourceText[start] != ' ';
     }
 
     /// <summary>

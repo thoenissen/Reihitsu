@@ -820,6 +820,36 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
         Assert.IsNotEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that the fix that moves a raw string literal onto the line of the opening parenthesis lays out its content
+    /// and closing quotes as formatting the document lays them out
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixLaysOutAMovedRawStringLiteralAsTheFormatterDoes()
+    {
+        const string testCode = """"
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(
+                                            {|RH5101:"""
+                                            a
+                                            """|},
+                                            2);
+                                    }
+
+                                    void M(string s, int a)
+                                    {
+                                    }
+                                }
+                                """";
+
+        await VerifyCodeFixMatchesFormatter(testCode);
+        await VerifyCodeFixMatchesFormatter(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -573,6 +573,185 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that removing a comma behind a space leaves no whitespace at the end of the line, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixLeavesNoTrailingWhitespaceWhereTheCommaStoodBehindASpace()
+    {
+        const string testCode = """
+                                enum E
+                                {
+                                    A,
+                                    B {|RH5409:,|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 enum E
+                                 {
+                                     A,
+                                     B
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+        AssertFormattingChangesNothing(fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that removing a comma that starts the line of the closing brace leaves the brace in the column the
+    /// formatter gives it, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixPutsTheClosingBraceBehindARemovedCommaInItsColumn()
+    {
+        const string testCode = """
+                                enum E
+                                {
+                                    A,
+                                    B
+                                    {|RH5409:,|} }
+                                """;
+        const string fixedCode = """
+                                 enum E
+                                 {
+                                     A,
+                                     B
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+        AssertFormattingChangesNothing(fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that removing a comma between a space and a trailing line comment leaves the spaces on both sides of it in front of
+    /// the comment, as the formatter does, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixKeepsTheGapsAroundTheRemovedCommaInFrontOfATrailingLineComment()
+    {
+        const string testCode = """
+                                enum E
+                                {
+                                    A,
+                                    B {|RH5409:,|} // c
+                                }
+                                """;
+        const string fixedCode = """
+                                 enum E
+                                 {
+                                     A,
+                                     B  // c
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+        AssertFormattingChangesNothing(fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that removing a comma that a trailing line comment follows directly leaves the space in front of the comma in front
+    /// of the comment, as the formatter does, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixKeepsTheGapInFrontOfATrailingLineCommentDirectlyBehindTheRemovedComma()
+    {
+        const string testCode = """
+                                enum E
+                                {
+                                    A,
+                                    B {|RH5409:,|}// c
+                                }
+                                """;
+        const string fixedCode = """
+                                 enum E
+                                 {
+                                     A,
+                                     B // c
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+        AssertFormattingChangesNothing(fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that removing a comma between a space and a trailing block comment leaves the spaces on both sides of it in front of
+    /// the comment, as the formatter does, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixKeepsTheGapsAroundTheRemovedCommaInFrontOfATrailingBlockComment()
+    {
+        const string testCode = """
+                                enum E
+                                {
+                                    A,
+                                    B {|RH5409:,|} /* c */
+                                }
+                                """;
+        const string fixedCode = """
+                                 enum E
+                                 {
+                                     A,
+                                     B  /* c */
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+        AssertFormattingChangesNothing(fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that removing a comma that ends its line behind a block comment leaves the comment at the end of the line with no
+    /// whitespace behind it, as the formatter does, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixLeavesNoTrailingWhitespaceWhereTheCommaStoodBehindABlockComment()
+    {
+        const string testCode = """
+                                enum E
+                                {
+                                    A,
+                                    B /* c */ {|RH5409:,|}
+                                }
+                                """;
+        const string fixedCode = """
+                                 enum E
+                                 {
+                                     A,
+                                     B /* c */
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+        AssertFormattingChangesNothing(fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the diagnostics marked in the source and the fix result under LF and under CRLF
+    /// </summary>
+    /// <param name="testCode">The source with markup and LF line endings</param>
+    /// <param name="fixedCode">The fixed source with LF line endings</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyUnderBothLineEndings(string testCode, string fixedCode)
+    {
+        await Verify(testCode, fixedCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
