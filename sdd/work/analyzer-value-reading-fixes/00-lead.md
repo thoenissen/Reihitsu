@@ -37,6 +37,8 @@ Spec author (clarifications only: rule-spec coverage sentences for #1071/#1268, 
 | 5 | Skeptic | RH4009-002 dash clause restating SHARED-DIAG-002 | Keep only the reference; keep the "entries compared as written" sentence, with a test | Skeptic 02 | Follows from unchanged "exactly one of the entries" + SHARED-DIAG-002 | spec author amendment |
 | 6 | Skeptic | #1071 RH4009 implementation | Reuse `NamespaceCasingHelper.GetLocations` rather than a private copy (recommendation to implementer via handover) | Skeptic 02 | Internal | — |
 | 8 | Spec author 03 | RH2109 spec vs. decision 7 gap | Keep the spec as written (not narrowed); the remaining hosts are a known bug carried by the follow-up | A rule spec cannot narrow SHARED-DIAG-003; narrowing would document a defect as intent | Remaining hosts keep `main`'s output | — |
+| 9 | Implementer 05 | RH2109 size against decision 7 | Accept: no new type, 91 non-blank non-doc added lines (< ~100), total production +183/−15 | Within the limit | Internal | d3c005c |
+| 10 | Implementer 05 | Disputed test `VerifyCodeBlockLineInsideInterpolatedRawStringIsNotReported` (`$$` read as markup in the additional file) | Fixture fix, assertion unchanged → fresh test implementer | Implementer proved the assertion holds with markup off | Assertion unchanged | — |
 | 7 | Skeptic | #1289 scope | Narrow option: Razor/HTML comments, `@@`, letter/digit-before-`@` everywhere; C# comments and literals only inside `@code`/`@functions` blocks; C# kinds in `@{ }`, control-flow and expression hosts stay reported → follow-up. Escalation 9 if it exceeds ~100 production lines or needs a new type | Issue instances say "within a code block"; covers common member (multi-line `@* *@` around a block) | Remaining hosts keep today's output | — |
 
 ## Follow-up candidates
@@ -51,4 +53,5 @@ Spec author (clarifications only: rule-spec coverage sentences for #1071/#1268, 
 - 02 skeptic done (11f0710): all four proceed. Output batch asked (Q1 Unicode escape names RH4001/RH4009; Q2 RH4009 with content after root; Q3 RH2109 mid-line `@code`). Answered 1A, 2A, 3A (as recommended).
 - 03 spec author amendment done (38006c8).
 - 04 test implementer done (752f3ac): all four reproduced; 61 failing new tests, 14 guard tests passing.
-- Next: implementer (05).
+- 05 implementer done (d3c005c): 8591/8592 analyzer tests pass; one disputed fixture.
+- Next: test implementer fixture repair (06), then cleaner.
