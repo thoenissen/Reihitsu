@@ -44,6 +44,7 @@ Batch 1 (before test implementer), all answered as recommended:
 | 8 | Skeptic | Brace-fix line endings: SHARED-FIX-008 first vs second paragraph | Second paragraph (withhold in lone-`\r`/mixed documents when the moved body holds a line break), because the body is moved as text, like RH7004 | Mechanism decides; existing helper makes it cheap | Rare documents (lone `\r`/mixed) | — |
 | 9 | Skeptic | RH7309 in lone-`\r`/mixed documents | SHARED-FIX-008 second paragraph: withhold | Moves text without the formatter, like RH7004 | Rare documents | — |
 | 10 | Skeptic | Architecture finding: `ReihitsuFormatter.WriteBackTrailingTrivia` and cleanup/preparation phases both own the end of the target's last line; FMT-PIPE-010 vs SHARED-FIX-008 | Fix narrowly: the brace fixes stop delegating the whole `if` and wrap text (removes them from the class); file the write-back structural change (RH3202 etc., FMT-PIPE-010 alignment) as a follow-up | Cause spans all 29 formatter-delegating fixes, beyond the run's components | The follow-up carries it | — |
+| 11 | Test implementer | RH5011-004 lone-`\r` sentence read literally gives `break;\r\n` (one CRLF, no blank line) | Accept the test's output `break;\n\r            default:` (one `\n` inserted, every input `\r` stays lone, a blank line exists); spec author rewords RH5011-004's sentence after the implementer | The only output that meets RH5011 and SHARED-FIX-008 together | Only all-lone-`\r` documents (rare); no other reading yields a correct fix | 7b3bed7 |
 
 ## Follow-up candidates
 
@@ -58,5 +59,7 @@ Batch 1 (before test implementer), all answered as recommended:
 - Done: spec author 03 (5360bf8): SHARED-BRACE-003 (withholds), RH7309-007, SHARED-ATTR-017 tabs.
 - Done: Q6 answered A.
 - Done: spec author 04 (cf5de70).
-- Now: test implementer 05.
+- Done: test implementer 05 (7b3bed7): 110 red reproductions; RH7004 not reproduced (characterization).
+- Now: implementer 06.
+- Open: spec author rewords RH5011-004 lone-`\r` sentence (decision 11) before the cleaner.
 - Then: test implementer.
