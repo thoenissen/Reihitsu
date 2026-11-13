@@ -4,7 +4,7 @@
 |---|---|
 | Status | Draft |
 | Date | 2026-11 |
-| Affected requirements | SHARED-FIX-007 (changed), SHARED-ORDER-009 (added), SHARED-ORDER-010 (added), RH7004-007 (added), SHARED-DOC-004 (changed: a member or accessor move does not carry a `///` comment behind code), RH3004-006 (clarified: its line rule is SHARED-FIX-007's), RH7102-006, RH7103-007, RH7107-005, RH7108-005, RH7109-006 (changed: list the new refusals), RH7107-004, RH7108-004 (changed: the swap within a one-line accessor list) |
+| Affected requirements | SHARED-FIX-007 (changed), SHARED-ORDER-009 (added), SHARED-ORDER-010 (added), RH7004-007 (added), SHARED-DOC-004 (changed: a member or accessor move does not carry a `///` comment behind code), RH3004-006 (clarified: its line rule is SHARED-FIX-007's; changed: a tab in front of a moving line withholds the block-body fix), RH7102-006, RH7103-007, RH7107-005, RH7108-005, RH7109-006 (changed: list the new refusals), RH7107-004, RH7108-004 (changed: the swap within a one-line accessor list) |
 
 ## What
 
@@ -598,6 +598,44 @@ class C
 
 After: no fix offered.
 
+### A tab in front of a moved line (RH3004)
+
+The statement line starts with one tab followed by eight spaces:
+
+```csharp
+using System;
+
+class C
+{
+    void M()
+    {
+        Action<int> b = delegate (int x)
+        {
+	        Console.WriteLine(x);
+        };
+    }
+}
+```
+
+Before (the tab kept, sixteen spaces written in front of it):
+
+```csharp
+using System;
+
+class C
+{
+    void M()
+    {
+        Action<int> b = (int x) =>
+                        {
+                	        Console.WriteLine(x);
+                        };
+    }
+}
+```
+
+After: no fix offered.
+
 ### A `///` comment behind code documents the moved member (RH7103; the same for RH7102, RH7109)
 
 With the documentation mode `Parse` or `Diagnose`:
@@ -748,6 +786,14 @@ Lead, decision 23. They do not move relative to each other, so keeping their lin
 
 Lead, decisions 19 and 23. A comment line in column 0 is the line RH3004 already keeps; a line that holds code moves, whatever comment stands in front of it. A tab counts as one column, as the rules count it elsewhere (FMT-PIPE-017). A shift to the left that would cut a line off at column 0 is withheld (SHARED-ORDER-010): it is rare, because only a member indented deeper than its slot shifts to the left, and cutting the line off would break the rule that every line moves by the same number of columns. The SHARED-ORDER-010 example gets no fix on `main` either, there because the comment stands inside the declaration (FMT-UNSUP-004).
 
+### A tab in front of a moved line withholds the RH3004 block-body fix
+
+Lead, decision 26; local rare-class refusal (RH3004-006). With one line rule for every fix that moves lines, a tab counts as one column, which shifts RH3004's statements to another place than `main`, where the old shifter counted it as four. Neither output is one a requirement demands, and RH5601 reports tab indentation, so the fix is withheld for that class with a cheap check on the leading whitespace of the moving lines.
+
+### A blank line of moved code is written empty
+
+Lead, decision 27 (SHARED-FIX-007, *Moved code*). A line that holds only whitespace is written empty and stays a blank line. This is `main`'s output for the RH3004 and RH7004 fixes and for member moves, checked with `scripts/apply-fix.sh`; nothing visible changes.
+
 ## Alternatives considered
 
 - **Lines of moved code get the column the formatter gives them** (Q1 B, Q2 B) — rejected by the maintainer: it reformats code the fix only moves, which SHARED-FIX-007 forbids for the code's other layout.
@@ -755,5 +801,7 @@ Lead, decisions 19 and 23. A comment line in column 0 is the line RH3004 already
 - **Withhold the fix for every accessor list on one line** (Q7 A) — rejected by the maintainer: it would withhold the fix for the common shape of a short property, `{ init; get; }` included.
 - **Shift the lines of a multi-line raw string with the statement, or leave them where they are** (Q3 A, B) — rejected by the maintainer for now; a later change may add one.
 - **A comment in column 0 moves with the statements** (Q4 B) — rejected by the maintainer.
+- **RH3004 counts a tab as one column, as the other moves do** — rejected (decision 26): it changes RH3004's output for tab indentation with no requirement demanding it.
+- **RH3004 keeps counting a tab as four columns** — rejected (decision 26): a second counting rule beside SHARED-FIX-007's, in the one owner of the line rule.
 - **Withhold RH7004 for every directive among the moved statements** — rejected: `#if DEBUG` and `#pragma` in method bodies are common code, and the per-line rule is a cheap check.
 - **One shared "move lines by a column delta" helper for RH3004, RH7004, and the ordering fixes** (thoenissen/Reihitsu#1604) — not a behavior; the member and accessor moves need no shift in the common case, and RH3004's rules differ. Left to the implementation.
