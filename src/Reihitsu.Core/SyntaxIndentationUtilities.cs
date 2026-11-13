@@ -229,13 +229,14 @@ public static class SyntaxIndentationUtilities
     /// <summary>
     /// Writes the lines of moved code moved by a number of columns (SHARED-FIX-007, <i>Moved code</i>): every line moves
     /// by the same number of columns, so its lines keep their columns relative to each other, except the lines
-    /// <see cref="KeepsItsColumn"/> keeps in their column. A blank line, which holds only whitespace outside a token, a
-    /// comment, and disabled text, is written empty. Each character counts as one column, a tab included: a right shift
-    /// writes spaces in front of a line, and a left shift removes whitespace characters from its start. A shift is refused
-    /// when a line of the span starts inside a string or a comment that spans lines
-    /// (<see cref="SyntaxNodeUtilities.GetStringsAndCommentsSpanningLines"/>), or is a line of disabled text, none of
-    /// which can move without changing its content, and when a left shift would remove more characters from a moving line
-    /// than whitespace starts it with (SHARED-ORDER-010, RH7004-007); a shift of zero moves no line and is never refused
+    /// <see cref="KeepsItsColumn"/> keeps in their column. A blank line, which holds only whitespace and does not start
+    /// inside a string or a comment that spans lines or in disabled text, is written empty. Each character counts as one
+    /// column, a tab included: a right shift writes spaces in front of a line, and a left shift removes whitespace
+    /// characters from its start. A shift is refused when a line of the span starts inside a string or a comment that
+    /// spans lines (<see cref="SyntaxNodeUtilities.GetStringsAndCommentsSpanningLines"/>), or is a line of disabled text,
+    /// none of which can move without changing its content, and when a left shift would remove more characters from a
+    /// moving line than whitespace starts it with (SHARED-ORDER-010, RH7004-007); a shift of zero moves no line and is
+    /// never refused
     /// </summary>
     /// <param name="root">Root of the document</param>
     /// <param name="text">Text of the document</param>

@@ -65,11 +65,12 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
     /// and code follows it on its line, the block is empty and the text behind the semicolon stays behind the block. Every
     /// line break the fix writes is the document's line ending (SHARED-FIX-008). The changes are refused when a line of the
     /// statements cannot move, a tab stands in front of the declaration or of a moving line, or the first statement starts
-    /// on the line of the declaration (RH7004-007), when the statements hold a line break other than the document's line
-    /// ending (SHARED-FIX-008), when a comment or directive stands in front of the semicolon, which would end up on a line
-    /// of its own in front of the closing parenthesis, and when code stands in front of the declaration on its line or the
-    /// last statement shares its line with the closing brace of the block, where the new braces would need a line break
-    /// the author did not write
+    /// on the line of the declaration (RH7004-007), when the code the fix rewrites, from the declaration through the end of
+    /// the statements and the declaration's trailing line break included, holds a line break other than the document's
+    /// line ending (SHARED-FIX-008), when a comment or directive stands in front of the semicolon, which would end up on
+    /// a line of its own in front of the closing parenthesis, and when code stands in front of the declaration on its
+    /// line or the last statement shares its line with the closing brace of the block, where the new braces would need a
+    /// line break the author did not write
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="usingDeclaration">Using declaration</param>
@@ -109,6 +110,14 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
         }
 
         var endOfLine = LineEndingUtilities.DetectEndOfLine(root);
+
+        // The fix rewrites the declaration and, on either path, everything from it through the end of the moved code,
+        // the declaration's trailing line break included
+        if (LineEndingUtilities.HoldsOtherLineBreak(text, TextSpan.FromBounds(usingDeclaration.SpanStart, movedSpan.End), endOfLine))
+        {
+            return false;
+        }
+
         var openParenChange = new TextChange(new TextSpan(usingDeclaration.Declaration.SpanStart, 0), "(");
 
         if (lines.GetLineFromPosition(movedSpan.Start).Start != movedSpan.Start)
@@ -129,7 +138,6 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
         }
 
         if (lines.GetLineFromPosition(movedSpan.End).Start != movedSpan.End
-            || LineEndingUtilities.HoldsOtherLineBreak(text, movedSpan, endOfLine)
             || SyntaxIndentationUtilities.HoldsTabInFrontOfMovingLine(root, text, movedSpan)
             || SyntaxIndentationUtilities.TryShiftMovedLines(root, text, movedSpan, IndentationSize, out var movedText) == false)
         {
