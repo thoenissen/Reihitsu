@@ -28,9 +28,6 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesCodeFixProv
     protected override TargetAttributeListShapeMode ListShapeMode => TargetAttributeListShapeMode.MergedList;
 
     /// <inheritdoc/>
-    protected override TargetAttributePlacementMode DefaultPlacementMode => TargetAttributePlacementMode.SingleLine;
-
-    /// <inheritdoc/>
     protected override string CodeFixTitle => CodeFixResources.RH5529Title;
 
     #endregion // TargetAttributeListShapeCodeFixProviderBase

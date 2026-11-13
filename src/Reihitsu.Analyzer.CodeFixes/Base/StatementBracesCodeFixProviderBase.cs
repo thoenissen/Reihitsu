@@ -22,15 +22,6 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// </summary>
 public abstract class StatementBracesCodeFixProviderBase : CodeFixProvider
 {
-    #region Constants
-
-    /// <summary>
-    /// One indentation level, written in front of a body that moves off the line of its header
-    /// </summary>
-    private const string IndentationLevel = "    ";
-
-    #endregion // Constants
-
     #region Fields
 
     /// <summary>
@@ -173,10 +164,7 @@ public abstract class StatementBracesCodeFixProviderBase : CodeFixProvider
                                 ? CreateOpeningChangeOnHeaderLine(text, headerEnd, firstToken, indentation, endOfLine)
                                 : CreateOpeningChangeBelowHeader(text, headerLineBreak, firstToken, indentation, endOfLine);
 
-        if (TryCreateClosingChange(text, body, lastToken, trailingLineBreakIndex, indentation, endOfLine, out var closingChange) == false)
-        {
-            return false;
-        }
+        var closingChange = CreateClosingChange(text, body, lastToken, trailingLineBreakIndex, indentation, endOfLine);
 
         changes = [openingChange, closingChange];
 
@@ -237,7 +225,7 @@ public abstract class StatementBracesCodeFixProviderBase : CodeFixProvider
         var gap = TextSpan.FromBounds(headerEnd.Span.End, firstToken.SpanStart);
         var headerTail = text.ToString(gap).TrimEnd(' ', '\t');
 
-        return new TextChange(gap, $"{headerTail}{endOfLine}{indentation}{{{endOfLine}{indentation}{IndentationLevel}");
+        return new TextChange(gap, $"{headerTail}{endOfLine}{indentation}{{{endOfLine}{indentation}{new string(' ', SyntaxIndentationUtilities.IndentSize)}");
     }
 
     /// <summary>
@@ -268,9 +256,10 @@ public abstract class StatementBracesCodeFixProviderBase : CodeFixProvider
 
     /// <summary>
     /// Creates the change behind the body. A body whose line ends behind it, and behind the comments and whitespace that
-    /// follow it, gets the closing brace on the line below. Otherwise the closing brace takes the next line, and the code
-    /// behind the body follows: the <c>else</c> of the same <c>if</c> statement behind the brace on its line, and any
-    /// other code on the line below it
+    /// follow it, gets the closing brace on the line below. A body that ends the document without a line break behind it
+    /// gets the closing brace on a new last line, with nothing behind it. Otherwise the closing brace takes the next line,
+    /// and the code behind the body follows: the <c>else</c> of the same <c>if</c> statement behind the brace on its line,
+    /// and any other code on the line below it
     /// </summary>
     /// <param name="text">Source text</param>
     /// <param name="body">The body</param>
@@ -278,15 +267,12 @@ public abstract class StatementBracesCodeFixProviderBase : CodeFixProvider
     /// <param name="trailingLineBreakIndex">The index of the line break in the trailing trivia of the last token, or a negative value</param>
     /// <param name="indentation">The whitespace in front of the braces</param>
     /// <param name="endOfLine">The document's line ending</param>
-    /// <param name="change">The text change</param>
-    /// <returns><see langword="true"/> when the change could be created; otherwise, <see langword="false"/></returns>
-    private static bool TryCreateClosingChange(SourceText text, StatementSyntax body, SyntaxToken lastToken, int trailingLineBreakIndex, string indentation, string endOfLine, out TextChange change)
+    /// <returns>The text change</returns>
+    private static TextChange CreateClosingChange(SourceText text, StatementSyntax body, SyntaxToken lastToken, int trailingLineBreakIndex, string indentation, string endOfLine)
     {
         if (trailingLineBreakIndex >= 0)
         {
-            change = new TextChange(new TextSpan(lastToken.TrailingTrivia[trailingLineBreakIndex].Span.End, 0), $"{indentation}}}{endOfLine}");
-
-            return true;
+            return new TextChange(new TextSpan(lastToken.TrailingTrivia[trailingLineBreakIndex].Span.End, 0), $"{indentation}}}{endOfLine}");
         }
 
         var nextToken = lastToken.GetNextToken();
@@ -294,9 +280,7 @@ public abstract class StatementBracesCodeFixProviderBase : CodeFixProvider
         if (nextToken.IsKind(SyntaxKind.None)
             || nextToken.IsKind(SyntaxKind.EndOfFileToken))
         {
-            change = default;
-
-            return false;
+            return new TextChange(new TextSpan(lastToken.FullSpan.End, 0), $"{endOfLine}{indentation}}}");
         }
 
         var tail = TextSpan.FromBounds(lastToken.Span.End, nextToken.SpanStart);
@@ -304,11 +288,9 @@ public abstract class StatementBracesCodeFixProviderBase : CodeFixProvider
         var isElseOfSameStatement = body.Parent is IfStatementSyntax { Else: { } elseClause }
                                     && elseClause.ElseKeyword == nextToken;
 
-        change = isElseOfSameStatement
-                     ? new TextChange(tail, $"{bodyTail}{endOfLine}{indentation}}} ")
-                     : new TextChange(tail, $"{bodyTail}{endOfLine}{indentation}}}{endOfLine}{indentation}");
-
-        return true;
+        return isElseOfSameStatement
+                   ? new TextChange(tail, $"{bodyTail}{endOfLine}{indentation}}} ")
+                   : new TextChange(tail, $"{bodyTail}{endOfLine}{indentation}}}{endOfLine}{indentation}");
     }
 
     #endregion // Methods
