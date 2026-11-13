@@ -31,6 +31,11 @@ Batch 1 (asked as chat questions 1–6; skeptic/spec-author IDs in brackets):
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 19 | Implementer 07 | Arch finding 1: moved-line rule in both `SyntaxIndentationUtilities.TryShiftMovedLines` and RH3004's private shifter; they disagree on `/* x */ Foo();` in column 0 | One owner: RH3004 uses the shared helper, its private copy is deleted; the helper's rule is RH3004's (only a line that holds nothing but a comment keeps column 0, per SHARED-FIX-007 "comment line"). Pending escalation 9 answer | The run added the copy (README Architecture findings: change structure in this run); RH3004 is the counterpart #1604 names | RH3004 output unchanged; `/* x */ Foo();` is a code line, SHARED-FIX-007 decides | — |
+| 20 | Implementer 07 | Arch finding 2 / dead code: old `MoveNodeBeforePreservingSeparators`, `MoveMemberBefore`, `MoveAccessorBefore` only called by Core tests | Delete helpers and their Core tests | Second statement of the separator rule; dead code | Internal | — |
+| 21 | Implementer 07 | Unspecified rare refusals (RH7004: code before the declaration on its line; last statement on the `}` line; comment/directive before `;`. Moves: target leading trivia starting behind code) | Accept as rare-class refusals; spec author records them; test implementer fixes the stale summary/tag of `NoFixIsOfferedForACommentInFrontOfTheSemicolon` | Rare classes (other rules report them) | Rare-class refusal | 9a3dded |
+| 22 | Implementer 07 | Layout choice: a `///` comment behind code that travels with the moved declaration is put on its own line | Withhold instead (decides a line break; Q1 whole-line rule) | Maintainer's Q1 addition | Covered by Q1 answer | — |
+| 23 | Implementer 07 | Other open layout choices (crossed declarations sharing a line move as a block; blank-line join keeps the first blank lines; tab = one column) | Accept; spec author records where a spec leaves it open | Whole-line moves; rare inputs | Rare / covered by Q1, Q5 | 9a3dded |
 | 15 | Test implementer 05 | SHARED-FIX-003 RH7004 example ("offered with and without DEBUG") vs RH7004-007 | RH7004-007 wins; spec author corrects the SHARED-FIX-003 sentence | Decision 4 | Rare-class refusal, decided | — |
 | 16 | Test implementer 05 | RH7302-005 example span ends before trailing spaces vs RH7302-003 | RH7302-003 wins; spec author corrects the example markup | Unchanged requirement decides | Decided by RH7302-003 | — |
 | 17 | Test implementer 05 | Column-0 comment in the moved declaration's own leading trivia with non-zero shift (SHARED-ORDER-002 vs SHARED-FIX-007) | SHARED-FIX-007's line rule applies (keeps column 0); spec author states it; no extra test (rare: non-zero shift needs a misindented member, RH5204) | One per-line rule, no special case | Rare class | — |
@@ -55,6 +60,7 @@ Batch 1 (asked as chat questions 1–6; skeptic/spec-author IDs in brackets):
 - RH3004 fix offered for blocks with multi-line raw string literals (behavior change; from #1604 goal) — 01-spec-author.md
 - SHARED-FIX-003 ("indentation of its lines" is layout) vs FMT-INDENT-007 (a `/* */` comment's later lines are text) read differently — 02-skeptic.md
 - RH7004 fix for moved statements holding multi-line strings / `/* */` comments (maintainer answer Q3: withheld now; implementation possible later if proportionate) — 00-lead.md
+- (none from 07 beyond decisions 19/20, carried out in this run)
 
 ## Audited SHA
 
@@ -70,6 +76,7 @@ Batch 1 (asked as chat questions 1–6; skeptic/spec-author IDs in brackets):
 - Done: spec author 04 (6de86b6): Q7 B in specs. Change doc accepted by the lead.
 - Done: test implementer 05 (5bd3a7b): all reproduced; #1604 (d) not reproduced (characterization). 98 failing tests.
 - Done: spec author 06 (c3c16cf).
-- Next: implementer 07.
+- Done: implementer 07 (9a3dded, 10c718c): all tests pass; +700/-242 production, ~470 in three Core helpers.
+- Asked escalation 9 (size) to the maintainer; waiting. After the answer: repair-like structural round (decisions 19–23) — spec author, test implementer, implementer — then cleaner.
 - (old) Next: fresh spec author writes the answers into the specs (and change doc if sdd/README requires one); then test implementer.
 - (old) Next after answers: then batch Q1–Q3 (+ skeptic's) to the maintainer before the test implementer.
