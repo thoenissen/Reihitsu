@@ -2854,10 +2854,12 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
     public async Task FixWrapsABodyOnTheLineOfItsIfThatEndsTheDocument(string endOfLine)
     {
         const string testCode = """
-                                if (args.Length > 0) {|RH5405:System.Console.WriteLine();|}
+                                var count = args.Length;
+                                if (count > 0) {|RH5405:System.Console.WriteLine();|}
                                 """;
         const string fixedCode = """
-                                 if (args.Length > 0)
+                                 var count = args.Length;
+                                 if (count > 0)
                                  {
                                      System.Console.WriteLine();
                                  }
@@ -2907,10 +2909,12 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
     public async Task FixKeepsTrailingWhitespaceOfABodyThatEndsTheDocumentOnTheBodyLine(string endOfLine)
     {
         var testCode = ExpandWhitespaceMarkers("""
-                                               if (args.Length > 0) {|RH5405:System.Console.WriteLine();|}···
+                                               var count = args.Length;
+                                               if (count > 0) {|RH5405:System.Console.WriteLine();|}···
                                                """);
         var fixedCode = ExpandWhitespaceMarkers("""
-                                                if (args.Length > 0)
+                                                var count = args.Length;
+                                                if (count > 0)
                                                 {
                                                     System.Console.WriteLine();···
                                                 }
