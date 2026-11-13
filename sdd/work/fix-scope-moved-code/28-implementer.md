@@ -14,7 +14,7 @@ Structural round for lead decisions 43 and 44 (auditor 26 findings #2, #4, #5 an
 `rg -n "HoldsOtherLineBreak" src --glob '!*Test*'`: one predicate in `LineEndingUtilities`; callers `OrderingMoveSafety` (its `TextChange` span), RH3004 (`block.Span`), RH7004 (now declaration start through moved end, which covers every `TextChange` it emits: `(` at `Declaration.SpanStart`, the semicolon, and `movedSpan`).
 
 ## Production diff size
-Against `origin/main`: 17 files changed, about +812 / −580 after this commit (803/579 before). Delta of this round: 2 files, +22 / −13. No new type or member.
+Against `origin/main`: 17 files changed, +812 / −579 after this commit (803/579 before). Delta of this round: 2 files, +22 / −13. No new type or member.
 
 ## Deleted special cases
 _N/A._
