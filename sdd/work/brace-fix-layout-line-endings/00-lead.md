@@ -94,3 +94,4 @@ Batch 1 (before test implementer), all answered as recommended:
 - Spec author 22 done (3a9cf55). Now test implementer 23.
 - Test implementer 23 done (53cbf20; 4 red). Now implementer 24.
 - Implementer 24 done (247db7c). Now cleaner 25.
+- Cleaner 25 clean. Now spec checker 26.
