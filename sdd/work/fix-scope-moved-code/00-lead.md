@@ -18,7 +18,13 @@
 
 ## Maintainer answers
 
-(none yet)
+Batch 1 (asked as chat questions 1–6; skeptic/spec-author IDs in brackets):
+- Q1 [Q1] member/accessor moves (RH7102/7103/7107/7108/7109): **A** — moved lines keep their written columns (shift = the member's first line's shift). Added: a move must always be a full-line move; any move that goes beyond moving whole lines (e.g. a member sharing a line with another member or token) is not offered — withhold the fix.
+- Q2 [Q2] RH7004 continuation lines: **A** — a plain shift of every moved line by one level.
+- Q3 [Q5a/W2] RH7004 with a string literal or `/* */` comment spanning lines in the moved statements: **C** — withhold the fix. A (shift raw-string lines) would also be acceptable only at no additional cost; it is not taken.
+- Q4 [Q5b] RH7004 comment in column 0 among moved statements: **A** — stays in column 0.
+- Q5 [Q4] RH7303 blank line at the edge of any braces (initializer, accessor list, switch): **A** — removed.
+- Q6 [Q3] RH7302 trailing whitespace behind the `#region` description: **A** — the `#endregion // members` is still renamed.
 
 ## Decisions taken
 
@@ -38,6 +44,7 @@
 
 - RH3004 fix offered for blocks with multi-line raw string literals (behavior change; from #1604 goal) — 01-spec-author.md
 - SHARED-FIX-003 ("indentation of its lines" is layout) vs FMT-INDENT-007 (a `/* */` comment's later lines are text) read differently — 02-skeptic.md
+- RH7004 fix for moved statements holding multi-line strings / `/* */` comments (maintainer answer Q3: withheld now; implementation possible later if proportionate) — 00-lead.md
 
 ## Audited SHA
 
@@ -48,4 +55,6 @@
 - Done: spec author 01 (57f49a2): clarifications RH7302-005, RH7303-004; output questions Q1–Q3; withholding options W1, W2.
 - Done: skeptic 02 (66fa78d): all premises real; extra Q4, Q5a, Q5b.
 - Asked batch 1 (Q1–Q5) to the maintainer; waiting.
-- Next after answers: then batch Q1–Q3 (+ skeptic's) to the maintainer before the test implementer.
+- Answers received (see Maintainer answers).
+- Next: fresh spec author writes the answers into the specs (and change doc if sdd/README requires one); then test implementer.
+- (old) Next after answers: then batch Q1–Q3 (+ skeptic's) to the maintainer before the test implementer.
