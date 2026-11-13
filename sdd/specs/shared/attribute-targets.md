@@ -537,7 +537,7 @@ Example: see SHARED-ATTR-013 and SHARED-ATTR-015.
 
 The code fix of a rule that requires one attribute per list MUST replace the reported list with one list per attribute, in the order the attributes were written, each list with the reported list's specifier, and MUST change nothing else (SHARED-FIX-006). The first list stays where the reported list starts. Each list after the first MUST start a new line, behind the whitespace that stands at the start of the line on which the reported list starts, as written. What stands in front of the reported list on its line — a comment or another attribute list — stays in front of the first list, and what follows the reported list on its line — a comment, whitespace, another attribute list, or the declaration the list belongs to — stays behind the last list. The line breaks between the new lists are the only line breaks the fix writes, and they MUST use the line ending SHARED-FIX-008 specifies.
 
-This holds wherever the list stands: every other line, its indentation, the comments and directives on it, and whitespace at the end of a line stay as written, also where the braces around the list are indented differently from the list, a comment or a directive above or below the list stands in another column, a line ends in whitespace, or the list shares its line with other code. This requirement covers a list whose line has only spaces in front of its first character.
+This holds wherever the list stands: every other line, its indentation, the comments and directives on it, and whitespace at the end of a line stay as written, also where the braces around the list are indented differently from the list, a comment or a directive above or below the list stands in another column, a line ends in whitespace, or the list shares its line with other code. The whitespace in front of each further list is a copy of the whitespace at the start of the reported list's line, character for character, also where it holds a tab: the fix neither replaces a tab with spaces nor counts it as a column.
 
 Why: The fix makes only the change the diagnostic asks for: the attributes keep their order and their target, and each further attribute gets a line of its own at the indentation the reported list's line already has. The code around the list is a layout the author chose, and placing the declaration or a neighbouring list on a line of its own is the job of the placement rules, which report it on their own.
 
@@ -706,6 +706,31 @@ class C
 ```
 
 The list in front of the reported one, the list behind it, the comment, and the declaration stay where they are; the placement rules report the lists and declarations that now share a line, such as RH5513 for `[D2] void M()`. For RH5506, `[A, B] class C` becomes `[A]` and `[B] class C` in the same way, which RH5505 then reports.
+
+Example — RH5514, a tab-indented list: in the input below, `→` stands for a tab, and the class braces are in column 0.
+
+```csharp
+class C
+{
+→{|RH5514:[A, B]|}
+→void M()
+→{
+→}
+}
+```
+
+```csharp
+class C
+{
+→[A]
+→[B]
+→void M()
+→{
+→}
+}
+```
+
+`[B]` starts behind a tab, as `[A]` does, and the tabs in front of the declaration and the method braces stay. With a line that starts with a tab and four spaces, `[B]` starts behind a tab and four spaces.
 
 Example — line endings: in a document whose line breaks are all CRLF, the line break the fix inserts between `[A]` and `[B]` is CRLF, and every other line break stays as it was. In a document whose line breaks are all a lone `\r`, the inserted line break is `\n`.
 
