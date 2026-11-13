@@ -48,6 +48,7 @@ Batch 1 (before test implementer), all answered as recommended:
 | 11 | Test implementer | RH5011-004 lone-`\r` sentence read literally gives `break;\r\n` (one CRLF, no blank line) | Accept the test's output `break;\n\r            default:` (one `\n` inserted, every input `\r` stays lone, a blank line exists); spec author rewords RH5011-004's sentence after the implementer | The only output that meets RH5011 and SHARED-FIX-008 together | Only all-lone-`\r` documents (rare); no other reading yields a correct fix | 7b3bed7 |
 | 12 | Implementer | 13 `FixAllCorrectsEveryDiagnostic` tests (RH5502…RH5531 except RH5514) assert `[Second]⏎[Third]` | Tests are wrong; align to SHARED-ATTR-017 (`[Second] [Third]`) and the iteration count as RH5514's was — test implementer repair | Maintainer answer #1109 Q1 reading A (only the reported list changes) decides it | Covered by a maintainer answer | — |
 | 13 | Implementer | Multi-line header (`if (a &&⏎ b) M();`): "on the header line" read by the header's last line (`)`/`else`), not the `if` keyword's line | Accept the implementer's reading; spec author words SHARED-BRACE-002/003 by the header's last line | The literal reading would put `{` inside the condition | Spec wording; the one output that compiles sensibly | 0d126cf |
+| 14 | Spec author 07 | Scope of answer 7's withhold | SHARED-ATTR-022: withheld whenever the accessor list's `{` stands on the reported list's line (broader than a one-line accessor list) | Same cause of the odd output, cheaper check, the only shape RH5531 meets | Withholding a fix for a rare class; the output is the one the maintainer chose | 2fa97c8 |
 
 ## Follow-up candidates
 
@@ -65,6 +66,7 @@ Batch 1 (before test implementer), all answered as recommended:
 - Done: test implementer 05 (7b3bed7): 110 red reproductions; RH7004 not reproduced (characterization).
 - Done: implementer 06 (0d126cf): 110 pass; 15 disputed tests.
 - Done: answer 7 = B.
-- Now: spec author 07 (answer 7 into SHARED-ATTR-017; decisions 11, 13 wording), then test implementer 08 (decision 12, answer 7 tests), then implementer 09 (answer 7 withhold), then cleaner.
+- Done: spec author 07 (2fa97c8): SHARED-ATTR-022.
+- Now: test implementer 08 (decision 12, answer 7 tests), then implementer 09 (answer 7 withhold), then cleaner.
 - Open: spec author rewords RH5011-004 lone-`\r` sentence (decision 11) before the cleaner.
 - Then: test implementer.
