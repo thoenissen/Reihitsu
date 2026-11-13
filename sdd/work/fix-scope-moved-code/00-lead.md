@@ -4,7 +4,7 @@
 - Slug: `fix-scope-moved-code`
 - Branch: `claude/dreamy-planck-yry5n0` (session-mandated branch, see Decisions #1)
 - Draft PR: thoenissen/Reihitsu#1688
-- Lane: **bug fix**
+- Lane: **behavior change** (widened from bug fix, decision 10)
   - #969: observed vs. expected — member-ordering fixes (RH7102/RH7103/RH7109) reformat the whole type against FMT-PIPE-010/011.
   - #1335: observed vs. expected — RH7004, RH7104–RH7108 fixes change code beyond the node they rewrite or move (SHARED-FIX-006/007, P14a/P26).
   - #1263: observed vs. expected — RH7303/RH7310 fixes leave a blank line after removing a region (P14c, SHARED-FIX-007).
@@ -30,6 +30,11 @@ Batch 1 (asked as chat questions 1–6; skeptic/spec-author IDs in brackets):
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 10 | Spec author 03 | Change doc `sdd/changes/2026-11/moved-code-keeps-its-lines.md` required (#969, #1335, #1604) | Widen lane bug fix → behavior change; lane check confirms | Answers give output that is not today's behavior and add refusals | Visible changes all answered by the maintainer (batch 1) | 0a3211b |
+| 11 | Spec author 03 | Second skeptic pass on the amended specs? | No; accept change doc once Q7 is answered and written; spec checker and auditor check it | The amendment carries out maintainer answers; skeptic already ran on the premise | Internal process | — |
+| 12 | Spec author 03 | RH7004 withheld when a statement starts on the declaration's line | Accept (rare: RH5103 reports it; main writes `}     }`) | Rare-class refusal | Rare-class refusal | 0a3211b |
+| 13 | Spec author 03 | SHARED-ORDER-010 (non-zero shift + spanning string/comment/disabled text withheld) | Accept as rare-class refusal (RH5204 reports misindented members) | Rare class | Rare-class refusal | 0a3211b |
+| 14 | Spec author 03 | Column rule limited to member/accessor moves and RH7004; #1263/#1151 clarifications without change doc | Accept | Run's issues only; clarifications of unchanged requirements | Q5/Q6 answered | 0a3211b |
 | 3 | Skeptic | #1604 goal: one shared "move lines by a column delta" helper used by RH3004, RH7004, member-ordering fixes | Dropped | RH3004's shifter covers none of RH7004's hard classes (02-skeptic); member-ordering fixes need no shifter under Q1 A; a shared extraction would exceed ~100 lines | Internal structure | — |
 | 4 | Skeptic | RH7004 moved statements holding disabled text | Withhold the fix (rare class, local refusal, W1) | AGENTS.md Code-fix coverage; rare | Rare-class refusal puts nothing in question | — |
 | 5 | Skeptic | RH7004 moved statements holding directives | Keep the fix; cheap per-line rule: non-region directives stay in column 0, region directives move with the code | Cheap check on the line's first trivia; `#pragma`/`#if` in bodies is not rare | Directive position decided by SHARED-FIX-003/007 | — |
@@ -56,5 +61,7 @@ Batch 1 (asked as chat questions 1–6; skeptic/spec-author IDs in brackets):
 - Done: skeptic 02 (66fa78d): all premises real; extra Q4, Q5a, Q5b.
 - Asked batch 1 (Q1–Q5) to the maintainer; waiting.
 - Answers received (see Maintainer answers).
-- Next: fresh spec author writes the answers into the specs (and change doc if sdd/README requires one); then test implementer.
+- Done: spec author 03 (0a3211b): specs + change doc; open Q7 (one-line accessor lists). Asked Q7 to the maintainer; waiting.
+- Next after Q7: route Q7 answer to spec author (continue/fresh), then test implementer.
+- (old) Next: fresh spec author writes the answers into the specs (and change doc if sdd/README requires one); then test implementer.
 - (old) Next after answers: then batch Q1–Q3 (+ skeptic's) to the maintainer before the test implementer.
