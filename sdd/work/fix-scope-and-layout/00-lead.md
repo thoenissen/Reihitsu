@@ -52,6 +52,9 @@ The maintainer raised no objection to the narrowing of #1140 and the withheld ra
 | 9 | Skeptic | #1094 Q3 (attribute list in a block not at its depth column) / Q4 | Q3: withhold the fix when the innermost enclosing brace is not at four spaces per scope (SHARED-ATTR-008's own boundary). Q4: drop, characterization test (output decided in #1030 Q4). Q2: fix | Rare class; Q4 already decided output | Withholding for a rare class; Q4 unchanged | — |
 | 10 | Skeptic | #1144 `else if` brace column vs #1416 | Fixed here under SHARED-FIX-007; #1416 (SHARED-BRACE-002 wording) stays its own issue | SHARED-FIX-007 decides the column already | Unchanged requirement decides it | — |
 | 11 | Skeptic | #1561 | Analyzer fix: RH5204 uses SHARED-BLANK-008 (`StartsLine`); no spec clarification | RH5204-001 + SHARED-BLANK-008 already decide "not reported" | Bug fix back to unchanged requirement | — |
+| 12 | Spec author | RH5204-006: a wrapped continuation line below the reported line keeps its column | Accept: covered by answer 1A ("only the reported line moves"); RH5203 reports the continuation separately | Literal reading of the maintainer's answer | Covered by maintainer answer 1 | b92e71f |
+| 13 | Spec author | Change doc for the rewritten RH5204-006 and RH5203-003 | None; lane stays bug fix | Both rewrites align a rule requirement to unchanged shared requirements the maintainer already decided (SHARED-FIX-006/P9 for RH5204; SHARED-FIX-007/P10 and #1123 Q1 for RH5203), as triage J2 on #1140 prescribes; the answers are recorded in the specs and here | Covered by maintainer answers 1 and 2 | b92e71f |
+| 14 | Spec author | RH5103-005 defined by brace position; SHARED-ATTR-021 measures the brace's line | Accept | Keeps common inputs (`M(); M(); M();`, `void M() {`) fixable | Narrower withholding than decided; rare class only | b92e71f |
 
 ## Follow-up candidates
 
@@ -61,4 +64,5 @@ The maintainer raised no objection to the narrowing of #1140 and the withheld ra
 ## Worklist / next step
 
 - Skeptic done (01-skeptic.md, 2402f9b). Answers received (1A 2A 3A 4A). Was waiting for maintainer: output questions RH5204 scope, RH5203 comment line; escalation 4 (#1393); escalation 10 (#1561 shape); confirmation of narrowing #1140 (shown for visibility).
-- Next: spec author (clarifications RH5204-006, RH5203-003 per answer, RH5103-003 withheld class, RH5205 withheld class, RH5513/SHARED-ATTR withheld class), then test implementer.
+- Spec author done (02-spec-author.md, b92e71f); lane check confirmed bug-fix.
+- Next: test implementer. (old: spec author (clarifications RH5204-006, RH5203-003 per answer, RH5103-003 withheld class, RH5205 withheld class, RH5513/SHARED-ATTR withheld class), then test implementer.
