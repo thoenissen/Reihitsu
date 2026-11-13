@@ -24,6 +24,7 @@ Batch 1 (asked as chat questions 1–6; skeptic/spec-author IDs in brackets):
 - Q3 [Q5a/W2] RH7004 with a string literal or `/* */` comment spanning lines in the moved statements: **C** — withhold the fix. A (shift raw-string lines) would also be acceptable only at no additional cost; it is not taken.
 - Q4 [Q5b] RH7004 comment in column 0 among moved statements: **A** — stays in column 0.
 - Q5 [Q4] RH7303 blank line at the edge of any braces (initializer, accessor list, switch): **A** — removed.
+- Q7 RH7107/RH7108 accessor list on one line: **B** — accessors swap places within the line; SHARED-ORDER-009 gains "or the whole accessor list stands on one line"; RH7107-004 unchanged.
 - Q6 [Q3] RH7302 trailing whitespace behind the `#region` description: **A** — the `#endregion // members` is still renamed.
 
 ## Decisions taken
@@ -61,7 +62,7 @@ Batch 1 (asked as chat questions 1–6; skeptic/spec-author IDs in brackets):
 - Done: skeptic 02 (66fa78d): all premises real; extra Q4, Q5a, Q5b.
 - Asked batch 1 (Q1–Q5) to the maintainer; waiting.
 - Answers received (see Maintainer answers).
-- Done: spec author 03 (0a3211b): specs + change doc; open Q7 (one-line accessor lists). Asked Q7 to the maintainer; waiting.
+- Done: spec author 03 (0a3211b): specs + change doc; open Q7 (one-line accessor lists). Q7 answered B.
 - Next after Q7: route Q7 answer to spec author (continue/fresh), then test implementer.
 - (old) Next: fresh spec author writes the answers into the specs (and change doc if sdd/README requires one); then test implementer.
 - (old) Next after answers: then batch Q1–Q3 (+ skeptic's) to the maintainer before the test implementer.
