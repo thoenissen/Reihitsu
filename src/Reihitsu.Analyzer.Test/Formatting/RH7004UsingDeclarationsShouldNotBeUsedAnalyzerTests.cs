@@ -2561,6 +2561,53 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
         await Verify(source, fixedSource);
     }
 
+    /// <summary>
+    /// Verifying that a blank line that holds whitespace among the moved statements stays a blank line and is written
+    /// empty
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task WhitespaceOnlyLineAmongTheMovedStatementsIsWrittenEmpty(string endOfLine)
+    {
+        var source = ExpandWhitespaceMarkers("""
+                                             using System.IO;
+
+                                             class C
+                                             {
+                                                 void M()
+                                                 {
+                                                     {|RH7004:using|} var s = new MemoryStream();
+                                                     s.Flush();
+                                             ········
+                                                     s.Close();
+                                                 }
+                                             }
+                                             """);
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var s = new MemoryStream())
+                                           {
+                                               s.Flush();
+
+                                               s.Close();
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
     #endregion // Tests
 
     #region Methods
