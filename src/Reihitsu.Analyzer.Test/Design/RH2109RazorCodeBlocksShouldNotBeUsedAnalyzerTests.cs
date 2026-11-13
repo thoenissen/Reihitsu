@@ -245,14 +245,14 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Verifying that code-block text inside an HTML comment, a Razor comment, a C# block comment, and a C# string of a
-    /// <c>.razor</c> file is not reported, while the real directive is
+    /// Characterizes code-block text in comments and strings: the text inside an HTML comment, a Razor comment, and
+    /// behind other characters in a C# string is not reported, while a line-starting <c>@code {</c> inside a C# block
+    /// comment of a code block is reported like the real directive, because C# comments and literals of a code block
+    /// are read like the rest of the file. This test pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH2109-001")]
-    [Requirement("SHARED-DIAG-003")]
-    public async Task VerifyCodeBlockTextInCommentsAndStringsIsNotReported()
+    public async Task VerifyCodeBlockLineInsideCSharpBlockCommentIsReportedWhileTextInMarkupCommentsIsNot()
     {
         const string razorSource = """
                                    <!-- @code { -->
@@ -267,18 +267,19 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
 
         await Verify(TestCode,
                      test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
-                     RazorCodeBlockSpan("Counter.razor", 3, 1));
+                     RazorCodeBlockSpan("Counter.razor", 3, 1),
+                     RazorCodeBlockSpan("Counter.razor", 5, 5));
     }
 
     /// <summary>
-    /// Verifying that code-block text inside a C# block comment, a C# string literal, and a C# raw string literal of a
-    /// <c>.razor</c> code block is not reported, while the directive of the block is
+    /// Characterizes code-block text in C# comments and literals of a code block: a line-starting <c>@code {</c> inside
+    /// a C# block comment and inside a C# raw string literal is reported, while the text behind other characters in a
+    /// C# string literal is not, because C# comments and literals of a code block are read like the rest of the file.
+    /// This test pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH2109-001")]
-    [Requirement("SHARED-DIAG-003")]
-    public async Task VerifyCodeBlockTextInCSharpCommentAndStringLiteralsIsNotReported()
+    public async Task VerifyCodeBlockLinesInCSharpCommentAndRawStringAreReported()
     {
         const string razorSource = """"
                                    @code {
@@ -294,7 +295,9 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
 
         await Verify(TestCode,
                      test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
-                     RazorCodeBlockSpan("Counter.razor", 1, 1));
+                     RazorCodeBlockSpan("Counter.razor", 1, 1),
+                     RazorCodeBlockSpan("Counter.razor", 3, 5),
+                     RazorCodeBlockSpan("Counter.razor", 7, 1));
     }
 
     /// <summary>
@@ -493,14 +496,13 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Verifying that a code-block line inside a multi-line C# documentation block comment within a code block is not
-    /// reported
+    /// Characterizes a code-block line inside a multi-line C# documentation block comment within a code block: it is
+    /// reported, because C# comments and literals of a code block are read like the rest of the file. This test pins
+    /// today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH2109-001")]
-    [Requirement("SHARED-DIAG-003")]
-    public async Task VerifyCodeBlockLineInsideDocumentationBlockCommentIsNotReported()
+    public async Task VerifyCodeBlockLineInsideDocumentationBlockCommentIsReported()
     {
         const string razorSource = """
                                    @code {
@@ -513,18 +515,18 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
 
         await Verify(TestCode,
                      test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
-                     RazorCodeBlockSpan("Counter.razor", 1, 1));
+                     RazorCodeBlockSpan("Counter.razor", 1, 1),
+                     RazorCodeBlockSpan("Counter.razor", 3, 1));
     }
 
     /// <summary>
-    /// Verifying that a code-block line inside a multi-line C# verbatim string with escaped quotes within a code block
-    /// is not reported
+    /// Characterizes a code-block line inside a multi-line C# verbatim string with escaped quotes within a code block:
+    /// it is reported, because C# comments and literals of a code block are read like the rest of the file. This test
+    /// pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH2109-001")]
-    [Requirement("SHARED-DIAG-003")]
-    public async Task VerifyCodeBlockLineInsideVerbatimStringIsNotReported()
+    public async Task VerifyCodeBlockLineInsideVerbatimStringIsReported()
     {
         const string razorSource = """
                                    @code {
@@ -536,18 +538,18 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
 
         await Verify(TestCode,
                      test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
-                     RazorCodeBlockSpan("Counter.razor", 1, 1));
+                     RazorCodeBlockSpan("Counter.razor", 1, 1),
+                     RazorCodeBlockSpan("Counter.razor", 3, 1));
     }
 
     /// <summary>
-    /// Verifying that a code-block line inside a multi-line C# interpolated verbatim string within a code block is not
-    /// reported
+    /// Characterizes a code-block line inside a multi-line C# interpolated verbatim string within a code block: it is
+    /// reported, because C# comments and literals of a code block are read like the rest of the file. This test pins
+    /// today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH2109-001")]
-    [Requirement("SHARED-DIAG-003")]
-    public async Task VerifyCodeBlockLineInsideInterpolatedVerbatimStringIsNotReported()
+    public async Task VerifyCodeBlockLineInsideInterpolatedVerbatimStringIsReported()
     {
         const string razorSource = """
                                    @code {
@@ -560,18 +562,18 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
 
         await Verify(TestCode,
                      test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
-                     RazorCodeBlockSpan("Counter.razor", 1, 1));
+                     RazorCodeBlockSpan("Counter.razor", 1, 1),
+                     RazorCodeBlockSpan("Counter.razor", 3, 1));
     }
 
     /// <summary>
-    /// Verifying that a code-block line inside a multi-line C# interpolated raw string, whose hole holds braces, within a
-    /// code block is not reported, and that the directive after the block is
+    /// Characterizes a code-block line inside a multi-line C# interpolated raw string, whose hole holds braces, within
+    /// a code block: it is reported like the directive after the block, because C# comments and literals of a code
+    /// block are read like the rest of the file. This test pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH2109-001")]
-    [Requirement("SHARED-DIAG-003")]
-    public async Task VerifyCodeBlockLineInsideInterpolatedRawStringIsNotReported()
+    public async Task VerifyCodeBlockLineInsideInterpolatedRawStringIsReported()
     {
         const string razorSource = """"
                                    @code {
@@ -592,18 +594,18 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
                          test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource));
                      },
                      RazorCodeBlockSpan("Counter.razor", 1, 1),
+                     RazorCodeBlockSpan("Counter.razor", 3, 1),
                      RazorCodeBlockSpan("Counter.razor", 7, 1));
     }
 
     /// <summary>
-    /// Verifying that a code-block line inside a C# block comment of a <c>@functions</c> block is not reported, while
-    /// the directive after the block is
+    /// Characterizes a code-block line inside a C# block comment of a <c>@functions</c> block: it is reported like the
+    /// directive after the block, because C# comments and literals of a <c>@functions</c> block are read like the rest
+    /// of the file. This test pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH2109-001")]
-    [Requirement("SHARED-DIAG-003")]
-    public async Task VerifyCodeBlockLineInsideBlockCommentOfFunctionsBlockIsNotReported()
+    public async Task VerifyCodeBlockLineInsideBlockCommentOfFunctionsBlockIsReported()
     {
         const string razorSource = """
                                    @functions {
@@ -617,18 +619,19 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
 
         await Verify(TestCode,
                      test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 3, 1),
                      RazorCodeBlockSpan("Counter.razor", 6, 1));
     }
 
     /// <summary>
-    /// Verifying that closing braces inside a C# string, a character literal, and a line comment do not end the code
-    /// block, so a code-block line inside a later block comment of the same block is not reported
+    /// Characterizes a code-block line inside a C# block comment that follows closing braces in a C# string, a
+    /// character literal, and a line comment of the same code block: it is reported, because C# comments and literals
+    /// of a code block are read like the rest of the file. This test pins today's behavior without stating it as
+    /// intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH2109-001")]
-    [Requirement("SHARED-DIAG-003")]
-    public async Task VerifyClosingBracesInsideLiteralsAndCommentsDoNotEndCodeBlock()
+    public async Task VerifyCodeBlockLineInsideBlockCommentAfterClosingBracesInLiteralsIsReported()
     {
         const string razorSource = """
                                    @code {
@@ -643,7 +646,8 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
 
         await Verify(TestCode,
                      test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
-                     RazorCodeBlockSpan("Counter.razor", 1, 1));
+                     RazorCodeBlockSpan("Counter.razor", 1, 1),
+                     RazorCodeBlockSpan("Counter.razor", 6, 1));
     }
 
     /// <summary>
@@ -673,13 +677,13 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Verifying that nested braces of C# code keep the code block open until its own closing brace
+    /// Characterizes a code-block line inside a C# block comment that follows nested braces of a code block: it is
+    /// reported like the directives, because C# comments and literals of a code block are read like the rest of the
+    /// file. This test pins today's behavior without stating it as intended
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH2109-001")]
-    [Requirement("SHARED-DIAG-003")]
-    public async Task VerifyNestedBracesKeepCodeBlockOpenUntilItsClosingBrace()
+    public async Task VerifyCodeBlockLineInsideBlockCommentAfterNestedBracesIsReported()
     {
         const string razorSource = """
                                    @code {
@@ -700,6 +704,7 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
         await Verify(TestCode,
                      test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
                      RazorCodeBlockSpan("Counter.razor", 1, 1),
+                     RazorCodeBlockSpan("Counter.razor", 7, 1),
                      RazorCodeBlockSpan("Counter.razor", 12, 1));
     }
 
@@ -1033,6 +1038,186 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
         await Verify(TestCode,
                      test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
                      RazorCodeBlockSpan("Counter.razor", 4, 1));
+    }
+
+    /// <summary>
+    /// Verifying that an opening brace in markup written directly in a method with a <c>__builder</c> parameter inside
+    /// a code block does not hide the directive after the block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-001")]
+    public async Task VerifyOpeningBraceInMarkupOfBuilderMethodDoesNotHideLaterDirective()
+    {
+        const string razorSource = """
+                                   @code {
+                                       void Render(RenderTreeBuilder __builder)
+                                       {
+                                           <p>{</p>
+                                       }
+                                   }
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 1, 1),
+                     RazorCodeBlockSpan("Counter.razor", 7, 1));
+    }
+
+    /// <summary>
+    /// Verifying that a block comment opener in markup written directly in a method with a <c>__builder</c> parameter
+    /// inside a code block does not hide the directive after the block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-001")]
+    public async Task VerifyBlockCommentOpenerInMarkupOfBuilderMethodDoesNotHideLaterDirective()
+    {
+        const string razorSource = """
+                                   @code {
+                                       void Render(RenderTreeBuilder __builder)
+                                       {
+                                           <p>/* note</p>
+                                       }
+                                   }
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 1, 1),
+                     RazorCodeBlockSpan("Counter.razor", 7, 1));
+    }
+
+    /// <summary>
+    /// Verifying that an opening brace in markup written directly in a <c>__builder</c> lambda inside a code block does
+    /// not hide the directive after the block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-001")]
+    public async Task VerifyOpeningBraceInMarkupOfBuilderLambdaDoesNotHideLaterDirective()
+    {
+        const string razorSource = """
+                                   @code {
+                                       RenderFragment F => __builder =>
+                                       {
+                                           <p>{</p>
+                                       };
+                                   }
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 1, 1),
+                     RazorCodeBlockSpan("Counter.razor", 7, 1));
+    }
+
+    /// <summary>
+    /// Verifying that an opening brace in markup written directly in a method with a <c>__builder</c> parameter inside
+    /// a <c>@functions</c> block does not hide the directive after the block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-001")]
+    public async Task VerifyOpeningBraceInMarkupOfBuilderMethodInFunctionsBlockDoesNotHideLaterDirective()
+    {
+        const string razorSource = """
+                                   @functions {
+                                       void Render(RenderTreeBuilder __builder)
+                                       {
+                                           <p>{</p>
+                                       }
+                                   }
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 7, 1));
+    }
+
+    /// <summary>
+    /// Verifying that a block comment opener in markup written directly in a method with a <c>__builder</c> parameter
+    /// inside a <c>@functions</c> block does not hide the directive after the block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-001")]
+    public async Task VerifyBlockCommentOpenerInMarkupOfBuilderMethodInFunctionsBlockDoesNotHideLaterDirective()
+    {
+        const string razorSource = """
+                                   @functions {
+                                       void Render(RenderTreeBuilder __builder)
+                                       {
+                                           <p>/* note</p>
+                                       }
+                                   }
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 7, 1));
+    }
+
+    /// <summary>
+    /// Verifying that an opening brace in a <c>text</c> element inside a code block does not hide the directive after
+    /// the block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-001")]
+    public async Task VerifyOpeningBraceInTextElementOfCodeBlockDoesNotHideLaterDirective()
+    {
+        const string razorSource = """
+                                   @code {
+                                       void Render(RenderTreeBuilder __builder)
+                                       {
+                                           <text>{</text>
+                                       }
+                                   }
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 1, 1),
+                     RazorCodeBlockSpan("Counter.razor", 7, 1));
+    }
+
+    /// <summary>
+    /// Verifying that an opening brace in markup written inline after a statement brace inside a code block does not
+    /// hide the directive after the block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-001")]
+    public async Task VerifyOpeningBraceInInlineMarkupOfCodeBlockDoesNotHideLaterDirective()
+    {
+        const string razorSource = """
+                                   @code {
+                                       void Render(RenderTreeBuilder __builder)
+                                       {
+                                           if (true) { <p>{</p> }
+                                       }
+                                   }
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 1, 1),
+                     RazorCodeBlockSpan("Counter.razor", 7, 1));
     }
 
     /// <summary>
