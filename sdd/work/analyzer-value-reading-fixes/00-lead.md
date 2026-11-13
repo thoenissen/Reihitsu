@@ -56,4 +56,5 @@ Spec author (clarifications only: rule-spec coverage sentences for #1071/#1268, 
 - 05 implementer done (d3c005c): 8591/8592 analyzer tests pass; one disputed fixture.
 - 06 fixture repaired (0eb9d98); RH2109 33/33.
 - 07 cleaner clean (e85cfc0).
-- Next: spec checker (08).
+- 08 spec checker: findings (e6dfe88) — `Uses` header missing in RH4001, RH4009, RH2003, RH2109 specs (architecture test fails).
+- Repair round 1: fresh spec author (09) for the Uses lists; then cleaner skipped (text only), spec checker again, then auditor.
