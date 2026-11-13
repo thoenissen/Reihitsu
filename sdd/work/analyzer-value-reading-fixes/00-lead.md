@@ -22,7 +22,9 @@ Spec author (clarifications only: rule-spec coverage sentences for #1071/#1268, 
 
 ## Maintainer answers
 
-(none yet)
+- Q1 (RH4001/RH4009, name with a Unicode escape such as `\u0041bc`): **A** — compared by value: `\u0041bc` in `Abc.cs` not reported; fix renames to `Abc.cs`; `namespace \u0041.B` matches entry `A.B`.
+- Q2 (RH4009, `reihitsu.json` with content after the root object): **A** — RH0001 reports the syntax error at the first non-white-space character after the root value; RH4009 reports nothing, like with any other malformed file.
+- Q3 (RH2109, `@code {` in the middle of a line outside comments/literals, e.g. `<div>@code { int X; }</div>`): **A** — not reported; only a `@code` that starts a line (after optional white space) is a directive.
 
 ## Decisions taken
 
@@ -44,5 +46,5 @@ Spec author (clarifications only: rule-spec coverage sentences for #1071/#1268, 
 ## Worklist / next step
 
 - 01 spec author done (575d1a7): specs clarified for all four; one output question open for #974 (config with content after root object: RH0001 only syntax error + RH4009 silent [A, recommended] vs. also unknown section + RH4009 reports [B]); batched before test implementer.
-- 02 skeptic done (11f0710): all four proceed. Output batch asked (Q1 Unicode escape names RH4001/RH4009; Q2 RH4009 with content after root; Q3 RH2109 mid-line `@code`). Waiting for answers.
+- 02 skeptic done (11f0710): all four proceed. Output batch asked (Q1 Unicode escape names RH4001/RH4009; Q2 RH4009 with content after root; Q3 RH2109 mid-line `@code`). Answered 1A, 2A, 3A (as recommended).
 - After answers: spec author amendment (decisions 4, 5 + answers), then test implementer.
