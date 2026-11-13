@@ -34,7 +34,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider : CodeFi
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     private static Task<Document> ApplyCodeFixAsync(Document document, MethodDeclarationSyntax methodDeclaration, CancellationToken cancellationToken)
     {
-        return LineLayoutCodeFixUtilities.FormatMemberOnLinesOfItsOwnAsync(document, methodDeclaration, cancellationToken);
+        return BlankLineCodeFixUtilities.FormatMemberOnLinesOfItsOwnAsync(document, methodDeclaration, cancellationToken);
     }
 
     #endregion // Methods

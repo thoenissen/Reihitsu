@@ -43,7 +43,7 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider 
     /// <returns>The updated document</returns>
     private static Task<Document> ApplyCodeFixAsync(Document document, MemberDeclarationSyntax member, CancellationToken cancellationToken)
     {
-        return LineLayoutCodeFixUtilities.FormatMemberOnLinesOfItsOwnAsync(document, member, cancellationToken);
+        return BlankLineCodeFixUtilities.FormatMemberOnLinesOfItsOwnAsync(document, member, cancellationToken);
     }
 
     /// <summary>

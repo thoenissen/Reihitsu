@@ -89,6 +89,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
             }
 
             var leadingTrivia = token.LeadingTrivia;
+            var endsMultiLineCommentOnLine = false;
 
             for (var triviaIndex = 0; triviaIndex < leadingTrivia.Count; triviaIndex++)
             {
@@ -99,7 +100,12 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
                     continue;
                 }
 
-                var commentLine = trivia.GetLocation().GetLineSpan().StartLinePosition.Line;
+                var lineSpan = trivia.GetLocation().GetLineSpan();
+                var commentLine = lineSpan.StartLinePosition.Line;
+
+                endsMultiLineCommentOnLine |= (trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+                                              && commentLine < tokenLine
+                                              && lineSpan.EndLinePosition.Line == tokenLine;
 
                 if (commentLine != tokenLine
                     && TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, triviaIndex))
@@ -108,41 +114,12 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
                 }
             }
 
-            if (expectation.Location.SourceSpan == token.Span
-                && EndsMultiLineCommentOnLine(token, tokenLine))
+            if (endsMultiLineCommentOnLine
+                && expectation.Location.SourceSpan == token.Span)
             {
                 expectedIndentationByLine.Remove(tokenLine);
             }
         }
-    }
-
-    /// <summary>
-    /// Determines whether a delimited comment in the token's leading trivia starts on an earlier line and ends on the
-    /// token's line, so that the token stands behind the comment's closing line
-    /// </summary>
-    /// <param name="token">Token</param>
-    /// <param name="tokenLine">Line of the token</param>
-    /// <returns><see langword="true"/> if the token stands behind the closing line of a multi-line comment</returns>
-    private static bool EndsMultiLineCommentOnLine(SyntaxToken token, int tokenLine)
-    {
-        foreach (var trivia in token.LeadingTrivia)
-        {
-            if (trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) == false
-                && trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia) == false)
-            {
-                continue;
-            }
-
-            var lineSpan = trivia.GetLocation().GetLineSpan();
-
-            if (lineSpan.StartLinePosition.Line < tokenLine
-                && lineSpan.EndLinePosition.Line == tokenLine)
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /// <summary>

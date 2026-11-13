@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Formatter;
 
@@ -24,17 +23,22 @@ public class RH5403StatementMustNotBeOnSingleLineCodeFixProvider : CodeFixProvid
     #region Methods
 
     /// <summary>
-    /// Applies the code fix: the reported block is laid out as the formatter lays it out, with its braces on their own
-    /// lines in the column of the line on which its owner starts; the header, the other blocks of the statement, and the
-    /// blank lines in front of it stay as written (RH5403-003)
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="block">Single-line block</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The updated document</returns>
-    private static Task<Document> ApplyCodeFixAsync(Document document, BlockSyntax block, CancellationToken cancellationToken)
+    private static async Task<Document> ApplyCodeFixAsync(Document document, BlockSyntax block, CancellationToken cancellationToken)
     {
-        return LineLayoutCodeFixUtilities.ReplaceWithBlockOnOwnLinesAsync(document, block, block, cancellationToken);
+        var statement = block.Parent?.FirstAncestorOrSelf<StatementSyntax>();
+
+        if (statement == null)
+        {
+            return document;
+        }
+
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, statement, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     #endregion // Methods
@@ -59,8 +63,9 @@ public class RH5403StatementMustNotBeOnSingleLineCodeFixProvider : CodeFixProvid
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                if (root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.FirstAncestorOrSelf<BlockSyntax>() is { Parent: not null } block
-                    && ReihitsuFormatter.FindUnsupportedSyntax(block) == null)
+                if (root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.FirstAncestorOrSelf<BlockSyntax>() is { } block
+                    && (block.Parent?.FirstAncestorOrSelf<StatementSyntax>() is not { } statement
+                        || ReihitsuFormatter.FindUnsupportedSyntax(statement) == null))
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5403Title,
                                                               token => ApplyCodeFixAsync(context.Document, block, token),

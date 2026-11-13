@@ -62,7 +62,7 @@ internal static class TrailingCommaCodeFixHelper
         }
 
         var start = FormattingTextAnalysisUtilities.GetLeadingWhitespaceRunStart(sourceText, commaToken.SpanStart, commaLine.Start);
-        var end = SkipSpacesForward(sourceText, commaToken.Span.End, commaLine.End);
+        var end = commaLine.End - sourceText.ToString(TextSpan.FromBounds(commaToken.Span.End, commaLine.End)).TrimStart(' ', '\t').Length;
         var nextToken = commaToken.GetNextToken();
 
         if (end == commaLine.End)
@@ -73,7 +73,7 @@ internal static class TrailingCommaCodeFixHelper
         if (start == commaLine.Start
             && nextToken.IsKind(SyntaxKind.CloseBraceToken)
             && nextToken.SpanStart == end
-            && GetMatchingOpenBrace(nextToken) is { } openBrace)
+            && nextToken.Parent?.ChildTokens().FirstOrDefault(obj => obj.IsKind(SyntaxKind.OpenBraceToken)) is { RawKind: not 0 } openBrace)
         {
             var openBraceLine = sourceText.Lines.GetLineFromPosition(openBrace.SpanStart);
 
@@ -81,36 +81,6 @@ internal static class TrailingCommaCodeFixHelper
         }
 
         return sourceText.Replace(commaToken.Span, string.Empty);
-    }
-
-    /// <summary>
-    /// Gets the opening brace that matches a closing brace
-    /// </summary>
-    /// <param name="closeBrace">Closing brace</param>
-    /// <returns>The opening brace, or <see langword="null"/> when its parent has none</returns>
-    private static SyntaxToken? GetMatchingOpenBrace(SyntaxToken closeBrace)
-    {
-        return closeBrace.Parent?.ChildTokens().FirstOrDefault(obj => obj.IsKind(SyntaxKind.OpenBraceToken)) is { RawKind: not 0 } openBrace
-                   ? openBrace
-                   : null;
-    }
-
-    /// <summary>
-    /// Moves a position forward over spaces and tabs, not beyond a limit
-    /// </summary>
-    /// <param name="sourceText">Source text</param>
-    /// <param name="position">Position</param>
-    /// <param name="limit">Highest position</param>
-    /// <returns>The position behind the spaces and tabs</returns>
-    private static int SkipSpacesForward(SourceText sourceText, int position, int limit)
-    {
-        while (position < limit
-               && sourceText[position] is ' ' or '\t')
-        {
-            position++;
-        }
-
-        return position;
     }
 
     #endregion // Methods
