@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Organization;
 using Reihitsu.Core;
-using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
 
@@ -26,7 +25,8 @@ public class RH7104PartialElementsMustDeclareAccessModifierCodeFixProvider : Cod
     #region Methods
 
     /// <summary>
-    /// Applies the code fix
+    /// Applies the code fix: the accessibility keywords are inserted in front of the modifiers, and the rest of the type
+    /// stays as written (SHARED-FIX-006)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="typeDeclaration">Type declaration</param>
@@ -43,21 +43,11 @@ public class RH7104PartialElementsMustDeclareAccessModifierCodeFixProvider : Cod
             return document;
         }
 
-        var formattingAnnotation = new SyntaxAnnotation();
-        var updatedTypeDeclaration = CreateUpdatedTypeDeclaration(typeDeclaration, semanticModel, cancellationToken).WithAdditionalAnnotations(formattingAnnotation);
-        var updatedRoot = root.ReplaceNode(typeDeclaration, updatedTypeDeclaration);
-        var updatedDocument = document.WithSyntaxRoot(updatedRoot);
-        var formattedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var annotatedTypeDeclarations = formattedRoot?.GetAnnotatedNodes(formattingAnnotation).OfType<TypeDeclarationSyntax>();
-        var formattedTypeDeclaration = annotatedTypeDeclarations?.FirstOrDefault();
-
-        return formattedTypeDeclaration == null
-                   ? updatedDocument
-                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedTypeDeclaration, cancellationToken).ConfigureAwait(false)).Output;
+        return document.WithSyntaxRoot(root.ReplaceNode(typeDeclaration, CreateUpdatedTypeDeclaration(typeDeclaration, semanticModel, cancellationToken)));
     }
 
     /// <summary>
-    /// Creates the type declaration the fix formats: the type with its accessibility keywords in front of its modifiers, which
+    /// Creates the type declaration the fix writes: the type with its accessibility keywords in front of its modifiers, which
     /// take over the leading trivia of the first modifier
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
@@ -145,15 +135,12 @@ public class RH7104PartialElementsMustDeclareAccessModifierCodeFixProvider : Cod
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-        var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
 
-        if (root != null
-            && semanticModel != null)
+        if (root != null)
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                if (TryGetTypeDeclaration(root, diagnostic, out var typeDeclaration)
-                    && ReihitsuFormatter.FindUnsupportedSyntax(CreateUpdatedTypeDeclaration(typeDeclaration, semanticModel, context.CancellationToken)) == null)
+                if (TryGetTypeDeclaration(root, diagnostic, out var typeDeclaration))
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7104Title,
                                                               token => ApplyCodeFixAsync(context.Document, typeDeclaration, token),

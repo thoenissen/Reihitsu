@@ -8,10 +8,10 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Organization;
 using Reihitsu.Core;
-using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
 
@@ -25,13 +25,13 @@ public class RH7108EventAccessorsMustFollowOrderCodeFixProvider : CodeFixProvide
     #region Methods
 
     /// <summary>
-    /// Creates the event declaration the fix formats: the declaration with its <c>add</c> accessor moved in front of its
-    /// <c>remove</c> accessor
+    /// Creates the text change that moves the <c>add</c> accessor of an event declaration in front of its <c>remove</c>
+    /// accessor, as <see cref="AccessorOrderingUtilities.TryCreateMove"/> performs it
     /// </summary>
     /// <param name="eventDeclaration">Event declaration</param>
-    /// <param name="updatedEventDeclaration">The updated event declaration</param>
-    /// <returns><see langword="true"/> if an accessor has to move; otherwise, <see langword="false"/></returns>
-    private static bool TryCreateUpdatedEventDeclaration(EventDeclarationSyntax eventDeclaration, out EventDeclarationSyntax updatedEventDeclaration)
+    /// <param name="change">The text change that performs the move</param>
+    /// <returns><see langword="true"/> if an accessor has to move and the move can be performed; otherwise, <see langword="false"/></returns>
+    private static bool TryCreateMove(EventDeclarationSyntax eventDeclaration, out TextChange change)
     {
         if (eventDeclaration.AccessorList == null
             || AccessorOrderingUtilities.TryGetAccessorMove(eventDeclaration.AccessorList,
@@ -40,18 +40,17 @@ public class RH7108EventAccessorsMustFollowOrderCodeFixProvider : CodeFixProvide
                                                             out var accessorToMove,
                                                             out var targetAccessor) == false)
         {
-            updatedEventDeclaration = null;
+            change = default;
 
             return false;
         }
 
-        updatedEventDeclaration = eventDeclaration.WithAccessorList(AccessorOrderingUtilities.MoveAccessorBefore(eventDeclaration.AccessorList, accessorToMove, targetAccessor));
-
-        return true;
+        return AccessorOrderingUtilities.TryCreateMove(eventDeclaration.AccessorList, accessorToMove, targetAccessor, out change);
     }
 
     /// <summary>
-    /// Applies the code fix
+    /// Applies the code fix: the accessor moves, and nothing else of the declaration changes (SHARED-FIX-006,
+    /// SHARED-FIX-007)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="eventDeclaration">Event declaration</param>
@@ -59,26 +58,14 @@ public class RH7108EventAccessorsMustFollowOrderCodeFixProvider : CodeFixProvide
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, EventDeclarationSyntax eventDeclaration, CancellationToken cancellationToken)
     {
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-        if (root == null
-            || TryCreateUpdatedEventDeclaration(eventDeclaration, out var updatedEventDeclaration) == false)
+        if (TryCreateMove(eventDeclaration, out var change) == false)
         {
             return document;
         }
 
-        var formattingAnnotation = new SyntaxAnnotation();
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-        updatedEventDeclaration = updatedEventDeclaration.WithAdditionalAnnotations(formattingAnnotation);
-
-        var updatedRoot = root.ReplaceNode(eventDeclaration, updatedEventDeclaration);
-        var updatedDocument = document.WithSyntaxRoot(updatedRoot);
-        var formattedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var formattedEventDeclaration = formattedRoot?.GetAnnotatedNodes(formattingAnnotation).OfType<EventDeclarationSyntax>().FirstOrDefault();
-
-        return formattedEventDeclaration == null
-                   ? updatedDocument
-                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedEventDeclaration, cancellationToken).ConfigureAwait(false)).Output;
+        return document.WithText(text.WithChanges(change));
     }
 
     /// <summary>
@@ -124,8 +111,7 @@ public class RH7108EventAccessorsMustFollowOrderCodeFixProvider : CodeFixProvide
             {
                 if (root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.AncestorsAndSelf().OfType<EventDeclarationSyntax>().FirstOrDefault() is EventDeclarationSyntax eventDeclaration
                     && IsMoveSafe(eventDeclaration)
-                    && (TryCreateUpdatedEventDeclaration(eventDeclaration, out var updatedEventDeclaration) == false
-                        || ReihitsuFormatter.FindUnsupportedSyntax(updatedEventDeclaration) == null))
+                    && TryCreateMove(eventDeclaration, out _))
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7108Title,
                                                               token => ApplyCodeFixAsync(context.Document, eventDeclaration, token),

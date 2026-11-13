@@ -1,4 +1,7 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Text;
+
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -222,6 +225,39 @@ public static class SyntaxIndentationUtilities
     }
 
     /// <summary>
+    /// Writes the lines of moved code moved by a number of columns (SHARED-FIX-007, <i>Moved code</i>): every line moves
+    /// by the same number of columns, so its lines keep their columns relative to each other, except a blank line, a line
+    /// that starts with a comment in column 0, and the line of a directive other than <c>#region</c> and
+    /// <c>#endregion</c>, which keep their column. A shift is refused when a line of the span starts inside a token or a
+    /// comment that spans lines, or is a line of disabled text, none of which can move without changing its content
+    /// (SHARED-ORDER-010, RH7004-007); a shift of zero moves no line and is never refused
+    /// </summary>
+    /// <param name="root">Root of the document</param>
+    /// <param name="text">Text of the document</param>
+    /// <param name="span">Span of whole lines</param>
+    /// <param name="shift">Number of columns to move each line by; negative to the left</param>
+    /// <param name="shiftedText">The lines of the span, moved</param>
+    /// <returns><see langword="true"/> if every line of the span can move</returns>
+    public static bool TryShiftMovedLines(SyntaxNode root, SourceText text, TextSpan span, int shift, out string shiftedText)
+    {
+        shiftedText = null;
+
+        if (shift != 0
+            && HoldsLineThatCannotMove(root, span, text.Lines))
+        {
+            return false;
+        }
+
+        var builder = new StringBuilder();
+
+        AppendShiftedLines(builder, root, text, span, shift);
+
+        shiftedText = builder.ToString();
+
+        return true;
+    }
+
+    /// <summary>
     /// Determines whether an ancestor owns an indenting scope containing the specified position. This model
     /// additionally recognizes <see cref="InitializerExpressionSyntax"/> and
     /// <see cref="AnonymousObjectCreationExpressionSyntax"/>, unlike <see cref="GetIndentingScopeRange"/>, because
@@ -401,6 +437,115 @@ public static class SyntaxIndentationUtilities
         }
 
         return spanStart > openBrace.SpanStart && spanStart < closeBrace.SpanStart;
+    }
+
+    /// <summary>
+    /// Determines whether a span holds a line that starts inside a token or a comment that spans lines, or a line of
+    /// disabled text, none of which can move without changing its content
+    /// </summary>
+    /// <param name="root">Root of the document</param>
+    /// <param name="span">Span of whole lines</param>
+    /// <param name="lines">Lines of the document</param>
+    /// <returns><see langword="true"/> if a line of the span cannot move</returns>
+    private static bool HoldsLineThatCannotMove(SyntaxNode root, TextSpan span, TextLineCollection lines)
+    {
+        for (var lineNumber = lines.GetLineFromPosition(span.Start).LineNumber; lineNumber < lines.Count && lines[lineNumber].Start < span.End; lineNumber++)
+        {
+            var position = lines[lineNumber].Start;
+
+            if (position < span.Start)
+            {
+                continue;
+            }
+
+            var token = root.FindToken(position);
+
+            if (token.SpanStart < position
+                && position < token.Span.End)
+            {
+                return true;
+            }
+
+            var trivia = root.FindTrivia(position);
+
+            if ((trivia.IsKind(SyntaxKind.DisabledTextTrivia) && trivia.Span.Contains(position))
+                || ((trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+                    && trivia.SpanStart < position
+                    && position < trivia.Span.End))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Appends the lines of a span, each moved by the given number of columns, except a blank line, a line that starts
+    /// with a comment in column 0, and the line of a directive other than <c>#region</c> and <c>#endregion</c>
+    /// </summary>
+    /// <param name="builder">Builder to append to</param>
+    /// <param name="root">Root of the document</param>
+    /// <param name="text">Text of the document</param>
+    /// <param name="span">Span of whole lines</param>
+    /// <param name="shift">Number of columns to move each line by</param>
+    private static void AppendShiftedLines(StringBuilder builder, SyntaxNode root, SourceText text, TextSpan span, int shift)
+    {
+        if (shift == 0)
+        {
+            builder.Append(text.ToString(span));
+
+            return;
+        }
+
+        for (var lineNumber = text.Lines.GetLineFromPosition(span.Start).LineNumber; lineNumber < text.Lines.Count && text.Lines[lineNumber].Start < span.End; lineNumber++)
+        {
+            var line = text.Lines[lineNumber];
+            var lineText = text.ToString(line.SpanIncludingLineBreak);
+            var indentation = 0;
+
+            while (indentation < line.Span.Length
+                   && (lineText[indentation] == ' ' || lineText[indentation] == '\t'))
+            {
+                indentation++;
+            }
+
+            if (indentation == line.Span.Length
+                || KeepsItsColumn(root.FindTrivia(line.Start + indentation), indentation))
+            {
+                builder.Append(lineText);
+            }
+            else if (shift > 0)
+            {
+                builder.Append(' ', shift).Append(lineText);
+            }
+            else
+            {
+                builder.Append(lineText, System.Math.Min(-shift, indentation), lineText.Length - System.Math.Min(-shift, indentation));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Determines whether a line keeps its column when the code around it moves: a line that starts with a comment in
+    /// column 0, and the line of a directive other than <c>#region</c> and <c>#endregion</c>
+    /// </summary>
+    /// <param name="firstTrivia">Trivia at the first character of the line that is not whitespace</param>
+    /// <param name="indentation">Column of that character</param>
+    /// <returns><see langword="true"/> if the line keeps its column</returns>
+    private static bool KeepsItsColumn(SyntaxTrivia firstTrivia, int indentation)
+    {
+        if (firstTrivia.IsDirective)
+        {
+            return firstTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia) == false
+                   && firstTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia) == false;
+        }
+
+        return indentation == 0
+               && (firstTrivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
+                   || firstTrivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
+                   || firstTrivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                   || firstTrivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia));
     }
 
     #endregion // Methods

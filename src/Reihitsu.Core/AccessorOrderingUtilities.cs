@@ -3,6 +3,7 @@ using System.Linq;
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Reihitsu.Core;
 
@@ -76,6 +77,25 @@ public static class AccessorOrderingUtilities
         var updatedAccessors = OrderingMoveSafety.MoveNodeBeforePreservingSeparators(accessorDeclarations, accessorToMove, targetAccessor);
 
         return accessorList.WithAccessors(updatedAccessors);
+    }
+
+    /// <summary>
+    /// Creates the text change that moves an accessor before another accessor (SHARED-ORDER-009): within the line when the
+    /// whole accessor list stands on one line, otherwise as a move of whole lines, which
+    /// <see cref="OrderingMoveSafety.TryCreateWholeLineMove{TNode}"/> refuses where it cannot be performed
+    /// </summary>
+    /// <param name="accessorList">Accessor list</param>
+    /// <param name="accessorToMove">Accessor to move</param>
+    /// <param name="targetAccessor">Target accessor</param>
+    /// <param name="change">The text change that performs the move</param>
+    /// <returns><see langword="true"/> if the move can be performed</returns>
+    public static bool TryCreateMove(AccessorListSyntax accessorList, AccessorDeclarationSyntax accessorToMove, AccessorDeclarationSyntax targetAccessor, out TextChange change)
+    {
+        var lines = accessorList.SyntaxTree.GetText().Lines;
+
+        return lines.GetLineFromPosition(accessorList.OpenBraceToken.SpanStart).LineNumber == lines.GetLineFromPosition(accessorList.CloseBraceToken.SpanStart).LineNumber
+                   ? OrderingMoveSafety.TryCreateSwapWithinLine(accessorList.Accessors, accessorToMove, targetAccessor, out change)
+                   : OrderingMoveSafety.TryCreateWholeLineMove(accessorList.Accessors, accessorToMove, targetAccessor, out change);
     }
 
     /// <summary>
