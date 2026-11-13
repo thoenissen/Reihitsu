@@ -227,12 +227,12 @@ public static class SyntaxIndentationUtilities
     /// <summary>
     /// Writes the lines of moved code moved by a number of columns (SHARED-FIX-007, <i>Moved code</i>): every line moves
     /// by the same number of columns, so its lines keep their columns relative to each other, except the lines
-    /// <see cref="KeepsItsColumn"/> keeps in their column. Each character counts as one column, a tab included: a right
-    /// shift writes spaces in front of a line, and a left shift removes whitespace characters from its start. A shift is
-    /// refused when a line of the span starts inside a token or a comment that spans lines, or is a line of disabled text,
-    /// none of which can move without changing its content, and when a left shift would remove more characters from a
-    /// moving line than whitespace starts it with (SHARED-ORDER-010, RH7004-007); a shift of zero moves no line and is
-    /// never refused
+    /// <see cref="KeepsItsColumn"/> keeps in their column. A blank line, which holds only whitespace outside a token, a
+    /// comment, and disabled text, is written empty. Each character counts as one column, a tab included: a right shift
+    /// writes spaces in front of a line, and a left shift removes whitespace characters from its start. A shift is refused
+    /// when a line of the span starts inside a token or a comment that spans lines, or is a line of disabled text, none of
+    /// which can move without changing its content, and when a left shift would remove more characters from a moving line
+    /// than whitespace starts it with (SHARED-ORDER-010, RH7004-007); a shift of zero moves no line and is never refused
     /// </summary>
     /// <param name="root">Root of the document</param>
     /// <param name="text">Text of the document</param>
@@ -244,18 +244,6 @@ public static class SyntaxIndentationUtilities
     {
         shiftedText = null;
 
-        if (shift == 0)
-        {
-            shiftedText = text.ToString(span);
-
-            return true;
-        }
-
-        if (HoldsLineThatCannotMove(root, span, text.Lines))
-        {
-            return false;
-        }
-
         var builder = new StringBuilder();
 
         for (var lineNumber = text.Lines.GetLineFromPosition(span.Start).LineNumber; lineNumber < text.Lines.Count && text.Lines[lineNumber].Start < span.End; lineNumber++)
@@ -263,7 +251,23 @@ public static class SyntaxIndentationUtilities
             var line = text.Lines[lineNumber];
             var lineText = text.ToString(TextSpan.FromBounds(line.Start, System.Math.Min(line.EndIncludingLineBreak, span.End)));
 
-            if (KeepsItsColumn(root, text, line, span.End))
+            if (line.Start >= span.Start
+                && StartsInsideContent(root, line.Start))
+            {
+                if (shift != 0)
+                {
+                    return false;
+                }
+
+                builder.Append(lineText);
+            }
+            else if (line.End <= span.End
+                     && GetIndentationEnd(text, line.Start, line.End) == line.End)
+            {
+                builder.Append(lineText, line.End - line.Start, lineText.Length - (line.End - line.Start));
+            }
+            else if (shift == 0
+                     || KeepsItsColumn(root, text, line, span.End))
             {
                 builder.Append(lineText);
             }
@@ -509,44 +513,28 @@ public static class SyntaxIndentationUtilities
     }
 
     /// <summary>
-    /// Determines whether a span holds a line that starts inside a token or a comment that spans lines, or a line of
-    /// disabled text, none of which can move without changing its content
+    /// Determines whether a line starts inside a token or a comment that spans lines, or in disabled text, none of which
+    /// can move without changing its content
     /// </summary>
     /// <param name="root">Root of the document</param>
-    /// <param name="span">Span of whole lines</param>
-    /// <param name="lines">Lines of the document</param>
-    /// <returns><see langword="true"/> if a line of the span cannot move</returns>
-    private static bool HoldsLineThatCannotMove(SyntaxNode root, TextSpan span, TextLineCollection lines)
+    /// <param name="position">Start of the line</param>
+    /// <returns><see langword="true"/> if the line starts inside such content</returns>
+    private static bool StartsInsideContent(SyntaxNode root, int position)
     {
-        for (var lineNumber = lines.GetLineFromPosition(span.Start).LineNumber; lineNumber < lines.Count && lines[lineNumber].Start < span.End; lineNumber++)
+        var token = root.FindToken(position);
+
+        if (token.SpanStart < position
+            && position < token.Span.End)
         {
-            var position = lines[lineNumber].Start;
-
-            if (position < span.Start)
-            {
-                continue;
-            }
-
-            var token = root.FindToken(position);
-
-            if (token.SpanStart < position
-                && position < token.Span.End)
-            {
-                return true;
-            }
-
-            var trivia = root.FindTrivia(position);
-
-            if ((trivia.IsKind(SyntaxKind.DisabledTextTrivia) && trivia.Span.Contains(position))
-                || ((trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
-                    && trivia.SpanStart < position
-                    && position < trivia.Span.End))
-            {
-                return true;
-            }
+            return true;
         }
 
-        return false;
+        var trivia = root.FindTrivia(position);
+
+        return (trivia.IsKind(SyntaxKind.DisabledTextTrivia) && trivia.Span.Contains(position))
+               || ((trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+                   && trivia.SpanStart < position
+                   && position < trivia.Span.End);
     }
 
     /// <summary>

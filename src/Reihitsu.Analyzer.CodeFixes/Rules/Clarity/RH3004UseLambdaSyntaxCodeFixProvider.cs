@@ -391,6 +391,36 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
+    /// Determines whether the whitespace in front of the first character of a line the block-body path moves holds a tab
+    /// (RH3004-006): every line of the block after its opening brace's line that is not blank, except a line that starts
+    /// with the closing brace, which the formatter lays out. A tab there has no single column count, so the fix is
+    /// withheld rather than measured
+    /// </summary>
+    /// <param name="block">Block of the anonymous method</param>
+    /// <param name="text">Text of the document</param>
+    /// <returns><see langword="true"/> if a moving line has a tab in front of its first character</returns>
+    private static bool HoldsTabInFrontOfMovingLine(BlockSyntax block, SourceText text)
+    {
+        var firstLineNumber = text.Lines.GetLineFromPosition(block.OpenBraceToken.SpanStart).LineNumber + 1;
+        var lastLineNumber = text.Lines.GetLineFromPosition(block.CloseBraceToken.SpanStart).LineNumber;
+
+        for (var lineNumber = firstLineNumber; lineNumber <= lastLineNumber; lineNumber++)
+        {
+            var line = text.Lines[lineNumber];
+            var indentationEnd = SkipIndentation(text, line.Start, line.End);
+
+            if (indentationEnd < line.End
+                && indentationEnd != block.CloseBraceToken.SpanStart
+                && text.ToString(TextSpan.FromBounds(line.Start, indentationEnd)).IndexOf('\t') >= 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Determines whether a later line of a span that starts on one line and ends on a later one has <c>#</c> as its first
     /// character inside the span that is not whitespace as the C# lexer counts it
     /// </summary>
@@ -550,6 +580,8 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
                     && IsOperandOfCastOrBinaryOperator(anonymousMethodExpression) == false
                     && ContainsDirectiveOrDisabledText(anonymousMethodExpression) == false
                     && WithholdsFixForSpanningStringOrComment(anonymousMethodExpression, text, GetExpressionBody(anonymousMethodExpression) == null) == false
+                    && (GetExpressionBody(anonymousMethodExpression) != null
+                        || HoldsTabInFrontOfMovingLine(anonymousMethodExpression.Block, text) == false)
                     && ReihitsuFormatter.FindUnsupportedSyntax(CreateLambdaExpression(anonymousMethodExpression)) == null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3004Title,
