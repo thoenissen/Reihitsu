@@ -97,3 +97,4 @@ Batch 1 (before test implementer), all answered as recommended:
 - Implementer 24 done (247db7c). Now cleaner 25.
 - Cleaner 25 clean. Now spec checker 26.
 - Spec checker 26: 1 finding (decision 24). Now spec author 27 (rewording), then spec checker 28, auditor 29, validator.
+- Spec author 27 done (dcc8733). Now spec checker 28 and auditor 29 (audits decision 23/24 changes since e7a0c2e).
