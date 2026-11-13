@@ -104,3 +104,4 @@ Batch 1 (before test implementer), all answered as recommended:
 - Implementer 31 done (b7152a5). Now cleaner 32.
 - Cleaner 32 clean. Now spec checker 33 and auditor 34 (repair round 3 since 809714e).
 - Auditor 34 pass. Audited SHA c25bcc3ad815a7b8379a97c66bef359fec35dbcb. Now validator 35.
+- Validator 35 pass (a226108). Lane check on head: confirmed behavior-change. Now issue manager 36 (2 follow-ups), then note, delete sdd/work, publish.
