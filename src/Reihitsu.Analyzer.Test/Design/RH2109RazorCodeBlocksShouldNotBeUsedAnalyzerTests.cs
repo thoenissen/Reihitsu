@@ -752,6 +752,290 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
+    /// Verifying that an HTML comment opener inside a C# string of a <c>@{ }</c> block starts no comment, so the
+    /// directive behind it is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-001")]
+    public async Task VerifyHtmlCommentOpenerInStringOfCodeStatementBlockDoesNotHideDirective()
+    {
+        const string razorSource = """
+                                   @{
+                                       var s = "<!--";
+                                   }
+                                   <p>x</p>
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 5, 1));
+    }
+
+    /// <summary>
+    /// Verifying that an HTML comment opener inside a C# string of a <c>@{ }</c> block starts no comment, so the
+    /// directive behind it is reported even when a real HTML comment follows the directive
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-001")]
+    public async Task VerifyHtmlCommentOpenerInStringOfCodeStatementBlockDoesNotHideDirectiveBeforeLaterHtmlComment()
+    {
+        const string razorSource = """
+                                   @{
+                                       var s = "<!--";
+                                   }
+                                   @code {
+                                   }
+                                   <!-- real -->
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 4, 1));
+    }
+
+    /// <summary>
+    /// Verifying that a Razor comment opener inside a C# string of a <c>@{ }</c> block starts no comment, so the
+    /// directive behind it is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-001")]
+    public async Task VerifyRazorCommentOpenerInStringOfCodeStatementBlockDoesNotHideDirective()
+    {
+        const string razorSource = """
+                                   @{
+                                       var s = "@*";
+                                   }
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 4, 1));
+    }
+
+    /// <summary>
+    /// Verifying that an HTML comment opener inside a C# string of an implicit expression starts no comment, so the
+    /// directive behind it is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-001")]
+    public async Task VerifyHtmlCommentOpenerInImplicitExpressionDoesNotHideDirective()
+    {
+        const string razorSource = """
+                                   <p>@M("<!--")</p>
+                                   @code {
+                                       string M(string s) => s;
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 2, 1));
+    }
+
+    /// <summary>
+    /// Verifying that a Razor comment opener inside a C# string of an explicit expression starts no comment, so the
+    /// directive behind it is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-001")]
+    public async Task VerifyRazorCommentOpenerInExplicitExpressionDoesNotHideDirective()
+    {
+        const string razorSource = """
+                                   <p>@("@*")</p>
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 2, 1));
+    }
+
+    /// <summary>
+    /// Verifying that an HTML comment opener inside a C# line comment of an <c>@if</c> block starts no comment, so the
+    /// directive behind it is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-001")]
+    public async Task VerifyHtmlCommentOpenerInCSharpCommentOfControlFlowBlockDoesNotHideDirective()
+    {
+        const string razorSource = """
+                                   @if (true)
+                                   {
+                                       // <!-- not a comment
+                                   }
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 5, 1));
+    }
+
+    /// <summary>
+    /// Verifying that a Razor comment opener behind a letter is text and starts no comment, so the directive behind it
+    /// is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-001")]
+    public async Task VerifyRazorCommentOpenerAfterLetterDoesNotHideDirective()
+    {
+        const string razorSource = """
+                                   <p>user@*x</p>
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 2, 1));
+    }
+
+    /// <summary>
+    /// Verifying that an HTML comment opener inside an attribute value starts no comment, so the directive behind it is
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-001")]
+    public async Task VerifyHtmlCommentOpenerInAttributeValueDoesNotHideDirective()
+    {
+        const string razorSource = """
+                                   <input value="<!--" />
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 2, 1));
+    }
+
+    /// <summary>
+    /// Verifying that an HTML comment opener inside a string of a <c>script</c> element starts no comment, so the
+    /// directive behind it is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-001")]
+    public async Task VerifyHtmlCommentOpenerInScriptStringDoesNotHideDirective()
+    {
+        const string razorSource = """
+                                   <script>
+                                       var s = "<!--";
+                                   </script>
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 4, 1));
+    }
+
+    /// <summary>
+    /// Verifying that an opening brace in the markup text of a templated delegate inside a code block does not keep the
+    /// block open, so the directive after the block is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-001")]
+    public async Task VerifyOpeningBraceInTemplateMarkupOfCodeBlockDoesNotHideLaterDirective()
+    {
+        const string razorSource = """
+                                   @code {
+                                       RenderFragment F => @<p>{</p>;
+                                   }
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 1, 1),
+                     RazorCodeBlockSpan("Counter.razor", 4, 1));
+    }
+
+    /// <summary>
+    /// Verifying that a block comment opener in the markup text of a templated delegate inside a code block starts no
+    /// comment, so the directive after the block is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-001")]
+    public async Task VerifyBlockCommentOpenerInTemplateMarkupOfCodeBlockDoesNotHideLaterDirective()
+    {
+        const string razorSource = """
+                                   @code {
+                                       RenderFragment F => @<p>/* note</p>;
+                                   }
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 1, 1),
+                     RazorCodeBlockSpan("Counter.razor", 4, 1));
+    }
+
+    /// <summary>
+    /// Verifying that an opening brace in the markup text of a templated delegate inside a <c>@functions</c> block does
+    /// not keep the block open, so the directive after the block is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-001")]
+    public async Task VerifyOpeningBraceInTemplateMarkupOfFunctionsBlockDoesNotHideLaterDirective()
+    {
+        const string razorSource = """
+                                   @functions {
+                                       RenderFragment F => @<p>{</p>;
+                                   }
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 4, 1));
+    }
+
+    /// <summary>
+    /// Verifying that a block comment opener in the markup text of a templated delegate inside a <c>@functions</c>
+    /// block starts no comment, so the directive after the block is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-001")]
+    public async Task VerifyBlockCommentOpenerInTemplateMarkupOfFunctionsBlockDoesNotHideLaterDirective()
+    {
+        const string razorSource = """
+                                   @functions {
+                                       RenderFragment F => @<p>/* note</p>;
+                                   }
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 4, 1));
+    }
+
+    /// <summary>
     /// Characterizes a <c>@functions</c> block: it is not reported. This test pins today's behavior without
     /// stating it as intended
     /// </summary>
