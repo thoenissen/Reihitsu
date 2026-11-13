@@ -50,7 +50,7 @@ The braces the fix creates are laid out as the formatter lays them out (SHARED-F
 The body is code the fix wraps into a new block (SHARED-FIX-007, *Moved code*): the spacing between its tokens, its line breaks, and the blank lines inside it stay as written, also where formatting the result would change them. Which of its lines move depends on where it starts:
 
 - **On the line of its `if` or `else`.** The body is one line (SHARED-BRACE-003 withholds the fix for a body there that spans several lines). It moves onto the line below the opening brace, its first token one indentation level, four columns, right of the braces, written as spaces behind the braces' whitespace.
-- **Below the line of its `if` or `else`.** The body keeps every line as written, in its column, where its first token stands one indentation level, four columns, right of the braces' column; a body that spans several lines keeps its continuation lines in their columns. Blank lines directly below the line of the `if` or `else` are removed, so the opening brace takes the line below it. From the first line that holds a comment or the body on, every line stays as written: a comment line above the body stays inside the block, above the body, and a blank line between that comment and the body stays.
+- **Below the line of its `if` or `else`.** The body keeps every line as written, in its column, whatever its indentation: also a body whose first token does not stand one indentation level, four columns, right of the braces' column keeps that column, and a body that spans several lines keeps its continuation lines in their columns. Blank lines directly below the line of the `if` or `else` are removed, so the opening brace takes the line below it. From the first line that holds a comment or the body on, every line stays as written: a comment line above the body stays inside the block, above the body, and a blank line between that comment and the body stays.
 
 The end of the body's last line is decided as follows. A comment behind the body on its last line stays there, inside the block, and is written once: the fix MUST NOT repeat it behind the closing brace (SHARED-FIX-003). Whitespace at the end of the body's last line stays there, and the fix MUST NOT write whitespace behind the closing brace. When other code follows the body, and the comments behind it, on that line:
 
@@ -145,6 +145,34 @@ class C
 ```
 
 The continuation line keeps column 16, although formatting the result would align `b` under `a`.
+
+Example — RH5405, a body below its `if` that is not indented one level deeper keeps its column:
+
+```csharp
+class C
+{
+    void M(bool a, int b)
+    {
+        if (a)
+          {|RH5405:M(a, b);|}
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(bool a, int b)
+    {
+        if (a)
+        {
+          M(a, b);
+        }
+    }
+}
+```
+
+The body stays in column 10, although formatting the result would move it to column 12; the layout rules still report it. A body that spans several lines keeps every line likewise: `M(a,` in column 10 with `b);` in column 14 below it keeps both columns.
 
 Example — RH5405, the other body stays as written:
 
