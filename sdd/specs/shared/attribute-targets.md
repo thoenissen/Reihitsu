@@ -537,7 +537,7 @@ Example: see SHARED-ATTR-013 and SHARED-ATTR-015.
 
 The code fix of a rule that requires one attribute per list MUST replace the reported list with one list per attribute, in the order the attributes were written, each list with the reported list's specifier, and MUST change nothing else (SHARED-FIX-006). The first list stays where the reported list starts. Each list after the first MUST start a new line, behind the whitespace that stands at the start of the line on which the reported list starts, as written. What stands in front of the reported list on its line — a comment or another attribute list — stays in front of the first list, and what follows the reported list on its line — a comment, whitespace, another attribute list, or the declaration the list belongs to — stays behind the last list. The line breaks between the new lists are the only line breaks the fix writes, and they MUST use the line ending SHARED-FIX-008 specifies.
 
-This holds wherever the list stands: every other line, its indentation, the comments and directives on it, and whitespace at the end of a line stay as written, also where the braces around the list are indented differently from the list, a comment or a directive above or below the list stands in another column, a line ends in whitespace, or the list shares its line with other code. The whitespace in front of each further list is a copy of the whitespace at the start of the reported list's line, character for character, also where it holds a tab: the fix neither replaces a tab with spaces nor counts it as a column.
+This holds wherever the list stands: every other line, its indentation, the comments and directives on it, and whitespace at the end of a line stay as written, also where the braces around the list are indented differently from the list, a comment or a directive above or below the list stands in another column, a line ends in whitespace, or the list shares its line with other code, except where SHARED-ATTR-022 withholds the fix for a list on the line of its accessor list's `{`. The whitespace in front of each further list is a copy of the whitespace at the start of the reported list's line, character for character, also where it holds a tab: the fix neither replaces a tab with spaces nor counts it as a column.
 
 Why: The fix makes only the change the diagnostic asks for: the attributes keep their order and their target, and each further attribute gets a line of its own at the indentation the reported list's line already has. The code around the list is a layout the author chose, and placing the declaration or a neighbouring list on a line of its own is the job of the placement rules, which report it on their own.
 
@@ -916,5 +916,55 @@ namespace N
 →→→}
 →→}
 →}
+}
+```
+
+### SHARED-ATTR-022 — The split fix is withheld for an accessor list on the line of its opening brace
+
+The code fix of a rule that requires one attribute per list MUST NOT be offered when the reported list is attached to an accessor and the `{` of the accessor list that holds the accessor stands on the line on which the reported list starts. The diagnostic is still reported. When that `{` stands on a line above the line on which the reported list starts, the fix is offered as SHARED-ATTR-017 states.
+
+Why: On the line of the accessor list's `{`, the whitespace at the start of the line is the indentation of the property, indexer, or event, not of the accessor. A further list started behind it, as SHARED-ATTR-017 states, would stand in front of the accessor, the rest of the accessor list, and its `}`, at the column of the declaration that owns them, which is a layout nobody writes. Laying the accessor list out over several lines instead would change the declaration beyond the reported list (SHARED-FIX-006). Attribute lists of an accessor behind the accessor list's `{` are rare.
+
+Example — RH5518 and RH5531, the accessor list's `{` on the line of the reported list:
+
+```csharp
+class C
+{
+    public int Value { {|RH5518:[field: First, Second]|} get => 1; }
+
+    public int Other { {|RH5531:[A, B]|} get => 1;
+        set { } }
+}
+```
+
+is reported, and no code fix is offered.
+
+Example — RH5518, the accessor list's `{` on a line above the reported list:
+
+```csharp
+class C
+{
+    public int Value
+    {
+        {|RH5518:[field: First, Second]|} get => 1;
+    }
+
+    public int Other {
+        {|RH5518:[field: First, Second]|} get => 1; }
+}
+```
+
+```csharp
+class C
+{
+    public int Value
+    {
+        [field: First]
+        [field: Second] get => 1;
+    }
+
+    public int Other {
+        [field: First]
+        [field: Second] get => 1; }
 }
 ```

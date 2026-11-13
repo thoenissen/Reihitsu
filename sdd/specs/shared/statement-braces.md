@@ -47,10 +47,10 @@ Where SHARED-BRACE-003 does not withhold it, a code fix that uses this requireme
 
 The braces the fix creates are laid out as the formatter lays them out (SHARED-FIX-007, FMT-STRUCT-001): each starts its own line, in the column of the first token of the line on which the `if` or `else` that owns the body starts. That is the column of the `if` for an `if` statement that starts its line, the column of the `else` for the body of an `else` that starts its line and for the body of an `else if` whose `else` starts its line, and the column of the closing brace for an `else` behind it. The whitespace in front of each brace is a copy of the whitespace in front of that first token.
 
-The body is code the fix wraps into a new block (SHARED-FIX-007, *Moved code*): the spacing between its tokens, its line breaks, and the blank lines inside it stay as written, also where formatting the result would change them. Which of its lines move depends on where it starts:
+The body is code the fix wraps into a new block (SHARED-FIX-007, *Moved code*): the spacing between its tokens, its line breaks, and the blank lines inside it stay as written, also where formatting the result would change them. Which of its lines move depends on where it starts relative to the header's last line, the line of the token that ends the header of the `if` or `else` that owns the body — the closing parenthesis of the condition, or the `else`. That is the line of the `if` or `else` keyword when the header stands on one line, and the line of the closing parenthesis when the condition spans several lines. The body starts below the header's last line when a line break outside a comment stands between that token and the body's first token, and on the header's last line otherwise: a line break inside a delimited comment between them does not count, so in `if (a) /* x` ⏎ `y */ M(a, b);` the body starts on the header's last line, and the comment stays behind the closing parenthesis. The braces take their column from the line on which the `if` or `else` starts, as stated above, wherever the header ends.
 
-- **On the line of its `if` or `else`.** The body is one line (SHARED-BRACE-003 withholds the fix for a body there that spans several lines). It moves onto the line below the opening brace, its first token one indentation level, four columns, right of the braces, written as spaces behind the braces' whitespace.
-- **Below the line of its `if` or `else`.** The body keeps every line as written, in its column, whatever its indentation: also a body whose first token does not stand one indentation level, four columns, right of the braces' column keeps that column, and a body that spans several lines keeps its continuation lines in their columns. Blank lines directly below the line of the `if` or `else` are removed, so the opening brace takes the line below it. From the first line that holds a comment or the body on, every line stays as written: a comment line above the body stays inside the block, above the body, and a blank line between that comment and the body stays.
+- **On the header's last line.** The body is one line (SHARED-BRACE-003 withholds the fix for a body there that spans several lines). It moves onto the line below the opening brace, its first token one indentation level, four columns, right of the braces, written as spaces behind the braces' whitespace.
+- **Below the header's last line.** The body keeps every line as written, in its column, whatever its indentation: also a body whose first token does not stand one indentation level, four columns, right of the braces' column keeps that column, and a body that spans several lines keeps its continuation lines in their columns. Blank lines directly below the header's last line are removed, so the opening brace takes the line below it. From the first line that holds a comment or the body on, every line stays as written: a comment line above the body stays inside the block, above the body, and a blank line between that comment and the body stays.
 
 The end of the body's last line is decided as follows. A comment behind the body on its last line stays there, inside the block, and is written once: the fix MUST NOT repeat it behind the closing brace (SHARED-FIX-003). Whitespace at the end of the body's last line stays there, and the fix MUST NOT write whitespace behind the closing brace. When other code follows the body, and the comments behind it, on that line:
 
@@ -115,6 +115,45 @@ class C
 ```
 
 No blank line is inserted between `b++;` and the `if`, the spaces inside `( a )` stay, and the body keeps `M(a,b)`, although formatting the result would change all three.
+
+Example — RH5405, a header that spans several lines:
+
+```csharp
+class C
+{
+    void M(bool a, bool b)
+    {
+        if (a &&
+            b) {|RH5405:M(a, b);|}
+
+        if (a &&
+            b)
+            {|RH5405:M(a, b);|}
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(bool a, bool b)
+    {
+        if (a &&
+            b)
+        {
+            M(a, b);
+        }
+
+        if (a &&
+            b)
+        {
+            M(a, b);
+        }
+    }
+}
+```
+
+In the first statement, the body starts on the header's last line, the line of `b)`, so it moves below the opening brace, although it starts on a later line than the `if` keyword. In the second, the body starts below `b)` and keeps its line. In both, the braces start the line below `b)`, in the column of the `if`, and the condition keeps its lines.
 
 Example — RH5406, a body below its `if` that spans several lines keeps its lines:
 
@@ -427,7 +466,7 @@ Example — line endings: in a document whose line breaks are all CRLF, every li
 
 A code fix that uses this requirement MUST NOT be offered for a reported body in each of the following cases. The diagnostic is still reported.
 
-- **A body on the line of its `if` or `else` that spans several lines.** The body starts on the line on which the `if` or `else` that owns it starts, and it ends on a later line, counting a comment behind its last token on that line: a delimited comment behind the body that continues onto a later line makes it span several lines. A body that starts on a later line than its `if` or `else` keeps the fix, whatever number of lines it spans, and so does a body on that line that ends on it, with a single-line comment or a delimited comment closed on that line behind it.
+- **A body on the header's last line that spans several lines.** The body starts on the last line of the header of the `if` or `else` that owns it, as SHARED-BRACE-002 decides it, and it ends on a later line, counting a comment behind its last token on that line: a delimited comment behind the body that continues onto a later line makes it span several lines. A body below the header's last line keeps the fix, whatever number of lines it spans, also when the header itself spans several lines, and so does a body on that line that ends on it, with a single-line comment or a delimited comment closed on that line behind it.
 - **Other code in front of the `if` or `else` on its line.** Something other than whitespace stands in front of the `if` or `else` that owns the body on the line on which it starts, and it is not an `else` whose clause holds that `if` (an `else if`), nor a closing brace that ends the other body of the same `if` statement and stands directly in front of that `else`, with only whitespace between them. Such code is a statement, a `case` label, an opening brace, the header of an `if` or loop whose body the `if` is, the body in front of an `else`, or a comment.
 - **A directive or disabled text between the header and the body.** A preprocessor directive or disabled text stands between the token that ends the header of the `if` or `else` that owns the body — the closing parenthesis of the condition, or the `else` — and the body's first token. A directive behind the body, in front of the next statement, and a directive between two lines of a body below its header do not withhold the fix.
 - **A tab in front of the `if` or `else`.** The whitespace in front of the first token of the line on which the `if` or `else` that owns the body starts holds a tab. A tab elsewhere — between two tokens of a line, or inside a comment or a string — does not withhold the fix.
