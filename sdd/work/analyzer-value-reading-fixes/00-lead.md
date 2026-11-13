@@ -55,4 +55,5 @@ Spec author (clarifications only: rule-spec coverage sentences for #1071/#1268, 
 - 04 test implementer done (752f3ac): all four reproduced; 61 failing new tests, 14 guard tests passing.
 - 05 implementer done (d3c005c): 8591/8592 analyzer tests pass; one disputed fixture.
 - 06 fixture repaired (0eb9d98); RH2109 33/33.
-- Next: cleaner (07).
+- 07 cleaner clean (e85cfc0).
+- Next: spec checker (08).
