@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | SHARED-FIX-007 (changed), SHARED-ORDER-009 (added), SHARED-ORDER-010 (added), RH7004-007 (added), SHARED-DOC-004 (changed: a member or accessor move does not carry a `///` comment behind code), RH3004-006 (clarified: its line rule is SHARED-FIX-007's; changed: a tab in front of a moving line withholds the block-body fix), RH7102-006, RH7103-007, RH7107-005, RH7108-005, RH7109-006 (changed: list the new refusals), RH7107-004, RH7108-004 (changed: the swap within a one-line accessor list) |
+| Affected requirements | SHARED-FIX-007 (changed), SHARED-ORDER-009 (added), SHARED-ORDER-010 (added), RH7004-007 (added), SHARED-DOC-004 (changed: a member or accessor move does not carry a `///` comment behind code), RH3004-006 (clarified: its line rule is SHARED-FIX-007's; changed: a tab in front of a moving line withholds the block-body fix), RH7102-006, RH7103-007, RH7107-005, RH7108-005, RH7109-006 (changed: list the new refusals), RH7107-004, RH7108-004 (changed: the swap within a one-line accessor list), RH7303-004 (changed: covers every region the fix is offered for, and the edges of any braces, through SHARED-FIX-007 *Removed directive line*), RH7302-005 (changed: descriptions compared as SHARED-REGDESC-001 reads them) |
 
 ## What
 
@@ -14,10 +14,12 @@
 - **Lines a shift cannot move, in RH7004** (RH7004-007). The fix is withheld when the moved statements hold a string literal of any kind or a comment that spans lines, or disabled text, or when a line the fix changes is shared with code it does not move: the first moved statement starts on the line of the using declaration, code stands in front of the declaration on its line, or the last moved statement ends on the line of the block's closing brace. A comment or directive in front of the declaration's semicolon withholds it as on `main`.
 
 - **Blank lines joined by a removed directive line** (SHARED-FIX-007, *Removed directive line*; RH7303, RH7310). Where a removal joins blank lines in front of a removed line with blank lines behind it, the blank lines in front stay as written and those behind it go. This only states which of the blank lines is kept; the number of blank lines left follows the bullet as before.
+- **Edges of any braces, for a removed directive line** (SHARED-FIX-007, *Removed directive line*; RH7303-004). The start and the end of a body, where a blank line the removal leaves goes, are the lines behind an opening and in front of a closing brace of any construct: a type, a block, an accessor list, a switch statement, or an initializer. Until now the bullet did not say which braces bound a body, and RH7303-004 was stated only for directives between two statements with no blank line around them. A blank line behind a `case` label is not at a brace and stays where it is not doubled.
+- **The `#endregion` that repeats a name with trailing whitespace** (RH7302-005). The RH7302 fix renames an `#endregion` whose description equals the `#region` description, both read as SHARED-REGDESC-001 reads them, so whitespace behind the `#region` description no longer keeps the `#endregion` from being renamed. Until now the rename was conditioned on "the `#region` line ends with its description". Only the description of the `#endregion` is rewritten; an `#endregion` that holds the name together with other text, inside a word, or in its keyword stays unchanged, which is a bug against SHARED-FIX-003 (thoenissen/Reihitsu#1151) and not listed here.
 
 ## Why
 
-thoenissen/Reihitsu#969, thoenissen/Reihitsu#1335, and thoenissen/Reihitsu#1604 report that the member-ordering, accessor-ordering, and RH7004 fixes reformat the code they move and the code around it. That part is a bug against unchanged SHARED-FIX-006 and SHARED-FIX-007 and is not listed here. Once the fixes stop formatting, SHARED-FIX-007 has to say where a line of moved code that does not start a statement or member goes, and which moved code a plain shift of lines cannot carry. The maintainer answered both (run `fix-scope-moved-code`, batch 1): moved lines keep their written columns relative to each other, a move is always a move of whole lines, and moved statements with strings or comments that span lines are left to manual correction for now.
+thoenissen/Reihitsu#969, thoenissen/Reihitsu#1335, and thoenissen/Reihitsu#1604 report that the member-ordering, accessor-ordering, and RH7004 fixes reformat the code they move and the code around it. That part is a bug against unchanged SHARED-FIX-006 and SHARED-FIX-007 and is not listed here. thoenissen/Reihitsu#1263 reports that the RH7303 and RH7310 fixes leave blank lines where a removed region directive stood, and thoenissen/Reihitsu#1151 that the RH7302 fix renames `#endregion` comments that only contain the region name; both are bugs against SHARED-FIX-007 and SHARED-FIX-003, apart from the two cases the maintainer answered (Q5, Q6): which braces bound a body, and whether whitespace behind the `#region` description is part of it. Once the fixes stop formatting, SHARED-FIX-007 has to say where a line of moved code that does not start a statement or member goes, and which moved code a plain shift of lines cannot carry. The maintainer answered both (run `fix-scope-moved-code`, batch 1): moved lines keep their written columns relative to each other, a move is always a move of whole lines, and moved statements with strings or comments that span lines are left to manual correction for now.
 
 ## Visible output changes
 
@@ -732,6 +734,95 @@ class C
 }
 ```
 
+### A blank line at the edge of an initializer's braces goes with the removed region (RH7303; the same for an accessor list and a switch statement)
+
+```csharp
+class C
+{
+    int[] M()
+    {
+        return new[]
+               {
+
+                   #region Values
+                   1,
+                   2
+                   #endregion
+
+               };
+    }
+}
+```
+
+Before (issue run):
+
+```csharp
+class C
+{
+    int[] M()
+    {
+        return new[]
+               {
+
+                   1,
+                   2
+
+               };
+    }
+}
+```
+
+After:
+
+```csharp
+class C
+{
+    int[] M()
+    {
+        return new[]
+               {
+                   1,
+                   2
+               };
+    }
+}
+```
+
+### Whitespace behind the `#region` description (RH7302)
+
+The `#region` line ends with two spaces behind `members`:
+
+```csharp
+class C
+{
+    #region members  
+    int _a;
+    #endregion // members
+}
+```
+
+Before (issue run; RH7301 then reports the pair):
+
+```csharp
+class C
+{
+    #region Members  
+    int _a;
+    #endregion // members
+}
+```
+
+After:
+
+```csharp
+class C
+{
+    #region Members  
+    int _a;
+    #endregion // Members
+}
+```
+
 ## Decisions
 
 ### Moved lines keep their columns relative to each other
@@ -794,6 +885,14 @@ Lead, decision 26; local rare-class refusal (RH3004-006). With one line rule for
 
 Lead, decision 27 (SHARED-FIX-007, *Moved code*). A line that holds only whitespace is written empty and stays a blank line. This is `main`'s output for the RH3004 and RH7004 fixes and for member moves, checked with `scripts/apply-fix.sh`; nothing visible changes.
 
+### A blank line at the edge of any braces goes
+
+Maintainer, batch 1, Q5 A. A blank line behind an opening or in front of a closing brace is one the removal leaves where none belongs, whatever construct the braces belong to; the formatter removes it there too.
+
+### Whitespace behind a region description is not part of it
+
+Maintainer, batch 1, Q6 A. The `#endregion` does repeat the name, so it is renamed with it, and the pair still agrees after the fix, as RH7301 compares it (SHARED-REGDESC-001).
+
 ## Alternatives considered
 
 - **Lines of moved code get the column the formatter gives them** (Q1 B, Q2 B) — rejected by the maintainer: it reformats code the fix only moves, which SHARED-FIX-007 forbids for the code's other layout.
@@ -804,4 +903,6 @@ Lead, decision 27 (SHARED-FIX-007, *Moved code*). A line that holds only whitesp
 - **RH3004 counts a tab as one column, as the other moves do** — rejected (decision 26): it changes RH3004's output for tab indentation with no requirement demanding it.
 - **RH3004 keeps counting a tab as four columns** — rejected (decision 26): a second counting rule beside SHARED-FIX-007's, in the one owner of the line rule.
 - **Withhold RH7004 for every directive among the moved statements** — rejected: `#if DEBUG` and `#pragma` in method bodies are common code, and the per-line rule is a cheap check.
+- **Only a block or a type body bounds a body for a removed directive line** (Q5 B) — rejected by the maintainer: the blank lines at the edge of an initializer, an accessor list, or a switch statement would stay.
+- **The `#endregion` stays unrenamed when the `#region` line ends with whitespace** (Q6 B) — rejected by the maintainer: RH7301 would report the pair right after the fix.
 - **One shared "move lines by a column delta" helper for RH3004, RH7004, and the ordering fixes** (thoenissen/Reihitsu#1604) — not a behavior; the member and accessor moves need no shift in the common case, and RH3004's rules differ. Left to the implementation.
