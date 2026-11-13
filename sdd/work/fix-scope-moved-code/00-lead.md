@@ -25,13 +25,14 @@ Batch 1 (asked as chat questions 1–6; skeptic/spec-author IDs in brackets):
 - Q4 [Q5b] RH7004 comment in column 0 among moved statements: **A** — stays in column 0.
 - Q5 [Q4] RH7303 blank line at the edge of any braces (initializer, accessor list, switch): **A** — removed.
 - Q7 RH7107/RH7108 accessor list on one line: **B** — accessors swap places within the line; SHARED-ORDER-009 gains "or the whole accessor list stands on one line"; RH7107-004 unchanged.
+- Escalation 9 (size of the three Core helpers, +~470): **A** — keep everything, plus the cleanup (decisions 19, 20).
 - Q6 [Q3] RH7302 trailing whitespace behind the `#region` description: **A** — the `#endregion // members` is still renamed.
 
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
-| 19 | Implementer 07 | Arch finding 1: moved-line rule in both `SyntaxIndentationUtilities.TryShiftMovedLines` and RH3004's private shifter; they disagree on `/* x */ Foo();` in column 0 | One owner: RH3004 uses the shared helper, its private copy is deleted; the helper's rule is RH3004's (only a line that holds nothing but a comment keeps column 0, per SHARED-FIX-007 "comment line"). Pending escalation 9 answer | The run added the copy (README Architecture findings: change structure in this run); RH3004 is the counterpart #1604 names | RH3004 output unchanged; `/* x */ Foo();` is a code line, SHARED-FIX-007 decides | — |
+| 19 | Implementer 07 | Arch finding 1: moved-line rule in both `SyntaxIndentationUtilities.TryShiftMovedLines` and RH3004's private shifter; they disagree on `/* x */ Foo();` in column 0 | One owner: RH3004 uses the shared helper, its private copy is deleted; the helper's rule is RH3004's (only a line that holds nothing but a comment keeps column 0, per SHARED-FIX-007 "comment line"). | The run added the copy (README Architecture findings: change structure in this run); RH3004 is the counterpart #1604 names | RH3004 output unchanged; `/* x */ Foo();` is a code line, SHARED-FIX-007 decides | — |
 | 20 | Implementer 07 | Arch finding 2 / dead code: old `MoveNodeBeforePreservingSeparators`, `MoveMemberBefore`, `MoveAccessorBefore` only called by Core tests | Delete helpers and their Core tests | Second statement of the separator rule; dead code | Internal | — |
 | 21 | Implementer 07 | Unspecified rare refusals (RH7004: code before the declaration on its line; last statement on the `}` line; comment/directive before `;`. Moves: target leading trivia starting behind code) | Accept as rare-class refusals; spec author records them; test implementer fixes the stale summary/tag of `NoFixIsOfferedForACommentInFrontOfTheSemicolon` | Rare classes (other rules report them) | Rare-class refusal | 9a3dded |
 | 22 | Implementer 07 | Layout choice: a `///` comment behind code that travels with the moved declaration is put on its own line | Withhold instead (decides a line break; Q1 whole-line rule) | Maintainer's Q1 addition | Covered by Q1 answer | — |
@@ -77,6 +78,6 @@ Batch 1 (asked as chat questions 1–6; skeptic/spec-author IDs in brackets):
 - Done: test implementer 05 (5bd3a7b): all reproduced; #1604 (d) not reproduced (characterization). 98 failing tests.
 - Done: spec author 06 (c3c16cf).
 - Done: implementer 07 (9a3dded, 10c718c): all tests pass; +700/-242 production, ~470 in three Core helpers.
-- Asked escalation 9 (size) to the maintainer; waiting. After the answer: repair-like structural round (decisions 19–23) — spec author, test implementer, implementer — then cleaner.
+- Escalation 9 answered A. Now: repair-like structural round (decisions 19–23) — spec author, test implementer, implementer — then cleaner.
 - (old) Next: fresh spec author writes the answers into the specs (and change doc if sdd/README requires one); then test implementer.
 - (old) Next after answers: then batch Q1–Q3 (+ skeptic's) to the maintainer before the test implementer.
