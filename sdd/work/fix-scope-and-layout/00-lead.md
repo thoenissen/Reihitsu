@@ -55,6 +55,11 @@ The maintainer raised no objection to the narrowing of #1140 and the withheld ra
 | 12 | Spec author | RH5204-006: a wrapped continuation line below the reported line keeps its column | Accept: covered by answer 1A ("only the reported line moves"); RH5203 reports the continuation separately | Literal reading of the maintainer's answer | Covered by maintainer answer 1 | b92e71f |
 | 13 | Spec author | Change doc for the rewritten RH5204-006 and RH5203-003 | None; lane stays bug fix | Both rewrites align a rule requirement to unchanged shared requirements the maintainer already decided (SHARED-FIX-006/P9 for RH5204; SHARED-FIX-007/P10 and #1123 Q1 for RH5203), as triage J2 on #1140 prescribes; the answers are recorded in the specs and here | Covered by maintainer answers 1 and 2 | b92e71f |
 | 14 | Spec author | RH5103-005 defined by brace position; SHARED-ATTR-021 measures the brace's line | Accept | Keeps common inputs (`M(); M(); M();`, `void M() {`) fixable | Narrower withholding than decided; rare class only | b92e71f |
+| 15 | Test impl. | Three SHARED-FIX-010 "no fix offered" tests (RH5405, RH5403, RH6024) depend on the new fix scope | Leave as written; if the narrowed fix no longer formats the refused node, the test implementer rewrites them to "fix offered" in the repair worklist | SHARED-FIX-010 (unchanged) withholds only when the formatted node holds the shape; scope change covered by answer 1A/P9 | Follows from unchanged SHARED-FIX-010 and answer 1 | — |
+| 16 | Test impl. | Does RH5204-006 "second line of a multi-line comment keeps its column" cover a run of `///` lines? | No: it covers delimited comments; a `///` run moves as one comment (today's output, existing test unchanged). Spec author adds the wording | Keeps `main`'s output; the sentence was written for delimited comment text | Output unchanged from `main` | — |
+| 17 | Test impl. | RH5204 `GetFixAllScenario` exact `NumberOfFixAllIterations = 2` | May be relaxed to at most two if it trips (test implementer, in repair) | Iteration count is internal | Internal | — |
+| 18 | Test impl. | RH5403 fix moves `while` of `do` to the next line | Accept | Formatter's layout (SHARED-FIX-007) | Unchanged requirement decides it | abe294f |
+| 19 | Test impl. | #1141 Fix All tests expect one pass | Keep; the implementer aims for one pass. If not reachable inside the narrowed fix, decide then (the issue routes multi-pass to the Fix All issue) | Issue's done-when | Internal (iteration count) | — |
 
 ## Follow-up candidates
 
@@ -65,4 +70,5 @@ The maintainer raised no objection to the narrowing of #1140 and the withheld ra
 
 - Skeptic done (01-skeptic.md, 2402f9b). Answers received (1A 2A 3A 4A). Was waiting for maintainer: output questions RH5204 scope, RH5203 comment line; escalation 4 (#1393); escalation 10 (#1561 shape); confirmation of narrowing #1140 (shown for visibility).
 - Spec author done (02-spec-author.md, b92e71f); lane check confirmed bug-fix.
-- Next: test implementer. (old: spec author (clarifications RH5204-006, RH5203-003 per answer, RH5103-003 withheld class, RH5205 withheld class, RH5513/SHARED-ATTR withheld class), then test implementer.
+- Test implementer done (03, abe294f): all reproduced except #1393 (characterization, answer 3).
+- Next: implementer; spec author amendment for decision 16 in parallel. (old: spec author (clarifications RH5204-006, RH5203-003 per answer, RH5103-003 withheld class, RH5205 withheld class, RH5513/SHARED-ATTR withheld class), then test implementer.
