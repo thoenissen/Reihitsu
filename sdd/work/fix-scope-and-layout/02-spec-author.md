@@ -148,3 +148,7 @@ Nothing to write: RH5204-001 already judges a line by its first token as SHARED-
 
 - `scripts/test.sh --project architecture --filter "FullyQualifiedName~SpecStructureTests|FullyQualifiedName~SpecConsistencyTests"`: 26 passed.
 - New IDs inserted in `sdd/specs/requirement-ids.txt`: RH5103-005, RH5205-004, SHARED-ATTR-021. No ID retired or renumbered; no code owner changed, so `sdd/specs/README.md` is unchanged.
+
+## Amendment
+
+Lead decision 16: RH5204-006 now limits "a later line of a comment that spans several lines keeps its column" to delimited comments (`/* */`, `/** */`), and states that a run of `///` lines is one documentation comment whose lines all take the reported first line's indentation. This is today's output, asserted by `VerifyMultiLineSingleLineDocumentationCommentIsDetectedAndFixed`. A new example (*a `///` documentation comment moves as a whole*) seeds that test, which may carry the `RH5204-006` tag. Only `sdd/specs/analyzer/RH5204.md` and this handover changed.
