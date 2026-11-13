@@ -68,4 +68,5 @@ Batch 1 (before test implementer), all answered as recommended:
 - Done: answer 7 = B.
 - Done: spec author 07 (2fa97c8): SHARED-ATTR-022.
 - Done: test implementer 08 (ce57cc9): 7 red SHARED-ATTR-022 tests.
-- Now: implementer 09 (SHARED-ATTR-022 withhold), then cleaner.
+- Done: implementer 09 (f2e0b5f): all analyzer tests pass.
+- Now: cleaner 10, then spec checker 11.
