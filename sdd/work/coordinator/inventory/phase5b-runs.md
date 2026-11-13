@@ -64,3 +64,21 @@ Formatter runs first (fixes that delegate to the formatter follow them), then 1.
 | 18 | Q4 | `/squad #1345 #1346 #1347 #1348 #1270 #1092 #1153 #1617` | |
 | 19 | Q7 | `/squad #1642 #1635` | |
 | 20 | Q1 | `/squad #1147 #1152 #1386 #1387 #1594 #1655` | |
+
+## Sequential order (refreshed 2026-11-13)
+
+Maintainer 2026-11-13: release 1.2.1 and 1.2.2 first; deferred minor bugs #1140 (remainder), #1676, #1680, #1687 leave the runs. Done: P1 P2 P3 P4 P6 P7 P8 P10 P12 P14.
+
+| # | Run | MS | Command | Status |
+|---|---|---|---|---|
+| 1 | P5 | 1.2.1 | `/squad #1416 #1388 #1627 #1142` | next |
+| 2 | P13 | 1.2.1+1.2.2 | `/squad #1529 #1543` | output questions |
+| 3 | P9 | 1.2.1 | `/squad #1283 #1284 #1285` | after P5 |
+| 4 | P11 | 1.2.1 | `/squad #1600 #1150 #1274 #1143 #1673 #1678` | last of 1.2.1 |
+| 5 | Q3 | 1.2.2 | `/squad #966 #1105 #1266 #1267` | after PR #1669 is merged or closed |
+| 6 | Q6 | 1.2.2 | `/squad #1074 #1079 #1276 #1613` | |
+| 7 | Q2 | 1.2.2 | `/squad #1264 #1333 #1334 #1339 #1337 #1412 #1592` | |
+| 8 | Q4 | 1.2.2 | `/squad #1345 #1346 #1347 #1348 #1270 #1092 #1153 #1617` | |
+| 9 | Q7 | 1.2.2 | `/squad #1642 #1635` | |
+| 10 | Q1 | 1.2.2 | `/squad #1147 #1152 #1386 #1387 #1594 #1655` | |
+| 11 | Q5 | 1.2.2 | `/squad #1071 #1268 #1289 #974` | small, no dependency; can be pulled forward |
