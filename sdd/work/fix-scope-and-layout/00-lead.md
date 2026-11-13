@@ -67,6 +67,11 @@ The maintainer raised no objection to the narrowing of #1140 and the withheld ra
 | 24 | Spec checker | No change doc although RH5204-006/RH5203-003 change and three withheld-fix requirements are added | Keep decision 13; withheld rare classes are recorded in the rule spec as AGENTS.md *Code-fix coverage* prescribes; the PR's Review notes state the reason | Covered by maintainer answers 1–2 and the rare-class policy | Answers 1–2; rare classes | — |
 | 25 | Spec checker | Repair round 1: stale FMT-PIPE-024 tags on six RH6023 tests; optional SHARED-FIX-007 tag on the RH5513 tab test | Test implementer fixes both; it runs `scripts/format.sh` on the file itself, so the cleaner is not re-run (tags only); spec checker re-runs on the repair | Tag-only change | Internal | — |
 | 26 | Test impl. (repair 1) | SHARED-ATTR-021 does not say how a tab counts in "indented four spaces for each such brace" | A tab counts as four columns (the code's behavior); spec author states it. Keeps `main`'s output for tab-indented code (fix offered, #1030 Q4) | Counting one would withhold a fix `main` offers for common tab-indented code | Keeps `main`'s output | — |
+| 27 | Auditor 13 (repair round 2) | F1 high: RH5203 fix does not converge when a delimited comment stands in front of the argument on its line | Refuse the class: withhold the fix when anything but whitespace precedes the argument on its line; RH5203-003 records it | Rare class (comment in argument list, RH5038); safety rail repaired in scope | Withholding for a rare class | — |
+| 28 | Auditor 13 | Architecture finding / F2: shared-line split column decided by two components; wrong on a type written on one line | Refuse the class: `FormatMemberOnLinesOfItsOwnAsync` separates only when the member's line starts with a sibling member of the same list; otherwise the fix behaves as on `main` | Rare (RH5404 reports a one-line type); refusing removes the disagreement | Rare class keeps `main`'s output | — |
+| 29 | Auditor 13 | F3: attribute base does not split a sibling behind the member (`[Obsolete] int _a; int _b;`) | Follow-up (pre-existing on `main`, not a regression) | Keeps the run narrow | Unchanged output | — |
+| 30 | Auditor 13 | F4 tests (comment in gap per caller path), F5 RH5203-003 comment kinds (spec narrowed to the kinds the code moves; doc comments inside an argument list are a rare class), F6 SHARED-ATTR-021 wording vs SHARED-ATTR-008 (spec text), F7 stale comment (cleaner) | Route to owners | Same requirement / text | F5 rare class; others internal | — |
+| 31 | Auditor 13 | #1144 `else if` instance left to #1416 | `Closes #1144`; Review notes name the instance as tracked by #1416 | Issue's main instances met | — | — |
 
 ## Follow-up candidates
 
@@ -74,6 +79,7 @@ The maintainer raised no objection to the narrowing of #1140 and the withheld ra
 - Other analyzers calling `IsFirstOnLine` where their spec says SHARED-BLANK-008 (01-skeptic, #1561)
 - Other fixes that format a whole member (expression-body base behind RH3203 etc.) may leave a sibling member on a shared line (04-implementer)
 - #1140's brace-fix instances (RH5405–RH5407, RH5403: scope, blank lines) and #1144's `else if` brace column (with #1416) — narrowed out by decision 20 (04-implementer)
+- Attribute-placement fix leaves a sibling member behind the member on its line (`[Obsolete] int _a; int _b;`, RH5517), SHARED-FIX-007; pre-existing (13-auditor F3)
 
 ## Worklist / next step
 
@@ -83,6 +89,6 @@ The maintainer raised no objection to the narrowing of #1140 and the withheld ra
 - Spec amendment f85c954. Implementer done (04, ba83087/f2875e4): 18 red tests, growth 408 lines + new type.
 - Spec author 05 (1e9a5f7) restored RH5403/statement-braces specs; test implementer 06 (d979e84): 7 red brace tests await production revert; decision 23 no defect; RH3102 duplicate characterization test kept (harmless).
 - Implementer 07 (0b12f75): all tests pass; no new type; net production +87 lines (330+/243-). Decision 20 carried out.
-- Cleaner 08 clean (43087b1). Spec checker 09 (f36127b): findings → repair round 1 (decision 25): test implementer 10 (beb8ec6) done; spec author 11 (d50e9f8), tag amendment eb50771, spec checker 12 (d3c17e1) consistent. Build green. Auditor 13 on head d3c17e1, base main d6a01ee.
+- Cleaner 08 clean (43087b1). Spec checker 09 (f36127b): findings → repair round 1 (decision 25): test implementer 10 (beb8ec6) done; spec author 11 (d50e9f8), tag amendment eb50771, spec checker 12 (d3c17e1) consistent. Build green. Auditor 13 on head 261ba8f (audited SHA), base main d6a01ee: findings → repair round 2 (decisions 27–30): spec author 14 + test implementer 15 in parallel, implementer 16, cleaner 17, spec checker 18, auditor 19 (repair only), validator.
 - Repair (not a repair round; narrowing + test disputes): spec author 05 and test implementer 06 in parallel, then implementer 07.
 - (old) Next: implementer; spec author amendment for decision 16 in parallel. (old: spec author (clarifications RH5204-006, RH5203-003 per answer, RH5103-003 withheld class, RH5205 withheld class, RH5513/SHARED-ATTR withheld class), then test implementer.
