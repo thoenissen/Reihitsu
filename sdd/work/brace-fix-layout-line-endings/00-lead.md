@@ -22,7 +22,12 @@ Bug-fix lane: spec author (clarifications: SHARED-BRACE-002, RH5011-004, RH8304-
 
 ## Maintainer answers
 
-_None yet._
+Batch 1 (before test implementer), all answered as recommended:
+1. RH5406, multi-line body starting on the `if`/`else` line → C: no fix offered; a body below its header keeps its lines.
+2. RH5405, code behind the body on its line (`/* c */ b++;`) → A: `b++;` starts its own line behind the new `}`.
+3. RH5405, blank line between header and body → A: removed, as on `main`.
+4. #1627, trailing whitespace at end of body line → A: stays on the body's line, nothing behind `}`.
+5. Escalation 10, directive/disabled text between header and unbraced body → A: not declared; brace fixes withheld for it.
 
 ## Decisions taken
 
@@ -48,5 +53,6 @@ _None yet._
 
 - Done: claim, draft PR #1691, prepare.sh; spec author 01 (c14bb8c, 4 output questions; flagged `} else M();` as a visible difference to add to the batch; FormatNode instance of #1388 possibly unreachable).
 - Done: skeptic 02 (bb1c18e).
-- Now: batch 1 asked — Q1 multi-line body on header line (rec C), Q2 `} b++;` (rec A), Q3 blank line header/body (rec A), Q4 #1627 trailing whitespace (rec A), escalation 10 directive before unbraced body (rec: do not declare). Waiting.
-- Then: spec author amendment (decisions 6–9 + answers), then test implementer.
+- Done: batch 1 answered (all as recommended).
+- Now: spec author amendment 03 (answers 1–5, decisions 6–9).
+- Then: test implementer.
