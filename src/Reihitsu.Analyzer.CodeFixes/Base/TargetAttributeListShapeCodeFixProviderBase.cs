@@ -105,7 +105,8 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
     /// out, so a further list started behind it would stand at the wrong column, in front of the rest of that body. The
     /// scan walks the tokens in front of the list on its line backwards and counts the <c>}</c> tokens still waiting for
     /// their <c>{</c>; a <c>{</c> found while none is waiting is open at the list. A brace inside a literal, a comment, or
-    /// disabled text is no token and is not seen
+    /// disabled text is no token, and a missing brace has no width, so <see cref="SyntaxToken.GetPreviousToken"/> skips it;
+    /// neither is seen
     /// </summary>
     /// <param name="attributeList">Attribute list</param>
     /// <returns><see langword="true"/> when the split fix is withheld for the list</returns>
@@ -120,21 +121,18 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
         while (token.IsKind(SyntaxKind.None) == false
                && tree.GetLineSpan(token.Span).StartLinePosition.Line == listLine)
         {
-            if (token.IsMissing == false)
+            if (token.IsKind(SyntaxKind.CloseBraceToken))
             {
-                if (token.IsKind(SyntaxKind.CloseBraceToken))
+                waitingCloseBraces++;
+            }
+            else if (token.IsKind(SyntaxKind.OpenBraceToken))
+            {
+                if (waitingCloseBraces == 0)
                 {
-                    waitingCloseBraces++;
+                    return true;
                 }
-                else if (token.IsKind(SyntaxKind.OpenBraceToken))
-                {
-                    if (waitingCloseBraces == 0)
-                    {
-                        return true;
-                    }
 
-                    waitingCloseBraces--;
-                }
+                waitingCloseBraces--;
             }
 
             token = token.GetPreviousToken();
