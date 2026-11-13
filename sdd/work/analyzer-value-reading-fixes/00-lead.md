@@ -64,6 +64,6 @@ Spec author (clarifications only: rule-spec coverage sentences for #1071/#1268, 
 - 10 spec checker consistent (0703015).
 - 11 auditor (5df37b7): #1071, #1268, #974 pass; #1289 two high findings (decision 11).
 - 12 test implementer: 13 new RH2109 tests (8ebbe37), all fail on head, pass on main analyzer.
-- 14 cleaner clean (2f389e3). Next: spec checker (15), auditor (16, repair only).
+- 14 cleaner clean (2f389e3). 15 spec checker consistent (9734aea). Next: auditor (16, repair only).
 - 13 implementer (0de22a4): 46/46 RH2109, 8605/8605 analyzer; RH2109 95 code lines.
 - Repair round 2 (round 1 = Uses lists): test implementer (12, done) adds tests for the auditor's counterexamples → implementer (13) → cleaner → spec checker → auditor (repair only) → validator.
