@@ -83,7 +83,10 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
     }
 
     /// <summary>
-    /// Applies split-list fix for a single attribute list
+    /// Applies split-list fix for a single attribute list. The reported list is replaced, in the text, by one list per
+    /// attribute, and nothing else changes (SHARED-ATTR-017): the first list stays where the reported list starts, and each
+    /// further list starts a new line, behind a copy of the whitespace at the start of the line on which the reported list
+    /// starts. The line breaks between the lists are the document's line ending (SHARED-FIX-008)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="attributeList">Attribute list</param>
@@ -93,100 +96,24 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
     private static async Task<Document> ApplySplitCodeFixAsync(Document document, AttributeListSyntax attributeList, TargetAttributePlacementMode placementMode, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var owner = attributeList.Parent;
 
-        if (root == null || owner == null || SyntaxNodeUtilities.InteriorContainsCommentOrDirective(attributeList))
+        if (root == null
+            || attributeList.Attributes.Count <= 1
+            || SyntaxNodeUtilities.InteriorContainsCommentOrDirective(attributeList))
         {
             return document;
         }
 
-        var lists = AttributeTargetUtilities.GetAttributeLists(owner);
-        var listIndex = IndexOfList(lists, attributeList);
+        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var line = sourceText.Lines.GetLineFromPosition(attributeList.SpanStart);
+        var lineIndentation = FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
+        var separator = placementMode == TargetAttributePlacementMode.SeparateLine
+                            ? ReihitsuFormatterHelpers.DetectEndOfLine(root) + lineIndentation
+                            : string.Empty;
+        var target = attributeList.Target?.ToFullString() ?? string.Empty;
+        var replacement = string.Join(separator, attributeList.Attributes.Select(attribute => $"[{target}{attribute}]"));
 
-        if (listIndex < 0 || attributeList.Attributes.Count <= 1)
-        {
-            return document;
-        }
-
-        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-        var indentationTrivia = SyntaxTriviaUtilities.GetLineIndentationTrivia(attributeList.GetLeadingTrivia());
-        var replacementLists = BuildSplitReplacementLists(attributeList, placementMode, endOfLine, indentationTrivia);
-
-        var updatedLists = new List<AttributeListSyntax>(lists.Count - 1 + replacementLists.Count);
-
-        for (var index = 0; index < lists.Count; index++)
-        {
-            if (index == listIndex)
-            {
-                updatedLists.AddRange(replacementLists);
-            }
-            else
-            {
-                updatedLists.Add(lists[index]);
-            }
-        }
-
-        var updatedOwner = AttributeTargetUtilities.WithAttributeLists(owner, SyntaxFactory.List(updatedLists));
-        var updatedRoot = root.ReplaceNode(owner, updatedOwner);
-
-        return document.WithSyntaxRoot(updatedRoot);
-    }
-
-    /// <summary>
-    /// Gets the index of the attribute list within the owner's attribute lists
-    /// </summary>
-    /// <param name="lists">Owner attribute lists</param>
-    /// <param name="attributeList">Attribute list to locate</param>
-    /// <returns>The index of the attribute list, or <c>-1</c> when it is not present</returns>
-    private static int IndexOfList(IReadOnlyList<AttributeListSyntax> lists, AttributeListSyntax attributeList)
-    {
-        for (var index = 0; index < lists.Count; index++)
-        {
-            if (ReferenceEquals(lists[index], attributeList))
-            {
-                return index;
-            }
-        }
-
-        return -1;
-    }
-
-    /// <summary>
-    /// Builds the single-attribute lists that replace a multi-attribute list when splitting
-    /// </summary>
-    /// <param name="attributeList">Attribute list to split</param>
-    /// <param name="placementMode">Placement mode</param>
-    /// <param name="endOfLine">End-of-line sequence to insert between separate lines</param>
-    /// <param name="indentationTrivia">Indentation applied to attributes moved onto their own line</param>
-    /// <returns>The replacement attribute lists</returns>
-    private static List<AttributeListSyntax> BuildSplitReplacementLists(AttributeListSyntax attributeList, TargetAttributePlacementMode placementMode, string endOfLine, SyntaxTriviaList indentationTrivia)
-    {
-        var replacementLists = new List<AttributeListSyntax>();
-
-        for (var index = 0; index < attributeList.Attributes.Count; index++)
-        {
-            var attribute = attributeList.Attributes[index];
-            var newList = SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(attribute))
-                                       .WithTarget(attributeList.Target);
-
-            if (index == 0)
-            {
-                newList = newList.WithLeadingTrivia(attributeList.GetLeadingTrivia());
-            }
-            else if (placementMode == TargetAttributePlacementMode.SeparateLine)
-            {
-                newList = newList.WithLeadingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine)).AddRange(indentationTrivia));
-            }
-
-            if (index == attributeList.Attributes.Count - 1)
-            {
-                newList = newList.WithTrailingTrivia(attributeList.GetTrailingTrivia());
-            }
-
-            replacementLists.Add(newList);
-        }
-
-        return replacementLists;
+        return document.WithText(sourceText.Replace(attributeList.Span, replacement));
     }
 
     /// <summary>
