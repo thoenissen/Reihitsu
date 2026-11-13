@@ -50,4 +50,5 @@ Spec author (clarifications only: rule-spec coverage sentences for #1071/#1268, 
 - 01 spec author done (575d1a7): specs clarified for all four; one output question open for #974 (config with content after root object: RH0001 only syntax error + RH4009 silent [A, recommended] vs. also unknown section + RH4009 reports [B]); batched before test implementer.
 - 02 skeptic done (11f0710): all four proceed. Output batch asked (Q1 Unicode escape names RH4001/RH4009; Q2 RH4009 with content after root; Q3 RH2109 mid-line `@code`). Answered 1A, 2A, 3A (as recommended).
 - 03 spec author amendment done (38006c8).
-- Next: test implementer (04).
+- 04 test implementer done (752f3ac): all four reproduced; 61 failing new tests, 14 guard tests passing.
+- Next: implementer (05).
