@@ -58,6 +58,7 @@ Batch 1 (before test implementer), all answered as recommended:
 | 21 | Implementer 17 | Two RH5405 end-of-file tests' CRLF rows feed a document with no line break, whose detected ending is `Environment.NewLine` (FMT-PIPE-007) | Tests are wrong: give each document a line break before the `if` so both rows detect their ending (test implementer) | Unchanged FMT-PIPE-007 decides it; asserted output was platform-dependent | Unchanged requirement decides it | — |
 | 22 | Implementer 17 | F7 cleanup also deletes `ResolvePlacementMode`, abstract `DefaultPlacementMode` and 16 provider overrides | Accept (deletions only, cleanup the run's change touches) | Dead code left by the F7 repair | No behavior change | 4b94245 |
 | 23 | Auditor 21 | F8 repeats F2's class (list owner one scope further out from a `{` on the list's line: lambda in statement/field initializer, local function in switch section) | Architecture finding, refuse the class: withhold the split fix whenever a `{` stands in front of the reported list on the list's line and is not closed by a `}` before the list on that line (cheap scan of that line's tokens); replaces the owner-kind enumeration of SHARED-ATTR-022. Not a repair round | A repeated class is refused, not enumerated again (`squad/README.md`, Architecture findings) | Withholding a fix for a rare class; `void M() { } [A, B] void N() { }` stays offered | — |
+| 24 | Spec checker 26 | 14 per-rule withhold requirements still describe the old SHARED-ATTR-022 condition in heading and Why | Spec author rewords them (text only), continued agent of round 22; counted as part of decision 23's structural refusal, not a repair round | Consequence of the restatement | Spec text only | — |
 
 ## Follow-up candidates
 
@@ -95,3 +96,4 @@ Batch 1 (before test implementer), all answered as recommended:
 - Test implementer 23 done (53cbf20; 4 red). Now implementer 24.
 - Implementer 24 done (247db7c). Now cleaner 25.
 - Cleaner 25 clean. Now spec checker 26.
+- Spec checker 26: 1 finding (decision 24). Now spec author 27 (rewording), then spec checker 28, auditor 29, validator.
