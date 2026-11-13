@@ -4,7 +4,7 @@
 |---|---|
 | Issues | thoenissen/Reihitsu#1416, #1388, #1627, #1142 (prompt order) — all four `agent-filed`: goals are proposals |
 | Slug | brace-fix-layout-line-endings |
-| Lane | bug fix |
+| Lane | behavior change (widened from bug fix, decision 15) |
 | Branch | claude/laughing-wozniak-azmh7x |
 | PR | #1691 (draft claim) |
 | Base | origin/main c2866eaf294a9040b995a2b75de7587bdccc5efe |
@@ -49,6 +49,7 @@ Batch 1 (before test implementer), all answered as recommended:
 | 12 | Implementer | 13 `FixAllCorrectsEveryDiagnostic` tests (RH5502…RH5531 except RH5514) assert `[Second]⏎[Third]` | Tests are wrong; align to SHARED-ATTR-017 (`[Second] [Third]`) and the iteration count as RH5514's was — test implementer repair | Maintainer answer #1109 Q1 reading A (only the reported list changes) decides it | Covered by a maintainer answer | — |
 | 13 | Implementer | Multi-line header (`if (a &&⏎ b) M();`): "on the header line" read by the header's last line (`)`/`else`), not the `if` keyword's line | Accept the implementer's reading; spec author words SHARED-BRACE-002/003 by the header's last line | The literal reading would put `{` inside the condition | Spec wording; the one output that compiles sensibly | 0d126cf |
 | 14 | Spec author 07 | Scope of answer 7's withhold | SHARED-ATTR-022: withheld whenever the accessor list's `{` stands on the reported list's line (broader than a one-line accessor list) | Same cause of the odd output, cheaper check, the only shape RH5531 meets | Withholding a fix for a rare class; the output is the one the maintainer chose | 2fa97c8 |
+| 15 | Spec checker 11 | Change doc required? SHARED-BRACE-003, RH7309-007, SHARED-ATTR-022 add withholds of fixes `main` offers; answers 1 and 7 change code-fix results | Yes: spec author writes one change doc covering the run's added withholds, recording the maintainer's answers 1–7 in `Decisions`; widen the lane to behavior change | `sdd/README.md`: a requirement added with new behavior needs a change doc, and a maintainer answer that sets a different intended behavior is recorded in its `Decisions` | Every visible output change it lists is already answered by the maintainer (answers 1–7) or is a rare-class withhold | — |
 
 ## Follow-up candidates
 
@@ -70,4 +71,5 @@ Batch 1 (before test implementer), all answered as recommended:
 - Done: test implementer 08 (ce57cc9): 7 red SHARED-ATTR-022 tests.
 - Done: implementer 09 (f2e0b5f): all analyzer tests pass.
 - Done: cleaner 10 (5f57eca): clean.
-- Now: spec checker 11, then auditor 12.
+- Done: spec checker 11 (d451af9): one finding (change doc).
+- Now: repair round 1 — spec author 12 writes the change doc; then cleaner (skip: text only), spec checker 13, auditor 14.
