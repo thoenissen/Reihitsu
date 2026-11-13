@@ -32,6 +32,9 @@ Batch 1 (asked as chat questions 1–6; skeptic/spec-author IDs in brackets):
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 26 | Implementer 10 | RH3004 with tab indentation: shared rule counts a tab as 1 column, old private shifter as 4 → visible change (16 vs 25 spaces) | Neither A nor B: RH3004 withholds its block-body fix when the indentation of a line it would shift holds a tab (rare: RH5601 reports tabs). Cheap check | A visible change no requirement demands would be in question; refusing a rare class is not | Rare-class refusal | — |
+| 27 | Implementer 10 | Whitespace-only blank lines in moved code: kept as written now, emptied on main (RH3004 old shifter and RH7004 via formatter) | The shared helper writes a whitespace-only line in the moved span empty (main's output for both fixes); SHARED-FIX-007 states it | Keeps main's visible output; one cheap rule | Unchanged from main | — |
+| 28 | Implementer 10 | Release build error RH7305 in RH7109 test file | Cleaner | Formatting/warnings belong to the cleaner | Test code | — |
 | 24 | Spec author 08 | A left shift that would cut a moving line at column 0 | Withhold (SHARED-ORDER-010); keeps main's no-fix result | Rare class (misindented member, RH5204) | Rare-class refusal | 840e68b |
 | 25 | Spec author 08 | Change doc amendment: six added visible output changes | Accepted by the lead: all are rare-class refusals or covered by the Q1 answer (whole-line rule) / decision 22 | Code-fix coverage; maintainer answer Q1 | Refusals of rare classes / answered | 840e68b |
 | 19 | Implementer 07 | Arch finding 1: moved-line rule in both `SyntaxIndentationUtilities.TryShiftMovedLines` and RH3004's private shifter; they disagree on `/* x */ Foo();` in column 0 | One owner: RH3004 uses the shared helper, its private copy is deleted; the helper's rule is RH3004's (only a line that holds nothing but a comment keeps column 0, per SHARED-FIX-007 "comment line"). | The run added the copy (README Architecture findings: change structure in this run); RH3004 is the counterpart #1604 names | RH3004 output unchanged; `/* x */ Foo();` is a code line, SHARED-FIX-007 decides | — |
@@ -80,6 +83,6 @@ Batch 1 (asked as chat questions 1–6; skeptic/spec-author IDs in brackets):
 - Done: test implementer 05 (5bd3a7b): all reproduced; #1604 (d) not reproduced (characterization). 98 failing tests.
 - Done: spec author 06 (c3c16cf).
 - Done: implementer 07 (9a3dded, 10c718c): all tests pass; +700/-242 production, ~470 in three Core helpers.
-- Escalation 9 answered A. Spec author 08 done (840e68b). Test implementer 09 done (ba8db8e, 8 failing rows). Next: implementer 10, then cleaner. Structural round: repair-like structural round (decisions 19–23) — spec author, test implementer, implementer — then cleaner.
+- Escalation 9 answered A. Spec author 08 done (840e68b). Test implementer 09 done (ba8db8e, 8 failing rows). Implementer 10 done (1341a2c): all pass, net production +136. Next: spec author 11 (decisions 26, 27), test implementer 12, implementer 13, cleaner 14. Structural round: repair-like structural round (decisions 19–23) — spec author, test implementer, implementer — then cleaner.
 - (old) Next: fresh spec author writes the answers into the specs (and change doc if sdd/README requires one); then test implementer.
 - (old) Next after answers: then batch Q1–Q3 (+ skeptic's) to the maintainer before the test implementer.
