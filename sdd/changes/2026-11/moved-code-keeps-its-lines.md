@@ -4,12 +4,12 @@
 |---|---|
 | Status | Draft |
 | Date | 2026-11 |
-| Affected requirements | SHARED-FIX-007 (changed), SHARED-ORDER-009 (added), SHARED-ORDER-010 (added), RH7004-007 (added), RH7102-006, RH7103-007, RH7107-005, RH7108-005, RH7109-006 (changed: list the new refusals) |
+| Affected requirements | SHARED-FIX-007 (changed), SHARED-ORDER-009 (added), SHARED-ORDER-010 (added), RH7004-007 (added), RH7102-006, RH7103-007, RH7107-005, RH7108-005, RH7109-006 (changed: list the new refusals), RH7107-004, RH7108-004 (changed: the swap within a one-line accessor list) |
 
 ## What
 
 - **Columns of moved lines** (SHARED-FIX-007, *Moved code*). For a member or an accessor that a fix moves within its list (RH7102, RH7103, RH7107, RH7108, RH7109) and for the statements that the RH7004 fix wraps into a new block, every line of the moved code moves by the same number of columns, so its lines keep their columns relative to each other, continuation lines included. The number is the shift of the moved code's first token: for a member or an accessor, from its column to the column of its slot (none where both are indented alike); for RH7004, one indentation level. A line that starts with a comment in column 0 and the line of a directive other than `#region` and `#endregion` keep their column; a `#region` or `#endregion` line moves with the code. Until now the requirement only said that "the indentation of its lines follows its new nesting", which did not decide a line that does not start a statement or member.
-- **Whole-line moves** (SHARED-ORDER-009). A member or accessor move is offered only when it moves whole lines: neither the moved declaration nor the target shares its line with another declaration or with a brace of the type or the accessor list. For an accessor move this is stated for an accessor list that spans lines.
+- **Whole-line moves** (SHARED-ORDER-009). A member or accessor move is offered only when it moves whole lines: neither the moved declaration nor the target shares its line with another declaration or with a brace of the type or the accessor list. For an accessor move this is stated for an accessor list that spans lines; when the whole accessor list stands on one line, the accessors swap places within that line, and the list stays on one line.
 - **Lines a shift cannot move, in a member or accessor move** (SHARED-ORDER-010). When the move changes the column of the moved declaration's first token, the fix is withheld if the declaration holds a line that starts inside a string literal or a comment that spans lines, or a line of disabled text.
 - **Lines a shift cannot move, in RH7004** (RH7004-007). The fix is withheld when the moved statements hold a string literal of any kind or a comment that spans lines, or disabled text, or when the first moved statement starts on the line of the using declaration.
 
@@ -406,6 +406,51 @@ class C
 
 After: no fix offered.
 
+### An accessor list on one line stays on one line (RH7107; the same for RH7108)
+
+```csharp
+class C
+{
+    private int _b;
+
+    public int A { init; get; }
+
+    public int B { set => _b = value; get => _b; }
+}
+```
+
+Before (issue run):
+
+```csharp
+class C
+{
+    private int _b;
+
+    public int A { get; init; }
+
+    public int B
+    {
+        get => _b;
+        set => _b = value;
+    }
+}
+```
+
+After:
+
+```csharp
+class C
+{
+    private int _b;
+
+    public int A { get; init; }
+
+    public int B { get => _b; set => _b = value; }
+}
+```
+
+`A` is unchanged; `B` keeps its line. For RH7108, `public event Action Changed { remove => _handlers -= value; add => _handlers += value; }` is today spread over four lines (measured) and becomes `public event Action Changed { add => _handlers += value; remove => _handlers -= value; }`.
+
 ### A shifted member holds a string over two lines (RH7109; the same for RH7102, RH7103)
 
 ```csharp
@@ -440,6 +485,10 @@ Maintainer, batch 1, Q1 A and Q2 A. A member or accessor moves all its lines by 
 
 Maintainer, batch 1, addition to Q1: a move that goes beyond moving whole lines, such as a member sharing a line with another member or a token, is not offered.
 
+### Accessors on one line swap places within the line
+
+Maintainer, Q7 B. When the whole accessor list stands on one line, the move breaks and joins no line, so the whole-line rule does not refuse it: the accessors swap places, and the whitespace between them stays where it is. An accessor list that spans lines and holds a shared line is withheld.
+
 ### RH7004 is withheld for strings and comments that span lines
 
 Maintainer, batch 1, Q3 C. Shifting the lines of a raw string with its closing quotes would also have been acceptable, only at no additional cost; it is not taken. A fix that moves such statements can follow as its own issue when it is proportionate.
@@ -468,6 +517,7 @@ Spec author, local rare-class refusal (SHARED-ORDER-010). A shift other than zer
 
 - **Lines of moved code get the column the formatter gives them** (Q1 B, Q2 B) — rejected by the maintainer: it reformats code the fix only moves, which SHARED-FIX-007 forbids for the code's other layout.
 - **A moved member that shares its line gets its own line** (today's output) — rejected by the maintainer: it decides a line break the author did not write.
+- **Withhold the fix for every accessor list on one line** (Q7 A) — rejected by the maintainer: it would withhold the fix for the common shape of a short property, `{ init; get; }` included.
 - **Shift the lines of a multi-line raw string with the statement, or leave them where they are** (Q3 A, B) — rejected by the maintainer for now; a later change may add one.
 - **A comment in column 0 moves with the statements** (Q4 B) — rejected by the maintainer.
 - **Withhold RH7004 for every directive among the moved statements** — rejected: `#if DEBUG` and `#pragma` in method bodies are common code, and the per-line rule is a cheap check.

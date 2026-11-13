@@ -1312,9 +1312,9 @@ The same holds for a group of whole statements in the body of a method in front 
 
 ### SHARED-ORDER-009 — A move moves whole lines
 
-A fix MUST NOT offer a move unless it moves whole lines: no token outside the moved declaration stands on a line that holds a token of it, and no token stands in front of the target declaration on the line of its first token. A declaration that shares a line with another declaration, or with a brace of the type or the accessor list, is such a token. For an accessor move, this holds for an accessor list whose opening and closing brace stand on different lines. The diagnostic is still reported. A comment behind the moved declaration on its last line, and the comments and attribute lists in its leading trivia, are part of the moved declaration and travel with it (SHARED-ORDER-002).
+A fix MUST NOT offer a move unless it moves whole lines: no token outside the moved declaration stands on a line that holds a token of it, and no token stands in front of the target declaration on the line of its first token. A declaration that shares a line with another declaration, or with a brace of the type or the accessor list, is such a token. For an accessor move, this holds for an accessor list whose opening and closing brace stand on different lines. When the whole accessor list stands on one line — its opening and its closing brace on the same line — this requirement does not refuse the move, and the fix MUST perform it as a swap within that line: the moved accessor takes the place of the target and the target the place behind it, and the whitespace between the braces and the accessors stays at its position (SHARED-ORDER-002); no line breaks, joins, or moves, so the column shift of SHARED-FIX-007 does not apply. Where the move is refused, the diagnostic is still reported. A comment behind the moved declaration on its last line, and the comments and attribute lists in its leading trivia, are part of the moved declaration and travel with it (SHARED-ORDER-002).
 
-Why: A move of whole lines keeps every line as the author wrote it and needs no decision about where a line breaks; the moved declaration only changes its position (SHARED-FIX-007). Taking a declaration out of a line it shares, or putting it into a line in front of another token, would decide a line break the author did not write, which is layout the diagnostic does not name (SHARED-FIX-006). Declarations that share a line are reported by the layout rules on their own.
+Why: A move of whole lines keeps every line as the author wrote it and needs no decision about where a line breaks; the moved declaration only changes its position (SHARED-FIX-007). Taking a declaration out of a line it shares, or putting it into a line in front of another token, would decide a line break the author did not write, which is layout the diagnostic does not name (SHARED-FIX-006). Declarations that share a line are reported by the layout rules on their own. An accessor list on one line is the common shape of a short property, and swapping its accessors within the line decides no line break, so it keeps its fix.
 
 Example — the moved field shares its line with the field in front of it, for RH7109:
 
@@ -1351,6 +1351,26 @@ class C
 ```
 
 is reported, and no code fix is offered.
+
+Example — the whole accessor list stands on one line, for RH7107; the accessors swap places within the line:
+
+```csharp
+class C
+{
+    private int _b;
+
+    public int B { set => _b = value; {|RH7107:get|} => _b; }
+}
+```
+
+```csharp
+class C
+{
+    private int _b;
+
+    public int B { get => _b; set => _b = value; }
+}
+```
 
 Example — whole lines move; the comment behind the moved field moves with it, for RH7109:
 
