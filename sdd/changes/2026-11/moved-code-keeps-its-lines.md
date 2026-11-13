@@ -4,15 +4,16 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | SHARED-FIX-007 (changed), SHARED-ORDER-009 (added), SHARED-ORDER-010 (added), RH7004-007 (added), SHARED-DOC-004 (changed: a member or accessor move does not carry a `///` comment behind code), RH3004-006 (clarified: its line rule is SHARED-FIX-007's; changed: a tab in front of a moving line withholds the block-body fix), RH7102-006, RH7103-007, RH7107-005, RH7108-005, RH7109-006 (changed: list the new refusals), RH7107-004, RH7108-004 (changed: the swap within a one-line accessor list), RH7303-004 (changed: covers every region the fix is offered for, and the edges of any braces, through SHARED-FIX-007 *Removed directive line*), RH7302-005 (changed: descriptions compared as SHARED-REGDESC-001 reads them) |
+| Affected requirements | SHARED-FIX-007 (changed), SHARED-ORDER-009 (added), SHARED-ORDER-010 (added), RH7004-007 (added), SHARED-DOC-004 (changed: a member or accessor move does not carry a `///` comment behind code), RH3004-006 (clarified: its line rule is SHARED-FIX-007's; changed: a tab in front of a moving line withholds the block-body fix), RH7102-006, RH7103-007, RH7107-005, RH7108-005, RH7109-006 (changed: list the new refusals), RH7107-004, RH7108-004 (changed: the swap within a one-line accessor list), RH7303-004 (changed: covers every region the fix is offered for, and the edges of any braces, through SHARED-FIX-007 *Removed directive line*), RH7302-005 (changed: descriptions compared as SHARED-REGDESC-001 reads them), SHARED-FIX-008 (changed: a fix that moves code without the formatter is withheld for a foreign line break in the moved code), RH3004-008 (clarified: interpolated strings in every `$` form) |
 
 ## What
 
 - **Columns of moved lines** (SHARED-FIX-007, *Moved code*). For a member or an accessor that a fix moves within its list (RH7102, RH7103, RH7107, RH7108, RH7109) and for the statements that the RH7004 fix wraps into a new block, every line of the moved code moves by the same number of columns, so its lines keep their columns relative to each other, continuation lines included. The number is the shift of the moved code's first token: for a member or an accessor, from its column to the column of its slot (none where both are indented alike); for RH7004, one indentation level. A comment line in column 0 — a line that holds nothing but comments and whitespace, its first comment in column 0 — and the line of a directive other than `#region` and `#endregion` keep their column; a line that holds code moves, also behind a comment in column 0 such as `/* x */ Foo();`, and so does a `#region` or `#endregion` line. This is the line rule the RH3004 fix already applies. A tab at the start of a moved line counts as one column. Until now the requirement only said that "the indentation of its lines follows its new nesting", which did not decide a line that does not start a statement or member.
 - **Whole-line moves** (SHARED-ORDER-009). A member or accessor move is offered only when it moves whole lines: neither the moved declaration nor the target shares its line with another declaration or with a brace of the type or the accessor list, and the leading trivia of neither starts behind code, as a `///` comment written behind code does when it documents the declaration below it. Crossed declarations that share a line with each other keep that line and move as one block. For an accessor move this is stated for an accessor list that spans lines; when the whole accessor list stands on one line, the accessors swap places within that line, and the list stays on one line.
-- **Lines a shift cannot move, in a member or accessor move** (SHARED-ORDER-010). When the move changes the column of the moved declaration's first token, the fix is withheld if the declaration holds a line that starts inside a string literal or a comment that spans lines, or a line of disabled text, or, for a shift to the left, a moving line written further left than the shift reaches.
-- **Lines a shift cannot move, in RH7004** (RH7004-007). The fix is withheld when the moved statements hold a string literal of any kind or a comment that spans lines, or disabled text, or when a line the fix changes is shared with code it does not move: the first moved statement starts on the line of the using declaration, code stands in front of the declaration on its line, or the last moved statement ends on the line of the block's closing brace. A comment or directive in front of the declaration's semicolon withholds it as on `main`.
+- **Lines a shift cannot move, in a member or accessor move** (SHARED-ORDER-010). When the move changes the column of the moved declaration's first token, the fix is withheld if the declaration holds a string literal of any kind, interpolated strings in every `$` form included, or a comment that spans lines, or disabled text, or, for a shift to the left, a moving line written further left than the shift reaches. When the whole accessor list stands on one line, the swap is withheld when a comment stands in the list outside every accessor.
+- **Lines a shift cannot move, in RH7004** (RH7004-007). The fix is withheld when the moved statements hold a string literal of any kind or a comment that spans lines, or disabled text, or when a line the fix changes is shared with code it does not move: the first moved statement starts on the line of the using declaration, code stands in front of the declaration on its line, or the last moved statement ends on the line of the block's closing brace. A comment or directive in front of the declaration's semicolon withholds it as on `main`. A tab in the whitespace in front of the declaration's line or of a moving line withholds it as well. An interpolated string counts in every `$` form, also where only a hole spans lines or a later line starts at a hole or at the closing quote.
 
+- **Foreign line breaks in moved code** (SHARED-FIX-008). The member and accessor moves, the RH7004 fix, and RH3004's block-body path write every line break they create as the detected line ending, and are withheld when the code they move holds a line break other than it — in a document with mixed line endings, or with lone `\r` line breaks. A swap within one line moves no line break and stays offered.
 - **Blank lines joined by a removed directive line** (SHARED-FIX-007, *Removed directive line*; RH7303, RH7310). Where a removal joins blank lines in front of a removed line with blank lines behind it, the blank lines in front stay as written and those behind it go. This only states which of the blank lines is kept; the number of blank lines left follows the bullet as before.
 - **Edges of any braces, for a removed directive line** (SHARED-FIX-007, *Removed directive line*; RH7303-004). The start and the end of a body, where a blank line the removal leaves goes, are the lines behind an opening and in front of a closing brace of any construct: a type, a block, an accessor list, a switch statement, or an initializer. Until now the bullet did not say which braces bound a body, and RH7303-004 was stated only for directives between two statements with no blank line around them. A blank line behind a `case` label is not at a brace and stays where it is not doubled.
 - **The `#endregion` that repeats a name with trailing whitespace** (RH7302-005). The RH7302 fix renames an `#endregion` whose description equals the `#region` description, both read as SHARED-REGDESC-001 reads them, so whitespace behind the `#region` description no longer keeps the `#endregion` from being renamed. Until now the rename was conditioned on "the `#region` line ends with its description". Only the description of the `#endregion` is rewritten; an `#endregion` that holds the name together with other text, inside a word, or in its keyword stays unchanged, which is a bug against SHARED-FIX-003 (thoenissen/Reihitsu#1151) and not listed here.
@@ -823,6 +824,32 @@ class C
 }
 ```
 
+### Rare-class refusals of repair round 2 (RH7004, RH7107, RH7108, RH7109, RH7102, RH7103, RH3004)
+
+Each input below gets a code fix on `main`, which lays out the result through the formatter; the run's moves would have changed a string's value, handed a comment to another accessor, or kept a foreign line break, so the fix is withheld (lead decisions 34–37). The diagnostic stays. Not measured on `main` one by one; the outputs are the formatter's layout of the moved code.
+
+```csharp
+// RH7004: an interpolated string whose later line starts at a hole
+        using var s = new MemoryStream();
+        var t = $@"a
+{x}";
+```
+
+```csharp
+// RH7107: a comment beside the accessors of a one-line list
+    public int A { set { } /* s */ get => 1; }
+```
+
+```csharp
+// RH7004: a tab in front of a moved line
+        using var s = new MemoryStream();
+	s.Flush();
+```
+
+The member and accessor moves, RH7004, and RH3004's block-body path are also withheld where the moved code holds a line break other than the document's detected line ending: an LF line break in a CRLF document, or any line break in a document whose line breaks are all a lone `\r`.
+
+After, for each: no code fix is offered.
+
 ## Decisions
 
 ### Moved lines keep their columns relative to each other
@@ -880,6 +907,22 @@ Lead, decisions 19 and 23. A comment line in column 0 is the line RH3004 already
 ### A tab in front of a moved line withholds the RH3004 block-body fix
 
 Lead, decision 26; local rare-class refusal (RH3004-006). With one line rule for every fix that moves lines, a tab counts as one column, which shifts RH3004's statements to another place than `main`, where the old shifter counted it as four. Neither output is one a requirement demands, and RH5601 reports tab indentation, so the fix is withheld for that class with a cheap check on the leading whitespace of the moving lines.
+
+### Interpolated strings count as strings that span lines
+
+Lead, decision 34. An interpolated string is several tokens, so a later line of it can start at a hole or at the closing quote and still be part of the string's value; shifting it changed the value. The refusals of RH7004-007, SHARED-ORDER-010, and RH3004-008 decide on the string as a whole, in every `$` form. This only completes the refusal the maintainer chose in Q3 C; nothing new is visible beyond it.
+
+### A foreign line break in moved code withholds the move
+
+Lead, decision 35; local rare-class refusal (SHARED-FIX-008, unchanged in its demand). A fix that moves lines without the formatter keeps them as written, so rewriting a foreign line break inside them would be layout it does not otherwise make. Mixed and lone `\r` line endings are rare, and the formatter normalizes them; the check of the moved span's line breaks is cheap.
+
+### A comment beside the accessors of a one-line list withholds the swap
+
+Lead, decision 36; local rare-class refusal (SHARED-ORDER-009). On one line, such a comment is trailing trivia of the token in front of it, so swapping the accessors would hand it to the other accessor. A comment inside an accessor travels with it, and the swap stays offered.
+
+### A tab in front of a moved line withholds RH7004
+
+Lead, decision 37; local rare-class refusal (RH7004-007), the same rule as RH3004-006 (decision 26). The new braces would copy the tab and the moved lines would get spaces in front of it, a layout no rule states; RH5601 reports tab indentation.
 
 ### A blank line of moved code is written empty
 

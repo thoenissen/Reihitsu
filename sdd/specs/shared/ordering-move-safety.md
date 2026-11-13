@@ -1312,9 +1312,9 @@ The same holds for a group of whole statements in the body of a method in front 
 
 ### SHARED-ORDER-009 — A move moves whole lines
 
-A fix MUST NOT offer a move unless it moves whole lines: no token outside the moved declaration stands on a line that holds a token of it, and no token stands in front of the target declaration on the line of its first token. A declaration that shares a line with another declaration, or with a brace of the type or the accessor list, is such a token. The leading trivia of the moved declaration and of the target MUST start their line as well: no token stands in front of the first comment, documentation comment, or directive of that leading trivia on its line. A `///` comment written behind code, which documents the declaration below it when the documentation mode is `Parse` or `Diagnose` (SHARED-DOC-004), is leading trivia that does not start its line; a move of the declaration it documents, or a move in front of that declaration, is not offered. Declarations that the move crosses may share lines with each other: the declarations on one line keep that line, as written, and take the position of the first of them as one block behind the moved declaration. For an accessor move, this holds for an accessor list whose opening and closing brace stand on different lines. When the whole accessor list stands on one line — its opening and its closing brace on the same line — this requirement does not refuse the move, and the fix MUST perform it as a swap within that line: the moved accessor takes the place of the target and the target the place behind it, and the whitespace between the braces and the accessors stays at its position (SHARED-ORDER-002); no line breaks, joins, or moves, so the column shift of SHARED-FIX-007 does not apply. Where the move is refused, the diagnostic is still reported. A comment behind the moved declaration on its last line, and the comments and attribute lists in its leading trivia, are part of the moved declaration and travel with it (SHARED-ORDER-002).
+A fix MUST NOT offer a move unless it moves whole lines: no token outside the moved declaration stands on a line that holds a token of it, and no token stands in front of the target declaration on the line of its first token. A declaration that shares a line with another declaration, or with a brace of the type or the accessor list, is such a token. The leading trivia of the moved declaration and of the target MUST start their line as well: no token stands in front of the first comment, documentation comment, or directive of that leading trivia on its line. A `///` comment written behind code, which documents the declaration below it when the documentation mode is `Parse` or `Diagnose` (SHARED-DOC-004), is leading trivia that does not start its line; a move of the declaration it documents, or a move in front of that declaration, is not offered. Declarations that the move crosses may share lines with each other: the declarations on one line keep that line, as written, and take the position of the first of them as one block behind the moved declaration. For an accessor move, this holds for an accessor list whose opening and closing brace stand on different lines. When the whole accessor list stands on one line — its opening and its closing brace on the same line — this requirement does not refuse the move, and the fix MUST perform it as a swap within that line: the moved accessor takes the place of the target and the target the place behind it, and the whitespace between the braces and the accessors stays at its position (SHARED-ORDER-002); no line breaks, joins, or moves, so the column shift of SHARED-FIX-007 does not apply. The swap within the line MUST NOT be offered when a comment stands in the accessor list outside every accessor: in front of the first accessor, between two accessors, or behind the last accessor in front of the closing brace. A comment inside an accessor — in its body, its expression body, or its attribute list — does not withhold the swap; it travels with its accessor. Where the move is refused, the diagnostic is still reported. A comment behind the moved declaration on its last line, and the comments and attribute lists in its leading trivia, are part of the moved declaration and travel with it (SHARED-ORDER-002).
 
-Why: A move of whole lines keeps every line as the author wrote it and needs no decision about where a line breaks; the moved declaration only changes its position (SHARED-FIX-007). A `///` comment behind code belongs to the declaration below it, so a move carries it with that declaration (SHARED-DOC-004); at its new position it would need a line of its own, a line break the author did not write, and leaving it behind would hand the documentation to another declaration (SHARED-FIX-003). Such a comment is reported by RH8303. The crossed declarations do not move relative to each other, so a line they share decides no line break. Taking a declaration out of a line it shares, or putting it into a line in front of another token, would decide a line break the author did not write, which is layout the diagnostic does not name (SHARED-FIX-006). Declarations that share a line are reported by the layout rules on their own. An accessor list on one line is the common shape of a short property, and swapping its accessors within the line decides no line break, so it keeps its fix.
+Why: A move of whole lines keeps every line as the author wrote it and needs no decision about where a line breaks; the moved declaration only changes its position (SHARED-FIX-007). A `///` comment behind code belongs to the declaration below it, so a move carries it with that declaration (SHARED-DOC-004); at its new position it would need a line of its own, a line break the author did not write, and leaving it behind would hand the documentation to another declaration (SHARED-FIX-003). Such a comment is reported by RH8303. The crossed declarations do not move relative to each other, so a line they share decides no line break. Taking a declaration out of a line it shares, or putting it into a line in front of another token, would decide a line break the author did not write, which is layout the diagnostic does not name (SHARED-FIX-006). Declarations that share a line are reported by the layout rules on their own. An accessor list on one line is the common shape of a short property, and swapping its accessors within the line decides no line break, so it keeps its fix. On one line, a comment between or behind the accessors belongs to no accessor in the syntax tree: it is trailing trivia of the token in front of it, so a swap of the accessors would leave it behind and hand it to the other accessor, and deciding which accessor it describes would need a rule the line does not state. Such a list is rare, and the check is cheap, so the swap is withheld for it.
 
 Example — the moved field shares its line with the field in front of it, for RH7109:
 
@@ -1403,6 +1403,33 @@ class C
 }
 ```
 
+Example — a comment stands between the accessors of a list on one line, for RH7107:
+
+```csharp
+class C
+{
+    public int A { set { } /* s */ {|RH7107:get|} => 1; }
+}
+```
+
+is reported, and no code fix is offered. The same holds for a comment behind the last accessor, as in `{ set { } get => 1; /* g */ }`, and for one in front of the first accessor, as in `{ /* c */ set { } get => 1; }`.
+
+Example — a comment inside an accessor travels with it, for RH7107:
+
+```csharp
+class C
+{
+    public int A { set { /* s */ } {|RH7107:get|} => 1; }
+}
+```
+
+```csharp
+class C
+{
+    public int A { get => 1; set { /* s */ } }
+}
+```
+
 Example — whole lines move; the comment behind the moved field moves with it, for RH7109:
 
 ```csharp
@@ -1423,9 +1450,9 @@ class C
 
 ### SHARED-ORDER-010 — A shifted declaration holds no line that cannot move
 
-When a move changes the column of the moved declaration's first token (SHARED-FIX-007, *Moved code*), the fix MUST NOT be offered if the moved declaration, with its leading trivia, holds a line that starts inside a string literal or a comment that spans lines, or a line of disabled text. It MUST NOT be offered either when the move shifts the declaration to the left and one of its lines that moves (SHARED-FIX-007, *Moved code*) holds fewer whitespace characters in front of its first character than the shift removes, a tab counted as one. The diagnostic is still reported. A move that keeps the column of the first token moves no line, and is offered for such a declaration.
+When a move changes the column of the moved declaration's first token (SHARED-FIX-007, *Moved code*), the fix MUST NOT be offered if the moved declaration, with its leading trivia, holds a string literal of any kind — regular, verbatim, interpolated, or raw — that spans lines, a comment that spans lines, or disabled text. An interpolated string counts in every `$` form, from its first character through its closing quote, its holes included: it spans lines when any part of it does, also where only a hole spans lines, and also where every later line starts at a hole's `{` or at the closing quote rather than inside the string's text. It MUST NOT be offered either when the move shifts the declaration to the left and one of its lines that moves (SHARED-FIX-007, *Moved code*) holds fewer whitespace characters in front of its first character than the shift removes, a tab counted as one. The diagnostic is still reported. A move that keeps the column of the first token moves no line, and is offered for such a declaration.
 
-Why: Every other line of a shifted declaration moves with its first token, but the whitespace at the start of a line inside a verbatim or interpolated string is part of its value, the lines of a raw string literal are bound to its closing quotes, the later lines of a delimited comment are its text, and disabled text is code the compiler does not read: none of them can move as a plain line without changing content (SHARED-FIX-003) or without a rule of its own. A line written further left than the shift reaches cannot move by it without being cut off at column 0, which would change its column relative to the other lines. A declaration indented differently from the slot it moves into is reported by the indentation rule, so this class is rare, and a reported diagnostic without a fix is a supported end state.
+Why: Every other line of a shifted declaration moves with its first token, but the whitespace at the start of a line inside a verbatim or interpolated string is part of its value, the lines of a raw string literal are bound to its closing quotes, the later lines of a delimited comment are its text, and disabled text is code the compiler does not read: none of them can move as a plain line without changing content (SHARED-FIX-003) or without a rule of its own. An interpolated string is several tokens, so a later line of it can start at a hole or at the closing quote and still be part of the string's value; deciding on the string as a whole, not on where its lines start, keeps every such line out of the shift. A line written further left than the shift reaches cannot move by it without being cut off at column 0, which would change its column relative to the other lines. A declaration indented differently from the slot it moves into is reported by the indentation rule, so this class is rare, and a reported diagnostic without a fix is a supported end state.
 
 Example — a field indented deeper than its slot holds a verbatim string over two lines, for RH7109:
 
@@ -1449,6 +1476,15 @@ y";
 }
 ```
 
+```csharp
+class C
+{
+    private readonly string _b = @"x
+y";
+    private int _a;
+}
+```
+
 Example — a field indented deeper than its slot holds a comment line further left than the shift reaches, for RH7109:
 
 ```csharp
@@ -1463,11 +1499,15 @@ class C
 
 is reported, and no code fix is offered: the shift of four columns to the left would cut the comment line off at column 0.
 
+Example — a field indented less deeply than its slot holds an interpolated verbatim string whose second line starts at a hole, for RH7109:
+
 ```csharp
 class C
 {
-    private readonly string _b = @"x
-y";
     private int _a;
+  private readonly string {|RH7109:_b|} = $@"a
+{nameof(C)}";
 }
 ```
+
+is reported, and no code fix is offered: the shift of two columns to the right would write two spaces in front of `{nameof(C)}` into the value of `_b`. The same holds where the second line starts at the closing quote, and for an interpolated string whose hole spans lines.
