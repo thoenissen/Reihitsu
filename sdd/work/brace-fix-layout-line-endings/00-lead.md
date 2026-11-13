@@ -93,3 +93,4 @@ Batch 1 (before test implementer), all answered as recommended:
 - Auditor 21 (e9ef643): F1–F7 closed; F8 repeats F2 → decision 23 (structural refusal, no repair round). Now spec author 22, test implementer 23, implementer 24, cleaner 25, spec checker 26, auditor 27, validator.
 - Spec author 22 done (3a9cf55). Now test implementer 23.
 - Test implementer 23 done (53cbf20; 4 red). Now implementer 24.
+- Implementer 24 done (247db7c). Now cleaner 25.
