@@ -1,5 +1,5 @@
 Role: implementer
-Commit: (this commit; parent df3b06f)
+Commit: 4b94245a644c1785b3ace786ca59d2530903b3f3 (production changes; this handover line amended in the next commit)
 Verdict: test disputed
 
 Repair round 2: decisions 17 to 20 of `00-lead.md` (auditor 14 findings 1, 2, 3, 6, 7), against the 24 red tests of `16-test-implementer.md`. The prompt carried no intended fix, suspected cause, or hoped-for verdict. 22 of the 24 red tests pass; the CRLF DataRows of two end-of-file tests are disputed below.
