@@ -36,3 +36,7 @@ _None._
 - `scripts/test.sh --project architecture` (SDD consistency) could not run: the Release build fails on RH7305 in `RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTests.cs` (decision 28, cleaner).
 - These are the first literal tabs in `sdd/` Markdown (RH3004.md and the change doc). Keep them as they are, because the example depends on the tab.
 - Rule page `documentation/rules/RH3004.md` is unchanged: a withheld fix is covered by general-notes.
+
+## Correction
+
+- The Why of RH3004-006 referenced FMT-PIPE-017 without listing it in the spec's `Uses` row, so `SpecStructureTests.UsesListsExactlyTheReferencedRequirements` failed. I dropped the reference, because SHARED-FIX-007 already states the counting rule. `scripts/test.sh --project architecture --configuration Debug --filter "FullyQualifiedName~Sdd"`: 51 passed.
