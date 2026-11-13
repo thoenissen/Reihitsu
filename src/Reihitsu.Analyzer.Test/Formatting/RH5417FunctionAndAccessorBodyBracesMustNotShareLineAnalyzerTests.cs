@@ -1315,9 +1315,13 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
     public async Task FixLeavesTheMemberInFrontOnTheLineOfAMemberOfATypeWrittenOnOneLine()
     {
         const string testCode = """
+                                using System;
+
                                 class C { int _x; void M() {|RH5417:{|} } }
                                 """;
         const string fixedCode = """
+                                 using System;
+
                                  class C { int _x; void M()
                                                    {
                                                    } }

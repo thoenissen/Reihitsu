@@ -93,3 +93,7 @@ Every other test in the four classes passes (138 of 146).
 scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH5203MultiLineArgumentsShouldBeAlignedAnalyzerTests|FullyQualifiedName~RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests|FullyQualifiedName~RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests|FullyQualifiedName~RH5513MethodAttributesMustFollowPlacementRulesAnalyzerTests"
 scripts/test.sh --project analyzer --filter "FullyQualifiedName~TypeWrittenOnOneLine|FullyQualifiedName~NoFixIsOfferedWhen"
 ```
+
+## Amendment (lead decision 32)
+
+`RH5417…FixLeavesTheMemberInFrontOnTheLineOfAMemberOfATypeWrittenOnOneLine`: the input `class C { int _x; void M() { } }` held no line break, so its CRLF half converted nothing and compared the formatter's environment newline with a CRLF expectation. The input and the expected output now start with `using System;` and a blank line, so both halves carry their line ending. What the test asserts about the members is unchanged: `int _x;` and `void M()` stay on the type's line, and the braces are laid out from the member's column. The RH5417 class passes on fa0083d plus this change (52 of 52).
