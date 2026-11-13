@@ -87,3 +87,4 @@ Batch 1 (before test implementer), all answered as recommended:
 - Repair round 2: test implementer 16 done (056e213; 24 red). Now implementer 17.
 - Repair round 2: implementer 17 done (4b94245): 2 disputed tests (decision 21). Now test implementer 18 (decision 21), then cleaner 19, spec checker 20, auditor 21, validator.
 - Test implementer 18 done (2b4963b). Now cleaner 19.
+- Cleaner 19 clean. Now spec checker 20.
