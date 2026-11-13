@@ -60,15 +60,23 @@ The maintainer raised no objection to the narrowing of #1140 and the withheld ra
 | 17 | Test impl. | RH5204 `GetFixAllScenario` exact `NumberOfFixAllIterations = 2` | May be relaxed to at most two if it trips (test implementer, in repair) | Iteration count is internal | Internal | — |
 | 18 | Test impl. | RH5403 fix moves `while` of `do` to the next line | Accept | Formatter's layout (SHARED-FIX-007) | Unchanged requirement decides it | abe294f |
 | 19 | Test impl. | #1141 Fix All tests expect one pass | Keep; the implementer aims for one pass. If not reachable inside the narrowed fix, decide then (the issue routes multi-pass to the Fix All issue) | Issue's done-when | Internal (iteration count) | — |
+| 20 | Implementer | Change grew to ~408 net production lines and a new type `LineLayoutCodeFixUtilities` (294 lines) that computes brace/line columns (architecture finding confirmed: fixes predicting the indentation phase) | Narrow instead of escalation 9: the brace fixes RH5405–RH5407 and RH5403 go back to `main` (production, tests, RH5403-003 and SHARED-BRACE-002 text); their #1140 instances stay on #1140 and the `else if` column of #1144 is left to #1416 (reverses decision 10). The shared-line member helper stays but moves into an existing type; no new type; target net growth about 100 lines, otherwise the implementer reports and it becomes escalation 9 | Removes the bulk of the column prediction and the new type; narrowing keeps `main`'s output | Narrowing keeps `main`'s output for the brace fixes | — |
+| 21 | Implementer | Red tests that pin outputs the changed or unchanged requirements forbid: RH6024 SHARED-FIX-010 test (decision 15), RH5204 incremental-iteration count (LF/CRLF), RH5204 Fix All count (decision 17), RH5204 blank-line removal behind stray doc comment (RH5204-006/answer 1), two RH6023 wrapped-link tests (SHARED-OPSPACE-004/P9), five RH5511 tests keeping the list on the previous member's line (SHARED-FIX-007 shared line), RH3102/RH3201 tests pinning the fixed defects | Test implementer rewrites them | Each assertion contradicts a requirement covered by an answer or unchanged | Covered by answers 1 or unchanged SHARED-FIX-006/007 | — |
+| 22 | Implementer | RH5203 test: `AssertFormattingChangesNothing` fails because the formatter inserts a blank line before a comment line inside an argument list | Drop that assertion for this input; output stays answer 2A. Not a follow-up: a comment inside an argument list already violates RH5038 (rare class) | Rare class; maintainer chose the output | Output is answer 2A | — |
+| 23 | Implementer | Trailing-comma fix turns `B , // c` into `B  // c` (PR-introduced suspect, untested) | Test implementer adds a test with the formatter's output; implementer fixes if red | Within the changed helper | SHARED-FIX-007 decides | — |
 
 ## Follow-up candidates
 
 - Structural cause of #1140 (skeptic 01, *Architecture findings*): fixes choose scope by choosing a node and `FormatNodeInDocumentAsync` formats everything inside it; fixes that need less compute columns themselves; ~15 rule requirements restate a wider scope than SHARED-FIX-006. Carries #1140's remaining instances and output questions 2 (RH5112) and 3 (RH5101). (01-skeptic)
 - Other analyzers calling `IsFirstOnLine` where their spec says SHARED-BLANK-008 (01-skeptic, #1561)
+- Other fixes that format a whole member (expression-body base behind RH3203 etc.) may leave a sibling member on a shared line (04-implementer)
+- #1140's brace-fix instances (RH5405–RH5407, RH5403: scope, blank lines) and #1144's `else if` brace column (with #1416) — narrowed out by decision 20 (04-implementer)
 
 ## Worklist / next step
 
 - Skeptic done (01-skeptic.md, 2402f9b). Answers received (1A 2A 3A 4A). Was waiting for maintainer: output questions RH5204 scope, RH5203 comment line; escalation 4 (#1393); escalation 10 (#1561 shape); confirmation of narrowing #1140 (shown for visibility).
 - Spec author done (02-spec-author.md, b92e71f); lane check confirmed bug-fix.
 - Test implementer done (03, abe294f): all reproduced except #1393 (characterization, answer 3).
-- Next: implementer; spec author amendment for decision 16 in parallel. (old: spec author (clarifications RH5204-006, RH5203-003 per answer, RH5103-003 withheld class, RH5205 withheld class, RH5513/SHARED-ATTR withheld class), then test implementer.
+- Spec amendment f85c954. Implementer done (04, ba83087/f2875e4): 18 red tests, growth 408 lines + new type.
+- Repair (not a repair round; narrowing + test disputes): spec author 05 and test implementer 06 in parallel, then implementer 07.
+- (old) Next: implementer; spec author amendment for decision 16 in parallel. (old: spec author (clarifications RH5204-006, RH5203-003 per answer, RH5103-003 withheld class, RH5205 withheld class, RH5513/SHARED-ATTR withheld class), then test implementer.
