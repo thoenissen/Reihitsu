@@ -76,8 +76,10 @@ public class RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer : DiagnosticAn
             return;
         }
 
-        // Cheap syntactic pre-filter before the semantic binding below
-        if (GetSimpleTypeName(objectCreation.Type) != "NotImplementedException")
+        // Cheap syntactic pre-filter before the semantic binding below. A single identifier may name a using alias of the type,
+        // whatever the alias is called, so only a qualified or generic name is rejected by its written rightmost identifier.
+        if (objectCreation.Type is not IdentifierNameSyntax
+            && GetSimpleTypeName(objectCreation.Type) != "NotImplementedException")
         {
             return;
         }

@@ -404,6 +404,18 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     }
 
     /// <summary>
+    /// Verifies that nothing is reported when the configuration file holds content after its root object, which makes
+    /// it invalid JSON
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-001")]
+    public async Task ConfigurationWithContentAfterItsRootObject()
+    {
+        await VerifySpecificationFile("namespace N;\n", CreateSpecificationConfiguration() + " junk");
+    }
+
+    /// <summary>
     /// Verifies that a file starting with the configured header, its placeholders and the file name filled in, is
     /// not reported
     /// </summary>

@@ -299,26 +299,234 @@ public class RH2003NotImplementedExceptionShouldNotBeUsedAnalyzerTests : Analyze
     }
 
     /// <summary>
-    /// Characterizes a creation through a <see langword="using"/> alias of <see cref="System.NotImplementedException"/>: it is
-    /// not reported, while the qualified name is. This test pins today's behavior; the decided behavior is stated by
-    /// SHARED-DIAG-002, which resolves the alias to the type it names, and its change belongs to an existing follow-up
+    /// Verifies that a creation through a <see langword="using"/> alias of <see cref="System.NotImplementedException"/>
+    /// is reported like the type's own name
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCreationThroughUsingAliasIsNotReported()
+    [Requirement("RH2003-001")]
+    [Requirement("RH2003-004")]
+    public async Task VerifyCreationThroughUsingAliasOfTheTypeIsReported()
     {
         const string testData = """
                                 using NIE = System.NotImplementedException;
 
                                 class C
                                 {
-                                    void M() => throw new NIE();
+                                    void M() => throw new {|RH2003:NIE|}();
 
-                                    void N() => throw new {|#0:System.NotImplementedException|}();
+                                    void N() => throw new {|RH2003:System.NotImplementedException|}();
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2003MessageFormat));
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a creation through an alias of the type, and through an alias of its
+    /// namespace written with a dot or with <c>::</c>, is reported on the whole written type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2003-001")]
+    [Requirement("RH2003-004")]
+    public async Task VerifyCreationsThroughTypeAndNamespaceAliasesAreReported()
+    {
+        const string testData = """
+                                using NIE = System.NotImplementedException;
+                                using S = System;
+
+                                class C
+                                {
+                                    void A() => throw new {|RH2003:NIE|}();
+
+                                    void B() => throw new {|RH2003:S.NotImplementedException|}();
+
+                                    void D() => throw new {|RH2003:S::NotImplementedException|}();
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a creation through an alias of the type with arguments and an object initializer is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2003-001")]
+    public async Task VerifyCreationThroughUsingAliasWithArgumentsAndInitializerIsReported()
+    {
+        const string testData = """
+                                using NIE = System.NotImplementedException;
+
+                                class C
+                                {
+                                    void A() => throw new {|RH2003:NIE|}("Later");
+
+                                    object B() => new {|RH2003:NIE|} { Source = "C" };
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an alias name written with the verbatim prefix is resolved like the alias
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2003-001")]
+    public async Task VerifyCreationThroughVerbatimAliasNameIsReported()
+    {
+        const string testData = """
+                                using NIE = System.NotImplementedException;
+
+                                class C
+                                {
+                                    void M() => throw new {|RH2003:@NIE|}();
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a creation through an alias declared inside a namespace block is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2003-001")]
+    public async Task VerifyCreationThroughAliasDeclaredInNamespaceIsReported()
+    {
+        const string testData = """
+                                namespace N
+                                {
+                                    using NIE = System.NotImplementedException;
+
+                                    class C
+                                    {
+                                        void M() => throw new {|RH2003:NIE|}();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a creation through a global <see langword="using"/> alias declared in another file is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2003-001")]
+    public async Task VerifyCreationThroughGlobalAliasOfAnotherFileIsReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M() => throw new {|RH2003:NIE|}();
+                                }
+                                """;
+
+        const string aliasFile = """
+                                 global using NIE = System.NotImplementedException;
+                                 """;
+
+        await Verify(testData, test => test.TestState.Sources.Add(("/0/Test1.cs", aliasFile)));
+    }
+
+    /// <summary>
+    /// Verifies that a creation through an alias of another exception type is not reported, while a creation through an
+    /// alias of <see cref="System.NotImplementedException"/> next to it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2003-001")]
+    [Requirement("RH2003-003")]
+    public async Task VerifyCreationThroughAliasOfAnotherTypeIsNotReported()
+    {
+        const string testData = """
+                                using NSE = System.NotSupportedException;
+                                using NIE = System.NotImplementedException;
+
+                                class C
+                                {
+                                    void A() => throw new NSE();
+
+                                    void B() => throw new {|RH2003:NIE|}();
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: an alias named <c>NotImplementedException</c> of another type is not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2003-003")]
+    public async Task VerifyAliasNamedNotImplementedExceptionOfAnotherTypeIsNotReported()
+    {
+        const string testData = """
+                                using NotImplementedException = System.NotSupportedException;
+
+                                class C
+                                {
+                                    void M() => throw new NotImplementedException();
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an alias of a type derived from <see cref="System.NotImplementedException"/> is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2003-003")]
+    public async Task VerifyCreationThroughAliasOfDerivedTypeIsNotReported()
+    {
+        const string testData = """
+                                using Derived = N.MyException;
+
+                                namespace N
+                                {
+                                    class MyException : System.NotImplementedException
+                                    {
+                                    }
+                                }
+
+                                class C
+                                {
+                                    void M() => throw new Derived();
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a target-typed creation whose target is written through an alias is reported on <see langword="new"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2003-002")]
+    public async Task VerifyTargetTypedCreationThroughAliasIsReportedOnNewKeyword()
+    {
+        const string testData = """
+                                using NIE = System.NotImplementedException;
+
+                                class C
+                                {
+                                    NIE _exception = {|RH2003:new|}();
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     #endregion // Tests

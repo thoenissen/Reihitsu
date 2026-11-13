@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Data;
 using Reihitsu.Analyzer.Enumerations;
 
@@ -39,6 +40,16 @@ public class RH4009NamespaceNotAllowedAnalyzer : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
+    /// Gets the value of a declared namespace name
+    /// </summary>
+    /// <param name="nameSyntax">Namespace name syntax</param>
+    /// <returns>The identifier values joined by dots</returns>
+    private static string GetNamespaceName(NameSyntax nameSyntax)
+    {
+        return string.Join(".", NamespaceCasingHelper.GetLocations(nameSyntax).Select(part => part.Name));
+    }
+
+    /// <summary>
     /// Start of the compilation
     /// </summary>
     /// <param name="context">Context</param>
@@ -53,14 +64,15 @@ public class RH4009NamespaceNotAllowedAnalyzer : DiagnosticAnalyzerBase
     }
 
     /// <summary>
-    /// Analyzing all namespace declarations
+    /// Analyzing all namespace declarations. The declared name is compared by its value: its identifiers without a verbatim <c>@</c> prefix
+    /// and with every Unicode escape sequence replaced, joined by dots without the whitespace, line breaks, or comments written between them
     /// </summary>
     /// <param name="configuration">Configuration</param>
     /// <param name="context">Context</param>
     private void OnNamespaceDeclarationSyntax(Configuration configuration, SyntaxNodeAnalysisContext context)
     {
         if (context.Node is BaseNamespaceDeclarationSyntax namespaceSyntax
-            && configuration.Naming.AllowedNamespaceDeclarations.Contains(namespaceSyntax.Name.ToString()) == false)
+            && configuration.Naming.AllowedNamespaceDeclarations.Contains(GetNamespaceName(namespaceSyntax.Name)) == false)
         {
             context.ReportDiagnostic(CreateDiagnostic(namespaceSyntax.Name.GetLocation()));
         }

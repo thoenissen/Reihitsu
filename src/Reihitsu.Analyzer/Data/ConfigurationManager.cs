@@ -97,6 +97,7 @@ internal static class ConfigurationManager
     /// <param name="text">Text</param>
     /// <param name="errors">Errors</param>
     /// <returns>Configuration</returns>
+    /// <exception cref="JsonException">The text is not valid JSON, including content after the root value</exception>
     private static Configuration ParseConfiguration(SourceText text, out List<ConfigurationValidationError> errors)
     {
         var configuration = new Configuration();
@@ -114,6 +115,8 @@ internal static class ConfigurationManager
 
             return configuration;
         }
+
+        ReadToEndOfDocument(reader);
 
         if (reader.TokenType != JsonTokenType.StartObject)
         {
@@ -168,6 +171,17 @@ internal static class ConfigurationManager
         ConvertErrorSpansToCharacterPositions(errors, bytes);
 
         return configuration;
+    }
+
+    /// <summary>
+    /// Reads a copy of the reader to the end of the document, so that any content after the root value other than
+    /// JSON white space throws a <see cref="JsonException"/> before the root value is validated
+    /// </summary>
+    /// <param name="reader">Reader positioned on the root value; it is copied, so the caller's position is kept</param>
+    private static void ReadToEndOfDocument(Utf8JsonReader reader)
+    {
+        reader.Skip();
+        reader.Read();
     }
 
     /// <summary>
