@@ -61,3 +61,11 @@ Maintainer-approved bookkeeping; labels read before each update, full list passe
 - #1664 closed as duplicate of #1339 (milestone 1.2.2 set): its input (field outside every region vs. constant in a region) and the `NoCodeFixWhenDirectivesAreInLeadingTrivia` test note carried over in a comment on #1339; closing comment on #1664.
 - #1656 closed as duplicate of #1545 with comment (no milestone set).
 - Re-read: open issues without a milestone (PRs excluded): 0.
+
+## 2026-11-13
+
+- #1678 → 1.2.1 (12); triage comment posted (critical: fix reorders instance fields, layout changes in another build configuration; runs with #1150).
+- #1681, #1685, #1689 → vNext (2).
+- #1682, #1684, #1690 → Maintenance (4).
+- Labels passed unchanged on every update; none added or removed.
+- Not touched (awaiting milestone decision): #1676, #1680, #1687, #1140.
