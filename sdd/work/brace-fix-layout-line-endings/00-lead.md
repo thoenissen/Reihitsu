@@ -54,5 +54,6 @@ Batch 1 (before test implementer), all answered as recommended:
 - Done: claim, draft PR #1691, prepare.sh; spec author 01 (c14bb8c, 4 output questions; flagged `} else M();` as a visible difference to add to the batch; FormatNode instance of #1388 possibly unreachable).
 - Done: skeptic 02 (bb1c18e).
 - Done: batch 1 answered (all as recommended).
-- Now: spec author amendment 03 (answers 1–5, decisions 6–9).
+- Done: spec author 03 (5360bf8): SHARED-BRACE-003 (withholds), RH7309-007, SHARED-ATTR-017 tabs.
+- Now: output question 6 asked (RH5405 body below `if` not indented one level: A keep column, rec; B shift like RH7004). Waiting.
 - Then: test implementer.
