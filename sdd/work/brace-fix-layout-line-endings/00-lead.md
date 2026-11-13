@@ -80,4 +80,5 @@ Batch 1 (before test implementer), all answered as recommended:
 - Repair round 1: spec author 12 (c8ec980) change doc, accepted by lead. Cleaner skipped (text only).
 - Done: spec checker 13 (39557b5): consistent. Merged origin/main 166e3dd (no overlap).
 - Done: auditor 14 (03ce027): 4 medium, 3 low.
-- Now: repair round 2 — spec author 15 (F2, F3 into SHARED-ATTR-022/017 and change doc), test implementer 16 (F1–F5), implementer 17 (F1–F3, F6, F7), cleaner 18, spec checker 19, auditor 20 (repair only), validator.
+- Repair round 2: spec author 15 done (f011239; SHARED-ATTR-023 added, SHARED-ATTR-022 widened).
+- Now: repair round 2 — (F2, F3 into SHARED-ATTR-022/017 and change doc), test implementer 16 (F1–F5), implementer 17 (F1–F3, F6, F7), cleaner 18, spec checker 19, auditor 20 (repair only), validator.
