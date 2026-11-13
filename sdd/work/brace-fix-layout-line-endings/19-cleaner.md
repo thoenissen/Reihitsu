@@ -15,4 +15,4 @@ _None._
 
 ## Checks
 `scripts/build.sh`: `Build succeeded. 0 Warning(s) 0 Error(s)`.
-Focused analyzer tests (RH5405, RH5406, RH5407, RH7309, RH5514, RH5518): see run below in commit message check; no code changed by the cleaner.
+Focused analyzer tests (RH5405, RH5406, RH5407, RH7309, RH5514, RH5518): `Failed: 0, Passed: 368, Total: 368`. The cleaner changed no code.
