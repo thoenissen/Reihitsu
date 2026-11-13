@@ -2841,6 +2841,137 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
         await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies the spec example: a body on the line of its if that ends a file of top-level statements without a final
+    /// line break gets the fix, and no line break stands behind the closing brace, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task FixWrapsABodyOnTheLineOfItsIfThatEndsTheDocument(string endOfLine)
+    {
+        const string testCode = """
+                                if (args.Length > 0) {|RH5405:System.Console.WriteLine();|}
+                                """;
+        const string fixedCode = """
+                                 if (args.Length > 0)
+                                 {
+                                     System.Console.WriteLine();
+                                 }
+                                 """;
+
+        await VerifyTopLevelCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a body below its if with a comment behind it that ends a file of top-level statements
+    /// without a final line break gets the fix, the comment stays behind the body, and no line break stands behind the
+    /// closing brace, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task FixWrapsABodyBelowItsIfWithACommentBehindItThatEndsTheDocument(string endOfLine)
+    {
+        const string testCode = """
+                                if (args.Length > 0)
+                                    {|RH5405:System.Console.WriteLine();|} // c
+                                """;
+        const string fixedCode = """
+                                 if (args.Length > 0)
+                                 {
+                                     System.Console.WriteLine(); // c
+                                 }
+                                 """;
+
+        await VerifyTopLevelCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a body on the line of its if with whitespace behind it that ends a file of top-level statements
+    /// without a final line break gets the fix, the whitespace stays at the end of the body's line, and nothing stands
+    /// behind the closing brace, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task FixKeepsTrailingWhitespaceOfABodyThatEndsTheDocumentOnTheBodyLine(string endOfLine)
+    {
+        var testCode = ExpandWhitespaceMarkers("""
+                                               if (args.Length > 0) {|RH5405:System.Console.WriteLine();|}···
+                                               """);
+        var fixedCode = ExpandWhitespaceMarkers("""
+                                                if (args.Length > 0)
+                                                {
+                                                    System.Console.WriteLine();···
+                                                }
+                                                """);
+
+        await VerifyTopLevelCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a body below its if that ends a file of top-level statements without a final line break gets the
+    /// fix, keeps its line, and no line break stands behind the closing brace, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task FixWrapsABodyBelowItsIfThatEndsTheDocument(string endOfLine)
+    {
+        const string testCode = """
+                                if (args.Length > 0)
+                                    {|RH5405:System.Console.WriteLine();|}
+                                """;
+        const string fixedCode = """
+                                 if (args.Length > 0)
+                                 {
+                                     System.Console.WriteLine();
+                                 }
+                                 """;
+
+        await VerifyTopLevelCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a body that ends a file of top-level statements with a final line break gets the fix, and the line
+    /// break stays behind the closing brace, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BRACE-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task FixWrapsABodyOnTheLineOfItsIfFollowedByAFinalLineBreak(string endOfLine)
+    {
+        const string testCode = """
+                                if (args.Length > 0) {|RH5405:System.Console.WriteLine();|}
+
+                                """;
+        const string fixedCode = """
+                                 if (args.Length > 0)
+                                 {
+                                     System.Console.WriteLine();
+                                 }
+
+                                 """;
+
+        await VerifyTopLevelCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
     #endregion // Tests
 
     #region Methods
@@ -2889,6 +3020,25 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
     private static string NormalizeToLineFeed(string text)
     {
         return text.Replace("\r\n", "\n", StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Verifies the diagnostics marked in a file of top-level statements and the result of the code fix with every line
+    /// break of both texts written as <paramref name="endOfLine"/>, and asserts that the fix applied to the source without
+    /// markup returns exactly the expected text, line endings and the end of the file included
+    /// </summary>
+    /// <param name="source">Top-level statements with markup for every expected diagnostic</param>
+    /// <param name="fixedSource">The expected fixed source text, without markup</param>
+    /// <param name="endOfLine">Line break of both texts</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyTopLevelCodeFixWithEndOfLine(string source, string fixedSource, string endOfLine)
+    {
+        var sourceWithEndOfLine = ConvertEndOfLine(source, endOfLine);
+        var fixedSourceWithEndOfLine = ConvertEndOfLine(fixedSource, endOfLine);
+
+        await Verify(sourceWithEndOfLine, fixedSourceWithEndOfLine, test => test.TestState.OutputKind = OutputKind.ConsoleApplication);
+
+        Assert.AreEqual(fixedSourceWithEndOfLine, await ApplyCodeFixAsync(RemoveMarkup(sourceWithEndOfLine)));
     }
 
     #endregion // Methods
@@ -2952,12 +3102,9 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
                                  }
                                  """;
 
-        // RH5405 only reports single-line embedded child statements; nesting a second violation inside the first
-        // would make the outer child multi-line, which RH5406 owns instead, so the only way two diagnostics could
-        // share an owning statement is an if/else pair - and there both branches resolve to the identical
-        // if-statement node, collapsing to what the batch fixer treats as a single reformat rather than two
-        // interfering ones. Two independent if-statements in different methods are used instead, because
-        // interference beyond that identical-owner collapse is unreachable for this rule
+        // Each diagnostic's fix inserts the braces around its own body as text changes, without formatting the
+        // owning if statement. Two if statements in different methods give two fixes whose changes lie apart, so
+        // the batch fixer applies both in one pass
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH5405BracesMustNotBeOmittedAnalyzer.DiagnosticId, AnalyzerResources.RH5405MessageFormat, 2));

@@ -34,6 +34,28 @@ public class RH5514MethodAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
                                                  }
                                                  """;
 
+    /// <summary>
+    /// Declarations of the attributes the examples with attribute arguments use, appended to each example
+    /// </summary>
+    private const string ArgumentAttributeDeclarations = """
+
+                                                         sealed class A : System.Attribute
+                                                         {
+                                                             public A(int x, int y)
+                                                             {
+                                                             }
+                                                         }
+                                                         sealed class B : System.Attribute
+                                                         {
+                                                         }
+                                                         sealed class S : System.Attribute
+                                                         {
+                                                             public S(string s)
+                                                             {
+                                                             }
+                                                         }
+                                                         """;
+
     #endregion // Constants
 
     #region Tests
@@ -1051,6 +1073,7 @@ public class RH5514MethodAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-ATTR-017")]
+    [Requirement("SHARED-ATTR-023")]
     [Requirement("SHARED-FIX-008")]
     public async Task SplitFixInsertsTheDetectedLineEndingWhenTheListLineEndsInAnotherOne()
     {
@@ -1077,6 +1100,275 @@ public class RH5514MethodAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
         var expected = NormalizeToCarriageReturnLineFeed(fixedData + AttributeDeclarations).Replace("LF\r\n", "\n", System.StringComparison.Ordinal);
 
         Assert.AreEqual(expected, await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData + AttributeDeclarations).Replace("LF\r\n", "\n", System.StringComparison.Ordinal)));
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a list on the line of the <c>{</c> of the class that holds the method is reported, and no
+    /// code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5514-005")]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task SplitFixIsWithheldOnTheLineOfTheBraceOfTheClassThatHoldsTheMethod()
+    {
+        const string testData = """
+                                class C { {|RH5514:[A, B]|} void M() { } }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData + AttributeDeclarations);
+    }
+
+    /// <summary>
+    /// Verifies that a list on the line of the <c>{</c> of the interface that holds the method is reported, and no code fix
+    /// is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task SplitFixIsWithheldOnTheLineOfTheBraceOfTheInterfaceThatHoldsTheMethod()
+    {
+        const string testData = """
+                                interface I { {|RH5514:[A, B]|} void M(); }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData + AttributeDeclarations);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a list on the line of the <c>{</c> of the block that holds the local function is reported,
+    /// and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5514-005")]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task SplitFixIsWithheldOnTheLineOfTheBraceOfTheBlockThatHoldsTheLocalFunction()
+    {
+        const string testData = """
+                                class D
+                                {
+                                    void N() { {|RH5514:[A, B]|} void L() { } }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData + AttributeDeclarations);
+    }
+
+    /// <summary>
+    /// Verifies that a list on the line of the <c>{</c> of the block that holds the local function is reported, and no
+    /// code fix is offered, also where a statement stands between that <c>{</c> and the list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task SplitFixIsWithheldOnTheLineOfTheBraceOfTheBlockThatHoldsTheLocalFunctionBehindAStatement()
+    {
+        const string testData = """
+                                class D
+                                {
+                                    void N() { int x = 0; {|RH5514:[A, B]|} void L() { } }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData + AttributeDeclarations);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a <c>{</c> on the line of the reported list that opens the body of another method does
+    /// not withhold the fix, and the further list starts a new line, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-022")]
+    [Requirement("SHARED-ATTR-017")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task SplitFixIsOfferedBehindTheBraceOfAnotherBodyOnTheLineOfTheList(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M() { } {|RH5514:[A, B]|} void N() { }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M() { } [A]
+                                     [B] void N() { }
+                                 }
+                                 """;
+
+        await VerifySplitFix(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: in a CRLF document, an LF inside the argument list of an attribute withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5514-005")]
+    [Requirement("SHARED-ATTR-023")]
+    public async Task SplitFixIsWithheldForALineFeedInsideAnAttributeInACarriageReturnLineFeedDocument()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH5514:[A(1,LF
+                                      2), B]|}
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(WithLineFeedMarkers(testData + ArgumentAttributeDeclarations));
+    }
+
+    /// <summary>
+    /// Verifies that in a CRLF document an LF inside a verbatim string argument of an attribute withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-023")]
+    public async Task SplitFixIsWithheldForALineFeedInsideAStringArgumentInACarriageReturnLineFeedDocument()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH5514:[S(@"oneLF
+                                two"), B]|}
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(WithLineFeedMarkers(testData + ArgumentAttributeDeclarations));
+    }
+
+    /// <summary>
+    /// Verifies that in a CRLF document an LF between two attributes withholds the fix, although the fix would not keep it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-023")]
+    public async Task SplitFixIsWithheldForALineFeedBetweenTwoAttributesInACarriageReturnLineFeedDocument()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH5514:[A,LF
+                                        B]|}
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(WithLineFeedMarkers(testData + AttributeDeclarations));
+    }
+
+    /// <summary>
+    /// Verifies the spec example: in a document whose line breaks are all a lone carriage return, a list that holds a line
+    /// break is reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-023")]
+    [Requirement("SHARED-FIX-008")]
+    public async Task SplitFixIsWithheldForALineBreakInsideTheListInADocumentWhoseLineBreaksAreLoneCarriageReturns()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH5514:[A(1,
+                                      2), B]|}
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData + ArgumentAttributeDeclarations, "\r"));
+    }
+
+    /// <summary>
+    /// Verifies the spec example: in a document whose line breaks are all one line ending, a list with a line break inside
+    /// the argument list of an attribute gets the fix, and that line break stays as written, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-023")]
+    [Requirement("SHARED-ATTR-017")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task SplitFixKeepsALineBreakInsideAnAttributeWhenEveryLineBreakIsTheDetectedOne(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH5514:[A(1,
+                                      2), B]|}
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     [A(1,
+                                       2)]
+                                     [B]
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData + ArgumentAttributeDeclarations, fixedData + ArgumentAttributeDeclarations, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that in a document whose line breaks are all one line ending, a list with a line break between two
+    /// attributes gets the fix, and the further list starts a new line in the column of the reported list, under LF and
+    /// CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-023")]
+    [Requirement("SHARED-ATTR-017")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task SplitFixIsOfferedForALineBreakBetweenTwoAttributesWhenEveryLineBreakIsTheDetectedOne(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH5514:[A,
+                                        B]|}
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     [A]
+                                     [B]
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifySplitFix(testData, fixedData, endOfLine);
     }
 
     #endregion // Tests
@@ -1108,6 +1400,17 @@ public class RH5514MethodAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
         }
 
         Assert.AreEqual(fixedSource, actual);
+    }
+
+    /// <summary>
+    /// Writes every line break of the provided text as CRLF, except a line break marked with <c>LF</c> in front of it,
+    /// which is written as LF
+    /// </summary>
+    /// <param name="text">Text with <c>LF</c> markers</param>
+    /// <returns>The text with CRLF line breaks and an LF at each marker</returns>
+    private static string WithLineFeedMarkers(string text)
+    {
+        return NormalizeToCarriageReturnLineFeed(text).Replace("LF\r\n", "\n", System.StringComparison.Ordinal);
     }
 
     #endregion // Methods

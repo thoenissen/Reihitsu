@@ -771,9 +771,9 @@ public class RH5407UseBracesConsistentlyAnalyzerTests : BatchCodeFixTestsBase<RH
                                  }
                                  """;
 
-        // The rule reports at most one diagnostic per if-statement, so a shared owner between two occurrences is
-        // unreachable; two independent if/else statements in different methods exercise the batch fixer applying
-        // two genuinely separate reformats
+        // Each diagnostic's fix inserts the braces around its own body as text changes, without formatting the
+        // owning if statement. Two if/else statements in different methods give two fixes whose changes lie apart, so
+        // the batch fixer applies both in one pass
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH5407UseBracesConsistentlyAnalyzer.DiagnosticId, AnalyzerResources.RH5407MessageFormat, 2));

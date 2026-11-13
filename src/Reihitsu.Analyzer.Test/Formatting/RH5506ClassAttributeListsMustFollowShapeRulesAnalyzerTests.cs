@@ -541,6 +541,95 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies the spec example: a list on the line of the <c>{</c> of the namespace that holds the class is reported, and
+    /// no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5506-004")]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task VerifyDiagnosticWithoutCodeFixOnTheLineOfTheBraceOfTheNamespaceThatHoldsTheClass()
+    {
+        const string testData = """
+                                namespace N { {|RH5506:[A, B]|} class C { } }
+
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a list on the line of the <c>{</c> of the class that holds a nested class is reported, and no code fix
+    /// is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task VerifyDiagnosticWithoutCodeFixOnTheLineOfTheBraceOfTheClassThatHoldsTheNestedClass()
+    {
+        const string testData = """
+                                class O { {|RH5506:[A, B]|} class C { } }
+
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a list of a class in a file-scoped namespace, which no <c>{</c> holds, gets the fix, under LF and CRLF
+    /// line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-022")]
+    [Requirement("SHARED-ATTR-017")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyCodeFixSplitsAListOfAClassInAFileScopedNamespace(string endOfLine)
+    {
+        const string testData = """
+                                namespace N;
+
+                                {|RH5506:[A, B]|} class C { }
+
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 namespace N;
+
+                                 [A]
+                                 [B] class C { }
+
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -4309,6 +4309,79 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
         await VerifyCodeFixWithEndOfLine(LineEndingSource, LineEndingFixedSource, "\r\n");
     }
 
+    /// <summary>
+    /// Verifies that in a CRLF document an LF in a region block that keeps its place among three blocks does not withhold
+    /// the fix, the two other blocks change places, and the LF stays where it was
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-004")]
+    [Requirement("RH7309-007")]
+    public async Task FixIsOfferedForALineFeedInABlockThatKeepsItsPlaceOfACarriageReturnLineFeedDocument()
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  #region Fields
+
+                                  private int _a;LF
+
+                                  #endregion // Fields
+
+                                  #region IDisposable
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  #region Methods
+
+                                  private void M()
+                                  {
+                                  }
+
+                                  #endregion // Methods
+                              }
+                              """;
+        const string fixedSource = """
+                                   using System;
+
+                                   public class C : IDisposable
+                                   {
+                                       #region Fields
+
+                                       private int _a;LF
+
+                                       #endregion // Fields
+
+                                       #region Methods
+
+                                       private void M()
+                                       {
+                                       }
+
+                                       #endregion // Methods
+
+                                       #region IDisposable
+
+                                       public void Dispose()
+                                       {
+                                       }
+
+                                       #endregion // IDisposable
+                                   }
+                                   """;
+
+        var input = NormalizeToCarriageReturnLineFeed(source).Replace("LF\r\n", "\n", System.StringComparison.Ordinal);
+        var expected = NormalizeToCarriageReturnLineFeed(fixedSource).Replace("LF\r\n", "\n", System.StringComparison.Ordinal);
+
+        Assert.AreEqual(expected, await ApplyCodeFixAsync(input));
+    }
+
     #endregion // Tests
 
     #region Methods

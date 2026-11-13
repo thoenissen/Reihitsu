@@ -232,6 +232,30 @@ public class RH5526DelegateAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(RemoveMarkup(testData))), "Every line break the fix inserts must be CRLF.");
     }
 
+    /// <summary>
+    /// Verifies that a list of a delegate on the line of the <c>{</c> of the class that holds the delegate is reported, and
+    /// no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5526-004")]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task VerifyDiagnosticWithoutCodeFixOnTheLineOfTheBraceOfTheClassThatHoldsTheDelegate()
+    {
+        const string testData = """
+                                class C { {|RH5526:[A, B]|} delegate void D(); }
+
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

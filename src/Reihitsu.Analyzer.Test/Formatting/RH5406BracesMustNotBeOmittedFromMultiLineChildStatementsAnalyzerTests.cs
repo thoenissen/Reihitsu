@@ -984,10 +984,9 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTes
                                  }
                                  """;
 
-        // RH5406 only reports multi-line embedded child statements, and both an if-branch and its own else-branch
-        // resolve to the identical owning if-statement, which the batch fixer already collapses into a single
-        // reformat instead of two interfering ones. Two independent if-statements in different methods are used
-        // here because interference beyond that identical-owner collapse is unreachable for this rule
+        // Each diagnostic's fix inserts the braces around its own body as text changes, without formatting the
+        // owning if statement. Two if statements in different methods give two fixes whose changes lie apart, so
+        // the batch fixer applies both in one pass
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, AnalyzerResources.RH5406MessageFormat, 2));
