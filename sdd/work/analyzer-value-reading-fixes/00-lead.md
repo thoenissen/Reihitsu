@@ -67,6 +67,7 @@ Spec author (clarifications only: rule-spec coverage sentences for #1071/#1268, 
 - 12 test implementer: 13 new RH2109 tests (8ebbe37), all fail on head, pass on main analyzer.
 - 14 cleaner clean (2f389e3). 15 spec checker consistent (9734aea). 16 auditor (5663397): #1, #2 closed; #3, #4 repeat classes → decision 13.
 - 17 test implementer (80415db): 9 tests turned to main's report (characterizations, untagged), 7 new for finding #3; 16 fail on head.
+- 18 implementer (b8b466e): block lexing removed; RH2109 53/53, analyzer 8612/8612; RH2109 56 code lines.
 - Repair round 3 (last): test implementer (17, done) → implementer (18) → cleaner (19) → spec checker (20) → auditor (21, repair only) → validator (22).
 - 13 implementer (0de22a4): 46/46 RH2109, 8605/8605 analyzer; RH2109 95 code lines.
 - Repair round 2 (round 1 = Uses lists): test implementer (12, done) adds tests for the auditor's counterexamples → implementer (13) → cleaner → spec checker → auditor (repair only) → validator.
