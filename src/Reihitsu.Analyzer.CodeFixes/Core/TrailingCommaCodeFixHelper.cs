@@ -5,6 +5,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Analyzer.CodeFixes.Core;
 
 /// <summary>
@@ -42,7 +44,10 @@ internal static class TrailingCommaCodeFixHelper
     }
 
     /// <summary>
-    /// Removes the trailing comma while preserving attached comments and trivia
+    /// Removes the trailing comma while preserving attached comments and trivia, and leaves the line as the formatter would
+    /// leave it (SHARED-FIX-007): a line that held only the comma is removed; a comma at the end of its line takes the
+    /// whitespace in front of it along, so no whitespace ends the line; and a comma that starts its line in front of the
+    /// closing brace leaves that brace in the column of the line that holds the matching opening brace
     /// </summary>
     /// <param name="sourceText">Source text</param>
     /// <param name="commaToken">Comma token</param>
@@ -56,7 +61,56 @@ internal static class TrailingCommaCodeFixHelper
             return sourceText.Replace(TextSpan.FromBounds(commaLine.Start, commaLine.EndIncludingLineBreak), string.Empty);
         }
 
+        var start = FormattingTextAnalysisUtilities.GetLeadingWhitespaceRunStart(sourceText, commaToken.SpanStart, commaLine.Start);
+        var end = SkipSpacesForward(sourceText, commaToken.Span.End, commaLine.End);
+        var nextToken = commaToken.GetNextToken();
+
+        if (end == commaLine.End)
+        {
+            return sourceText.Replace(TextSpan.FromBounds(start, end), string.Empty);
+        }
+
+        if (start == commaLine.Start
+            && nextToken.IsKind(SyntaxKind.CloseBraceToken)
+            && nextToken.SpanStart == end
+            && GetMatchingOpenBrace(nextToken) is { } openBrace)
+        {
+            var openBraceLine = sourceText.Lines.GetLineFromPosition(openBrace.SpanStart);
+
+            return sourceText.Replace(TextSpan.FromBounds(start, end), FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, openBraceLine)));
+        }
+
         return sourceText.Replace(commaToken.Span, string.Empty);
+    }
+
+    /// <summary>
+    /// Gets the opening brace that matches a closing brace
+    /// </summary>
+    /// <param name="closeBrace">Closing brace</param>
+    /// <returns>The opening brace, or <see langword="null"/> when its parent has none</returns>
+    private static SyntaxToken? GetMatchingOpenBrace(SyntaxToken closeBrace)
+    {
+        return closeBrace.Parent?.ChildTokens().FirstOrDefault(obj => obj.IsKind(SyntaxKind.OpenBraceToken)) is { RawKind: not 0 } openBrace
+                   ? openBrace
+                   : null;
+    }
+
+    /// <summary>
+    /// Moves a position forward over spaces and tabs, not beyond a limit
+    /// </summary>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="position">Position</param>
+    /// <param name="limit">Highest position</param>
+    /// <returns>The position behind the spaces and tabs</returns>
+    private static int SkipSpacesForward(SourceText sourceText, int position, int limit)
+    {
+        while (position < limit
+               && sourceText[position] is ' ' or '\t')
+        {
+            position++;
+        }
+
+        return position;
     }
 
     #endregion // Methods

@@ -52,10 +52,36 @@ public class RH5203MultiLineArgumentsShouldBeAlignedCodeFixProvider : CodeFixPro
 
         var firstToken = argument.GetFirstToken();
         var newLeadingTrivia = default(SyntaxTriviaList);
+        var startsLine = firstToken.GetPreviousToken().TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia);
+        var pendingWhitespace = default(SyntaxTrivia?);
 
-        foreach (var trivia in firstToken.LeadingTrivia.Where(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false))
+        // A comment that starts its own line in front of the argument moves into the alignment column with it; the
+        // whitespace of every other line, blank lines and directives included, stays as written (RH5203-003)
+        foreach (var trivia in firstToken.LeadingTrivia)
         {
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia)
+                && startsLine)
+            {
+                pendingWhitespace = trivia;
+
+                continue;
+            }
+
+            if (startsLine
+                && (trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)))
+            {
+                newLeadingTrivia = newLeadingTrivia.Add(SyntaxFactory.Whitespace(alignWhitespace));
+            }
+            else if (pendingWhitespace is { } whitespace)
+            {
+                newLeadingTrivia = newLeadingTrivia.Add(whitespace);
+            }
+
+            pendingWhitespace = null;
             newLeadingTrivia = newLeadingTrivia.Add(trivia);
+            startsLine = trivia.IsKind(SyntaxKind.EndOfLineTrivia)
+                         || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                         || trivia.IsDirective;
         }
 
         newLeadingTrivia = newLeadingTrivia.Add(SyntaxFactory.Whitespace(alignWhitespace));

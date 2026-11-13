@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Clarity;
 using Reihitsu.Formatter;
 using Reihitsu.Formatter.Pipeline.StructuralTransforms.Utilities;
@@ -24,15 +25,16 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider : CodeFi
     #region Methods
 
     /// <summary>
-    /// Applying code fix
+    /// Applying code fix. A method that shares its line with another member is first separated from it, so that both stand
+    /// on lines of their own (SHARED-FIX-007)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="methodDeclaration">Method declaration</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, MethodDeclarationSyntax methodDeclaration, CancellationToken cancellationToken)
+    private static Task<Document> ApplyCodeFixAsync(Document document, MethodDeclarationSyntax methodDeclaration, CancellationToken cancellationToken)
     {
-        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, methodDeclaration, cancellationToken).ConfigureAwait(false)).Output;
+        return LineLayoutCodeFixUtilities.FormatMemberOnLinesOfItsOwnAsync(document, methodDeclaration, cancellationToken);
     }
 
     #endregion // Methods
@@ -45,7 +47,8 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider : CodeFi
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider()
     {
-        return WellKnownFixAllProviders.BatchFixer;
+        // Two members on one line are separated by the fixes of both, so the fixes run one after another
+        return DocumentOrderFixAllProvider.Create(new RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer());
     }
 
     /// <inheritdoc/>

@@ -120,7 +120,10 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider 
     }
 
     /// <summary>
-    /// Determines whether the selected statement has a directly editable leading gap
+    /// Determines whether the selected statement has a directly editable leading gap: the token in front of it ends the
+    /// preceding statement of its list, whatever statement that is, and only spaces and tabs separate the two. In a block
+    /// whose opening brace stands on the line on which the preceding statement starts, the gap is not edited, because
+    /// that line shows no statement column to copy (RH5103-005)
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="statement">Selected statement</param>
@@ -136,7 +139,13 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider 
 
         var previousToken = statement.GetFirstToken().GetPreviousToken(includeZeroWidth: true, includeSkipped: true);
 
-        if (previousToken.Parent?.FirstAncestorOrSelf<StatementSyntax>() != previousStatement)
+        if (previousToken != previousStatement.GetLastToken(includeZeroWidth: true, includeSkipped: true))
+        {
+            return false;
+        }
+
+        if (statement.Parent is BlockSyntax block
+            && SyntaxTokenPositionUtilities.GetLine(block.OpenBraceToken) == SyntaxTokenPositionUtilities.GetLine(previousStatement.GetFirstToken()))
         {
             return false;
         }

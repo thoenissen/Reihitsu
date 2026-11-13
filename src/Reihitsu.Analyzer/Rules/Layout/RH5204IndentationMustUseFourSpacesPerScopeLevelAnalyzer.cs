@@ -64,7 +64,9 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     /// <summary>
     /// Aligns comments that start their line to the indentation of the token they precede. A documentation comment that
     /// Roslyn files as leading trivia of the token but that is written behind the preceding code shares that code's line,
-    /// whose indentation belongs to the code; the formatter's comment alignment uses the same predicate
+    /// whose indentation belongs to the code; the formatter's comment alignment uses the same predicate. A token behind the
+    /// closing line of a multi-line comment does not start its line (SHARED-BLANK-008): its expected indentation still
+    /// aligns the comment, but its own line is not checked
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="expectedIndentationByLine">Expected indentation by line</param>
@@ -105,7 +107,42 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
                     expectedIndentationByLine[commentLine] = (alignColumn, trivia.GetLocation());
                 }
             }
+
+            if (expectation.Location.SourceSpan == token.Span
+                && EndsMultiLineCommentOnLine(token, tokenLine))
+            {
+                expectedIndentationByLine.Remove(tokenLine);
+            }
         }
+    }
+
+    /// <summary>
+    /// Determines whether a delimited comment in the token's leading trivia starts on an earlier line and ends on the
+    /// token's line, so that the token stands behind the comment's closing line
+    /// </summary>
+    /// <param name="token">Token</param>
+    /// <param name="tokenLine">Line of the token</param>
+    /// <returns><see langword="true"/> if the token stands behind the closing line of a multi-line comment</returns>
+    private static bool EndsMultiLineCommentOnLine(SyntaxToken token, int tokenLine)
+    {
+        foreach (var trivia in token.LeadingTrivia)
+        {
+            if (trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) == false
+                && trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia) == false)
+            {
+                continue;
+            }
+
+            var lineSpan = trivia.GetLocation().GetLineSpan();
+
+            if (lineSpan.StartLinePosition.Line < tokenLine
+                && lineSpan.EndLinePosition.Line == tokenLine)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

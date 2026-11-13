@@ -58,7 +58,9 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedCodeFixProvider : C
             {
                 var lambdaExpression = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.FirstAncestorOrSelf<LambdaExpressionSyntax>();
 
+                // A lambda with an attribute list is left to manual correction (RH5205-004)
                 if (lambdaExpression?.Body is BlockSyntax
+                    && lambdaExpression.AttributeLists.Count == 0
                     && ReihitsuFormatter.FindUnsupportedSyntax(lambdaExpression) == null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5205Title,

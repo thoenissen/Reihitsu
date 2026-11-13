@@ -5,9 +5,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Core;
+using Reihitsu.Core;
 using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
@@ -49,7 +52,9 @@ public abstract class StatementBracesCodeFixProviderBase : CodeFixProvider
     #region Methods
 
     /// <summary>
-    /// Applies the code fix
+    /// Applies the code fix: the reported body is wrapped in a block whose braces start their own lines in the column of the
+    /// line that holds the keyword owning the body, and the block is laid out by the formatter; the condition, the other
+    /// bodies of the chain, and the code around the statement stay as written (SHARED-BRACE-002)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>
@@ -64,36 +69,38 @@ public abstract class StatementBracesCodeFixProviderBase : CodeFixProvider
             return document;
         }
 
-        var ownerStatement = FindFormattingNode(root, diagnosticSpan);
+        var body = FindReportedBody(root, diagnosticSpan);
 
-        if (ownerStatement == null)
+        if (body == null)
         {
             return document;
         }
 
-        // Delegating to the formatter wraps the embedded statement in braces and lays out the control-flow
-        // statement, preserving the parent header and indentation regardless of whether the child shares the
-        // parent's line. Editing the text manually deletes the header when the child is on the parent's line.
-        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, ownerStatement, cancellationToken).ConfigureAwait(false)).Output;
+        // The body keeps its trailing trivia, a comment behind it included, when that trivia ends its line; otherwise the
+        // closing brace takes over what stood behind the body
+        var endOfLine = SyntaxFactory.EndOfLine(LineEndingUtilities.DetectEndOfLine(root));
+        var bodyTrailingTrivia = body.GetTrailingTrivia();
+        var endsLine = bodyTrailingTrivia.Any(SyntaxKind.EndOfLineTrivia);
+        var block = SyntaxFactory.Block(endsLine ? body : body.WithTrailingTrivia(endOfLine))
+                                 .WithOpenBraceToken(SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithTrailingTrivia(endOfLine))
+                                 .WithCloseBraceToken(SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithTrailingTrivia(endsLine ? SyntaxFactory.TriviaList(endOfLine) : bodyTrailingTrivia));
+
+        return await LineLayoutCodeFixUtilities.ReplaceWithBlockOnOwnLinesAsync(document, body, block, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Finds the node the fix formats. The diagnostic targets the unbraced child statement; the statement that owns it as an
-    /// embedded statement is the node the formatter needs to rewrite so the braces are inserted around it
+    /// Finds the reported body: the unbraced statement that an <c>if</c> statement or an <c>else</c> clause owns
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="diagnosticSpan">The diagnostic's span</param>
-    /// <returns>The owning statement, or <see langword="null"/> when there is none</returns>
-    private static SyntaxNode FindFormattingNode(SyntaxNode root, TextSpan diagnosticSpan)
+    /// <returns>The body, or <see langword="null"/> when the reported statement is not such a body</returns>
+    private static StatementSyntax FindReportedBody(SyntaxNode root, TextSpan diagnosticSpan)
     {
         var statement = root.FindNode(diagnosticSpan).FirstAncestorOrSelf<StatementSyntax>();
 
-        return statement?.Parent switch
-               {
-                   IfStatementSyntax ifStatement => ifStatement,
-                   ElseClauseSyntax { Parent: IfStatementSyntax ifStatement } => ifStatement,
-                   _ => null,
-               };
+        return statement?.Parent is IfStatementSyntax or ElseClauseSyntax
+                   ? statement
+                   : null;
     }
 
     #endregion // Methods
@@ -121,8 +128,8 @@ public abstract class StatementBracesCodeFixProviderBase : CodeFixProvider
 
         foreach (var diagnostic in context.Diagnostics)
         {
-            if (FindFormattingNode(root, diagnostic.Location.SourceSpan) is { } node
-                && ReihitsuFormatter.FindUnsupportedSyntax(node) != null)
+            if (FindReportedBody(root, diagnostic.Location.SourceSpan) is { } body
+                && ReihitsuFormatter.FindUnsupportedSyntax(body) != null)
             {
                 continue;
             }

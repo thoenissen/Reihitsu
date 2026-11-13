@@ -1,4 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Core;
 using Reihitsu.Core.Enumerations;
 using Reihitsu.Formatter.Utilities;
@@ -124,8 +127,44 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
         }
 
         var updatedTokenAfter = tokenAfter.WithLeadingTrivia(SyntaxFactory.TriviaList());
+        var tokens = new List<SyntaxToken>
+                     {
+                         closeBracket,
+                         tokenAfter
+                     };
+        var openBracket = attributeList.OpenBracketToken;
+        var previousToken = openBracket.GetPreviousToken();
 
-        var updatedRoot = root.ReplaceTokens([closeBracket, tokenAfter], (original, _) => original == closeBracket ? updatedCloseBracket : updatedTokenAfter);
+        // A list that starts a member behind another member on the same line gets a line of its own as well, in the
+        // column of the declaration below it (SHARED-FIX-007, shared line)
+        var breaksBefore = placementMode == TargetAttributePlacementMode.SeparateLine
+                           && attributeList.Parent is MemberDeclarationSyntax member
+                           && member.GetFirstToken() == openBracket
+                           && LineLayoutCodeFixUtilities.SharesLineWithPreviousSiblingMember(member);
+
+        if (breaksBefore)
+        {
+            tokens.Add(openBracket);
+            tokens.Add(previousToken);
+        }
+
+        var updatedRoot = root.ReplaceTokens(tokens,
+                                             (original, rewritten) =>
+                                             {
+                                                 if (original == closeBracket)
+                                                 {
+                                                     return updatedCloseBracket;
+                                                 }
+
+                                                 if (original == tokenAfter)
+                                                 {
+                                                     return updatedTokenAfter;
+                                                 }
+
+                                                 return original == openBracket
+                                                            ? rewritten.WithLeadingTrivia(updatedCloseBracket.TrailingTrivia.Skip(1))
+                                                            : rewritten.WithTrailingTrivia(LineLayoutCodeFixUtilities.EndWithLineBreak(rewritten.TrailingTrivia, updatedCloseBracket.TrailingTrivia[0]));
+                                             });
 
         return document.WithSyntaxRoot(updatedRoot);
     }
@@ -163,6 +202,57 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
             {
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether the innermost opening brace that encloses a list outside every initializer and anonymous object
+    /// stands on a line that is not indented four spaces for each brace scope enclosing it, a tab counted as four spaces.
+    /// The nesting depth that indents the declaration matches the formatter only where that brace sits at its own depth,
+    /// so the separate-line fix is withheld otherwise (SHARED-ATTR-021)
+    /// </summary>
+    /// <param name="root">Root</param>
+    /// <param name="attributeList">Attribute list</param>
+    /// <returns><see langword="true"/> when the innermost enclosing brace is off its depth column</returns>
+    private static bool IsInnermostEnclosingBraceOffItsDepthColumn(SyntaxNode root, AttributeListSyntax attributeList)
+    {
+        if (SyntaxIndentationUtilities.HasAnchorScopeAncestor(attributeList))
+        {
+            return false;
+        }
+
+        foreach (var ancestor in attributeList.Ancestors())
+        {
+            var (owner, openBrace) = ancestor switch
+                                     {
+                                         BlockSyntax block => (ancestor, block.OpenBraceToken),
+                                         TypeDeclarationSyntax typeDeclaration => (ancestor, typeDeclaration.OpenBraceToken),
+                                         NamespaceDeclarationSyntax namespaceDeclaration => (ancestor, namespaceDeclaration.OpenBraceToken),
+                                         EnumDeclarationSyntax enumDeclaration => (ancestor, enumDeclaration.OpenBraceToken),
+                                         SwitchStatementSyntax switchStatement => (ancestor, switchStatement.OpenBraceToken),
+                                         AccessorListSyntax accessorList => (ancestor, accessorList.OpenBraceToken),
+                                         _ => (null, default),
+                                     };
+
+            if (owner == null
+                || openBrace.IsMissing
+                || openBrace.SpanStart > attributeList.SpanStart)
+            {
+                continue;
+            }
+
+            var sourceText = root.SyntaxTree.GetText();
+            var line = sourceText.Lines.GetLineFromPosition(openBrace.SpanStart);
+            var indentation = 0;
+
+            for (var position = line.Start; position < line.End && sourceText[position] is ' ' or '\t'; position++)
+            {
+                indentation += sourceText[position] == '\t' ? SyntaxIndentationUtilities.IndentSize : 1;
+            }
+
+            return indentation != SyntaxIndentationUtilities.ComputeBaseIndentLevel(owner) * SyntaxIndentationUtilities.IndentSize;
         }
 
         return false;
@@ -211,7 +301,8 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
         // placement would put it, so there is nothing to offer
         if (placementMode == TargetAttributePlacementMode.SeparateLine
             && (AttributeTargetUtilities.IsAttributeListOnInlineAutoPropertyAccessor(attributeList)
-                || HasIncompleteEnclosingScope(attributeList)))
+                || HasIncompleteEnclosingScope(attributeList)
+                || IsInnermostEnclosingBraceOffItsDepthColumn(root, attributeList)))
         {
             return false;
         }
