@@ -427,6 +427,275 @@ public class RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzerTests : Batc
         await Verify(testCode, fixedCode, Diagnostics(RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5027MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the spec example: one application of the fix deletes the reported blank line together with the rest of its
+    /// run of blank lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5027-004")]
+    [Requirement("SHARED-FIX-001")]
+    public async Task VerifyFixDeletesRunOfBlankLinesAboveDoStatementFooterInOneApplication()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        do
+                                        {
+                                            a++;
+                                        }
+
+                                {|RH5027:
+                                |}        while (a < 3);
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         do
+                                         {
+                                             a++;
+                                         }
+                                         while (a < 3);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix deletes the reported blank line together with the rest of its run of blank
+    /// lines under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5027-004")]
+    [Requirement("SHARED-FIX-001")]
+    public async Task VerifyFixDeletesRunOfBlankLinesAboveDoStatementFooterInOneApplicationWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        do
+                                        {
+                                            a++;
+                                        }
+
+                                {|RH5027:
+                                |}        while (a < 3);
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         do
+                                         {
+                                             a++;
+                                         }
+                                         while (a < 3);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode),
+                     NormalizeToCarriageReturnLineFeed(fixedCode),
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a blank line directly below a region directive and above the footer of a do statement is
+    /// not reported, also when the footer line begins with the closing brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5027-005")]
+    public async Task VerifyBlankLineBelowRegionDirectiveAboveDoStatementFooterIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        do
+                                        {
+                                            a++;
+                                        }
+                                        #region R
+
+                                        while (a < 3);
+                                        #endregion // R
+
+                                        do
+                                        {
+                                            a++;
+                                            #region S
+
+                                        } while (a < 4);
+                                        #endregion // S
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a blank line directly below an endregion directive and above a footer line that begins with while is not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5027-005")]
+    public async Task VerifyBlankLineBelowEndRegionDirectiveAboveDoStatementFooterIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        #region R
+                                        do
+                                        {
+                                            a++;
+                                        }
+                                        #endregion // R
+
+                                        while (a < 3);
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a run of two blank lines directly below a region directive and above the footer of a do statement is not
+    /// reported by this rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5027-005")]
+    public async Task VerifyRunOfBlankLinesBelowRegionDirectiveAboveDoStatementFooterIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        do
+                                        {
+                                            a++;
+                                        }
+                                        #region R
+
+
+                                        while (a < 3);
+                                        #endregion // R
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a blank line directly below a region directive and above the footer of a do statement is not reported
+    /// under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5027-005")]
+    public async Task VerifyBlankLineBelowRegionDirectiveAboveDoStatementFooterIsNotReportedWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        do
+                                        {
+                                            a++;
+                                        }
+                                        #region R
+
+                                        while (a < 3);
+                                        #endregion // R
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
+    /// <summary>
+    /// Verifies a blank line directly below an endregion directive and above a footer line that begins with the closing
+    /// brace stays reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5027-005")]
+    public async Task VerifyBlankLineBelowEndRegionDirectiveAboveFooterStartingWithClosingBraceIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        do
+                                        {
+                                            #region R
+                                            a++;
+                                            #endregion // R
+                                {|RH5027:
+                                |}        } while (a < 3);
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         do
+                                         {
+                                             #region R
+                                             a++;
+                                             #endregion // R
+                                         } while (a < 3);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

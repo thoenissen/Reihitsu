@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -24,7 +25,8 @@ public class RH7310EmptyRegionsShouldBeRemovedCodeFixProvider : CodeFixProvider
     #region Methods
 
     /// <summary>
-    /// Applies the code fix
+    /// Applies the code fix: the lines from the <c>#region</c> through its <c>#endregion</c> are removed, together with
+    /// the blank lines the removal leaves at the edge of a body or doubled (SHARED-FIX-007)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="regionTrivia">Region directive trivia</param>
@@ -41,26 +43,16 @@ public class RH7310EmptyRegionsShouldBeRemovedCodeFixProvider : CodeFixProvider
         }
 
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var regionLine = sourceText.Lines.GetLineFromPosition(regionTrivia.SpanStart);
-        var endRegionLine = sourceText.Lines.GetLineFromPosition(endRegionTrivia.SpanStart);
-        var removalEnd = endRegionLine.EndIncludingLineBreak;
+        var regionLineNumber = sourceText.Lines.GetLineFromPosition(regionTrivia.SpanStart).LineNumber;
+        var endRegionLineNumber = sourceText.Lines.GetLineFromPosition(endRegionTrivia.SpanStart).LineNumber;
+        var removedLines = new HashSet<int>();
 
-        for (var lineIndex = endRegionLine.LineNumber + 1; lineIndex < sourceText.Lines.Count; lineIndex++)
+        for (var lineNumber = regionLineNumber; lineNumber <= endRegionLineNumber; lineNumber++)
         {
-            var line = sourceText.Lines[lineIndex];
-
-            if (line.Span.IsEmpty
-                || string.IsNullOrWhiteSpace(sourceText.ToString(line.Span)))
-            {
-                removalEnd = line.EndIncludingLineBreak;
-            }
-            else
-            {
-                break;
-            }
+            removedLines.Add(lineNumber);
         }
 
-        var updatedText = sourceText.Replace(TextSpan.FromBounds(regionLine.Start, removalEnd), string.Empty);
+        var updatedText = RegionDirectiveBlankLineUtilities.RemoveDirectiveLines(root, sourceText, removedLines);
 
         return document.WithText(updatedText);
     }

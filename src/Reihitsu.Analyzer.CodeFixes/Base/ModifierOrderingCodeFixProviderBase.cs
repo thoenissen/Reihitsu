@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
-using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
@@ -84,7 +83,7 @@ public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
     }
 
     /// <summary>
-    /// Creates the member declaration the fix formats: the declaration with its modifiers in order. The guard of
+    /// Creates the member declaration the fix writes: the declaration with its modifiers in order. The guard of
     /// RegisterCodeFixesAsync leaves no comment or directive between the modifiers or behind the last of them, so the
     /// rewrite writes each modifier with a single space behind it and leaves the token behind the modifiers as it is
     /// (SHARED-MODORDER-002)
@@ -110,7 +109,8 @@ public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
     }
 
     /// <summary>
-    /// Applies the code fix
+    /// Applies the code fix: only the modifiers are rewritten, and the rest of the declaration stays as written
+    /// (SHARED-FIX-006)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="memberDeclaration">Declaration</param>
@@ -130,18 +130,7 @@ public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
             return document;
         }
 
-        var formattingAnnotation = new SyntaxAnnotation();
-
-        updatedDeclaration = updatedDeclaration.WithAdditionalAnnotations(formattingAnnotation);
-
-        var updatedRoot = root.ReplaceNode(memberDeclaration, updatedDeclaration);
-        var updatedDocument = document.WithSyntaxRoot(updatedRoot);
-        var formattedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var formattedMemberDeclaration = formattedRoot?.GetAnnotatedNodes(formattingAnnotation).OfType<MemberDeclarationSyntax>().FirstOrDefault();
-
-        return formattedMemberDeclaration == null
-                   ? updatedDocument
-                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedMemberDeclaration, cancellationToken).ConfigureAwait(false)).Output;
+        return document.WithSyntaxRoot(root.ReplaceNode(memberDeclaration, updatedDeclaration));
     }
 
     #endregion // Methods
@@ -167,9 +156,7 @@ public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
             foreach (var diagnostic in context.Diagnostics)
             {
                 if (OrderingDeclarationUtilities.TryGetMemberDeclaration(root, diagnostic, out var memberDeclaration)
-                    && ReorderingWouldDropCommentOrDirective(DeclarationModifierUtilities.GetModifiers(memberDeclaration)) == false
-                    && (TryCreateUpdatedDeclaration(memberDeclaration, out var updatedDeclaration) == false
-                        || ReihitsuFormatter.FindUnsupportedSyntax(updatedDeclaration) == null))
+                    && ReorderingWouldDropCommentOrDirective(DeclarationModifierUtilities.GetModifiers(memberDeclaration)) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(_title,
                                                               token => ApplyCodeFixAsync(context.Document, memberDeclaration, token),

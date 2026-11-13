@@ -339,6 +339,166 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
         await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the specification example: the diagnostic runs through every reference in the text, at its start, in
+    /// its middle, and at its end
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8308-001")]
+    [Requirement("RH8308-003")]
+    public async Task VerifySpecificationExampleDiagnosticRunsThroughReferences()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>Runs</summary> {|#0:a &amp; b|}
+                                    void M()
+                                    {
+                                    }
+
+                                    /// <summary>Stops</summary> {|#1:&lt; x &#x41;|}
+                                    void N()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: text with a reference is removed in one application
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8308-004")]
+    public async Task VerifySpecificationExampleRemovesTextWithReferenceInOneApplication()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>Runs</summary> {|#0:a &amp; b|}
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>Runs</summary>
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that text with references at different places is reported as one span through the end of the line and
+    /// removed in one application
+    /// </summary>
+    /// <param name="text">Text after the end tag</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8308-001")]
+    [Requirement("RH8308-003")]
+    [Requirement("RH8308-004")]
+    [DataRow("a &amp;")]
+    [DataRow("&amp; b")]
+    [DataRow("a &#32; b")]
+    [DataRow("a &#x41; b")]
+    [DataRow("a &lt; &gt; b")]
+    [DataRow("&amp;")]
+    public async Task VerifyTextWithReferencesIsReportedThroughTheEndOfTheLineAndRemovedInOneApplication(string text)
+    {
+        var testData = $$"""
+                         class C
+                         {
+                             /// <summary>Runs</summary> {|#0:{{text}}|}
+                             void M()
+                             {
+                             }
+                         }
+                         """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>Runs</summary>
+                                     void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that text with a reference is removed in one application in a document whose line breaks are CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8308-004")]
+    public async Task VerifyTextWithReferenceIsRemovedInOneApplicationWithCarriageReturnLineFeed()
+    {
+        var testData = NormalizeToCarriageReturnLineFeed("""
+                                                         class C
+                                                         {
+                                                             /// <summary>Runs</summary> {|#0:a &amp; b|}
+                                                             void M()
+                                                             {
+                                                             }
+                                                         }
+                                                         """);
+        var fixedData = NormalizeToCarriageReturnLineFeed("""
+                                                          class C
+                                                          {
+                                                              /// <summary>Runs</summary>
+                                                              void M()
+                                                              {
+                                                              }
+                                                          }
+                                                          """);
+
+        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that text with a reference in front of a following top-level element is reported up to that element and
+    /// removed in one application, together with the text behind it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8308-003")]
+    [Requirement("RH8308-004")]
+    public async Task VerifyTextWithReferenceInFrontOfElementIsRemovedInOneApplication()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>Stops</summary> {|#0:a &amp; b |}<c>x</c> {|#1:c &lt; d|}
+                                    void N()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>Stops</summary><c>x</c>
+                                     void N()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat, 2));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

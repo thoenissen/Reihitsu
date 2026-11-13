@@ -5,7 +5,7 @@
 | ID prefix | SHARED-WS |
 | Status | Active |
 | Code owners | `RemoveWhitespaceRunCodeFixProviderBase`, `WhitespaceSpanRemovalCodeFixProviderBase`, `BlankLineSpanRemovalCodeFixProviderBase`, `CollapseTokenGapCodeFixProviderBase` |
-| Uses | SHARED-JOIN-001 |
+| Uses | SHARED-FIX-001, SHARED-JOIN-001 |
 
 This spec covers the code fixes of rules that report whitespace that must not be there — a run of spaces and tabs, a span of blank lines, or the gap in front of a token that belongs on the line of the token before it — and correct it by deleting that whitespace: what the deletion changes, and when a comment or a directive near a run withholds it. Each rule that uses this spec states which whitespace it reports and where its diagnostic is; it names the requirements of this spec its fix follows.
 
@@ -17,11 +17,11 @@ This spec covers the code fixes of rules that report whitespace that must not be
 
 ## Requirements
 
-### SHARED-WS-001 — The fix deletes exactly the reported whitespace
+### SHARED-WS-001 — The fix deletes exactly the reported whitespace or the run its rule names
 
-A code fix that uses this requirement MUST delete the whitespace of the reported span and MUST NOT change any other text: no comment, directive, or token is added, moved, or removed, and no whitespace outside the span is changed.
+A code fix that uses this requirement MUST delete the whitespace of the reported span and MUST NOT change any other text: no comment, directive, or token is added, moved, or removed, and no whitespace outside the span is changed. A rule that reports one line of a run of lines holding nothing but whitespace MAY name that whole run as the deleted span instead — the reported line together with the lines next to it, on the side its spec names, that hold nothing but whitespace, up to the nearest line that holds anything else. The rule's spec states which lines its run reaches; that run then takes the place of the reported span in every sentence of this requirement, so the fix deletes the run and nothing outside it. A rule that names no run deletes the reported span only.
 
-Why: The diagnostic names one span of whitespace as wrong, and deleting that span is the whole correction. Whether the span holds a line break is decided by the rule that reports it: a rule that reports a run within one line keeps the line structure of the file as it was.
+Why: The diagnostic names one span of whitespace as wrong, and deleting that span is the whole correction. Whether the span holds a line break is decided by the rule that reports it: a rule that reports a run within one line keeps the line structure of the file as it was. A blank-line rule that reports only the line next to the code it guards (RH5022, RH5024–RH5027) still asks for the whole run to go, and deleting it in one application converges (SHARED-FIX-001); every line the run adds holds nothing but whitespace, so the deletion still touches no comment, directive, token, or literal. A rule that reports every line of a run itself, such as RH5023, has no reason to name a wider span.
 
 Example — RH6003, which reports the whitespace before a semicolon:
 
@@ -46,6 +46,8 @@ class C
     }
 }
 ```
+
+Example — a rule that names the run: RH5022 deletes the reported line below `{` and every blank line below it in one application, as its own spec shows; RH5023, which names no run, deletes each reported line on its own.
 
 ### SHARED-WS-002 — A comment or directive in the token gap withholds the fix
 

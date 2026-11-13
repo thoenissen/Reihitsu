@@ -20,7 +20,8 @@ namespace Reihitsu.Formatter.Pipeline.DocumentationComments;
 /// decisions live in <see cref="DocCommentElementNormalizer"/>; this phase locates the candidate
 /// elements, splices in their normalized text — repeating until no candidate is left, because only
 /// the outermost ones can be rebuilt per round — and fixes the <c>///</c> line prefixes. A comment stranded behind
-/// code, or one that holds an element without an end tag of its own, keeps its text as written
+/// code, or one that holds an element without an end tag of its own, keeps its text as written. <see cref="LayOutElement"/>
+/// applies the same element layout to one element alone, for <see cref="ReihitsuFormatter.FormatDocumentationElementInDocumentAsync"/>
 /// </summary>
 internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
 {
@@ -36,6 +37,38 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     #endregion // Constants
 
     #region Methods
+
+    /// <summary>
+    /// Lays out one element of a single-line documentation comment where it stands in its syntax tree, as this phase lays
+    /// out that element when it formats the comment, and changes nothing outside the element (FMT-PIPE-032). The element's
+    /// nested candidates are rebuilt in further rounds, as the phase rebuilds them; every line the element gains starts
+    /// with the indentation in front of the <c>///</c> on the line of the element's start tag
+    /// </summary>
+    /// <param name="syntaxTree">Syntax tree holding the element</param>
+    /// <param name="element">The element, closed by an end tag of its own</param>
+    /// <param name="endOfLine">The document's line ending, written between the lines of an expanded element</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The syntax tree with the element laid out, or the unchanged tree when the element is already canonical</returns>
+    internal static SyntaxTree LayOutElement(SyntaxTree syntaxTree, XmlElementSyntax element, string endOfLine, CancellationToken cancellationToken)
+    {
+        var elementStart = element.SpanStart;
+
+        for (var round = 0; round < MaximumNormalizationRounds && element != null; round++)
+        {
+            var sourceText = syntaxTree.GetText(cancellationToken);
+            var replacements = BuildOutermostReplacements(element.DescendantNodesAndSelf().OfType<XmlElementSyntax>(), sourceText, endOfLine, cancellationToken);
+
+            if (replacements.Count == 0)
+            {
+                break;
+            }
+
+            syntaxTree = syntaxTree.WithChangedText(sourceText.WithChanges(replacements));
+            element = GetElementStartingAt(syntaxTree.GetRoot(cancellationToken), elementStart);
+        }
+
+        return syntaxTree;
+    }
 
     /// <summary>
     /// Determines whether significant trivia owned by the following token precedes documentation on its physical line
@@ -308,9 +341,35 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     }
 
     /// <summary>
-    /// Rebuilds the outermost normalization candidates of a documentation comment. A candidate nested
-    /// inside another candidate is skipped, because rebuilding the outer element already replaces the
-    /// text the inner one occupies and both replacements would overwrite each other
+    /// Builds the replacements of the outermost normalization candidates among the specified elements. A candidate nested
+    /// inside another candidate is skipped, because rebuilding the outer element already replaces the text the inner one
+    /// occupies and both replacements would overwrite each other
+    /// </summary>
+    /// <param name="elements">Elements to inspect</param>
+    /// <param name="sourceText">Source text the elements belong to</param>
+    /// <param name="endOfLine">The detected line ending, written between the lines of an expanded element</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The replacements, ordered from the last element to the first, or an empty list if no element required rebuilding</returns>
+    private static List<TextChange> BuildOutermostReplacements(IEnumerable<XmlElementSyntax> elements, SourceText sourceText, string endOfLine, CancellationToken cancellationToken)
+    {
+        var candidates = elements.Where(obj => DocCommentElementNormalizer.RequiresNormalization(obj, sourceText))
+                                 .ToList();
+        var candidateSet = new HashSet<XmlElementSyntax>(candidates);
+        var replacements = new List<TextChange>();
+
+        foreach (var element in candidates.Where(obj => obj.Ancestors().OfType<XmlElementSyntax>().Any(candidateSet.Contains) == false)
+                                          .OrderByDescending(obj => obj.Span.Start))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            replacements.Add(new TextChange(element.Span, DocCommentElementNormalizer.BuildReplacement(element, sourceText, endOfLine)));
+        }
+
+        return replacements;
+    }
+
+    /// <summary>
+    /// Rebuilds the outermost normalization candidates of a documentation comment
     /// </summary>
     /// <param name="commentText">Text of the documentation comment</param>
     /// <param name="commentSpan">Span the comment text occupies in <paramref name="sourceText"/></param>
@@ -321,34 +380,38 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// <returns>The rebuilt comment text, or <see langword="null"/> if no element required rebuilding</returns>
     private static string NormalizeOutermostElements(string commentText, TextSpan commentSpan, DocumentationCommentTriviaSyntax documentationComment, SourceText sourceText, string endOfLine, CancellationToken cancellationToken)
     {
-        var candidates = documentationComment.DescendantNodes()
-                                             .OfType<XmlElementSyntax>()
-                                             .Where(obj => DocCommentElementNormalizer.RequiresNormalization(obj, sourceText))
-                                             .ToList();
+        var replacements = BuildOutermostReplacements(documentationComment.DescendantNodes().OfType<XmlElementSyntax>(), sourceText, endOfLine, cancellationToken);
 
-        if (candidates.Count == 0)
+        if (replacements.Count == 0)
         {
             return null;
         }
 
-        var candidateSet = new HashSet<XmlElementSyntax>(candidates);
-        var topLevelCandidates = candidates.Where(obj => obj.Ancestors().OfType<XmlElementSyntax>().Any(candidateSet.Contains) == false)
-                                           .OrderByDescending(obj => obj.Span.Start)
-                                           .ToList();
         var normalizedCommentText = commentText;
 
-        foreach (var element in topLevelCandidates)
+        foreach (var replacement in replacements)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            var relativeStart = replacement.Span.Start - commentSpan.Start;
+            var relativeEnd = replacement.Span.End - commentSpan.Start;
 
-            var replacementText = DocCommentElementNormalizer.BuildReplacement(element, sourceText, endOfLine);
-            var relativeStart = element.Span.Start - commentSpan.Start;
-            var relativeEnd = element.Span.End - commentSpan.Start;
-
-            normalizedCommentText = $"{normalizedCommentText.Substring(0, relativeStart)}{replacementText}{normalizedCommentText.Substring(relativeEnd)}";
+            normalizedCommentText = $"{normalizedCommentText.Substring(0, relativeStart)}{replacement.NewText}{normalizedCommentText.Substring(relativeEnd)}";
         }
 
         return normalizedCommentText;
+    }
+
+    /// <summary>
+    /// Gets the XML element whose start tag begins at the specified position
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="position">Position of the element's start tag</param>
+    /// <returns>The element, or <see langword="null"/> if no element starts there</returns>
+    private static XmlElementSyntax GetElementStartingAt(SyntaxNode root, int position)
+    {
+        return root.FindToken(position, findInsideTrivia: true).Parent is XmlElementStartTagSyntax { Parent: XmlElementSyntax element } startTag
+               && startTag.SpanStart == position
+                   ? element
+                   : null;
     }
 
     /// <summary>

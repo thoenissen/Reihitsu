@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Clarity;
@@ -23,7 +24,9 @@ public class RH3102CodeMustNotContainEmptyStatementsCodeFixProvider : CodeFixPro
     #region Methods
 
     /// <summary>
-    /// Applying the code fix
+    /// Applying the code fix. An empty statement that ends a line behind other code takes its line break along only after
+    /// handing it to the code in front of it, whose whitespace at the end of the line is removed, so that the next statement
+    /// keeps its line (SHARED-FIX-007)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="emptyStatement">Empty statement</param>
@@ -38,7 +41,22 @@ public class RH3102CodeMustNotContainEmptyStatementsCodeFixProvider : CodeFixPro
             return document;
         }
 
-        var updatedRoot = root.RemoveNode(emptyStatement, SyntaxRemoveOptions.KeepNoTrivia);
+        var previousToken = emptyStatement.GetFirstToken().GetPreviousToken();
+        var lineBreak = emptyStatement.GetTrailingTrivia().FirstOrDefault(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+
+        if (lineBreak.IsKind(SyntaxKind.EndOfLineTrivia)
+            && previousToken.IsKind(SyntaxKind.None) == false
+            && previousToken.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia) == false
+            && previousToken.TrailingTrivia.All(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)))
+        {
+            root = root.TrackNodes(emptyStatement);
+            root = root.ReplaceToken(root.FindToken(previousToken.SpanStart), previousToken.WithTrailingTrivia(lineBreak));
+            emptyStatement = root.GetCurrentNode(emptyStatement);
+        }
+
+        var updatedRoot = emptyStatement == null
+                              ? null
+                              : root.RemoveNode(emptyStatement, SyntaxRemoveOptions.KeepNoTrivia);
 
         return updatedRoot == null
                    ? document

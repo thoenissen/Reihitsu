@@ -651,6 +651,34 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
         await VerifyNoCodeFixIsOffered(testData);
     }
 
+    /// <summary>
+    /// Verifies that the fix that puts each argument on its own line lays out a raw string literal argument as formatting
+    /// the document lays it out
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixLaysOutARawStringLiteralArgumentAsTheFormatterDoes()
+    {
+        const string testCode = """"
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M{|RH5102:(1, """
+                                            a
+                                            """)|};
+                                    }
+
+                                    void M(int a, string s)
+                                    {
+                                    }
+                                }
+                                """";
+
+        await VerifyCodeFixMatchesFormatter(testCode);
+        await VerifyCodeFixMatchesFormatter(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

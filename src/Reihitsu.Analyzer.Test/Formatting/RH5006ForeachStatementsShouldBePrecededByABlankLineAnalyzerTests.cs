@@ -196,6 +196,241 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
         await Verify(testCode, fixedCode, Diagnostics(RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5006MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the spec example: an <c>await foreach</c> statement is reported on its <c>foreach</c> keyword, and one
+    /// application of the fix puts the blank line in front of <c>await</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5006-002")]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixInsertsBlankLineAboveAwaitOfAwaitForeachStatement()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    async System.Threading.Tasks.Task M(System.Collections.Generic.IAsyncEnumerable<int> items)
+                                    {
+                                        var a = 1;
+                                        await {|RH5006:foreach|} (var item in items)
+                                        {
+                                            a += item;
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     async System.Threading.Tasks.Task M(System.Collections.Generic.IAsyncEnumerable<int> items)
+                                     {
+                                         var a = 1;
+
+                                         await foreach (var item in items)
+                                         {
+                                             a += item;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix puts the blank line in front of <c>await</c> of an <c>await foreach</c>
+    /// statement under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5006-002")]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixInsertsBlankLineAboveAwaitOfAwaitForeachStatementWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    async System.Threading.Tasks.Task M(System.Collections.Generic.IAsyncEnumerable<int> items)
+                                    {
+                                        var a = 1;
+                                        await {|RH5006:foreach|} (var item in items)
+                                        {
+                                            a += item;
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     async System.Threading.Tasks.Task M(System.Collections.Generic.IAsyncEnumerable<int> items)
+                                     {
+                                         var a = 1;
+
+                                         await foreach (var item in items)
+                                         {
+                                             a += item;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode),
+                     NormalizeToCarriageReturnLineFeed(fixedCode),
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix moves an <c>await foreach</c> statement that shares its line with the
+    /// statement before it to a new line, with the blank line in front of <c>await</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5006-002")]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixMovesAwaitForeachStatementSharingLineWithPreviousStatement()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    async System.Threading.Tasks.Task M(System.Collections.Generic.IAsyncEnumerable<int> items)
+                                    {
+                                        var a = 1; await {|RH5006:foreach|} (var item in items) { a += item; }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     async System.Threading.Tasks.Task M(System.Collections.Generic.IAsyncEnumerable<int> items)
+                                     {
+                                         var a = 1;
+
+                                         await foreach (var item in items) { a += item; }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix puts the blank line above the comment line that stands directly above an
+    /// <c>await foreach</c> statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5006-002")]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixInsertsBlankLineAboveCommentLeadingAwaitForeachStatement()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    async System.Threading.Tasks.Task M(System.Collections.Generic.IAsyncEnumerable<int> items)
+                                    {
+                                        var a = 1;
+                                        // note
+                                        await {|RH5006:foreach|} (var item in items)
+                                        {
+                                            a += item;
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     async System.Threading.Tasks.Task M(System.Collections.Generic.IAsyncEnumerable<int> items)
+                                     {
+                                         var a = 1;
+
+                                         // note
+                                         await foreach (var item in items)
+                                         {
+                                             a += item;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one Fix All application corrects two adjacent <c>await foreach</c> statements, each with its blank line in
+    /// front of <c>await</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5006-002")]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixAllInsertsBlankLinesAboveAwaitOfAdjacentAwaitForeachStatements()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    async System.Threading.Tasks.Task M(System.Collections.Generic.IAsyncEnumerable<int> first, System.Collections.Generic.IAsyncEnumerable<int> second)
+                                    {
+                                        var a = 1;
+                                        await {|RH5006:foreach|} (var item in first)
+                                        {
+                                        }
+                                        await {|RH5006:foreach|} (var item in second)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     async System.Threading.Tasks.Task M(System.Collections.Generic.IAsyncEnumerable<int> first, System.Collections.Generic.IAsyncEnumerable<int> second)
+                                     {
+                                         var a = 1;
+
+                                         await foreach (var item in first)
+                                         {
+                                         }
+
+                                         await foreach (var item in second)
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 2;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

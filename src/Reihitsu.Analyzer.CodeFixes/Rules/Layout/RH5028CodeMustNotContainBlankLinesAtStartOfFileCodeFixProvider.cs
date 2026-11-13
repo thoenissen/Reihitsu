@@ -21,7 +21,7 @@ public class RH5028CodeMustNotContainBlankLinesAtStartOfFileCodeFixProvider : Bl
     /// Constructor
     /// </summary>
     public RH5028CodeMustNotContainBlankLinesAtStartOfFileCodeFixProvider()
-        : base(RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer.DiagnosticId, CodeFixResources.RH5028Title)
+        : base(RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer.DiagnosticId, CodeFixResources.RH5028Title, removesRun: false)
     {
     }
 

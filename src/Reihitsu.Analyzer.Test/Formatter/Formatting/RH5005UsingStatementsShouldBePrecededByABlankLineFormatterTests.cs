@@ -55,5 +55,47 @@ public class RH5005UsingStatementsShouldBePrecededByABlankLineFormatterTests : F
                               ExpectedDiagnostic(RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 14, AnalyzerResources.RH5005MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the formatter puts the blank line in front of await of an await using statement, so the diagnostic on the
+    /// using keyword is cleared
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5005-002")]
+    public async Task VerifyFormatterInsertsBlankLineAboveAwaitOfAwaitUsingStatement()
+    {
+        const string input = """
+                             class C
+                             {
+                                 async System.Threading.Tasks.Task M(System.IAsyncDisposable resource)
+                                 {
+                                     var a = 1;
+                                     await using (resource)
+                                     {
+                                         a++;
+                                     }
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     async System.Threading.Tasks.Task M(System.IAsyncDisposable resource)
+                                     {
+                                         var a = 1;
+
+                                         await using (resource)
+                                         {
+                                             a++;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 15, 6, 20, AnalyzerResources.RH5005MessageFormat));
+    }
+
     #endregion // Tests
 }

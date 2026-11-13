@@ -21,7 +21,7 @@ public class RH5023CodeMustNotContainMultipleBlankLinesInARowCodeFixProvider : B
     /// Constructor
     /// </summary>
     public RH5023CodeMustNotContainMultipleBlankLinesInARowCodeFixProvider()
-        : base(RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzer.DiagnosticId, CodeFixResources.RH5023Title)
+        : base(RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzer.DiagnosticId, CodeFixResources.RH5023Title, removesRun: false)
     {
     }
 

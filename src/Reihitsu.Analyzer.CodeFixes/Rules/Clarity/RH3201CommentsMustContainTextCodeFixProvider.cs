@@ -24,7 +24,8 @@ public class RH3201CommentsMustContainTextCodeFixProvider : CodeFixProvider
     #region Methods
 
     /// <summary>
-    /// Applying the code fix
+    /// Applying the code fix. A comment that stands alone on its lines, also one that spans several lines, is removed
+    /// together with those lines, so no empty line stays behind (SHARED-FIX-007)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="commentTrivia">Comment trivia</param>
@@ -34,14 +35,13 @@ public class RH3201CommentsMustContainTextCodeFixProvider : CodeFixProvider
     {
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var line = text.Lines.GetLineFromPosition(commentTrivia.FullSpan.Start);
-        var lineText = text.ToString(line.Span);
-        var trimmedLineText = lineText.Trim();
-        var trimmedCommentText = commentTrivia.ToString().Trim();
+        var lastLine = text.Lines.GetLineFromPosition(commentTrivia.FullSpan.End);
         TextSpan removalSpan;
 
-        if (trimmedLineText == trimmedCommentText)
+        if (string.IsNullOrWhiteSpace(text.ToString(TextSpan.FromBounds(line.Start, commentTrivia.FullSpan.Start)))
+            && string.IsNullOrWhiteSpace(text.ToString(TextSpan.FromBounds(commentTrivia.FullSpan.End, lastLine.End))))
         {
-            removalSpan = TextSpan.FromBounds(line.Start, line.EndIncludingLineBreak);
+            removalSpan = TextSpan.FromBounds(line.Start, lastLine.EndIncludingLineBreak);
         }
         else
         {

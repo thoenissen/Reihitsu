@@ -196,7 +196,9 @@ public static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
-    /// Enumerates blank lines that are immediately preceded by another blank line
+    /// Enumerates blank lines that end with a line break and are immediately preceded by another blank line. The last line
+    /// of a text, which ends with no line break, is not a blank line of a run even when it holds nothing or only whitespace:
+    /// the end of the file is not a line (RH5023-001)
     /// </summary>
     /// <param name="sourceText">Source text</param>
     /// <param name="excludedLineIndices">Line indices that should be ignored</param>
@@ -211,10 +213,13 @@ public static class FormattingTextAnalysisUtilities
                 continue;
             }
 
-            if (IsBlankLine(sourceText, lineIndex)
+            var line = sourceText.Lines[lineIndex];
+
+            if (line.EndIncludingLineBreak > line.End
+                && IsBlankLine(sourceText, lineIndex)
                 && IsBlankLine(sourceText, lineIndex - 1))
             {
-                yield return sourceText.Lines[lineIndex];
+                yield return line;
             }
         }
     }
@@ -300,6 +305,37 @@ public static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
+    /// Determines whether the gap between two adjacent tokens violates single-space operator spacing: it holds nothing
+    /// but spaces and tabs, and it is not exactly one space. A gap with a line break or a comment is no violation
+    /// </summary>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="start">Inclusive start of the gap</param>
+    /// <param name="end">Exclusive end of the gap</param>
+    /// <returns><see langword="true"/> if the gap is a spacing violation</returns>
+    public static bool IsOperatorGapViolation(SourceText sourceText, int start, int end)
+    {
+        if (end <= start)
+        {
+            return true;
+        }
+
+        for (var index = start; index < end; index++)
+        {
+            var character = sourceText[index];
+
+            if (character == '\n'
+                || character == '\r'
+                || (character != ' ' && character != '\t'))
+            {
+                return false;
+            }
+        }
+
+        return end - start != 1
+               || sourceText[start] != ' ';
+    }
+
+    /// <summary>
     /// Determines whether the specified token is part of an interpolated string
     /// </summary>
     /// <param name="token">Token to inspect</param>
@@ -360,36 +396,6 @@ public static class FormattingTextAnalysisUtilities
         {
             lineIndices.Add(lineIndex);
         }
-    }
-
-    /// <summary>
-    /// Determines whether the gap between two adjacent tokens violates single-space operator spacing
-    /// </summary>
-    /// <param name="sourceText">Source text</param>
-    /// <param name="start">Inclusive start of the gap</param>
-    /// <param name="end">Exclusive end of the gap</param>
-    /// <returns><see langword="true"/> if the gap is a spacing violation</returns>
-    private static bool IsOperatorGapViolation(SourceText sourceText, int start, int end)
-    {
-        if (end <= start)
-        {
-            return true;
-        }
-
-        for (var index = start; index < end; index++)
-        {
-            var character = sourceText[index];
-
-            if (character == '\n'
-                || character == '\r'
-                || (character != ' ' && character != '\t'))
-            {
-                return false;
-            }
-        }
-
-        return end - start != 1
-               || sourceText[start] != ' ';
     }
 
     /// <summary>

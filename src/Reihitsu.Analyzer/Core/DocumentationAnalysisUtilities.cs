@@ -5,6 +5,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Enumerations;
 
@@ -468,6 +469,19 @@ internal static class DocumentationAnalysisUtilities
     {
         return declaration.Parent is EnumDeclarationSyntax enumDeclaration
                && MatchesAccessibilityGroup(enumDeclaration, accessibilityGroup);
+    }
+
+    /// <summary>
+    /// Determines whether a syntax node action runs a second time for a node in the documentation of a type with a
+    /// primary constructor. The compiler runs the actions for the nodes of such a declaration once for the type and once
+    /// for its primary constructor, so an analyzer that reports on the documentation comment would report it twice
+    /// </summary>
+    /// <param name="context">Syntax node analysis context</param>
+    /// <returns><see langword="true"/> when the action runs for the primary constructor of the type the node belongs to</returns>
+    internal static bool IsPrimaryConstructorRun(SyntaxNodeAnalysisContext context)
+    {
+        return context.ContainingSymbol is IMethodSymbol { MethodKind: MethodKind.Constructor } constructor
+               && constructor.DeclaringSyntaxReferences.Any(reference => reference.GetSyntax(context.CancellationToken) is TypeDeclarationSyntax);
     }
 
     /// <summary>

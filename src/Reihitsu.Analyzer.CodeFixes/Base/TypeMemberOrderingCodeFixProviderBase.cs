@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
-using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
@@ -81,7 +80,8 @@ public abstract class TypeMemberOrderingCodeFixProviderBase : CodeFixProvider
     }
 
     /// <summary>
-    /// Applies the code fix
+    /// Applies the code fix: the member moves in front of the target member as a move of whole lines, and nothing else of
+    /// the type changes (SHARED-FIX-006, SHARED-FIX-007, SHARED-ORDER-009)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="typeDeclaration">Containing type declaration</param>
@@ -90,29 +90,15 @@ public abstract class TypeMemberOrderingCodeFixProviderBase : CodeFixProvider
     /// <returns>The updated document</returns>
     private async Task<Document> ApplyCodeFixAsync(Document document, TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberDeclaration, CancellationToken cancellationToken)
     {
-        if (TryGetTargetMember(typeDeclaration, memberDeclaration, out var targetMember) == false)
+        if (TryGetTargetMember(typeDeclaration, memberDeclaration, out var targetMember) == false
+            || OrderingMoveSafety.TryCreateWholeLineMove(typeDeclaration.Members, memberDeclaration, targetMember, out var change) == false)
         {
             return document;
         }
 
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-        if (root == null)
-        {
-            return document;
-        }
-
-        var formattingAnnotation = new SyntaxAnnotation();
-        var updatedTypeDeclaration = OrderingDeclarationUtilities.MoveMemberBefore(typeDeclaration, memberDeclaration, targetMember)
-                                                                 .WithAdditionalAnnotations(formattingAnnotation);
-        var updatedRoot = root.ReplaceNode(typeDeclaration, updatedTypeDeclaration);
-        var updatedDocument = document.WithSyntaxRoot(updatedRoot);
-        var formattedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var formattedTypeDeclaration = formattedRoot?.GetAnnotatedNodes(formattingAnnotation).OfType<TypeDeclarationSyntax>().FirstOrDefault();
-
-        return formattedTypeDeclaration == null
-                   ? updatedDocument
-                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedTypeDeclaration, cancellationToken).ConfigureAwait(false)).Output;
+        return document.WithText(text.WithChanges(change));
     }
 
     #endregion // Methods
@@ -141,7 +127,7 @@ public abstract class TypeMemberOrderingCodeFixProviderBase : CodeFixProvider
                 if (OrderingDeclarationUtilities.TryGetContainingTypeAndMember(root, diagnostic, out var typeDeclaration, out var memberDeclaration)
                     && TryGetTargetMember(typeDeclaration, memberDeclaration, out var targetMember)
                     && IsMoveSafe(semanticModel, typeDeclaration, memberDeclaration, targetMember)
-                    && ReihitsuFormatter.FindUnsupportedSyntax(OrderingDeclarationUtilities.MoveMemberBefore(typeDeclaration, memberDeclaration, targetMember)) == null)
+                    && OrderingMoveSafety.TryCreateWholeLineMove(typeDeclaration.Members, memberDeclaration, targetMember, out _))
                 {
                     context.RegisterCodeFix(CodeAction.Create(_title,
                                                               token => ApplyCodeFixAsync(context.Document, typeDeclaration, memberDeclaration, token),

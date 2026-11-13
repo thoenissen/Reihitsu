@@ -338,6 +338,34 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzerTests : Bat
         await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5205MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the specification example: a lambda that carries an attribute list of its own is reported, and no code fix
+    /// is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5205-004")]
+    public async Task NoFixIsOfferedForALambdaWithAnAttributeList()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int, int> c = [Obsolete] (x) =>
+                                        {|RH5205:{|}
+                                            return x;
+                                        };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

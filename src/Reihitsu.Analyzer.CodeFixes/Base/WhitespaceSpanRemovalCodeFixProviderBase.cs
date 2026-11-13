@@ -12,12 +12,14 @@ using Reihitsu.Core;
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
 /// <summary>
-/// Code fix provider base class for rules whose fix removes the reported diagnostic span; the fix is
-/// withheld unless the span is whitespace-only, so a future analyzer reporting a non-whitespace span
-/// degrades to no fix being offered instead of deleting code. Because the inspected span is exactly the
-/// deleted span, the guard can never withhold a fix the derived rule offers today. RH6004 derives from
-/// this class directly; blank-line rules derive from it through the named specialization
-/// <see cref="BlankLineSpanRemovalCodeFixProviderBase"/>
+/// Code fix provider base class for rules whose fix removes the reported whitespace (SHARED-WS-001). The guard
+/// inspects the reported diagnostic span and withholds the fix unless that span is whitespace-only, so a future
+/// analyzer reporting a non-whitespace span degrades to no fix being offered instead of deleting code. The removed
+/// span is the reported span unless a derived rule widens it through <see cref="GetRemovalSpan"/>, which may add
+/// only whitespace-only lines, so the deletion stays whitespace-only whenever the guard lets it through. RH6004
+/// derives from this class directly; blank-line rules derive from it through
+/// <see cref="BlankLineSpanRemovalCodeFixProviderBase"/>, which widens the span to the whole run of blank lines for
+/// the rules that name the run
 /// <para>
 /// Choose this base when the reported span is already whitespace-only by construction and the fix must stay
 /// offered for every input the analyzer can report. Choose <see cref="RemoveWhitespaceRunCodeFixProviderBase"/>
@@ -59,17 +61,29 @@ public abstract class WhitespaceSpanRemovalCodeFixProviderBase : CodeFixProvider
     #region Methods
 
     /// <summary>
-    /// Applies the code fix by removing the diagnostic span
+    /// Gets the span the fix removes for a reported span. By default it is the reported span itself; a derived rule may
+    /// widen it to more whitespace around it, so the removed span stays whitespace-only
+    /// </summary>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="diagnosticSpan">Diagnostic span, which holds only whitespace</param>
+    /// <returns>The span to remove</returns>
+    private protected virtual TextSpan GetRemovalSpan(SourceText sourceText, TextSpan diagnosticSpan)
+    {
+        return diagnosticSpan;
+    }
+
+    /// <summary>
+    /// Applies the code fix by removing the span <see cref="GetRemovalSpan"/> gives for the diagnostic span
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The updated document</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
+    private async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
     {
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-        return document.WithText(sourceText.Replace(diagnosticSpan, string.Empty));
+        return document.WithText(sourceText.Replace(GetRemovalSpan(sourceText, diagnosticSpan), string.Empty));
     }
 
     #endregion // Methods

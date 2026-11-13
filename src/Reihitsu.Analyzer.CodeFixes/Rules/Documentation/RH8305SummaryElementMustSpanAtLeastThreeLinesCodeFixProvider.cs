@@ -1,16 +1,13 @@
 ﻿using System.Collections.Immutable;
 using System.Composition;
-using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Documentation;
-using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
 
@@ -21,49 +18,6 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH8305SummaryElementMustSpanAtLeastThreeLinesCodeFixProvider))]
 public class RH8305SummaryElementMustSpanAtLeastThreeLinesCodeFixProvider : CodeFixProvider
 {
-    #region Methods
-
-    /// <summary>
-    /// Applies the code fix
-    /// </summary>
-    /// <param name="document">Document</param>
-    /// <param name="diagnosticSpan">Diagnostic span</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The updated document</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
-    {
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-        if (root == null)
-        {
-            return document;
-        }
-
-        var declaration = FindDeclaration(root, diagnosticSpan);
-
-        if (declaration == null)
-        {
-            return document;
-        }
-
-        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, declaration, cancellationToken).ConfigureAwait(false)).Output;
-    }
-
-    /// <summary>
-    /// Finds the declaration the fix formats: the member or enum member that owns the reported documentation comment
-    /// </summary>
-    /// <param name="root">Syntax root</param>
-    /// <param name="diagnosticSpan">The diagnostic's span</param>
-    /// <returns>The declaration, or <see langword="null"/> when there is none</returns>
-    private static SyntaxNode FindDeclaration(SyntaxNode root, TextSpan diagnosticSpan)
-    {
-        var diagnosticNode = root.FindNode(diagnosticSpan, findInsideTrivia: true, getInnermostNodeForTie: true);
-
-        return diagnosticNode.AncestorsAndSelf().FirstOrDefault(static obj => obj is MemberDeclarationSyntax or EnumMemberDeclarationSyntax);
-    }
-
-    #endregion // Methods
-
     #region CodeFixProvider
 
     /// <inheritdoc/>
@@ -85,18 +39,14 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesCodeFixProvider : Code
             return;
         }
 
-        foreach (var diagnostic in context.Diagnostics)
-        {
-            var declaration = FindDeclaration(root, diagnostic.Location.SourceSpan);
+        var sourceText = await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
 
-            if (declaration != null
-                && ReihitsuFormatter.FindUnsupportedSyntax(declaration) == null)
-            {
-                context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH8305Title,
-                                                          token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
-                                                          nameof(RH8305SummaryElementMustSpanAtLeastThreeLinesCodeFixProvider)),
-                                        diagnostic);
-            }
+        foreach (var diagnostic in context.Diagnostics.Where(obj => DocumentationCommentCodeFixUtilities.CanLayOutElement(root, sourceText, obj.Location.SourceSpan)))
+        {
+            context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH8305Title,
+                                                      token => DocumentationCommentCodeFixUtilities.LayOutElementAsync(context.Document, diagnostic.Location.SourceSpan, token),
+                                                      nameof(RH8305SummaryElementMustSpanAtLeastThreeLinesCodeFixProvider)),
+                                    diagnostic);
         }
     }
 

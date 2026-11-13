@@ -5,7 +5,7 @@
 | ID prefix | SHARED-FIX |
 | Status | Active |
 | Code owners | — |
-| Uses | FMT-PIPE-007, FMT-PIPE-017, FMT-PIPE-018, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, RH2001-009, RH2001-010, RH5111-004, RH5303-005, RH7004-004, RH7309-006, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002, SHARED-ORDER-006, SHARED-ORDER-007, SHARED-ORDER-008 |
+| Uses | FMT-PIPE-007, FMT-PIPE-017, FMT-PIPE-018, FMT-PIPE-030, FMT-PIPE-032, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, RH2001-009, RH2001-010, RH3004-006, RH3004-008, RH3004-009, RH5111-004, RH5303-005, RH7004-004, RH7004-007, RH7309-006, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002, SHARED-ORDER-006, SHARED-ORDER-007, SHARED-ORDER-008, SHARED-ORDER-009, SHARED-ORDER-010 |
 
 This spec covers what holds for every code fix of an analyzer rule, so a rule spec states only what its own fix produces and when it is withheld. It applies to every rule whose header names a code fix, without being listed under `Uses`; SHARED-FIX-002 applies to the rules whose header says `Fix All`.
 
@@ -532,7 +532,7 @@ public class C
 
 The excluded branch does not name `Value`, so the fix is offered and leaves that branch as it is.
 
-Example — documentation that stays with its declaration, for RH7103: the RH7103 examples under SHARED-DOC-004, where the fix carries a documentation comment with the declaration it moves. The comment documents the same declaration after the fix, so the fix is offered.
+Example — documentation that stays with its declaration, for RH7103: a `///` comment on the lines above the declaration the fix moves travels with it (SHARED-ORDER-002) and documents the same declaration after the fix, so the fix is offered. A `///` comment written behind code in front of that declaration would need a line of its own at the new position; that move is not offered (SHARED-ORDER-009, SHARED-DOC-004).
 
 Example — a directive pair split across a brace, for RH7501:
 
@@ -596,7 +596,7 @@ class C
 }
 ```
 
-is reported, and the fix is offered with and without `DEBUG`: the pair and the code between its directives move into the block of the `using` statement together with `s.Close();`.
+is reported. When `DEBUG` is defined, the fix is offered: the pair and the code between its directives move into the block of the `using` statement together with `s.Close();`. When `DEBUG` is not defined, `s.Flush();` is disabled text among the statements the fix moves, which cannot move without changing its content, so the fix is not offered (RH7004-007).
 
 Example — a pair of braces added wholly between the two directives of a pair, for RH7004:
 
@@ -807,12 +807,12 @@ The code a fix changes MUST be laid out as the formatter lays it out, in one app
 
 - **Whitespace in front of the changed code.** A tab in the whitespace in front of the changed code on its first line is not part of the changed code, and the fix does not replace it. The changed code is laid out from the column its first token has with that tab counted as one column, as the rules count it (FMT-PIPE-017). When formatting the result later replaces that tab and moves the changed code with its line, that move is not a difference this requirement counts. Changed code that a fix formats within a larger node is laid out as the next bullet states.
 - **Changed code formatted within a larger node.** When a fix formats its changed code together with a larger node around it, as the RH5111 fix formats an enum member in its enum, a parameter in its parameter list, or a variable declarator in its declaration, and the RH3208 fix a local function in the labeled statement whose line it shares, the changed code's first token keeps its line and its column in the document, and the changed code's other lines are laid out as the formatter lays them out from that column (FMT-PIPE-017): a line aligned to an anchor on the first line stays on that anchor. The changed code's leading trivia stays as it stands in the document (FMT-PIPE-018): the blank lines, comments, and directives above it in their columns, a documentation comment written behind the code in front of it, and the whitespace in front of its first token. This holds whether the changed code starts a later line of that node or shares its line with code in front of it, also where formatting the result would move its first token to another column or onto a line of its own. When formatting the result later moves that first token, the trivia above it, or the lines aligned to it, that move is not a difference this requirement counts, as for the whitespace in the bullet above.
-- **Moved code.** Code that a fix moves to another position or into another block without changing it — a member moved in front of another, a region block moved with its members, the statements a fix wraps into a new block — MUST keep its own layout: its braces, the spacing between its tokens, its line breaks, and the blank lines inside it stay as written, also where formatting the result would change them. Only the indentation of its lines MUST follow its new nesting. The separators in front of and behind it, at its old and at its new position, follow SHARED-ORDER-002. Code the fix creates around the moved code, such as the header and the braces of a new block, is laid out as the formatter lays it out. The bullet covers members, accessors, and region blocks that a fix moves, and statements that a fix wraps into a new block, such as the following statements of a `using` declaration (RH7004) or the embedded statement of an `if`, `else`, or loop that a brace fix encloses. It does not cover an expression that a fix turns into a new statement, such as the `return` statement of an expression body converted to a block, which is the node the fix replaces, nor a using block that a fix rewrites, whose group separators are the subject of the using-directive rules.
+- **Moved code.** Code that a fix moves to another position or into another block without changing it — a member moved in front of another, a region block moved with its members, the statements a fix wraps into a new block — MUST keep its own layout: its braces, the spacing between its tokens, its line breaks, and the blank lines inside it stay as written, also where formatting the result would change them. Only the indentation of its lines MUST follow its new nesting. For a member or an accessor that a fix moves within its list, and for the statements that the RH7004 fix wraps into a new block, every line of the moved code MUST move by the same number of columns, so that its lines keep their columns relative to each other, also a continuation line that formatting the result would put in another column. That number is the shift of the line of its first token: for a member or an accessor, from the column of its first token to the column of the slot it moves into (SHARED-ORDER-002), which is no shift where both are indented alike, and none for an accessor that swaps places within an accessor list on one line (SHARED-ORDER-009), whose line does not move; for the statements of the RH7004 fix, one indentation level, four columns. A blank line of the moved code — a line that holds only whitespace, outside a string literal, a comment, and disabled text — MUST be written empty and stays a blank line; it neither keeps its column nor moves, and whitespace on it is not a column the shift keeps. Two kinds of line keep their column: a comment line in column 0 — a line that holds no code, only comments and whitespace, and whose first comment starts in column 0, such as a line of code commented out by an editor's comment toggle; each line of a `///` documentation comment is decided on its own marker — and the line of a directive other than `#region` and `#endregion`. Every other line moves: a line that holds code, also where a comment in front of the code starts in column 0, as in `/* x */ Foo();`; a comment line whose first comment starts in another column; and a `#region` or `#endregion` line. RH3004-006 applies the same rule to the lines of the block it moves; a directive line does not arise there, because RH3004-009 withholds that fix for every directive. This holds for every line of the moved code, the lines of a moved member's own leading trivia included: a comment line in column 0 there travels with the member (SHARED-ORDER-002) and keeps column 0. For a member or an accessor move, the shift counts a tab at the start of a moved line as one column, as the first bullet counts it: a shift to the right writes that many spaces in front of the line, and a shift to the left removes that many whitespace characters from its start. RH3004 and RH7004 do not count a tab: RH3004 withholds its block-body fix where the whitespace in front of a moving line holds a tab (RH3004-006), and RH7004 withholds its fix where the whitespace in front of the declaration's line or of a moving line holds one (RH7004-007). A line that holds fewer whitespace characters in front of its first character than a shift to the left removes cannot move by it; such a move is withheld, as SHARED-ORDER-010 states. A line inside a string literal or a comment that spans lines, and a line of disabled text, cannot move without changing its content (SHARED-FIX-003), also where it starts at a hole or at the closing quote of an interpolated string; where such a string or comment would have to move with the lines that shift, the fix is withheld, as SHARED-ORDER-010, RH7004-007, and RH3004-008 state. Line breaks the fix creates around the moved code, and those it moves, follow SHARED-FIX-008, which withholds such a move where the moved code holds a line break other than the detected line ending. The separators in front of and behind it, at its old and at its new position, follow SHARED-ORDER-002. Code the fix creates around the moved code, such as the header and the braces of a new block, is laid out as the formatter lays it out. The bullet covers members, accessors, and region blocks that a fix moves, and statements that a fix wraps into a new block, such as the following statements of a `using` declaration (RH7004) or the embedded statement of an `if`, `else`, or loop that a brace fix encloses. It does not cover an expression that a fix turns into a new statement, such as the `return` statement of an expression body converted to a block, which is the node the fix replaces, nor a using block that a fix rewrites, whose group separators are the subject of the using-directive rules.
 - **Shared line.** When the member a fix changes shares its line with another member after the fix, the changed member MUST get its own line and the other member MUST start on the next line; the lines the fix edits are laid out as the formatter lays them out. When the other member comes first on the line, the changed member starts on the next line. Around a member that has its line to itself after the fix, the line breaks and blank lines stay as SHARED-FIX-006 states.
-- **Removed directive line.** A fix that removes a region or conditional directive line MUST also remove the blank line that the removal leaves at the start of a body, at the end of a body, or doubled between two lines, and MUST NOT insert a blank line. A single blank line that the removal leaves between two lines stays.
+- **Removed directive line.** A fix that removes a region or conditional directive line MUST also remove the blank line that the removal leaves at the start of a body, at the end of a body, or doubled between two lines, and MUST NOT insert a blank line. A single blank line that the removal leaves between two lines stays. Where, between two lines, the removal joins blank lines in front of a removed line with blank lines behind it, the blank lines in front of the first removed line stay as written, and those behind it are removed. The start of a body is the line behind an opening brace, and its end the line in front of the closing brace, whatever construct the braces belong to: a type, a block, an accessor list, a switch statement, or an initializer. A blank line behind a `case` label is not at a brace; where it is not doubled, it stays.
 - **Blank lines.** The blank lines between the node a fix changes and its neighbours follow SHARED-FIX-006 and the removed-directive bullet above, also where formatting the result would insert or remove one.
 
-Why: A fix that leaves the code it changed in a shape the formatter changes again hands the user a second diff for the same correction, on lines the user has just reviewed, and leaves layout that the layout rules report. A member that shares its line with another member after the fix, and a blank line that a removal leaves at the edge of a body or next to another blank line, are such shapes, whoever wrote the lines around them. The blank lines between the changed node and its neighbours stay a layout the author chose: a blank line inserted or removed only because the formatter would want it is a decision the diagnostic did not name. Code that a fix moves is code the author wrote and laid out, and its layout is not what the diagnostic names: reformatting it on the way hides the move in a diff of layout changes nobody asked for, as formatting the code around a changed node would (SHARED-FIX-006), while the formatter and the layout rules still correct it on their own. Its indentation has to follow, because the same lines at the old depth would be misindented at the new one, and the separators belong to the positions, not to the code that moves between them.
+Why: A fix that leaves the code it changed in a shape the formatter changes again hands the user a second diff for the same correction, on lines the user has just reviewed, and leaves layout that the layout rules report. A member that shares its line with another member after the fix, and a blank line that a removal leaves at the edge of a body or next to another blank line, are such shapes, whoever wrote the lines around them. The blank lines between the changed node and its neighbours stay a layout the author chose: a blank line inserted or removed only because the formatter would want it is a decision the diagnostic did not name. Code that a fix moves is code the author wrote and laid out, and its layout is not what the diagnostic names: reformatting it on the way hides the move in a diff of layout changes nobody asked for, as formatting the code around a changed node would (SHARED-FIX-006), while the formatter and the layout rules still correct it on their own. Its indentation has to follow, because the same lines at the old depth would be misindented at the new one, and the separators belong to the positions, not to the code that moves between them. Whitespace on a blank line is no indentation of any code: it is trailing whitespace the layout rules report, so a moved blank line is written empty rather than shifted or kept.
 
 Example — the RH5101 fix:
 
@@ -1061,11 +1061,169 @@ class C
 
 The statements that move into the new block are indented one level deeper and otherwise stay as written: the spaces inside `Flush( )` stay, and no blank line is inserted between them. The `using` statement the fix creates, with its braces, is laid out as the formatter lays it out.
 
+Example — the continuation line of a moved statement moves with it, for RH7004:
+
+```csharp
+using System.IO;
+
+class C
+{
+    int M(int a, int b)
+    {
+        {|RH7004:using|} var s = new MemoryStream();
+        var total = a
+            + b;
+        return total;
+    }
+}
+```
+
+```csharp
+using System.IO;
+
+class C
+{
+    int M(int a, int b)
+    {
+        using (var s = new MemoryStream())
+        {
+            var total = a
+                + b;
+            return total;
+        }
+    }
+}
+```
+
+Every moved line moves four columns to the right, `+ b` included, although formatting the result would align it under `a`.
+
+Example — a comment in column 0 and directive lines among the moved statements, for RH7004:
+
+```csharp
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        {|RH7004:using|} var s = new MemoryStream();
+#pragma warning disable CS0219
+        var unused = 1;
+#pragma warning restore CS0219
+        #region Work
+        s.Flush();
+        #endregion
+//        s.Close();
+        s.Flush();
+    }
+}
+```
+
+```csharp
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var s = new MemoryStream())
+        {
+#pragma warning disable CS0219
+            var unused = 1;
+#pragma warning restore CS0219
+            #region Work
+            s.Flush();
+            #endregion
+//        s.Close();
+            s.Flush();
+        }
+    }
+}
+```
+
+The `#pragma` lines and the comment in column 0 keep their column; the `#region` and `#endregion` lines move with the statements.
+
+On the other side, a line that holds code moves, also where a comment in front of the code starts in column 0. For RH7004:
+
+```csharp
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        {|RH7004:using|} var s = new MemoryStream();
+/* x */ s.Flush();
+        s.Flush();
+    }
+}
+```
+
+```csharp
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var s = new MemoryStream())
+        {
+    /* x */ s.Flush();
+            s.Flush();
+        }
+    }
+}
+```
+
+The line `/* x */ s.Flush();` holds code, so it is not a comment line: it moves four columns to the right with the other statements.
+
+Example — the continuation line of a moved member keeps its column, for RH7109:
+
+```csharp
+class C
+{
+    private int _a;
+    private readonly int {|RH7109:_b|} = 1
+            + 2;
+}
+```
+
+```csharp
+class C
+{
+    private readonly int _b = 1
+            + 2;
+    private int _a;
+}
+```
+
+The field moves into a slot indented as it is, so none of its lines changes its column, although formatting the result would align `+ 2` under `1`. A member indented differently from its slot moves all its lines by the shift of its first token:
+
+```csharp
+class C
+{
+    private int _a;
+        private readonly int {|RH7109:_b|} = 1
+            + 2;
+}
+```
+
+```csharp
+class C
+{
+    private readonly int _b = 1
+        + 2;
+    private int _a;
+}
+```
+
 ### SHARED-FIX-008 — A fix keeps the document's line ending
 
 A code fix MUST write the line ending FMT-PIPE-007 detects for the document: every line break the fix creates or keeps in the code it changes MUST be that line ending. The code it changes is the span the fix replaces, rewrites, or moves, its trailing trivia included; a line break the fix keeps in that span, such as one inside code it moves (SHARED-FIX-007), keeps its position and gets that line ending. A line break outside that span, such as the one that ends the line of a change that ends within the line, is not in the scope of the fix and is not covered by this requirement. In a document whose line breaks are CRLF, as in one whose line breaks are LF, the detected line ending is the one the document already uses. A lone `\r` counts as `\n` in that detection, so in a document whose line breaks are all a lone `\r`, every line break the fix creates or keeps in the code it changes MUST be `\n`. A line break inside a literal or inside the text of a comment other than a documentation comment is content under SHARED-FIX-003; it stays as it is and does not count when deciding which line ending the document uses, as FMT-PIPE-007 does not count it.
 
-Why: A fix that introduces the other line ending leaves the file with mixed line endings, which the formatter then rewrites. Detecting the line ending as the formatter does makes a fix and the formatter write the same line ending into the same document, `\n` in a document whose line breaks are all a lone `\r`. A line break the fix keeps in the code it changes is part of the lines it rewrites, so it gets the same line ending as the ones it creates; one rule for both leaves no line of the changed code with a line ending the fix would not write.
+A fix that moves code as SHARED-FIX-007 (*Moved code*) states without laying it out through the formatter — a member or an accessor move of the ordering rules (SHARED-ORDER-009), the RH7004 fix, and the block-body path of the RH3004 fix — MUST write every line break it creates, such as the line breaks around the braces of a new block, as the detected line ending, never as the line break of a nearby line. It MUST NOT be offered when the code it moves or rewrites holds any line break other than the detected line ending, also one inside a literal or inside the text of a comment. The diagnostic is still reported. In a document whose line breaks are all a lone `\r`, the detected line ending is `\n`, so such a fix is withheld wherever the code it moves or rewrites holds a line break; a swap of accessors within one line (SHARED-ORDER-009) moves no line break and is still offered. A document whose line breaks are all LF, or all CRLF, keeps these fixes.
+
+Why: A fix that introduces the other line ending leaves the file with mixed line endings, which the formatter then rewrites. Detecting the line ending as the formatter does makes a fix and the formatter write the same line ending into the same document, `\n` in a document whose line breaks are all a lone `\r`. A line break the fix keeps in the code it changes is part of the lines it rewrites, so it gets the same line ending as the ones it creates; one rule for both leaves no line of the changed code with a line ending the fix would not write. A fix that moves lines without the formatter keeps them as written, so rewriting a foreign line break inside them would be the one change of layout such a move makes; a document with mixed line endings, or with lone `\r` line breaks, is rare, and the formatter normalizes it (FMT-PIPE-007), so such a move is withheld for it with a cheap check of the line breaks in the span it moves or rewrites, its trailing trivia included. The check counts every line break of the span, also one inside a literal or a comment: telling those apart from the line breaks of the code would need more than a cheap check of the span's text, and such a line break in a mixed document is rarer still.
 
 Example — the RH5405 fix in a document whose line breaks are all CRLF:
 
@@ -1093,6 +1251,19 @@ class C
 ```
 
 Every line break of the result is CRLF, including the three the fix creates. In a document whose line breaks are all LF, the same fix creates LF line breaks, and in a document whose line breaks are all a lone `\r`, it creates `\n` line breaks.
+
+Example — a moved field holds a line break other than the detected one, for RH7109. In a document whose line breaks are CRLF, except the line break behind `=`, which is LF,
+
+```csharp
+class C
+{
+    private int _a;
+    private readonly int {|RH7109:_b|} =
+        1;
+}
+```
+
+is reported, and no code fix is offered. With every line break CRLF, the field moves in front of `_a`, and every line break of the result is CRLF. The same holds for the RH7004 fix where a moved statement holds an LF line break in a CRLF document, and for every such move in a document whose line breaks are all a lone `\r`.
 
 ### SHARED-FIX-009 — A fix does not work out another build configuration
 
@@ -1139,6 +1310,8 @@ The fix MUST learn this when it registers, before it offers an action, by asking
 - a fix that formats a node of the document with `FormatNodeInDocumentAsync` or `FormatNode` — that node;
 - a fix that formats its target in a context with `FormatNodeInDocumentWithContextAsync` — the context (FMT-UNSUP-002);
 - a fix that builds a node and then formats it — the node it builds, as it would be formatted, not the code it replaces.
+
+A fix that formats only through `OrganizeUsingDirectivesInDocumentAsync` (FMT-PIPE-030) or `FormatDocumentationElementInDocumentAsync` (FMT-PIPE-032) asks nothing: those entry points refuse no input (FMT-UNSUP-002).
 
 The fix MUST NOT decide the question by a check of its own, and MUST NOT offer an action that, once invoked, finds the refusal and changes nothing or leaves its edit unformatted.
 

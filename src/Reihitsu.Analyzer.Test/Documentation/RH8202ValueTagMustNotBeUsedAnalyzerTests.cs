@@ -883,6 +883,205 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH
         await VerifyNoCodeFixIsOffered(source);
     }
 
+    /// <summary>
+    /// Verifies the specification example with several elements: the first top-level element is reported, and one
+    /// application of the fix removes every reported element, top-level and nested, and keeps the one in a code sample
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8202-001")]
+    [Requirement("RH8202-003")]
+    public async Task VerifySpecificationExampleRemovesSeveralValueElementsInOneApplication()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public class C
+                              {
+                                  /// <summary>
+                                  /// Gets the size <value>First</value>
+                                  /// </summary>
+                                  /// <remarks><value>Second</value></remarks>
+                                  /// {|#0:<value>Third</value>|}
+                                  /// <example><code><value>Sample</value></code></example>
+                                  public int Size { get; }
+                              }
+                              """;
+        const string fixedSource = """
+                                   /// <summary>
+                                   /// Service
+                                   /// </summary>
+                                   public class C
+                                   {
+                                       /// <summary>
+                                       /// Gets the size
+                                       /// </summary>
+                                       /// <remarks></remarks>
+                                       /// <example><code><value>Sample</value></code></example>
+                                       public int Size { get; }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example with several elements in a document whose line breaks are CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8202-003")]
+    public async Task VerifySpecificationExampleRemovesSeveralValueElementsInCarriageReturnLineFeedDocument()
+    {
+        var source = NormalizeToCarriageReturnLineFeed("""
+                                                       /// <summary>
+                                                       /// Service
+                                                       /// </summary>
+                                                       public class C
+                                                       {
+                                                           /// <summary>
+                                                           /// Gets the size <value>First</value>
+                                                           /// </summary>
+                                                           /// <remarks><value>Second</value></remarks>
+                                                           /// {|#0:<value>Third</value>|}
+                                                           /// <example><code><value>Sample</value></code></example>
+                                                           public int Size { get; }
+                                                       }
+                                                       """);
+        var fixedSource = NormalizeToCarriageReturnLineFeed("""
+                                                            /// <summary>
+                                                            /// Service
+                                                            /// </summary>
+                                                            public class C
+                                                            {
+                                                                /// <summary>
+                                                                /// Gets the size
+                                                                /// </summary>
+                                                                /// <remarks></remarks>
+                                                                /// <example><code><value>Sample</value></code></example>
+                                                                public int Size { get; }
+                                                            }
+                                                            """);
+
+        await Verify(source, fixedSource, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that one application of the fix removes two top-level elements
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8202-003")]
+    public async Task VerifyCodeFixRemovesTwoTopLevelValueElementsInOneApplication()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public class C
+                              {
+                                  /// <summary>
+                                  /// Gets the size
+                                  /// </summary>
+                                  /// {|#0:<value>First</value>|}
+                                  /// <value>Second</value>
+                                  public int Size { get; }
+                              }
+                              """;
+        const string fixedSource = """
+                                   /// <summary>
+                                   /// Service
+                                   /// </summary>
+                                   public class C
+                                   {
+                                       /// <summary>
+                                       /// Gets the size
+                                       /// </summary>
+                                       public int Size { get; }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that one application of the fix removes two elements nested in different elements, and the first nested
+    /// one is reported when no element stands at the top level
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8202-001")]
+    [Requirement("RH8202-003")]
+    public async Task VerifyCodeFixRemovesValueElementsNestedInDifferentElementsInOneApplication()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public class C
+                              {
+                                  /// <summary>S {|#0:<value>First</value>|}</summary>
+                                  /// <remarks><value>Second</value></remarks>
+                                  public int Size { get; }
+                              }
+                              """;
+        const string fixedSource = """
+                                   /// <summary>
+                                   /// Service
+                                   /// </summary>
+                                   public class C
+                                   {
+                                       /// <summary>S</summary>
+                                       /// <remarks></remarks>
+                                       public int Size { get; }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that one application of the fix removes a top-level element and an element nested in another element
+    /// that stands before it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8202-001")]
+    [Requirement("RH8202-003")]
+    public async Task VerifyCodeFixRemovesNestedAndTopLevelValueElementsInOneApplication()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public class C
+                              {
+                                  /// <summary>
+                                  /// Gets the size
+                                  /// </summary>
+                                  /// <remarks><value>Nested</value></remarks>
+                                  /// {|#0:<value>Top</value>|}
+                                  public int Size { get; }
+                              }
+                              """;
+        const string fixedSource = """
+                                   /// <summary>
+                                   /// Service
+                                   /// </summary>
+                                   public class C
+                                   {
+                                       /// <summary>
+                                       /// Gets the size
+                                       /// </summary>
+                                       /// <remarks></remarks>
+                                       public int Size { get; }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 
-using Reihitsu.Formatter;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
@@ -48,7 +48,9 @@ public abstract class OperatorSpacingCodeFixProviderBase : CodeFixProvider
     #region Methods
 
     /// <summary>
-    /// Applies the code fix
+    /// Applies the code fix: each gap next to the operator that holds nothing but whitespace becomes exactly one space; a
+    /// gap that holds a line break, a comment, or a directive stays as written, and nothing else changes
+    /// (SHARED-OPSPACE-004)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>
@@ -63,26 +65,6 @@ public abstract class OperatorSpacingCodeFixProviderBase : CodeFixProvider
             return document;
         }
 
-        var node = FindFormattingNode(root, diagnosticSpan);
-
-        if (node == null)
-        {
-            return document;
-        }
-
-        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, node, cancellationToken).ConfigureAwait(false)).Output;
-    }
-
-    /// <summary>
-    /// Finds the node the fix formats: the smallest node that contains the operator and both neighbouring tokens, so the
-    /// gaps on either side are interior trivia the formatter normalizes, instead of the node's preserved leading or trailing
-    /// trivia
-    /// </summary>
-    /// <param name="root">Syntax root</param>
-    /// <param name="diagnosticSpan">The diagnostic's span</param>
-    /// <returns>The node, or <see langword="null"/> when the operator has no token on one of its sides</returns>
-    private static SyntaxNode FindFormattingNode(SyntaxNode root, TextSpan diagnosticSpan)
-    {
         var operatorToken = root.FindToken(diagnosticSpan.Start);
         var previousToken = operatorToken.GetPreviousToken();
         var nextToken = operatorToken.GetNextToken();
@@ -90,10 +72,17 @@ public abstract class OperatorSpacingCodeFixProviderBase : CodeFixProvider
         if (previousToken.RawKind == 0
             || nextToken.RawKind == 0)
         {
-            return null;
+            return document;
         }
 
-        return root.FindNode(TextSpan.FromBounds(previousToken.SpanStart, nextToken.Span.End));
+        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+        // The analyzer's gap decision tells which gap the fix corrects, so the fix changes exactly the reported gaps
+        TextSpan[] gaps = [TextSpan.FromBounds(previousToken.Span.End, operatorToken.SpanStart), TextSpan.FromBounds(operatorToken.Span.End, nextToken.SpanStart)];
+        var changes = gaps.Where(gap => FormattingTextAnalysisUtilities.IsOperatorGapViolation(sourceText, gap.Start, gap.End))
+                          .Select(gap => new TextChange(gap, " "));
+
+        return document.WithText(sourceText.WithChanges(changes));
     }
 
     #endregion // Methods
@@ -110,28 +99,17 @@ public abstract class OperatorSpacingCodeFixProviderBase : CodeFixProvider
     }
 
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-
-        if (root == null)
-        {
-            return;
-        }
-
         foreach (var diagnostic in context.Diagnostics)
         {
-            if (FindFormattingNode(root, diagnostic.Location.SourceSpan) is { } node
-                && ReihitsuFormatter.FindUnsupportedSyntax(node) != null)
-            {
-                continue;
-            }
-
             context.RegisterCodeFix(CodeAction.Create(_title,
                                                       token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
                                                       GetType().Name),
                                     diagnostic);
         }
+
+        return Task.CompletedTask;
     }
 
     #endregion // CodeFixProvider

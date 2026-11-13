@@ -314,12 +314,12 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
     }
 
     /// <summary>
-    /// Characterizes current behavior that no requirement states: the fix also lays out the other members of the
-    /// type, and an empty nested class becomes a declaration without body
+    /// Verifying that the fix leaves the other members of the type as written, and an empty nested class keeps its braces
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixAlsoLaysOutOtherMembersOfTheType()
+    [Requirement("SHARED-FIX-006")]
+    public async Task FixLeavesTheOtherMembersOfTheTypeAsWritten()
     {
         const string source = """
                               class C
@@ -335,7 +335,7 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
                                    {
                                        private const int D = 1;
                                        private int _a;
-                                       public class Inner;
+                                       public class Inner { }
                                    }
                                    """;
 
@@ -1141,14 +1141,14 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
     }
 
     /// <summary>
-    /// Verifies that a refused comment in another member of the type withholds the fix: the fix moves the constant and
-    /// formats the whole type it builds, which the formatter refuses, although the reported constant holds no refused
-    /// shape
+    /// Verifies that a comment the formatter refuses in another member of the type no longer withholds the fix, which moves
+    /// the constant without formatting the type
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-FIX-006")]
     [Requirement("SHARED-FIX-010")]
-    public async Task NoFixIsOfferedWhenAnotherMemberOfTheTypeHoldsACommentTheFormatterRefuses()
+    public async Task FixIsOfferedWhenAnotherMemberOfTheTypeHoldsACommentTheFormatterRefuses()
     {
         const string source = """
                               internal class C
@@ -1163,7 +1163,20 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
                               }
                               """;
 
-        await VerifyNoCodeFixIsOffered(source);
+        const string fixedSource = """
+                                   internal class C
+                                   {
+                                       private const int Max = 1;
+                                       private int _field;
+
+                                       private void M()
+                                       {
+                                           int /* c */ y = 1;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
     }
 
     /// <summary>
@@ -1210,6 +1223,80 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
                                    """;
 
         await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that the continuation line of a moved constant keeps its column when the constant moves into a slot
+    /// indented as it is
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task ContinuationLineOfAMovedConstantKeepsItsColumn(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+                                  private const int {|RH7102:D|} = 1
+                                          + 2;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private const int D = 1
+                                               + 2;
+                                       private int _a;
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when the moved constant shares its line with the field in front of it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7102-006")]
+    public async Task NoCodeFixWhenTheMovedConstantSharesItsLineWithTheFieldInFrontOfIt()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a; private const int {|RH7102:D|} = 1;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when a constant indented deeper than its slot holds a verbatim string over
+    /// two lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-010")]
+    [Requirement("RH7102-006")]
+    public async Task NoCodeFixWhenAShiftedConstantHoldsAVerbatimStringOverTwoLines()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+                                      private const string {|RH7102:D|} = @"x
+                              y";
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     #endregion // Tests

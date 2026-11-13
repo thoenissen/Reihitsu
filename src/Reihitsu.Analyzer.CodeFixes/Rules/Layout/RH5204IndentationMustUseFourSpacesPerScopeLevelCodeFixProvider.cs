@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,12 +7,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Layout;
-using Reihitsu.Core;
-using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 
@@ -25,7 +24,11 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider : Co
     #region Methods
 
     /// <summary>
-    /// Applies the code fix
+    /// Applies the code fix: the whitespace in front of the reported line's first token, comment, or directive is replaced
+    /// with the indentation the analyzer expects for that line, and nothing else changes (RH5204-006). The analyzer owns
+    /// the single indentation policy, so reusing its expected-indentation map guarantees the fix writes exactly the column
+    /// the analyzer expects. A run of <c>///</c> lines is one documentation comment with one diagnostic, so every line of
+    /// the run gets the indentation of its first line; the later lines of a delimited comment keep their columns
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnostic">Diagnostic</param>
@@ -34,65 +37,13 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider : Co
     private static async Task<Document> ApplyCodeFixAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var diagnosticLine = diagnostic.Location.GetLineSpan().StartLinePosition.Line;
 
         if (root == null)
         {
             return document;
         }
 
-        if (TryGetDirectiveTrivia(root, diagnostic, out _))
-        {
-            return await ApplyDirectiveIndentationFormattingAsync(document, root, diagnosticLine, cancellationToken).ConfigureAwait(false);
-        }
-
-        if (TryGetFormattingScope(root, diagnostic, out var scope) == false)
-        {
-            return document;
-        }
-
-        return await ApplyIndentationFormattingAsync(document, scope, cancellationToken).ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Applies formatter indentation logic to a scope node and writes it back into the document
-    /// </summary>
-    /// <param name="document">Document</param>
-    /// <param name="scope">Scope node</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Updated document</returns>
-    private static async Task<Document> ApplyIndentationFormattingAsync(Document document, SyntaxNode scope, CancellationToken cancellationToken)
-    {
-        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, scope, cancellationToken).ConfigureAwait(false)).Output;
-    }
-
-    /// <summary>
-    /// Determines whether the formatter refuses the scope the fix formats for a diagnostic as unsupported; a directive is
-    /// indented without the formatter (SHARED-FIX-010)
-    /// </summary>
-    /// <param name="root">Syntax root</param>
-    /// <param name="diagnostic">Diagnostic</param>
-    /// <returns><see langword="true"/> if the formatter refuses the scope; otherwise, <see langword="false"/></returns>
-    private static bool IsScopeRefused(SyntaxNode root, Diagnostic diagnostic)
-    {
-        return TryGetDirectiveTrivia(root, diagnostic, out _) == false
-               && TryGetFormattingScope(root, diagnostic, out var scope)
-               && ReihitsuFormatter.FindUnsupportedSyntax(scope) != null;
-    }
-
-    /// <summary>
-    /// Applies the analyzer-computed directive indentation to the reported line
-    /// </summary>
-    /// <param name="document">Document</param>
-    /// <param name="root">Syntax root</param>
-    /// <param name="diagnosticLine">Reported line number</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Updated document</returns>
-    private static async Task<Document> ApplyDirectiveIndentationFormattingAsync(Document document, SyntaxNode root, int diagnosticLine, CancellationToken cancellationToken)
-    {
-        // The analyzer owns the single indentation policy. Reusing its expected-indentation map guarantees the fix
-        // targets exactly the column the analyzer expects, so directives inside switch sections, switch expressions
-        // and collection expressions converge instead of being re-indented to a diverging column
+        var diagnosticLine = diagnostic.Location.GetLineSpan().StartLinePosition.Line;
         var expectedIndentationByLine = RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.BuildExpectedIndentationMap(root);
 
         if (expectedIndentationByLine.TryGetValue(diagnosticLine, out var expectation) == false)
@@ -101,99 +52,48 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider : Co
         }
 
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var line = sourceText.Lines[diagnosticLine];
-        var lineText = sourceText.ToString(line.Span);
-        var firstNonWhitespaceIndex = 0;
+        var lastLine = diagnosticLine;
+        var trivia = root.FindTrivia(diagnostic.Location.SourceSpan.Start);
 
-        while (firstNonWhitespaceIndex < lineText.Length && char.IsWhiteSpace(lineText[firstNonWhitespaceIndex]))
+        if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
         {
-            firstNonWhitespaceIndex++;
+            lastLine = sourceText.Lines.GetLineFromPosition(trivia.FullSpan.End - 1).LineNumber;
         }
 
-        var replacementSpan = TextSpan.FromBounds(line.Start, line.Start + firstNonWhitespaceIndex);
+        var changes = new List<TextChange>();
 
-        return document.WithText(sourceText.Replace(replacementSpan, new string(' ', expectation.Indentation)));
+        for (var lineNumber = diagnosticLine; lineNumber <= lastLine; lineNumber++)
+        {
+            changes.Add(CreateIndentationChange(sourceText.Lines[lineNumber], sourceText, expectation.Indentation));
+        }
+
+        return document.WithText(sourceText.WithChanges(changes));
     }
 
     /// <summary>
-    /// Gets the start line of a token
+    /// Creates the change that replaces the whitespace at the start of a line with the given number of spaces
     /// </summary>
-    /// <param name="token">Token</param>
-    /// <returns>0-based line number</returns>
-    private static int GetStartLine(SyntaxToken token)
+    /// <param name="line">Line</param>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="indentation">Number of spaces</param>
+    /// <returns>The text change</returns>
+    private static TextChange CreateIndentationChange(TextLine line, SourceText sourceText, int indentation)
     {
-        return token.GetLocation().GetLineSpan().StartLinePosition.Line;
-    }
+        var start = line.Start;
 
-    /// <summary>
-    /// Tries to locate a directive trivia at the diagnostic position
-    /// </summary>
-    /// <param name="root">Root node</param>
-    /// <param name="diagnostic">Diagnostic</param>
-    /// <param name="directiveTrivia">Directive trivia</param>
-    /// <returns><see langword="true"/> if a directive trivia was found</returns>
-    private static bool TryGetDirectiveTrivia(SyntaxNode root, Diagnostic diagnostic, out SyntaxTrivia directiveTrivia)
-    {
-        var position = diagnostic.Location.SourceSpan.Start;
-        var token = root.FindToken(position, findInsideTrivia: true);
-        var directiveSyntax = token.Parent?.AncestorsAndSelf().OfType<DirectiveTriviaSyntax>().FirstOrDefault();
-
-        if (directiveSyntax != null)
+        while (start < line.End && sourceText[start] == '\uFEFF')
         {
-            directiveTrivia = directiveSyntax.ParentTrivia;
-
-            return true;
+            start++;
         }
 
-        directiveTrivia = token.LeadingTrivia.Concat(token.TrailingTrivia)
-                                             .FirstOrDefault(obj => obj.HasStructure
-                                                                    && obj.GetStructure() is DirectiveTriviaSyntax
-                                                                    && obj.FullSpan.Contains(position));
+        var end = start;
 
-        return directiveTrivia != default;
-    }
-
-    /// <summary>
-    /// Finds the smallest formatting scope whose anchor line differs from the reported line. The reported position is
-    /// resolved in the main syntax tree, so a documentation comment resolves to the token whose leading trivia holds it
-    /// and is classified as a comment, exactly like an ordinary comment in the same place
-    /// </summary>
-    /// <param name="root">Root node</param>
-    /// <param name="diagnostic">Diagnostic</param>
-    /// <param name="scope">Scope to format</param>
-    /// <returns><see langword="true"/> if a scope was found</returns>
-    private static bool TryGetFormattingScope(SyntaxNode root, Diagnostic diagnostic, out SyntaxNode scope)
-    {
-        var diagnosticTrivia = root.FindTrivia(diagnostic.Location.SourceSpan.Start);
-        var token = root.FindToken(diagnostic.Location.SourceSpan.Start);
-        var diagnosticNode = token.Parent;
-
-        if (diagnosticNode == null)
+        while (end < line.End && char.IsWhiteSpace(sourceText[end]))
         {
-            scope = null;
-
-            return false;
+            end++;
         }
 
-        var diagnosticLine = diagnostic.Location.GetLineSpan().StartLinePosition.Line;
-        var allowFollowingAnchor = SyntaxTriviaUtilities.IsCommentTrivia(diagnosticTrivia);
-
-        for (var current = diagnosticNode; current != null; current = current.Parent)
-        {
-            var startLine = GetStartLine(current.GetFirstToken());
-
-            if ((allowFollowingAnchor && startLine != diagnosticLine)
-                || (allowFollowingAnchor == false && startLine < diagnosticLine))
-            {
-                scope = current;
-
-                return true;
-            }
-        }
-
-        scope = diagnosticNode;
-
-        return true;
+        return new TextChange(TextSpan.FromBounds(start, end), new string(' ', indentation));
     }
 
     #endregion // Methods
@@ -210,27 +110,17 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider : Co
     }
 
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-
-        if (root == null)
-        {
-            return;
-        }
-
         foreach (var diagnostic in context.Diagnostics)
         {
-            if (IsScopeRefused(root, diagnostic))
-            {
-                continue;
-            }
-
             context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5204Title,
                                                       token => ApplyCodeFixAsync(context.Document, diagnostic, token),
                                                       nameof(RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider)),
                                     diagnostic);
         }
+
+        return Task.CompletedTask;
     }
 
     #endregion // CodeFixProvider

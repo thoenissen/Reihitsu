@@ -17,10 +17,11 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Batch
     #region Tests
 
     /// <summary>
-    /// Verifying partial types without an access modifier are reported and fixed
+    /// Verifying partial types without an access modifier are reported and fixed, and an empty body keeps its braces
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-FIX-006")]
     public async Task PartialTypesWithoutAccessModifierAreReportedAndFixed()
     {
         const string testCode = """
@@ -48,9 +49,13 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Batch
                                      public int Bar { get; set; }
                                  }
 
-                                 internal partial struct TestStruct;
+                                 internal partial struct TestStruct
+                                 {
+                                 }
 
-                                 internal partial interface ITest;
+                                 internal partial interface ITest
+                                 {
+                                 }
 
                                  internal partial record TestRecord;
 
@@ -65,6 +70,7 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Batch
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-FIX-006")]
     public async Task PartialTypesWithPublicAndCompoundAccessibilityAreFixed()
     {
         const string testCode = """
@@ -93,7 +99,9 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Batch
                                  {
                                  }
 
-                                 public partial class Sample;
+                                 public partial class Sample
+                                 {
+                                 }
 
                                  internal partial class Outer
                                  {
@@ -101,7 +109,9 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Batch
                                      {
                                      }
 
-                                     protected internal partial class Inner;
+                                     protected internal partial class Inner
+                                     {
+                                     }
                                  }
                                  """;
 
@@ -492,14 +502,14 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Batch
     }
 
     /// <summary>
-    /// Verifies that a refused comment in a member of the partial type withholds the fix: the fix formats the type it
-    /// builds with the added access modifier, which the formatter refuses, although the reported name holds no refused
-    /// shape
+    /// Verifies that a comment the formatter refuses in a member of the partial type no longer withholds the fix, which
+    /// inserts the access modifier without formatting the type
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-FIX-006")]
     [Requirement("SHARED-FIX-010")]
-    public async Task NoFixIsOfferedWhenTheTypeHoldsACommentTheFormatterRefuses()
+    public async Task FixIsOfferedWhenTheTypeHoldsACommentTheFormatterRefuses()
     {
         const string source = """
                               partial class {|RH7104:TestClass|}
@@ -511,7 +521,53 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Batch
                               }
                               """;
 
-        await VerifyNoCodeFixIsOffered(source);
+        const string fixedSource = """
+                                   internal partial class TestClass
+                                   {
+                                       private void M()
+                                       {
+                                           int /* c */ y = 1;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying the reported example: the fix inserts only the access modifier, and the brace placement, the spacing,
+    /// the embedded statement, and the empty nested class stay as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("RH7104-004")]
+    public async Task FixInsertsOnlyTheAccessModifierAndLeavesTheTypeAsWritten(string endOfLine)
+    {
+        const string source = """
+                              partial class {|RH7104:C|} {
+                                  void M( ) {
+                                      if (true) M();
+                                  }
+                                  class Empty {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   internal partial class C {
+                                       void M( ) {
+                                           if (true) M();
+                                       }
+                                       class Empty {
+                                       }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
     }
 
     #endregion // Tests

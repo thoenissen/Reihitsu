@@ -134,9 +134,10 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     /// <summary>
     /// Writes the content of the anonymous method's block into the formatted lambda's block as moved code: the text from
     /// its first to its last statement, with their comments and the blank lines between them, keeps its own layout. Every
-    /// line either moves or stays (<see cref="IsMovingLine"/>), and every moving line moves by the same column delta,
-    /// measured on the block's first statement line, which always moves, so that this line stands one level inside the
-    /// braces the formatter laid out. When the first statement shares the opening brace's line, the moving lines after it
+    /// line either moves or stays (<see cref="SyntaxIndentationUtilities.KeepsItsColumn"/>), and every moving line moves
+    /// by the same column delta (<see cref="SyntaxIndentationUtilities.TryShiftMovedLines"/>), measured on the block's
+    /// first statement line, which always moves, so that this line stands one level inside the braces the formatter laid
+    /// out. When the first statement shares the opening brace's line, the moving lines after it
     /// move by their own delta that puts the leftmost of them in the statement column, where one of them starts left of
     /// the first statement. Otherwise, where the delta would put a moving line left of column 0, every moving line moves
     /// by the delta that puts the leftmost of them in the statement column. Statements that shared the block's line stay
@@ -178,20 +179,32 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
             return formattedDocument;
         }
 
-        var elements = GetLineElements(originalBlock);
+        var originalRoot = await originalDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var firstLine = originalText.Lines.GetLineFromPosition(contentStart);
         var startsOnOpenBraceLine = originalText.Lines.GetLineFromPosition(originalBlock.OpenBraceToken.SpanStart).LineNumber == firstLine.LineNumber;
-        var measuredPosition = GetFirstStatementLinePosition(elements, originalText, originalBlock, contentStart, contentEnd);
+        var measuredPosition = GetFirstStatementLinePosition(originalRoot, originalText, originalBlock, contentStart, contentEnd);
         var measuredColumn = GetColumn(originalText, measuredPosition);
         var columnDelta = contentIndentation.Length - measuredColumn;
         var laterLineNumber = startsOnOpenBraceLine ? firstLine.LineNumber + 1 : firstLine.LineNumber;
-        var laterColumns = GetMovingLineColumns(elements, originalText, laterLineNumber, contentEnd);
+        var laterColumns = GetMovingLineColumns(originalRoot, originalText, laterLineNumber, contentEnd);
         var sharesOpenBraceLine = startsOnOpenBraceLine
                                   && originalText.Lines.GetLineFromPosition(measuredPosition).LineNumber == firstLine.LineNumber;
         var movedColumns = startsOnOpenBraceLine && sharesOpenBraceLine == false
                                ? laterColumns.Append(GetColumn(originalText, contentStart)).ToList()
                                : laterColumns;
         var laterColumnDelta = GetColumnDeltas(sharesOpenBraceLine, movedColumns, measuredColumn, contentIndentation.Length, ref columnDelta);
+
+        var laterLinesText = string.Empty;
+
+        // The registration guards withhold every block whose lines cannot move, and the deltas put no moving line left of
+        // column 0, so the shift is not refused; should a guard drift, the fix changes nothing rather than writing a
+        // layout no requirement asks for
+        if (laterLineNumber < originalText.Lines.Count
+            && originalText.Lines[laterLineNumber].Start < contentEnd
+            && SyntaxIndentationUtilities.TryShiftMovedLines(originalRoot, originalText, TextSpan.FromBounds(originalText.Lines[laterLineNumber].Start, contentEnd), laterColumnDelta, out laterLinesText) == false)
+        {
+            return originalDocument;
+        }
 
         var content = new StringBuilder();
 
@@ -204,47 +217,13 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
                    .Append(originalText.ToString(TextSpan.FromBounds(contentStart, Math.Min(firstLine.EndIncludingLineBreak, contentEnd))));
         }
 
-        AppendLaterLines(content, originalText, elements, laterLineNumber, contentEnd, laterColumnDelta);
-
-        content.Append(endOfLine)
+        content.Append(laterLinesText)
+               .Append(endOfLine)
                .Append(closeBraceIndentation);
 
         var change = new TextChange(TextSpan.FromBounds(formattedBlock.OpenBraceToken.Span.End, formattedBlock.CloseBraceToken.SpanStart), content.ToString());
 
         return formattedDocument.WithText(formattedText.WithChanges(change));
-    }
-
-    /// <summary>
-    /// Appends the lines of the moved code after the first statement line: a moving line keeps its text and shifts its
-    /// indentation by the column delta, a line that stays is copied as written
-    /// </summary>
-    /// <param name="content">Content built so far</param>
-    /// <param name="originalText">Text of the original document</param>
-    /// <param name="elements">Elements of the block's lines</param>
-    /// <param name="firstLineNumber">Number of the first line to append</param>
-    /// <param name="contentEnd">End of the moved code</param>
-    /// <param name="columnDelta">Delta of the moving lines</param>
-    private static void AppendLaterLines(StringBuilder content, SourceText originalText, List<(TextSpan Span, SyntaxKind Kind)> elements, int firstLineNumber, int contentEnd, int columnDelta)
-    {
-        for (var lineIndex = firstLineNumber; lineIndex < originalText.Lines.Count && originalText.Lines[lineIndex].Start < contentEnd; lineIndex++)
-        {
-            var line = originalText.Lines[lineIndex];
-            var lineEnd = Math.Min(line.EndIncludingLineBreak, contentEnd);
-            var textStart = SkipIndentation(originalText, line.Start, Math.Min(line.End, contentEnd));
-            var copyStart = line.Start;
-
-            if (IsMovingLine(elements, originalText, lineIndex, contentEnd))
-            {
-                if (textStart < Math.Min(line.End, contentEnd))
-                {
-                    content.Append(ShiftIndentation(originalText.ToString(TextSpan.FromBounds(line.Start, textStart)), columnDelta));
-                }
-
-                copyStart = textStart;
-            }
-
-            content.Append(originalText.ToString(TextSpan.FromBounds(copyStart, lineEnd)));
-        }
     }
 
     /// <summary>
@@ -282,40 +261,30 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     /// <summary>
     /// Gets the position the column delta of the moved code is measured on: the first character of the block's first
     /// statement line, also where it starts a comment in front of the statement. That is the first line, in source order,
-    /// on which code starts, so it always moves. A block in which no line holds code is measured on its first moving line
+    /// on which a statement starts, so it always moves. A block without a statement is measured on its first moving line
     /// </summary>
-    /// <param name="elements">Elements of the block's lines</param>
+    /// <param name="root">Root of the original document</param>
     /// <param name="text">Text of the original document</param>
     /// <param name="block">Block of the anonymous method</param>
     /// <param name="contentStart">Start of the moved code</param>
     /// <param name="contentEnd">End of the moved code</param>
     /// <returns>The position the column delta is measured on</returns>
-    private static int GetFirstStatementLinePosition(List<(TextSpan Span, SyntaxKind Kind)> elements, SourceText text, BlockSyntax block, int contentStart, int contentEnd)
+    private static int GetFirstStatementLinePosition(SyntaxNode root, SourceText text, BlockSyntax block, int contentStart, int contentEnd)
     {
-        var firstLineNumber = text.Lines.GetLineFromPosition(contentStart).LineNumber;
-        var lastLineNumber = block.Statements.Count > 0
-                                 ? text.Lines.GetLineFromPosition(block.Statements[0].SpanStart).LineNumber
-                                 : text.Lines.GetLineFromPosition(contentEnd).LineNumber;
-
-        for (var lineNumber = firstLineNumber; lineNumber <= lastLineNumber; lineNumber++)
+        if (block.Statements.Count > 0)
         {
-            var line = text.Lines[lineNumber];
-            var lineStart = Math.Max(line.Start, contentStart);
-            var lineEnd = Math.Min(line.End, contentEnd);
+            var statementLine = text.Lines.GetLineFromPosition(block.Statements[0].SpanStart);
 
-            if (elements.Exists(element => IsCode(element) && element.Span.Start >= lineStart && element.Span.Start < lineEnd))
-            {
-                return SkipIndentation(text, lineStart, line.End);
-            }
+            return SkipIndentation(text, Math.Max(statementLine.Start, contentStart), statementLine.End);
         }
 
-        for (var lineNumber = firstLineNumber; lineNumber <= lastLineNumber; lineNumber++)
+        for (var lineNumber = text.Lines.GetLineFromPosition(contentStart).LineNumber; lineNumber <= text.Lines.GetLineFromPosition(contentEnd).LineNumber; lineNumber++)
         {
             var line = text.Lines[lineNumber];
             var position = SkipIndentation(text, Math.Max(line.Start, contentStart), line.End);
 
             if (position < Math.Min(line.End, contentEnd)
-                && IsMovingLine(elements, text, lineNumber, contentEnd))
+                && SyntaxIndentationUtilities.KeepsItsColumn(root, text, line, contentEnd) == false)
             {
                 return position;
             }
@@ -325,121 +294,14 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Gets the elements the outcome of the block's lines is decided on, in source order: every token and every comment.
-    /// The fix is offered only for a block without directives and disabled text, and without strings and delimited
-    /// comments that span lines, so every element but a documentation comment written with <c>///</c> lies on one line
-    /// </summary>
-    /// <param name="block">Block of the anonymous method</param>
-    /// <returns>The elements, with their spans and kinds</returns>
-    private static List<(TextSpan Span, SyntaxKind Kind)> GetLineElements(BlockSyntax block)
-    {
-        var elements = new List<(TextSpan Span, SyntaxKind Kind)>();
-
-        foreach (var token in block.DescendantTokens())
-        {
-            AddTriviaElements(token.LeadingTrivia, elements);
-            AddTriviaElements(token.TrailingTrivia, elements);
-
-            if (token.Span.IsEmpty == false)
-            {
-                elements.Add((token.Span, token.Kind()));
-            }
-        }
-
-        elements.Sort(static (left, right) => left.Span.Start.CompareTo(right.Span.Start));
-
-        return elements;
-    }
-
-    /// <summary>
-    /// Adds the comments and skipped tokens of a trivia list to the elements of the block's lines
-    /// </summary>
-    /// <param name="triviaList">Trivia</param>
-    /// <param name="elements">Elements</param>
-    private static void AddTriviaElements(SyntaxTriviaList triviaList, List<(TextSpan Span, SyntaxKind Kind)> elements)
-    {
-        foreach (var trivia in triviaList)
-        {
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false
-                && trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false
-                && trivia.FullSpan.IsEmpty == false)
-            {
-                // The full span of a documentation comment starts at its first marker, which its span leaves out
-                elements.Add((trivia.FullSpan, trivia.Kind()));
-            }
-        }
-    }
-
-    /// <summary>
-    /// Determines whether an element of the block's lines is code: a token or skipped tokens
-    /// </summary>
-    /// <param name="element">Element</param>
-    /// <returns><see langword="true"/> for code</returns>
-    private static bool IsCode((TextSpan Span, SyntaxKind Kind) element)
-    {
-        return SyntaxFacts.IsTrivia(element.Kind) == false
-               || element.Kind == SyntaxKind.SkippedTokensTrivia;
-    }
-
-    /// <summary>
-    /// Determines whether a line of the moved code moves with the statements or stays in its columns. A line stays when
-    /// it holds no code and its first comment starts in column 0; a line of a documentation comment written with
-    /// <c>///</c> is decided on its own marker. Every other line moves, above all every line that holds code
-    /// </summary>
-    /// <param name="elements">Elements of the block's lines</param>
-    /// <param name="text">Text of the original document</param>
-    /// <param name="lineNumber">Number of the line</param>
-    /// <param name="contentEnd">End of the moved code</param>
-    /// <returns><see langword="true"/> if the line moves; <see langword="false"/> if it stays</returns>
-    private static bool IsMovingLine(List<(TextSpan Span, SyntaxKind Kind)> elements, SourceText text, int lineNumber, int contentEnd)
-    {
-        var line = text.Lines[lineNumber];
-        var lineEnd = Math.Min(line.End, contentEnd);
-        (TextSpan Span, SyntaxKind Kind)? firstElement = null;
-
-        foreach (var element in elements)
-        {
-            if (element.Span.Start >= lineEnd)
-            {
-                break;
-            }
-
-            if (element.Span.End <= line.Start)
-            {
-                continue;
-            }
-
-            if (IsCode(element))
-            {
-                return true;
-            }
-
-            firstElement ??= element;
-        }
-
-        if (firstElement is not { } first)
-        {
-            return true;
-        }
-
-        if (first.Span.Start < line.Start)
-        {
-            // Only a documentation comment written with /// spans lines here, each of which starts with its own marker
-            return SkipIndentation(text, line.Start, lineEnd) != line.Start;
-        }
-
-        return first.Span.Start != line.Start;
-    }
-
-    /// <summary>
     /// Gets the columns of the moving lines of the moved code from a line on: every moving line that holds text
     /// </summary>
-    /// <param name="elements">Elements of the block's lines</param>
+    /// <param name="root">Root of the original document</param>
     /// <param name="text">Text of the original document</param>
     /// <param name="firstLineNumber">Number of the first line</param>
     /// <param name="contentEnd">End of the moved code</param>
     /// <returns>The columns</returns>
-    private static List<int> GetMovingLineColumns(List<(TextSpan Span, SyntaxKind Kind)> elements, SourceText text, int firstLineNumber, int contentEnd)
+    private static List<int> GetMovingLineColumns(SyntaxNode root, SourceText text, int firstLineNumber, int contentEnd)
     {
         var columns = new List<int>();
 
@@ -449,7 +311,7 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
             var textStart = SkipIndentation(text, line.Start, Math.Min(line.End, contentEnd));
 
             if (textStart < Math.Min(line.End, contentEnd)
-                && IsMovingLine(elements, text, lineNumber, contentEnd))
+                && SyntaxIndentationUtilities.KeepsItsColumn(root, text, line, contentEnd) == false)
             {
                 columns.Add(GetColumn(text, textStart));
             }
@@ -503,32 +365,40 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Determines whether the anonymous method, from its first token through the block's closing brace, its parameter
-    /// list included, holds a string literal or interpolated string of any kind, or a delimited comment, that starts on
-    /// one line and ends on a later one and so withholds the fix. On both paths, such a string or comment withholds the fix
-    /// when a later line of it starts with <c>#</c> behind lexer whitespace: that line can be a directive in another
-    /// build, where every edit the fix makes behind it can change a string's value. Where the fix keeps the block as a
-    /// block body, every such string or comment withholds the fix, because the fix moves the block's lines and no reading
-    /// of the text alone tells which of them are safe to move in every build
+    /// Determines whether the lines of the anonymous method withhold the fix. On both paths, a string of any kind or a
+    /// delimited comment that spans lines (<see cref="SyntaxNodeUtilities.GetStringsAndCommentsSpanningLines"/>) withholds
+    /// it when a later line of it starts with <c>#</c> behind lexer whitespace: that line can be a directive in another
+    /// build, where every edit the fix makes behind it can change a string's value (RH3004-008). Where the fix keeps the
+    /// block as a block body, it moves the block's lines, so every such string or comment withholds it, because no reading
+    /// of the text alone tells which of its lines are safe to move in every build, and so do a tab in front of a moving line
+    /// (RH3004-006) and a line break in the block other than the document's line ending, which the moved lines would keep
+    /// (SHARED-FIX-008)
     /// </summary>
-    /// <param name="anonymousMethodExpression">Anonymous method expression</param>
+    /// <param name="root">Syntax root</param>
     /// <param name="text">Text of the document</param>
-    /// <param name="keepsBlockBody">Whether the fix keeps the block as the lambda's block body</param>
-    /// <returns><see langword="true"/> if a string or a delimited comment that spans lines withholds the fix, <see langword="false"/> otherwise</returns>
-    private static bool WithholdsFixForSpanningStringOrComment(AnonymousMethodExpressionSyntax anonymousMethodExpression, SourceText text, bool keepsBlockBody)
+    /// <param name="anonymousMethodExpression">Anonymous method expression</param>
+    /// <returns><see langword="true"/> if the lines of the anonymous method withhold the fix, <see langword="false"/> otherwise</returns>
+    private static bool WithholdsFixForLines(SyntaxNode root, SourceText text, AnonymousMethodExpressionSyntax anonymousMethodExpression)
     {
-        var span = anonymousMethodExpression.Span;
-        var syntaxTree = anonymousMethodExpression.SyntaxTree;
+        var keepsBlockBody = GetExpressionBody(anonymousMethodExpression) == null;
 
-        return anonymousMethodExpression.DescendantNodes()
-                                        .Where(IsString)
-                                        .Select(stringExpression => stringExpression.Span)
-                                        .Concat(anonymousMethodExpression.DescendantTrivia()
-                                                                         .Where(trivia => (trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
-                                                                                          && span.Contains(trivia.Span))
-                                                                         .Select(trivia => trivia.Span))
-                                        .Any(carrierSpan => SyntaxNodeUtilities.IsSingleLineSpan(syntaxTree, carrierSpan) == false
-                                                            && (keepsBlockBody || ContainsLineStartingWithHash(text, carrierSpan)));
+        if (SyntaxNodeUtilities.GetStringsAndCommentsSpanningLines(anonymousMethodExpression, anonymousMethodExpression.Span)
+                               .Any(carrierSpan => keepsBlockBody || ContainsLineStartingWithHash(text, carrierSpan)))
+        {
+            return true;
+        }
+
+        if (keepsBlockBody == false)
+        {
+            return false;
+        }
+
+        var block = anonymousMethodExpression.Block;
+        var firstMovingLineNumber = text.Lines.GetLineFromPosition(block.OpenBraceToken.SpanStart).LineNumber + 1;
+
+        return LineEndingUtilities.HoldsOtherLineBreak(text, block.Span, LineEndingUtilities.DetectEndOfLine(root))
+               || (firstMovingLineNumber <= text.Lines.GetLineFromPosition(block.CloseBraceToken.SpanStart).LineNumber
+                   && SyntaxIndentationUtilities.HoldsTabInFrontOfMovingLine(root, text, TextSpan.FromBounds(text.Lines[firstMovingLineNumber].Start, block.CloseBraceToken.SpanStart)));
     }
 
     /// <summary>
@@ -566,69 +436,15 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Determines whether a node is a string: a string literal, also a UTF-8 or raw one, or an interpolated string
-    /// expression
-    /// </summary>
-    /// <param name="node">Node</param>
-    /// <returns><see langword="true"/> for a string</returns>
-    private static bool IsString(SyntaxNode node)
-    {
-        return node is InterpolatedStringExpressionSyntax
-               || node.IsKind(SyntaxKind.StringLiteralExpression)
-               || node.IsKind(SyntaxKind.Utf8StringLiteralExpression);
-    }
-
-    /// <summary>
-    /// Moves an indentation by a number of columns. A move to the right puts spaces in front of it; a move to the left
-    /// removes its leading characters, a tab counted as four columns, so that the characters behind the removed ones
-    /// stay as written
-    /// </summary>
-    /// <param name="indentation">Indentation, spaces and tabs</param>
-    /// <param name="columnDelta">Number of columns</param>
-    /// <returns>The moved indentation</returns>
-    private static string ShiftIndentation(string indentation, int columnDelta)
-    {
-        if (columnDelta >= 0)
-        {
-            return new string(' ', columnDelta) + indentation;
-        }
-
-        var remainingColumns = -columnDelta;
-        var index = 0;
-
-        while (remainingColumns > 0
-               && index < indentation.Length)
-        {
-            var width = indentation[index] == '\t' ? IndentationWidth : 1;
-
-            if (width > remainingColumns)
-            {
-                return new string(' ', width - remainingColumns) + indentation.Substring(index + 1);
-            }
-
-            remainingColumns -= width;
-            index++;
-        }
-
-        return indentation.Substring(index);
-    }
-
-    /// <summary>
-    /// Gets the column of a position on its line, a tab counted as four columns
+    /// Gets the column of a position on its line, each character counted as one column, a tab included, as the moving
+    /// lines are shifted (<see cref="SyntaxIndentationUtilities.TryShiftMovedLines"/>)
     /// </summary>
     /// <param name="text">Text</param>
     /// <param name="position">Position</param>
     /// <returns>The column</returns>
     private static int GetColumn(SourceText text, int position)
     {
-        var column = 0;
-
-        for (var index = text.Lines.GetLineFromPosition(position).Start; index < position; index++)
-        {
-            column += text[index] == '\t' ? IndentationWidth : 1;
-        }
-
-        return column;
+        return position - text.Lines.GetLineFromPosition(position).Start;
     }
 
     /// <summary>
@@ -731,7 +547,7 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
                     && ContainsDiscardedTrivia(anonymousMethodExpression) == false
                     && IsOperandOfCastOrBinaryOperator(anonymousMethodExpression) == false
                     && ContainsDirectiveOrDisabledText(anonymousMethodExpression) == false
-                    && WithholdsFixForSpanningStringOrComment(anonymousMethodExpression, text, GetExpressionBody(anonymousMethodExpression) == null) == false
+                    && WithholdsFixForLines(root, text, anonymousMethodExpression) == false
                     && ReihitsuFormatter.FindUnsupportedSyntax(CreateLambdaExpression(anonymousMethodExpression)) == null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3004Title,

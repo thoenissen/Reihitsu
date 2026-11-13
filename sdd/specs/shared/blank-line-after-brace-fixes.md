@@ -4,8 +4,8 @@
 |---|---|
 | ID prefix | SHARED-AFTERBRACE |
 | Status | Active |
-| Code owners | `BlankLineCodeFixUtilities` |
-| Uses | SHARED-BLANK-003, FMT-BLANK-005, SHARED-FIX-008 |
+| Code owners | — |
+| Uses | SHARED-BLANK-003, FMT-BLANK-005, SHARED-FIX-008, SHARED-STMT-004, RH5030-003 |
 
 This spec covers where a code fix puts the blank line that SHARED-BLANK-003 requires between a statement ending with `}` and the next statement of the same block or switch section — the RH5030 fix, which inserts it for the diagnostic it corrects, and the RH3208 fix, which inserts it after the block it creates. Whether the blank line is needed is SHARED-BLANK-003; each rule's spec states when its fix inserts one.
 
@@ -121,6 +121,137 @@ class C
 #pragma warning disable CS0168
 
         return Twice(1);
+    }
+}
+```
+
+### SHARED-AFTERBRACE-002 — A statement behind a comment that holds every line break moves below it
+
+When at least one line break stands between the closing brace and the next statement and every such line break lies inside a comment, so that the statement starts behind the comment on the comment's last line, the RH3208 code fix MUST move the statement onto a new line below the comment's last line, with exactly one blank line in front of it, indented like the statements of its block or switch section. The comment keeps its text and its place behind the brace, and no whitespace stays at the end of its last line. Inserted line breaks MUST use the line ending SHARED-FIX-008 specifies. The RH5030 code fix withholds itself there instead (RH5030-003).
+
+Inside an object initializer or anonymous object, the RH3208 code fix reads the column of the statement it would move as SHARED-STMT-004 states, with the converted local function as the statement it follows, and MUST NOT be offered in every case SHARED-STMT-004 withholds its fix for, with what starts a line read as that requirement defines it: when the line on which the local function starts is started by neither the first token of a statement of its block or of any section of its switch nor the first token of a label of its switch — such as the rest of a comment whose text starts on an earlier line, a wrapped continuation of an earlier statement, or a statement nested inside an earlier one — and when that line is a continuation line of a `case` label and no statement of the local function's own switch section other than the statement it would move starts its line. The diagnostic is still reported. The fix stays offered when the local function's line starts with a statement of the block or of a section of the switch, such as the local function itself, when it starts with a label of the switch, also behind a comment that starts on that line, and when another statement of its own section starts its line below a label's continuation line, such as a `break;`.
+
+Why: Inserting only a line break at the start of the statement's leading trivia, as SHARED-AFTERBRACE-001 does, would land behind the comment, leave whitespace at the end of its line, and start the statement at the first column. Moving the statement out from behind the comment gives the output that the statement blank-line fixes give for a statement behind a comment that starts behind the statement before it (SHARED-STMT-004), and that the formatter gives for the same input. Inside an initializer, a line that no statement and no label of the list starts holds no column of the list as written, for the reason SHARED-STMT-004 gives; the class is rare, so the RH3208 fix is withheld there as the statement fixes are, rather than moving the statement to a column read from the tail of a comment, a continuation, or a nested statement (`AGENTS.md`, *Code-fix coverage*).
+
+Example — RH3208:
+
+```csharp
+class C
+{
+    void M()
+    {
+        int L() {|RH3208:=> 1|}; /* a
+        b */ L();
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        int L()
+        {
+            return 1;
+        } /* a
+        b */
+
+        L();
+    }
+}
+```
+
+A gap with no line break at all is outside this requirement, even when a comment stands in it: the statement stays behind the comment on the closing brace's line.
+
+```csharp
+class C
+{
+    void M()
+    {
+        int L() {|RH3208:=> 1|}; /* a */ L();
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        int L()
+        {
+            return 1;
+        } /* a */ L();
+    }
+}
+```
+
+Example — inside an object initializer, the local function stands behind a `case` label's continuation line, and no other statement of the section starts its own line; the continuation is one level deeper than the label in the first section and in the label's column in the second. RH3208 reports both, and no code fix is offered:
+
+```csharp
+class Holder
+{
+    public System.Func<int, int> F { get; set; }
+}
+
+class C
+{
+    Holder Create()
+    {
+        return new Holder
+        {
+            F = value =>
+            {
+                switch (value)
+                {
+                    case 1 when
+                        Check(value): int One() {|RH3208:=> 1|}; /* a
+                        b */ One(); return 1;
+                    case 2 when
+                    Check(value): int Two() {|RH3208:=> 2|}; /* a
+                    b */ Two(); return 2;
+                    default:
+                        return 0;
+                }
+            },
+        };
+    }
+
+    static bool Check(int value)
+    {
+        return value > 0;
+    }
+}
+```
+
+Example — inside an object initializer, the local function starts on the continuation line of a wrapped argument list, so no statement or label starts that line. RH3208 reports it, and no code fix is offered:
+
+```csharp
+class Holder
+{
+    public System.Func<int, int> F { get; set; }
+}
+
+class C
+{
+    Holder Create()
+    {
+        return new Holder
+        {
+            F = value =>
+            {
+                var a = Add(value,
+                            1); int M() {|RH3208:=> 1|}; /* a
+                b */ M();
+                return a;
+            },
+        };
+    }
+
+    static int Add(int left, int right)
+    {
+        return left + right;
     }
 }
 ```

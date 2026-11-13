@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
 
@@ -148,6 +149,7 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer : 
     private void OnXmlElement(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is not XmlElementSyntax element
+            || DocumentationAnalysisUtilities.IsPrimaryConstructorRun(context)
             || ViolatesRule(element, context.CancellationToken) == false
             || IsInCommentLeftAsWritten(element, context.CancellationToken))
         {

@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Documentation;
 using Reihitsu.Core;
@@ -44,6 +46,36 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixP
         return document.WithText(text.Replace(triviaSpan, updatedCommentText));
     }
 
+    /// <summary>
+    /// Determines whether a line of the comment has a byte order mark (U+FEFF) or a substitute character (U+001A) in
+    /// front of its <c>///</c>. The lexer reads both as white space, so the line belongs to the comment and is reported,
+    /// but the conversion does not, so it would leave that line a <c>///</c> line
+    /// </summary>
+    /// <param name="documentationComment">Documentation comment</param>
+    /// <param name="sourceText">Source text</param>
+    /// <returns><see langword="true"/> if such a character stands in front of the <c>///</c> of a line</returns>
+    private static bool HasStrayCharacterInFrontOfExterior(DocumentationCommentTriviaSyntax documentationComment, SourceText sourceText)
+    {
+        var commentStart = documentationComment.ParentTrivia.FullSpan.Start;
+        var firstLine = sourceText.Lines.GetLineFromPosition(commentStart);
+
+        return ContainsStrayCharacter(sourceText.ToString(TextSpan.FromBounds(firstLine.Start, commentStart)))
+               || documentationComment.DescendantTrivia()
+                                      .Any(static obj => obj.IsKind(SyntaxKind.DocumentationCommentExteriorTrivia)
+                                                         && ContainsStrayCharacter(obj.ToString()));
+    }
+
+    /// <summary>
+    /// Determines whether the text holds a byte order mark (U+FEFF) or a substitute character (U+001A)
+    /// </summary>
+    /// <param name="text">Text</param>
+    /// <returns><see langword="true"/> if the text holds one of the characters</returns>
+    private static bool ContainsStrayCharacter(string text)
+    {
+        return text.IndexOf('\uFEFF') >= 0
+               || text.IndexOf('\u001A') >= 0;
+    }
+
     #endregion // Methods
 
     #region CodeFixProvider
@@ -67,12 +99,15 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixP
             return;
         }
 
+        var sourceText = await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
+
         foreach (var diagnostic in context.Diagnostics)
         {
             var trivia = root.FindTrivia(diagnostic.Location.SourceSpan.Start, findInsideTrivia: true);
             var documentationComment = trivia.Token.Parent?.AncestorsAndSelf().OfType<DocumentationCommentTriviaSyntax>().FirstOrDefault();
 
-            if (documentationComment == null)
+            if (documentationComment == null
+                || HasStrayCharacterInFrontOfExterior(documentationComment, sourceText))
             {
                 continue;
             }

@@ -225,6 +225,241 @@ public class RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies the spec example: an <c>await using</c> statement is reported on its <c>using</c> keyword, and one
+    /// application of the fix puts the blank line in front of <c>await</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5005-002")]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixInsertsBlankLineAboveAwaitOfAwaitUsingStatement()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    async System.Threading.Tasks.Task M(System.IAsyncDisposable resource)
+                                    {
+                                        var a = 1;
+                                        await {|RH5005:using|} (resource)
+                                        {
+                                            a++;
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     async System.Threading.Tasks.Task M(System.IAsyncDisposable resource)
+                                     {
+                                         var a = 1;
+
+                                         await using (resource)
+                                         {
+                                             a++;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix puts the blank line in front of <c>await</c> of an <c>await using</c>
+    /// statement under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5005-002")]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixInsertsBlankLineAboveAwaitOfAwaitUsingStatementWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    async System.Threading.Tasks.Task M(System.IAsyncDisposable resource)
+                                    {
+                                        var a = 1;
+                                        await {|RH5005:using|} (resource)
+                                        {
+                                            a++;
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     async System.Threading.Tasks.Task M(System.IAsyncDisposable resource)
+                                     {
+                                         var a = 1;
+
+                                         await using (resource)
+                                         {
+                                             a++;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode),
+                     NormalizeToCarriageReturnLineFeed(fixedCode),
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix moves an <c>await using</c> statement that shares its line with the
+    /// statement before it to a new line, with the blank line in front of <c>await</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5005-002")]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixMovesAwaitUsingStatementSharingLineWithPreviousStatement()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    async System.Threading.Tasks.Task M(System.IAsyncDisposable resource)
+                                    {
+                                        var a = 1; await {|RH5005:using|} (resource) { a++; }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     async System.Threading.Tasks.Task M(System.IAsyncDisposable resource)
+                                     {
+                                         var a = 1;
+
+                                         await using (resource) { a++; }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix puts the blank line above the comment line that stands directly above an
+    /// <c>await using</c> statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5005-002")]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixInsertsBlankLineAboveCommentLeadingAwaitUsingStatement()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    async System.Threading.Tasks.Task M(System.IAsyncDisposable resource)
+                                    {
+                                        var a = 1;
+                                        // note
+                                        await {|RH5005:using|} (resource)
+                                        {
+                                            a++;
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     async System.Threading.Tasks.Task M(System.IAsyncDisposable resource)
+                                     {
+                                         var a = 1;
+
+                                         // note
+                                         await using (resource)
+                                         {
+                                             a++;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one Fix All application corrects two adjacent <c>await using</c> statements, each with its blank line in
+    /// front of <c>await</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5005-002")]
+    [Requirement("SHARED-STMT-004")]
+    public async Task VerifyFixAllInsertsBlankLinesAboveAwaitOfAdjacentAwaitUsingStatements()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    async System.Threading.Tasks.Task M(System.IAsyncDisposable first, System.IAsyncDisposable second)
+                                    {
+                                        var a = 1;
+                                        await {|RH5005:using|} (first)
+                                        {
+                                        }
+                                        await {|RH5005:using|} (second)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     async System.Threading.Tasks.Task M(System.IAsyncDisposable first, System.IAsyncDisposable second)
+                                     {
+                                         var a = 1;
+
+                                         await using (first)
+                                         {
+                                         }
+
+                                         await using (second)
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 2;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

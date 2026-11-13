@@ -8,10 +8,10 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Organization;
 using Reihitsu.Core;
-using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
 
@@ -25,13 +25,13 @@ public class RH7107PropertyAccessorsMustFollowOrderCodeFixProvider : CodeFixProv
     #region Methods
 
     /// <summary>
-    /// Creates the member declaration the fix formats: the property or indexer with its <c>get</c> accessor moved in front of
-    /// its <c>set</c> or <c>init</c> accessor
+    /// Creates the text change that moves the <c>get</c> accessor of a property or indexer in front of its <c>set</c> or
+    /// <c>init</c> accessor, as <see cref="AccessorOrderingUtilities.TryCreateMove"/> performs it
     /// </summary>
     /// <param name="memberDeclaration">Property or indexer declaration</param>
-    /// <param name="updatedMemberDeclaration">The updated member declaration</param>
-    /// <returns><see langword="true"/> if an accessor has to move; otherwise, <see langword="false"/></returns>
-    private static bool TryCreateUpdatedMemberDeclaration(MemberDeclarationSyntax memberDeclaration, out MemberDeclarationSyntax updatedMemberDeclaration)
+    /// <param name="change">The text change that performs the move</param>
+    /// <returns><see langword="true"/> if an accessor has to move and the move can be performed; otherwise, <see langword="false"/></returns>
+    private static bool TryCreateMove(MemberDeclarationSyntax memberDeclaration, out TextChange change)
     {
         var accessorList = TryGetAccessorList(memberDeclaration);
 
@@ -42,25 +42,17 @@ public class RH7107PropertyAccessorsMustFollowOrderCodeFixProvider : CodeFixProv
                                                             out var accessorToMove,
                                                             out var targetAccessor) == false)
         {
-            updatedMemberDeclaration = null;
+            change = default;
 
             return false;
         }
 
-        var updatedAccessorList = AccessorOrderingUtilities.MoveAccessorBefore(accessorList, accessorToMove, targetAccessor);
-
-        updatedMemberDeclaration = memberDeclaration switch
-                                   {
-                                       PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.WithAccessorList(updatedAccessorList),
-                                       IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.WithAccessorList(updatedAccessorList),
-                                       _ => memberDeclaration,
-                                   };
-
-        return true;
+        return AccessorOrderingUtilities.TryCreateMove(accessorList, accessorToMove, targetAccessor, out change);
     }
 
     /// <summary>
-    /// Applies the code fix
+    /// Applies the code fix: the accessor moves, and nothing else of the declaration changes (SHARED-FIX-006,
+    /// SHARED-FIX-007)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="memberDeclaration">Member declaration</param>
@@ -68,26 +60,14 @@ public class RH7107PropertyAccessorsMustFollowOrderCodeFixProvider : CodeFixProv
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, MemberDeclarationSyntax memberDeclaration, CancellationToken cancellationToken)
     {
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-        if (root == null
-            || TryCreateUpdatedMemberDeclaration(memberDeclaration, out var updatedMemberDeclaration) == false)
+        if (TryCreateMove(memberDeclaration, out var change) == false)
         {
             return document;
         }
 
-        var formattingAnnotation = new SyntaxAnnotation();
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-        updatedMemberDeclaration = updatedMemberDeclaration.WithAdditionalAnnotations(formattingAnnotation);
-
-        var updatedRoot = root.ReplaceNode(memberDeclaration, updatedMemberDeclaration);
-        var updatedDocument = document.WithSyntaxRoot(updatedRoot);
-        var formattedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var formattedMemberDeclaration = formattedRoot?.GetAnnotatedNodes(formattingAnnotation).OfType<MemberDeclarationSyntax>().FirstOrDefault();
-
-        return formattedMemberDeclaration == null
-                   ? updatedDocument
-                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedMemberDeclaration, cancellationToken).ConfigureAwait(false)).Output;
+        return document.WithText(text.WithChanges(change));
     }
 
     /// <summary>
@@ -168,8 +148,7 @@ public class RH7107PropertyAccessorsMustFollowOrderCodeFixProvider : CodeFixProv
             {
                 if (TryGetMemberDeclaration(root, diagnostic, out var memberDeclaration)
                     && IsMoveSafe(memberDeclaration)
-                    && (TryCreateUpdatedMemberDeclaration(memberDeclaration, out var updatedMemberDeclaration) == false
-                        || ReihitsuFormatter.FindUnsupportedSyntax(updatedMemberDeclaration) == null))
+                    && TryCreateMove(memberDeclaration, out _))
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7107Title,
                                                               token => ApplyCodeFixAsync(context.Document, memberDeclaration, token),

@@ -1204,6 +1204,351 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
         await Verify(testCode, test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp10)));
     }
 
+    /// <summary>
+    /// Verifies the SHARED-FIX-007 example: a member that shares its line with the fixed member gets a line of its own,
+    /// and the fixed member that shares its line with an earlier member starts on the next line, without blank lines, under
+    /// LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixGivesTheFixedMemberAndTheMemberOnItsLineLinesOfTheirOwn()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M() {|RH5417:{|} } int _x;
+
+                                    int _y; void P() {|RH5417:{|} }
+
+                                    int N() {|RH5417:{|} return 1; }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                     }
+                                     int _x;
+
+                                     int _y;
+                                     void P()
+                                     {
+                                     }
+
+                                     int N()
+                                     {
+                                         return 1;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that two methods on one line are each moved to lines of their own, with their braces in the column of the
+    /// members, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixPutsTwoMethodsOnOneLineOnLinesOfTheirOwn()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M() {|RH5417:{|} } void N() {|RH5417:{|} }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                     }
+                                     void N()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: when the line of the fixed member begins with the header of a type written
+    /// on one line, the fix does not separate the member behind it, and lays out the body from the member's column,
+    /// under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5417-003")]
+    public async Task FixLeavesTheMembersOnTheLinesOfAMemberOfATypeWrittenOnOneLine()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    class C { void M() {|RH5417:{|} } int _x; }
+                                }
+                                """;
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     class C { void M()
+                                               {
+                                               } int _x; }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that when the line of the fixed member begins with the header of a type written on one line, the fix
+    /// does not separate the member in front of it, and lays out the body from the member's column, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5417-003")]
+    public async Task FixLeavesTheMemberInFrontOnTheLineOfAMemberOfATypeWrittenOnOneLine()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C { int _x; void M() {|RH5417:{|} } }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C { int _x; void M()
+                                                   {
+                                                   } }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a member behind the fixed member, separated from it by a comment on their line, stays behind the
+    /// comment on the line of the closing brace, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixKeepsACommentBetweenTheFixedMemberAndTheMemberBehindItAndDoesNotSeparateThem()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M() {|RH5417:{|} } /* c */ int _x;
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                     } /* c */ int _x;
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fixed member, separated from the member in front of it by a comment on their line, stays
+    /// behind the comment, and its body is laid out from its column, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixKeepsACommentBetweenTheMemberInFrontAndTheFixedMemberAndDoesNotSeparateThem()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int _y; /* c */ void P() {|RH5417:{|} }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int _y; /* c */ void P()
+                                                     {
+                                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that when the line of the fixed member begins with the continuation of a sibling's wrapped initializer,
+    /// the fix does not separate the member from the sibling, and lays out the body from the member's column, under LF
+    /// and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5417-003")]
+    public async Task FixLeavesTheMemberOnALineThatBeginsWithTheContinuationOfASiblingsInitializer()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int _a = Compute(1,
+                                                     2); void M() {|RH5417:{|} }
+
+                                    static int Compute(int a, int b) => a;
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int _a = Compute(1,
+                                                      2); void M()
+                                                          {
+                                                          }
+
+                                     static int Compute(int a, int b) => a;
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that when the line of the fixed member begins with a statement inside a sibling's body, the fix does not
+    /// separate the member from the sibling's closing brace, and lays out the body from the member's column, under LF
+    /// and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5417-003")]
+    public async Task FixLeavesTheMemberOnALineThatBeginsWithAStatementOfASiblingsBody()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void A()
+                                    {
+                                        A(); } void M() {|RH5417:{|} }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void A()
+                                     {
+                                         A(); } void M()
+                                                {
+                                                }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that when the line of the fixed member begins with the closing line of a sibling's verbatim string, the
+    /// fix does not separate the member from the sibling, and the result is the one the fix gave before the shared-line
+    /// separation existed, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5417-003")]
+    public async Task FixLeavesTheMemberOnALineThatBeginsWithTheClosingLineOfASiblingsVerbatimString()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string _s = @"a
+                                b"; void M() {|RH5417:{|} }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     string _s = @"a
+                                 b"; void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that when the line of the fixed member begins with the tail of the member's own multi-line comment, the
+    /// fix does not separate the member behind it, and the result is the one the fix gave before the shared-line
+    /// separation existed, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5417-003")]
+    public async Task FixLeavesTheMemberBehindOnALineThatBeginsWithTheTailOfAMultiLineComment()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    /* a
+                                       b */ void M() {|RH5417:{|} } int _y;
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     /* a
+                                        b */ void M()
+                                     {
+                                     } int _y;
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that when the fixed member is the first token of its line behind a comment that starts on that line, the
+    /// fix still gives the member behind it a line of its own in the column of the line, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5417-003")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixSeparatesTheMemberBehindWhenTheFixedMemberBeginsItsLineBehindAComment()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    /* c */ void M() {|RH5417:{|} } int _y;
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     /* c */ void M()
+                                     {
+                                     }
+                                     int _y;
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the diagnostics marked in the source and the fix result under LF and under CRLF
+    /// </summary>
+    /// <param name="testCode">The source with markup and LF line endings</param>
+    /// <param name="fixedCode">The fixed source with LF line endings</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyUnderBothLineEndings(string testCode, string fixedCode)
+    {
+        await Verify(testCode, fixedCode);
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
     #endregion // Tests
 
     #region Methods

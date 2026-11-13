@@ -21,7 +21,7 @@ public class RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineCodeFixProv
     /// Constructor
     /// </summary>
     public RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineCodeFixProvider()
-        : base(RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, CodeFixResources.RH5026Title)
+        : base(RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, CodeFixResources.RH5026Title, removesRun: true)
     {
     }
 

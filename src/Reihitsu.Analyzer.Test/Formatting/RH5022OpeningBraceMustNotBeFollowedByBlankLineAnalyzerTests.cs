@@ -261,6 +261,180 @@ public class RH5022OpeningBraceMustNotBeFollowedByBlankLineAnalyzerTests : Batch
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode), actual);
     }
 
+    /// <summary>
+    /// Verifies the spec example: one application of the fix deletes the reported blank line together with the rest of its
+    /// run of blank lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5022-004")]
+    [Requirement("SHARED-FIX-001")]
+    public async Task VerifyFixDeletesRunOfBlankLinesBelowOpeningBraceInOneApplication()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                {|RH5022:
+                                |}
+
+                                        M();
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         M();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix deletes the reported blank line together with the rest of its run of blank
+    /// lines under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5022-004")]
+    [Requirement("SHARED-FIX-001")]
+    public async Task VerifyFixDeletesRunOfBlankLinesBelowOpeningBraceInOneApplicationWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                {|RH5022:
+                                |}
+
+                                        M();
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         M();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode),
+                     NormalizeToCarriageReturnLineFeed(fixedCode),
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one application of the fix deletes a run of two lines holding only spaces below an opening brace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5022-004")]
+    [Requirement("SHARED-FIX-001")]
+    public async Task VerifyFixDeletesRunOfWhitespaceOnlyLinesBelowOpeningBraceInOneApplication()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                {|RH5022:········
+                                |}········
+                                        M();
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         M();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(ExpandWhitespaceMarkers(testCode),
+                     ExpandWhitespaceMarkers(fixedCode),
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies one Fix All application deletes the runs of blank lines below two opening braces of one document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5022-004")]
+    [Requirement("SHARED-FIX-001")]
+    public async Task VerifyFixAllDeletesRunsOfBlankLinesBelowTwoOpeningBracesInOneIteration()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                {|RH5022:
+                                |}
+
+                                        M();
+                                    }
+
+                                    void N()
+                                    {
+                                {|RH5022:
+                                |}
+
+                                        N();
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         M();
+                                     }
+
+                                     void N()
+                                     {
+                                         N();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         test.NumberOfIncrementalIterations = 2;
+                         test.NumberOfFixAllIterations = 1;
+                     });
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

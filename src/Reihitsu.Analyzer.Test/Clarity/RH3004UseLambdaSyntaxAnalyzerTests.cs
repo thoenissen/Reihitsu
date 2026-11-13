@@ -3699,6 +3699,51 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     }
 
     /// <summary>
+    /// Verifies that a later statement line that starts with a comment in column 0 holds code, so it is no comment line
+    /// and moves by the shift of the first statement line, like the other statement lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixMovesALaterStatementLineThatStartsWithAColumnZeroCommentByTheShift()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> b = {|RH3004:delegate|} (int x)
+                                        {
+                                            Console.WriteLine(x);
+                                /* note */ Console.WriteLine(x + 1);
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<int> b = (int x) =>
+                                                         {
+                                                             Console.WriteLine(x);
+                                                 /* note */ Console.WriteLine(x + 1);
+                                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
     /// Verifies the specification example of a first statement line that starts with a comment in column 0 in a
     /// document whose line breaks are CRLF, and keeps those line breaks
     /// </summary>
@@ -4716,6 +4761,664 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                               """;
 
         await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a blank line that holds whitespace among the statements the fix moves:
+    /// the blank line stays and is written empty
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixWritesAWhitespaceOnlyLineAmongTheMovedStatementsEmpty()
+    {
+        var testCode = ExpandWhitespaceMarkers("""
+                                               using System;
+
+                                               class C
+                                               {
+                                                   void M()
+                                                   {
+                                                       Action<int> b = {|RH3004:delegate|} (int x)
+                                                       {
+                                                           Console.WriteLine(x);
+                                               ············
+                                                           Console.WriteLine(x + 1);
+                                                       };
+                                                   }
+                                               }
+                                               """);
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<int> b = (int x) =>
+                                                         {
+                                                             Console.WriteLine(x);
+
+                                                             Console.WriteLine(x + 1);
+                                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a blank line that holds whitespace among the statements the fix moves is written empty in a document
+    /// whose line breaks are CRLF, and the line breaks stay CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixWritesAWhitespaceOnlyLineAmongTheMovedStatementsEmptyWithCarriageReturnLineFeed()
+    {
+        var testCode = NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers("""
+                                                                                 using System;
+
+                                                                                 class C
+                                                                                 {
+                                                                                     void M()
+                                                                                     {
+                                                                                         Action<int> b = delegate (int x)
+                                                                                         {
+                                                                                             Console.WriteLine(x);
+                                                                                 ············
+                                                                                             Console.WriteLine(x + 1);
+                                                                                         };
+                                                                                     }
+                                                                                 }
+                                                                                 """));
+
+        var expectedCode = NormalizeToCarriageReturnLineFeed("""
+                                                             using System;
+
+                                                             class C
+                                                             {
+                                                                 void M()
+                                                                 {
+                                                                     Action<int> b = (int x) =>
+                                                                                     {
+                                                                                         Console.WriteLine(x);
+
+                                                                                         Console.WriteLine(x + 1);
+                                                                                     };
+                                                                 }
+                                                             }
+                                                             """);
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+    }
+
+    /// <summary>
+    /// Verifies a blank line that holds a tab among the statements the fix moves does not withhold the fix and is
+    /// written empty
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixWritesABlankLineHoldingATabAmongTheMovedStatementsEmpty()
+    {
+        var testCode = ExpandWhitespaceMarkers("""
+                                               using System;
+
+                                               class C
+                                               {
+                                                   void M()
+                                                   {
+                                                       Action<int> b = {|RH3004:delegate|} (int x)
+                                                       {
+                                                           Console.WriteLine(x);
+                                               ····→····
+                                                           Console.WriteLine(x + 1);
+                                                       };
+                                                   }
+                                               }
+                                               """);
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action<int> b = (int x) =>
+                                                         {
+                                                             Console.WriteLine(x);
+
+                                                             Console.WriteLine(x + 1);
+                                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a tab in front of a moving statement line: the diagnostic is reported
+    /// and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixWithheldForATabInFrontOfAMovingStatementLine()
+    {
+        var testCode = ExpandWhitespaceMarkers("""
+                                               using System;
+
+                                               class C
+                                               {
+                                                   void M()
+                                                   {
+                                                       Action<int> b = {|RH3004:delegate|} (int x)
+                                                       {
+                                               →········Console.WriteLine(x);
+                                                       };
+                                                   }
+                                               }
+                                               """);
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a tab in front of a moving statement line withholds the fix in a document whose line breaks are CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixWithheldForATabInFrontOfAMovingStatementLineWithCarriageReturnLineFeed()
+    {
+        var testCode = NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers("""
+                                                                                 using System;
+
+                                                                                 class C
+                                                                                 {
+                                                                                     void M()
+                                                                                     {
+                                                                                         Action<int> b = {|RH3004:delegate|} (int x)
+                                                                                         {
+                                                                                 →········Console.WriteLine(x);
+                                                                                         };
+                                                                                     }
+                                                                                 }
+                                                                                 """));
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a tab in front of a later moving statement line withholds the fix, also where the first statement
+    /// line is indented with spaces only
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixWithheldForATabInFrontOfALaterMovingStatementLine()
+    {
+        var testCode = ExpandWhitespaceMarkers("""
+                                               using System;
+
+                                               class C
+                                               {
+                                                   void M()
+                                                   {
+                                                       Action<int> b = {|RH3004:delegate|} (int x)
+                                                       {
+                                                           Console.WriteLine(x);
+                                               ········→···Console.WriteLine(x + 1);
+                                                       };
+                                                   }
+                                               }
+                                               """);
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a tab in front of a moving comment line, a line that holds only a comment that does not start in
+    /// column 0, withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixWithheldForATabInFrontOfAMovingCommentLine()
+    {
+        var testCode = ExpandWhitespaceMarkers("""
+                                               using System;
+
+                                               class C
+                                               {
+                                                   void M()
+                                                   {
+                                                       Action<int> b = {|RH3004:delegate|} (int x)
+                                                       {
+                                                           Console.WriteLine(x);
+                                               →···········// note
+                                                           Console.WriteLine(x + 1);
+                                                       };
+                                                   }
+                                               }
+                                               """);
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a tab in front of a moving statement line withholds the fix also where the shift, counting the tab as
+    /// one column, is zero
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixWithheldForATabInFrontOfAMovingStatementLineWhoseShiftIsZero()
+    {
+        var testCode = ExpandWhitespaceMarkers("""
+                                               using System;
+
+                                               class C
+                                               {
+                                                   void M()
+                                                   {
+                                                       Action<int> b = {|RH3004:delegate|} (int x)
+                                                       {
+                                               →···························Console.WriteLine(x);
+                                                       };
+                                                   }
+                                               }
+                                               """);
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a tab between two tokens of a moving statement line does not withhold the fix and stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixIsOfferedForATabBetweenTwoTokensOfAMovingStatementLine()
+    {
+        var testCode = ExpandWhitespaceMarkers("""
+                                               using System;
+
+                                               class C
+                                               {
+                                                   void M()
+                                                   {
+                                                       Action<int> b = {|RH3004:delegate|} (int x)
+                                                       {
+                                                           int y =→x;
+                                                           Console.WriteLine(y);
+                                                       };
+                                                   }
+                                               }
+                                               """);
+
+        var fixedCode = ExpandWhitespaceMarkers("""
+                                                using System;
+
+                                                class C
+                                                {
+                                                    void M()
+                                                    {
+                                                        Action<int> b = (int x) =>
+                                                                        {
+                                                                            int y =→x;
+                                                                            Console.WriteLine(y);
+                                                                        };
+                                                    }
+                                                }
+                                                """);
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a tab inside a comment and a tab inside a string of moving statement lines do not withhold the fix and
+    /// stay as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixIsOfferedForATabInsideACommentAndInsideAStringOfMovingStatementLines()
+    {
+        var testCode = ExpandWhitespaceMarkers("""
+                                               using System;
+
+                                               class C
+                                               {
+                                                   void M()
+                                                   {
+                                                       Action<int> b = {|RH3004:delegate|} (int x)
+                                                       {
+                                                           Console.WriteLine(x); // a→b
+                                                           Console.WriteLine("c→d");
+                                                       };
+                                                   }
+                                               }
+                                               """);
+
+        var fixedCode = ExpandWhitespaceMarkers("""
+                                                using System;
+
+                                                class C
+                                                {
+                                                    void M()
+                                                    {
+                                                        Action<int> b = (int x) =>
+                                                                        {
+                                                                            Console.WriteLine(x); // a→b
+                                                                            Console.WriteLine("c→d");
+                                                                        };
+                                                    }
+                                                }
+                                                """);
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a tab in front of the anonymous method's first line does not withhold the fix: the tab stays, and the
+    /// lambda is laid out from the column of its first token with the tab counted as one column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixIsOfferedForATabInFrontOfTheFirstLineOfTheAnonymousMethod()
+    {
+        var testCode = ExpandWhitespaceMarkers("""
+                                               using System;
+
+                                               class C
+                                               {
+                                                   void M()
+                                                   {
+                                               →·······Action<int> b = {|RH3004:delegate|} (int x)
+                                                       {
+                                                           Console.WriteLine(x);
+                                                       };
+                                                   }
+                                               }
+                                               """);
+
+        var fixedCode = ExpandWhitespaceMarkers("""
+                                                using System;
+
+                                                class C
+                                                {
+                                                    void M()
+                                                    {
+                                                →·······Action<int> b = (int x) =>
+                                                                        {
+                                                                            Console.WriteLine(x);
+                                                                        };
+                                                    }
+                                                }
+                                                """);
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a tab in front of the single <see langword="return"/> statement does not withhold the fix where it
+    /// writes an expression body, which moves no line of the block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixIsOfferedForATabInFrontOfASingleReturnStatementOnTheExpressionBodyPath()
+    {
+        var testCode = ExpandWhitespaceMarkers("""
+                                               using System;
+
+                                               class C
+                                               {
+                                                   void M()
+                                                   {
+                                                       Func<int, int> b = {|RH3004:delegate|} (int x)
+                                                       {
+                                               →···········return x + 1;
+                                                       };
+                                                   }
+                                               }
+                                               """);
+
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Func<int, int> b = (int x) => x + 1;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies Fix All leaves an anonymous method with a tab in front of a moving line as written and reported, and
+    /// rewrites the other anonymous method of the document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixAllLeavesAnAnonymousMethodWithATabInFrontOfAMovingLineReported()
+    {
+        var testCode = ExpandWhitespaceMarkers("""
+                                               using System;
+
+                                               class C
+                                               {
+                                                   void M()
+                                                   {
+                                                       Action<int> b = {|RH3004:delegate|} (int x)
+                                                       {
+                                               →···········Console.WriteLine(x);
+                                                       };
+                                                       Action<int> c = {|RH3004:delegate|} (int x)
+                                                       {
+                                                           Console.WriteLine(x);
+                                                       };
+                                                   }
+                                               }
+                                               """);
+
+        var fixedCode = ExpandWhitespaceMarkers("""
+                                                using System;
+
+                                                class C
+                                                {
+                                                    void M()
+                                                    {
+                                                        Action<int> b = {|RH3004:delegate|} (int x)
+                                                        {
+                                                →···········Console.WriteLine(x);
+                                                        };
+                                                        Action<int> c = (int x) =>
+                                                                        {
+                                                                            Console.WriteLine(x);
+                                                                        };
+                                                    }
+                                                }
+                                                """);
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies a block holding an interpolated verbatim string written with <c>@$"</c> whose continuation line starts
+    /// with a hole: the diagnostic is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForAnAtDollarInterpolatedStringWhoseContinuationLineStartsWithAHole()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<string> b = {|RH3004:delegate|} (string name)
+                                        {
+                                            var s = @$"Hello
+                                {name}";
+                                            Console.WriteLine(s);
+                                        };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a block holding a regular interpolated string whose hole spans lines: the diagnostic is reported and no
+    /// code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-008")]
+    public async Task FixWithheldForARegularInterpolatedStringWhoseHoleSpansLines()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action<int> b = {|RH3004:delegate|} (int x)
+                                        {
+                                            var s = $"{x
+                                                + 1}";
+                                            Console.WriteLine(s);
+                                        };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the block-body fix is withheld when the statements it moves hold an LF line break in a document
+    /// whose line breaks are otherwise CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task FixWithheldWhenTheBlockHoldsALineBreakOtherThanTheDocumentsLineEnding()
+    {
+        var testCode = NormalizeToCarriageReturnLineFeed("""
+                                                         using System;
+
+                                                         class C
+                                                         {
+                                                             void M()
+                                                             {
+                                                                 Action<int> b = {|RH3004:delegate|} (int x)
+                                                                 {
+                                                                     Console.WriteLine(x);{LF}
+                                                                     Console.WriteLine(x);
+                                                                 };
+                                                             }
+                                                         }
+                                                         """).Replace("{LF}\r\n", "\n");
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the block-body fix is withheld in a document whose line breaks are all a lone carriage return, where
+    /// the block it moves holds line breaks
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task FixWithheldWhenTheBlockHoldsLoneCarriageReturnLineBreaks()
+    {
+        var testCode = """
+                       using System;
+
+                       class C
+                       {
+                           void M()
+                           {
+                               Action<int> b = {|RH3004:delegate|} (int x)
+                               {
+                                   Console.WriteLine(x);
+                                   Console.WriteLine(x);
+                               };
+                           }
+                       }
+                       """.Replace("\r\n", "\n").Replace("\n", "\r");
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an LF line break outside the code the fix changes, in a document whose line breaks are otherwise
+    /// CRLF, does not withhold the block-body fix, which writes CRLF and leaves that line break as it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task LineBreakOtherThanTheDocumentsLineEndingOutsideTheChangedCodeKeepsTheFix()
+    {
+        var testCode = NormalizeToCarriageReturnLineFeed("""
+                                                         using System;{LF}
+
+                                                         class C
+                                                         {
+                                                             void M()
+                                                             {
+                                                                 Action<int> b = delegate (int x)
+                                                                 {
+                                                                     Console.WriteLine(x);
+                                                                     Console.WriteLine(x);
+                                                                 };
+                                                             }
+                                                         }
+                                                         """).Replace("{LF}\r\n", "\n");
+
+        var expectedCode = NormalizeToCarriageReturnLineFeed("""
+                                                             using System;{LF}
+
+                                                             class C
+                                                             {
+                                                                 void M()
+                                                                 {
+                                                                     Action<int> b = (int x) =>
+                                                                                     {
+                                                                                         Console.WriteLine(x);
+                                                                                         Console.WriteLine(x);
+                                                                                     };
+                                                                 }
+                                                             }
+                                                             """).Replace("{LF}\r\n", "\n");
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
     }
 
     #endregion // Tests

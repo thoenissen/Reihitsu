@@ -5,9 +5,9 @@
 | ID prefix | FMT-DOC |
 | Status | Active |
 | Code owners | `DocumentationCommentFormattingPhase`, `DocCommentElementNormalizer`, `DocumentationCommentUtilities` |
-| Uses | FMT-BLANK-012, FMT-CLEAN-009, FMT-INDENT-002, FMT-INDENT-006, FMT-INDENT-029, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-010, SHARED-DOC-017 |
+| Uses | FMT-BLANK-012, FMT-CLEAN-009, FMT-INDENT-002, FMT-INDENT-006, FMT-INDENT-029, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-010, FMT-PIPE-032, SHARED-DOC-017 |
 
-This spec covers what the documentation-comment phase decides about documentation comments: moving a single-line (`///`) or delimited (`/** … */`) documentation comment written behind code onto a new line, and, for single-line comments only, the separator after each `///` exterior and the line layout of the XML elements inside the comment. It is the normalization of documentation-comment text that FMT-PIPE-002 allows.
+This spec covers what the documentation-comment phase decides about documentation comments: moving a single-line (`///`) or delimited (`/** … */`) documentation comment written behind code onto a new line, and, for single-line comments only, the separator after each `///` exterior and the line layout of the XML elements inside the comment. It is the normalization of documentation-comment text that FMT-PIPE-002 allows. The code fixes of RH8305 and RH8307 lay out the one element they fix through `ReihitsuFormatter.FormatDocumentationElementInDocumentAsync`, which gives that element the text this phase gives it and changes nothing else (FMT-PIPE-032), so the element layout of FMT-DOC-008 to FMT-DOC-011 is also their output.
 
 ## Non-goals
 

@@ -3,6 +3,7 @@ using System.Linq;
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Reihitsu.Core;
 
@@ -53,29 +54,35 @@ public static class AccessorOrderingUtilities
     }
 
     /// <summary>
-    /// Moves an accessor before another accessor. Blank-line separators are kept at the position they already
-    /// occupied via <see cref="OrderingMoveSafety.MoveNodeBeforePreservingSeparators{TNode}"/>
+    /// Creates the text change that moves an accessor before another accessor (SHARED-ORDER-009): within the line when the
+    /// whole accessor list stands on one line, otherwise as a move of whole lines, which
+    /// <see cref="OrderingMoveSafety.TryCreateWholeLineMove{TNode}"/> refuses where it cannot be performed. The swap within
+    /// the line is refused when a comment stands in the list outside every accessor, in front of the first, between two,
+    /// or behind the last: the swap leaves the text between the accessors in place, so such a comment would end up next to
+    /// another accessor
     /// </summary>
     /// <param name="accessorList">Accessor list</param>
     /// <param name="accessorToMove">Accessor to move</param>
     /// <param name="targetAccessor">Target accessor</param>
-    /// <returns>The updated accessor list</returns>
-    public static AccessorListSyntax MoveAccessorBefore(AccessorListSyntax accessorList, AccessorDeclarationSyntax accessorToMove, AccessorDeclarationSyntax targetAccessor)
+    /// <param name="change">The text change that performs the move</param>
+    /// <returns><see langword="true"/> if the move can be performed</returns>
+    public static bool TryCreateMove(AccessorListSyntax accessorList, AccessorDeclarationSyntax accessorToMove, AccessorDeclarationSyntax targetAccessor, out TextChange change)
     {
-        var accessorDeclarations = accessorList.Accessors;
-        var accessorToMoveIndex = accessorDeclarations.IndexOf(accessorToMove);
-        var targetAccessorIndex = accessorDeclarations.IndexOf(targetAccessor);
+        var lines = accessorList.SyntaxTree.GetText().Lines;
 
-        if (accessorToMoveIndex < 0
-            || targetAccessorIndex < 0
-            || accessorToMoveIndex <= targetAccessorIndex)
+        if (lines.GetLineFromPosition(accessorList.OpenBraceToken.SpanStart).LineNumber != lines.GetLineFromPosition(accessorList.CloseBraceToken.SpanStart).LineNumber)
         {
-            return accessorList;
+            return OrderingMoveSafety.TryCreateWholeLineMove(accessorList.Accessors, accessorToMove, targetAccessor, out change);
         }
 
-        var updatedAccessors = OrderingMoveSafety.MoveNodeBeforePreservingSeparators(accessorDeclarations, accessorToMove, targetAccessor);
+        if (HoldsCommentOutsideEveryAccessor(accessorList))
+        {
+            change = default;
 
-        return accessorList.WithAccessors(updatedAccessors);
+            return false;
+        }
+
+        return OrderingMoveSafety.TryCreateSwapWithinLine(accessorList.Accessors, accessorToMove, targetAccessor, out change);
     }
 
     /// <summary>
@@ -91,6 +98,18 @@ public static class AccessorOrderingUtilities
     public static bool MoveRangeContainsDirectives(AccessorListSyntax accessorList, AccessorDeclarationSyntax accessorToMove, AccessorDeclarationSyntax targetAccessor)
     {
         return OrderingMoveSafety.MoveRangeContainsDirectives(accessorList, accessorList.Accessors, accessorToMove, targetAccessor);
+    }
+
+    /// <summary>
+    /// Determines whether a comment stands between the braces of an accessor list outside every accessor
+    /// </summary>
+    /// <param name="accessorList">Accessor list</param>
+    /// <returns><see langword="true"/> if such a comment stands in the list</returns>
+    private static bool HoldsCommentOutsideEveryAccessor(AccessorListSyntax accessorList)
+    {
+        return accessorList.DescendantTrivia(TextSpan.FromBounds(accessorList.OpenBraceToken.Span.End, accessorList.CloseBraceToken.SpanStart))
+                           .Any(trivia => SyntaxTriviaUtilities.IsCommentTrivia(trivia)
+                                          && accessorList.Accessors.Any(accessor => accessor.Span.Contains(trivia.Span)) == false);
     }
 
     #endregion // Methods

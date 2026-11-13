@@ -159,11 +159,12 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies that the code fix indents the member at the attribute list's syntactic nesting depth when another
-    /// declaration precedes the list on the same physical line
+    /// Verifies that the code fix gives the attribute list and the member lines of their own, at the attribute list's
+    /// syntactic nesting depth, when another declaration precedes the list on the same physical line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-FIX-007")]
     public async Task VerifyCodeFixIndentsAtNestingDepthWhenPrecededByOtherSourceOnSameLine()
     {
         const string testData = """
@@ -178,7 +179,8 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
         const string fixedData = """
                                  internal class Example
                                  {
-                                     private int _pad; [First]
+                                     private int _pad;
+                                     [First]
                                      internal Example() { }
                                  }
                                  sealed class FirstAttribute : System.Attribute
@@ -264,15 +266,16 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies that the code fix always emits spaces for the computed indentation, even when another declaration
-    /// on the same line is itself tab-indented
+    /// Verifies that the code fix always emits spaces for the computed indentation of the attribute list and the member,
+    /// even when another declaration on the same line is itself tab-indented, and leaves that declaration's tab as written
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-FIX-007")]
     public async Task VerifyCodeFixUsesSpacesRegardlessOfSurroundingTabIndentation()
     {
         const string testData = "internal class Example\n{\n\tprivate int _pad; {|#0:[First]|} internal Example() { }\n}\nsealed class FirstAttribute : System.Attribute\n{\n}\n";
-        const string fixedData = "internal class Example\n{\n\tprivate int _pad; [First]\n    internal Example() { }\n}\nsealed class FirstAttribute : System.Attribute\n{\n}\n";
+        const string fixedData = "internal class Example\n{\n\tprivate int _pad;\n    [First]\n    internal Example() { }\n}\nsealed class FirstAttribute : System.Attribute\n{\n}\n";
 
         await Verify(testData,
                      fixedData,
@@ -362,6 +365,7 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-FIX-007")]
     public async Task VerifyCodeFixIndentsCorrectlyWhenLineBeginsInsideMultiLineVerbatimString()
     {
         const string testData = """
@@ -378,7 +382,8 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
                                  internal class Example
                                  {
                                      private const string Text = @"a
-                                           b"; [First]
+                                           b";
+                                     [First]
                                      internal Example() { }
                                  }
                                  sealed class FirstAttribute : System.Attribute
@@ -481,6 +486,7 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-FIX-007")]
     public async Task VerifyCodeFixIndentsCorrectlyWhenAttributeListFollowsMultiLineParameterList()
     {
         const string testData = """
@@ -497,7 +503,8 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
                                  internal class Example
                                  {
                                      internal void M(int a,
-                                                     int b) { } [First]
+                                                     int b) { }
+                                     [First]
                                      internal Example() { }
                                  }
                                  sealed class FirstAttribute : System.Attribute
@@ -516,6 +523,7 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-FIX-007")]
     public async Task VerifyCodeFixIndentsCorrectlyWhenAttributeListFollowsMultiLineInitializer()
     {
         const string testData = """
@@ -532,7 +540,8 @@ public class RH5511ConstructorAttributesMustFollowPlacementRulesAnalyzerTests : 
                                  internal class Example
                                  {
                                      private int Pad =
-                                         1 + 2; [First]
+                                         1 + 2;
+                                     [First]
                                      internal Example() { }
                                  }
                                  sealed class FirstAttribute : System.Attribute

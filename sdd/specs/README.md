@@ -20,7 +20,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [formatter/line-endings.md](formatter/line-endings.md) | FMT-EOL | `LineEndingNormalizationPhase` |
 | [formatter/unsupported-syntax.md](formatter/unsupported-syntax.md) | FMT-UNSUP | `PrecheckPhase`, `FormattingResult<T>`, `UnsupportedSyntax`, `SyntaxNotSupportedException` |
 | [shared/attribute-targets.md](shared/attribute-targets.md) | SHARED-ATTR | `AttributeTargetRuleAnalyzerBase`, `TargetAttributePlacementAnalyzerBase`, `TargetAttributePlacementCodeFixProviderBase`, `TargetAttributeListShapeAnalyzerBase`, `TargetAttributeListShapeCodeFixProviderBase`, `AttributeTargetUtilities`, `AttributeListMergeSeparators` |
-| [shared/blank-line-after-brace-fixes.md](shared/blank-line-after-brace-fixes.md) | SHARED-AFTERBRACE | `BlankLineCodeFixUtilities` |
+| [shared/blank-line-after-brace-fixes.md](shared/blank-line-after-brace-fixes.md) | SHARED-AFTERBRACE | — |
 | [shared/blank-line-spacing.md](shared/blank-line-spacing.md) | SHARED-BLANK | `BlankLineSpacingPolicy`, `TokenGapAnalysis`, `SyntaxTokenPositionUtilities`, `RegionDirectiveBlankLineUtilities`, `FormattingTextAnalysisUtilities` |
 | [shared/casing.md](shared/casing.md) | SHARED-CASING | `CasingAnalyzerBase`, `CasingCodeFixProviderBase<T>`, `ExcludedCodeUtilities`, `NamingAccessibilityClassifier`, `NamespaceCasingHelper`, `CasingUtilities` |
 | [shared/code-fixes.md](shared/code-fixes.md) | SHARED-FIX | — |
@@ -42,7 +42,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [shared/region-descriptions.md](shared/region-descriptions.md) | SHARED-REGDESC | `RegionDescriptionAnalyzerBase` |
 | [shared/region-directive-blank-lines.md](shared/region-directive-blank-lines.md) | SHARED-REGION | `RegionDirectiveBlankLineAnalyzerBase`, `RegionDirectiveBlankLineCodeFixProviderBase` |
 | [shared/single-letter-names.md](shared/single-letter-names.md) | SHARED-SINGLE | `SingleLetterIdentifierUtilities` |
-| [shared/statement-blank-lines.md](shared/statement-blank-lines.md) | SHARED-STMT | `StatementShouldBePrecededByABlankLineAnalyzerBase<TStatement>`, `StatementShouldBePrecededByABlankLineCodeFixProviderBase` |
+| [shared/statement-blank-lines.md](shared/statement-blank-lines.md) | SHARED-STMT | `StatementShouldBePrecededByABlankLineAnalyzerBase<TStatement>`, `StatementShouldBePrecededByABlankLineCodeFixProviderBase`, `BlankLineCodeFixUtilities` |
 | [shared/statement-blocks.md](shared/statement-blocks.md) | SHARED-BLOCK | `StatementBlockParentPolicy` |
 | [shared/statement-braces.md](shared/statement-braces.md) | SHARED-BRACE | `StatementBracesCodeFixProviderBase` |
 | [shared/struct-equality.md](shared/struct-equality.md) | SHARED-EQUAL | `StructEqualityPerformanceAnalyzerBase`, `EqualityComparerArgumentUtilities` |
