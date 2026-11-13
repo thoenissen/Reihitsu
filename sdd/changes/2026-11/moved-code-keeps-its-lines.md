@@ -4,14 +4,16 @@
 |---|---|
 | Status | Draft |
 | Date | 2026-11 |
-| Affected requirements | SHARED-FIX-007 (changed), SHARED-ORDER-009 (added), SHARED-ORDER-010 (added), RH7004-007 (added), RH7102-006, RH7103-007, RH7107-005, RH7108-005, RH7109-006 (changed: list the new refusals), RH7107-004, RH7108-004 (changed: the swap within a one-line accessor list) |
+| Affected requirements | SHARED-FIX-007 (changed), SHARED-ORDER-009 (added), SHARED-ORDER-010 (added), RH7004-007 (added), SHARED-DOC-004 (changed: a member or accessor move does not carry a `///` comment behind code), RH3004-006 (clarified: its line rule is SHARED-FIX-007's), RH7102-006, RH7103-007, RH7107-005, RH7108-005, RH7109-006 (changed: list the new refusals), RH7107-004, RH7108-004 (changed: the swap within a one-line accessor list) |
 
 ## What
 
-- **Columns of moved lines** (SHARED-FIX-007, *Moved code*). For a member or an accessor that a fix moves within its list (RH7102, RH7103, RH7107, RH7108, RH7109) and for the statements that the RH7004 fix wraps into a new block, every line of the moved code moves by the same number of columns, so its lines keep their columns relative to each other, continuation lines included. The number is the shift of the moved code's first token: for a member or an accessor, from its column to the column of its slot (none where both are indented alike); for RH7004, one indentation level. A line that starts with a comment in column 0 and the line of a directive other than `#region` and `#endregion` keep their column; a `#region` or `#endregion` line moves with the code. Until now the requirement only said that "the indentation of its lines follows its new nesting", which did not decide a line that does not start a statement or member.
-- **Whole-line moves** (SHARED-ORDER-009). A member or accessor move is offered only when it moves whole lines: neither the moved declaration nor the target shares its line with another declaration or with a brace of the type or the accessor list. For an accessor move this is stated for an accessor list that spans lines; when the whole accessor list stands on one line, the accessors swap places within that line, and the list stays on one line.
-- **Lines a shift cannot move, in a member or accessor move** (SHARED-ORDER-010). When the move changes the column of the moved declaration's first token, the fix is withheld if the declaration holds a line that starts inside a string literal or a comment that spans lines, or a line of disabled text.
-- **Lines a shift cannot move, in RH7004** (RH7004-007). The fix is withheld when the moved statements hold a string literal of any kind or a comment that spans lines, or disabled text, or when the first moved statement starts on the line of the using declaration.
+- **Columns of moved lines** (SHARED-FIX-007, *Moved code*). For a member or an accessor that a fix moves within its list (RH7102, RH7103, RH7107, RH7108, RH7109) and for the statements that the RH7004 fix wraps into a new block, every line of the moved code moves by the same number of columns, so its lines keep their columns relative to each other, continuation lines included. The number is the shift of the moved code's first token: for a member or an accessor, from its column to the column of its slot (none where both are indented alike); for RH7004, one indentation level. A comment line in column 0 — a line that holds nothing but comments and whitespace, its first comment in column 0 — and the line of a directive other than `#region` and `#endregion` keep their column; a line that holds code moves, also behind a comment in column 0 such as `/* x */ Foo();`, and so does a `#region` or `#endregion` line. This is the line rule the RH3004 fix already applies. A tab at the start of a moved line counts as one column. Until now the requirement only said that "the indentation of its lines follows its new nesting", which did not decide a line that does not start a statement or member.
+- **Whole-line moves** (SHARED-ORDER-009). A member or accessor move is offered only when it moves whole lines: neither the moved declaration nor the target shares its line with another declaration or with a brace of the type or the accessor list, and the leading trivia of neither starts behind code, as a `///` comment written behind code does when it documents the declaration below it. Crossed declarations that share a line with each other keep that line and move as one block. For an accessor move this is stated for an accessor list that spans lines; when the whole accessor list stands on one line, the accessors swap places within that line, and the list stays on one line.
+- **Lines a shift cannot move, in a member or accessor move** (SHARED-ORDER-010). When the move changes the column of the moved declaration's first token, the fix is withheld if the declaration holds a line that starts inside a string literal or a comment that spans lines, or a line of disabled text, or, for a shift to the left, a moving line written further left than the shift reaches.
+- **Lines a shift cannot move, in RH7004** (RH7004-007). The fix is withheld when the moved statements hold a string literal of any kind or a comment that spans lines, or disabled text, or when a line the fix changes is shared with code it does not move: the first moved statement starts on the line of the using declaration, code stands in front of the declaration on its line, or the last moved statement ends on the line of the block's closing brace. A comment or directive in front of the declaration's semicolon withholds it as on `main`.
+
+- **Blank lines joined by a removed directive line** (SHARED-FIX-007, *Removed directive line*; RH7303, RH7310). Where a removal joins blank lines in front of a removed line with blank lines behind it, the blank lines in front stay as written and those behind it go. This only states which of the blank lines is kept; the number of blank lines left follows the bullet as before.
 
 ## Why
 
@@ -475,6 +477,223 @@ y";
 
 After: no fix offered.
 
+### A line of code behind a comment in column 0 among moved statements (RH7004)
+
+```csharp
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using var s = new MemoryStream();
+/* x */ s.Flush();
+        s.Flush();
+    }
+}
+```
+
+Before:
+
+```csharp
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var s = new MemoryStream())
+        {
+            /* x */ s.Flush();
+            s.Flush();
+        }
+    }
+}
+```
+
+After:
+
+```csharp
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var s = new MemoryStream())
+        {
+    /* x */ s.Flush();
+            s.Flush();
+        }
+    }
+}
+```
+
+The line holds code, so it is no comment line: it moves one level with the other statements, as every line of the RH3004 fix's block that holds code does.
+
+### Code in front of the using declaration on its line (RH7004)
+
+```csharp
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        int a = 0; using var s = new MemoryStream();
+        s.Flush();
+    }
+}
+```
+
+Before:
+
+```csharp
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        int a = 0; using (var s = new MemoryStream())
+                   {
+                       s.Flush();
+                   }
+    }
+}
+```
+
+After: no fix offered.
+
+### The last moved statement shares its line with the block's closing brace (RH7004)
+
+```csharp
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using var s = new MemoryStream();
+        s.Flush(); }
+}
+```
+
+Before:
+
+```csharp
+using System.IO;
+
+class C
+{
+    void M()
+    {
+        using (var s = new MemoryStream())
+        {
+            s.Flush();
+        }
+}
+}
+```
+
+After: no fix offered.
+
+### A `///` comment behind code documents the moved member (RH7103; the same for RH7102, RH7109)
+
+With the documentation mode `Parse` or `Diagnose`:
+
+```csharp
+public class C
+{
+    public void Run()
+    {
+    } /// <summary>Creates</summary>
+    public static void Create()
+    {
+    }
+}
+```
+
+Before:
+
+```csharp
+public class C
+{
+    /// <summary>
+    /// Creates
+    /// </summary>
+    public static void Create()
+    {
+    }
+    public void Run()
+    {
+    }
+}
+```
+
+After: no fix offered. With the documentation mode `None`, the comment is an ordinary comment behind `Run`'s closing brace, and the fix moves `Create` without it, as before.
+
+### A `///` comment behind code documents the target (RH7109; the same for RH7102, RH7103)
+
+With the documentation mode `Parse` or `Diagnose`:
+
+```csharp
+class C
+{
+    private const int K = 1; /// <summary>A</summary>
+    private int _a;
+    private readonly int _b;
+}
+```
+
+Before:
+
+```csharp
+class C
+{
+    private const int K = 1;
+    private readonly int _b;
+
+    /// <summary>
+    /// A
+    /// </summary>
+    private int _a;
+}
+```
+
+After: no fix offered.
+
+### Crossed members that share a line keep it (RH7109; the same for RH7102, RH7103)
+
+```csharp
+class C
+{
+    private int _a; private int _c;
+    private readonly int _b;
+}
+```
+
+Before:
+
+```csharp
+class C
+{
+    private readonly int _b;
+    private int _a;
+    private int _c;
+}
+```
+
+After:
+
+```csharp
+class C
+{
+    private readonly int _b;
+    private int _a; private int _c;
+}
+```
+
 ## Decisions
 
 ### Moved lines keep their columns relative to each other
@@ -512,6 +731,22 @@ Spec author, local rare-class refusal. RH5103 reports a second statement on a li
 ### A shifted member or accessor with lines that cannot move is withheld
 
 Spec author, local rare-class refusal (SHARED-ORDER-010). A shift other than zero happens only for a declaration indented differently from its slot, which the indentation rule reports. The lines that cannot move are the same classes RH7004-007 withholds, so both fixes refuse alike.
+
+### Code in front of the declaration, or a closing brace behind the last statement, withholds RH7004
+
+Lead, decision 21; local rare-class refusals. Both shapes are reported by the layout rules, and the new block would share a line with code the fix does not move: the fix would have to decide a line break, or a column for the braces that no line's indentation states. `main` produces a broken layout for both.
+
+### A move does not carry a `///` comment behind code
+
+Lead, decision 22, from the maintainer's whole-line answer (Q1). The comment documents the declaration below it, so it would have to travel with the moved declaration onto a line of its own, a line break the author did not write; leaving it behind would hand the documentation to another declaration. The same comment in front of the target would end up documenting the moved declaration. Both moves are withheld. RH8303 reports the comment.
+
+### Crossed members that share a line move as one block
+
+Lead, decision 23. They do not move relative to each other, so keeping their line decides no line break; splitting it, as `main` does, would.
+
+### One line rule for moved lines; a tab counts as one column
+
+Lead, decisions 19 and 23. A comment line in column 0 is the line RH3004 already keeps; a line that holds code moves, whatever comment stands in front of it. A tab counts as one column, as the rules count it elsewhere (FMT-PIPE-017). A shift to the left that would cut a line off at column 0 is withheld (SHARED-ORDER-010): it is rare, because only a member indented deeper than its slot shifts to the left, and cutting the line off would break the rule that every line moves by the same number of columns. The SHARED-ORDER-010 example gets no fix on `main` either, there because the comment stands inside the declaration (FMT-UNSUP-004).
 
 ## Alternatives considered
 
