@@ -39,11 +39,22 @@ _None yet._
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name | Use the session's required branch `claude/squad-tickets-review-eiuqp5` instead of `claude/batch-1140-<slug>` | The session's environment permits pushing only to that branch | Branch names are internal | 6976d68 |
 | 2 | Start | Order of skeptic and spec author in the bug-fix lane | Skeptic first (premise + reachability + reproduction status on main), spec author afterwards only for the clarifications the confirmed issues need | Several issues may already be resolved on main (#1393, #1144 RH5101/5102); clarifications for cases that do not reproduce would be wasted | Order of roles is internal | — |
+| 3 | Skeptic | #1140 spans ~20 code fixes and ~15 rule requirements (architecture finding: scope chosen by node; fixes predicting the indentation phase) | Fix narrowly, no new formatter entry point. #1140 is narrowed to the instances on fixes this run changes anyway: RH5204 (with #1511/#1561), RH6023/RH6024 (#1141), RH5405–RH5407/RH5403 (with #1144 `else if`), RH5417/RH3202 (with #1144 shared line). Its other instances (RH5101/5102 content, RH5110, RH5111, RH5112/RH5201 fallback, RH5113, RH5206, RH5303–RH5308, RH5401, RH5404, RH5408, RH5412–RH5416, RH3201 Q2) stay on #1140, which is linked `Refs`; the structural cause becomes a follow-up candidate | An entry point that lays out only changed code is >100 lines/new type; the batch is already eight issues; narrowing leaves those outputs as on `main` | Narrowing keeps `main`'s output; nothing new is written | — |
+| 4 | Skeptic | #1140 output questions 2 (RH5112) and 3 (RH5101 `1+2`) | Not asked: they belong to the instances left on #1140 (decision 3); carried into the follow-up | Outside the narrowed run | Not changed by the run | — |
+| 5 | Skeptic | #1141 `/* c */` instance | Drop as defect; characterization test | Does not reproduce | Unchanged output | — |
+| 6 | Skeptic | #1144 RH5101/RH5102 raw-string, #1238 Q2, misindented-target instance, FMT-PIPE-010 sentence | Drop; characterization tests for the raw-string and #1238 Q2 inputs; no FMT-PIPE-010 change (FMT-PIPE-017 already states it) | Do not reproduce / already specified | Unchanged output | — |
+| 7 | Skeptic | #1144 RH5205 lambda with attribute list | Withhold the RH5205 fix when the lambda carries an attribute list (rare class, cheap check); record in RH5205 spec | Avoids changing FMT-PIPE-017's implementation for a rare shape | Withholding for a rare class (README) | — |
+| 8 | Skeptic | #1145 Q4 (preceding statement does not start its line inside a block) | Withhold the RH5103 fix for that class; record in RH5103 spec. Q2: narrow the guard | Both Q4 inputs already violate RH5417 (rare); computing the column would predict the indentation phase | Withholding for a rare class | — |
+| 9 | Skeptic | #1094 Q3 (attribute list in a block not at its depth column) / Q4 | Q3: withhold the fix when the innermost enclosing brace is not at four spaces per scope (SHARED-ATTR-008's own boundary). Q4: drop, characterization test (output decided in #1030 Q4). Q2: fix | Rare class; Q4 already decided output | Withholding for a rare class; Q4 unchanged | — |
+| 10 | Skeptic | #1144 `else if` brace column vs #1416 | Fixed here under SHARED-FIX-007; #1416 (SHARED-BRACE-002 wording) stays its own issue | SHARED-FIX-007 decides the column already | Unchanged requirement decides it | — |
+| 11 | Skeptic | #1561 | Analyzer fix: RH5204 uses SHARED-BLANK-008 (`StartsLine`); no spec clarification | RH5204-001 + SHARED-BLANK-008 already decide "not reported" | Bug fix back to unchanged requirement | — |
 
 ## Follow-up candidates
 
-_None yet._
+- Structural cause of #1140 (skeptic 01, *Architecture findings*): fixes choose scope by choosing a node and `FormatNodeInDocumentAsync` formats everything inside it; fixes that need less compute columns themselves; ~15 rule requirements restate a wider scope than SHARED-FIX-006. Carries #1140's remaining instances and output questions 2 (RH5112) and 3 (RH5101). (01-skeptic)
+- Other analyzers calling `IsFirstOnLine` where their spec says SHARED-BLANK-008 (01-skeptic, #1561)
 
 ## Worklist / next step
 
-- Next: spawn the skeptic over all eight issues.
+- Skeptic done (01-skeptic.md, 2402f9b). Waiting for maintainer: output questions RH5204 scope, RH5203 comment line; escalation 4 (#1393); escalation 10 (#1561 shape); confirmation of narrowing #1140 (shown for visibility).
+- Next after answers: spec author (clarifications RH5204-006, RH5203-003 per answer, RH5103-003 withheld class, RH5205 withheld class, RH5513/SHARED-ATTR withheld class), then test implementer.
