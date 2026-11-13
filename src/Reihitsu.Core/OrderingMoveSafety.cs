@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 using Microsoft.CodeAnalysis;
@@ -62,70 +61,19 @@ public static class OrderingMoveSafety
     }
 
     /// <summary>
-    /// Moves a node before an earlier node of the same list while keeping every blank-line separator at the
-    /// position it already occupied. A separator between two siblings is stored in the leading trivia of the
-    /// sibling that follows it, so a plain remove-and-insert carries that trivia away with whichever node happens
-    /// to own it, relocating or deleting the separator instead of leaving it where the author put it. Comments,
-    /// documentation and directives in a node's leading trivia stay with that node; the whitespace and end-of-line
-    /// run before them — which is a node's own indentation when it carries none of that content — is repositioned
-    /// to whichever position it already belonged to, so a caller without a later formatting pass may need to
-    /// re-indent the result
-    /// </summary>
-    /// <typeparam name="TNode">List node type</typeparam>
-    /// <param name="nodes">List the move operates on</param>
-    /// <param name="nodeToMove">Node to move</param>
-    /// <param name="targetNode">Node the moved node should precede</param>
-    /// <returns>The updated list, or the original list when the move is not forward-only or either node is missing</returns>
-    public static SyntaxList<TNode> MoveNodeBeforePreservingSeparators<TNode>(SyntaxList<TNode> nodes, TNode nodeToMove, TNode targetNode)
-        where TNode : SyntaxNode
-    {
-        var nodeToMoveIndex = nodes.IndexOf(nodeToMove);
-        var targetNodeIndex = nodes.IndexOf(targetNode);
-
-        if (nodeToMoveIndex < 0
-            || targetNodeIndex < 0
-            || nodeToMoveIndex <= targetNodeIndex)
-        {
-            return nodes;
-        }
-
-        var originalGaps = new SyntaxTriviaList[nodeToMoveIndex - targetNodeIndex + 1];
-
-        for (var index = targetNodeIndex; index <= nodeToMoveIndex; index++)
-        {
-            originalGaps[index - targetNodeIndex] = GetLeadingGap(nodes[index]);
-        }
-
-        var reorderedNodes = new List<TNode>(nodes);
-        var movedNode = reorderedNodes[nodeToMoveIndex];
-
-        reorderedNodes.RemoveAt(nodeToMoveIndex);
-        reorderedNodes.Insert(targetNodeIndex, movedNode);
-
-        for (var index = targetNodeIndex; index <= nodeToMoveIndex; index++)
-        {
-            var node = reorderedNodes[index];
-            var payload = GetLeadingPayload(node);
-
-            reorderedNodes[index] = node.WithLeadingTrivia(originalGaps[index - targetNodeIndex].AddRange(payload));
-        }
-
-        return SyntaxFactory.List(reorderedNodes);
-    }
-
-    /// <summary>
     /// Creates the text change that moves a node in front of an earlier node of the same list as a move of whole lines
     /// (SHARED-ORDER-009). The move is refused when the moved node shares a line with a token outside it, or a token
     /// stands in front of the target node on the line of its first token. Every blank-line separator stays at the
     /// position it occupied (SHARED-ORDER-002): the whole blank lines in front of each node's first comment,
     /// documentation comment, directive, or token belong to the position, and the lines from there to the end of the
     /// node move with the node. Each line keeps its column, except that every line of the moved node moves by the
-    /// shift of its first token to the column of the target node's first token (SHARED-FIX-007); a line that starts
-    /// with a comment in column 0, and the line of a directive other than <c>#region</c> and <c>#endregion</c>, keep
-    /// their column. A shift is refused when the moved node holds a line that starts inside a string literal or a
-    /// comment that spans lines, or a line of disabled text (SHARED-ORDER-010). Crossed nodes that share a line move
-    /// together as one block, and a documentation comment that starts behind the code in front of the moved node moves
-    /// with it onto a line of its own (SHARED-DOC-004)
+    /// shift of its first token to the column of the target node's first token (SHARED-FIX-007); a line
+    /// that holds nothing but comments, the first of them in column 0, and the line of a directive other than
+    /// <c>#region</c> and <c>#endregion</c>, keep their column. A shift is refused when the moved node holds a line that
+    /// starts inside a string literal or a comment that spans lines, or a line of disabled text, or when a left shift would
+    /// cut a line off at column 0 (SHARED-ORDER-010). Crossed nodes that share a line move together as one block. The
+    /// move is also refused when the leading trivia of the moved node or of the target starts behind code, such as a
+    /// documentation comment written behind the code in front of it (SHARED-ORDER-009, SHARED-DOC-004)
     /// </summary>
     /// <typeparam name="TNode">List node type</typeparam>
     /// <param name="nodes">List the move operates on</param>
@@ -155,21 +103,16 @@ public static class OrderingMoveSafety
         if (StartsItsLine(targetNode, lines) == false
             || IsLineStart(targetNode.FullSpan.Start, lines) == false
             || StartsItsLine(nodeToMove, lines) == false
+            || IsLineStart(nodeToMove.FullSpan.Start, lines) == false
             || EndsItsLine(nodeToMove, lines) == false)
         {
             return false;
         }
 
         var shift = GetColumn(targetNode.GetFirstToken(), lines) - GetColumn(nodeToMove.GetFirstToken(), lines);
-        var movedBody = TextSpan.FromBounds(System.Math.Max(nodeToMove.FullSpan.Start, GetBodyStart(nodeToMove, lines)), nodeToMove.FullSpan.End);
+        var movedBodyStart = GetBodyStart(nodeToMove, lines);
 
-        var firstLine = lines.GetLineFromPosition(movedBody.Start);
-        var startsBehindCode = IsLineStart(movedBody.Start, lines) == false;
-        var shiftedSpan = startsBehindCode
-                              ? TextSpan.FromBounds(firstLine.EndIncludingLineBreak, movedBody.End)
-                              : movedBody;
-
-        if (SyntaxIndentationUtilities.TryShiftMovedLines(root, text, shiftedSpan, shift, out var shiftedText) == false)
+        if (SyntaxIndentationUtilities.TryShiftMovedLines(root, text, TextSpan.FromBounds(movedBodyStart, nodeToMove.FullSpan.End), shift, out var shiftedText) == false)
         {
             return false;
         }
@@ -195,23 +138,9 @@ public static class OrderingMoveSafety
             bodies.Add(text.ToString(TextSpan.FromBounds(bodyStart, node.FullSpan.End)));
         }
 
+        gaps.Add(TextSpan.FromBounds(nodeToMove.FullSpan.Start, movedBodyStart));
+
         var builder = new StringBuilder(text.ToString(gaps[0]));
-
-        if (startsBehindCode)
-        {
-            // A documentation comment that starts behind the code in front of the moved node travels with it and starts
-            // its line at the slot; the line it leaves keeps its code and its line break
-            var targetLine = lines.GetLineFromPosition(targetNode.GetFirstToken().SpanStart);
-
-            gaps.Add(new TextSpan(nodeToMove.FullSpan.Start, 0));
-            bodies[bodies.Count - 1] = bodies[bodies.Count - 1].TrimEnd(' ', '\t') + text.ToString(TextSpan.FromBounds(firstLine.End, firstLine.EndIncludingLineBreak));
-            builder.Append(text.ToString(TextSpan.FromBounds(targetLine.Start, targetNode.GetFirstToken().SpanStart)))
-                   .Append(text.ToString(TextSpan.FromBounds(movedBody.Start, firstLine.EndIncludingLineBreak)));
-        }
-        else
-        {
-            gaps.Add(TextSpan.FromBounds(nodeToMove.FullSpan.Start, movedBody.Start));
-        }
 
         builder.Append(shiftedText);
 
@@ -336,41 +265,6 @@ public static class OrderingMoveSafety
     private static int GetColumn(SyntaxToken token, TextLineCollection lines)
     {
         return token.SpanStart - lines.GetLineFromPosition(token.SpanStart).Start;
-    }
-
-    /// <summary>
-    /// Gets the positional whitespace-and-end-of-line run at the very start of a node's leading trivia — the run
-    /// up to its first comment, documentation comment, or directive, or the entire leading trivia list when none
-    /// of those is present. This is the part of a separator — and, when nothing else is present, the node's own
-    /// indentation — that belongs to the boundary between two siblings rather than to either sibling
-    /// </summary>
-    /// <param name="node">Node whose leading trivia to inspect</param>
-    /// <returns>The positional leading trivia run</returns>
-    private static SyntaxTriviaList GetLeadingGap(SyntaxNode node)
-    {
-        var leadingTrivia = node.GetLeadingTrivia();
-        var firstSignificantIndex = SyntaxTriviaUtilities.FindFirstSignificantTriviaIndex(leadingTrivia);
-
-        return firstSignificantIndex < 0
-                   ? leadingTrivia
-                   : SyntaxFactory.TriviaList(leadingTrivia.Take(firstSignificantIndex));
-    }
-
-    /// <summary>
-    /// Gets the leading trivia that travels with a node when it is relocated — its comments, documentation
-    /// comments, directives and disabled text, together with the indentation immediately preceding its first
-    /// token. Empty when the node carries none of that content, since its whole leading trivia is then positional
-    /// </summary>
-    /// <param name="node">Node whose leading trivia to inspect</param>
-    /// <returns>The trivia that must stay attached to the node</returns>
-    private static SyntaxTriviaList GetLeadingPayload(SyntaxNode node)
-    {
-        var leadingTrivia = node.GetLeadingTrivia();
-        var firstSignificantIndex = SyntaxTriviaUtilities.FindFirstSignificantTriviaIndex(leadingTrivia);
-
-        return firstSignificantIndex < 0
-                   ? SyntaxFactory.TriviaList()
-                   : SyntaxFactory.TriviaList(leadingTrivia.Skip(firstSignificantIndex));
     }
 
     /// <summary>

@@ -54,32 +54,6 @@ public static class AccessorOrderingUtilities
     }
 
     /// <summary>
-    /// Moves an accessor before another accessor. Blank-line separators are kept at the position they already
-    /// occupied via <see cref="OrderingMoveSafety.MoveNodeBeforePreservingSeparators{TNode}"/>
-    /// </summary>
-    /// <param name="accessorList">Accessor list</param>
-    /// <param name="accessorToMove">Accessor to move</param>
-    /// <param name="targetAccessor">Target accessor</param>
-    /// <returns>The updated accessor list</returns>
-    public static AccessorListSyntax MoveAccessorBefore(AccessorListSyntax accessorList, AccessorDeclarationSyntax accessorToMove, AccessorDeclarationSyntax targetAccessor)
-    {
-        var accessorDeclarations = accessorList.Accessors;
-        var accessorToMoveIndex = accessorDeclarations.IndexOf(accessorToMove);
-        var targetAccessorIndex = accessorDeclarations.IndexOf(targetAccessor);
-
-        if (accessorToMoveIndex < 0
-            || targetAccessorIndex < 0
-            || accessorToMoveIndex <= targetAccessorIndex)
-        {
-            return accessorList;
-        }
-
-        var updatedAccessors = OrderingMoveSafety.MoveNodeBeforePreservingSeparators(accessorDeclarations, accessorToMove, targetAccessor);
-
-        return accessorList.WithAccessors(updatedAccessors);
-    }
-
-    /// <summary>
     /// Creates the text change that moves an accessor before another accessor (SHARED-ORDER-009): within the line when the
     /// whole accessor list stands on one line, otherwise as a move of whole lines, which
     /// <see cref="OrderingMoveSafety.TryCreateWholeLineMove{TNode}"/> refuses where it cannot be performed

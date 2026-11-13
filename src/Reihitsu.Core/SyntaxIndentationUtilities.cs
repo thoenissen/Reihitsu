@@ -226,15 +226,17 @@ public static class SyntaxIndentationUtilities
 
     /// <summary>
     /// Writes the lines of moved code moved by a number of columns (SHARED-FIX-007, <i>Moved code</i>): every line moves
-    /// by the same number of columns, so its lines keep their columns relative to each other, except a blank line, a line
-    /// that starts with a comment in column 0, and the line of a directive other than <c>#region</c> and
-    /// <c>#endregion</c>, which keep their column. A shift is refused when a line of the span starts inside a token or a
-    /// comment that spans lines, or is a line of disabled text, none of which can move without changing its content
-    /// (SHARED-ORDER-010, RH7004-007); a shift of zero moves no line and is never refused
+    /// by the same number of columns, so its lines keep their columns relative to each other, except the lines
+    /// <see cref="KeepsItsColumn"/> keeps in their column. Each character counts as one column, a tab included: a right
+    /// shift writes spaces in front of a line, and a left shift removes whitespace characters from its start. A shift is
+    /// refused when a line of the span starts inside a token or a comment that spans lines, or is a line of disabled text,
+    /// none of which can move without changing its content, and when a left shift would remove more characters from a
+    /// moving line than whitespace starts it with (SHARED-ORDER-010, RH7004-007); a shift of zero moves no line and is
+    /// never refused
     /// </summary>
     /// <param name="root">Root of the document</param>
     /// <param name="text">Text of the document</param>
-    /// <param name="span">Span of whole lines</param>
+    /// <param name="span">Span that starts at the start of a line; its last line ends at the span's end</param>
     /// <param name="shift">Number of columns to move each line by; negative to the left</param>
     /// <param name="shiftedText">The lines of the span, moved</param>
     /// <returns><see langword="true"/> if every line of the span can move</returns>
@@ -242,19 +244,86 @@ public static class SyntaxIndentationUtilities
     {
         shiftedText = null;
 
-        if (shift != 0
-            && HoldsLineThatCannotMove(root, span, text.Lines))
+        if (shift == 0)
+        {
+            shiftedText = text.ToString(span);
+
+            return true;
+        }
+
+        if (HoldsLineThatCannotMove(root, span, text.Lines))
         {
             return false;
         }
 
         var builder = new StringBuilder();
 
-        AppendShiftedLines(builder, root, text, span, shift);
+        for (var lineNumber = text.Lines.GetLineFromPosition(span.Start).LineNumber; lineNumber < text.Lines.Count && text.Lines[lineNumber].Start < span.End; lineNumber++)
+        {
+            var line = text.Lines[lineNumber];
+            var lineText = text.ToString(TextSpan.FromBounds(line.Start, System.Math.Min(line.EndIncludingLineBreak, span.End)));
+
+            if (KeepsItsColumn(root, text, line, span.End))
+            {
+                builder.Append(lineText);
+            }
+            else if (shift > 0)
+            {
+                builder.Append(' ', shift).Append(lineText);
+            }
+            else if (GetIndentationEnd(text, line.Start, line.End) - line.Start < -shift)
+            {
+                return false;
+            }
+            else
+            {
+                builder.Append(lineText, -shift, lineText.Length + shift);
+            }
+        }
 
         shiftedText = builder.ToString();
 
         return true;
+    }
+
+    /// <summary>
+    /// Determines whether a line of moved code keeps its column when the code around it moves (SHARED-FIX-007,
+    /// <i>Moved code</i>): a blank line; a comment line, which holds nothing but comments and whitespace and whose first
+    /// comment starts in column 0, each line of a documentation comment written with <c>///</c> decided on its own
+    /// marker; and the line of a directive other than <c>#region</c> and <c>#endregion</c>. Every other line moves, above
+    /// all every line that holds code, also where a comment in column 0 stands in front of the code
+    /// </summary>
+    /// <param name="root">Root of the document</param>
+    /// <param name="text">Text of the document</param>
+    /// <param name="line">Line</param>
+    /// <param name="end">End of the moved code; the part of the line behind it is not looked at</param>
+    /// <returns><see langword="true"/> if the line keeps its column</returns>
+    public static bool KeepsItsColumn(SyntaxNode root, SourceText text, TextLine line, int end)
+    {
+        var lineEnd = System.Math.Min(line.End, end);
+        var position = GetIndentationEnd(text, line.Start, lineEnd);
+
+        if (position == lineEnd)
+        {
+            return true;
+        }
+
+        var firstTrivia = root.FindTrivia(position);
+
+        if (firstTrivia.IsDirective)
+        {
+            return firstTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia) == false
+                   && firstTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia) == false;
+        }
+
+        // A comment in column 0 stands in the leading trivia of the token behind it, so the line holds code when that
+        // token starts on it
+        return position == line.Start
+               && (firstTrivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
+                   || firstTrivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
+                   || firstTrivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                   || firstTrivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+               && root.FindToken(position).SpanStart >= lineEnd;
     }
 
     /// <summary>
@@ -481,71 +550,21 @@ public static class SyntaxIndentationUtilities
     }
 
     /// <summary>
-    /// Appends the lines of a span, each moved by the given number of columns, except a blank line, a line that starts
-    /// with a comment in column 0, and the line of a directive other than <c>#region</c> and <c>#endregion</c>
+    /// Gets the end of the spaces and tabs at a position
     /// </summary>
-    /// <param name="builder">Builder to append to</param>
-    /// <param name="root">Root of the document</param>
     /// <param name="text">Text of the document</param>
-    /// <param name="span">Span of whole lines</param>
-    /// <param name="shift">Number of columns to move each line by</param>
-    private static void AppendShiftedLines(StringBuilder builder, SyntaxNode root, SourceText text, TextSpan span, int shift)
+    /// <param name="position">Position</param>
+    /// <param name="end">End of the search</param>
+    /// <returns>The first position that is neither a space nor a tab, or <paramref name="end"/></returns>
+    private static int GetIndentationEnd(SourceText text, int position, int end)
     {
-        if (shift == 0)
+        while (position < end
+               && (text[position] == ' ' || text[position] == '\t'))
         {
-            builder.Append(text.ToString(span));
-
-            return;
+            position++;
         }
 
-        for (var lineNumber = text.Lines.GetLineFromPosition(span.Start).LineNumber; lineNumber < text.Lines.Count && text.Lines[lineNumber].Start < span.End; lineNumber++)
-        {
-            var line = text.Lines[lineNumber];
-            var lineText = text.ToString(line.SpanIncludingLineBreak);
-            var indentation = 0;
-
-            while (indentation < line.Span.Length
-                   && (lineText[indentation] == ' ' || lineText[indentation] == '\t'))
-            {
-                indentation++;
-            }
-
-            if (indentation == line.Span.Length
-                || KeepsItsColumn(root.FindTrivia(line.Start + indentation), indentation))
-            {
-                builder.Append(lineText);
-            }
-            else if (shift > 0)
-            {
-                builder.Append(' ', shift).Append(lineText);
-            }
-            else
-            {
-                builder.Append(lineText, System.Math.Min(-shift, indentation), lineText.Length - System.Math.Min(-shift, indentation));
-            }
-        }
-    }
-
-    /// <summary>
-    /// Determines whether a line keeps its column when the code around it moves: a line that starts with a comment in
-    /// column 0, and the line of a directive other than <c>#region</c> and <c>#endregion</c>
-    /// </summary>
-    /// <param name="firstTrivia">Trivia at the first character of the line that is not whitespace</param>
-    /// <param name="indentation">Column of that character</param>
-    /// <returns><see langword="true"/> if the line keeps its column</returns>
-    private static bool KeepsItsColumn(SyntaxTrivia firstTrivia, int indentation)
-    {
-        if (firstTrivia.IsDirective)
-        {
-            return firstTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia) == false
-                   && firstTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia) == false;
-        }
-
-        return indentation == 0
-               && (firstTrivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-                   || firstTrivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
-                   || firstTrivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                   || firstTrivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia));
+        return position;
     }
 
     #endregion // Methods
