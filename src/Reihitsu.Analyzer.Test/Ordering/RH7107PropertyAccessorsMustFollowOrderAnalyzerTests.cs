@@ -145,15 +145,14 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Characterizes the code fix for expression-bodied accessors written on one line: it puts the accessor list and
-    /// each reordered accessor on lines of their own. This test pins today's behavior; the decided behavior is stated by
-    /// SHARED-FIX-007, under which the separators around the moved accessor follow SHARED-ORDER-002 and stay as written,
-    /// and by SHARED-FIX-006, under which the fix does not format the property that holds the accessors, and its change
-    /// belongs to an existing follow-up
+    /// Verifying that expression-bodied accessors written on one line swap places within the line, and the accessor list
+    /// stays on one line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task SingleLineExpressionBodiedAccessorsAreFixedOntoSeparateLines()
+    [Requirement("RH7107-004")]
+    [Requirement("SHARED-ORDER-009")]
+    public async Task SingleLineExpressionBodiedAccessorsSwapPlacesWithinTheLine()
     {
         const string testCode = """
                                 public class TestClass
@@ -169,11 +168,7 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
                                  {
                                      private int _value;
 
-                                     public int Value
-                                     {
-                                         get => _value;
-                                         set => _value = value;
-                                     }
+                                     public int Value { get => _value; set => _value = value; }
                                  }
                                  """;
 
@@ -181,14 +176,14 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Characterizes the code fix for a multi-line auto indexer: it collapses the reordered accessor list to a single
-    /// line. This test pins today's behavior; the decided behavior is stated by SHARED-FIX-007, under which the line
-    /// breaks around the moved accessor follow SHARED-ORDER-002 and stay as written, and by SHARED-FIX-006, under which
-    /// the fix does not format the indexer that holds the accessors, and its change belongs to an existing follow-up
+    /// Verifying that the accessors of an auto indexer written on separate lines move as whole lines, and the accessor list
+    /// keeps its lines
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task MultiLineAutoIndexerAccessorsAreFixedOntoSingleLine()
+    [Requirement("SHARED-FIX-007")]
+    [Requirement("SHARED-ORDER-009")]
+    public async Task MultiLineAutoIndexerAccessorsKeepTheirLines()
     {
         const string testCode = """
                                 public interface ITestInterface
@@ -204,7 +199,11 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
         const string fixedCode = """
                                  public interface ITestInterface
                                  {
-                                     int this[int index] { get; set; }
+                                     int this[int index]
+                                     {
+                                         get;
+                                         set;
+                                     }
                                  }
                                  """;
 
@@ -212,13 +211,13 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifying the code fix keeps the blank line above the reordered property, and characterizes that it also braces
-    /// the body of the <c>if</c> statement in the <c>set</c> accessor. The bracing pins today's behavior; the decided
-    /// behavior is stated by SHARED-FIX-006 and SHARED-FIX-007, under which the <c>set</c> accessor keeps the layout it
-    /// was written with, and its change belongs to an existing follow-up
+    /// Verifying the code fix keeps the blank line above the reordered property, and the <c>set</c> accessor keeps the
+    /// layout it was written with: the embedded statement of its <c>if</c> statement gets no braces
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("SHARED-FIX-007")]
     public async Task BlankLineAboveReorderedPropertyIsKeptWhenAccessorBodyIsBraced()
     {
         const string testCode = """
@@ -257,9 +256,7 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
                                          set
                                          {
                                              if (value != null)
-                                             {
                                                  _d = value;
-                                             }
                                          }
                                      }
                                  }
@@ -482,13 +479,14 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifies that a refused comment in the setter withholds the fix for the reported getter: the fix formats the
-    /// property it builds, which the formatter refuses, although the reported getter holds no refused shape
+    /// Verifies that a comment the formatter refuses in the setter no longer withholds the fix for the reported getter,
+    /// which moves the getter without formatting the property
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-FIX-006")]
     [Requirement("SHARED-FIX-010")]
-    public async Task NoFixIsOfferedWhenTheOtherAccessorHoldsACommentTheFormatterRefuses()
+    public async Task FixIsOfferedWhenTheOtherAccessorHoldsACommentTheFormatterRefuses()
     {
         const string source = """
                               internal class C
@@ -506,6 +504,461 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
                                       {
                                           return _value;
                                       }
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   internal class C
+                                   {
+                                       private int _value;
+
+                                       public int Value
+                                       {
+                                           get
+                                           {
+                                               return _value;
+                                           }
+                                           set
+                                           {
+                                               int /* c */ y = value;
+                                               _value = y;
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: accessors with bodies written on one line swap places within the line, and
+    /// the accessor list stays on one line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7107-004")]
+    [Requirement("SHARED-ORDER-009")]
+    public async Task AccessorsWithBodiesOnOneLineSwapPlacesWithinTheLine(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _b;
+
+                                  public int B { set => _b = value; {|RH7107:get|} => _b; }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _b;
+
+                                       public int B { get => _b; set => _b = value; }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: the moved accessor shares its line with another accessor in a list that spans
+    /// lines, so no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7107-005")]
+    public async Task NoCodeFixWhenTheMovedAccessorSharesItsLineInAListThatSpansLines()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A
+                                  {
+                                      set; {|RH7107:get|};
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when the target accessor shares its line with the opening brace of an accessor
+    /// list that spans lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    public async Task NoCodeFixWhenTheTargetAccessorSharesItsLineWithTheOpeningBraceOfTheList()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A
+                                  {   set;
+                                      {|RH7107:get|};
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the reported example: the <c>set</c> accessor written over two lines keeps its layout when <c>get</c> moves
+    /// in front of it, and its embedded statement gets no braces
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7107-004")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task CrossedSetAccessorOverTwoLinesKeepsItsLayout(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private string _d;
+
+                                  public string D
+                                  {
+                                      set { if (value != null)
+                                          _d = value; }
+                                      {|RH7107:get|} { return _d; }
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private string _d;
+
+                                       public string D
+                                       {
+                                           get { return _d; }
+                                           set { if (value != null)
+                                               _d = value; }
+                                       }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that the continuation line of a moved accessor keeps its column when the accessor moves into a slot
+    /// indented as it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task ContinuationLineOfAMovedAccessorKeepsItsColumn()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A
+                                  {
+                                      set
+                                      {
+                                      }
+                                      {|RH7107:get|} => 1
+                                                + 2;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       public int A
+                                       {
+                                           get => 1
+                                                     + 2;
+                                           set
+                                           {
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when a <c>get</c> accessor indented deeper than its slot holds a verbatim
+    /// string over two lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-010")]
+    [Requirement("RH7107-005")]
+    public async Task NoCodeFixWhenAShiftedAccessorHoldsAVerbatimStringOverTwoLines()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public string A
+                                  {
+                                      set
+                                      {
+                                      }
+                                          {|RH7107:get|} => @"x
+                              y";
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: a comment between the accessors of a list on one line withholds the swap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7107-005")]
+    public async Task NoCodeFixWhenACommentStandsBetweenTheAccessorsOfAListOnOneLine()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A { set { } /* s */ {|RH7107:get|} => 1; }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a comment behind the last accessor of a list on one line withholds the swap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7107-005")]
+    public async Task NoCodeFixWhenACommentStandsBehindTheLastAccessorOfAListOnOneLine()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A { set { } {|RH7107:get|} => 1; /* g */ }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a comment in front of the first accessor of a list on one line withholds the swap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7107-005")]
+    public async Task NoCodeFixWhenACommentStandsInFrontOfTheFirstAccessorOfAListOnOneLine()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A { /* c */ set { } {|RH7107:get|} => 1; }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: a comment inside an accessor of a list on one line travels with its accessor
+    /// when the accessors swap places within the line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7107-004")]
+    public async Task CommentInsideAnAccessorTravelsWithItWhenTheAccessorsSwapWithinTheLine(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A { set { /* s */ } {|RH7107:get|} => 1; }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       public int A { get => 1; set { /* s */ } }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that a comment inside the expression body of the moved accessor travels with it when the accessors swap
+    /// places within the line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7107-004")]
+    public async Task CommentInsideTheExpressionBodyOfTheMovedAccessorTravelsWithIt()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A { set { } {|RH7107:get|} => /* one */ 1; }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       public int A { get => /* one */ 1; set { } }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying that a comment behind the closing brace of an accessor list on one line stands outside the list and does
+    /// not withhold the swap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7107-004")]
+    public async Task CommentBehindTheClosingBraceOfAListOnOneLineKeepsTheSwap()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A { set { } {|RH7107:get|} => 1; } // value
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       public int A { get => 1; set { } } // value
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying that accessors on one line still swap places in a document whose line breaks are all a lone carriage
+    /// return, because the swap moves no line break; every line break stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    [Requirement("SHARED-ORDER-009")]
+    public async Task AccessorsOnOneLineSwapInADocumentWhoseLineBreaksAreLoneCarriageReturns()
+    {
+        var source = """
+                     class C
+                     {
+                         public int A { set { } get => 1; }
+                     }
+                     """.Replace("\r\n", "\n").Replace("\n", "\r");
+
+        var fixedSource = """
+                          class C
+                          {
+                              public int A { get => 1; set { } }
+                          }
+                          """.Replace("\r\n", "\n").Replace("\n", "\r");
+
+        Assert.AreEqual(fixedSource, await ApplyCodeFixAsync(source));
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered for an accessor list over several lines when the crossed accessor holds LF
+    /// line breaks in a document whose line breaks are otherwise CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task NoCodeFixWhenTheCrossedAccessorHoldsALineBreakOtherThanTheDocumentsLineEnding()
+    {
+        var source = NormalizeToCarriageReturnLineFeed("""
+                                                       class C
+                                                       {
+                                                           public int A
+                                                           {
+                                                               set{LF}
+                                                               {{LF}
+                                                               }
+                                                               {|RH7107:get|} => 1;
+                                                           }
+                                                       }
+                                                       """).Replace("{LF}\r\n", "\n");
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered for an accessor list over several lines in a document whose line breaks are
+    /// all a lone carriage return
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task NoCodeFixForAnAccessorListOverSeveralLinesWhoseLineBreaksAreLoneCarriageReturns()
+    {
+        var source = """
+                     class C
+                     {
+                         public int A
+                         {
+                             set
+                             {
+                             }
+                             {|RH7107:get|} => 1;
+                         }
+                     }
+                     """.Replace("\r\n", "\n").Replace("\n", "\r");
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when a <c>get</c> accessor indented less deeply than its slot holds an
+    /// interpolated verbatim string whose second line starts at a hole
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-010")]
+    [Requirement("RH7107-005")]
+    public async Task NoCodeFixWhenARightShiftedAccessorHoldsAnInterpolatedVerbatimStringWhoseSecondLineStartsAtAHole()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public string A
+                                  {
+                                      set
+                                      {
+                                      }
+                                    {|RH7107:get|} => $@"a
+                              {nameof(C)}";
                                   }
                               }
                               """;

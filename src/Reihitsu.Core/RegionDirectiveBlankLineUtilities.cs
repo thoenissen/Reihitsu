@@ -15,6 +15,90 @@ public static class RegionDirectiveBlankLineUtilities
     #region Methods
 
     /// <summary>
+    /// Removes whole directive lines from a text, together with the blank lines the removal leaves at the start of a body,
+    /// at the end of a body, or doubled between two lines (SHARED-FIX-007, <i>Removed directive line</i>). The start of a
+    /// body is the line behind a line whose last token is an opening brace, and its end the line in front of a line whose
+    /// first token is a closing brace, whatever construct the braces belong to. Where the removal joins blank lines that a
+    /// removed line separated, the blank lines in front of the first removed line stay and the others go. No blank line is
+    /// inserted, and a blank line that no removed line touches stays
+    /// </summary>
+    /// <param name="root">Syntax root of the text</param>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="removedLineIndices">Zero-based indices of the lines to remove</param>
+    /// <returns>The text without the lines</returns>
+    public static SourceText RemoveDirectiveLines(SyntaxNode root, SourceText sourceText, ISet<int> removedLineIndices)
+    {
+        var lines = sourceText.Lines;
+        var removedLines = new HashSet<int>(removedLineIndices);
+
+        for (var lineIndex = 0; lineIndex < lines.Count; lineIndex++)
+        {
+            if (removedLines.Contains(lineIndex)
+                || FormattingTextAnalysisUtilities.IsBlankLine(sourceText, lineIndex) == false)
+            {
+                continue;
+            }
+
+            // The run of blank and removed lines this blank line belongs to, between two kept lines that hold content
+            var runStart = lineIndex;
+            var runEnd = lineIndex;
+
+            while (runStart > 0
+                   && (removedLines.Contains(runStart - 1) || FormattingTextAnalysisUtilities.IsBlankLine(sourceText, runStart - 1)))
+            {
+                runStart--;
+            }
+
+            while (runEnd < lines.Count - 1
+                   && (removedLines.Contains(runEnd + 1) || FormattingTextAnalysisUtilities.IsBlankLine(sourceText, runEnd + 1)))
+            {
+                runEnd++;
+            }
+
+            // The first blank line of the run stays where no brace is next to it; a blank line that a removed line
+            // separates from an earlier blank line of the run is doubled by the removal
+            var touchesRemoval = false;
+            var isDoubled = false;
+            var seenBlankLine = false;
+
+            for (var runLine = runStart; runLine < lineIndex; runLine++)
+            {
+                if (removedLineIndices.Contains(runLine))
+                {
+                    touchesRemoval = true;
+                    isDoubled |= seenBlankLine;
+                }
+                else
+                {
+                    seenBlankLine = true;
+                }
+            }
+
+            for (var runLine = lineIndex + 1; runLine <= runEnd && touchesRemoval == false; runLine++)
+            {
+                touchesRemoval = removedLineIndices.Contains(runLine);
+            }
+
+            if (touchesRemoval
+                && (isDoubled
+                    || (runStart > 0 && IsLastTokenOfLine(root, lines[runStart - 1], SyntaxKind.OpenBraceToken))
+                    || (runEnd < lines.Count - 1 && IsFirstTokenOfLine(root, lines[runEnd + 1], SyntaxKind.CloseBraceToken))))
+            {
+                removedLines.Add(lineIndex);
+            }
+        }
+
+        var changes = new List<TextChange>();
+
+        foreach (var lineIndex in removedLines)
+        {
+            changes.Add(new TextChange(lines[lineIndex].SpanIncludingLineBreak, string.Empty));
+        }
+
+        return sourceText.WithChanges(changes);
+    }
+
+    /// <summary>
     /// Determines whether the directive on the specified line sits next to a line that the blank-line formatting never
     /// rewrites, such as disabled code, multi-line comments, or string literals
     /// </summary>
@@ -141,6 +225,49 @@ public static class RegionDirectiveBlankLineUtilities
         var line = sourceText.Lines[lineIndex];
 
         return line.Start + FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, line)).Length;
+    }
+
+    /// <summary>
+    /// Determines whether the last token on a line is of the given kind
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="line">Line</param>
+    /// <param name="kind">Kind of the token</param>
+    /// <returns><see langword="true"/> if the last token on the line is of the given kind</returns>
+    private static bool IsLastTokenOfLine(SyntaxNode root, TextLine line, SyntaxKind kind)
+    {
+        var token = root.FindToken(line.End > line.Start ? line.End - 1 : line.Start);
+
+        if (token.Span.End > line.End
+            || token.Span.End <= line.Start)
+        {
+            token = token.GetPreviousToken();
+        }
+
+        return token.IsKind(kind)
+               && token.SpanStart >= line.Start
+               && token.Span.End <= line.End;
+    }
+
+    /// <summary>
+    /// Determines whether the first token on a line is of the given kind and starts the line
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="line">Line</param>
+    /// <param name="kind">Kind of the token</param>
+    /// <returns><see langword="true"/> if the first token on the line is of the given kind</returns>
+    private static bool IsFirstTokenOfLine(SyntaxNode root, TextLine line, SyntaxKind kind)
+    {
+        var token = root.FindToken(line.Start);
+
+        if (token.SpanStart < line.Start)
+        {
+            token = token.GetNextToken();
+        }
+
+        return token.IsKind(kind)
+               && token.SpanStart <= line.End
+               && line.ToString().TrimStart().StartsWith(token.Text, System.StringComparison.Ordinal);
     }
 
     #endregion // Methods

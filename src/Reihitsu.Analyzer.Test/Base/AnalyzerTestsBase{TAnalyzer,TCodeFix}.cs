@@ -88,6 +88,27 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
     }
 
     /// <summary>
+    /// Verifies the diagnostics marked in the source and the result of the code fix with every line break of both texts
+    /// written as <paramref name="endOfLine"/>, and asserts that the fix applied to the source without markup returns
+    /// exactly the expected text, line endings included
+    /// </summary>
+    /// <param name="source">The source text with markup for every expected diagnostic</param>
+    /// <param name="fixedSource">The expected fixed source text, without markup</param>
+    /// <param name="endOfLine">Line break of both texts</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    protected static async Task VerifyCodeFixWithEndOfLine(string source, string fixedSource, string endOfLine)
+    {
+        var sourceWithEndOfLine = source.Replace("\r\n", "\n").Replace("\n", endOfLine);
+        var fixedSourceWithEndOfLine = fixedSource.Replace("\r\n", "\n").Replace("\n", endOfLine);
+
+        await Verify(sourceWithEndOfLine, fixedSourceWithEndOfLine);
+
+        TestFileMarkupParser.GetSpans(sourceWithEndOfLine, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+
+        Assert.AreEqual(fixedSourceWithEndOfLine, await ApplyCodeFixAsync(plainSource).ConfigureAwait(false));
+    }
+
+    /// <summary>
     /// Formats the provided code with the formatter, so a test can compare a code fix result with what the formatter
     /// produces for the same code
     /// </summary>

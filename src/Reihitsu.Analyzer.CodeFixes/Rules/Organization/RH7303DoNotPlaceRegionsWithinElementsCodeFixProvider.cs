@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,7 +24,8 @@ public class RH7303DoNotPlaceRegionsWithinElementsCodeFixProvider : CodeFixProvi
     #region Methods
 
     /// <summary>
-    /// Applies the code fix
+    /// Applies the code fix: the lines of the reported directive and its partner are removed, together with the blank
+    /// lines the removal leaves at the edge of a body or doubled (SHARED-FIX-007)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="directiveTrivia">Directive trivia</param>
@@ -40,23 +42,12 @@ public class RH7303DoNotPlaceRegionsWithinElementsCodeFixProvider : CodeFixProvi
         }
 
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var regionDirectiveTrivia = directiveTrivia.IsKind(Microsoft.CodeAnalysis.CSharp.SyntaxKind.RegionDirectiveTrivia)
-                                        ? directiveTrivia
-                                        : matchingDirectiveTrivia;
-        var endRegionDirectiveTrivia = directiveTrivia.IsKind(Microsoft.CodeAnalysis.CSharp.SyntaxKind.EndRegionDirectiveTrivia)
-                                           ? directiveTrivia
-                                           : matchingDirectiveTrivia;
-        var regionDirectiveLine = sourceText.Lines.GetLineFromPosition(regionDirectiveTrivia.Span.Start);
-        var endRegionDirectiveLine = sourceText.Lines.GetLineFromPosition(endRegionDirectiveTrivia.Span.Start);
-        var endRegionRemovalEnd = endRegionDirectiveLine.EndIncludingLineBreak > endRegionDirectiveLine.End
-                                      ? endRegionDirectiveLine.EndIncludingLineBreak
-                                      : endRegionDirectiveLine.End;
-        var updatedText = sourceText.Replace(TextSpan.FromBounds(endRegionDirectiveLine.Start, endRegionRemovalEnd), string.Empty);
-        var regionRemovalEnd = regionDirectiveLine.EndIncludingLineBreak > regionDirectiveLine.End
-                                   ? regionDirectiveLine.EndIncludingLineBreak
-                                   : regionDirectiveLine.End;
-
-        updatedText = updatedText.Replace(TextSpan.FromBounds(regionDirectiveLine.Start, regionRemovalEnd), string.Empty);
+        var removedLines = new HashSet<int>
+                           {
+                               sourceText.Lines.GetLineFromPosition(directiveTrivia.SpanStart).LineNumber,
+                               sourceText.Lines.GetLineFromPosition(matchingDirectiveTrivia.SpanStart).LineNumber
+                           };
+        var updatedText = RegionDirectiveBlankLineUtilities.RemoveDirectiveLines(syntaxRoot, sourceText, removedLines);
 
         return document.WithText(updatedText);
     }

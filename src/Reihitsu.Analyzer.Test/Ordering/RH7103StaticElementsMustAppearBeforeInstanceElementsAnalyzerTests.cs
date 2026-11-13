@@ -451,14 +451,14 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     }
 
     /// <summary>
-    /// Verifying that several blank lines above the moved member collapse to exactly one at the relocated
-    /// separator position, since the raw move relocates the whole gap and the formatter's own blank-line collapse
-    /// still applies afterward
+    /// Verifying that several blank lines above the moved member stay at their position as its separator, between the
+    /// moved member and the member it crossed, and are not collapsed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7103-006")]
-    public async Task MultipleBlankLinesAboveTheMovedMemberCollapseToOneAfterReordering()
+    [Requirement("SHARED-FIX-006")]
+    public async Task MultipleBlankLinesAboveTheMovedMemberStayAtTheirPosition()
     {
         const string testCode = """
                                 public class TestClass
@@ -481,6 +481,8 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                                      public static void Create()
                                      {
                                      }
+
+
 
                                      public void Run()
                                      {
@@ -1056,12 +1058,14 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     }
 
     /// <summary>
-    /// Verifying the code fix reorders the static member within its own region and is not suppressed by an earlier instance member that lives in a different region
+    /// Verifying the code fix reorders the static member within its own region and is not suppressed by an earlier instance
+    /// member that lives in a different region, and leaves the other members of both regions as written
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7103-004")]
     [Requirement("RH7103-006")]
+    [Requirement("SHARED-FIX-006")]
     public async Task CodeFixReordersStaticWithinRegionAndIgnoresInstanceMembersInOtherRegions()
     {
         const string testCode = """
@@ -1109,7 +1113,11 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
 
                                      #region Factories
 
-                                     public int Counter { get; set; }
+                                     public int Counter
+                                     {
+                                         get;
+                                         set;
+                                     }
 
                                      public static TestClass Create()
                                      {
@@ -1460,23 +1468,20 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     }
 
     /// <summary>
-    /// Verifies the specification example of a documentation comment behind code whose declaration a fix moves: the
-    /// <c>///</c> comment behind the closing brace of <c>Run</c> documents <c>Create</c>, the static method is reported,
-    /// and the fix carries the comment with <c>Create</c> in front of <c>Run</c> instead of leaving it behind the brace,
-    /// so the comment still documents <c>Create</c> after the fix. The fix runs with documentation comments parsed
-    /// (documentation mode <c>Parse</c>), the mode in which the comment documents <c>Create</c>; this input has no
-    /// preprocessor directive between the comment and <c>Create</c>. Where the comment starts after the move, the
-    /// layout of its lines, and the layout of the rest of the type are not asserted
+    /// Verifies the specification example of a documentation comment behind code whose declaration a fix would move:
+    /// with documentation comments parsed (documentation mode <c>Parse</c> or <c>Diagnose</c>), the <c>///</c> comment
+    /// behind the closing brace of <c>Run</c> documents <c>Create</c>. The static method is reported, and no code fix is
+    /// offered: the move would have to put the comment on a line of its own at the new position, and a move of whole
+    /// lines cannot carry leading trivia that does not start its line
     /// </summary>
-    /// <param name="endOfLine">Line break of the document</param>
+    /// <param name="documentationMode">Documentation mode of the syntax tree</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [DataRow("\n")]
-    [DataRow("\r\n")]
+    [DataRow(DocumentationMode.Parse)]
+    [DataRow(DocumentationMode.Diagnose)]
     [Requirement("SHARED-DOC-004")]
-    [Requirement("SHARED-FIX-003")]
-    [Requirement("SHARED-ORDER-002")]
-    public async Task FixCarriesADocumentationCommentBehindCodeWithTheMovedDeclaration(string endOfLine)
+    [Requirement("SHARED-ORDER-009")]
+    public async Task NoCodeFixWhenADocumentationCommentBehindCodeDocumentsTheMovedDeclaration(DocumentationMode documentationMode)
     {
         const string testCode = """
                                 public class C
@@ -1490,67 +1495,24 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                                 }
                                 """;
 
-        await Verify(testCode);
-
-        var plainCode = testCode.Replace("{|RH7103:", string.Empty)
-                                .Replace("|}", string.Empty)
-                                .Replace("\r\n", "\n")
-                                .Replace("\n", endOfLine);
-
-        var fixedCode = await ApplyCodeFixAsync(plainCode);
-
-        var syntaxTree = CSharpSyntaxTree.ParseText(fixedCode, new CSharpParseOptions(documentationMode: DocumentationMode.Parse), cancellationToken: CancellationToken.None);
-        var root = await syntaxTree.GetRootAsync(CancellationToken.None);
-        var methods = root.DescendantNodes()
-                          .OfType<MethodDeclarationSyntax>()
-                          .ToList();
-
-        Assert.HasCount(2, methods);
-        Assert.AreEqual("Create", methods[0].Identifier.ValueText, "The fix must move Create in front of Run.");
-        Assert.AreEqual("Run", methods[1].Identifier.ValueText, "The fix must move Create in front of Run.");
-
-        var createDocumentation = methods[0].GetLeadingTrivia()
-                                            .Where(trivia => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
-                                            .ToList();
-
-        Assert.HasCount(1, createDocumentation, "The documentation comment must travel with Create.");
-
-        var summary = createDocumentation[0].GetStructure()
-                                            .DescendantNodes()
-                                            .OfType<XmlElementSyntax>()
-                                            .Single(element => element.StartTag.Name.LocalName.ValueText == "summary");
-        var summaryText = string.Concat(summary.Content.Select(content => content.ToString()))
-                                .Replace("///", string.Empty)
-                                .Trim();
-
-        Assert.AreEqual("Creates", summaryText, "The comment that travels must be the summary of Create.");
-
-        var commentsInRun = methods[1].DescendantTrivia()
-                                      .Where(trivia => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                                                       || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
-                                      .ToList();
-
-        Assert.IsEmpty(commentsInRun, "No comment may stay behind the closing brace of Run.");
-        Assert.AreEqual(fixedCode.IndexOf("Creates", StringComparison.Ordinal), fixedCode.LastIndexOf("Creates", StringComparison.Ordinal), "The fix must keep exactly one copy of the comment.");
+        await VerifyNoCodeFixIsOffered(testCode, documentationMode);
     }
 
     /// <summary>
     /// Verifies the specification example of a documentation comment behind code, a conditional pair, and the
-    /// declaration a fix moves: with documentation comments parsed (documentation mode <c>Parse</c>), the <c>///</c>
-    /// comment behind the closing brace of <c>Run</c> and the <c>#if DEBUG</c>/<c>#endif</c> pair below it stand in the
-    /// leading trivia of <c>Create</c>; the static method is reported, and the fix carries the comment and the pair
-    /// with <c>Create</c> in front of <c>Run</c>, in their order, so the comment still documents <c>Create</c>. Where
-    /// the comment starts after the move and the layout of the rest of the type are not asserted
+    /// declaration a fix would move: with documentation comments parsed (documentation mode <c>Parse</c> or
+    /// <c>Diagnose</c>), the <c>///</c> comment behind the closing brace of <c>Run</c> and the <c>#if DEBUG</c>/<c>#endif</c>
+    /// pair below it stand in the leading trivia of <c>Create</c>. The static method is reported, and no code fix is
+    /// offered, as without the pair
     /// </summary>
-    /// <param name="endOfLine">Line break of the document</param>
+    /// <param name="documentationMode">Documentation mode of the syntax tree</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [DataRow("\n")]
-    [DataRow("\r\n")]
+    [DataRow(DocumentationMode.Parse)]
+    [DataRow(DocumentationMode.Diagnose)]
     [Requirement("SHARED-DOC-004")]
-    [Requirement("SHARED-FIX-003")]
-    [Requirement("SHARED-ORDER-006")]
-    public async Task FixCarriesADocumentationCommentBehindCodeAndAConditionalPairWithTheMovedDeclaration(string endOfLine)
+    [Requirement("SHARED-ORDER-009")]
+    public async Task NoCodeFixWhenADocumentationCommentBehindCodeAndAConditionalPairPrecedeTheMovedDeclaration(DocumentationMode documentationMode)
     {
         const string testCode = """
                                 public class C
@@ -1566,58 +1528,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                                 }
                                 """;
 
-        await Verify(testCode);
-
-        var plainCode = testCode.Replace("{|RH7103:", string.Empty)
-                                .Replace("|}", string.Empty)
-                                .Replace("\r\n", "\n")
-                                .Replace("\n", endOfLine);
-
-        var fixedCode = await ApplyCodeFixAsync(plainCode);
-
-        var syntaxTree = CSharpSyntaxTree.ParseText(fixedCode, new CSharpParseOptions(documentationMode: DocumentationMode.Parse), cancellationToken: CancellationToken.None);
-        var root = await syntaxTree.GetRootAsync(CancellationToken.None);
-        var methods = root.DescendantNodes()
-                          .OfType<MethodDeclarationSyntax>()
-                          .ToList();
-
-        Assert.HasCount(2, methods);
-        Assert.AreEqual("Create", methods[0].Identifier.ValueText, "The fix must move Create in front of Run.");
-        Assert.AreEqual("Run", methods[1].Identifier.ValueText, "The fix must move Create in front of Run.");
-
-        var createTrivia = methods[0].GetLeadingTrivia()
-                                     .Where(trivia => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                                                      || trivia.IsKind(SyntaxKind.IfDirectiveTrivia)
-                                                      || trivia.IsKind(SyntaxKind.EndIfDirectiveTrivia))
-                                     .Select(trivia => trivia.Kind())
-                                     .ToList();
-
-        Assert.AreSequenceEqual([SyntaxKind.SingleLineDocumentationCommentTrivia, SyntaxKind.IfDirectiveTrivia, SyntaxKind.EndIfDirectiveTrivia],
-                                createTrivia.ToArray(),
-                                "The comment and the conditional pair must travel with Create, in their order.");
-
-        var summary = methods[0].GetLeadingTrivia()
-                                .Single(trivia => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
-                                .GetStructure()
-                                .DescendantNodes()
-                                .OfType<XmlElementSyntax>()
-                                .Single(element => element.StartTag.Name.LocalName.ValueText == "summary");
-        var summaryText = string.Concat(summary.Content.Select(content => content.ToString()))
-                                .Replace("///", string.Empty)
-                                .Trim();
-
-        Assert.AreEqual("Creates", summaryText, "The comment that travels must be the summary of Create.");
-
-        var triviaInRun = methods[1].DescendantTrivia(descendIntoTrivia: true)
-                                    .Where(trivia => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                                                     || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-                                                     || trivia.IsDirective)
-                                    .ToList();
-
-        Assert.IsEmpty(triviaInRun, "No comment and no directive may stay with Run.");
-        Assert.AreEqual(fixedCode.IndexOf("Creates", StringComparison.Ordinal), fixedCode.LastIndexOf("Creates", StringComparison.Ordinal), "The fix must keep exactly one copy of the comment.");
-        Assert.AreEqual(fixedCode.IndexOf("#if DEBUG", StringComparison.Ordinal), fixedCode.LastIndexOf("#if DEBUG", StringComparison.Ordinal), "The fix must keep exactly one copy of the #if directive.");
-        Assert.AreEqual(fixedCode.IndexOf("#endif", StringComparison.Ordinal), fixedCode.LastIndexOf("#endif", StringComparison.Ordinal), "The fix must keep exactly one copy of the #endif directive.");
+        await VerifyNoCodeFixIsOffered(testCode, documentationMode);
     }
 
     /// <summary>
@@ -2995,6 +2906,349 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                                    """;
 
         await Verify(WithEndOfLine(source, endOfLine), WithEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the reported example: the fix moves the static nested class and leaves the other members of the type as
+    /// written, the empty nested class with its braces and the operator with its expression body
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("RH7103-006")]
+    public async Task FixLeavesTheOtherMembersOfTheTypeAsWritten(string endOfLine)
+    {
+        const string source = """
+                              public class D
+                              {
+                                  public class Inner
+                                  {
+                                  }
+
+                                  public static class {|RH7103:Helpers|}
+                                  {
+                                  }
+
+                                  public static D operator +(D a, D b) => a;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class D
+                                   {
+                                       public static class Helpers
+                                       {
+                                       }
+
+                                       public class Inner
+                                       {
+                                       }
+
+                                       public static D operator +(D a, D b) => a;
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that the lines of a raw string literal in the moved method keep their columns when the method moves into
+    /// a slot indented as it is, although formatting the result would align them under the opening quotes
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task RawStringLinesOfAMovedMethodKeepTheirColumns(string endOfLine)
+    {
+        const string source = """"
+                              public class C
+                              {
+                                  public void A()
+                                  {
+                                  }
+
+                                  public static string {|RH7103:B|}()
+                                  {
+                                      return """
+                                        x
+                                        """;
+                                  }
+                              }
+                              """";
+
+        const string fixedSource = """"
+                                   public class C
+                                   {
+                                       public static string B()
+                                       {
+                                           return """
+                                             x
+                                             """;
+                                       }
+
+                                       public void A()
+                                       {
+                                       }
+                                   }
+                                   """";
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that a comment over two lines in the moved method keeps its lines when the method moves into a slot
+    /// indented as it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task CommentOverTwoLinesInAMovedMethodKeepsItsLines()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  public void A()
+                                  {
+                                  }
+
+                                  public static void {|RH7103:B|}()
+                                  {
+                                      /* one
+                                    two */
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       public static void B()
+                                       {
+                                           /* one
+                                         two */
+                                       }
+
+                                       public void A()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying that a method indented deeper than its slot moves all its lines by the shift of its first token, while a
+    /// comment in column 0 keeps its column and the region directives move with the code
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task ShiftedMethodKeepsAColumnZeroCommentAndMovesItsRegionDirectives(string endOfLine)
+    {
+        const string source = """
+                              public class C
+                              {
+                                  public void A()
+                                  {
+                                  }
+
+                                      public static void {|RH7103:B|}()
+                                      {
+                              //          A();
+                                          #region Work
+                                          #endregion
+                                      }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       public static void B()
+                                       {
+                                   //          A();
+                                           #region Work
+                                           #endregion
+                                       }
+
+                                       public void A()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when a method indented deeper than its slot holds a raw string literal over
+    /// several lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-010")]
+    [Requirement("RH7103-007")]
+    public async Task NoCodeFixWhenAShiftedMethodHoldsARawStringOverSeveralLines()
+    {
+        const string source = """"
+                              public class C
+                              {
+                                  public void A()
+                                  {
+                                  }
+
+                                      public static string {|RH7103:B|}()
+                                      {
+                                          return """
+                                            x
+                                            """;
+                                      }
+                              }
+                              """";
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when a method indented deeper than its slot holds disabled text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-010")]
+    public async Task NoCodeFixWhenAShiftedMethodHoldsDisabledText()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  public void A()
+                                  {
+                                  }
+
+                                      public static void {|RH7103:B|}()
+                                      {
+                              #if NEVER
+                                          A();
+                              #endif
+                                      }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a method indented as its slot moves with the disabled text it holds, which keeps its lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-010")]
+    public async Task MethodIndentedAsItsSlotMovesWithTheDisabledTextItHolds()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  public void A()
+                                  {
+                                  }
+
+                                  public static void {|RH7103:B|}()
+                                  {
+                              #if NEVER
+                                    A();
+                              #endif
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       public static void B()
+                                       {
+                                   #if NEVER
+                                         A();
+                                   #endif
+                                       }
+
+                                       public void A()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when the moved field shares its line with the instance field in front of it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7103-007")]
+    public async Task NoCodeFixWhenTheMovedFieldSharesItsLineWithTheInstanceFieldInFrontOfIt()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a; private static int {|RH7103:_b|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a comment the formatter refuses in another member of the type no longer withholds the fix, which
+    /// moves the static method without formatting the type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("SHARED-FIX-010")]
+    public async Task FixIsOfferedWhenAnotherMemberOfTheTypeHoldsACommentTheFormatterRefuses()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  public void A()
+                                  {
+                                  }
+
+                                  public static void {|RH7103:B|}()
+                                  {
+                                  }
+
+                                  private int /* c */ _z;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       public static void B()
+                                       {
+                                       }
+
+                                       public void A()
+                                       {
+                                       }
+
+                                       private int /* c */ _z;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
     }
 
     #endregion // Tests

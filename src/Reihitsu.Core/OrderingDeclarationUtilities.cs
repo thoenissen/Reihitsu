@@ -246,33 +246,6 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Moves a member before another member within the same type declaration. Blank-line separators are kept at
-    /// the position they already occupied via
-    /// <see cref="OrderingMoveSafety.MoveNodeBeforePreservingSeparators{TNode}"/>
-    /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
-    /// <param name="memberToMove">Member to move</param>
-    /// <param name="targetMember">Target member</param>
-    /// <returns>The updated type declaration</returns>
-    public static TypeDeclarationSyntax MoveMemberBefore(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberToMove, MemberDeclarationSyntax targetMember)
-    {
-        var members = typeDeclaration.Members;
-        var memberToMoveIndex = members.IndexOf(memberToMove);
-        var targetMemberIndex = members.IndexOf(targetMember);
-
-        if (memberToMoveIndex < 0
-            || targetMemberIndex < 0
-            || memberToMoveIndex <= targetMemberIndex)
-        {
-            return typeDeclaration;
-        }
-
-        var updatedMembers = OrderingMoveSafety.MoveNodeBeforePreservingSeparators(members, memberToMove, targetMember);
-
-        return typeDeclaration.WithMembers(updatedMembers);
-    }
-
-    /// <summary>
     /// Determines whether moving a member before another member would relocate a preprocessor directive away from
     /// the code it governs, splitting a conditional-compilation pair or scrambling region structure.
     /// The analysis is shared with the accessor guard through

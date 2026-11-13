@@ -165,16 +165,14 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
     }
 
     /// <summary>
-    /// Characterizes the code fix for block event accessors written on one line: it puts the accessor list and each
-    /// reordered accessor on lines of their own, and spreads the braces of the moved <c>add</c> accessor over separate
-    /// lines. This test pins today's behavior; the decided behavior is stated by SHARED-FIX-007, under which the moved
-    /// accessor keeps its braces and line breaks as written and the separators around it follow SHARED-ORDER-002, and by
-    /// SHARED-FIX-006, under which the fix does not format the event that holds the accessors, and its change belongs to
-    /// an existing follow-up
+    /// Verifying that block event accessors written on one line swap places within the line, keep their braces as
+    /// written, and the accessor list stays on one line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task SingleLineEventAccessorsAreFixedOntoSeparateLines()
+    [Requirement("RH7108-004")]
+    [Requirement("SHARED-ORDER-009")]
+    public async Task SingleLineEventAccessorsSwapPlacesWithinTheLine()
     {
         const string testCode = """
                                 using System;
@@ -194,17 +192,7 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
                                  {
                                      private EventHandler _changed;
 
-                                     public event EventHandler Changed
-                                     {
-                                         add
-                                         {
-                                             _changed += value;
-                                         }
-                                         remove
-                                         {
-                                             _changed -= value;
-                                         }
-                                     }
+                                     public event EventHandler Changed { add { _changed += value; } remove { _changed -= value; } }
                                  }
                                  """;
 
@@ -373,13 +361,14 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
     }
 
     /// <summary>
-    /// Verifies that a refused comment in the remove accessor withholds the fix for the reported add accessor: the fix
-    /// formats the event it builds, which the formatter refuses, although the reported accessor holds no refused shape
+    /// Verifies that a comment the formatter refuses in the remove accessor no longer withholds the fix for the reported add
+    /// accessor, which moves the accessor without formatting the event
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-FIX-006")]
     [Requirement("SHARED-FIX-010")]
-    public async Task NoFixIsOfferedWhenTheOtherAccessorHoldsACommentTheFormatterRefuses()
+    public async Task FixIsOfferedWhenTheOtherAccessorHoldsACommentTheFormatterRefuses()
     {
         const string source = """
                               using System;
@@ -403,7 +392,247 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
                               }
                               """;
 
+        const string fixedSource = """
+                                   using System;
+
+                                   internal class C
+                                   {
+                                       private EventHandler _changed;
+
+                                       public event EventHandler Changed
+                                       {
+                                           add
+                                           {
+                                               _changed += value;
+                                           }
+                                           remove
+                                           {
+                                               EventHandler /* c */ handler = value;
+                                               _changed -= handler;
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: an event accessor list on one line stays on one line, and the accessors swap
+    /// places within it
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7108-004")]
+    [Requirement("SHARED-ORDER-009")]
+    public async Task ExpressionBodiedEventAccessorsOnOneLineSwapPlacesWithinTheLine(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  private Action _handlers;
+
+                                  public event Action Changed { remove => _handlers -= value; {|RH7108:add|} => _handlers += value; }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+
+                                   class C
+                                   {
+                                       private Action _handlers;
+
+                                       public event Action Changed { add => _handlers += value; remove => _handlers -= value; }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying the reported example: the crossed <c>remove</c> accessor keeps its layout when <c>add</c> moves in front of
+    /// it, and the embedded statement of its <c>if</c> statement gets no braces
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7108-004")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task CrossedRemoveAccessorKeepsItsLayout(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              public class C
+                              {
+                                  private EventHandler _e;
+
+                                  public event EventHandler E
+                                  {
+                                      remove { if (_e != null) _e -= value; }
+                                      {|RH7108:add|} { _e += value; }
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+
+                                   public class C
+                                   {
+                                       private EventHandler _e;
+
+                                       public event EventHandler E
+                                       {
+                                           add { _e += value; }
+                                           remove { if (_e != null) _e -= value; }
+                                       }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when the moved <c>add</c> accessor shares its line with <c>remove</c> in an
+    /// accessor list that spans lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7108-005")]
+    public async Task NoCodeFixWhenTheMovedAccessorSharesItsLineInAListThatSpansLines()
+    {
+        const string source = """
+                              using System;
+
+                              public class C
+                              {
+                                  private EventHandler _e;
+
+                                  public event EventHandler E
+                                  {
+                                      remove { _e -= value; } {|RH7108:add|} { _e += value; }
+                                  }
+                              }
+                              """;
+
         await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a comment between the event accessors of a list on one line withholds the swap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7108-005")]
+    public async Task NoCodeFixWhenACommentStandsBetweenTheEventAccessorsOfAListOnOneLine()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  private Action _handlers;
+
+                                  public event Action Changed { remove => _handlers -= value; /* r */ {|RH7108:add|} => _handlers += value; }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a comment behind the last event accessor of a list on one line withholds the swap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7108-005")]
+    public async Task NoCodeFixWhenACommentStandsBehindTheLastEventAccessorOfAListOnOneLine()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  private Action _handlers;
+
+                                  public event Action Changed { remove => _handlers -= value; {|RH7108:add|} => _handlers += value; /* a */ }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a comment in front of the first event accessor of a list on one line withholds the swap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7108-005")]
+    public async Task NoCodeFixWhenACommentStandsInFrontOfTheFirstEventAccessorOfAListOnOneLine()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  private Action _handlers;
+
+                                  public event Action Changed { /* c */ remove => _handlers -= value; {|RH7108:add|} => _handlers += value; }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a comment inside an event accessor of a list on one line travels with its accessor when the
+    /// accessors swap places within the line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-ORDER-009")]
+    [Requirement("RH7108-004")]
+    public async Task CommentInsideAnEventAccessorTravelsWithItWhenTheAccessorsSwapWithinTheLine(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  private Action _handlers;
+
+                                  public event Action Changed { remove { _handlers -= value; /* r */ } {|RH7108:add|} { _handlers += value; } }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+
+                                   class C
+                                   {
+                                       private Action _handlers;
+
+                                       public event Action Changed { add { _handlers += value; } remove { _handlers -= value; /* r */ } }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
     }
 
     #endregion // Tests

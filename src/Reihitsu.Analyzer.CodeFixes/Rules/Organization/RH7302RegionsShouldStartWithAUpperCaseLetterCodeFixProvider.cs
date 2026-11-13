@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Organization;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
 
@@ -44,7 +45,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterCodeFixProvider : CodeF
         var regionDirective = FindRegionDirective(root, diagnostic);
 
         if (regionDirective == null
-            || TryCapitalizeRegionName(regionDirective, out var updatedRegionDirective, out var originalRegionName, out var updatedRegionName) == false)
+            || TryCapitalizeRegionName(regionDirective, out var updatedRegionDirective, out _, out _) == false)
         {
             return document;
         }
@@ -56,16 +57,17 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterCodeFixProvider : CodeF
         var endRegionDirective = regionDirective.GetRelatedDirectives()
                                                 .OfType<EndRegionDirectiveTriviaSyntax>()
                                                 .FirstOrDefault();
+        var description = RegionDirectiveUtilities.GetRegionDescription(regionDirective);
 
-        if (endRegionDirective != null)
+        if (endRegionDirective != null
+            && description.Length > 0
+            && string.Equals(RegionDirectiveUtilities.GetEndRegionDescription(endRegionDirective), description, StringComparison.Ordinal))
         {
-            var currentEndRegionText = sourceText.ToString(endRegionDirective.ParentTrivia.FullSpan);
-            var updatedEndRegionText = ReplaceExactText(currentEndRegionText, originalRegionName, updatedRegionName);
+            // Only the description is renamed: the keyword, the "//", and the whitespace around the description stay
+            var textBehindKeyword = sourceText.ToString(TextSpan.FromBounds(endRegionDirective.EndRegionKeyword.Span.End, endRegionDirective.EndOfDirectiveToken.SpanStart)).TrimEnd();
+            var descriptionStart = endRegionDirective.EndRegionKeyword.Span.End + textBehindKeyword.Length - description.Length;
 
-            if (updatedEndRegionText != currentEndRegionText)
-            {
-                replacements.Add((endRegionDirective.ParentTrivia.FullSpan, updatedEndRegionText));
-            }
+            replacements.Add((new TextSpan(descriptionStart, description.Length), $"{char.ToUpperInvariant(description[0])}{description.Substring(1)}"));
         }
 
         var updatedText = sourceText;
@@ -92,32 +94,6 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterCodeFixProvider : CodeF
                    ?? tokenParent?.AncestorsAndSelf()
                                  .OfType<RegionDirectiveTriviaSyntax>()
                                  .FirstOrDefault();
-    }
-
-    /// <summary>
-    /// Replaces all exact text occurrences using ordinal comparison
-    /// </summary>
-    /// <param name="text">Text to search</param>
-    /// <param name="oldValue">Old value</param>
-    /// <param name="newValue">New value</param>
-    /// <returns>Updated text</returns>
-    private static string ReplaceExactText(string text, string oldValue, string newValue)
-    {
-        if (string.IsNullOrEmpty(oldValue))
-        {
-            return text;
-        }
-
-        var result = text;
-        var startIndex = result.IndexOf(oldValue, StringComparison.Ordinal);
-
-        while (startIndex >= 0)
-        {
-            result = $"{result.Substring(0, startIndex)}{newValue}{result.Substring(startIndex + oldValue.Length)}";
-            startIndex = result.IndexOf(oldValue, startIndex + newValue.Length, StringComparison.Ordinal);
-        }
-
-        return result;
     }
 
     /// <summary>

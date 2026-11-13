@@ -8,10 +8,10 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Organization;
 using Reihitsu.Core;
-using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
 
@@ -22,6 +22,15 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider))]
 public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProvider
 {
+    #region Constants
+
+    /// <summary>
+    /// Number of columns the statements move into the new block: one indentation level
+    /// </summary>
+    private const int IndentationSize = 4;
+
+    #endregion // Constants
+
     #region Methods
 
     /// <summary>
@@ -33,71 +42,115 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, LocalDeclarationStatementSyntax usingDeclaration, CancellationToken cancellationToken)
     {
-        if (usingDeclaration.Parent is not BlockSyntax parentBlock)
-        {
-            return document;
-        }
-
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        if (root == null)
+        if (root == null
+            || TryCreateChanges(root, usingDeclaration, out var changes) == false)
         {
             return document;
         }
 
-        var statementIndex = parentBlock.Statements.IndexOf(usingDeclaration);
+        var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-        if (statementIndex < 0)
-        {
-            return document;
-        }
-
-        var formattingAnnotation = new SyntaxAnnotation();
-        var newUsingStatement = CreateUsingStatement(parentBlock, usingDeclaration, statementIndex).WithAdditionalAnnotations(formattingAnnotation);
-        var updatedStatements = SyntaxFactory.List(parentBlock.Statements.Take(statementIndex).Concat([newUsingStatement]));
-        var updatedBlock = parentBlock.WithStatements(updatedStatements);
-        var updatedRoot = root.ReplaceNode(parentBlock, updatedBlock);
-        var updatedDocument = document.WithSyntaxRoot(updatedRoot);
-        var formattedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var formattedUsingStatement = formattedRoot?.GetAnnotatedNodes(formattingAnnotation).OfType<UsingStatementSyntax>().FirstOrDefault();
-
-        return formattedUsingStatement == null
-                   ? updatedDocument
-                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedUsingStatement, cancellationToken).ConfigureAwait(false)).Output;
+        return document.WithText(text.WithChanges(changes));
     }
 
     /// <summary>
-    /// Creates the using statement the fix replaces the using declaration with, before the formatter lays it out: the
-    /// declaration's resource, and a block that holds every statement behind it in its block
+    /// Creates the text changes that turn the using declaration into a using statement whose block holds every statement
+    /// behind it in its block. The declaration becomes the header, <c>using (</c> … <c>)</c>, with the rest of its line as
+    /// written; the braces of the new block stand on lines of their own in the column of the declaration, and the
+    /// statements between them are moved code: every line of them moves one indentation level deeper and otherwise stays
+    /// as written (SHARED-FIX-007), so no blank line is inserted or removed (SHARED-FIX-006). A comment behind the
+    /// declaration at the end of its line stays behind the header (RH7004-004). When no statement follows the declaration
+    /// and code follows it on its line, the block is empty and the text behind the semicolon stays behind the block. Every
+    /// line break the fix writes is the document's line ending (SHARED-FIX-008). The changes are refused when a line of the
+    /// statements cannot move, a tab stands in front of the declaration or of a moving line, or the first statement starts
+    /// on the line of the declaration (RH7004-007), when the code the fix rewrites, from the declaration through the end of
+    /// the statements and the declaration's trailing line break included, holds a line break other than the document's
+    /// line ending (SHARED-FIX-008), when a comment or directive stands in front of the semicolon, which would end up on
+    /// a line of its own in front of the closing parenthesis, and when code stands in front of the declaration on its
+    /// line or the last statement shares its line with the closing brace of the block, where the new braces would need a
+    /// line break the author did not write
     /// </summary>
-    /// <param name="parentBlock">The block that holds the using declaration</param>
-    /// <param name="usingDeclaration">The using declaration</param>
-    /// <param name="statementIndex">The index of the using declaration in the block</param>
-    /// <returns>The using statement</returns>
-    private static UsingStatementSyntax CreateUsingStatement(BlockSyntax parentBlock, LocalDeclarationStatementSyntax usingDeclaration, int statementIndex)
+    /// <param name="root">Syntax root</param>
+    /// <param name="usingDeclaration">Using declaration</param>
+    /// <param name="changes">The text changes</param>
+    /// <returns><see langword="true"/> if the changes can be created</returns>
+    private static bool TryCreateChanges(SyntaxNode root, LocalDeclarationStatementSyntax usingDeclaration, out TextChange[] changes)
     {
-        var followingStatements = parentBlock.Statements.Skip(statementIndex + 1);
-        var semicolonToken = usingDeclaration.SemicolonToken;
-        var closeParenToken = SyntaxFactory.Token(SyntaxKind.CloseParenToken)
-                                           .WithLeadingTrivia(semicolonToken.LeadingTrivia);
-        var statementTrailingTrivia = usingDeclaration.GetTrailingTrivia();
+        changes = null;
 
-        if (semicolonToken.TrailingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia)
-            && semicolonToken.TrailingTrivia.Last().IsKind(SyntaxKind.EndOfLineTrivia))
+        if (usingDeclaration.Parent is not BlockSyntax parentBlock)
         {
-            // A comment behind the declaration at the end of its line describes the resource, so it stays behind the
-            // header of the new statement, on the header's line, together with the line break that ends that line. A
-            // comment that code follows on its line stays behind the new block, with the code it stands in front of
-            closeParenToken = closeParenToken.WithTrailingTrivia(semicolonToken.TrailingTrivia);
-            statementTrailingTrivia = SyntaxFactory.TriviaList(semicolonToken.TrailingTrivia.Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)).Take(1));
+            return false;
         }
 
-        return SyntaxFactory.UsingStatement(usingDeclaration.Declaration, null, SyntaxFactory.Block(followingStatements))
-                            .WithAwaitKeyword(usingDeclaration.AwaitKeyword)
-                            .WithUsingKeyword(usingDeclaration.UsingKeyword)
-                            .WithCloseParenToken(closeParenToken)
-                            .WithLeadingTrivia(usingDeclaration.GetLeadingTrivia())
-                            .WithTrailingTrivia(statementTrailingTrivia);
+        var text = root.SyntaxTree.GetText();
+        var lines = text.Lines;
+        var statements = parentBlock.Statements;
+        var statementIndex = statements.IndexOf(usingDeclaration);
+        var declarationLine = lines.GetLineFromPosition(usingDeclaration.SpanStart);
+        var previousToken = usingDeclaration.GetFirstToken().GetPreviousToken();
+        var movedSpan = statementIndex < statements.Count - 1
+                            ? TextSpan.FromBounds(usingDeclaration.FullSpan.End, statements.Last().FullSpan.End)
+                            : new TextSpan(usingDeclaration.FullSpan.End, 0);
+
+        if (statementIndex < 0
+            || lines.GetLineFromPosition(previousToken.Span.End).LineNumber == declarationLine.LineNumber
+            || usingDeclaration.SemicolonToken.LeadingTrivia.Any(SyntaxNodeUtilities.IsCommentOrDirective))
+        {
+            return false;
+        }
+
+        var indentation = text.ToString(TextSpan.FromBounds(declarationLine.Start, declarationLine.Start + text.ToString(declarationLine.Span).TakeWhile(character => character is ' ' or '\t').Count()));
+
+        if (indentation.IndexOf('\t') >= 0)
+        {
+            return false;
+        }
+
+        var endOfLine = LineEndingUtilities.DetectEndOfLine(root);
+
+        // The fix rewrites the declaration and, on either path, everything from it through the end of the moved code,
+        // the declaration's trailing line break included
+        if (LineEndingUtilities.HoldsOtherLineBreak(text, TextSpan.FromBounds(usingDeclaration.SpanStart, movedSpan.End), endOfLine))
+        {
+            return false;
+        }
+
+        var openParenChange = new TextChange(new TextSpan(usingDeclaration.Declaration.SpanStart, 0), "(");
+
+        if (lines.GetLineFromPosition(movedSpan.Start).Start != movedSpan.Start)
+        {
+            if (movedSpan.IsEmpty == false)
+            {
+                return false;
+            }
+
+            // No statement follows the declaration, and code follows it on its line: the block stays empty, and the text
+            // behind the semicolon stays behind the block's closing brace, in front of that code
+            changes = [
+                          openParenChange,
+                          new TextChange(usingDeclaration.SemicolonToken.Span, $"){endOfLine}{indentation}{{{endOfLine}{indentation}}}")
+                      ];
+
+            return true;
+        }
+
+        if (lines.GetLineFromPosition(movedSpan.End).Start != movedSpan.End
+            || SyntaxIndentationUtilities.HoldsTabInFrontOfMovingLine(root, text, movedSpan)
+            || SyntaxIndentationUtilities.TryShiftMovedLines(root, text, movedSpan, IndentationSize, out var movedText) == false)
+        {
+            return false;
+        }
+
+        changes = [
+                      openParenChange,
+                      new TextChange(usingDeclaration.SemicolonToken.Span, ")"),
+                      new TextChange(movedSpan, $"{indentation}{{{endOfLine}{movedText}{indentation}}}{endOfLine}")
+                  ];
+
+        return true;
     }
 
     /// <summary>
@@ -178,7 +231,7 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
             if (usingDeclaration?.Parent is BlockSyntax parentBlock
                 && HasFollowingStatementsThatPreventConversion(parentBlock, usingDeclaration) == false
                 && WouldSeparateDirective(root, parentBlock, usingDeclaration) == false
-                && ReihitsuFormatter.FindUnsupportedSyntax(CreateUsingStatement(parentBlock, usingDeclaration, parentBlock.Statements.IndexOf(usingDeclaration))) == null)
+                && TryCreateChanges(root, usingDeclaration, out _))
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7004Title,
                                                           token => ApplyCodeFixAsync(context.Document, usingDeclaration, token),

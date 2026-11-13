@@ -347,10 +347,12 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifies the code fix moves multiple following statements into the using statement block
+    /// Verifies the code fix moves multiple following statements into the using statement block, and inserts no blank
+    /// line in front of the using statement
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-FIX-006")]
     public async Task VerifyCodeFixTransformsUsingDeclarationWithMultipleFollowingStatements()
     {
         const string testCode = """
@@ -383,7 +385,6 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
                                      public void Execute()
                                      {
                                          var value = 0;
-
                                          using (var stream = new MemoryStream())
                                          {
                                              Consume(stream);
@@ -1087,13 +1088,13 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifies the specification example without <c>DEBUG</c> defined: a conditional pair that lies wholly in the
-    /// statements the fix moves into the block moves with them, and its disabled text keeps its text
+    /// Verifies that without <c>DEBUG</c> defined, a conditional pair that lies wholly in the statements the fix would move
+    /// into the block holds disabled text, which withholds the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-FIX-003")]
-    public async Task FixMovesABalancedConditionalPairOfTheFollowingStatementsIntoTheBlockWithTheSymbolUndefined()
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixForABalancedConditionalPairOfTheFollowingStatementsWithTheSymbolUndefined()
     {
         const string source = """
                               using System.IO;
@@ -1111,25 +1112,7 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
                               }
                               """;
 
-        const string fixedSource = """
-                                   using System.IO;
-
-                                   class C
-                                   {
-                                       void M()
-                                       {
-                                           using (var s = new MemoryStream())
-                                           {
-                                   #if DEBUG
-                                           s.Flush();
-                                   #endif
-                                               s.Close();
-                                           }
-                                       }
-                                   }
-                                   """;
-
-        await Verify(source, fixedSource);
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     /// <summary>
@@ -1298,12 +1281,12 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifies that a comment on the line in front of the semicolon withholds the fix: the using statement the fix
-    /// builds would hold the comment on its own line in front of its closing parenthesis, which the formatter refuses
+    /// Verifying the specification example: a comment in the leading trivia of the declaration's semicolon withholds the
+    /// fix, because it would end up in front of the new closing parenthesis, on lines the fix would have to lay out
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-FIX-010")]
+    [Requirement("RH7004-007")]
     public async Task NoFixIsOfferedForACommentInFrontOfTheSemicolon()
     {
         const string source = """
@@ -1831,6 +1814,1423 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
                                    """;
 
         await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying the reported example: the moved statements keep their spacing, the unbraced embedded statement, and their
+    /// line breaks, and no blank line is inserted between them
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task MovedStatementsKeepTheirLayout(string endOfLine)
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  int M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      s.Flush( );
+                                      if (true) s.Flush();
+                                      var n = 1;
+                                      return n;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       int M()
+                                       {
+                                           using (var s = new MemoryStream())
+                                           {
+                                               s.Flush( );
+                                               if (true) s.Flush();
+                                               var n = 1;
+                                               return n;
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying the reported example: no blank line is inserted in front of the new using statement, behind the statement
+    /// in front of it, nor between the moved statements
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task NoBlankLineIsInsertedInFrontOfTheNewUsingStatement(string endOfLine)
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  int M()
+                                  {
+                                      var x = 0;
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      x++;
+                                      return x;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       int M()
+                                       {
+                                           var x = 0;
+                                           using (var s = new MemoryStream())
+                                           {
+                                               x++;
+                                               return x;
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying the reported example: no blank line is inserted in front of or behind an <c>#endregion</c> that stands in
+    /// front of the using declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-006")]
+    public async Task NoBlankLineIsInsertedAroundAnEndRegionInFrontOfTheUsingDeclaration()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      #region Setup
+                                      var n = 1;
+                                      #endregion
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      s.Flush();
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           #region Setup
+                                           var n = 1;
+                                           #endregion
+                                           using (var s = new MemoryStream())
+                                           {
+                                               s.Flush();
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: every line of the moved statements moves four columns to the right, the
+    /// continuation line included, although formatting the result would align it under the first operand
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task ContinuationLineOfAMovedStatementMovesOneLevelWithIt(string endOfLine)
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  int M(int a, int b)
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      var total = a
+                                          + b;
+                                      return total;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       int M(int a, int b)
+                                       {
+                                           using (var s = new MemoryStream())
+                                           {
+                                               var total = a
+                                                   + b;
+                                               return total;
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that a continuation line aligned to an argument on the line above moves four columns with it and stays
+    /// aligned
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-007")]
+    public async Task AlignedContinuationLineOfAMovedStatementStaysAligned()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M(int a, int b)
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      M(a,
+                                        b);
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M(int a, int b)
+                                       {
+                                           using (var s = new MemoryStream())
+                                           {
+                                               M(a,
+                                                 b);
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: among the moved statements, the <c>#pragma</c> lines and a comment in column 0
+    /// keep their column, and the <c>#region</c> and <c>#endregion</c> lines move with the statements
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task ColumnZeroCommentAndDirectiveLinesAmongTheMovedStatements(string endOfLine)
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                              #pragma warning disable CS0219
+                                      var unused = 1;
+                              #pragma warning restore CS0219
+                                      #region Work
+                                      s.Flush();
+                                      #endregion
+                              //        s.Close();
+                                      s.Flush();
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var s = new MemoryStream())
+                                           {
+                                   #pragma warning disable CS0219
+                                               var unused = 1;
+                                   #pragma warning restore CS0219
+                                               #region Work
+                                               s.Flush();
+                                               #endregion
+                                   //        s.Close();
+                                               s.Flush();
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: a raw string literal over several lines among the moved statements withholds
+    /// the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixForARawStringOverSeveralLinesAmongTheMovedStatements()
+    {
+        const string source = """"
+                              using System.IO;
+
+                              class C
+                              {
+                                  string M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      var t = """
+                                          a
+                                          """;
+                                      return t;
+                                  }
+                              }
+                              """";
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: a verbatim string over two lines among the moved statements withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixForAVerbatimStringOverTwoLinesAmongTheMovedStatements()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  string M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      var t = @"a
+                                b";
+                                      return t;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that an interpolated verbatim string over two lines among the moved statements withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixForAnInterpolatedVerbatimStringOverTwoLinesAmongTheMovedStatements()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  string M(int a)
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      var t = $@"{a}
+                                b";
+                                      return t;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: a comment over two lines among the moved statements withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixForACommentOverTwoLinesAmongTheMovedStatements()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      /* one
+                                         two */
+                                      s.Flush();
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a comment over two lines inside a moved statement withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixForACommentOverTwoLinesInsideAMovedStatement()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      s.Write(new byte[0], 0, /* one
+                                         two */ 0);
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: disabled text among the moved statements withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixForDisabledTextAmongTheMovedStatements()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                              #if NEVER
+                                      s.Close();
+                              #endif
+                                      s.Flush();
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: a statement that starts on the line of the using declaration withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixForAStatementOnTheLineOfTheUsingDeclaration()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream(); s.Flush();
+                                      s.Flush();
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a directive in the leading trivia of the declaration's semicolon withholds the fix, as a comment there
+    /// does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-007")]
+    public async Task NoFixIsOfferedForADirectiveInFrontOfTheSemicolon()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream()
+                              #pragma warning disable CS0219
+                                          ;
+                                      s.Flush();
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: another statement in front of the using declaration on its line withholds
+    /// the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixForCodeInFrontOfTheUsingDeclarationOnItsLine()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      int a = 0; {|RH7004:using|} var s = new MemoryStream();
+                                      s.Flush();
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that the opening brace of the block in front of the using declaration on its line withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixForTheOpeningBraceOfTheBlockInFrontOfTheUsingDeclarationOnItsLine()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  { {|RH7004:using|} var s = new MemoryStream();
+                                      s.Flush();
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: the last moved statement ending on the line of the block's closing brace
+    /// withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixWhenTheLastMovedStatementEndsOnTheLineOfTheClosingBrace()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      s.Flush(); }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: a line that holds code moves one indentation level with the other moved
+    /// statements, also where a comment in front of the code starts in column 0, because it is no comment line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task CodeLineWithAColumnZeroCommentInFrontOfItMovesWithTheStatements(string endOfLine)
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                              /* x */ s.Flush();
+                                      s.Flush();
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var s = new MemoryStream())
+                                           {
+                                       /* x */ s.Flush();
+                                               s.Flush();
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that a line that holds nothing but comments, the first of them a delimited comment in column 0, is a
+    /// comment line and keeps column 0 among the moved statements
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task LineOfOnlyCommentsStartingWithADelimitedCommentInColumnZeroKeepsItsColumn(string endOfLine)
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                              /* x */ // s.Close();
+                                      s.Flush();
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var s = new MemoryStream())
+                                           {
+                                   /* x */ // s.Close();
+                                               s.Flush();
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: a string literal and a comment on one line among the moved statements keep the
+    /// fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7004-007")]
+    public async Task StringLiteralAndCommentOnOneLineKeepTheFix(string endOfLine)
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  string M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      var t = "a"; /* b */
+                                      return t;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       string M()
+                                       {
+                                           using (var s = new MemoryStream())
+                                           {
+                                               var t = "a"; /* b */
+                                               return t;
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that a raw string literal on one line among the moved statements keeps the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-007")]
+    public async Task RawStringOnOneLineKeepsTheFix()
+    {
+        const string source = """"
+                              using System.IO;
+
+                              class C
+                              {
+                                  string M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      var t = """a""";
+                                      return t;
+                                  }
+                              }
+                              """";
+
+        const string fixedSource = """"
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       string M()
+                                       {
+                                           using (var s = new MemoryStream())
+                                           {
+                                               var t = """a""";
+                                               return t;
+                                           }
+                                       }
+                                   }
+                                   """";
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying that a blank line that holds whitespace among the moved statements stays a blank line and is written
+    /// empty
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task WhitespaceOnlyLineAmongTheMovedStatementsIsWrittenEmpty(string endOfLine)
+    {
+        var source = ExpandWhitespaceMarkers("""
+                                             using System.IO;
+
+                                             class C
+                                             {
+                                                 void M()
+                                                 {
+                                                     {|RH7004:using|} var s = new MemoryStream();
+                                                     s.Flush();
+                                             ········
+                                                     s.Close();
+                                                 }
+                                             }
+                                             """);
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var s = new MemoryStream())
+                                           {
+                                               s.Flush();
+
+                                               s.Close();
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: an interpolated verbatim string among the moved statements whose second line
+    /// starts at a hole withholds the fix, because shifting that line would write whitespace into the string's value
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixForAnInterpolatedVerbatimStringWhoseSecondLineStartsAtAHole()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  string M(int x)
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      var t = $@"a
+                              {x}";
+                                      return t;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that an interpolated verbatim string among the moved statements whose second line starts at the closing
+    /// quote withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixForAnInterpolatedVerbatimStringWhoseSecondLineStartsAtTheClosingQuote()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  string M(int x)
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      var t = $@"a{x}
+                              ";
+                                      return t;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that an interpolated verbatim string written with <c>@$"</c> among the moved statements whose second line
+    /// starts at a hole withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixForAnAtDollarInterpolatedStringWhoseSecondLineStartsAtAHole()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  string M(int x)
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      var t = @$"a
+                              {x}";
+                                      return t;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: an interpolated string among the moved statements whose hole spans lines
+    /// withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixForAnInterpolatedStringWhoseHoleSpansLines()
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  string M(int x)
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      var t = $"{x
+                                          + 1}";
+                                      return t;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that an interpolated raw string literal among the moved statements whose content line starts at a hole
+    /// withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixForAnInterpolatedRawStringWhoseContentLineStartsAtAHole()
+    {
+        const string source = """"
+                              using System.IO;
+
+                              class C
+                              {
+                                  string M(int x)
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      var t = $"""
+                                          {x}
+                                          """;
+                                      return t;
+                                  }
+                              }
+                              """";
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that an interpolated string on one line among the moved statements keeps the fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7004-007")]
+    public async Task InterpolatedStringOnOneLineKeepsTheFix(string endOfLine)
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  string M(int x)
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      var t = $@"a{x}b";
+                                      return t;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       string M(int x)
+                                       {
+                                           using (var s = new MemoryStream())
+                                           {
+                                               var t = $@"a{x}b";
+                                               return t;
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: a tab in front of a moved line withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixForATabInFrontOfAMovedLine()
+    {
+        var source = ExpandWhitespaceMarkers("""
+                                             using System.IO;
+
+                                             class C
+                                             {
+                                                 void M()
+                                                 {
+                                                     {|RH7004:using|} var s = new MemoryStream();
+                                             →s.Flush();
+                                                 }
+                                             }
+                                             """);
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a tab in front of the line of the using declaration withholds the fix, also where every moved line
+    /// is indented with spaces
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixForATabInFrontOfTheLineOfTheUsingDeclaration()
+    {
+        var source = ExpandWhitespaceMarkers("""
+                                             using System.IO;
+
+                                             class C
+                                             {
+                                                 void M()
+                                                 {
+                                             ····→{|RH7004:using|} var s = new MemoryStream();
+                                                     s.Flush();
+                                                 }
+                                             }
+                                             """);
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a tab between two tokens of a moved line does not withhold the fix, and stays where it is written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7004-007")]
+    public async Task TabBetweenTwoTokensOfAMovedLineKeepsTheFix(string endOfLine)
+    {
+        var source = ExpandWhitespaceMarkers("""
+                                             using System.IO;
+
+                                             class C
+                                             {
+                                                 void M()
+                                                 {
+                                                     {|RH7004:using|} var s = new MemoryStream();
+                                                     s.Flush();→// flushed
+                                                 }
+                                             }
+                                             """);
+
+        var fixedSource = ExpandWhitespaceMarkers("""
+                                                  using System.IO;
+
+                                                  class C
+                                                  {
+                                                      void M()
+                                                      {
+                                                          using (var s = new MemoryStream())
+                                                          {
+                                                              s.Flush();→// flushed
+                                                          }
+                                                      }
+                                                  }
+                                                  """);
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that a tab inside a string literal on a moved line does not withhold the fix, and stays in the string
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-007")]
+    public async Task TabInsideAStringOnAMovedLineKeepsTheFix()
+    {
+        var source = ExpandWhitespaceMarkers("""
+                                             using System.IO;
+
+                                             class C
+                                             {
+                                                 string M()
+                                                 {
+                                                     {|RH7004:using|} var s = new MemoryStream();
+                                                     return "a→b";
+                                                 }
+                                             }
+                                             """);
+
+        var fixedSource = ExpandWhitespaceMarkers("""
+                                                  using System.IO;
+
+                                                  class C
+                                                  {
+                                                      string M()
+                                                      {
+                                                          using (var s = new MemoryStream())
+                                                          {
+                                                              return "a→b";
+                                                          }
+                                                      }
+                                                  }
+                                                  """);
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying that a tab on a blank line among the moved statements does not withhold the fix, and the blank line is
+    /// written empty
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7004-007")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task TabOnABlankLineAmongTheMovedStatementsKeepsTheFix(string endOfLine)
+    {
+        var source = ExpandWhitespaceMarkers("""
+                                             using System.IO;
+
+                                             class C
+                                             {
+                                                 void M()
+                                                 {
+                                                     {|RH7004:using|} var s = new MemoryStream();
+                                                     s.Flush();
+                                             →
+                                                     s.Close();
+                                                 }
+                                             }
+                                             """);
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var s = new MemoryStream())
+                                           {
+                                               s.Flush();
+
+                                               s.Close();
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that a tab in front of a directive line among the moved statements, a line that keeps its column, does
+    /// not withhold the fix, and the line keeps its tab
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-007")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task TabInFrontOfADirectiveLineAmongTheMovedStatementsKeepsTheFix()
+    {
+        var source = ExpandWhitespaceMarkers("""
+                                             using System.IO;
+
+                                             class C
+                                             {
+                                                 void M()
+                                                 {
+                                                     {|RH7004:using|} var s = new MemoryStream();
+                                                     s.Flush();
+                                             →#pragma warning disable CS0618
+                                                     s.Close();
+                                                 }
+                                             }
+                                             """);
+
+        var fixedSource = ExpandWhitespaceMarkers("""
+                                                  using System.IO;
+
+                                                  class C
+                                                  {
+                                                      void M()
+                                                      {
+                                                          using (var s = new MemoryStream())
+                                                          {
+                                                              s.Flush();
+                                                  →#pragma warning disable CS0618
+                                                              s.Close();
+                                                          }
+                                                      }
+                                                  }
+                                                  """);
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when the moved statements hold an LF line break in a document whose line
+    /// breaks are otherwise CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task NoCodeFixWhenTheMovedStatementsHoldALineBreakOtherThanTheDocumentsLineEnding()
+    {
+        var source = NormalizeToCarriageReturnLineFeed("""
+                                                       using System.IO;
+
+                                                       class C
+                                                       {
+                                                           void M()
+                                                           {
+                                                               {|RH7004:using|} var s = new MemoryStream();
+                                                               s.Flush();{LF}
+                                                               s.Flush();
+                                                           }
+                                                       }
+                                                       """).Replace("{LF}\r\n", "\n");
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered in a document whose line breaks are all a lone carriage return, where the
+    /// moved statements hold a line break
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task NoCodeFixWhenTheMovedStatementsHoldLoneCarriageReturnLineBreaks()
+    {
+        var source = """
+                     using System.IO;
+
+                     class C
+                     {
+                         void M()
+                         {
+                             {|RH7004:using|} var s = new MemoryStream();
+                             s.Flush();
+                             s.Flush();
+                         }
+                     }
+                     """.Replace("\r\n", "\n").Replace("\n", "\r");
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that an LF line break outside the code the fix changes, in a document whose line breaks are otherwise
+    /// CRLF, does not withhold the fix: the fix writes CRLF and leaves that line break as it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    public async Task LineBreakOtherThanTheDocumentsLineEndingOutsideTheChangedCodeKeepsTheFix()
+    {
+        var source = NormalizeToCarriageReturnLineFeed("""
+                                                       using System.IO;{LF}
+
+                                                       class C
+                                                       {
+                                                           void M()
+                                                           {
+                                                               using var s = new MemoryStream();
+                                                               s.Flush();
+                                                           }
+                                                       }
+                                                       """).Replace("{LF}\r\n", "\n");
+
+        var fixedSource = NormalizeToCarriageReturnLineFeed("""
+                                                            using System.IO;{LF}
+
+                                                            class C
+                                                            {
+                                                                void M()
+                                                                {
+                                                                    using (var s = new MemoryStream())
+                                                                    {
+                                                                        s.Flush();
+                                                                    }
+                                                                }
+                                                            }
+                                                            """).Replace("{LF}\r\n", "\n");
+
+        Assert.AreEqual(fixedSource, await ApplyCodeFixAsync(source));
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when the line break behind the using declaration is an LF in a document
+    /// whose line breaks are otherwise CRLF, with statements following the declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixWhenTheLineBreakBehindTheDeclarationIsOtherThanTheDocumentsLineEnding()
+    {
+        var source = NormalizeToCarriageReturnLineFeed("""
+                                                       using System.IO;
+
+                                                       class C
+                                                       {
+                                                           void M()
+                                                           {
+                                                               {|RH7004:using|} var s = new MemoryStream();{LF}
+                                                               s.Flush();
+                                                               s.Flush();
+                                                           }
+                                                       }
+                                                       """).Replace("{LF}\r\n", "\n");
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when the line break behind the using declaration is an LF in a document
+    /// whose line breaks are otherwise CRLF, with the declaration as the last statement of its block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixWhenTheLineBreakBehindTheLastStatementDeclarationIsOtherThanTheDocumentsLineEnding()
+    {
+        var source = NormalizeToCarriageReturnLineFeed("""
+                                                       using System.IO;
+
+                                                       class C
+                                                       {
+                                                           void M()
+                                                           {
+                                                               {|RH7004:using|} var s = new MemoryStream();{LF}
+                                                           }
+                                                       }
+                                                       """).Replace("{LF}\r\n", "\n");
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered in a document whose line breaks are all a lone carriage return, where the
+    /// using declaration is the last statement of its block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixForALastStatementDeclarationInADocumentWithLoneCarriageReturnLineBreaks()
+    {
+        var source = """
+                     using System.IO;
+
+                     class C
+                     {
+                         void M()
+                         {
+                             {|RH7004:using|} var s = new MemoryStream();
+                         }
+                     }
+                     """.Replace("\r\n", "\n").Replace("\n", "\r");
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when a using declaration that spans lines holds an LF line break in a
+    /// document whose line breaks are otherwise CRLF, with a statement following the declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixWhenTheDeclarationHoldsALineBreakOtherThanTheDocumentsLineEnding()
+    {
+        var source = NormalizeToCarriageReturnLineFeed("""
+                                                       using System.IO;
+
+                                                       class C
+                                                       {
+                                                           void M()
+                                                           {
+                                                               {|RH7004:using|} var s ={LF}
+                                                                   new MemoryStream();
+                                                               s.Flush();
+                                                           }
+                                                       }
+                                                       """).Replace("{LF}\r\n", "\n");
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when a using declaration that spans lines holds an LF line break in a
+    /// document whose line breaks are otherwise CRLF, where the declaration ends on the line of the block's closing
+    /// brace and the new block stays empty
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixWhenTheDeclarationHoldsALineBreakOtherThanTheDocumentsLineEndingAndTheBlockStaysEmpty()
+    {
+        var source = NormalizeToCarriageReturnLineFeed("""
+                                                       using System.IO;
+
+                                                       class C
+                                                       {
+                                                           void M()
+                                                           {
+                                                               {|RH7004:using|} var s ={LF}
+                                                                   new MemoryStream(); }
+                                                       }
+                                                       """).Replace("{LF}\r\n", "\n");
+
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     #endregion // Tests
