@@ -64,6 +64,8 @@ The maintainer raised no objection to the narrowing of #1140 and the withheld ra
 | 21 | Implementer | Red tests that pin outputs the changed or unchanged requirements forbid: RH6024 SHARED-FIX-010 test (decision 15), RH5204 incremental-iteration count (LF/CRLF), RH5204 Fix All count (decision 17), RH5204 blank-line removal behind stray doc comment (RH5204-006/answer 1), two RH6023 wrapped-link tests (SHARED-OPSPACE-004/P9), five RH5511 tests keeping the list on the previous member's line (SHARED-FIX-007 shared line), RH3102/RH3201 tests pinning the fixed defects | Test implementer rewrites them | Each assertion contradicts a requirement covered by an answer or unchanged | Covered by answers 1 or unchanged SHARED-FIX-006/007 | — |
 | 22 | Implementer | RH5203 test: `AssertFormattingChangesNothing` fails because the formatter inserts a blank line before a comment line inside an argument list | Drop that assertion for this input; output stays answer 2A. Not a follow-up: a comment inside an argument list already violates RH5038 (rare class) | Rare class; maintainer chose the output | Output is answer 2A | — |
 | 23 | Implementer | Trailing-comma fix turns `B , // c` into `B  // c` (PR-introduced suspect, untested) | Test implementer adds a test with the formatter's output; implementer fixes if red | Within the changed helper | SHARED-FIX-007 decides | — |
+| 24 | Spec checker | No change doc although RH5204-006/RH5203-003 change and three withheld-fix requirements are added | Keep decision 13; withheld rare classes are recorded in the rule spec as AGENTS.md *Code-fix coverage* prescribes; the PR's Review notes state the reason | Covered by maintainer answers 1–2 and the rare-class policy | Answers 1–2; rare classes | — |
+| 25 | Spec checker | Repair round 1: stale FMT-PIPE-024 tags on six RH6023 tests; optional SHARED-FIX-007 tag on the RH5513 tab test | Test implementer fixes both; it runs `scripts/format.sh` on the file itself, so the cleaner is not re-run (tags only); spec checker re-runs on the repair | Tag-only change | Internal | — |
 
 ## Follow-up candidates
 
@@ -80,6 +82,6 @@ The maintainer raised no objection to the narrowing of #1140 and the withheld ra
 - Spec amendment f85c954. Implementer done (04, ba83087/f2875e4): 18 red tests, growth 408 lines + new type.
 - Spec author 05 (1e9a5f7) restored RH5403/statement-braces specs; test implementer 06 (d979e84): 7 red brace tests await production revert; decision 23 no defect; RH3102 duplicate characterization test kept (harmless).
 - Implementer 07 (0b12f75): all tests pass; no new type; net production +87 lines (330+/243-). Decision 20 carried out.
-- Next: cleaner 08, then spec checker 09, then auditor.
+- Cleaner 08 clean (43087b1). Spec checker 09 (f36127b): findings → repair round 1 (decision 25): test implementer 10, spec checker 11, then auditor.
 - Repair (not a repair round; narrowing + test disputes): spec author 05 and test implementer 06 in parallel, then implementer 07.
 - (old) Next: implementer; spec author amendment for decision 16 in parallel. (old: spec author (clarifications RH5204-006, RH5203-003 per answer, RH5103-003 withheld class, RH5205 withheld class, RH5513/SHARED-ATTR withheld class), then test implementer.
