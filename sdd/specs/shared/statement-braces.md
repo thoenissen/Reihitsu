@@ -5,7 +5,7 @@
 | ID prefix | SHARED-BRACE |
 | Status | Active |
 | Code owners | `StatementBracesCodeFixProviderBase` |
-| Uses | FMT-STRUCT-001, SHARED-FIX-003 |
+| Uses | FMT-STRUCT-001, SHARED-FIX-003, SHARED-FIX-006 |
 
 This spec covers what the rules that report an `if` or `else` body without braces share: which bodies they check, and what their code fix produces. Each rule that uses this spec states which of those bodies it reports.
 
@@ -43,9 +43,9 @@ class C
 
 ### SHARED-BRACE-002 — The fix wraps the body in braces
 
-A code fix that uses this requirement MUST wrap the reported body in a block by laying out the `if` statement that owns it as the formatter does (FMT-STRUCT-001). When that `if` statement starts its line, the braces start their own lines at the column of the `if`, and the body is indented one level inside them. A comment behind the body on its last line stays there, inside the block, and is written once: the fix MUST NOT repeat it behind the closing brace (SHARED-FIX-003).
+A code fix that uses this requirement MUST wrap the reported body in a block laid out as the formatter lays out the braced body (FMT-STRUCT-001), and MUST NOT change anything else in the `if` statement that owns it or around it (SHARED-FIX-006): not its condition, not another body of the same `if`/`else` chain, and not the blank lines in front of the statement. When that `if` statement starts its line, the braces start their own lines at the column of the `if`, and the body is indented one level inside them. A comment behind the body on its last line stays there, inside the block, and is written once: the fix MUST NOT repeat it behind the closing brace (SHARED-FIX-003).
 
-Why: The formatter owns the braced layout of a control-flow statement; delegating to it applies that layout instead of a second one, and works the same whether the body was on the line of the `if` or below it. Formatting the document keeps a comment behind the body with the statement it describes; a second copy behind the closing brace would change the text the author wrote.
+Why: The formatter owns the braced layout of a control-flow statement; applying that layout to the reported body avoids a second one and works the same whether the body was on the line of the `if` or below it. The rest of the statement is not what the diagnostic is about, and another body without braces has a diagnostic of its own. Formatting the document keeps a comment behind the body with the statement it describes; a second copy behind the closing brace would change the text the author wrote.
 
 Example — RH5405:
 
@@ -96,6 +96,41 @@ class C
             M(a, b); // trail
         }
         b++;
+    }
+}
+```
+
+Example — RH5405, the rest of the statement stays as written:
+
+```csharp
+class C
+{
+    void M(bool a, bool b)
+    {
+        int  x = 1;
+        if (a) {|RH5405:M(a, b);|}
+        else
+        {
+            x  = 2;
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(bool a, bool b)
+    {
+        int  x = 1;
+        if (a)
+        {
+            M(a, b);
+        }
+        else
+        {
+            x  = 2;
+        }
     }
 }
 ```

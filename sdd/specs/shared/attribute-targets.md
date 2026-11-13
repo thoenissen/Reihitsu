@@ -5,7 +5,7 @@
 | ID prefix | SHARED-ATTR |
 | Status | Active |
 | Code owners | `AttributeTargetRuleAnalyzerBase`, `TargetAttributePlacementAnalyzerBase`, `TargetAttributePlacementCodeFixProviderBase`, `TargetAttributeListShapeAnalyzerBase`, `TargetAttributeListShapeCodeFixProviderBase`, `AttributeTargetUtilities`, `AttributeListMergeSeparators` |
-| Uses | FMT-BREAK-001, FMT-BREAK-024, FMT-BREAK-027, FMT-BREAK-032, FMT-STRUCT-028, FMT-STRUCT-029, SHARED-FIX-008 |
+| Uses | FMT-BREAK-001, FMT-BREAK-024, FMT-BREAK-027, FMT-BREAK-032, FMT-INDENT-028, FMT-STRUCT-028, FMT-STRUCT-029, SHARED-FIX-008 |
 
 This spec covers the rules that check attribute lists by the target the attributes apply to: how the target of an attribute list is resolved, how a placement rule decides whether a list is placed on its own line or on the line of what follows it, how a list-shape rule decides whether a list holds one attribute or the lists of one target are merged, where the diagnostic is, and what the placement and list-shape fixes produce. Each rule that uses this spec names its target, the declarations that carry it, its placement or its list shape, and any exception of its own. The formatter's counterparts are FMT-BREAK-027 for the placement, and FMT-STRUCT-028, FMT-STRUCT-029, and FMT-BREAK-032 for the list shape.
 
@@ -243,7 +243,7 @@ Example: see SHARED-ATTR-004.
 
 The code fix of a rule that requires the list on its own line MUST replace the gap between the list's closing bracket and the first token after it with a line break and indent that token with spaces: four for each namespace, type, enum, block, switch statement, or accessor list whose braces enclose the list, and four more inside the statements of a switch section. The indentation MUST NOT depend on the column of the list or on the indentation of other lines. The inserted line break MUST use the line ending SHARED-FIX-008 specifies.
 
-This requirement covers a list outside every initializer and anonymous object (SHARED-ATTR-009) whose innermost enclosing opening brace is itself indented four spaces for each scope that encloses that brace.
+This requirement covers a list outside every initializer and anonymous object (SHARED-ATTR-009) whose innermost enclosing opening brace is itself indented four spaces for each scope that encloses that brace. For any other list outside them, SHARED-ATTR-021 withholds the fix.
 
 Why: The fix makes only the change the diagnostic asks for. The indentation is the one the declaration has at its nesting depth, so a stray space or tab in front of the list is not copied onto the declaration.
 
@@ -764,3 +764,34 @@ class C
     }
 }
 ```
+
+### SHARED-ATTR-021 — The separate-line fix is withheld when the enclosing brace is off its depth column
+
+The code fix of a rule that requires the list on its own line MUST NOT be offered for a list outside every initializer and anonymous object (SHARED-ATTR-009) when the innermost opening brace that encloses the list, of the kinds SHARED-ATTR-008 counts, stands on a line that is not indented four spaces for each such brace that encloses it. The diagnostic is still reported. A list whose innermost enclosing brace stands on a line indented that way is fixed as SHARED-ATTR-008 states, as in its examples.
+
+Why: SHARED-ATTR-008 indents the declaration by its nesting depth, which matches the formatter only where the enclosing brace sits at its own depth. A brace the formatter aligns to something else, such as a lambda's block aligned to the lambda in a wrapped argument (FMT-INDENT-028), puts the declaration in a column the nesting depth cannot give, and computing that column would repeat the formatter's indentation in the fix. Such a brace around an attribute list is rare.
+
+Example — RH5513:
+
+```csharp
+using System;
+
+class C
+{
+    void M()
+    {
+        Run(1, () =>
+               {
+                   {|RH5513:[A]|} void L()
+                   {
+                   }
+               });
+    }
+
+    void Run(int a, Action f)
+    {
+    }
+}
+```
+
+is reported, and no code fix is offered.

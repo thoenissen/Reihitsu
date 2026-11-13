@@ -5,7 +5,7 @@
 | ID prefix | SHARED-OPSPACE |
 | Status | Active |
 | Code owners | `OperatorSpacingCodeFixProviderBase` |
-| Uses | FMT-SPACE-010 |
+| Uses | FMT-SPACE-010, SHARED-FIX-006 |
 
 This spec covers the rules that require exactly one space on both sides of an operator token: which gap next to the rule's operator is reported, where the diagnostic is, and what the fix produces. Each rule that uses this spec states which operators it checks; it names the requirements of this spec it follows.
 
@@ -81,9 +81,9 @@ Example: see SHARED-OPSPACE-001, where both sides of the operator in `a  +  b` a
 
 ### SHARED-OPSPACE-004 — The fix puts one space on both sides
 
-A code fix that uses this requirement MUST leave exactly one space in each gap next to the reported operator that holds no line break and no comment, as FMT-SPACE-010 specifies for the formatter.
+A code fix that uses this requirement MUST leave exactly one space in each gap next to the reported operator that holds no line break and no comment, as FMT-SPACE-010 specifies for the formatter, and MUST NOT change anything else (SHARED-FIX-006): a gap next to the operator that holds a line break or a comment stays as written, the operator stays on its line, and the operands, such as a lambda, an initializer, or an argument list among them, keep their layout.
 
-Why: The fix answers exactly the question the diagnostic asks. Using the formatter's operator-spacing decision keeps the fixed code identical to formatted code, so neither raises the diagnostic again.
+Why: The fix answers exactly the question the diagnostic asks; the rest of the expression, and where a wrapped operator stands, are not part of it. Using the formatter's operator-spacing decision keeps the fixed code identical to formatted code, so neither raises the diagnostic again.
 
 Example — RH6024:
 
@@ -111,6 +111,38 @@ class C
         var w = a * b;
 
         return a - -b;
+    }
+}
+```
+
+Example — RH6024 and RH6023, a wrapped gap and the operands stay as written:
+
+```csharp
+using System;
+
+class C
+{
+    void M(int a, int b)
+    {
+        _ = a{|RH6024:+|}
+            b;
+        Action f{|RH6023:=|}() => { M(a, b); };
+        var x{|RH6023:=|}new[] {1,2};
+    }
+}
+```
+
+```csharp
+using System;
+
+class C
+{
+    void M(int a, int b)
+    {
+        _ = a +
+            b;
+        Action f = () => { M(a, b); };
+        var x = new[] {1,2};
     }
 }
 ```
