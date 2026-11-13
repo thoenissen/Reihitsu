@@ -51,6 +51,10 @@ Batch 1 (before test implementer), all answered as recommended:
 | 14 | Spec author 07 | Scope of answer 7's withhold | SHARED-ATTR-022: withheld whenever the accessor list's `{` stands on the reported list's line (broader than a one-line accessor list) | Same cause of the odd output, cheaper check, the only shape RH5531 meets | Withholding a fix for a rare class; the output is the one the maintainer chose | 2fa97c8 |
 | 15 | Spec checker 11 | Change doc required? SHARED-BRACE-003, RH7309-007, SHARED-ATTR-022 add withholds of fixes `main` offers; answers 1 and 7 change code-fix results | Yes: spec author writes one change doc covering the run's added withholds, recording the maintainer's answers 1–7 in `Decisions`; widen the lane to behavior change | `sdd/README.md`: a requirement added with new behavior needs a change doc, and a maintainer answer that sets a different intended behavior is recorded in its `Decisions` | Every visible output change it lists is already answered by the maintainer (answers 1–7) or is a rare-class withhold | — |
 | 16 | Spec author 12 | Change doc lists two outputs no maintainer answer names (header and blank lines stay as written; a multi-line header keeps `&&` at its line end) | Not asked; accept the change doc and set `Accepted` | Both are demanded by unchanged SHARED-FIX-006 (P9) and the maintainer's P26 decision behind #1416 | Demanded by unchanged requirements and earlier maintainer decisions | (this commit) |
+| 17 | Auditor 14 | F1: brace fix withheld when the body ends the file (top-level statements, no final line break) | Repair: offer it, as SHARED-BRACE-002 requires (implementer + test) | Same requirement; `main` offered it | Unchanged requirement demands it | — |
+| 18 | Auditor 14 | F2: SHARED-ATTR-022 checks only an accessor list's `{`; `class C { [A, B] void M() { } }`, namespace and block `{` give the same odd output | Widen the withhold to any `{` on the reported list's line that opens the body holding the list's owner (spec author, tests, implementer) | Same cause as answer 7; rare class (one-line type/namespace/block bodies) | Withholding a fix for a rare class | — |
+| 19 | Auditor 14 | F3: line break after the attribute target copied into every new list; foreign line break inside attribute arguments kept | Withhold the split for a line break in the target's trivia and for any line break in the list other than the detected ending; spec + change doc + tests | Rare class; cheap check with the existing helper | Withholding a fix for a rare class | — |
+| 20 | Auditor 14 | F4–F7 (RH7309 stay-in-place test; stale Fix All comments; private indent constant; unreachable separator branch) | Repair: test implementer (F4, F5), implementer (F6, F7) | PR-introduced | Nothing visible | — |
 
 ## Follow-up candidates
 
@@ -75,4 +79,5 @@ Batch 1 (before test implementer), all answered as recommended:
 - Done: spec checker 11 (d451af9): one finding (change doc).
 - Repair round 1: spec author 12 (c8ec980) change doc, accepted by lead. Cleaner skipped (text only).
 - Done: spec checker 13 (39557b5): consistent. Merged origin/main 166e3dd (no overlap).
-- Now: auditor 14 against base 166e3dd2690edc7ed9cfd593d3e7d8eee8764c1b.
+- Done: auditor 14 (03ce027): 4 medium, 3 low.
+- Now: repair round 2 — spec author 15 (F2, F3 into SHARED-ATTR-022/017 and change doc), test implementer 16 (F1–F5), implementer 17 (F1–F3, F6, F7), cleaner 18, spec checker 19, auditor 20 (repair only), validator.
