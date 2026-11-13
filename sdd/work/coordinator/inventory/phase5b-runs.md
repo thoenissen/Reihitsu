@@ -71,7 +71,7 @@ Maintainer 2026-11-13: release 1.2.1 and 1.2.2 first; deferred minor bugs #1140 
 
 | # | Run | MS | Command | Status |
 |---|---|---|---|---|
-| 1 | P5 | 1.2.1 | `/squad #1416 #1388 #1627 #1142` | next |
+| 1 | P5 | 1.2.1 | `/squad #1416 #1388 #1627 #1142` | running (PR #1691) |
 | 2 | P13 | 1.2.1+1.2.2 | `/squad #1529 #1543` | output questions |
 | 3 | P9 | 1.2.1 | `/squad #1283 #1284 #1285` | after P5 |
 | 4 | P11 | 1.2.1 | `/squad #1600 #1150 #1274 #1143 #1673 #1678` | last of 1.2.1 |
@@ -81,4 +81,4 @@ Maintainer 2026-11-13: release 1.2.1 and 1.2.2 first; deferred minor bugs #1140 
 | 8 | Q4 | 1.2.2 | `/squad #1345 #1346 #1347 #1348 #1270 #1092 #1153 #1617` | |
 | 9 | Q7 | 1.2.2 | `/squad #1642 #1635` | |
 | 10 | Q1 | 1.2.2 | `/squad #1147 #1152 #1386 #1387 #1594 #1655` | |
-| 11 | Q5 | 1.2.2 | `/squad #1071 #1268 #1289 #974` | small, no dependency; can be pulled forward |
+| 11 | Q5 | 1.2.2 | `/squad #1071 #1268 #1289 #974` | proposed in parallel with P5 (2026-11-13) |
