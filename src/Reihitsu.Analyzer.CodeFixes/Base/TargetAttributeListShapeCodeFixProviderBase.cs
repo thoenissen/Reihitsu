@@ -99,34 +99,48 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
     }
 
     /// <summary>
-    /// Determines whether the attribute list starts on the line of the <c>{</c> that opens the body directly holding the
-    /// declaration the list belongs to: the accessor list of an accessor, the type of a member or an enum member, the
-    /// namespace of a type or a delegate, or the block of a local function (SHARED-ATTR-022). The whitespace at the start
-    /// of that line is the indentation of the code that owns the braces, so a further list started behind it would stand
-    /// at the wrong column, in front of the rest of the body
+    /// Determines whether a <c>{</c> token stands in front of the attribute list on the line on which the list starts and
+    /// is still open there, because its <c>}</c> does not stand in front of the list on that line (SHARED-ATTR-022). The
+    /// whitespace at the start of such a line is the indentation of the code that owns that <c>{</c> or of code further
+    /// out, so a further list started behind it would stand at the wrong column, in front of the rest of that body. The
+    /// scan walks the tokens in front of the list on its line backwards and counts the <c>}</c> tokens still waiting for
+    /// their <c>{</c>; a <c>{</c> found while none is waiting is open at the list. A brace inside a literal, a comment, or
+    /// disabled text is no token and is not seen
     /// </summary>
     /// <param name="attributeList">Attribute list</param>
     /// <returns><see langword="true"/> when the split fix is withheld for the list</returns>
-    private static bool StartsOnTheLineOfTheHoldingBrace(AttributeListSyntax attributeList)
+    private static bool StartsBehindAnOpenBraceOnItsLine(AttributeListSyntax attributeList)
     {
-        var openBrace = attributeList.Parent?.Parent switch
-                        {
-                            AccessorListSyntax accessorList => accessorList.OpenBraceToken,
-                            BaseTypeDeclarationSyntax typeDeclaration => typeDeclaration.OpenBraceToken,
-                            NamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.OpenBraceToken,
-                            BlockSyntax block when attributeList.Parent is LocalFunctionStatementSyntax => block.OpenBraceToken,
-                            _ => default
-                        };
+        var tree = attributeList.SyntaxTree;
+        var listLine = tree.GetLineSpan(attributeList.OpenBracketToken.Span).StartLinePosition.Line;
+        var waitingCloseBraces = 0;
 
-        if (openBrace.IsKind(SyntaxKind.None)
-            || openBrace.IsMissing)
+        var token = attributeList.OpenBracketToken.GetPreviousToken();
+
+        while (token.IsKind(SyntaxKind.None) == false
+               && tree.GetLineSpan(token.Span).StartLinePosition.Line == listLine)
         {
-            return false;
+            if (token.IsMissing == false)
+            {
+                if (token.IsKind(SyntaxKind.CloseBraceToken))
+                {
+                    waitingCloseBraces++;
+                }
+                else if (token.IsKind(SyntaxKind.OpenBraceToken))
+                {
+                    if (waitingCloseBraces == 0)
+                    {
+                        return true;
+                    }
+
+                    waitingCloseBraces--;
+                }
+            }
+
+            token = token.GetPreviousToken();
         }
 
-        var tree = attributeList.SyntaxTree;
-
-        return tree.GetLineSpan(openBrace.Span).StartLinePosition.Line == tree.GetLineSpan(attributeList.Span).StartLinePosition.Line;
+        return false;
     }
 
     /// <summary>
@@ -216,13 +230,13 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
         {
             // Mirrors the analyzer base: the formatter keeps the lists of an inline auto-property accessor merged, so
             // splitting one would only be undone again. A list with a comment or directive inside is withheld
-            // (SHARED-ATTR-019), and so are a list on the line of the brace that opens the body holding its declaration
+            // (SHARED-ATTR-019), and so are a list behind a brace on its line that is still open there
             // (SHARED-ATTR-022) and a list with a line break the split would copy or keep in another line ending
             // (SHARED-ATTR-023)
             return attributeList.Attributes.Count > 1
                    && SyntaxNodeUtilities.InteriorContainsCommentOrDirective(attributeList) == false
                    && AttributeTargetUtilities.IsAttributeListOnInlineAutoPropertyAccessor(attributeList) == false
-                   && StartsOnTheLineOfTheHoldingBrace(attributeList) == false
+                   && StartsBehindAnOpenBraceOnItsLine(attributeList) == false
                    && HoldsLineBreakTheSplitCannotWrite(root, attributeList) == false;
         }
 
