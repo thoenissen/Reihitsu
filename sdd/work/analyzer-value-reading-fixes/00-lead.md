@@ -39,6 +39,7 @@ Spec author (clarifications only: rule-spec coverage sentences for #1071/#1268, 
 | 8 | Spec author 03 | RH2109 spec vs. decision 7 gap | Keep the spec as written (not narrowed); the remaining hosts are a known bug carried by the follow-up | A rule spec cannot narrow SHARED-DIAG-003; narrowing would document a defect as intent | Remaining hosts keep `main`'s output | — |
 | 9 | Implementer 05 | RH2109 size against decision 7 | Accept: no new type, 91 non-blank non-doc added lines (< ~100), total production +183/−15 | Within the limit | Internal | d3c005c |
 | 10 | Implementer 05 | Disputed test `VerifyCodeBlockLineInsideInterpolatedRawStringIsNotReported` (`$$` read as markup in the additional file) | Fixture fix, assertion unchanged → fresh test implementer | Implementer proved the assertion holds with markup off | Assertion unchanged | — |
+| 11 | Auditor 11 | RH2109 findings #1 (comment openers `@*`/`<!--` outside lexed blocks swallow later real directives) and #2 (markup with `{`/`/*` inside a `@code` block keeps the block open, swallowing later directives) — both PR-introduced misses of reports `main` makes | Repair round 2: restore `main`'s report for every counterexample the auditor lists; where a cheap syntactic check cannot tell text from a directive, the result falls back to `main`'s behavior (reported), never to a missed real directive. No new type, cheap checks only; the remaining false positives in those rare shapes join the decision-7 follow-up | RH2109-001 unchanged requires the report; a regression against `main` is not shippable | Restores `main`'s output; nothing new decided | — |
 | 7 | Skeptic | #1289 scope | Narrow option: Razor/HTML comments, `@@`, letter/digit-before-`@` everywhere; C# comments and literals only inside `@code`/`@functions` blocks; C# kinds in `@{ }`, control-flow and expression hosts stay reported → follow-up. Escalation 9 if it exceeds ~100 production lines or needs a new type | Issue instances say "within a code block"; covers common member (multi-line `@* *@` around a block) | Remaining hosts keep today's output | — |
 
 ## Follow-up candidates
@@ -60,4 +61,5 @@ Spec author (clarifications only: rule-spec coverage sentences for #1071/#1268, 
 - 08 spec checker: findings (e6dfe88) — `Uses` header missing in RH4001, RH4009, RH2003, RH2109 specs (architecture test fails).
 - Repair round 1: spec author 09 fixed Uses lists (8ceb205); architecture 117/117. Cleaner skipped (spec text only).
 - 10 spec checker consistent (0703015).
-- Next: auditor (11) on base c2866ea (main not moved).
+- 11 auditor (5df37b7): #1071, #1268, #974 pass; #1289 two high findings (decision 11).
+- Repair round 2 (round 1 = Uses lists): test implementer (12) adds tests for the auditor's counterexamples → implementer (13) → cleaner → spec checker → auditor (repair only) → validator.
