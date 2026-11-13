@@ -83,6 +83,6 @@ Batch 1 (asked as chat questions 1–6; skeptic/spec-author IDs in brackets):
 - Done: test implementer 05 (5bd3a7b): all reproduced; #1604 (d) not reproduced (characterization). 98 failing tests.
 - Done: spec author 06 (c3c16cf).
 - Done: implementer 07 (9a3dded, 10c718c): all tests pass; +700/-242 production, ~470 in three Core helpers.
-- Escalation 9 answered A. Spec author 08 done (840e68b). Test implementer 09 done (ba8db8e, 8 failing rows). Implementer 10 done (1341a2c): all pass, net production +136. Next: spec author 11 (decisions 26, 27), test implementer 12, implementer 13, cleaner 14. Structural round: repair-like structural round (decisions 19–23) — spec author, test implementer, implementer — then cleaner.
+- Escalation 9 answered A. Spec author 08 done (840e68b). Test implementer 09 done (ba8db8e, 8 failing rows). Implementer 10 done (1341a2c): all pass, net production +136. Spec author 11 done (bffd78a; change-doc tab refusal accepted by lead as rare class). Next: test implementer 12, implementer 13, cleaner 14. Structural round: repair-like structural round (decisions 19–23) — spec author, test implementer, implementer — then cleaner.
 - (old) Next: fresh spec author writes the answers into the specs (and change doc if sdd/README requires one); then test implementer.
 - (old) Next after answers: then batch Q1–Q3 (+ skeptic's) to the maintainer before the test implementer.
