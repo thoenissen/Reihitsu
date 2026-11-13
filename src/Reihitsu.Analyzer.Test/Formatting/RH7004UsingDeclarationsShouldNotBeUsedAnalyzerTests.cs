@@ -3103,6 +3103,136 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
         Assert.AreEqual(fixedSource, await ApplyCodeFixAsync(source));
     }
 
+    /// <summary>
+    /// Verifying that no code fix is offered when the line break behind the using declaration is an LF in a document
+    /// whose line breaks are otherwise CRLF, with statements following the declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixWhenTheLineBreakBehindTheDeclarationIsOtherThanTheDocumentsLineEnding()
+    {
+        var source = NormalizeToCarriageReturnLineFeed("""
+                                                       using System.IO;
+
+                                                       class C
+                                                       {
+                                                           void M()
+                                                           {
+                                                               {|RH7004:using|} var s = new MemoryStream();{LF}
+                                                               s.Flush();
+                                                               s.Flush();
+                                                           }
+                                                       }
+                                                       """).Replace("{LF}\r\n", "\n");
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when the line break behind the using declaration is an LF in a document
+    /// whose line breaks are otherwise CRLF, with the declaration as the last statement of its block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixWhenTheLineBreakBehindTheLastStatementDeclarationIsOtherThanTheDocumentsLineEnding()
+    {
+        var source = NormalizeToCarriageReturnLineFeed("""
+                                                       using System.IO;
+
+                                                       class C
+                                                       {
+                                                           void M()
+                                                           {
+                                                               {|RH7004:using|} var s = new MemoryStream();{LF}
+                                                           }
+                                                       }
+                                                       """).Replace("{LF}\r\n", "\n");
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered in a document whose line breaks are all a lone carriage return, where the
+    /// using declaration is the last statement of its block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixForALastStatementDeclarationInADocumentWithLoneCarriageReturnLineBreaks()
+    {
+        var source = """
+                     using System.IO;
+
+                     class C
+                     {
+                         void M()
+                         {
+                             {|RH7004:using|} var s = new MemoryStream();
+                         }
+                     }
+                     """.Replace("\r\n", "\n").Replace("\n", "\r");
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when a using declaration that spans lines holds an LF line break in a
+    /// document whose line breaks are otherwise CRLF, with a statement following the declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixWhenTheDeclarationHoldsALineBreakOtherThanTheDocumentsLineEnding()
+    {
+        var source = NormalizeToCarriageReturnLineFeed("""
+                                                       using System.IO;
+
+                                                       class C
+                                                       {
+                                                           void M()
+                                                           {
+                                                               {|RH7004:using|} var s ={LF}
+                                                                   new MemoryStream();
+                                                               s.Flush();
+                                                           }
+                                                       }
+                                                       """).Replace("{LF}\r\n", "\n");
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix is offered when a using declaration that spans lines holds an LF line break in a
+    /// document whose line breaks are otherwise CRLF, where the declaration ends on the line of the block's closing
+    /// brace and the new block stays empty
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-008")]
+    [Requirement("RH7004-007")]
+    public async Task NoCodeFixWhenTheDeclarationHoldsALineBreakOtherThanTheDocumentsLineEndingAndTheBlockStaysEmpty()
+    {
+        var source = NormalizeToCarriageReturnLineFeed("""
+                                                       using System.IO;
+
+                                                       class C
+                                                       {
+                                                           void M()
+                                                           {
+                                                               {|RH7004:using|} var s ={LF}
+                                                                   new MemoryStream(); }
+                                                       }
+                                                       """).Replace("{LF}\r\n", "\n");
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region Methods
