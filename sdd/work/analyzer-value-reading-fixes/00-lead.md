@@ -59,4 +59,5 @@ Spec author (clarifications only: rule-spec coverage sentences for #1071/#1268, 
 - 07 cleaner clean (e85cfc0).
 - 08 spec checker: findings (e6dfe88) — `Uses` header missing in RH4001, RH4009, RH2003, RH2109 specs (architecture test fails).
 - Repair round 1: spec author 09 fixed Uses lists (8ceb205); architecture 117/117. Cleaner skipped (spec text only).
-- Next: spec checker (10), then auditor.
+- 10 spec checker consistent (0703015).
+- Next: auditor (11) on base c2866ea (main not moved).
