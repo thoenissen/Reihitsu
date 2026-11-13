@@ -2,7 +2,6 @@
 using System.Text.RegularExpressions;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -29,12 +28,12 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBa
     #region Fields
 
     /// <summary>
-    /// Pattern for a Razor <c>@code</c> or <c>@functions</c> directive that opens a block, anchored at the position the match starts at.
+    /// Pattern for a Razor <c>@code</c> directive that opens a block, anchored at the position the match starts at.
     /// This pattern carries a single quantifier and cannot backtrack pathologically, and it only ever matches an additional file
     /// Roslyn already accepted into the compilation, so it uses <see cref="Regex.InfiniteMatchTimeout"/> rather than a wall-clock
     /// budget: a timeout would surface as AD0001 and silently disable this analyzer for the whole compilation
     /// </summary>
-    private static readonly Regex _blockDirectivePattern = new(@"\G@(?<keyword>code|functions)\s*\{", RegexOptions.Compiled | RegexOptions.CultureInvariant, Regex.InfiniteMatchTimeout);
+    private static readonly Regex _codeDirectivePattern = new(@"\G@code\s*\{", RegexOptions.Compiled | RegexOptions.CultureInvariant, Regex.InfiniteMatchTimeout);
 
     #endregion // Fields
 
@@ -54,10 +53,9 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBa
 
     /// <summary>
     /// Finds every <c>@code</c> directive that opens a block. A directive starts a line after optional white space;
-    /// a Razor or HTML comment whose opener starts a line, and the escape <c>@@</c>, are text, and the C# of a <c>@code</c>
-    /// or <c>@functions</c> block, up to its closing brace, is skipped, so its comments and literals are text as well.
-    /// An opener behind other text on its line may sit in C#, an attribute value, or script text that is not lexed here,
-    /// so it opens nothing, and a directive after it stays reported
+    /// a Razor or HTML comment whose opener starts a line, and the escape <c>@@</c>, are text. C# is not lexed here, so
+    /// a line-starting directive inside a C# comment or literal is reported, and an opener behind other text on its line
+    /// may sit in C#, an attribute value, or script text, so it opens nothing, and a directive after it stays reported
     /// </summary>
     /// <param name="text">Text of the Razor file</param>
     /// <returns>The positions of the <c>@</c> of every reported directive</returns>
@@ -82,14 +80,11 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBa
             }
             else if (text[position] == '@'
                      && StartsLine(text, position)
-                     && _blockDirectivePattern.Match(text, position) is { Success: true } match)
+                     && _codeDirectivePattern.IsMatch(text, position))
             {
-                if (match.Groups["keyword"].Value == "code")
-                {
-                    directivePositions.Add(position);
-                }
+                directivePositions.Add(position);
 
-                position = SkipCSharpBlock(text, match.Index + match.Length - 1);
+                position++;
             }
             else
             {
@@ -98,58 +93,6 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBa
         }
 
         return directivePositions;
-    }
-
-    /// <summary>
-    /// Skips a C# block from its opening brace to its matching closing brace. The C# lexer decides which braces are tokens,
-    /// so braces inside comments and literals are not counted; a Razor comment inside the block is skipped as a whole.
-    /// Template markup (<c>@&lt;</c>) is not C#, so the skip stops there, and the rest of the block is scanned as markup
-    /// </summary>
-    /// <param name="text">Text of the Razor file</param>
-    /// <param name="openBracePosition">Position of the block's opening brace</param>
-    /// <returns>The position behind the closing brace or behind the start of template markup, or the end of the text when the block is not closed</returns>
-    private static int SkipCSharpBlock(string text, int openBracePosition)
-    {
-        var depth = 0;
-        var position = openBracePosition;
-
-        while (position < text.Length)
-        {
-            var resumePosition = text.Length;
-
-            foreach (var token in SyntaxFactory.ParseTokens(text, position, position))
-            {
-                if (StartsWith(text, token.SpanStart, "@*"))
-                {
-                    resumePosition = SkipPast(text, token.SpanStart + 2, "*@");
-
-                    break;
-                }
-
-                if (StartsWith(text, token.SpanStart, "@<"))
-                {
-                    return token.SpanStart + 2;
-                }
-
-                if (token.IsKind(SyntaxKind.OpenBraceToken))
-                {
-                    depth++;
-                }
-                else if (token.IsKind(SyntaxKind.CloseBraceToken))
-                {
-                    depth--;
-
-                    if (depth == 0)
-                    {
-                        return token.Span.End;
-                    }
-                }
-            }
-
-            position = resumePosition;
-        }
-
-        return text.Length;
     }
 
     /// <summary>
