@@ -57,5 +57,6 @@ Batch 1 (before test implementer), all answered as recommended:
 - Done: batch 1 answered (all as recommended).
 - Done: spec author 03 (5360bf8): SHARED-BRACE-003 (withholds), RH7309-007, SHARED-ATTR-017 tabs.
 - Done: Q6 answered A.
-- Now: spec author 04 (state answer 6 in SHARED-BRACE-002), then test implementer.
+- Done: spec author 04 (cf5de70).
+- Now: test implementer 05.
 - Then: test implementer.
