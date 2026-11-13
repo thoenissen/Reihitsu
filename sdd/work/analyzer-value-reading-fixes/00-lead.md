@@ -49,7 +49,7 @@ Spec author (clarifications only: rule-spec coverage sentences for #1071/#1268, 
 - `sdd/README.md` (Analyzer specs) says `shared/diagnostics.md` applies without being listed under `Uses`, but `SpecStructureTests` requires referenced SHARED-DIAG IDs to be listed — reword the rulebook — spec author 09
 - SHARED-DIAG-002 does not name Unicode escapes for every rule; Q1 was written only into RH4001/RH4009 — spec author 03
 - RH4009 nested namespace declarations (`namespace A { namespace B { } }`): no spec decides which name is compared — skeptic 02, #1071
-- RH2109 reads no C# extent (decision 13): (a) a `@code {` that starts its own line inside a multi-line C# comment or literal — in any host, `@code`/`@functions` blocks included — is still reported, against RH2109-001/SHARED-DIAG-003 (the C#-literal instances of #1289); (b) a line-starting `@*`/`<!--` inside a multi-line C# literal or comment opens a comment and hides a later real directive (decisions 12, 13; e.g. auditor 16 finding #4 input); (c) a multi-line Razor/HTML comment whose opener is behind other text on its line is not recognized, so a `@code {` line inside it is reported as on `main` — decisions 7, 11, 12, 13; skeptic 02, implementer 13, auditor 11/16; #1289 (issue manager may extend #1289 instead of filing new)
+- RH2109 reads no C# extent (decision 13): (a) a `@code {` that starts its own line inside a multi-line C# comment or literal — in any host, `@code`/`@functions` blocks included — is still reported, against RH2109-001/SHARED-DIAG-003 (the C#-literal instances of #1289); (b) a line-starting `@*`/`<!--` inside a multi-line C# literal or comment, or script text such as a JavaScript template literal in `<script>`, opens a comment and hides a later real directive (decisions 12, 13; e.g. auditor 16 finding #4 input); (c) a multi-line Razor/HTML comment whose opener is behind other text on its line is not recognized, so a `@code {` line inside it is reported as on `main` — decisions 7, 11, 12, 13; skeptic 02, implementer 13, auditor 11/16; #1289 (issue manager may extend #1289 instead of filing new)
 
 ## Worklist / next step
 
@@ -67,7 +67,8 @@ Spec author (clarifications only: rule-spec coverage sentences for #1071/#1268, 
 - 12 test implementer: 13 new RH2109 tests (8ebbe37), all fail on head, pass on main analyzer.
 - 14 cleaner clean (2f389e3). 15 spec checker consistent (9734aea). 16 auditor (5663397): #1, #2 closed; #3, #4 repeat classes → decision 13.
 - 17 test implementer (80415db): 9 tests turned to main's report (characterizations, untagged), 7 new for finding #3; 16 fail on head.
-- 19 cleaner clean. 20 spec checker consistent (e50b582). Next: auditor 21 (repair only).
+- 19 cleaner clean. 20 spec checker consistent (e50b582). 21 auditor PASS (3c9b46a); audited SHA 56a5a07. PR Review notes must name the decision-13 missed-directive class (auditor hint 1).
+- Next: cleaner (22) for test-summary wording (auditor hint 3), proved text-only against 56a5a07; then validator (23); publish.
 - 18 implementer (b8b466e): block lexing removed; RH2109 53/53, analyzer 8612/8612; RH2109 56 code lines.
 - Repair round 3 (last): test implementer (17, done) → implementer (18) → cleaner (19) → spec checker (20) → auditor (21, repair only) → validator (22).
 - 13 implementer (0de22a4): 46/46 RH2109, 8605/8605 analyzer; RH2109 95 code lines.
