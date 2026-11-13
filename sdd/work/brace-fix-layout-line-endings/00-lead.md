@@ -50,6 +50,7 @@ Batch 1 (before test implementer), all answered as recommended:
 | 13 | Implementer | Multi-line header (`if (a &&⏎ b) M();`): "on the header line" read by the header's last line (`)`/`else`), not the `if` keyword's line | Accept the implementer's reading; spec author words SHARED-BRACE-002/003 by the header's last line | The literal reading would put `{` inside the condition | Spec wording; the one output that compiles sensibly | 0d126cf |
 | 14 | Spec author 07 | Scope of answer 7's withhold | SHARED-ATTR-022: withheld whenever the accessor list's `{` stands on the reported list's line (broader than a one-line accessor list) | Same cause of the odd output, cheaper check, the only shape RH5531 meets | Withholding a fix for a rare class; the output is the one the maintainer chose | 2fa97c8 |
 | 15 | Spec checker 11 | Change doc required? SHARED-BRACE-003, RH7309-007, SHARED-ATTR-022 add withholds of fixes `main` offers; answers 1 and 7 change code-fix results | Yes: spec author writes one change doc covering the run's added withholds, recording the maintainer's answers 1–7 in `Decisions`; widen the lane to behavior change | `sdd/README.md`: a requirement added with new behavior needs a change doc, and a maintainer answer that sets a different intended behavior is recorded in its `Decisions` | Every visible output change it lists is already answered by the maintainer (answers 1–7) or is a rare-class withhold | — |
+| 16 | Spec author 12 | Change doc lists two outputs no maintainer answer names (header and blank lines stay as written; a multi-line header keeps `&&` at its line end) | Not asked; accept the change doc and set `Accepted` | Both are demanded by unchanged SHARED-FIX-006 (P9) and the maintainer's P26 decision behind #1416 | Demanded by unchanged requirements and earlier maintainer decisions | (this commit) |
 
 ## Follow-up candidates
 
@@ -72,4 +73,5 @@ Batch 1 (before test implementer), all answered as recommended:
 - Done: implementer 09 (f2e0b5f): all analyzer tests pass.
 - Done: cleaner 10 (5f57eca): clean.
 - Done: spec checker 11 (d451af9): one finding (change doc).
-- Now: repair round 1 — spec author 12 writes the change doc; then cleaner (skip: text only), spec checker 13, auditor 14.
+- Repair round 1: spec author 12 (c8ec980) change doc, accepted by lead. Cleaner skipped (text only).
+- Now: spec checker 13, then auditor 14.

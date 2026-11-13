@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | SHARED-BRACE-002 (clarified: aligned to SHARED-FIX-006/007/008; changed: which body lines move, code behind the body, whitespace at the end of the body's line), SHARED-BRACE-003 (added), SHARED-FIX-007 (clarified: the brace fixes' lines and tab withhold), SHARED-FIX-008 (changed: the brace fixes and the RH7309 fix join the moves that are withheld for a foreign line break), RH7309-007 (added), RH5011-004, RH8304-004 (clarified: the detected line ending, also in a lone-`\r` document), SHARED-ATTR-017 (clarified: only the reported list changes; the whitespace in front of a further list is a copy, a tab included), SHARED-ATTR-022 (added), RH5502-003, RH5504-003, RH5506-003, RH5508-003, RH5510-003, RH5512-003, RH5514-004, RH5516-003, RH5518-003, RH5520-003, RH5522-003, RH5526-003, RH5528-003, RH5531-005 (clarified: each further list starts a new line), RH5502-004, RH5504-004, RH5516-004, RH5518-004, RH5520-004, RH5528-004, RH5531-006 (changed: withheld where SHARED-ATTR-022 withholds) |
 | Depends on | [Moved code keeps its lines](moved-code-keeps-its-lines.md) |
