@@ -55,6 +55,8 @@ Batch 1 (before test implementer), all answered as recommended:
 | 18 | Auditor 14 | F2: SHARED-ATTR-022 checks only an accessor list's `{`; `class C { [A, B] void M() { } }`, namespace and block `{` give the same odd output | Widen the withhold to any `{` on the reported list's line that opens the body holding the list's owner (spec author, tests, implementer) | Same cause as answer 7; rare class (one-line type/namespace/block bodies) | Withholding a fix for a rare class | — |
 | 19 | Auditor 14 | F3: line break after the attribute target copied into every new list; foreign line break inside attribute arguments kept | Withhold the split for a line break in the target's trivia and for any line break in the list other than the detected ending; spec + change doc + tests | Rare class; cheap check with the existing helper | Withholding a fix for a rare class | — |
 | 20 | Auditor 14 | F4–F7 (RH7309 stay-in-place test; stale Fix All comments; private indent constant; unreachable separator branch) | Repair: test implementer (F4, F5), implementer (F6, F7) | PR-introduced | Nothing visible | — |
+| 21 | Implementer 17 | Two RH5405 end-of-file tests' CRLF rows feed a document with no line break, whose detected ending is `Environment.NewLine` (FMT-PIPE-007) | Tests are wrong: give each document a line break before the `if` so both rows detect their ending (test implementer) | Unchanged FMT-PIPE-007 decides it; asserted output was platform-dependent | Unchanged requirement decides it | — |
+| 22 | Implementer 17 | F7 cleanup also deletes `ResolvePlacementMode`, abstract `DefaultPlacementMode` and 16 provider overrides | Accept (deletions only, cleanup the run's change touches) | Dead code left by the F7 repair | No behavior change | 4b94245 |
 
 ## Follow-up candidates
 
@@ -83,3 +85,4 @@ Batch 1 (before test implementer), all answered as recommended:
 - Repair round 2: spec author 15 done (f011239; SHARED-ATTR-023 added, SHARED-ATTR-022 widened).
 - Now: repair round 2 — (F2, F3 into SHARED-ATTR-022/017 and change doc), test implementer 16 (F1–F5), implementer 17 (F1–F3, F6, F7), cleaner 18, spec checker 19, auditor 20 (repair only), validator.
 - Repair round 2: test implementer 16 done (056e213; 24 red). Now implementer 17.
+- Repair round 2: implementer 17 done (4b94245): 2 disputed tests (decision 21). Now test implementer 18 (decision 21), then cleaner 19, spec checker 20, auditor 21, validator.
