@@ -22,9 +22,10 @@
 
 ## Follow-up candidates
 
-(none yet)
+- Comment in front of the closing `}` of a multi-line interpolation hole stays in column 12 while the hole's other lines move to column 8 (outside #1543; carries an open question) — `01-spec-author.md`.
 
 ## Worklist / next step
 
 - Done: claim, draft PR #1697, `scripts/prepare.sh` (SDK 10.0.404 installed).
-- Next: spawn the spec author.
+- Done: spec author (`01-spec-author.md`, a49e965): two draft change docs, two output questions (#1529 rec. B, #1543 rec. A).
+- Next: skeptic, then output-question batch before the test implementer.
