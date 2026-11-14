@@ -49,3 +49,41 @@ Entries 1–5 of the change doc carry the maintainer's answers. Two listed chang
 ### Follow-up candidates
 
 - RH5109's fix and the formatter disagree on `void N(⏎int a, int b)`: RH5109 reports it (parentheses on different lines, two parameters share a line) and its own layout (RH5109-003) gives `void N(int a,⏎       int b)`, while FMT-BREAK-012 now explicitly joins it to `void N(int a, int b)`. Pre-existing (the formatter joined it on `main` too); outside the run's issues. Candidate for an `agent-filed` issue on whether RH5109-001 should count a list as multi-line by its elements, as FMT-BREAK-012 now does.
+
+## Amendment after 03-skeptic (decisions 8–13)
+
+Commit the amendment was derived from: 1dcd547. Verdict unchanged: change doc written.
+
+### Changed requirements (amended)
+
+- FMT-BREAK-012 — changed further:
+  - the whole-list exception is gone. A comma that a comment, a directive, or disabled text keeps off the line of the element in front of it stays at the start of the line of the element behind it, and every other comma and element is laid out as usual — the per-gap refusal of FMT-BREAK-037 (decision 10);
+  - a comment behind a leading comma, on the comma's line, moves with the comma and stays behind it: `Foo(1⏎, /* c */ 2, 3)` → `Foo(1, /* c */⏎2,⏎3)`, `Foo(1⏎, // c⏎2, 3)` → `Foo(1, // c⏎2,⏎3)` (decision 11);
+  - whether a comma is kept off its element's line counts line breaks as SHARED-BLANK-008 does; `Foo(1 /* a⏎ b */, 2,⏎3)` keeps nothing (decision 12);
+  - the third example now shows the per-gap outputs (parameter list N, the comment- and directive-held argument lists, both moved-comment cases, and the block comment on the element's line).
+- FMT-BREAK-011 — the comma exception now reads "except a comma that a comment, a directive, or disabled text keeps off that line (FMT-BREAK-001, FMT-BREAK-012)".
+- Skeptic 03's point D (what a whole-list hold still gets) is moot with the per-gap form.
+- Deleting the indexer-only opener signal (decision 9) is internal and is not in the spec or the change doc.
+
+### Change doc (amended)
+
+`What` and `Decisions` describe the per-gap refusal and the moved comment; the whole-list form moved to `Alternatives considered`. Entries:
+- 7 — held comma next to free ones: `N`, `O`, and three argument lists (`Foo(1⏎, 2 // keep⏎, 3)`, `Foo(1, 2⏎, 3 // keep⏎, 4)`, `Foo(1, 2⏎, 3, 4 // keep⏎, 5)`). `O` and the argument lists were unchanged on `main` and now change.
+- 8 — comma held by a directive.
+- 9 — comment behind a moved comma, block and `//`.
+- 10 — RH5102 fix on the issue's input and on `Foo(⏎1⏎, 2, 3)` (both no progress before).
+- 11 — RH5101 fix on `Foo(⏎1⏎, 2, 3)` (before `Foo(1⏎, 2, 3)`).
+
+The "before" outputs of entries 7–11 are from 01/03-skeptic and my own `scripts/format.sh` runs on `main`-equivalent commits; the "after" outputs are the requirements' outputs, not observed.
+
+### Examples for the tests (amended)
+
+FMT-BREAK-012's third example replaces the old as-written example; change doc entries 7–11 add the fix results and the held/moved comma cases.
+
+### Output questions (amended)
+
+_None._ Entry 6 is covered by the clarification (decision 8); entries 7–11 follow from answer C and from decisions 10–13.
+
+### Follow-up candidates (amended)
+
+Unchanged from above; skeptic 03 adds two that the lead holds (RH5107 fix vs formatter on a comment behind a leading comma; no rule for leading commas in argument lists).
