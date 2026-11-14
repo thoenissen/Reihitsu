@@ -47,4 +47,5 @@
 - Cleaner clean (bf83a71, 07-cleaner.md).
 - Spec checker (2102800, 08-spec-checker.md): one finding = the RH7201 example markup item. Repair round 1 (spec only).
 - Repair round 1 done: 041886c (09-spec-author), spec checker consistent (abe7ba8, 10-spec-checker). Main not ahead; Release build green.
-- Next: auditor (running) on head after this commit.
+- Audit 1 (25baa47, 11-auditor.md) on 9bd5966 vs main 8a26419: one high finding — sort key now drops a leading `global::` (Core `GetSortKey` via `StripGlobalQualifier`), changing formatter order and RH7203/RH7206 reports even for plain `global::System.IO`; undecided visible output. #1266, #1267 no findings. Hint (non-blocking): pairwise comparison recomputes name values.
+- Output question 2 (`global::` in the sort key) asked — WAITING. After the answer: repair round 2 (implementer/test implementer/spec author as needed), cleaner, spec checker, auditor on the repair.
