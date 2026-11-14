@@ -90,4 +90,4 @@ Maintainer 2026-11-13: release 1.2.1 and 1.2.2 first; deferred minor bugs #1140 
 | B1 | P11 + Q6 (+ #1708 if triage5 1A) | P11 = fix offering/convergence infrastructure; Q6 = analyzer report scope (spacing/layout singletons, RH5202, RH4105 guard) |
 | B2 | Q7 + Q2 | Q7 = formatter singletons; Q2 = organization/region analyzers' report scope; #1592 needs P11 merged (B1) |
 | B3 | Q1 | needs P11; #1655 touches what the formatter keeps (after Q7) |
-| any | Q3 | only waits for PR #1669; joins whichever batch is running when #1669 is merged or closed |
+| B2 | Q3 (#1105 #1266 #1267) | without #966 (maintainer 2026-11-14); using ordering shares no files with Q7/Q2; rebase conflict possible later with PR #1669 (same using-ordering code) |
