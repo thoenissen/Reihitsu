@@ -36,12 +36,14 @@ Bug fix (all five). Roles: spec author (clarifications: RH5601-001/RH5602-001 al
 | 7 | Skeptic | RH5404-003 `Why:` wording; RH5202 aligned-not-reported examples belong to -001 | Spec author amends (continued, once) | Skeptic finding, internal spec wording | Spec wording is internal | — |
 | 8 | Skeptic | RH5603 not reporting a file ending in U+2028/U+2029/U+0085 | Dropped, not a follow-up | Rare input class (AGENTS.md, Code-fix coverage) | — | — |
 | 9 | Skeptic | #1079: issue says RH5603 reports `}⏎···` again; it is RH5602 | Implement the defect that exists: the fix removes the whole whitespace-only tail; PR states the difference | AGENTS.md, Issue intake | Fix result is decided by the maintainer's answer on #1079 | — |
+| 10 | Test implementer | RH5602-001 example does not compile; RH5404 spec misses SHARED-FIX-001 under Uses | Fresh spec author fixes both (04); test implementer then aligns the RH5602 test with the renamed example | Spec defects found by tests, internal | Spec text only | — |
+| 11 | Test implementer | Formatter output for `M(/** c */→"abc");` | Dropped, not a follow-up | A comment inside an argument list is a rare input class (RH5038 reports it) | — | — |
 
 ## Follow-up candidates
 
 1. RH5603 reports a file that ends in a line break after a directive line or a `///` comment; the formatter keeps such files with or without that line break (FC-013). Carry an output question: A not reported (recommended), B the formatter removes the line break. Source: 02-skeptic.md, #1079.
-2. Formatter output for a document whose line breaks are all lone `\r` reportedly contains mixed line endings (not run by the skeptic; verify before filing). Source: 02-skeptic.md, #1613.
+2. Formatter output for a document whose line breaks are all lone `\r` reportedly contains mixed line endings (confirmed by the test implementer: the RH5202 analyzer reports the formatter's output for such a document; recheck after the implementer whether it remains). Source: 02-skeptic.md, #1613.
 
 ## Worklist / next step
 
-- Done: spec author (01, 7d38931), skeptic (02, 1ec15b8; all five proceed, no output questions). Spec author amendment 6ab9935. Next: test implementer (no output questions open).
+- Done: spec author (01, 6ab9935), skeptic (02), test implementer (03, e2d65ed; all five reproduced, 78 failing tests). Fresh spec author fixing two spec defects (04). Next: test implementer alignment of the RH5602 example test, then implementer.
