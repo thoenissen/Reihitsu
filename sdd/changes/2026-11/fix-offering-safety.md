@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-PIPE-003, FMT-PIPE-005, FMT-PIPE-033, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-008, FMT-BREAK-018, SHARED-DIAG-010, SHARED-FIX-003, SHARED-FIX-012, SHARED-ORDER-008, RH5308-005, CLI-014, CLI-015, CLI-021, PLAY-009 |
 | Depends on | [The formatter's Unsupported outcome](unsupported-precheck.md), [Declaring a shape unsupported](unsupported-shape-as-refusal.md) |

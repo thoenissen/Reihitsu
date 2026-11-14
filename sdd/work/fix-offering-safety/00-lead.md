@@ -61,6 +61,8 @@ Batch 2 (questions 8–10, 2026-11-14):
 | 11 | 04 skeptic | RH5308 keeps reporting a conditional refused under FMT-UNSUP-008 (RH5308-005) vs SHARED-DIAG-010's literal text | Keep reporting; spec author adds one sentence to SHARED-DIAG-010 that a shape refused as unsupported is not a shape the formatter keeps | Maintainer chose Q4 C (declare) over B (not reported), so the diagnostic stays | Covered by the Q4 answer | pending |
 | 12 | 04 skeptic | FMT-PIPE-033 also refuses a carrier holding a balanced `#if … #endif` (commented-out code, templates inside a conditional group) | Keep the definition; correct the Why | Rare class (carrier inside a conditional group); refusal is the safe side | Rare-class refusal (AGENTS.md *Code-fix coverage*) | pending |
 | 13 | 04 skeptic | Internal spec/change-doc corrections (04-skeptic.md *Change doc corrections*, wording of FMT-PIPE-003, SHARED-ORDER-008, "one check" wording) and SHARED-FIX-012 coverage notes (CasingFixAllProvider, RH2001 Renamer, per-tree cache) | Route to fresh spec author with batch-2 answers; coverage notes go to test implementer/implementer via the handover | Internal | Internal | pending |
+| 14 | 05 spec author | Visible details beyond answer Q8 B: summary line text, Playground message text, per-file line only with `--verbose`, such a file no longer affects the exit code (was 1 under `--check`), `--utf8-bom` no longer rewrites it, a file with both the carrier and an unsupported shape gets the skip line (no `error:`/exit 2) | Accept | All follow "like the syntax-error skip" (CLI-008: counted as skipped, no effect on exit code); double-shape file is a rare class | Covered by Q8 B | b80864a |
+| 15 | 05 | Change doc acceptance | Set `Accepted` | Every visible output change has the maintainer's answer (batches 1–2) or is covered by decisions 9/14 | n/a | this commit |
 | 7 | lead | #1600 fix-side line kinds | `#elif`/`#else`/`#endif` lines in a multi-line string or `/* */` that starts inside a conditional group, not any `#` line | A plain `#` check withholds fixes on Markdown raw strings; skeptic shows only these lines can hide code | Only offers more fixes than the issue's wording; rare-class withholding | pending |
 
 ## Follow-up candidates
@@ -84,4 +86,5 @@ Batch 2 (questions 8–10, 2026-11-14):
 - Batch 1 answered (see Maintainer answers).
 - 03 spec author done (c679eb1): change doc `sdd/changes/2026-11/fix-offering-safety.md` (Draft), FMT-PIPE-033, SHARED-FIX-011/012, FMT-UNSUP-008, RH5308-005/006. Lane check behavior-change confirmed.
 - 04 skeptic done (c4ea7c2); batch 2 answered (Q8 B, Q9 A, Q10 A).
-- Next: fresh spec author (05) with batch-2 answers + decisions 11–13 corrections; accept change doc; test implementer. After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
+- 05 spec author done (b80864a); change doc accepted.
+- Next: test implementer (06). After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
