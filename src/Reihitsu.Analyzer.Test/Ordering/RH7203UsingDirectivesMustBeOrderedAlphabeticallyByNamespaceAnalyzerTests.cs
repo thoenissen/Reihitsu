@@ -159,8 +159,8 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
 
                                 using Microsoft.CodeAnalysis.CSharp;
                                 using {|#0:Microsoft.CodeAnalysis|};
-                                using Microsoft.CodeAnalysis.CodeActions;
-                                using Microsoft.CodeAnalysis.CodeFixes;
+                                using {|#1:Microsoft.CodeAnalysis.CodeActions|};
+                                using {|#2:Microsoft.CodeAnalysis.CodeFixes|};
 
                                 namespace Microsoft.CodeAnalysis
                                 {
@@ -243,7 +243,9 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer.DiagnosticId, AnalyzerResources.RH7203MessageFormat));
+        // Microsoft.CodeAnalysis.CodeActions and Microsoft.CodeAnalysis.CodeFixes sort before the earlier
+        // Microsoft.CodeAnalysis.CSharp of their group, so they are reported although the directive right before each sorts lower
+        await Verify(testCode, fixedCode, Diagnostics(RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer.DiagnosticId, AnalyzerResources.RH7203MessageFormat, 3));
     }
 
     /// <summary>
