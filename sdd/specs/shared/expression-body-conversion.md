@@ -5,7 +5,7 @@
 | ID prefix | SHARED-BODY |
 | Status | Active |
 | Code owners | `ExpressionBodyAnalyzerBase<TNode>`, `ExpressionBodyToBlockCodeFixProviderBase<TNode>`, `ExpressionBodyRewriteUtilities` |
-| Uses | FMT-STRUCT-004, FMT-STRUCT-005, FMT-STRUCT-006, FMT-STRUCT-007, FMT-STRUCT-025 |
+| Uses | FMT-STRUCT-004, FMT-STRUCT-005, FMT-STRUCT-006, FMT-STRUCT-007, FMT-STRUCT-025, SHARED-FIX-006, SHARED-FIX-007 |
 
 This spec covers what the rules share that report an expression-bodied member so that it gets a block body — RH3202 (methods), RH3203 (constructors), RH3205 (operators), RH3206 (conversion operators), RH3207 (finalizers), and RH3208 (local functions): which members are left alone because the formatter cannot convert them, where the diagnostic is, and what the code fix produces. Each rule's spec states which kind of member it reports. "The member" below is the declaration the rule reports, a local function included.
 
@@ -100,11 +100,11 @@ class C
 }
 ```
 
-### SHARED-BODY-003 — The fix converts the body as the formatter does
+### SHARED-BODY-003 — The fix converts only the body, as the formatter does
 
-The code fix MUST replace the expression body and its semicolon with exactly the block body that FMT-STRUCT-004 or FMT-STRUCT-005 produces, with the trivia FMT-STRUCT-006 carries over, laid out as the formatter lays it out. Where SHARED-BODY-004 applies, no code fix is offered instead.
+The code fix MUST replace the expression body and its semicolon with exactly the block body that FMT-STRUCT-004 or FMT-STRUCT-005 produces, with the trivia FMT-STRUCT-006 carries over. That block body is the node the fix replaces, and it is laid out as the formatter lays it out (SHARED-FIX-007). The rest of the member MUST stay as written (SHARED-FIX-006): its documentation comment, its attributes, its modifiers, and its signature, with the whitespace and comments between their tokens. The whitespace between the last token of the signature and `=>` goes with the removed arrow, so none is left at the end of the signature's line; a comment there is placed as FMT-STRUCT-006 states. The fix does not format the member, as formatting the whole document would. Where SHARED-BODY-004 applies, no code fix is offered instead. The line breaks and blank lines around the member are not decided here: SHARED-FIX-006, SHARED-FIX-007, and the rule's own spec state them.
 
-Why: One owner for the conversion keeps the fixes and the formatter from drifting apart. A fix that built the block itself would have to repeat the statement choice for `void`, `async`, conversion, and throw expressions and the transfer of the trivia of `=>` and `;`.
+Why: One owner for the conversion keeps the fixes and the formatter from drifting apart. A fix that built the block itself would have to repeat the statement choice for `void`, `async`, conversion, and throw expressions and the transfer of the trivia of `=>` and `;`. The diagnostic is about the expression body only; the layout of the signature, the attributes, and the documentation comment is the author's, and the formatter and the layout rules correct it on their own.
 
 Example — RH3203:
 
@@ -167,6 +167,31 @@ class C
     }
 }
 ```
+
+Example — RH3202, only the body is converted; the spacing of the signature stays:
+
+```csharp
+class C
+{
+    private int _value;
+
+    public int  GetValue( ) {|RH3202:=> _value|};
+}
+```
+
+```csharp
+class C
+{
+    private int _value;
+
+    public int  GetValue( )
+    {
+        return _value;
+    }
+}
+```
+
+The documentation comment and the attribute on the member's line stay as written as well; SHARED-FIX-006 shows that for RH3203.
 
 ### SHARED-BODY-004 — No fix for an `async` member of an unknown task type
 
