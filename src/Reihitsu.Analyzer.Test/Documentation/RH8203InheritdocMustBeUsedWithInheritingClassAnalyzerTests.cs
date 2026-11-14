@@ -1627,6 +1627,133 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzerTests : Analyz
     }
 
     /// <summary>
+    /// Verifies that an inheritdoc element with a cref attribute in a later documentation comment of a part of a partial
+    /// method is not reported, on either part, while an inheritdoc element without a cref attribute in a later comment of
+    /// the other part still is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    public async Task VerifyInheritdocWithCrefInLaterCommentOfPartialMethodPartIsNotReported()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public partial class C
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+
+                                  /// <inheritdoc cref="C"/>
+                                  public partial void M();
+
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+
+                                  /// <inheritdoc cref="C"/>
+                                  public partial void M()
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Stops
+                                  /// </summary>
+
+                                  /// <inheritdoc cref="C"/>
+                                  public partial void N();
+
+                                  /// <summary>
+                                  /// Stops
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial void {|RH8203:N|}()
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Pauses
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial void {|RH8203:P|}();
+
+                                  /// <summary>
+                                  /// Pauses
+                                  /// </summary>
+
+                                  /// <inheritdoc cref="C"/>
+                                  public partial void P()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies that an inheritdoc element with a cref attribute that an include element brings into a part of a partial
+    /// method is not reported, on either part, while an included inheritdoc element without a cref attribute on the other
+    /// part still is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    public async Task VerifyIncludedInheritdocWithCrefOfPartialMethodPartIsNotReported()
+    {
+        const string documentation = """
+                                     <doc>
+                                         <members>
+                                             <member name="I">
+                                                 <inheritdoc/>
+                                             </member>
+                                             <member name="R">
+                                                 <inheritdoc cref="C"/>
+                                             </member>
+                                         </members>
+                                     </doc>
+                                     """;
+
+        const string source = """
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public partial class C
+                              {
+                                  /// <include file='docs.xml' path='doc/members/member[@name="R"]/*'/>
+                                  public partial void M();
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="R"]/*'/>
+                                  public partial void M()
+                                  {
+                                  }
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="R"]/*'/>
+                                  public partial void N();
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial void {|RH8203:N|}()
+                                  {
+                                  }
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial void {|RH8203:P|}();
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="R"]/*'/>
+                                  public partial void P()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", documentation)));
+    }
+
+    /// <summary>
     /// Characterizes the input of a partial method implementing an interface member without documentation on either part:
     /// nothing is reported
     /// </summary>
