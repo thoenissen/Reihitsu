@@ -38,6 +38,11 @@ Batch 1 (questions 1–7, 2026-11-14):
 - Q4 (#1274, RH5308 comment/directive behind `?`/`:`): **C confirmed** — declare unsupported in this work: a comment (or directive) between a conditional's `?`/`:` and its branch. Comments are supported only above the `?` or `:` line, so they do not break formatting.
 - Q5 (#1678): **A** — unchanged, gap stays recorded in SHARED-ORDER-008. Maintainer's reason: analyzers always analyze with the defines as they currently stand; that is the common case.
 - Q6 (FMT-STRUCT-023 field declaration with several declarators holding a directive): **B** — declare unsupported ("no pragmas in declarations"), in a change of its own → follow-up carrying the answer.
+Batch 2 (questions 8–10, 2026-11-14):
+- Q8 (CLI/Playground for a file skipped under FMT-PIPE-033): **B** — counted as skipped with its own message (`Skipped (code hidden in another build configuration): C.cs`) and a matching Playground message, like the syntax-error skip; not "Unchanged".
+- Q9 (inline comment between `?`/`:` and its branch on one line, e.g. `a ? /* yes */ 1 : /* no */ 2`): **A** — FMT-UNSUP-008 as written: every comment in that position is refused (CLI error, exit code 2).
+- Q10 (RH5302 twin: comment/directive between a binary operator and its right operand): **A** — declare unsupported in a change of its own → follow-up carrying the answer.
+
 - Q7 (FMT-STRUCT-003 directive between header and unbraced body): **B** — declare unsupported in a change of its own → follow-up carrying the answer.
 
 ## Decisions taken
@@ -60,6 +65,8 @@ Batch 1 (questions 1–7, 2026-11-14):
 
 ## Follow-up candidates
 
+- Declare unsupported (maintainer answer Q10, 2026-11-14): a comment or directive between a binary operator and its right operand (RH5302 twin of FMT-UNSUP-008), in a change of its own; deletes the join refusal in `BinaryOperatorLineBreakRewriter` and RH5302-005's fix-side copy and RH5302-005 — 04-skeptic.md *Whole run*.
+
 - FMT-BLANK-011 / RH5020 put a blank line in front of a comment above a wrapped `?`/`:` inside an expression (cuts against the maintainer's "comments above do not break formatting"); carries an output question — 04-skeptic.md.
 - `N(/* c7 */ 2)` is formatted to `N(/* c7 */2)` — 04-skeptic.md.
 
@@ -76,5 +83,5 @@ Batch 1 (questions 1–7, 2026-11-14):
 - 02 skeptic done (14a8b5a).
 - Batch 1 answered (see Maintainer answers).
 - 03 spec author done (c679eb1): change doc `sdd/changes/2026-11/fix-offering-safety.md` (Draft), FMT-PIPE-033, SHARED-FIX-011/012, FMT-UNSUP-008, RH5308-005/006. Lane check behavior-change confirmed.
-- 04 skeptic done (c4ea7c2): batch 2 output questions posted (reporting under Q1 B; inline sub-shape of FMT-UNSUP-008; RH5302 twin declaration, escalation 10). Waiting.
-- Next after answers: fresh spec author (05) with batch-2 answers + decisions 11–13 corrections; accept change doc; test implementer. After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
+- 04 skeptic done (c4ea7c2); batch 2 answered (Q8 B, Q9 A, Q10 A).
+- Next: fresh spec author (05) with batch-2 answers + decisions 11–13 corrections; accept change doc; test implementer. After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
