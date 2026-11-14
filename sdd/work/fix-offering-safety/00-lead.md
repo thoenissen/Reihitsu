@@ -4,7 +4,7 @@
 - Slug: `fix-offering-safety`
 - Branch: `claude/trusting-babbage-audv24` (session-designated branch; see decision 1)
 - PR: thoenissen/Reihitsu#1718 (draft claim)
-- Lane: **bug fix**
+- Lane: **behavior change** (widened from bug fix after batch 1, decision 8)
 
 ## Issues
 
@@ -34,10 +34,10 @@ Bug-fix lane: spec author (clarification — #1150's maintainer-decided spec tex
 Batch 1 (questions 1–7, 2026-11-14):
 - Q1 (#1600, formatter, comment/string hiding code in another build): **B** — whole-document formatting leaves the file unchanged silently, like a syntax error; not declared unsupported.
 - Q2 (#1600, string opened only by an excluded branch): **A** — unchanged; gap recorded as a decision in the specs.
-- Q3 (#1600, guard reach, escalation 9): not yet selected — maintainer asked why not B (common base class) and said repository rules should be adjusted if they constrain good design. Asked back.
-- Q4 (#1274, RH5308 comment/directive behind `?`/`:`): **C** as written = declare the shape unsupported in this work. Confirming because the answer to 6 used a label that did not exist.
+- Q3 (#1600, guard reach, escalation 9): **B** — a common base class for the code-fix providers that runs the check before registering (new type approved). Plus a follow-up (tooling/process): revise the escalation rule more openly, not only for base classes — good architecture and design are required, but no large changes for edge cases.
+- Q4 (#1274, RH5308 comment/directive behind `?`/`:`): **C confirmed** — declare unsupported in this work: a comment (or directive) between a conditional's `?`/`:` and its branch. Comments are supported only above the `?` or `:` line, so they do not break formatting.
 - Q5 (#1678): **A** — unchanged, gap stays recorded in SHARED-ORDER-008. Maintainer's reason: analyzers always analyze with the defines as they currently stand; that is the common case.
-- Q6 (FMT-STRUCT-023 field declaration with directive): answered "C", which was not an option (A/B only). Asked back.
+- Q6 (FMT-STRUCT-023 field declaration with several declarators holding a directive): **B** — declare unsupported ("no pragmas in declarations"), in a change of its own → follow-up carrying the answer.
 - Q7 (FMT-STRUCT-003 directive between header and unbraced body): **B** — declare unsupported in a change of its own → follow-up carrying the answer.
 
 ## Decisions taken
@@ -50,10 +50,13 @@ Batch 1 (questions 1–7, 2026-11-14):
 | 4 | skeptic | #1673 scope | Narrow to RH5308 only; modifier ordering, RH7107, RH7108 do not reach an unchanged result / already check at registration | Skeptic evidence; agent-filed goal ("drop a fix where no input reaches") | Withholding a no-op fix is decided by SHARED-FIX-005 | pending |
 | 5 | skeptic | #1143 scope | Proceed on RH6016, RH8204, RH5110, RH3001, RH3102, RH7102 and the remaining `NumberOfFixAllIterations = 2` tests; RH6024/6023/5506/5204 already resolved; RH5104 and RH5405 if/else are guard-dependent (keep pass with comment) | Skeptic evidence; issue allows guard-dependent passes | SHARED-FIX-002 decides the output | pending |
 | 6 | lead | #1274 option B (withhold fix) | Dropped from the output question | Contradicts SHARED-FIX-011 (this run) and SHARED-DIAG-010 | Removing an option, not deciding an output |  n/a |
+| 8 | batch 1 | Lane | Widen bug fix → behavior change; change doc required | Q1B (new formatter refusal), Q4C (new unsupported shape), Q3B (new type) are visible/structural changes that need a change doc | Lane is internal; outputs decided by the maintainer | pending |
 | 7 | lead | #1600 fix-side line kinds | `#elif`/`#else`/`#endif` lines in a multi-line string or `/* */` that starts inside a conditional group, not any `#` line | A plain `#` check withholds fixes on Markdown raw strings; skeptic shows only these lines can hide code | Only offers more fixes than the issue's wording; rare-class withholding | pending |
 
 ## Follow-up candidates
 
+- Declare unsupported (maintainer answer Q6, 2026-11-14): a preprocessor directive or disabled text inside a field declaration with several declarators, from its first token through its `;` (FMT-STRUCT-023), in a change of its own; deletes `FieldDeclarationSplitTransform.CarriesDirective`, the directive condition of `SplitsFieldDeclaration` (FMT-PIPE-031), RH7101-005 — 02-skeptic.md *Whole run*.
+- Process/tooling (maintainer answer Q3, 2026-11-14): revise the escalation-9 rule (squad/README.md, AGENTS.md) more openly than only base classes — good architecture and design are required; what is ruled out is large changes for edge cases.
 - Declare unsupported (maintainer answer Q7, 2026-11-14): a preprocessor directive between an embedded statement's header and its unbraced body (FMT-STRUCT-003), in a change of its own; deletes the structural phase's brace guard for it — 02-skeptic.md *Whole run*.
 
 - #1150: SHARED-FIX-011 third sentence conflicts with RH5401-004 (RH5401 reports a property the formatter keeps) — 02-skeptic.md.
@@ -64,4 +67,5 @@ Batch 1 (questions 1–7, 2026-11-14):
 
 - Last step finished: 01 spec author (e36792d): SHARED-FIX-011 written for #1150; open output questions drafted for #1600, #1274, #1678.
 - 02 skeptic done (14a8b5a).
-- Next: batch 1 of output questions + escalations 9/10 posted to the maintainer; waiting. After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
+- Batch 1 answered (see Maintainer answers).
+- Next: fresh spec author (03) — change doc + spec text for all answers and #1150 corrections; then fresh skeptic (04) on the spec diff; then test implementer. After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
