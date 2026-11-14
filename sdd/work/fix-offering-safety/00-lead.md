@@ -65,9 +65,15 @@ Batch 2 (questions 8–10, 2026-11-14):
 | 15 | 05 | Change doc acceptance | Set `Accepted` | Every visible output change has the maintainer's answer (batches 1–2) or is covered by decisions 9/14 | n/a | this commit |
 | 16 | 06 test impl | #1143 second passes kept: RH5104 (`HasCommentBeforeOnLine`), RH5405 (SHARED-BRACE-003), RH5202 (RH5202-006), RH7310/RH3002 (second diagnostic appears only after the first fix) | Accept | Guard-dependent passes are allowed by the issue and SHARED-FIX-002; each carries a comment | SHARED-FIX-002 decides | 53f6660 |
 | 17 | 06 test impl | Existing tests whose inputs hold FMT-UNSUP-008 rewritten to the refusal, 4 phase-level ternary join tests deleted (guards deleted per change doc) | Accept | Accepted change doc *Special cases* | Covered by Q4 C / Q9 A | 53f6660 |
+| 18 | 07 implementer | Two SHARED-FIX-012 Fix All tests (RH4103, RH6024 `FixAllLeavesADocumentWithAHidingCarrierUnchanged`) lack `MarkupHandling = MarkupMode.Allow` for the diagnostic that stays | Test setup wrong, asserted output correct: route to a fresh test implementer | Setup only; expected diagnostic is what SHARED-FIX-012 demands | Asserted output unchanged | pending |
+| 19 | 07 implementer | Scope: 105-file mechanical move onto `ReihitsuCodeFixProviderBase`; new public `ReihitsuFormatter.HoldsHidingCarrier` (Playground/CLI need it); starting-code filter in shared `DocumentOrderFixAllProvider` (affects its earlier users, all tests pass); `PlaygroundFormatResult.HoldsHiddenCode`, `FileProcessResult.SkippedHiddenCodeCount` | Accept | Base type approved (Q3 B); no assembly is public API; the filter is SHARED-FIX-002 as clarified (fixes available on the starting document) | Fix All results only narrow toward SHARED-FIX-002; no answered output changes | 3c1336e |
+| 20 | 07 implementer | `SameLineGapRulePhaseTests` `b ?/** y */1` input no longer reachable | Leave as is; no follow-up | Unreachable input is dropped (AGENTS.md *Supported inputs*); the test still passes | Test only | n/a |
 | 7 | lead | #1600 fix-side line kinds | `#elif`/`#else`/`#endif` lines in a multi-line string or `/* */` that starts inside a conditional group, not any `#` line | A plain `#` check withholds fixes on Markdown raw strings; skeptic shows only these lines can hide code | Only offers more fixes than the issue's wording; rare-class withholding | pending |
 
 ## Follow-up candidates
+
+- Playground keeps a private copy of the formatter's syntax-error check (FC-015; pre-existing) — 07-implementer.md.
+- `scripts/trace.sh` reports skips for syntax errors and generated files but not for files skipped under FMT-PIPE-033 — 07-implementer.md.
 
 - Declare unsupported (maintainer answer Q10, 2026-11-14): a comment or directive between a binary operator and its right operand (RH5302 twin of FMT-UNSUP-008), in a change of its own; deletes the join refusal in `BinaryOperatorLineBreakRewriter` and RH5302-005's fix-side copy and RH5302-005 — 04-skeptic.md *Whole run*.
 
@@ -90,4 +96,5 @@ Batch 2 (questions 8–10, 2026-11-14):
 - 04 skeptic done (c4ea7c2); batch 2 answered (Q8 B, Q9 A, Q10 A).
 - 05 spec author done (b80864a); change doc accepted.
 - 06 test implementer done (53f6660 tests, 3493e63 handover): failing today — analyzer 67, formatter 65, cli 8, playground 3.
-- Next: implementer (07). After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
+- 07 implementer done (3c1336e code, 0723292 handover): all tests pass except 2 disputed (setup).
+- Next: fresh test implementer (08) for decision 18; then cleaner. After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
