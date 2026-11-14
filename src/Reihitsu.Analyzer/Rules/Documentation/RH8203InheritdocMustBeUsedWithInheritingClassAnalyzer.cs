@@ -1,4 +1,7 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Threading;
+
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -38,6 +41,20 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer : DiagnosticA
     #region Methods
 
     /// <summary>
+    /// Determines whether a declaration is one of the two parts of a partial method, property, indexer, or event
+    /// </summary>
+    /// <param name="declaration">Declaration</param>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> when the member is declared in a defining and an implementing part</returns>
+    private static bool IsPartOfPartialMember(MemberDeclarationSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        return declaration.Modifiers.Any(SyntaxKind.PartialKeyword)
+               && declaration is not TypeDeclarationSyntax
+               && PartialMemberUtilities.TryGetParts(PartialMemberUtilities.GetDeclaredSymbol(declaration, semanticModel, cancellationToken), cancellationToken, out _, out _);
+    }
+
+    /// <summary>
     /// Analyze a declaration
     /// </summary>
     /// <param name="context">Context</param>
@@ -56,8 +73,12 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer : DiagnosticA
         }
 
         var inheritdocNode = DirectDocumentationSyntaxChecker.GetFirstDirectTag(documentationComment, "inheritdoc");
-        var expandedDocumentation = XmlDocumentationExpander.GetExpandedDocumentation(declaration, context.SemanticModel, context.CancellationToken);
-        var expandedInheritdocElement = XmlDocumentationExpander.GetFirstExpandedElement(expandedDocumentation, "inheritdoc");
+
+        // Each part of a partial member is judged by its own documentation comment (SHARED-DIAG-004). The expanded
+        // documentation of a part's symbol can be the other part's comment, so it is read only for other declarations
+        var expandedInheritdocElement = IsPartOfPartialMember(declaration, context.SemanticModel, context.CancellationToken)
+                                            ? null
+                                            : XmlDocumentationExpander.GetFirstExpandedElement(XmlDocumentationExpander.GetExpandedDocumentation(declaration, context.SemanticModel, context.CancellationToken), "inheritdoc");
 
         if (inheritdocNode == null && expandedInheritdocElement == null)
         {

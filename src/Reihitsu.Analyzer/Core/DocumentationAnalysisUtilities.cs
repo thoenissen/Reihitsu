@@ -6,8 +6,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Core;
 
@@ -108,6 +110,58 @@ internal static class DocumentationAnalysisUtilities
 
         return trimmed.StartsWith("///", StringComparison.Ordinal)
                && trimmed.StartsWith("////", StringComparison.Ordinal) == false;
+    }
+
+    /// <summary>
+    /// Gets the root of a syntax tree whose documentation comments are parsed. A tree whose documentation mode is
+    /// <see cref="DocumentationMode.None"/> is parsed again from the same text with the mode
+    /// <see cref="DocumentationMode.Parse"/>, so every span of the returned root is the span of the same text in the
+    /// original tree. A rule whose subject is not a documentation comment uses it to decide in mode
+    /// <see cref="DocumentationMode.None"/> exactly what it decides in mode <see cref="DocumentationMode.Parse"/>
+    /// </summary>
+    /// <param name="syntaxTree">Syntax tree</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The root of the tree, or of the tree parsed again with documentation comments</returns>
+    internal static SyntaxNode GetRootWithParsedDocumentation(SyntaxTree syntaxTree, CancellationToken cancellationToken)
+    {
+        if (syntaxTree.Options is CSharpParseOptions parseOptions
+            && parseOptions.DocumentationMode == DocumentationMode.None)
+        {
+            var sourceText = syntaxTree.GetText(cancellationToken);
+
+            return CSharpSyntaxTree.ParseText(sourceText, parseOptions.WithDocumentationMode(DocumentationMode.Parse), syntaxTree.FilePath, cancellationToken)
+                                   .GetRoot(cancellationToken);
+        }
+
+        return syntaxTree.GetRoot(cancellationToken);
+    }
+
+    /// <summary>
+    /// Gets the <c>///</c> documentation comments that start behind code on their line and document the declaration
+    /// that follows them (SHARED-DOC-004). A comment behind code that documents nothing, such as one in front of a
+    /// <c>;</c> or a closing brace, is not returned
+    /// </summary>
+    /// <param name="root">Syntax root whose documentation comments are parsed</param>
+    /// <param name="sourceText">Source text of the root</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The documentation comment trivia in source order</returns>
+    internal static ImmutableArray<SyntaxTrivia> GetDocumentationCommentsBehindCode(SyntaxNode root, SourceText sourceText, CancellationToken cancellationToken)
+    {
+        var builder = ImmutableArray.CreateBuilder<SyntaxTrivia>();
+
+        foreach (var trivia in root.DescendantTrivia())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                && DocumentationCommentUtilities.IsWrittenBehindSource(trivia, sourceText)
+                && DocumentationCommentUtilities.DocumentsFollowingCode(trivia.Token))
+            {
+                builder.Add(trivia);
+            }
+        }
+
+        return builder.ToImmutable();
     }
 
     /// <summary>
@@ -289,7 +343,8 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the declaration can inherit documentation
+    /// Determines whether the declaration can inherit documentation. A field-like event that declares several events
+    /// inherits only when every one of its events does, because one comment documents them all
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <param name="semanticModel">Semantic model</param>
@@ -307,6 +362,11 @@ internal static class DocumentationAnalysisUtilities
             return true;
         }
 
+        if (declaration is EventFieldDeclarationSyntax eventFieldDeclaration)
+        {
+            return eventFieldDeclaration.Declaration.Variables.All(variable => OverridesOrImplementsMember(semanticModel.GetDeclaredSymbol(variable, cancellationToken)));
+        }
+
         var declaredSymbol = GetDeclaredSymbol(declaration, semanticModel, cancellationToken);
 
         return declaredSymbol switch
@@ -317,7 +377,9 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the member symbol overrides a base member or implements an interface member
+    /// Determines whether the member symbol overrides a base member or implements an interface member. A partial member is
+    /// judged as a whole: it implements an interface member when either of its parts does, because the compiler maps the
+    /// interface member to one part only
     /// </summary>
     /// <param name="memberSymbol">Member symbol</param>
     /// <returns><see langword="true"/> if the method, property, or event overrides a base member or implements an interface member</returns>
@@ -325,9 +387,9 @@ internal static class DocumentationAnalysisUtilities
     {
         return memberSymbol switch
                {
-                   IMethodSymbol methodSymbol => methodSymbol.OverriddenMethod != null || InterfaceImplementationUtilities.GetImplementedInterfaceName(methodSymbol).Length != 0,
-                   IPropertySymbol propertySymbol => propertySymbol.OverriddenProperty != null || InterfaceImplementationUtilities.GetImplementedInterfaceName(propertySymbol).Length != 0,
-                   IEventSymbol eventSymbol => eventSymbol.OverriddenEvent != null || InterfaceImplementationUtilities.GetImplementedInterfaceName(eventSymbol).Length != 0,
+                   IMethodSymbol methodSymbol => methodSymbol.OverriddenMethod != null || ImplementsInterfaceMember(methodSymbol, methodSymbol.PartialDefinitionPart ?? methodSymbol.PartialImplementationPart),
+                   IPropertySymbol propertySymbol => propertySymbol.OverriddenProperty != null || ImplementsInterfaceMember(propertySymbol, propertySymbol.PartialDefinitionPart ?? propertySymbol.PartialImplementationPart),
+                   IEventSymbol eventSymbol => eventSymbol.OverriddenEvent != null || ImplementsInterfaceMember(eventSymbol, eventSymbol.PartialDefinitionPart ?? eventSymbol.PartialImplementationPart),
                    _ => false
                };
     }
@@ -499,6 +561,19 @@ internal static class DocumentationAnalysisUtilities
                    EventDeclarationSyntax eventDeclaration => eventDeclaration.Modifiers.Any(SyntaxKind.OverrideKeyword) || eventDeclaration.ExplicitInterfaceSpecifier != null,
                    _ => false
                };
+    }
+
+    /// <summary>
+    /// Determines whether a member, or the other part of a partial member, implements an interface member
+    /// </summary>
+    /// <param name="memberSymbol">Member symbol</param>
+    /// <param name="otherPartSymbol">Symbol of the other part of a partial member, or <see langword="null"/></param>
+    /// <returns><see langword="true"/> if the member or its other part implements an interface member</returns>
+    private static bool ImplementsInterfaceMember(ISymbol memberSymbol, ISymbol otherPartSymbol)
+    {
+        return InterfaceImplementationUtilities.GetImplementedInterfaceName(memberSymbol).Length != 0
+               || (otherPartSymbol != null
+                   && InterfaceImplementationUtilities.GetImplementedInterfaceName(otherPartSymbol).Length != 0);
     }
 
     /// <summary>

@@ -148,7 +148,10 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer : 
     /// <param name="context">Context</param>
     private void OnXmlElement(SyntaxNodeAnalysisContext context)
     {
+        // Only the top-level elements of a single-line documentation comment are judged: an element nested inside
+        // another element is part of that element's content, and the formatter never rewrites a delimited comment
         if (context.Node is not XmlElementSyntax element
+            || element.Parent?.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) != true
             || DocumentationAnalysisUtilities.IsPrimaryConstructorRun(context)
             || ViolatesRule(element, context.CancellationToken) == false
             || IsInCommentLeftAsWritten(element, context.CancellationToken))

@@ -1,5 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -88,12 +87,6 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer : 
     /// <param name="context">Context</param>
     private void OnSyntaxTree(ConfigurationCategoryCopyright configuration, SyntaxTreeAnalysisContext context)
     {
-        if (context.Tree.Options is CSharpParseOptions parseOptions
-            && parseOptions.DocumentationMode == DocumentationMode.None)
-        {
-            return;
-        }
-
         var sourceText = context.Tree.GetText(context.CancellationToken);
         var expectedHeader = CopyrightHeaderTemplateResolver.ResolveHeader(configuration, context.Tree.FilePath);
 
