@@ -44,4 +44,5 @@
 - Open spec worklist (for the next spec-author spawn, batched with spec-checker findings): RH7201-001 Unicode-escape example in `sdd/specs/analyzer/RH7201.md` must also mark `using {|RH7201:System|};` (04-test-implementer).
 - Implementer done (af78e5d, 05-implementer.md): all handed-over tests pass; disputed pre-existing test `RH7203...Tests.MicrosoftUsingsAreFixedWithoutMovingSortedSystemGroup` (expects 1, gets 3).
 - Disputed test corrected (c7c7e64, 06-test-implementer.md); RH720 analyzer tests 232/232.
-- Next: cleaner (running), then spec checker (plus RH7201 example worklist item to spec author).
+- Cleaner clean (bf83a71, 07-cleaner.md).
+- Next: spec checker (running); its findings + RH7201 example item go to the spec author as one worklist.
