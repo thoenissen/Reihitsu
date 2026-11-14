@@ -64,6 +64,8 @@ Batch 1 (before the test implementer):
 | 21 | Auditor 10, repair round 1 | #2 summary of `GetDocumentationCommentsBehindCode` overstates; #3 `///` check in `CanLayOutElement` unreachable | #2 cleaner (comment text); #3 implementer removes the unreachable check | PR-introduced; same requirement | No behavior change | 683f6db |
 | 22 | Auditor 10 | Hints: RH8303 continuation line before `}` no longer reported (SHARED-DIAG-010); RH8301–RH8303 judge behind-code `///` in bodies/lists/enum members/attribute lists like on-line ones | Mention both in PR Review notes | Required by unchanged requirements / consistent with main and the formatter | No question open | — |
 | 23 | Implementer 12 | RH8203 builds a throwaway compilation per documented partial part to expand `<include>` | Keep it only for parts whose own comment holds `<include>`; read the part's own comments from syntax otherwise | Reuses the compiler's include expansion without copying it; limits the cost to a rare shape | Same output | 683f6db |
+| 24 | Auditor 15, repair round 2 | #4 cref exemption of the RH8203 syntax branch and included cref on a partial part untested; #5 inline comment at RH8203 analyzer :83–85 wrong; #6 three places select a declaration's documentation comments without a shared helper | #4 test implementer; #6 implementer (one helper for the three places); #5 cleaner | PR-introduced, same requirement; none repeats an earlier class | No output change | pending |
+| 25 | Auditor 15 hint | `#region` between two documentation comments of a partial part: reported, a non-partial one not | Drop; no follow-up | Rare input class SHARED-DOC-004 leaves uncovered | Not covered by any spec; rare | — |
 | 7 | Spec author | #1153: `extension(long)` not reported, from the recorded P8b answer | Accept | The maintainer's P8b answer names it ("An unnamed parameter is not reported") | Covered by a maintainer answer | b148498 |
 
 ## Follow-up candidates
@@ -97,5 +99,7 @@ Batch 1 (before the test implementer):
 - Done: 12 implementer (27a9160, 683f6db).
 - Done: 13 cleaner (afd4dbe): clean; finding #2 comment fixed.
 - Done: 14 spec checker (1a73351): consistent.
+- Done: 15 auditor (f690cd5) at head f6cd7c7: #1–#3 closed; new #4–#6.
+- Repair round 2 (of 3): test implementer 16 → implementer 17 → cleaner 18 → spec checker 19 → auditor 20 → validator.
 - Repair round 1 (of 3): test implementer 11 (done), implementer 12 (done) → implementer 12 → cleaner 13 → spec checker 14 → auditor 15 (repair only) → validator.
 - After answers: spec author repair (revert SHARED-DOC-002 for #1092; FMT-BLANK-010 wording; RH8201-001/RH8203-001 per Q4; Q1/Q2 answers; retag notes), then test implementer.
