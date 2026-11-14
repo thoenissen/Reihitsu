@@ -121,5 +121,30 @@ public class RH5601UseTabsCorrectlyFormatterTests : FormatterTestsBase<RH5601Use
         await VerifyFormatter(testData.Replace("→", "\t"), fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a tab behind a string literal is reported, and that the formatter replaces it and clears the
+    /// diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    public async Task VerifyFormatterFixesTabBehindAStringLiteral()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string f = "a"{|#0:→|}+ "b";
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     string f = "a" + "b";
+                                 }
+                                 """;
+
+        await VerifyFormatter(ExpandWhitespaceMarkers(testData), fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
     #endregion // Tests
 }

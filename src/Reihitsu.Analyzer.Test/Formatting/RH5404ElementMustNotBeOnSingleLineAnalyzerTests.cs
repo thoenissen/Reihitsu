@@ -309,23 +309,192 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
     }
 
     /// <summary>
-    /// Verifies that a single-line extension block is flagged. An extension block has no name, so the identifier
-    /// the rule reports on is a default token whose location is <see cref="Location.None"/>, and the diagnostic
-    /// therefore carries no source location. That is pre-existing behavior which this test pins rather than
-    /// endorses - a location-less diagnostic cannot be fixed, and correcting it is tracked separately.
+    /// Verifies that a single-line extension block is reported on its <c>extension</c> keyword, and that no code fix is
+    /// offered for it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5404-001")]
+    [Requirement("RH5404-002")]
+    [Requirement("RH5404-003")]
     public async Task VerifySingleLineExtensionBlockIsFlagged()
     {
         const string testData = """
                                 internal static class Extensions
                                 {
-                                    extension(int value) { public int Doubled => value * 2; }
+                                    {|#0:extension|}(int value) { public int Doubled => value * 2; }
                                 }
                                 """;
 
-        await Verify(testData, Diagnostic(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId).WithMessage(AnalyzerResources.RH5404MessageFormat));
+        await Verify(testData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+        await VerifyNoCodeFixIsOffered(testData.Replace("{|#0:extension|}", "{|RH5404:extension|}"));
+    }
+
+    /// <summary>
+    /// Verifies that an empty single-line extension block is reported on its <c>extension</c> keyword, and that no code
+    /// fix is offered for it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5404-001")]
+    [Requirement("RH5404-002")]
+    [Requirement("RH5404-003")]
+    public async Task VerifyEmptySingleLineExtensionBlockIsReportedOnItsKeywordWithoutCodeFix()
+    {
+        const string testData = """
+                                internal static class Extensions
+                                {
+                                    {|RH5404:extension|}(int value) { }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a generic single-line extension block is reported on its <c>extension</c> keyword, and that no code
+    /// fix is offered for it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5404-002")]
+    [Requirement("RH5404-003")]
+    public async Task VerifyGenericSingleLineExtensionBlockIsReportedOnItsKeywordWithoutCodeFix()
+    {
+        const string testData = """
+                                internal static class Extensions
+                                {
+                                    {|RH5404:extension|}<T>(T[] values) { public int Count2 => values.Length * 2; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line extension block in a file whose first type is another declaration is reported on its
+    /// own keyword, and that no code fix is offered, so no other type of the file is changed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5404-002")]
+    [Requirement("RH5404-003")]
+    public async Task VerifySingleLineExtensionBlockBehindAnotherTypeIsReportedOnItsKeywordWithoutCodeFix()
+    {
+        const string testData = """
+                                internal class A
+                                {
+                                }
+
+                                internal static class X
+                                {
+                                    {|RH5404:extension|}(int value) { public int Doubled => value * 2; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line extension block in a file that starts with a using directive is reported on its
+    /// keyword, and that no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5404-002")]
+    [Requirement("RH5404-003")]
+    public async Task VerifySingleLineExtensionBlockBehindAUsingDirectiveIsReportedOnItsKeywordWithoutCodeFix()
+    {
+        const string testData = """
+                                using System;
+
+                                internal static class X
+                                {
+                                    {|RH5404:extension|}(int value) { public int Doubled => Math.Abs(value) * 2; }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the requirement's example: in a type on one line holding an extension block on one line, the type is
+    /// reported on its name and the block on its <c>extension</c> keyword; the type's fix is offered and the block gets
+    /// none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5404-002")]
+    [Requirement("RH5404-003")]
+    public async Task VerifySingleLineTypeHoldingASingleLineExtensionBlockKeepsItsFixWhileTheBlockGetsNone()
+    {
+        const string testData = """
+                                class {|RH5404:A|} { class {|RH5404:B|} { } }
+
+                                static class {|RH5404:X|} { {|RH5404:extension|}(int value) { } }
+                                """;
+        const string source = """
+                              class A { class B { } }
+
+                              static class X { extension(int value) { } }
+                              """;
+
+        await Verify(testData);
+
+        var typeActions = await GetCodeFixActionsAsync(source,
+                                                       RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId,
+                                                       root => root.DescendantNodes()
+                                                                   .OfType<ClassDeclarationSyntax>()
+                                                                   .Single(declaration => declaration.Identifier.ValueText == "X")
+                                                                   .Identifier
+                                                                   .GetLocation());
+        var blockActions = await GetCodeFixActionsAsync(source,
+                                                        RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId,
+                                                        root => root.DescendantNodes()
+                                                                    .OfType<ExtensionBlockDeclarationSyntax>()
+                                                                    .Single()
+                                                                    .Keyword
+                                                                    .GetLocation());
+
+        Assert.IsNotEmpty(typeActions, "The fix of the type holding the extension block must be offered.");
+        Assert.IsEmpty(blockActions, "No fix may be offered for the extension block.");
+    }
+
+    /// <summary>
+    /// Verifies the requirement's example of reported and unreported declarations, the extension blocks included
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5404-001")]
+    public async Task VerifyTheRequirementExampleIsReported()
+    {
+        const string testData = """
+                                class {|RH5404:A|} { int _x; }
+
+                                struct {|RH5404:B|} { }
+
+                                enum {|RH5404:E|} { One, Two }
+
+                                class D;
+
+                                record struct P(int X);
+
+                                class F
+                                {
+                                }
+
+                                static class X
+                                {
+                                    {|RH5404:extension|}(int value) { public int Doubled => value * 2; }
+
+                                    extension(string text)
+                                    {
+                                        public int Length2 => text.Length * 2;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     /// <summary>

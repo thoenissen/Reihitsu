@@ -1493,6 +1493,113 @@ public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH
                             });
     }
 
+    /// <summary>
+    /// Verifies the requirement's example: extension blocks whose receiver parameter names only its type are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4105-004")]
+    public async Task VerifyUnnamedReceiverParametersOfExtensionBlocksAreNotReported()
+    {
+        const string testCode = """
+                                public static class E
+                                {
+                                    extension(long)
+                                    {
+                                    }
+
+                                    extension<T>(T[])
+                                    {
+                                    }
+
+                                    extension(int)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an unnamed receiver parameter passed by reference is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4105-004")]
+    public async Task VerifyUnnamedReferenceReceiverParameterIsNotReported()
+    {
+        const string testCode = """
+                                public static class E
+                                {
+                                    extension(ref int)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an unnamed receiver parameter of an extension block with a static member is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4105-004")]
+    public async Task VerifyUnnamedReceiverParameterOfAnExtensionBlockWithAStaticMemberIsNotReported()
+    {
+        const string testCode = """
+                                public static class E
+                                {
+                                    extension(long)
+                                    {
+                                        public static long Zero => 0;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a named receiver parameter of an extension block that is not in camelCase is reported on its
+    /// identifier and renamed, next to an unnamed receiver parameter that is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4105-001")]
+    [Requirement("RH4105-004")]
+    public async Task VerifyNamedReceiverParameterIsReportedNextToAnUnnamedOne()
+    {
+        const string testCode = """
+                                public static class E
+                                {
+                                    extension(int {|#0:Value|})
+                                    {
+                                    }
+
+                                    extension(long)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 public static class E
+                                 {
+                                     extension(int value)
+                                     {
+                                     }
+
+                                     extension(long)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH4105MethodParameterCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4105MessageFormat));
+    }
+
     #endregion // Tests
 
     #region Methods
