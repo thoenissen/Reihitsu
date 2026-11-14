@@ -53,6 +53,9 @@ Batch 1 (before the test implementer):
 | 10 | Batch 1 answers | Q1 C retires RH8307's nested-element coverage; Q2 A changes RH8106-002/RH8306-004 (one diagnostic per declaration) | Change doc required; widen the run's lane bug fix → behavior change; one change doc for the run's behavior changes; a fresh skeptic checks the amendment | sdd/README *When a change doc is required* | Every visible change is a maintainer answer | pending |
 | 11 | Spec author 03 | RH8307 rule page Description now names top-level elements | Accept as covered by Q1 C | The page states the scope the maintainer decided; no further question | Covered by maintainer answer Q1 C | be4ef83 |
 | 12 | Spec author 03 | One change doc covering Q1 C, Q2 A, Q4 B; Q4 B written into the rule specs, not SHARED-DIAG-004 | Accept | Extending SHARED-DIAG-004 would contradict RH8306's once-per-partial-property | Internal placement | be4ef83 |
+| 13 | Skeptic 04 | #1617: RH8203 reports a defining part through the expanded (implementing) comment; unlisted visible change | Route to spec author: add to change doc Visible output changes and an RH8203-001 example | Covered by Q4 B (each part judged by its own comment) | Covered by maintainer answer Q4 B | pending |
+| 14 | Skeptic 04 | RH8201-001/RH8203-001 cite SHARED-DIAG-004, whose first paragraph says at most once | Option A: extend SHARED-DIAG-004's second paragraph with the per-part documentation comment as RH8201 and RH8203 judge it | Matches the paragraph's existing per-rule wording; doesn't bind RH8306 | Spec wording | pending |
+| 15 | Skeptic 04 | Change doc says formatting tags are not reported at all; a top-level `<b>` stays reported | Narrow the sentence to nested formatting tags | Q1 C decides nested elements only; top-level `<b>` is rare | No output change beyond Q1 C | pending |
 | 7 | Spec author | #1153: `extension(long)` not reported, from the recorded P8b answer | Accept | The maintainer's P8b answer names it ("An unnamed parameter is not reported") | Covered by a maintainer answer | b148498 |
 
 ## Follow-up candidates
@@ -61,6 +64,8 @@ Batch 1 (before the test implementer):
 - RH4105 reports unnamed extension receivers (`extension(long)`) with no source location (SHARED-DIAG-007). — 02-skeptic.md
 - RH8031's verdict depends on the order of several summaries (extend #1449). — 02-skeptic.md
 - RH8107 and RH8202 mark only the first of several elements (same question as output Q2; carry its answer). — 02-skeptic.md
+- RH8306 on a partial property whose summaries both read as a sentence: only the defining part reported; Q4 B reasoning suggests both (output question in 04-skeptic.md). — 04-skeptic.md
+- Other readers of a partial member's expanded documentation (RH8032, RH8033, RH8101, RH8105, RH8108 via `XmlDocumentationExpander`) unchecked for the per-part case. — 04-skeptic.md
 - RH8307 for nested elements (maintainer, Q1 C): feature issue — whether nested elements of a documentation comment get their own check, possibly a new rule. — maintainer answer Q1
 - Link #1092 to #1091: the group fix only makes sense together with Q3a for partial types. — 02-skeptic.md
 - Blank-line phase: give the gap above a region directive behind a documentation comment one owner (cleanup rewriter vs region rewriter). — 02-skeptic.md (decision 9)
@@ -72,5 +77,6 @@ Batch 1 (before the test implementer):
 - Output batch 1 asked (Q1 RH8307 inline element, Q2 RH8106/RH8306 several elements, Q3 escalation 10 behind-code `///`, Q4 RH8201/RH8203 partial member documented on both parts). Answered (see Maintainer answers).
 - Lane widened to behavior change (decision 10).
 - Done: 03 spec author (be4ef83), change doc `sdd/changes/2026-11/documentation-rules-reported-elements.md` (Draft).
-- Next: fresh skeptic 04 on the amendment; then accept change doc (set Accepted); then test implementer 05.
+- Done: 04 skeptic (ac0ce31): decisions 13–15 routed to spec author (continued agent, 05).
+- Next: then accept change doc (set Accepted); then test implementer 05.
 - After answers: spec author repair (revert SHARED-DOC-002 for #1092; FMT-BLANK-010 wording; RH8201-001/RH8203-001 per Q4; Q1/Q2 answers; retag notes), then test implementer.
