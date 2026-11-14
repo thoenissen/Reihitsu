@@ -38,6 +38,9 @@
 | 16 | Auditor | Hint: `x is (!true)` gets a fix | Drop | Rare input; matches main | — | — |
 | 17 | Lead | Repair round 2 worklist | Spec author (RH3001 withheld class) → test implementer (tests for the withheld class) → implementer (#1 guard, #2, #3) → cleaner → spec checker → auditor (repair only) | One worklist per verdict | — | — |
 | 18 | Spec author | RH3001-009 scope: both sides of the negation, "no trivia" rather than "no whitespace", token-kind check (keyword or identifier) | Take all three; change doc stays Accepted | Behind-the-operand case breaks RH3001-004 the same way; with a comment between, the rewrite is already correct; one cheap check | Withholding for a rare class | a3c0ffe |
+| 19 | Auditor 15 | #4 (repeats #1's class, architecture finding): RH3001-009 front-side guard also withholds where the operand starts with `(` or a kept comment (`return!(a)`), which would not merge; reason in Why and guard summary is wrong; change doc does not list these cases | Accept the wider refusal (class already refused, rare); no code change. Correct RH3001-009's Why, the guard's summary, and list the cases in the change doc's visible-output section. Not keyed on `WouldMergeIntoOneToken`: a repeated class is answered by refusing, not by more reasoning | README *Architecture findings*: refuse the class first; decision does not use up a repair round. Declaring a shape unsupported is not an option (formatter has no special case here) | Withholding a fix for a rare class | — |
+| 20 | Auditor 15 | Hint: shared formatter wrapper placed in `BlankLineCodeFixUtilities` | Keep | Placement only, behavior identical; avoids another type | Internal | — |
+| 21 | Auditor 15 | Hint: RH3002/formatter insert a space for the same merge question | Keep withholding; the change doc's rejected-alternative reason is corrected with #4's text repair | Refusal answers a repeated class | Rare class | — |
 
 ## Follow-up candidates
 
@@ -68,4 +71,5 @@
 - Cleaner 13 (64d42e5): clean.
 - Spec checker 14 (a219aac): consistent. main unchanged (cf6d26b); Release build green.
 - Repair audit of a219aacc2c2b9d45625ce28841048305eb1436c6 (round 2 repair since 888654727cd8).
-- Next step: auditor 15 (repair only).
+- Auditor 15 (6b93108): #1–#3 closed; #4 repeats #1 → decision 19 (text-only repair).
+- Next step: spec author 16 (RH3001-009 Why, change doc), cleaner 17 (guard summary), then verify-text-only --strict-docs --base a219aacc2c2b against head; pass → validator.
