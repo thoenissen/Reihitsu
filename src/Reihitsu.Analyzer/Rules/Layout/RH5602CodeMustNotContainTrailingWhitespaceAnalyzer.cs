@@ -38,23 +38,18 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzer : DiagnosticAnal
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree for trailing whitespace
+    /// Analyzes the syntax tree for trailing whitespace. A run of whitespace is reported unless it is part of the text of
+    /// a literal: the whitespace behind a literal's end and the whitespace inside an interpolation hole are code
+    /// (SHARED-DIAG-003), whether or not a literal touches the line
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
-        var stringLineIndices = FormattingTextAnalysisUtilities.GetStringLineIndices(root, sourceText);
 
-        for (var lineIndex = 0; lineIndex < sourceText.Lines.Count; lineIndex++)
+        foreach (var line in sourceText.Lines)
         {
-            if (stringLineIndices.Contains(lineIndex))
-            {
-                continue;
-            }
-
-            var line = sourceText.Lines[lineIndex];
             var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, line);
 
             if (lineText.Length == 0)
@@ -71,7 +66,8 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzer : DiagnosticAnal
 
             var diagnosticStart = line.Start + trailingWhitespaceStart;
 
-            if (SyntaxTriviaUtilities.IsInsideCommentOrDisabledText(root, diagnosticStart))
+            if (FormattingTextAnalysisUtilities.IsInsideLiteralText(root.FindToken(diagnosticStart), diagnosticStart)
+                || SyntaxTriviaUtilities.IsInsideCommentOrDisabledText(root, diagnosticStart))
             {
                 continue;
             }

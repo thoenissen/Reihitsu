@@ -27,39 +27,6 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
     #region Methods
 
     /// <summary>
-    /// Gets the number of columns by which the code fix shifts the lines of a multi-line raw string literal after its
-    /// first line: the column of its opening quotes minus the width of the whitespace in front of its closing marker,
-    /// measured by <see cref="RawStringLiteralUtilities.GetLeadingWhitespaceLength"/>, as the analyzer measures it. A
-    /// positive shift goes to the right, a negative one to the left
-    /// </summary>
-    /// <param name="sourceText">Text of the document</param>
-    /// <param name="node">The syntax node representing the raw string expression</param>
-    /// <returns>The shift in columns, or 0 when the literal stands on one line</returns>
-    private static int GetShift(SourceText sourceText, SyntaxNode node)
-    {
-        var span = node.Span;
-        var openingLine = sourceText.Lines.GetLineFromPosition(span.Start);
-        var closingLine = sourceText.Lines.GetLineFromPosition(span.End);
-
-        if (openingLine.LineNumber == closingLine.LineNumber)
-        {
-            return 0;
-        }
-
-        var quoteOffset = 0;
-
-        if (node is InterpolatedStringExpressionSyntax interpolated)
-        {
-            quoteOffset = RawStringLiteralUtilities.GetQuoteOffset(interpolated.StringStartToken.Text);
-        }
-
-        var targetColumn = span.Start - openingLine.Start + quoteOffset;
-        var currentClosingColumn = RawStringLiteralUtilities.GetLeadingWhitespaceLength(sourceText.ToString(closingLine.Span));
-
-        return targetColumn - currentClosingColumn;
-    }
-
-    /// <summary>
     /// Determines whether shifting the lines of an interpolated raw string literal by the given shift would change the
     /// value of a multi-line raw string literal nested in one of its interpolation holes, at any depth. Only a shift to
     /// the left can: a line loses up to that many leading whitespace characters, so a nested closing line whose
@@ -68,7 +35,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
     /// </summary>
     /// <param name="sourceText">Text of the document</param>
     /// <param name="interpolatedString">The interpolated raw string literal the fix shifts</param>
-    /// <param name="shift">The shift in columns (<see cref="GetShift"/>)</param>
+    /// <param name="shift">The shift in columns (<see cref="RawStringLiteralUtilities.GetClosingLineShift"/>)</param>
     /// <returns><see langword="true"/> if the shift would change a nested literal's value</returns>
     private static bool ChangesValueOfNestedRawString(SourceText sourceText, InterpolatedStringExpressionSyntax interpolatedString, int shift)
     {
@@ -138,7 +105,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
     /// <summary>
     /// Applies the code fix by shifting the lines of the raw string literal after its first line, so that its closing
     /// marker starts in the column of its opening quotes. Every shifted line shifts by the same number of columns
-    /// (<see cref="GetShift"/>), by the shift rule the formatter also applies
+    /// (<see cref="RawStringLiteralUtilities.GetClosingLineShift"/>, as the analyzer measures it), by the shift rule the formatter also applies
     /// (<see cref="RawStringLiteralUtilities.GetLineShiftEdit"/>): spaces are added in front of it, or up to that many
     /// leading whitespace characters are removed. Which lines shift is the formatter's decision (<see cref="RawStringLineUtilities.MovesLine"/>): an
     /// empty line stays empty, whether it is literal text, text of a nested raw string, or code in an interpolation
@@ -155,7 +122,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var delta = GetShift(sourceText, node);
+        var delta = RawStringLiteralUtilities.GetClosingLineShift(sourceText, node);
 
         if (root == null
             || delta == 0)
@@ -237,7 +204,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
             {
                 sourceText ??= await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
 
-                if (ChangesValueOfNestedRawString(sourceText, interpolatedString, GetShift(sourceText, interpolatedString)))
+                if (ChangesValueOfNestedRawString(sourceText, interpolatedString, RawStringLiteralUtilities.GetClosingLineShift(sourceText, interpolatedString)))
                 {
                     continue;
                 }

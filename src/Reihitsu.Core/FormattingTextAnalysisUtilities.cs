@@ -336,13 +336,44 @@ public static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the specified token is part of an interpolated string
+    /// Determines whether the specified token is the opening or closing brace of an interpolation, such as the braces of
+    /// <c>{x}</c> in <c>$"a{x}b"</c> or of <c>{{x}}</c> in a <c>$$</c> raw string. The braces of code inside an
+    /// interpolation hole, such as those of an array initializer, are not braces of the interpolation
     /// </summary>
     /// <param name="token">Token to inspect</param>
-    /// <returns><see langword="true"/> if the token belongs to an interpolated string</returns>
-    public static bool IsInsideInterpolatedString(SyntaxToken token)
+    /// <returns><see langword="true"/> if the token is a brace of an interpolation</returns>
+    public static bool IsInterpolationBrace(SyntaxToken token)
     {
-        return token.Parent?.AncestorsAndSelf().OfType<InterpolatedStringExpressionSyntax>().Any() == true;
+        return token.Parent is InterpolationSyntax interpolation
+               && (interpolation.OpenBraceToken == token
+                   || interpolation.CloseBraceToken == token);
+    }
+
+    /// <summary>
+    /// Determines whether the position lies in the text of a string or character literal, whose whitespace is part of the
+    /// literal's value and must not be altered. Only the text of a string or character literal token, of an interpolated string's text, and of the start and end
+    /// tokens of an interpolated multi-line raw string is content: the whitespace after the opening quotes and the
+    /// indentation of the closing line spell the literal's value. The trivia in front of and behind any of these tokens,
+    /// also inside an interpolation hole, is code (SHARED-DIAG-003)
+    /// </summary>
+    /// <param name="token">Token whose full span contains <paramref name="position"/></param>
+    /// <param name="position">Position of the tab</param>
+    /// <returns><see langword="true"/> if the position lies in the text of a literal; otherwise, <see langword="false"/></returns>
+    public static bool IsInsideLiteralText(SyntaxToken token, int position)
+    {
+        var isContentToken = token.IsKind(SyntaxKind.StringLiteralToken)
+                             || token.IsKind(SyntaxKind.CharacterLiteralToken)
+                             || token.IsKind(SyntaxKind.InterpolatedStringTextToken)
+                             || token.IsKind(SyntaxKind.SingleLineRawStringLiteralToken)
+                             || token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)
+                             || token.IsKind(SyntaxKind.Utf8StringLiteralToken)
+                             || token.IsKind(SyntaxKind.Utf8SingleLineRawStringLiteralToken)
+                             || token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken)
+                             || token.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken)
+                             || token.IsKind(SyntaxKind.InterpolatedRawStringEndToken);
+
+        return isContentToken
+               && token.Span.Contains(position);
     }
 
     /// <summary>
