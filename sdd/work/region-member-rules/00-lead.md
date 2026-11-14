@@ -52,6 +52,7 @@ None beyond the triage comments above, which are the maintainer's (account) re-t
 | 10 | Skeptic | #1412 cause is the Roslyn driver; other constructor rules miss the defining part too | Fix RH7105/RH7106 only; other constructor rules a follow-up | Scope | Narrower than the class; follow-up filed | pending |
 | 11 | Skeptic | #1333: partial field-like event with two declarators | In scope; needs a test | Same requirement SHARED-DIAG-006 | Unchanged requirement decides | pending |
 | 13 | Batch 1 | Q3-B leaves RH7105/RH7106's judged span different from RH7102/RH7103's (skeptic's conditional architecture finding) | Keep both statements, narrow fix: RH7105/RH7106 use the span up to the last modifier; no follow-up | The maintainer chose the visible output; the two rules judge different things (keyword order vs. modifier placement) | Output decided by the maintainer | cfa5e69 |
+| 14 | Test implementer | RH7101: conditional directive in the initializer of a non-last declarator | Not reported (test as written) | RH7101-001's unchanged text "stands between its declarators" covers it literally; rare input | Decided by the unchanged requirement's literal text; reviewer can overrule | b47e6b2 |
 | 12 | Skeptic | Follow-up candidates: RH7311 branch-vs-outside; formatter `=` continuation after empty `#if` | Dropped | RH7311 decided by its unchanged spec (no defect); formatter case rare and stable | n/a | n/a |
 
 ## Follow-up candidates
@@ -72,4 +73,5 @@ Answered in full (see Maintainer answers).
 - Done: claim (5f66bcd), draft PR #1734, prepare.sh green, spec author 187b246 (lane check: confirmed).
 - Skeptic 790f9fc done.
 - Spec author amendment cfa5e69 done (decisions 4, 8, 9, 13 + answers carried out).
-- Next: test implementer (04), then implementer.
+- Test implementer b47e6b2 done: all seven reproduce (96 analyzer + 1 core failing tests, all new/rewritten).
+- Next: implementer (05), then cleaner, spec checker, auditor, validator.
