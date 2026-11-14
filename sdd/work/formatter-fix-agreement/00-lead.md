@@ -36,4 +36,5 @@
 - Done: skeptic (`02-skeptic.md`, 7cfa03f): #1529 rec. B, adds the column-9 input and option D (withhold fix); names escalation 10 (declare the null-conditional assignment with a wrapped target unsupported), not recommended. #1543 rec. A; change-doc corrections (oscillation claim, field array initializer `}`, nested array `{`, RH5027 for do-while).
 - Answers received (1B, 2A).
 - Done: spec author amendment (`03-spec-author.md`, b8924f4): RH5111-006, FMT-BLANK-020 widened, change docs finalized and accepted.
-- Next: test implementer.
+- Done: test implementer (`04-test-implementer.md`, 4e241e5): failing tests exactly on changed outputs; rewritten existing asserts (3 old RH5111 conditional-access tests, 2 FMT-BLANK kept-blank-line tests) are covered by answers 1B/2A.
+- Next: implementer.
