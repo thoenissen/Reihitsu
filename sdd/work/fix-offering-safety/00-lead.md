@@ -41,9 +41,9 @@ Bug-fix lane: spec author (clarification — #1150's maintainer-decided spec tex
 
 ## Follow-up candidates
 
-(none yet)
+- Formatter places a conditional's true branch that follows a `//` comment on the `?` line in the statement's column (column 8 in the #1274 input) — 01-spec-author.md (#1274).
 
 ## State
 
-- Last step finished: claim, prepare.
-- Next: spawn spec author (01).
+- Last step finished: 01 spec author (e36792d): SHARED-FIX-011 written for #1150; open output questions drafted for #1600, #1274, #1678.
+- Next: skeptic (02), then batch output questions before the test implementer.
