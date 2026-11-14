@@ -82,4 +82,5 @@ Answered in full (see Maintainer answers).
 - Not run locally by the implementer: formatter/CLI tests, self-hosting scan (CI runs it; RH7308/RH7311/RH74xx changes may show new findings there).
 - Spec author e780d7d, test implementer 373d0ff: all corrected tests pass.
 - Implementer c939751: helper removed; analyzer 9269/9269, core 652/652 in Debug.
-- Next: cleaner (09), spec checker (10), auditor, validator.
+- Cleaner 1c90aa7 clean (Release build 0 warnings); spec checker b20a7a0 consistent, no findings.
+- Next: auditor (11), then validator, issue manager, publish.
