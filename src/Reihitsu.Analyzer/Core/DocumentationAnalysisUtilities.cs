@@ -137,9 +137,10 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the <c>///</c> documentation comments that start behind code on their line and document the declaration
-    /// that follows them (SHARED-DOC-004). A comment behind code that documents nothing, such as one in front of a
-    /// <c>;</c> or a closing brace, is not returned
+    /// Gets the <c>///</c> documentation comments that start behind code on their line and are followed by a token
+    /// that opens its syntax node, such as a declaration, a statement, an argument, a parameter, or an enum member
+    /// (SHARED-DOC-004). A comment behind code in front of a token that closes or separates, such as a <c>;</c> or a
+    /// closing brace, is not returned
     /// </summary>
     /// <param name="root">Syntax root whose documentation comments are parsed</param>
     /// <param name="sourceText">Source text of the root</param>
