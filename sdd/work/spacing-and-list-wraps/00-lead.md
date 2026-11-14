@@ -39,6 +39,8 @@
 | 13 | Skeptic 03 | Change doc completeness | Add RH5101's fix result change (`Foo(⏎1⏎, 2, 3)` → `Foo(1,⏎2,⏎3)`) and RH5102's convergence | Missing visible entries; follow from answer C | Follow from answer C | – |
 | 14 | Test impl. 04 | A held comma alone on its line (`int first // keep⏎,⏎int second`): join to `, int second` or leave in place? | Leave in place: the held comma and the line break behind it stay as written; existing tests `CommaAloneOnItsLineStaysAligned` and `CommaAfterDirectiveHeldFirstParameterStaysAligned` stand; spec author states the case in FMT-BREAK-012 | Rare class (RH5035/RH5038 report the comment); refusing needs no extra machinery | Rare class: leaving a construct as written | – |
 | 15 | Test impl. 04 | Architecture test `RepositoryFilesReferenceNoSquadNote` fails on `03-skeptic.md` line 24 | Spec author rewords that line (no squad-note path) | Keeps the validator green before `sdd/work/` is deleted | Internal text | – |
+| 16 | Implementer 05 | Directive-held comma tests parse without `X`, so `, 3` is disabled text and the list is single-line | The tests are wrong: they pass the preprocessor symbol `X`; the FMT-BREAK-012 example and change doc entry 8 state that the branch is active (X defined). Without X, the list stays unchanged by the unchanged elements-decide definition | Reading another build is ruled out (*Special cases do not grow the source*) | Decided by the spec's own definition; the asserted output only adds the build condition | – |
+| 17 | Implementer 05 | `IndexerLeadingCommaAfterSharedLineIsAlignedWithTheFirstParameter` pins the old output | Update to `int first,⏎int second // keep⏎, int third` (change doc entry 7 `O`) | Decided by the changed FMT-BREAK-012 and entry 7 | Covered by entry 7 / decision 10 | – |
 | 5 | Skeptic | Refuse leading-comma argument lists instead? | No | Common code; maintainer triage keeps it a bug for 1.2.2; declaring unsupported deletes nothing | – | – |
 
 ## Follow-up candidates
@@ -57,4 +59,5 @@
 - Done: spec author amendment (aae1cae); change doc accepted by the lead.
 - Done: test implementer (04, 0aeb480).
 - Done: spec author amendment (a8ba6f3).
-- Next: implementer (05).
+- Done: implementer (05, c119a8a): 3 disputed tests.
+- Next: spec author (decision 16 wording) + test implementer (decisions 16, 17) in parallel → implementer re-check → cleaner.
