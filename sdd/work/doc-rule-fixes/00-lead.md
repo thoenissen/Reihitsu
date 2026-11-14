@@ -91,5 +91,6 @@ Batch 1 (before the test implementer):
 - Done: 08 cleaner (c88c8d4): clean.
 - Done: 09 spec checker (704a989): consistent. main not moved; build green; no open output questions.
 - Done: 10 auditor (3649659) at head 31a774b, main cf6d26b: findings.
-- Repair round 1 (of 3): test implementer 11 → implementer 12 → cleaner 13 → spec checker 14 → auditor 15 (repair only) → validator.
+- Done: 11 test implementer (45c8faf): 8 failing RH8203 tests.
+- Repair round 1 (of 3): test implementer 11 (done) → implementer 12 → cleaner 13 → spec checker 14 → auditor 15 (repair only) → validator.
 - After answers: spec author repair (revert SHARED-DOC-002 for #1092; FMT-BLANK-010 wording; RH8201-001/RH8203-001 per Q4; Q1/Q2 answers; retag notes), then test implementer.
