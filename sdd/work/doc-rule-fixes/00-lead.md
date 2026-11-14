@@ -56,6 +56,7 @@ Batch 1 (before the test implementer):
 | 13 | Skeptic 04 | #1617: RH8203 reports a defining part through the expanded (implementing) comment; unlisted visible change | Route to spec author: add to change doc Visible output changes and an RH8203-001 example | Covered by Q4 B (each part judged by its own comment) | Covered by maintainer answer Q4 B | e8e8ddc |
 | 14 | Skeptic 04 | RH8201-001/RH8203-001 cite SHARED-DIAG-004, whose first paragraph says at most once | Option A: extend SHARED-DIAG-004's second paragraph with the per-part documentation comment as RH8201 and RH8203 judge it | Matches the paragraph's existing per-rule wording; doesn't bind RH8306 | Spec wording | e8e8ddc |
 | 15 | Skeptic 04 | Change doc says formatting tags are not reported at all; a top-level `<b>` stays reported | Narrow the sentence to nested formatting tags | Q1 C decides nested elements only; top-level `<b>` is rare | No output change beyond Q1 C | e8e8ddc |
+| 16 | Test implementer 06 | `VerifyMovedCommentTakesTheIndentationOfTheDeclaration`: declaration indented deeper than the comment's other lines; the moved first line takes the declaration's column, the others stay | Keep as RH8303-006 states | Rare input that already violates the indentation rules; RH8303-006 (covered by Q3 B) decides it literally | RH8303-006 decides it; rare class | 48bfa0b |
 | 7 | Spec author | #1153: `extension(long)` not reported, from the recorded P8b answer | Accept | The maintainer's P8b answer names it ("An unnamed parameter is not reported") | Covered by a maintainer answer | b148498 |
 
 ## Follow-up candidates
@@ -79,5 +80,6 @@ Batch 1 (before the test implementer):
 - Done: 03 spec author (be4ef83), change doc `sdd/changes/2026-11/documentation-rules-reported-elements.md` (Draft).
 - Done: 04 skeptic (ac0ce31): decisions 13–15 routed to spec author (continued agent, 05).
 - Done: 05 spec author (e8e8ddc). Change doc set Accepted by the lead (every visible change answered: Q1 C, Q2 A, Q4 B).
-- Next: test implementer 06.
+- Done: 06 test implementer (48bfa0b): 69 failing analyzer tests, all on spec differences.
+- Next: implementer 07.
 - After answers: spec author repair (revert SHARED-DOC-002 for #1092; FMT-BLANK-010 wording; RH8201-001/RH8203-001 per Q4; Q1/Q2 answers; retag notes), then test implementer.
