@@ -39,4 +39,5 @@
 - Done: test implementer (`04-test-implementer.md`, 4e241e5): failing tests exactly on changed outputs; rewritten existing asserts (3 old RH5111 conditional-access tests, 2 FMT-BLANK kept-blank-line tests) are covered by answers 1B/2A.
 - Done: implementer (`05-implementer.md`, 0c30c38): +17/−64 production; withheld rare class: RH5111 fix withheld when the receiver before `?` holds an unsupported shape (FMT-UNSUP-004) — for PR Review notes.
 - Done: cleaner (`06-cleaner.md`, c821499): clean, Release 0 warnings.
-- Next: spec checker.
+- Done: spec checker (`07-spec-checker.md`, be1cc6d): consistent, no findings. origin/main unchanged (b34c0f1); build green.
+- Next: auditor (base b34c0f1).
