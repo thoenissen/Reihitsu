@@ -41,7 +41,7 @@
 
 ## State
 
-- Audited SHA: —
+- Audited SHA: a092887ce41998f97a81c4dd8291e5015ba28067
 - Last step finished: spec author (01-spec-author.md, change doc `sdd/changes/2026-11/rh3001-fix-scope.md` Draft).
 - Skeptic done (02-skeptic.md): all reproduced and reachable; one output question (RH3001 `orderby !a` without direction).
 - Spec author amendment done (ff3315d).
@@ -53,4 +53,6 @@
 - Cleaner clean (356af9d).
 - Spec checker (06, 7151d2c): 1 finding — `ExpressionBodyCodeFixUtilities` missing as code owner in shared/expression-body-conversion.md and sdd/specs/README.md. Repair round 1 (same requirement area, PR-introduced) → spec author.
 - Spec author repair done (07, 3dab93e).
-- Next step: spec checker again (08-spec-checker.md), then section 6 and auditor.
+- Spec checker 08 (a092887): consistent. main up to date; Release build green.
+- Audit base main: cf6d26b03fe1917f193d412c8540916f93a00dc4; audited SHA: a092887ce41998f97a81c4dd8291e5015ba28067 (head before this note).
+- Next step: auditor (09-auditor.md).
