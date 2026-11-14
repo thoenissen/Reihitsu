@@ -63,6 +63,7 @@ Batch 1 (before the test implementer):
 | 20 | Auditor 10, repair round 1 | #1 RH8203 drops reports for `<inheritdoc/>` in a partial part's later comment or `<include>` (PR-introduced) | Repair to the unchanged RH8203-001: test implementer adds the missing tests, implementer makes them pass; no refusal | RH8203-001 already decides it; main reports them | Brings code back to an unchanged requirement | pending |
 | 21 | Auditor 10, repair round 1 | #2 summary of `GetDocumentationCommentsBehindCode` overstates; #3 `///` check in `CanLayOutElement` unreachable | #2 cleaner (comment text); #3 implementer removes the unreachable check | PR-introduced; same requirement | No behavior change | pending |
 | 22 | Auditor 10 | Hints: RH8303 continuation line before `}` no longer reported (SHARED-DIAG-010); RH8301–RH8303 judge behind-code `///` in bodies/lists/enum members/attribute lists like on-line ones | Mention both in PR Review notes | Required by unchanged requirements / consistent with main and the formatter | No question open | — |
+| 23 | Implementer 12 | RH8203 builds a throwaway compilation per documented partial part to expand `<include>` | Keep it only for parts whose own comment holds `<include>`; read the part's own comments from syntax otherwise | Reuses the compiler's include expansion without copying it; limits the cost to a rare shape | Same output | pending |
 | 7 | Spec author | #1153: `extension(long)` not reported, from the recorded P8b answer | Accept | The maintainer's P8b answer names it ("An unnamed parameter is not reported") | Covered by a maintainer answer | b148498 |
 
 ## Follow-up candidates
@@ -72,6 +73,7 @@ Batch 1 (before the test implementer):
 - RH8031's verdict depends on the order of several summaries (extend #1449). — 02-skeptic.md
 - RH8107 and RH8202 mark only the first of several elements (same question as output Q2; carry its answer). — 02-skeptic.md
 - RH8306 on a partial property whose summaries both read as a sentence: only the defining part reported; Q4 B reasoning suggests both (output question in 04-skeptic.md). — 04-skeptic.md
+- (implementer 12 adds: `GetExpandedDocumentationOfPart` could serve them)
 - Other readers of a partial member's expanded documentation (RH8032, RH8033, RH8101, RH8105, RH8108 via `XmlDocumentationExpander`) unchecked for the per-part case. — 04-skeptic.md
 - RH8307 for nested elements (maintainer, Q1 C): feature issue — whether nested elements of a documentation comment get their own check, possibly a new rule. — maintainer answer Q1
 - Link #1092 to #1091: the group fix only makes sense together with Q3a for partial types. — 02-skeptic.md
