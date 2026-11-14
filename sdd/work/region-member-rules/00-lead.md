@@ -31,7 +31,7 @@ None beyond the triage comments above, which are the maintainer's (account) re-t
 ## Maintainer answers
 
 - Q1 (#1264, RH7309, regions in the `#if` and `#else` branches of one conditional): **A** — not reported.
-- Q1b (#1264, RH7309, region in one branch after a region outside every branch): unanswered; asked back.
+- Q1b (#1264, RH7309, region in one branch after a region outside every branch): **A** — maintainer, summarized: with the symbol defined it is reported without a fix; with it undefined nothing is reported (the analyzer judges the active configuration).
 - Q2 (#1334, RH7401–RH7412, partial member with only some parts in a matching region): **A** — reported once (implementing part in the example); for RH7405–RH7408 no part may lie in an override region.
 - Q3 (#1337, RH7105/RH7106, conditional directive between the last modifier and the type, also when it selects the type): **B** — stays reported, no fix (unchanged; SHARED-MODORDER-003 keeps its clause). Maintainer's reasoning, summarized: the analyzer judges the code as the currently active defines leave it; no fix is offered.
 - Q4 (#1337, RH5111, conditional directive inside the value): **A** — reported, no fix (unchanged).
@@ -63,12 +63,12 @@ None beyond the triage comments above, which are the maintainer's (account) re-t
 
 From 01-spec-author.md: Q1 (#1264 RH7309 regions in #if/#else branches), Q2 (#1334 partial member with only some parts in place; RH7405–RH7408 reading), Q3 (#1337 SHARED-MODORDER-003 directive between last modifier and type), Q4 (#1337 RH5111 directive inside the value).
 
-## Batch 1 asked
+## Batch 1
 
-Q1 (+Q1b), Q2, Q3 (+second input), Q4 posted to the maintainer; waiting.
+Answered in full (see Maintainer answers).
 
 ## Worklist / next step
 
 - Done: claim (5f66bcd), draft PR #1734, prepare.sh green, spec author 187b246 (lane check: confirmed).
 - Skeptic 790f9fc done.
-- Next: wait for batch-1 answers; then spec author amendment (decisions 4, 8, 9 + answers), lane check, then test implementer.
+- Next: spec author amendment (decisions 4, 8, 9 + answers), lane check, then test implementer.
