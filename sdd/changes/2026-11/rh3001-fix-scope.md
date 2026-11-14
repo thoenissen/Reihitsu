@@ -8,7 +8,7 @@
 
 ## What
 
-- RH3001-004 no longer limits the fix to a negation that covers less text than the syntax node around it. A negation that is a whole argument (of an invocation, an object creation, an element access, a constructor initializer, or a tuple), a whole attribute argument, or a whole collection-expression element gets the fix like any other.
+- RH3001-004 no longer limits the fix to a negation that covers less text than the syntax node around it. A negation that is a whole argument of any argument list (such as that of an invocation, an object creation with or without its type, an element access or a conditional element access, an index in an object initializer, a constructor initializer, a primary constructor's base type, or a tuple), a whole attribute argument, or a whole collection-expression element gets the fix like any other.
 - RH3001-004 states that the fix puts the comparison in parentheses only where it binds differently from the negation, and in no other position.
 - RH3001-008 is added: a negation that is the whole expression of a constant pattern is reported without a fix.
 
@@ -54,7 +54,7 @@ class C
 }
 ```
 
-The same for `(!x, y)`, `new C(!y)`, `this[!y]`, and `[A(!true)]`.
+The same for `N(!x, y)`, `(!x, y)`, `new C(!y)`, `new(!y)`, `this[!y]`, `o?[!y]`, `new E { [!x] = true }`, `class D(bool x) : Base(!x)`, and `[A(!true)]`: each becomes `… x == false …` (or `y == false`, `true == false`) in place of the negation, without parentheses.
 
 The fix writes no parentheses where none are needed:
 
@@ -100,7 +100,25 @@ class C
 
 The same behind `>>>=`, in a named attribute argument (`[A(P = !true)]` becomes `[A(P = true == false)]`, also in the `:` form), behind `goto case` (`goto case true == false;`), and in `select`, `group`, and `orderby` (`orderby w == false descending`).
 
-Constant patterns (`x is !true`, a switch-expression arm `!true => 1`) stay reported without a fix: no visible change.
+Pending — asked as an output question, not yet answered: a negation that is the whole key of an `orderby` clause without a direction.
+
+```csharp
+using System.Linq;
+
+class C
+{
+    void Run(bool[] v)
+    {
+        var q = from a in v
+                orderby !a
+                select a;
+    }
+}
+```
+
+Before: reported, no code fix offered. After, as RH3001-004 now reads: `orderby a == false`. The alternative keeps it without a fix, and RH3001-004 then names the position as an exception.
+
+Constant patterns (`x is !true`, a switch-expression arm `!true => 1`, `case !true when x:`) stay reported without a fix: no visible change.
 
 ## Decisions
 

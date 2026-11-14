@@ -123,3 +123,38 @@ _None._
   - `/home/user/Reihitsu/sdd/specs/requirement-ids.txt`
   - `/home/user/Reihitsu/sdd/changes/2026-11/rh3001-fix-scope.md`
 - Lane: the run claimed bug fix. Because of #1285's change doc it has to widen to behavior change; see the #1285 *Lane* section. That decision belongs to the lead.
+
+## Amendment 1
+
+Commit derived from: fb01fda. Inputs: `02-skeptic.md` (5657e17), and decisions 6 and 11 in `00-lead.md`.
+
+### thoenissen/Reihitsu#1283
+
+- **Correction to the tagging note above.** The issue's input gets the tags SHARED-FIX-006 and RH3006-003. The stray LF ends the line of `||`. That line break is trivia of the token in front of the operand, so it lies outside the replaced span. SHARED-FIX-008's scope sentence excludes such a line break, and SHARED-FIX-006 governs it. SHARED-FIX-008 is tagged only on the member with a blank line in front of the comment (`a ||` ⏎ ⏎ `/* x */ b && c`), where a line break inside the operand's leading trivia changes. No spec text changes.
+
+### thoenissen/Reihitsu#1284
+
+- **SHARED-BODY-003 changed** as the skeptic suggested; I checked it and agree.
+  - "The rest of the member" now reads as everything in front of `=>`. The list includes the constructor initializer and the constraint clauses.
+  - The whitespace that goes with the arrow is now the whitespace "between the last token in front of `=>` and `=>`".
+  - The output does not change, because the edited line ends without whitespace under either reading. With the new wording, the RH3203 initializer case (`:  base( value )` stays as written) reads as decided.
+
+### thoenissen/Reihitsu#1285
+
+- **RH3001-004 changed.** The position list now says "a whole argument of any argument list, such as …". It names invocation, `new C(!y)`, `new(!y)`, `this[!y]`, `o?[!y]`, `new E { [!x] = true }`, the constructor initializer, a primary constructor's base type (`class D(bool x) : Base(!x)`), a tuple, and `N(!x, y)`. Attribute arguments and collection elements are still listed.
+- **RH3001-008 prose changed.** It states both sides of the `case` boundary, which is today's output:
+  - `case !true when x:` is a constant pattern and gets no fix;
+  - `case !true:` is an expression and gets the fix (`case true == false:`).
+
+  The lead did not request this. The skeptic recommended it so that a test pins the boundary.
+- **Change doc changed.**
+  - *What* and *Visible output changes* name the five extra argument positions.
+  - `orderby !a` without a direction is added under *Visible output changes* as **pending**. It is an open output question: before, no fix is offered; after, as RH3001-004 now reads, it becomes `orderby a == false`.
+  - `case !true when x:` is added to the constant patterns that do not change.
+- The `orderby` position is not written into RH3001-004 as an exception or as a named position. As RH3001-004 reads, "wherever it stands" covers it. If the maintainer answers B, RH3001-004 has to name it as an exception.
+
+### Examples for the tests (additions)
+
+- RH3001-004: `new(!y)`, `o?[!y]`, `new E { [!x] = true }`, `class D(bool x) : Base(!x)`, and `N(!x, y)`.
+- RH3001-008: `case !true when x:` gets no fix. `case !true:` becomes `case true == false:`.
+- SHARED-BODY-003: RH3203 `public C( int value ) :  base( value ) => _value = value;` keeps `:  base( value )`. A method with a constraint clause keeps its clause as written.
