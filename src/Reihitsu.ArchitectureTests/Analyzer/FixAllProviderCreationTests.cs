@@ -54,9 +54,9 @@ public class FixAllProviderCreationTests
     {
         var callingTypes = GetTypesCallingFixAllProviderCreate();
 
-        CollectionAssert.AreEquivalent(new[] { DocumentOrderFixAllProviderTypeName, ProviderBaseTypeName },
-                                       callingTypes,
-                                       $"Only the code-fix provider base and the document-order Fix All provider may call FixAllProvider.Create; a provider creates its Fix All through CreateFixAllProvider. Calling types: {string.Join(", ", callingTypes)}");
+        Assert.AreSequenceEqual(new[] { ProviderBaseTypeName, DocumentOrderFixAllProviderTypeName },
+                                callingTypes,
+                                $"Only the code-fix provider base and the document-order Fix All provider may call FixAllProvider.Create; a provider creates its Fix All through CreateFixAllProvider. Calling types: {string.Join(", ", callingTypes)}");
     }
 
     #endregion // Tests
