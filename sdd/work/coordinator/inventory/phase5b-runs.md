@@ -82,3 +82,12 @@ Maintainer 2026-11-13: release 1.2.1 and 1.2.2 first; deferred minor bugs #1140 
 | 9 | Q7 | 1.2.2 | `/squad #1642 #1635` | |
 | 10 | Q1 | 1.2.2 | `/squad #1147 #1152 #1386 #1387 #1594 #1655` | |
 | 11 | Q5 | 1.2.2 | `/squad #1071 #1268 #1289 #974` | merged #1692 (Refs #1289, remainder stays open) |
+
+## Parallel batches (proposed 2026-11-14; maintainer may run the runs of one batch in parallel)
+
+| Batch | Runs | Why parallel-safe |
+|---|---|---|
+| B1 | P11 + Q6 (+ #1708 if triage5 1A) | P11 = fix offering/convergence infrastructure; Q6 = analyzer report scope (spacing/layout singletons, RH5202, RH4105 guard) |
+| B2 | Q7 + Q2 | Q7 = formatter singletons; Q2 = organization/region analyzers' report scope; #1592 needs P11 merged (B1) |
+| B3 | Q1 | needs P11; #1655 touches what the formatter keeps (after Q7) |
+| any | Q3 | only waits for PR #1669; joins whichever batch is running when #1669 is merged or closed |
