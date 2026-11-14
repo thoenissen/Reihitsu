@@ -29,4 +29,5 @@
 ## Worklist / next step
 
 - Claimed (570f2ad, draft PR #1735), SDK prepared.
-- Next: spec author (clarification), then skeptic.
+- Spec author done (8d25ac5, 01-spec-author.md): clarification only, no change doc, no output questions; lane check confirmed bug-fix. Open: its internal choice that by-value comparison binds the formatter (formatter output changes for `@System.IO` etc.) — skeptic asked for a verdict; lead decides after 02, or asks as an output question if nothing unchanged demands it.
+- Next: skeptic (running), then output-question batch (if any), then test implementer.
