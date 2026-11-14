@@ -98,4 +98,5 @@ Batch 2 (questions 8–10, 2026-11-14):
 - 06 test implementer done (53f6660 tests, 3493e63 handover): failing today — analyzer 67, formatter 65, cli 8, playground 3.
 - 07 implementer done (3c1336e code, 0723292 handover): all tests pass except 2 disputed (setup).
 - 08 test implementer done (0b5dfd9): both disputed tests fixed (setup), fail on 53f6660 for the right reason.
-- Next: cleaner (09), then spec checker (10), then pre-audit steps and auditor. After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
+- 09 cleaner clean (dfff379).
+- Next: spec checker (10), then pre-audit steps and auditor. After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
