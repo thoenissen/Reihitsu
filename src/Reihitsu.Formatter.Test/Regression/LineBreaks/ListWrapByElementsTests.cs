@@ -1218,5 +1218,399 @@ public class ListWrapByElementsTests : FormatterTestsBase
         AssertRuleResult(input);
     }
 
+    /// <summary>
+    /// Verifies the specification example: a first element that a comment or a directive keeps off the line of the opening
+    /// parenthesis stays on its own line, and the list becomes one element per line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-012")]
+    public void SpecificationExampleHeldFirstElementMakesListOneElementPerLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void N( // c
+                                     int a, int b)
+                                 {
+                                 }
+
+                                 void M()
+                                 {
+                                     Foo( // c
+                                         1, 2);
+                                     Foo(
+                             #pragma warning disable CS0168
+                                         1, 2);
+                             #pragma warning restore CS0168
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void N( // c
+                                           int a,
+                                           int b)
+                                    {
+                                    }
+
+                                    void M()
+                                    {
+                                        Foo( // c
+                                            1,
+                                            2);
+                                        Foo(
+                                #pragma warning disable CS0168
+                                            1,
+                                            2);
+                                #pragma warning restore CS0168
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a first argument that a line comment behind the opening parenthesis keeps off that line starts its own
+    /// line, so the argument list is multi-line with one argument per line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-012")]
+    public void LineCommentBehindOpeningParenthesisMakesArgumentListOneArgumentPerLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     Foo( // c
+                                         1, 2);
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Foo( // c
+                                            1,
+                                            2);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a first argument behind a block comment on the line below the opening parenthesis starts its own line,
+    /// so the argument list is multi-line with one argument per line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-012")]
+    public void BlockCommentInFrontOfFirstArgumentOnLineBelowOpeningParenthesisMakesArgumentListOneArgumentPerLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     Foo(
+                                         /* c */ 1, 2);
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Foo(
+                                            /* c */ 1,
+                                            2);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a first argument that a directive keeps off the line of the opening parenthesis starts its own line,
+    /// so the argument list is multi-line with one argument per line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-012")]
+    public void DirectiveInFrontOfFirstArgumentMakesArgumentListOneArgumentPerLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     Foo(
+                             #pragma warning disable CS0168
+                                         1, 2);
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Foo(
+                                #pragma warning disable CS0168
+                                            1,
+                                            2);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a first argument that disabled text keeps off the line of the opening parenthesis starts its own line,
+    /// so the argument list is multi-line with one argument per line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-012")]
+    public void DisabledTextInFrontOfFirstArgumentMakesArgumentListOneArgumentPerLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     Foo(
+                             #if X
+                                         0,
+                             #endif
+                                         1, 2);
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Foo(
+                                #if X
+                                            0,
+                                #endif
+                                            1,
+                                            2);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a first argument of an object creation that a line comment behind the opening parenthesis keeps off
+    /// that line starts its own line, so the argument list is multi-line with one argument per line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-012")]
+    public void LineCommentBehindObjectCreationOpeningParenthesisMakesArgumentListOneArgumentPerLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var d = new D( // c
+                                         1, 2);
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var d = new D( // c
+                                                      1,
+                                                      2);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a first attribute argument that a line comment behind the opening parenthesis keeps off that line
+    /// starts its own line, so the attribute argument list is multi-line with one argument per line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-012")]
+    public void LineCommentBehindAttributeOpeningParenthesisMakesAttributeArgumentListOneArgumentPerLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 [Attr( // c
+                                     1, 2)]
+                                 void M()
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    [Attr( // c
+                                          1,
+                                          2)]
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a first parameter that a line comment behind the opening parenthesis keeps off that line starts its
+    /// own line, so the parameter list is multi-line with one parameter per line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-012")]
+    public void LineCommentBehindOpeningParenthesisMakesParameterListOneParameterPerLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M( // c
+                                     int a, int b)
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M( // c
+                                           int a,
+                                           int b)
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a first lambda parameter that a line comment behind the opening parenthesis keeps off that line starts
+    /// its own line, so the lambda parameter list is multi-line with one parameter per line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-012")]
+    public void LineCommentBehindOpeningParenthesisMakesLambdaParameterListOneParameterPerLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     System.Func<int, int, int> f = ( // c
+                                         int a, int b) => a + b;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        System.Func<int, int, int> f = ( // c
+                                                                        int a,
+                                                                        int b) => a + b;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a first indexer parameter that a line comment behind the opening bracket keeps off that line starts its
+    /// own line, so the indexer parameter list is multi-line with one parameter per line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-012")]
+    public void LineCommentBehindOpeningBracketMakesIndexerParameterListOneParameterPerLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int this[ // c
+                                     int a, int b] => a;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int this[ // c
+                                             int a,
+                                             int b] => a;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line comment behind the opening parenthesis that holds no line break of the gap leaves the first
+    /// argument on that line, so the argument list stays single-line and as written
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-012")]
+    public void MultiLineCommentBehindOpeningParenthesisLeavesArgumentListSingleLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     Foo(/* a
+                                         b */1, 2);
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
     #endregion // Tests
 }
