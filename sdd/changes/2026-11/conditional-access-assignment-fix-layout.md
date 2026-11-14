@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | RH5111-006 (added) |
+| Affected requirements | RH5111-006 (added), FMT-PIPE-024 (changed: the conditional-access-branch fact removed) |
 | Depends on | [Every node-level root is detached](../2026-10/node-root-detached.md) |
 
 ## What
@@ -168,9 +168,13 @@ The maintainer chose neither to withhold the fix for this shape (D) nor to decla
 
 The requirement is RH5111-006 rather than an example under SHARED-FIX-007 or a requirement of `shared/fluent-chain-layout.md`: only the RH5111 fix formats an assignment that is the branch of a conditional access with a wrapped link. The chain fixes (RH5112, RH5201) format the outermost chain node, whose layout SHARED-CHAIN-008 already decides, and the RH6023 fix formats nothing. RH5111-006 references SHARED-CHAIN-003 and SHARED-CHAIN-007 for the layout instead of restating it.
 
+### The conditional-access-branch fact goes
+
+`FormatNodeInDocumentAsync` gave the phases a fact about whether its root is the part of a conditional access behind its `?` (FMT-PIPE-024, *Conditional-access branch*), so that an assignment passed as the root could continue the chain of its left side ([Every node-level root is detached](../2026-10/node-root-detached.md), audit stage). Its callers were the RH5111 and RH6023 fixes. The RH6023 fix no longer formats (SHARED-OPSPACE-004), and RH5111-006 formats such an assignment through `FormatNodeInDocumentWithContextAsync` with the chain as context, which supplies no chain facts. No caller of `FormatNodeInDocumentAsync` passes such an assignment any more, so the fact is removed from FMT-PIPE-024, and the requirement states that it does not decide that root (`AGENTS.md`, *Supported inputs*). The chain-continuation fact stays: the RH5301 fix formats an object creation that can be the expression of a member access. No output changes.
+
 ## Alternatives considered
 
 - **Whole-document formatting adopts the fix's layout** (A) — rejected: it changes the formatter's output for every assignment inside a conditional access with a wrapped member (`.C` in column 10 instead of 9, `a?[0]⏎  .C = 5;` kept wrapped), makes an assigned link lay out differently from a called link of the same chain (`a?.B⏎ .N();`), and needs RH5201 and RH5112 to stop reporting the new output, which they report today.
 - **Leave both outputs as they are** (C) — rejected: the RH5111 fix keeps producing code that RH5201 or RH5112 reports, against SHARED-FIX-007, also from input those rules accept (visible output change 2), and the disagreement would need a written exception.
 - **Withhold the RH5111 fix for this shape** (D) — rejected by the maintainer: the diagnostic would stay without a fix on a C# 14 null-conditional assignment with a wrapped target, where B gives a fix whose output nothing reports.
-- **Declare the shape unsupported** (E) — rejected by the maintainer: the CLI would refuse whole files that whole-document formatting handles correctly today without a special case, to delete a node-level fact.
+- **Declare the shape unsupported** (E) — rejected by the maintainer: the CLI would refuse whole files that whole-document formatting handles correctly today without a special case, to delete a node-level fact, which B removes as well (*The conditional-access-branch fact goes*).
