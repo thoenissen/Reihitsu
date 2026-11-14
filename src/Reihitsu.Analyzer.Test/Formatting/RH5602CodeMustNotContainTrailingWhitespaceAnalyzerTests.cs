@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -304,17 +303,15 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : BatchCode
                                     string u = @"a";{|RH5602:·|}
                                     string v = $@"{1 +{|RH5602:··|}
                                         2}";
-                                    string w = @"a··
+                                    string p = @"a··
                                 b";{|RH5602:··|}
-                                    string x = """
+                                    string q = """
                                         a
                                         """;{|RH5602:·|}
                                 }
                                 """";
 
-        // The example declares the fields w and x twice; it is kept as the requirement states it, so compiler errors are
-        // not verified
-        await Verify(ExpandWhitespaceMarkers(testData), static test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+        await Verify(ExpandWhitespaceMarkers(testData));
     }
 
     /// <summary>
