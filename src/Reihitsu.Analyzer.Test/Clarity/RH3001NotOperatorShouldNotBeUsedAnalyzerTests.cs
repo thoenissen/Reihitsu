@@ -2391,6 +2391,647 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
                      });
     }
 
+    /// <summary>
+    /// Verifies the specified example: negations written directly against a keyword in front of the <c>!</c> or behind
+    /// the operand are reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-009")]
+    public async Task NegationsTouchingAWordAreReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    bool M(bool a, bool b, bool[] v)
+                                    {
+                                        var q = from w in v
+                                                where {|RH3001:!|}(w)select w;
+                                        var r = from w in v
+                                                where{|RH3001:!|}w
+                                                select{|RH3001:!|}w;
+
+                                        if (b) return{|RH3001:!|}a;
+                                        return a;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the specified example: with a space or a comment between the negation and the word, the fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-009")]
+    public async Task NegationsSeparatedFromAWordBySpaceOrCommentAreFixed()
+    {
+        const string testCode = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    bool M(bool a, bool b, bool[] v)
+                                    {
+                                        var q = from w in v
+                                                where {|RH3001:!|}(w) select w;
+
+                                        if (b) return {|RH3001:!|}a;
+                                        if (a) return/* c */{|RH3001:!|}b;
+                                        return a;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     bool M(bool a, bool b, bool[] v)
+                                     {
+                                         var q = from w in v
+                                                 where (w) == false select w;
+
+                                         if (b) return a == false;
+                                         if (a) return/* c */b == false;
+                                         return a;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a negation written directly behind <c>return</c> is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-009")]
+    public async Task NegationDirectlyBehindReturnIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool Run(bool a, bool b)
+                                    {
+                                        if (b) return{|RH3001:!|}a;
+                                        return a;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a negation written directly behind <c>yield return</c> is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-009")]
+    public async Task NegationDirectlyBehindYieldReturnIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    IEnumerable<bool> Run(bool a)
+                                    {
+                                        yield return{|RH3001:!|}a;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a negation written directly behind <c>case</c> in a case label without a <c>when</c> clause is reported
+    /// and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-009")]
+    public async Task NegationDirectlyBehindCaseIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int Run(bool x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case{|RH3001:!|}true:
+                                                return 1;
+                                            default:
+                                                return 2;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a negation written directly behind <c>goto case</c> is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-009")]
+    public async Task NegationDirectlyBehindGotoCaseIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int Run(bool x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case true:
+                                                goto case{|RH3001:!|}true;
+                                            case false:
+                                                return 1;
+                                        }
+
+                                        return 2;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a negation written directly behind the <c>when</c> of a switch-expression arm is reported and no code fix
+    /// is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-009")]
+    public async Task NegationDirectlyBehindWhenOfASwitchExpressionArmIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int Run(bool x, bool y)
+                                    {
+                                        return x switch
+                                        {
+                                            _ when{|RH3001:!|}y => 1,
+                                        };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a negation behind the <c>when</c> of a switch-expression arm, separated from it by a space, keeps its fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-009")]
+    public async Task NegationBehindWhenOfASwitchExpressionArmAndASpaceIsFixed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int Run(bool x, bool y)
+                                    {
+                                        return x switch
+                                        {
+                                            _ when {|RH3001:!|}y => 1,
+                                        };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int Run(bool x, bool y)
+                                     {
+                                         return x switch
+                                         {
+                                             _ when y == false => 1,
+                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a negation written directly behind <c>where</c> is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-009")]
+    public async Task NegationDirectlyBehindWhereIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    void Run(bool[] v)
+                                    {
+                                        var q = from w in v
+                                                where{|RH3001:!|}w
+                                                select w;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a negation written directly behind <c>select</c> is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-009")]
+    public async Task NegationDirectlyBehindSelectIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    void Run(bool[] v)
+                                    {
+                                        var q = from w in v
+                                                select{|RH3001:!|}w;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a negation written directly behind <c>orderby</c> is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-009")]
+    public async Task NegationDirectlyBehindOrderbyIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    void Run(bool[] v)
+                                    {
+                                        var q = from w in v
+                                                orderby{|RH3001:!|}w
+                                                select w;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies negations written directly behind <c>group</c> and <c>by</c> are reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-009")]
+    public async Task NegationsDirectlyBehindGroupAndByAreReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    void Run(bool[] v)
+                                    {
+                                        var q = from w in v
+                                                group{|RH3001:!|}w by{|RH3001:!|}w;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies negations written directly behind <c>on</c> and <c>equals</c> of a join clause are reported and no code
+    /// fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-009")]
+    public async Task NegationsDirectlyBehindOnAndEqualsAreReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    void Run(bool[] v)
+                                    {
+                                        var q = from x in v
+                                                join y in v on{|RH3001:!|}x equals{|RH3001:!|}y
+                                                select x;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a negation whose last token is written directly against <c>select</c> behind it is reported and no code
+    /// fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-009")]
+    public async Task NegationWhoseOperandTouchesSelectBehindItIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    void Run(bool[] v)
+                                    {
+                                        var q = from w in v
+                                                where {|RH3001:!|}(w)select w;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a negation whose last token is written directly against the keyword <c>is</c> behind it, outside a
+    /// query, is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-009")]
+    public async Task NegationWhoseOperandTouchesIsBehindItIsReportedWithoutACodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool Run(bool a)
+                                    {
+                                        return {|RH3001:!|}(a)is true;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a negation whose last token is separated from <c>select</c> behind it by a comment keeps its fix, and
+    /// the comment stays where it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-009")]
+    public async Task NegationWhoseOperandIsSeparatedFromSelectByACommentIsFixed()
+    {
+        const string testCode = """
+                                using System.Linq;
+
+                                class C
+                                {
+                                    void Run(bool[] v)
+                                    {
+                                        var q = from w in v
+                                                where {|RH3001:!|}(w)/* c */select w;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     void Run(bool[] v)
+                                     {
+                                         var q = from w in v
+                                                 where (w) == false/* c */select w;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a negation behind <c>return</c> and a space keeps its fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-009")]
+    public async Task NegationBehindReturnAndASpaceIsFixed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool Run(bool a, bool b)
+                                    {
+                                        if (b) return {|RH3001:!|}a;
+                                        return a;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool Run(bool a, bool b)
+                                     {
+                                         if (b) return a == false;
+                                         return a;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a negation separated from <c>return</c> by a comment and no whitespace keeps its fix, and the comment
+    /// stays where it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-009")]
+    public async Task NegationSeparatedFromReturnByACommentIsFixed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool Run(bool a, bool b)
+                                    {
+                                        if (b) return/* c */{|RH3001:!|}a;
+                                        return a;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool Run(bool a, bool b)
+                                     {
+                                         if (b) return/* c */a == false;
+                                         return a;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies a negation on the line below <c>return</c> keeps its fix, and the line break stays, under both line
+    /// endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH3001-009")]
+    public async Task NegationOnTheLineBelowReturnIsFixed(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool Run(bool a)
+                                    {
+                                        return
+                                            {|RH3001:!|}a;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool Run(bool a)
+                                     {
+                                         return
+                                             a == false;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies a negation behind punctuation with no whitespace between them keeps its fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-009")]
+    public async Task NegationDirectlyBehindAnOpeningParenthesisIsFixed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool b)
+                                    {
+                                    }
+
+                                    void Run(bool a)
+                                    {
+                                        if({|RH3001:!|}a)
+                                        {
+                                            M({|RH3001:!|}a);
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool b)
+                                     {
+                                     }
+
+                                     void Run(bool a)
+                                     {
+                                         if(a == false)
+                                         {
+                                             M(a == false);
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies Fix All leaves a negation that touches a word as written and reported, and fixes the other negations of
+    /// the document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3001-009")]
+    public async Task FixAllLeavesANegationTouchingAWordReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool Run(bool a, bool b)
+                                    {
+                                        if (b) return{|RH3001:!|}a;
+                                        if (a) return {|RH3001:!|}b;
+                                        return {|RH3001:!|}a && b;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool Run(bool a, bool b)
+                                     {
+                                         if (b) return{|RH3001:!|}a;
+                                         if (a) return b == false;
+                                         return a == false && b;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
