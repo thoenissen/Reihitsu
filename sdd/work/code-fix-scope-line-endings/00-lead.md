@@ -52,4 +52,5 @@
 - Escalation 9 answered A.
 - Cleaner clean (356af9d).
 - Spec checker (06, 7151d2c): 1 finding — `ExpressionBodyCodeFixUtilities` missing as code owner in shared/expression-body-conversion.md and sdd/specs/README.md. Repair round 1 (same requirement area, PR-introduced) → spec author.
-- Next step: spec author repair (07-spec-author.md), then spec checker again, then auditor.
+- Spec author repair done (07, 3dab93e).
+- Next step: spec checker again (08-spec-checker.md), then section 6 and auditor.
