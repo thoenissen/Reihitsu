@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-BLANK-020 (changed: title, token list, and why) |
 | Depends on | [The blank-line phase alone decides blank lines next to braces and comments](blank-line-sole-owner.md) |

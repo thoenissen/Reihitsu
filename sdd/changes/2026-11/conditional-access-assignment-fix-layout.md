@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | RH5111-006 (added) |
 | Depends on | [Every node-level root is detached](../2026-10/node-root-detached.md) |
