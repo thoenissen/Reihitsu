@@ -51,4 +51,5 @@
 - Implementer done (04-implementer.md, d1ab24c): all 62 red tests green. Adds new internal type `ExpressionBodyCodeFixUtilities` (~87 code lines) → escalation 9 asked.
 - Escalation 9 answered A.
 - Cleaner clean (356af9d).
-- Next step: spec checker (06-spec-checker.md).
+- Spec checker (06, 7151d2c): 1 finding — `ExpressionBodyCodeFixUtilities` missing as code owner in shared/expression-body-conversion.md and sdd/specs/README.md. Repair round 1 (same requirement area, PR-introduced) → spec author.
+- Next step: spec author repair (07-spec-author.md), then spec checker again, then auditor.
