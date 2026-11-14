@@ -33,9 +33,14 @@
 | 11 | Skeptic | SHARED-BODY-003 wording ("last token in front of `=>`", name initializer and constraint clauses), RH3001-004 / change doc to name the five extra argument positions, #1283 example tags | Route to the spec author (continued) as one amendment | Small corrections in the area it wrote | Five positions are plain arguments, covered by #1245 Q2 | — |
 | 12 | Skeptic | #1284 goal "reword the SHARED-FIX-003 example" | Already met; drop | Example already says "the node the fix replaces" | — | — |
 | 13 | Test implementer | RH3202 on a tab-indented member: keep the signature line's tabs and write the new block in spaces at the formatter's column, or copy the tabs into the block, or withhold | Keep the tabs on the untouched signature line, write the new block lines in spaces (tests as written) | SHARED-FIX-006 keeps the unedited line; SHARED-FIX-007 lays out the new lines as the formatter does, and the formatter writes no tab after its preparation phase, so copying tabs would contradict SHARED-FIX-007 and need machinery. Tab indentation violates RH5601, so it is a rare class; withholding is not needed because no special case is required | Only one reading is consistent with the unchanged SHARED-FIX-006/-007; rare class (AGENTS.md, Code-fix coverage) | 4d0bec2 |
+| 14 | Auditor | #1: RH3001 fix writes parentheses where `!` touches a keyword with no whitespace (`return!a` → `return(a == false)`), because `ParsesAsWritten` also fails on token merging | Refuse the class: withhold the RH3001 fix where `!` directly follows a keyword with no whitespace between them; record the gap in RH3001's spec | Rare input class (RH6001 reports `return!a`; query syntax is reported by RH3007); AGENTS.md Code-fix coverage. Declaring a shape unsupported is not an option: the formatter has no special case for it | Withholding a fix for a rare class puts nothing in question | — |
+| 15 | Auditor | #2 duplicated private `FormatNodeAsync` wrapper; #3 stale summary in `BlankLineCodeFixUtilities.cs:118-128` | Repair in round 2 (implementer) | PR-introduced | Internal | — |
+| 16 | Auditor | Hint: `x is (!true)` gets a fix | Drop | Rare input; matches main | — | — |
+| 17 | Lead | Repair round 2 worklist | Spec author (RH3001 withheld class) → test implementer (tests for the withheld class) → implementer (#1 guard, #2, #3) → cleaner → spec checker → auditor (repair only) | One worklist per verdict | — | — |
 
 ## Follow-up candidates
 
+- RH3203, RH3205–RH3207, RH3208 fixes do not give a member/statement that shares its line with another its own line (SHARED-FIX-007 Shared line); same on main — 09-auditor.md.
 - RH3005 code fix builds its binary operator with elastic trivia; same CRLF hazard as RH3006, untested — 04-implementer.md.
 - RH3003 code fix writes an LF into a CRLF document (`return a +` / `/* x */ "";`), same symptom as #1283 — 02-skeptic.md.
 
@@ -55,4 +60,5 @@
 - Spec author repair done (07, 3dab93e).
 - Spec checker 08 (a092887): consistent. main up to date; Release build green.
 - Audit base main: cf6d26b03fe1917f193d412c8540916f93a00dc4; audited SHA: a092887ce41998f97a81c4dd8291e5015ba28067 (head before this note).
-- Next step: auditor (09-auditor.md).
+- Auditor 09 (a2b86fa): findings — #1 high (RH3001 keyword-touching `!`), #2/#3 low.
+- Next step: repair round 2 (decision 17): spec author 10.
