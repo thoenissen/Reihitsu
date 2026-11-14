@@ -14,7 +14,7 @@
 
 ## Maintainer answers
 
-(none yet)
+- Q1 (Unicode escape in a using name; RH7201/RH7207/formatter): **A, generalized.** Every name is ordered and grouped by its technical (compiler-interpreted) value: `@` is dropped and Unicode escapes are decoded. `using \u0053ystem.IO;` is in the `System` group; RH7201 reports it in the input `Microsoft.Win32; \u0053ystem.IO; System`, and the formatter places it after `using System;` in the `System` group.
 
 ## Decisions taken
 
@@ -35,5 +35,5 @@
 - Claimed (570f2ad, draft PR #1735), SDK prepared.
 - Spec author done (8d25ac5, 01-spec-author.md): clarification only, no change doc, no output questions; lane check confirmed bug-fix. Open: its internal choice that by-value comparison binds the formatter (formatter output changes for `@System.IO` etc.) — skeptic asked for a verdict; lead decides after 02, or asks as an output question if nothing unchanged demands it.
 - Skeptic done (39ebd16, 02-skeptic.md): #1105 proceed + output question (Unicode escape); #1266 proceed; #1267 proceed narrower.
-- Output question 1 (Unicode escape in a using name) asked of the maintainer — WAITING.
-- Next after answer: spec author amendment (decision 5 + answer to Q1), then test implementer.
+- Output question 1 answered (A, generalized: technical value, `@` dropped, escapes decoded).
+- Next: spec author amendment (decision 5 + Q1 answer) — running; then test implementer.
