@@ -14,7 +14,8 @@ namespace Reihitsu.ArchitectureTests.Analyzer;
 
 /// <summary>
 /// The code-fix provider base owns whether a document lets a fix be offered, and every Fix All path asks it: a Fix All that
-/// applies its fixes without registering them is created through the base's <c>CreateFixAllProvider</c>, and the document-order
+/// applies its fixes without registering them is created through the base's <c>CreateFixAllProvider</c> or, for the casing Fix All, asks the base's
+/// <c>HoldsHidingCarrierAsync</c> for each document it changes, and the document-order
 /// Fix All re-registers each fix through the base. No other code-fix type creates a Fix All provider from a delegate, which
 /// would skip the base's decision
 /// </summary>

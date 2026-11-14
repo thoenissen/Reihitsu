@@ -15,7 +15,8 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// <summary>
 /// The base of every code-fix provider and the one owner of whether a document lets a fix be offered at all: it decides it
 /// before any fix registers, and a Fix All that does not register its fixes asks it for each document through
-/// <see cref="CreateFixAllProvider"/>. No fix is offered in a document that holds code another build configuration hides
+/// <see cref="CreateFixAllProvider"/>, or, for the casing Fix All, which changes several documents per fix, through
+/// <c>HoldsHidingCarrierAsync</c> for each changed document. No fix is offered in a document that holds code another build configuration hides
 /// (SHARED-FIX-012), and no fix whose result the formatter lays out is offered in a document the formatter declines because of
 /// a syntax error (SHARED-FIX-011). Both answers are the formatter's own
 /// </summary>
