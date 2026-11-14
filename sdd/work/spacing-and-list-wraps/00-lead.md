@@ -41,6 +41,7 @@
 | 15 | Test impl. 04 | Architecture test `RepositoryFilesReferenceNoSquadNote` fails on `03-skeptic.md` line 24 | Spec author rewords that line (no squad-note path) | Keeps the validator green before `sdd/work/` is deleted | Internal text | – |
 | 16 | Implementer 05 | Directive-held comma tests parse without `X`, so `, 3` is disabled text and the list is single-line | The tests are wrong: they pass the preprocessor symbol `X`; the FMT-BREAK-012 example and change doc entry 8 state that the branch is active (X defined). Without X, the list stays unchanged by the unchanged elements-decide definition | Reading another build is ruled out (*Special cases do not grow the source*) | Decided by the spec's own definition; the asserted output only adds the build condition | – |
 | 17 | Implementer 05 | `IndexerLeadingCommaAfterSharedLineIsAlignedWithTheFirstParameter` pins the old output | Update to `int first,⏎int second // keep⏎, int third` (change doc entry 7 `O`) | Decided by the changed FMT-BREAK-012 and entry 7 | Covered by entry 7 / decision 10 | – |
+| 18 | Auditor 11 | First element held off the opening line by a comment/directive/disabled text: spec says single-line, code splits (as on `main`) | Keep the code's output (= `main`); repair the spec: such a first element starts its own line, so the list is one element per line; add one test; name the case in the `EnsureSeparatorsHaveEndOfLine` summary. Not an output question | Rare class (RH5035/RH5038 report the comment); following the text would break SHARED-DIAG-010 (RH5102 reports that shape with no fix) | Output unchanged from `main`; rare-class refusal of the join | – |
 | 5 | Skeptic | Refuse leading-comma argument lists instead? | No | Common code; maintainer triage keeps it a bug for 1.2.2; declaring unsupported deletes nothing | – | – |
 
 ## Follow-up candidates
@@ -49,6 +50,7 @@
 - thoenissen/Reihitsu#956: this run moves leading commas behind the previous element in multi-line argument and attribute argument lists (maintainer answer 1C); extend #956 so it reflects what remains (lead).
 - RH5109 reports `void N(⏎int a, int b)` and its fix splits it, while FMT-BREAK-012 joins it; RH5109-003's example contradicts FMT-BREAK-012, which it cites (02-spec-author, 03-skeptic).
 - RH5107's fix and the formatter disagree on a comment behind a leading comma in a parameter list: `void P(int a⏎, /* c */ int b)` → formatter `int a, /* c */⏎int b`, fix `int a,⏎/* c */ int b` (03-skeptic).
+- Pre-existing (same on `main`): object initializer trailing comma on its own line, `new D(1, 2) { X = 3⏎, };` → `X = 3⏎        ,⏎};`, comma alone at the statement's column (11-auditor).
 - New-rule candidate: argument-list counterpart of RH5107 (leading comma); check #956 first (03-skeptic).
 
 ## Worklist / next step
@@ -64,4 +66,5 @@
 - Done: cleaner (07, 48ccd41): clean.
 - Done: spec checker (08, 99fa02d): two change-doc findings (status Draft; stale "code not written yet").
 - Repair round 1 done: spec author (09), spec checker (10): consistent.
-- Next: auditor (11).
+- Audited SHA: 8943764 (main 8a26419). Auditor 11: #1642 pass; #1635 finding 1 (decision 18).
+- Repair round 2: spec author (12) + test implementer (13) in parallel → cleaner (14, summary comment) → spec checker → auditor on repair → validator.
