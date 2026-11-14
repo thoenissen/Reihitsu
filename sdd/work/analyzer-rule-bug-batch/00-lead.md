@@ -38,12 +38,13 @@ Bug fix (all five). Roles: spec author (clarifications: RH5601-001/RH5602-001 al
 | 9 | Skeptic | #1079: issue says RH5603 reports `}⏎···` again; it is RH5602 | Implement the defect that exists: the fix removes the whole whitespace-only tail; PR states the difference | AGENTS.md, Issue intake | Fix result is decided by the maintainer's answer on #1079 | — |
 | 10 | Test implementer | RH5602-001 example does not compile; RH5404 spec misses SHARED-FIX-001 under Uses | Fresh spec author fixes both (04); test implementer then aligns the RH5602 test with the renamed example | Spec defects found by tests, internal | Spec text only | — |
 | 11 | Test implementer | Formatter output for `M(/** c */→"abc");` | Dropped, not a follow-up | A comment inside an argument list is a rare input class (RH5038 reports it) | — | — |
+| 12 | Implementer | #1708 test `VerifyUnnamedReferenceReceiverParameterIsNotReported` uses `extension(ref int)`, which does not compile (CS9305) | Test is wrong: fresh test implementer drops the `ref` case | Invalid C#; no compiling input reaches it | The asserted output (not reported) is internal to an input that does not compile | — |
 
 ## Follow-up candidates
 
 1. RH5603 reports a file that ends in a line break after a directive line or a `///` comment; the formatter keeps such files with or without that line break (FC-013). Carry an output question: A not reported (recommended), B the formatter removes the line break. Source: 02-skeptic.md, #1079.
-2. Formatter output for a document whose line breaks are all lone `\r` reportedly contains mixed line endings (confirmed by the test implementer: the RH5202 analyzer reports the formatter's output for such a document; recheck after the implementer whether it remains). Source: 02-skeptic.md, #1613.
+2. Formatter output for a document whose line breaks are all lone `\r` reportedly contains mixed line endings (confirmed by the test implementer: the RH5202 analyzer reports the formatter's output for such a document; after 7d29e2b RH5202 no longer reports it; whether the formatter's output still has mixed line endings is unverified). Source: 02-skeptic.md, #1613.
 
 ## Worklist / next step
 
-- Done: spec author (01, 04), skeptic (02), test implementer (03 e2d65ed, 05 4d94b88). Next: implementer.
+- Done: ... test implementer (05), implementer (06: 7d29e2b production, 3f5d74c). Next: test implementer drops the ref case (07), then cleaner.
