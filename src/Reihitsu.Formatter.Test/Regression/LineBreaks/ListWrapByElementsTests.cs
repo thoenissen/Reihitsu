@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
@@ -413,7 +414,9 @@ public class ListWrapByElementsTests : FormatterTestsBase
     /// <summary>
     /// Verifies the specification example: a comma that a comment or a directive keeps off the line of the element in
     /// front of it stays at the start of its line while the rest of the list is laid out around it, a comment behind a
-    /// moving comma goes with it, and a block comment in front of a comma on the element's own line keeps nothing
+    /// moving comma goes with it, a held comma written alone on its line stays alone on it, and a block comment in front
+    /// of a comma on the element's own line keeps nothing; the example's <c>#if X</c> branch is active, as the
+    /// specification states
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-012")]
@@ -426,6 +429,12 @@ public class ListWrapByElementsTests : FormatterTestsBase
                                  void N(int a
                                         , int b // keep
                                         , int c)
+                                 {
+                                 }
+
+                                 void P(int a // keep
+                                        ,
+                                        int b)
                                  {
                                  }
 
@@ -458,6 +467,12 @@ public class ListWrapByElementsTests : FormatterTestsBase
                                     {
                                     }
 
+                                    void P(int a // keep
+                                           ,
+                                           int b)
+                                    {
+                                    }
+
                                     void M()
                                     {
                                         Foo(1,
@@ -484,7 +499,7 @@ public class ListWrapByElementsTests : FormatterTestsBase
                                 """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input, expected, CSharpParseOptions.Default.WithPreprocessorSymbols("X"));
     }
 
     /// <summary>
@@ -828,7 +843,7 @@ public class ListWrapByElementsTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a comma a directive keeps at the start of its line stays there, while the arguments in front of the
-    /// directive are split
+    /// directive are split, in the build where the directive's branch is active
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-012")]
@@ -864,7 +879,34 @@ public class ListWrapByElementsTests : FormatterTestsBase
                                 """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input, expected, CSharpParseOptions.Default.WithPreprocessorSymbols("X"));
+    }
+
+    /// <summary>
+    /// Verifies that an argument list whose comma sits only in an inactive conditional branch is single-line, because its
+    /// parsed elements start on one line, and stays as written
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-012")]
+    public void ArgumentCommaInInactiveBranchLeavesSingleLineListUnchanged()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     Foo(1, 2
+                             #if X
+                                         , 3
+                             #endif
+                                         );
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
