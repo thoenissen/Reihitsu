@@ -45,4 +45,5 @@
 - Implementer done (af78e5d, 05-implementer.md): all handed-over tests pass; disputed pre-existing test `RH7203...Tests.MicrosoftUsingsAreFixedWithoutMovingSortedSystemGroup` (expects 1, gets 3).
 - Disputed test corrected (c7c7e64, 06-test-implementer.md); RH720 analyzer tests 232/232.
 - Cleaner clean (bf83a71, 07-cleaner.md).
-- Next: spec checker (running); its findings + RH7201 example item go to the spec author as one worklist.
+- Spec checker (2102800, 08-spec-checker.md): one finding = the RH7201 example markup item. Repair round 1 (spec only).
+- Next: fresh spec author for the RH7201 example (running), then spec checker, then auditor.
