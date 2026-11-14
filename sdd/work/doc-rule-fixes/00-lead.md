@@ -66,6 +66,7 @@ Batch 1 (before the test implementer):
 | 23 | Implementer 12 | RH8203 builds a throwaway compilation per documented partial part to expand `<include>` | Keep it only for parts whose own comment holds `<include>`; read the part's own comments from syntax otherwise | Reuses the compiler's include expansion without copying it; limits the cost to a rare shape | Same output | 683f6db |
 | 24 | Auditor 15, repair round 2 | #4 cref exemption of the RH8203 syntax branch and included cref on a partial part untested; #5 inline comment at RH8203 analyzer :83–85 wrong; #6 three places select a declaration's documentation comments without a shared helper | #4 test implementer; #6 implementer (one helper for the three places); #5 cleaner | PR-introduced, same requirement; none repeats an earlier class | No output change | pending |
 | 25 | Auditor 15 hint | `#region` between two documentation comments of a partial part: reported, a non-partial one not | Drop; no follow-up | Rare input class SHARED-DOC-004 leaves uncovered | Not covered by any spec; rare | — |
+| 26 | Before auditor 20 | main moved (e111918: RH3006/RH3001 fixes, actions bump); overlap only `requirement-ids.txt` (independent entries) | Merge; build + architecture tests; auditor 20 audits the repair plus the merge result | Overlap is independent ledger entries | Internal | merge commit |
 | 7 | Spec author | #1153: `extension(long)` not reported, from the recorded P8b answer | Accept | The maintainer's P8b answer names it ("An unnamed parameter is not reported") | Covered by a maintainer answer | b148498 |
 
 ## Follow-up candidates
@@ -104,6 +105,7 @@ Batch 1 (before the test implementer):
 - Done: 17 implementer (38bd3c6): shared helper.
 - Done: 18 cleaner (ba27404): clean; #5 fixed.
 - Done: 19 spec checker (f1286e4): consistent.
+- Merged origin/main e111918 (only overlap: requirement-ids.txt, auto-merged; decision 26).
 - Repair round 2 (of 3): test implementer 16 (done), implementer 17 (done), cleaner 18 (done) → implementer 17 → cleaner 18 → spec checker 19 → auditor 20 → validator.
 - Repair round 1 (of 3): test implementer 11 (done), implementer 12 (done) → implementer 12 → cleaner 13 → spec checker 14 → auditor 15 (repair only) → validator.
 - After answers: spec author repair (revert SHARED-DOC-002 for #1092; FMT-BLANK-010 wording; RH8201-001/RH8203-001 per Q4; Q1/Q2 answers; retag notes), then test implementer.
