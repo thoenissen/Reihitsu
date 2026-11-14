@@ -63,4 +63,5 @@
 - Done: spec author (8c01778), test implementer (06, 32a99e5); all focused and full formatter tests green.
 - Done: cleaner (07, 48ccd41): clean.
 - Done: spec checker (08, 99fa02d): two change-doc findings (status Draft; stale "code not written yet").
-- Repair round 1: spec author fixes both (status Accepted on lead acceptance) → spec checker (10) → auditor.
+- Repair round 1 done: spec author (09), spec checker (10): consistent.
+- Next: auditor (11).
