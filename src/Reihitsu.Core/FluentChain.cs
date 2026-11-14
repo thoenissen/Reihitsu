@@ -271,8 +271,9 @@ public sealed class FluentChain
 
     /// <summary>
     /// Determines whether a parent node continues the chain of its child. This is the one statement of the rule. When the
-    /// child is the root of its tree, which has no parent, the boundary says whether the root's parent continues its chain;
-    /// when the rule has to look above the parent and the parent is that root, the boundary answers as well
+    /// child is the root of its tree, which has no parent, the boundary says whether the root's parent continues its chain.
+    /// An assignment continues the chain of its left side only when it is the branch of a conditional access behind its
+    /// <c>?</c>; an assignment that is the root of its tree has no such branch above it
     /// </summary>
     /// <param name="parent">The parent node, or <see langword="null"/> when the child is the root of its tree</param>
     /// <param name="child">The child node</param>
@@ -293,24 +294,10 @@ public sealed class FluentChain
                    PostfixUnaryExpressionSyntax postfixUnary => postfixUnary.IsKind(SyntaxKind.SuppressNullableWarningExpression),
                    ConditionalAccessExpressionSyntax => true,
                    AssignmentExpressionSyntax assignment => assignment.Left == child
-                                                            && IsConditionalAccessBranch(assignment, boundary),
+                                                            && assignment.Parent is ConditionalAccessExpressionSyntax conditionalAccess
+                                                            && conditionalAccess.WhenNotNull == assignment,
                    _ => false
                };
-    }
-
-    /// <summary>
-    /// Determines whether a node is the branch that its conditional access evaluates when the expression is not null.
-    /// When the node is the root of its tree, the boundary answers
-    /// </summary>
-    /// <param name="node">The node</param>
-    /// <param name="boundary">The facts about the code above the root of the tree</param>
-    /// <returns><see langword="true"/> if the node is the <c>WhenNotNull</c> branch of a conditional access</returns>
-    internal static bool IsConditionalAccessBranch(SyntaxNode node, FluentChainBoundary boundary)
-    {
-        return node.Parent == null
-                   ? boundary.RootIsConditionalAccessBranch
-                   : node.Parent is ConditionalAccessExpressionSyntax conditionalAccess
-                     && conditionalAccess.WhenNotNull == node;
     }
 
     /// <summary>
