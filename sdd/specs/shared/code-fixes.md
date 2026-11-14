@@ -5,13 +5,13 @@
 | ID prefix | SHARED-FIX |
 | Status | Active |
 | Code owners | — |
-| Uses | FMT-PIPE-007, FMT-PIPE-017, FMT-PIPE-018, FMT-PIPE-030, FMT-PIPE-032, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, RH2001-009, RH2001-010, RH3004-006, RH3004-008, RH3004-009, RH5111-004, RH5303-005, RH7004-004, RH7004-007, RH7309-006, RH7309-007, SHARED-BRACE-002, SHARED-BRACE-003, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002, SHARED-ORDER-006, SHARED-ORDER-007, SHARED-ORDER-008, SHARED-ORDER-009, SHARED-ORDER-010 |
+| Uses | FMT-PIPE-005, FMT-PIPE-007, FMT-PIPE-017, FMT-PIPE-018, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-STRUCT-003, FMT-STRUCT-023, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, RH2001-009, RH2001-010, RH3004-006, RH3004-008, RH3004-009, RH5111-004, RH5303-005, RH7004-004, RH7004-007, RH7309-006, RH7309-007, SHARED-BRACE-002, SHARED-BRACE-003, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002, SHARED-ORDER-006, SHARED-ORDER-007, SHARED-ORDER-008, SHARED-ORDER-009, SHARED-ORDER-010 |
 
 This spec covers what holds for every code fix of an analyzer rule, so a rule spec states only what its own fix produces and when it is withheld. It applies to every rule whose header names a code fix, without being listed under `Uses`; SHARED-FIX-002 applies to the rules whose header says `Fix All`.
 
 ## Non-goals
 
-- What a fix produces and when it is withheld — each rule's own spec.
+- What a fix produces and when it is withheld — each rule's own spec, apart from the shared conditions of SHARED-FIX-003, SHARED-FIX-005, and SHARED-FIX-011.
 - Whether a fix leaves diagnostics of other rules in the code it changed. It is a known failure class (`squad/failure-classes.md`), not specified behavior; SHARED-FIX-004 only forbids a fix that undoes the fix of another rule.
 - How the formatter's node-level entry points keep the code around their target — FMT-PIPE-010.
 - The line ending a fix writes into a document that has no line break, or whose line breaks already mix line endings.
@@ -696,6 +696,28 @@ public class C
 ```
 
 is reported, and no code fix is offered, because the name the fix derives is `_1st` again.
+
+### SHARED-FIX-011 — A fix that formats through the formatter is offered only where the formatter formats
+
+A code fix whose result a formatter entry point lays out MUST NOT be offered where that entry point returns its input unchanged (FMT-PIPE-005), and the diagnostic is still reported (SHARED-FIX-003). A fix whose formatting the formatter declines for any other reason MUST NOT be offered either, and its rule's spec MUST name the formatter requirement that declines, such as FMT-STRUCT-003 or FMT-STRUCT-023, and ask the formatter instead of copying its condition (FMT-PIPE-031). Where neither holds and the formatter still changes nothing, the formatter or the diagnostic is wrong (SHARED-DIAG-010): the case is a defect, not an input to withhold.
+
+Why: A syntax error may make correct formatting impossible, so the formatter declines and the fix has no result it may offer: a fix that only formats would change nothing (SHARED-FIX-005), and one that edits first would leave its edit unformatted (SHARED-FIX-007). Any other no-op is a disagreement between a rule and the formatter that a guard in the fix would hide.
+
+Example — RH6023, whose fix lays out the spacing around the operator through the formatter, in a file with a syntax error elsewhere (the parameter list of `N` is not closed):
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        a{|RH6023:=|}1;
+    }
+
+    void N(
+}
+```
+
+is reported, and no code fix is offered: the formatter returns the document unchanged (FMT-PIPE-005). Once the parameter list is closed, the fix is offered and writes `a = 1;`. The same holds for a fix that edits first and then formats its edit, such as the RH7105 fix, which reorders the modifiers of a declaration: in a file with a syntax error it is not offered, because its reordered modifiers would stay unformatted.
 
 ### SHARED-FIX-006 — A fix changes only the code its diagnostic is about
 
