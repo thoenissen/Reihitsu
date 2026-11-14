@@ -1,5 +1,5 @@
 Role: test implementer
-Commit: <filled below>
+Commit: 5336960 (tests); handover amended in the next commit
 Verdict: tests written
 
 My prompt carried no intended fix, suspected cause, or hoped-for verdict. This round carries out decision 18 of `00-lead.md` on the test side: the refused side of the opener join (11-auditor finding 1, FC-003). Expected values come from the spec author's concurrent FMT-BREAK-012 text (a first element held off the opening line by a comment, directive, or disabled text stays at the start of its own line and the list becomes one element per line; a line break only inside a multi-line comment's text holds nothing) and its new example, verbatim. Columns follow the alignment under the first element (FMT-INDENT) that the neighbouring tests already pin. No production code is touched; every test passes on 6710433 as the requirement demands (the output equals `main`'s, per 11-auditor).
