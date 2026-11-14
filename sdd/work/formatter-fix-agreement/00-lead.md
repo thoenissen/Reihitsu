@@ -21,6 +21,8 @@
 |---|---|---|---|---|---|---|
 | 2 | Spec | #1529 issue goals: RH6023 test and "record C in the formatter spec" | Drop both | RH6023 fix only touches operator gaps (SHARED-OPSPACE-004), already pinned; C not chosen | No output changes from dropping them | — |
 | 3 | Spec | #1543 issue goals: issue's own input (now refused by FMT-UNSUP-004) and complex element initializer | Replace input with assignment/initializer-interior forms; keep existing element-initializer coverage; extend round trips to RH5026/RH5027 | Skeptic findings | Test selection is internal | — |
+| 4 | Spec | Edit merged `node-root-detached.md` for the superseded answer? | No; supersession recorded in the new change doc only (spec author's objection taken) | `sdd/README.md`: merged change docs are history | Doc history only | b8924f4 |
+| 5 | Spec | Accept both change docs | Status set to Accepted | Every visible output change has the maintainer's answer | — | (this commit) |
 | 1 | Claim | Branch name | Use the session's designated branch `claude/squad-1529-1543-wokrft` instead of `claude/issues-1529-1543-<slug>` | The session environment permits pushes only to the designated branch | Branch names are internal | claim commit |
 
 ## Follow-up candidates
@@ -33,4 +35,5 @@
 - Done: spec author (`01-spec-author.md`, a49e965): two draft change docs, two output questions (#1529 rec. B, #1543 rec. A).
 - Done: skeptic (`02-skeptic.md`, 7cfa03f): #1529 rec. B, adds the column-9 input and option D (withhold fix); names escalation 10 (declare the null-conditional assignment with a wrapped target unsupported), not recommended. #1543 rec. A; change-doc corrections (oscillation claim, field array initializer `}`, nested array `{`, RH5027 for do-while).
 - Answers received (1B, 2A).
-- Next after answers: spec author amends change docs + specs per answers and skeptic's corrections; then test implementer.
+- Done: spec author amendment (`03-spec-author.md`, b8924f4): RH5111-006, FMT-BLANK-020 widened, change docs finalized and accepted.
+- Next: test implementer.
