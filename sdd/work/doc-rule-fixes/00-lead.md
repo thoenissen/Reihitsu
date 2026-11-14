@@ -60,6 +60,9 @@ Batch 1 (before the test implementer):
 | 17 | Implementer 07 | RH8401/RH8402 in mode `None` re-parse the tree in mode `Parse` | Accept | Literal reading of RH8401-006/RH8402-007; the alternative would be parser-like text rules (AGENTS.md forbids that machinery) | Same output as decided | 260c2f9 |
 | 18 | Implementer 07 | RH8401 becomes a syntax-tree action | Accept | Needed to see comments in mode `None`; Parse/Diagnose unchanged | Behavior unchanged in other modes | 260c2f9 |
 | 19 | Implementer 07 | `CanLayOutElement` `/** */` branch possibly unreached now | Leave to the auditor; no follow-up | Reachability of RH8305 unverified; internal | Internal | — |
+| 20 | Auditor 10, repair round 1 | #1 RH8203 drops reports for `<inheritdoc/>` in a partial part's later comment or `<include>` (PR-introduced) | Repair to the unchanged RH8203-001: test implementer adds the missing tests, implementer makes them pass; no refusal | RH8203-001 already decides it; main reports them | Brings code back to an unchanged requirement | pending |
+| 21 | Auditor 10, repair round 1 | #2 summary of `GetDocumentationCommentsBehindCode` overstates; #3 `///` check in `CanLayOutElement` unreachable | #2 cleaner (comment text); #3 implementer removes the unreachable check | PR-introduced; same requirement | No behavior change | pending |
+| 22 | Auditor 10 | Hints: RH8303 continuation line before `}` no longer reported (SHARED-DIAG-010); RH8301–RH8303 judge behind-code `///` in bodies/lists/enum members/attribute lists like on-line ones | Mention both in PR Review notes | Required by unchanged requirements / consistent with main and the formatter | No question open | — |
 | 7 | Spec author | #1153: `extension(long)` not reported, from the recorded P8b answer | Accept | The maintainer's P8b answer names it ("An unnamed parameter is not reported") | Covered by a maintainer answer | b148498 |
 
 ## Follow-up candidates
@@ -87,5 +90,6 @@ Batch 1 (before the test implementer):
 - Done: 07 implementer (260c2f9): all tests pass in Debug.
 - Done: 08 cleaner (c88c8d4): clean.
 - Done: 09 spec checker (704a989): consistent. main not moved; build green; no open output questions.
-- Next: auditor 10.
+- Done: 10 auditor (3649659) at head 31a774b, main cf6d26b: findings.
+- Repair round 1 (of 3): test implementer 11 → implementer 12 → cleaner 13 → spec checker 14 → auditor 15 (repair only) → validator.
 - After answers: spec author repair (revert SHARED-DOC-002 for #1092; FMT-BLANK-010 wording; RH8201-001/RH8203-001 per Q4; Q1/Q2 answers; retag notes), then test implementer.
