@@ -124,11 +124,11 @@ class C
 
 ### SHARED-USING-004 — A group is section, kind, and root namespace
 
-Two directives MUST be in the same group exactly when they agree in all three of: global or not (SHARED-USING-002), kind (SHARED-USING-003), and root namespace. The root namespace is the first segment of the directive's name after a leading `global::` qualifier is removed, compared ordinally (case-sensitive). For an alias directive, the name is the alias target, not the alias; for a `using static` directive, it is the type name. Analyzer and formatter MUST take every name this spec compares or splits into segments — the directive's name, an alias target, a `using static` type name, and an alias name — by its value (SHARED-DIAG-002): without the verbatim prefix `@` and without the whitespace and comments written between its parts, so that `System.IO`, `System . IO`, `@System.IO`, and `System/* x */.IO` all have the root `System` and the sort key `System.IO`. An alias whose target is not a name — a predefined type such as `int`, a tuple, an array, a pointer, or a nullable type — has no root namespace: it MUST form a group of its own, and that group MUST come after every other group of its section.
+Two directives MUST be in the same group exactly when they agree in all three of: global or not (SHARED-USING-002), kind (SHARED-USING-003), and root namespace. The root namespace is the first segment of the directive's name after a leading `global::` qualifier is removed, compared ordinally (case-sensitive). For an alias directive, the name is the alias target, not the alias; for a `using static` directive, it is the type name. Analyzer and formatter MUST take every name this spec compares or splits into segments — the directive's name, an alias target, a `using static` type name, and an alias name — by its value as the compiler interprets it (SHARED-DIAG-002): without the verbatim prefix `@`, with every Unicode escape sequence in an identifier decoded, and without the whitespace and comments written anywhere between the name's tokens — between its identifiers and dots, around the `::` of a `global::` qualifier, and inside a type-argument list. So `System.IO`, `System . IO`, `@System.IO`, `System/* x */.IO`, `\u0053ystem.IO`, and `global :: System.IO` all have the root `System` and the sort key `System.IO`, and `Comparer< int >` has the sort key `Comparer<int>`. An alias whose target is not a name — a predefined type such as `int`, a tuple, an array, a pointer, or a nullable type — has no root namespace: it MUST form a group of its own, and that group MUST come after every other group of its section.
 
 This requirement covers a section with at most one alias whose target is not a name.
 
-Why: Grouping by root namespace keeps everything from one library together (`Microsoft.*`, `Reihitsu.*`) and is what RH7207 checks blank lines against. The verbatim prefix and the trivia inside a name are spelling, not part of the name; the compiler imports the same namespace either way, and the analyzer rules compare the value (SHARED-DIAG-002), so the formatter and the code fixes must group and order by the value too, or a block the formatter produces would be reported. Grouping aliases by their target makes an alias sit next to the library it points into rather than in one alphabetical list of unrelated names. An alias of a type that is not a name points into no library, so it belongs to none of the groups and is placed after all of them, where it cannot be mistaken for the `System` group.
+Why: Grouping by root namespace keeps everything from one library together (`Microsoft.*`, `Reihitsu.*`) and is what RH7207 checks blank lines against. The verbatim prefix, a Unicode escape, and the trivia between a name's tokens are spelling, not part of the name; the compiler imports the same namespace either way, and the analyzer rules compare the value (SHARED-DIAG-002), so the formatter and the code fixes must group and order by the value too, or a block the formatter produces would be reported. Grouping aliases by their target makes an alias sit next to the library it points into rather than in one alphabetical list of unrelated names. An alias of a type that is not a name points into no library, so it belongs to none of the groups and is placed after all of them, where it cannot be mistaken for the `System` group.
 
 Example:
 
@@ -186,6 +186,31 @@ class C
 ```csharp
 using System;
 using @System.IO;
+
+using Microsoft.Win32;
+
+class C
+{
+    int x;
+}
+```
+
+Example — `\u0053ystem.IO` is `System.IO` to the compiler, so it belongs to the `System` group and sorts after `System`; the formatter keeps its spelling:
+
+```csharp
+using Microsoft.Win32;
+using \u0053ystem.IO;
+using System;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+using System;
+using \u0053ystem.IO;
 
 using Microsoft.Win32;
 
@@ -356,6 +381,18 @@ Example — the sort key is the name's value, so `System.@Linq` sorts as `System
 ```csharp
 using System.Collections;
 using System.@Linq;
+
+class C
+{
+    int x;
+}
+```
+
+Example — whitespace inside a type-argument list is not part of the key, so `Comparer< int >` sorts as `Comparer<int>`, after `Comparer<byte>`, and is in order:
+
+```csharp
+using static System.Collections.Generic.Comparer<byte>;
+using static System.Collections.Generic.Comparer< int >;
 
 class C
 {
