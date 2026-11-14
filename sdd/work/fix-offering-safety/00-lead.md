@@ -63,6 +63,8 @@ Batch 2 (questions 8–10, 2026-11-14):
 | 13 | 04 skeptic | Internal spec/change-doc corrections (04-skeptic.md *Change doc corrections*, wording of FMT-PIPE-003, SHARED-ORDER-008, "one check" wording) and SHARED-FIX-012 coverage notes (CasingFixAllProvider, RH2001 Renamer, per-tree cache) | Route to fresh spec author with batch-2 answers; coverage notes go to test implementer/implementer via the handover | Internal | Internal | pending |
 | 14 | 05 spec author | Visible details beyond answer Q8 B: summary line text, Playground message text, per-file line only with `--verbose`, such a file no longer affects the exit code (was 1 under `--check`), `--utf8-bom` no longer rewrites it, a file with both the carrier and an unsupported shape gets the skip line (no `error:`/exit 2) | Accept | All follow "like the syntax-error skip" (CLI-008: counted as skipped, no effect on exit code); double-shape file is a rare class | Covered by Q8 B | b80864a |
 | 15 | 05 | Change doc acceptance | Set `Accepted` | Every visible output change has the maintainer's answer (batches 1–2) or is covered by decisions 9/14 | n/a | this commit |
+| 16 | 06 test impl | #1143 second passes kept: RH5104 (`HasCommentBeforeOnLine`), RH5405 (SHARED-BRACE-003), RH5202 (RH5202-006), RH7310/RH3002 (second diagnostic appears only after the first fix) | Accept | Guard-dependent passes are allowed by the issue and SHARED-FIX-002; each carries a comment | SHARED-FIX-002 decides | 53f6660 |
+| 17 | 06 test impl | Existing tests whose inputs hold FMT-UNSUP-008 rewritten to the refusal, 4 phase-level ternary join tests deleted (guards deleted per change doc) | Accept | Accepted change doc *Special cases* | Covered by Q4 C / Q9 A | 53f6660 |
 | 7 | lead | #1600 fix-side line kinds | `#elif`/`#else`/`#endif` lines in a multi-line string or `/* */` that starts inside a conditional group, not any `#` line | A plain `#` check withholds fixes on Markdown raw strings; skeptic shows only these lines can hide code | Only offers more fixes than the issue's wording; rare-class withholding | pending |
 
 ## Follow-up candidates
@@ -87,4 +89,5 @@ Batch 2 (questions 8–10, 2026-11-14):
 - 03 spec author done (c679eb1): change doc `sdd/changes/2026-11/fix-offering-safety.md` (Draft), FMT-PIPE-033, SHARED-FIX-011/012, FMT-UNSUP-008, RH5308-005/006. Lane check behavior-change confirmed.
 - 04 skeptic done (c4ea7c2); batch 2 answered (Q8 B, Q9 A, Q10 A).
 - 05 spec author done (b80864a); change doc accepted.
-- Next: test implementer (06). After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
+- 06 test implementer done (53f6660 tests, 3493e63 handover): failing today — analyzer 67, formatter 65, cli 8, playground 3.
+- Next: implementer (07). After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
