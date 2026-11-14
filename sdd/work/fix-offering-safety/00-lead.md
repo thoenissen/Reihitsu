@@ -71,6 +71,7 @@ Batch 2 (questions 8–10, 2026-11-14):
 | 21 | 13 auditor | Architecture finding (audit #1): `ReihitsuCodeFixProviderBase` and the custom `FixAllProvider.Create(ApplyFixAllAsync)` delegates of RH3002/RH7101 both decide whether a fix is offered; the delegates skip SHARED-FIX-012 | Change the structure in this run: the base owns the per-document decision and every Fix All path asks it; routed as repair round 2 (test implementer: project-scope Fix All tests for RH3002/RH7101; implementer: the change) | Narrow per-delegate copy would add a second statement of the rule; stays within the components the run changes | SHARED-FIX-012 already decides the output | pending |
 | 22 | 13 auditor | Audit #2 (word-boundary rows for `HoldsGroupEndingLine`), #3 (CLI calls static `HoldsHidingCarrier` instead of `ISourceFormatter` seam) | Repair both in round 2 | Same requirement / PR-introduced | Tests and internal seam only | pending |
 | 23 | 13 auditor | Hints: first-pass-only starting filter in `DocumentOrderFixAllProvider` (no reachable input found), no arch test tying `FormatsThroughFormatter` to formatter calls, XML summary line breaks | No action | No reachable input; all 29 overrides match; cosmetic | Nothing visible | n/a |
+| 24 | 15 implementer | No guard stops a future provider from calling `FixAllProvider.Create` directly and bypassing the base | Add an architecture test in this round (only the base and `DocumentOrderFixAllProvider` may call it) | Keeps decision 21's single owner enforced; small, in the component the run changes | Test only | pending |
 | 7 | lead | #1600 fix-side line kinds | `#elif`/`#else`/`#endif` lines in a multi-line string or `/* */` that starts inside a conditional group, not any `#` line | A plain `#` check withholds fixes on Markdown raw strings; skeptic shows only these lines can hide code | Only offers more fixes than the issue's wording; rare-class withholding | pending |
 
 ## Follow-up candidates
@@ -108,4 +109,5 @@ Batch 2 (questions 8–10, 2026-11-14):
 - 13 auditor (c4cfd1e) audited 9d38a0b vs main 23cf11a: findings #1 (high, architecture), #2, #3 on #1600; others pass.
 - Repair round 2: test implementer (14) → implementer (15) → cleaner (16) → spec checker (17) → auditor on the repair (18).
 - 14 test implementer (417800b tests, 78a3fce handover): 4 RH3002/RH7101 Fix All tests fail today; word-boundary rows pass.
-- Next: implementer (15). After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
+- 15 implementer (66a181f, 819807e): audit #1 and #3 repaired; full analyzer/formatter/CLI/architecture green.
+- Next: test implementer (16) for decision 24, then cleaner (17), spec checker (18), auditor on the repair (19). After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
