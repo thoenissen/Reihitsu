@@ -47,4 +47,4 @@ Bug fix (all five). Roles: spec author (clarifications: RH5601-001/RH5602-001 al
 
 ## Worklist / next step
 
-- Done: ... test implementer (05), implementer (06: 7d29e2b production, 3f5d74c). Next: test implementer drops the ref case (07), then cleaner.
+- Done: through spec checker (09 d87d1b7, consistent). No output questions open. Next: auditor.
