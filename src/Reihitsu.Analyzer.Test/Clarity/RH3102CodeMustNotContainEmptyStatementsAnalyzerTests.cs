@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
@@ -539,6 +540,67 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
 
         await VerifyUnderBothLineEndings(testCode, fixedCode);
         AssertFormattingChangesNothing(fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a Fix All in the project, which applies the fixes in document order, started from a document without a
+    /// hiding carrier, removes the empty statement in that document and leaves a second document that holds one as it is, with
+    /// its diagnostic still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-012")]
+    public async Task FixAllInTheProjectLeavesADocumentWithAHidingCarrierUnchanged()
+    {
+        const string source = """
+                              public class Test
+                              {
+                                  public void Run()
+                                  {
+                                      {|RH3102:;|}
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   public class Test
+                                   {
+                                       public void Run()
+                                       {
+                                       }
+                                   }
+                                   """;
+        const string otherSource = """
+                                   public class Other
+                                   {
+                                       public void Run(int a)
+                                       {
+                                   #if !X
+                                           /*
+                                   #else
+                                           var s = @"
+                                           */
+                                           a = 1; //";
+                                   #endif
+                                           {|RH3102:;|}
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherSource));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", otherSource));
+
+                         // The diagnostic in the carrier document stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                         test.NumberOfFixAllInDocumentIterations = 1;
+                         test.NumberOfFixAllInProjectIterations = 1;
+                     });
     }
 
     /// <summary>

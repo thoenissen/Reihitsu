@@ -186,6 +186,8 @@ public class ReihitsuFormatterHiddenCodeTests : FormatterTestsBase
     [DataRow("#endif", DisplayName = "#endif")]
     [DataRow("#  else", DisplayName = "Whitespace between # and else")]
     [DataRow("        #else", DisplayName = "Whitespace in front of #else")]
+    [DataRow("#else// c", DisplayName = "#else followed by a comment")]
+    [DataRow("#elif(Y)", DisplayName = "#elif followed by a parenthesis")]
     public async Task EveryLineKindThatEndsTheGroupCounts(string line)
     {
         await AssertLeftAlone(GroupTemplate.Replace("CARRIER", $"        /*\n{line}\n        */"));
@@ -206,6 +208,10 @@ public class ReihitsuFormatterHiddenCodeTests : FormatterTestsBase
     [DataRow("        var s = @\"#else\n        \";", DisplayName = "#else on the carrier's first line")]
     [DataRow("        /// #else\n        /// #endif\n        var s = 1;", DisplayName = "Single-line documentation comment")]
     [DataRow("        // #else\n        var s = 1;", DisplayName = "Single-line comment")]
+    [DataRow("        /*\n#elsewhere\n        */", DisplayName = "Word that starts with else and goes on with a letter")]
+    [DataRow("        /*\n#endif2\n        */", DisplayName = "Word that starts with endif and goes on with a digit")]
+    [DataRow("        var s = @\"\n#else_1\n        \";", DisplayName = "Word that starts with else and goes on with an underscore")]
+    [DataRow("        /*\n#elifx Y\n        */", DisplayName = "Word that starts with elif and goes on with a letter")]
     public void CarrierWithoutALineThatEndsTheGroupIsFormatted(string carrier)
     {
         AssertFormattedThroughEntryPointContains(GroupTemplate.Replace("CARRIER", carrier), "        return a + b;");

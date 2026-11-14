@@ -22,6 +22,31 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 [TestClass]
 public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : BatchCodeFixTestsBase<RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer, RH3002StatementMustNotUseUnnecessaryParenthesesCodeFixProvider>
 {
+    #region Constants
+
+    /// <summary>
+    /// A document whose <c>/* */</c> comment starts inside the <c>#if !X</c> group and holds the line <c>#else</c>, so a build
+    /// with <c>X</c> reads the reported line as the content of the verbatim string <c>s</c>
+    /// </summary>
+    private const string CarrierDocumentSource = """
+                                                 public class Other
+                                                 {
+                                                     public int Run(int value)
+                                                     {
+                                                 #if !X
+                                                         /*
+                                                 #else
+                                                         var s = @"
+                                                         */
+                                                         value = {|RH3002:(value)|}; //";
+                                                 #endif
+                                                         return value;
+                                                     }
+                                                 }
+                                                 """;
+
+    #endregion // Constants
+
     #region Properties
 
     /// <summary>
@@ -8250,6 +8275,97 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifies that a Fix All in the project, started from a document without a hiding carrier, removes the parentheses in that
+    /// document and leaves a second document that holds one as it is, with its diagnostic still reported: in a build with
+    /// <c>X</c>, the reported line is the content of a verbatim string
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-012")]
+    public async Task FixAllInTheProjectLeavesADocumentWithAHidingCarrierUnchanged()
+    {
+        const string source = """
+                              public class Test
+                              {
+                                  public int Run(int value)
+                                  {
+                                      return {|RH3002:(value)|};
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   public class Test
+                                   {
+                                       public int Run(int value)
+                                       {
+                                           return value;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", CarrierDocumentSource));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", CarrierDocumentSource));
+
+                         // The diagnostic in the carrier document stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                         test.NumberOfFixAllInDocumentIterations = 1;
+                         test.NumberOfFixAllInProjectIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a Fix All in the solution, started from a document without a hiding carrier, removes the parentheses in that
+    /// document and leaves a document of another project that holds a hiding carrier as it is, with its diagnostic still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-012")]
+    public async Task FixAllInTheSolutionLeavesADocumentWithAHidingCarrierInAnotherProjectUnchanged()
+    {
+        const string source = """
+                              public class Test
+                              {
+                                  public int Run(int value)
+                                  {
+                                      return {|RH3002:(value)|};
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   public class Test
+                                   {
+                                       public int Run(int value)
+                                       {
+                                           return value;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         test.TestState.AdditionalProjects["Other"].Sources.Add(("/Other/Test1.cs", CarrierDocumentSource));
+                         test.FixedState.AdditionalProjects["Other"].Sources.Add(("/Other/Test1.cs", CarrierDocumentSource));
+
+                         // The diagnostic in the carrier document stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                         test.NumberOfFixAllInDocumentIterations = 1;
+                         test.NumberOfFixAllInProjectIterations = 1;
+                     });
     }
 
     #endregion // Tests
