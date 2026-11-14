@@ -31,7 +31,14 @@ Bug-fix lane: spec author (clarification — #1150's maintainer-decided spec tex
 
 ## Maintainer answers
 
-(none yet)
+Batch 1 (questions 1–7, 2026-11-14):
+- Q1 (#1600, formatter, comment/string hiding code in another build): **B** — whole-document formatting leaves the file unchanged silently, like a syntax error; not declared unsupported.
+- Q2 (#1600, string opened only by an excluded branch): **A** — unchanged; gap recorded as a decision in the specs.
+- Q3 (#1600, guard reach, escalation 9): not yet selected — maintainer asked why not B (common base class) and said repository rules should be adjusted if they constrain good design. Asked back.
+- Q4 (#1274, RH5308 comment/directive behind `?`/`:`): **C** as written = declare the shape unsupported in this work. Confirming because the answer to 6 used a label that did not exist.
+- Q5 (#1678): **A** — unchanged, gap stays recorded in SHARED-ORDER-008. Maintainer's reason: analyzers always analyze with the defines as they currently stand; that is the common case.
+- Q6 (FMT-STRUCT-023 field declaration with directive): answered "C", which was not an option (A/B only). Asked back.
+- Q7 (FMT-STRUCT-003 directive between header and unbraced body): **B** — declare unsupported in a change of its own → follow-up carrying the answer.
 
 ## Decisions taken
 
@@ -46,6 +53,8 @@ Bug-fix lane: spec author (clarification — #1150's maintainer-decided spec tex
 | 7 | lead | #1600 fix-side line kinds | `#elif`/`#else`/`#endif` lines in a multi-line string or `/* */` that starts inside a conditional group, not any `#` line | A plain `#` check withholds fixes on Markdown raw strings; skeptic shows only these lines can hide code | Only offers more fixes than the issue's wording; rare-class withholding | pending |
 
 ## Follow-up candidates
+
+- Declare unsupported (maintainer answer Q7, 2026-11-14): a preprocessor directive between an embedded statement's header and its unbraced body (FMT-STRUCT-003), in a change of its own; deletes the structural phase's brace guard for it — 02-skeptic.md *Whole run*.
 
 - #1150: SHARED-FIX-011 third sentence conflicts with RH5401-004 (RH5401 reports a property the formatter keeps) — 02-skeptic.md.
 - Formatter class: a continuation line whose previous line ends with a `//` comment is laid out in the enclosing statement's/member's column (`a ? // c`, `b + // c`, `int A => // c`) — 02-skeptic.md #1274 (widens the spec author's candidate below).
