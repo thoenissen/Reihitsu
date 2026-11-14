@@ -602,14 +602,14 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
     }
 
     /// <summary>
-    /// Characterizes a field-like event with several declarators that implement members of two interfaces: only its first
-    /// declarator is judged, so the second declarator is not reported in the region of the first one's interface. This
-    /// test pins today's behavior; the decided behavior is stated by SHARED-DIAG-006, which checks every declarator, and
-    /// its change belongs to an existing follow-up
+    /// Verifies that each declarator of a field-like event that implements members of two interfaces is judged on its
+    /// own: the second declarator is reported in the region of the first one's interface
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyFieldLikeImplementationEventWithSeveralDeclaratorsIsJudgedByItsFirstDeclarator()
+    [Requirement("RH7411-001")]
+    [Requirement("SHARED-REGGROUP-005")]
+    public async Task VerifyEachDeclaratorOfFieldLikeImplementationEventIsJudgedOnItsOwn()
     {
         const string testData = """
                                 using System;
@@ -628,7 +628,7 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
                                 {
                                     #region IA
 
-                                    public event EventHandler A, X;
+                                    public event EventHandler A, {|RH7411:X|};
 
                                     #endregion
                                 }
@@ -638,13 +638,92 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
     }
 
     /// <summary>
-    /// Characterizes a field-like event with several declarators outside its interface's region: it is reported once, at
-    /// its first declarator. This test pins today's behavior; the decided behavior is stated by SHARED-DIAG-006, which
-    /// reports one diagnostic per reported declarator, and its change belongs to an existing follow-up
+    /// Verifies that each declarator of a field-like event that implements members of two interfaces is judged on its
+    /// own when the declarator of the other interface comes first
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyFieldLikeImplementationEventWithSeveralDeclaratorsIsReportedOnceAtFirstDeclarator()
+    [Requirement("RH7411-001")]
+    [Requirement("SHARED-REGGROUP-005")]
+    public async Task VerifyEachDeclaratorOfFieldLikeImplementationEventIsJudgedOnItsOwnInReversedOrder()
+    {
+        const string testData = """
+                                using System;
+
+                                interface IA
+                                {
+                                    event EventHandler A;
+                                }
+
+                                interface IB
+                                {
+                                    event EventHandler X;
+                                }
+
+                                class C : IA, IB
+                                {
+                                    #region IA
+
+                                    public event EventHandler {|RH7411:X|}, A;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example in which each declarator of one field-like event declaration is judged and
+    /// reported on its own
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7411-001")]
+    [Requirement("SHARED-REGGROUP-005")]
+    public async Task VerifySpecificationExampleOfDeclaratorsJudgedEachOnTheirOwn()
+    {
+        const string testData = """
+                                using System;
+
+                                interface IA
+                                {
+                                    event EventHandler A;
+                                }
+
+                                interface IB
+                                {
+                                    event EventHandler X;
+
+                                    event EventHandler Y;
+
+                                    event EventHandler Z;
+                                }
+
+                                class C : IA, IB
+                                {
+                                    #region IA
+
+                                    public event EventHandler A, {|RH7411:X|};
+
+                                    #endregion
+
+                                    public event EventHandler {|RH7411:Y|}, {|RH7411:Z|};
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a field-like event with several declarators outside its interface's region is reported once per
+    /// declarator, each on its identifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7411-001")]
+    [Requirement("SHARED-REGGROUP-005")]
+    public async Task VerifyFieldLikeImplementationEventWithSeveralDeclaratorsIsReportedOncePerDeclarator()
     {
         const string testData = """
                                 using System;
@@ -658,11 +737,92 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
 
                                 class C : IA
                                 {
-                                    public event EventHandler {|#0:A|}, X;
+                                    public event EventHandler {|RH7411:A|}, {|RH7411:X|};
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("IA")));
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a field-like event with several declarators outside its interface's region is reported once per
+    /// declarator when the declarators are in the opposite order
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7411-001")]
+    [Requirement("SHARED-REGGROUP-005")]
+    public async Task VerifyFieldLikeImplementationEventWithSeveralDeclaratorsIsReportedOncePerDeclaratorInReversedOrder()
+    {
+        const string testData = """
+                                using System;
+
+                                interface IA
+                                {
+                                    event EventHandler A;
+
+                                    event EventHandler X;
+                                }
+
+                                class C : IA
+                                {
+                                    public event EventHandler {|RH7411:X|}, {|RH7411:A|};
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that each declarator of a partial field-like event outside its interface's region is reported once, on
+    /// its declarator in the defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7411-001")]
+    [Requirement("SHARED-REGGROUP-005")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyEachDeclaratorOfPartialFieldLikeEventIsReportedOnItsDefiningPart()
+    {
+        const string testData = """
+                                using System;
+
+                                interface I
+                                {
+                                    event EventHandler E;
+
+                                    event EventHandler F;
+                                }
+
+                                partial class C : I
+                                {
+                                    public partial event EventHandler {|RH7411:E|}, {|RH7411:F|};
+
+                                    public partial event EventHandler E
+                                    {
+                                        add
+                                        {
+                                        }
+
+                                        remove
+                                        {
+                                        }
+                                    }
+
+                                    public partial event EventHandler F
+                                    {
+                                        add
+                                        {
+                                        }
+
+                                        remove
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     /// <summary>

@@ -52,36 +52,29 @@ public class RH7106ProtectedMustComeBeforeInternalAnalyzerTests : BatchCodeFixTe
     }
 
     /// <summary>
-    /// Characterizes a misordered modifier list with a conditional directive between the modifiers: it is reported
-    /// without offering a fix. This test pins today's behavior; the decided behavior is stated by SHARED-DIAG-008, under
-    /// which a conditional directive in the modifier list the rule judges keeps the declaration from being reported, and
-    /// its change belongs to an existing follow-up
+    /// Verifies that a misordered compound access modifier with an empty conditional directive between its two
+    /// modifiers is not reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task MisorderedCompoundAccessModifiersWithDirectiveAreReportedWithoutFix()
+    [Requirement("RH7106-001")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task MisorderedCompoundAccessModifiersSplitByAConditionalDirectiveAreNotReported()
     {
-        const string testCode = """
+        const string testData = """
                                 public class TestClass
                                 {
                                     internal
                                 #if FEATURE
                                 #endif
-                                    {|#0:protected|} void Execute()
+                                    protected void Execute()
                                     {
                                     }
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH7106ProtectedMustComeBeforeInternalAnalyzer.DiagnosticId, AnalyzerResources.RH7106MessageFormat));
-
-        var actions = await GetCodeFixActionsAsync(testCode.Replace("{|#0:protected|}", "protected"),
-                                                   RH7106ProtectedMustComeBeforeInternalAnalyzer.DiagnosticId,
-                                                   root => root.DescendantTokens()
-                                                               .First(token => token.IsKind(SyntaxKind.ProtectedKeyword))
-                                                               .GetLocation());
-
-        Assert.IsEmpty(actions);
+        await Verify(testData);
+        await Verify(testData, test => test.SolutionTransforms.Add(DefineDebug));
     }
 
     /// <summary>
@@ -497,7 +490,200 @@ public class RH7106ProtectedMustComeBeforeInternalAnalyzerTests : BatchCodeFixTe
         await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies the specification example in which a conditional directive between two modifiers keeps the declaration
+    /// from being reported, while one behind the last modifier does not, and no code fix is offered for it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7106-001")]
+    [Requirement("SHARED-MODORDER-003")]
+    public async Task ConditionalDirectiveBehindTheLastModifierDoesNotKeepTheDeclarationFromBeingReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    internal
+                                #if FEATURE
+                                #endif
+                                    protected int A;
+
+                                    internal {|RH7106:protected|}
+                                #if DEBUG
+                                    static
+                                #endif
+                                    int B;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a declaration whose conditional directive stands between two modifiers once the symbol is defined
+    /// is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7106-001")]
+    public async Task ConditionalDirectiveThatStandsBetweenModifiersWhereTheSymbolIsDefinedKeepsTheDeclarationFromBeingReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    internal protected
+                                #if DEBUG
+                                    static
+                                #endif
+                                    int B;
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(DefineDebug));
+    }
+
+    /// <summary>
+    /// Verifies that both parts of a partial constructor are reported, each on its own modifiers, and the code fix
+    /// corrects each part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7106-001")]
+    [Requirement("SHARED-DIAG-004")]
+    public async Task BothPartsOfAPartialConstructorAreReported()
+    {
+        const string testData = """
+                                public partial class C
+                                {
+                                    internal {|RH7106:protected|} partial C();
+
+                                    internal {|RH7106:protected|} partial C()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 public partial class C
+                                 {
+                                     protected internal partial C();
+
+                                     protected internal partial C()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the defining part of a partial constructor is reported when its implementing part lies in another
+    /// file
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7106-001")]
+    [Requirement("SHARED-DIAG-004")]
+    public async Task DefiningPartOfAPartialConstructorIsReportedWhenTheImplementingPartIsInAnotherFile()
+    {
+        const string definingPart = """
+                                    public partial class C
+                                    {
+                                        internal {|RH7106:protected|} partial C();
+                                    }
+                                    """;
+
+        const string implementingPart = """
+                                        public partial class C
+                                        {
+                                            internal {|RH7106:protected|} partial C()
+                                            {
+                                            }
+                                        }
+                                        """;
+
+        await Verify(definingPart,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", implementingPart));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that the defining part of a partial constructor is reported when its implementing part lies in
+    /// generated code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7106-001")]
+    [Requirement("SHARED-DIAG-004")]
+    public async Task DefiningPartOfAPartialConstructorIsReportedWhenTheImplementingPartIsGenerated()
+    {
+        const string definingPart = """
+                                    public partial class C
+                                    {
+                                        internal {|RH7106:protected|} partial C();
+                                    }
+                                    """;
+
+        const string implementingPart = """
+                                        public partial class C
+                                        {
+                                            internal protected partial C()
+                                            {
+                                            }
+                                        }
+                                        """;
+
+        await Verify(definingPart,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/C.g.cs", implementingPart));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that both parts of a partial constructor of a record are reported, each on its own modifiers
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7106-001")]
+    [Requirement("SHARED-DIAG-004")]
+    public async Task BothPartsOfAPartialConstructorOfARecordAreReported()
+    {
+        const string testData = """
+                                public partial record R
+                                {
+                                    internal {|RH7106:protected|} partial R(int value);
+
+                                    internal {|RH7106:protected|} partial R(int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Defines the preprocessor symbol <c>DEBUG</c> for the test project
+    /// </summary>
+    /// <param name="solution">Solution</param>
+    /// <param name="projectId">Project ID</param>
+    /// <returns>Solution</returns>
+    private static Solution DefineDebug(Solution solution, ProjectId projectId)
+    {
+        return solution.GetProject(projectId)?.ParseOptions is CSharpParseOptions parseOptions
+                   ? solution.WithProjectParseOptions(projectId, parseOptions.WithPreprocessorSymbols("DEBUG"))
+                   : solution;
+    }
+
+    #endregion // Methods
 
     #region BatchCodeFixTestsBase
 

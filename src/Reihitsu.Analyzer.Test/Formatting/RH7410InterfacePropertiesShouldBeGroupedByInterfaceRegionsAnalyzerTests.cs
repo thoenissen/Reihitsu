@@ -493,14 +493,15 @@ public class RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzerT
     }
 
     /// <summary>
-    /// Characterizes a partial property that implements an interface property: it is judged and reported only at its
-    /// defining part, and the region of its implementing part is not considered. This test pins today's behavior; the
-    /// decided behavior is stated by SHARED-DIAG-004, which judges a partial property by its symbol, and its change belongs
-    /// to an existing follow-up
+    /// Verifies that <see langword="partial"/> properties of which only one part lies in the region of their interface are
+    /// each reported once, on the part that does not, whichever part that is
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyPartialImplementationPropertyIsJudgedAtItsDefiningPart()
+    [Requirement("RH7410-001")]
+    [Requirement("SHARED-DIAG-004")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialImplementationPropertyWithOnlyOnePartInItsInterfaceRegionIsReportedOnTheOtherPart()
     {
         const string testData = """
                                 interface I
@@ -514,9 +515,9 @@ public class RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzerT
                                 {
                                     #region Properties
 
-                                    public partial int {|#0:P|} { get; }
+                                    public partial int {|RH7410:P|} { get; }
 
-                                    public partial int Q { get => 0; }
+                                    public partial int {|RH7410:Q|} { get => 0; }
 
                                     #endregion
 
@@ -530,7 +531,7 @@ public class RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("I")));
+        await Verify(testData);
     }
 
     /// <summary>

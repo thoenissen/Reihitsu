@@ -624,14 +624,15 @@ public class RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzerTests 
     }
 
     /// <summary>
-    /// Characterizes an override in a region nested in a top-level region: it is judged by the top-level region around it,
-    /// not by the innermost region. This test pins today's behavior; the decided behavior is stated by
-    /// SHARED-TYPEREGION-006, which judges a member by the innermost region that encloses it, and its change belongs to an
-    /// existing follow-up
+    /// Verifies the specification example in which an override in a nested region is judged by the innermost region:
+    /// the override in <c>Methods</c> inside <c>B</c> is reported, the override in <c>B</c> inside <c>Overrides</c> is not
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyOverrideInNestedRegionIsJudgedByItsTopLevelRegion()
+    [Requirement("RH7401-001")]
+    [Requirement("SHARED-REGGROUP-001")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task VerifyOverrideInNestedRegionIsJudgedByTheInnermostRegion()
     {
         const string testData = """
                                 class B
@@ -651,7 +652,7 @@ public class RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzerTests 
 
                                     #region Methods
 
-                                    public override void M()
+                                    public override void {|RH7401:M|}()
                                     {
                                     }
 
@@ -663,9 +664,106 @@ public class RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzerTests 
 
                                     #region B
 
+                                    public override void N()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an override in a region without a description, nested in the region named after its base type, is
+    /// reported, because the innermost region does not match the base type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7401-001")]
+    [Requirement("SHARED-REGGROUP-001")]
+    public async Task VerifyOverrideInRegionWithoutDescriptionNestedInItsBaseTypeRegionIsReported()
+    {
+        const string testData = """
+                                class B
+                                {
+                                    public virtual void M()
+                                    {
+                                    }
+                                }
+
+                                class D : B
+                                {
+                                    #region B
+
+                                    #region
+
+                                    public override void {|RH7401:M|}()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that overrides in regions nested two levels deep are judged by the innermost of the three regions
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7401-001")]
+    [Requirement("SHARED-REGGROUP-001")]
+    public async Task VerifyOverrideInRegionNestedTwoLevelsDeepIsJudgedByTheInnermostRegion()
+    {
+        const string testData = """
+                                class B
+                                {
+                                    public virtual void M()
+                                    {
+                                    }
+
+                                    public virtual void N()
+                                    {
+                                    }
+                                }
+
+                                class D : B
+                                {
+                                    #region Methods
+
+                                    #region Overrides
+
+                                    #region B
+
+                                    public override void M()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    #endregion
+
+                                    #endregion
+
+                                    #region B
+
+                                    #region Overrides
+
+                                    #region Methods
+
                                     public override void {|RH7401:N|}()
                                     {
                                     }
+
+                                    #endregion
 
                                     #endregion
 
@@ -878,6 +976,127 @@ public class RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzerTests 
         await Verify(userPart,
                      test => test.TestState.Sources.Add(("/0/C.g.cs", generatedPart)),
                      Diagnostics(RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a <see langword="partial"/> override method of which only the defining part
+    /// lies in a matching region: it is reported once, on the implementing part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7401-001")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialMethodWithOnlyItsDefiningPartInAMatchingRegionIsReportedOnItsImplementingPart()
+    {
+        const string testData = """
+                                abstract class B
+                                {
+                                    public abstract void M();
+                                }
+
+                                partial class C : B
+                                {
+                                    #region B
+
+                                    public override partial void M();
+
+                                    #endregion
+
+                                    #region Other
+
+                                    public override partial void {|RH7401:M|}()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="partial"/> override method whose defining part lies in a matching region in one file
+    /// and whose implementing part lies in another region in a second file is reported once, on the implementing part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7401-001")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialMethodWithOnlyItsDefiningPartInAMatchingRegionInAnotherFileIsReportedOnItsImplementingPart()
+    {
+        const string definingPart = """
+                                    abstract class B
+                                    {
+                                        public abstract void M();
+                                    }
+
+                                    partial class C : B
+                                    {
+                                        #region B
+
+                                        public override partial void M();
+
+                                        #endregion
+                                    }
+                                    """;
+
+        const string implementingPart = """
+                                        partial class C
+                                        {
+                                            #region Other
+
+                                            public override partial void {|RH7401:M|}()
+                                            {
+                                            }
+
+                                            #endregion
+                                        }
+                                        """;
+
+        await Verify(definingPart, test => test.TestState.Sources.Add(("/0/Test1.cs", implementingPart)));
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="partial"/> override method whose implementing part lies in a matching region in one
+    /// file and whose defining part lies in another region in a second file is reported once, on the defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7401-001")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialMethodWithOnlyItsImplementingPartInAMatchingRegionInAnotherFileIsReportedOnItsDefiningPart()
+    {
+        const string definingPart = """
+                                    abstract class B
+                                    {
+                                        public abstract void M();
+                                    }
+
+                                    partial class C : B
+                                    {
+                                        #region Other
+
+                                        public override partial void {|RH7401:M|}();
+
+                                        #endregion
+                                    }
+                                    """;
+
+        const string implementingPart = """
+                                        partial class C
+                                        {
+                                            #region B
+
+                                            public override partial void M()
+                                            {
+                                            }
+
+                                            #endregion
+                                        }
+                                        """;
+
+        await Verify(definingPart, test => test.TestState.Sources.Add(("/0/Test1.cs", implementingPart)));
     }
 
     #endregion // Tests

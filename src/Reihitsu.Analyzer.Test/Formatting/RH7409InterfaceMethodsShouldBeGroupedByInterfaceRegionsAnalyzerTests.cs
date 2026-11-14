@@ -677,14 +677,15 @@ public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzerTest
     }
 
     /// <summary>
-    /// Characterizes a method that implements the members of two interfaces: only the first interface in base-list order is
-    /// accepted, so the verdict changes with the order of the base list. This test pins today's behavior; the decided
-    /// behavior is stated by SHARED-DIAG-009, which accepts the region of any interface the method implements, and its
-    /// change belongs to an existing follow-up
+    /// Verifies the specification example in which a method that implements the members of two interfaces lies in the
+    /// region of one of them: the order of the base list does not change the verdict
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyMethodImplementingTwoInterfacesIsJudgedByTheFirstInBaseListOrder()
+    [Requirement("RH7409-001")]
+    [Requirement("SHARED-REGGROUP-004")]
+    [Requirement("SHARED-DIAG-009")]
+    public async Task VerifyMethodImplementingTwoInterfacesInTheRegionOfEitherIsNotReportedInAnyBaseListOrder()
     {
         const string testData = """
                                 interface IA
@@ -701,7 +702,7 @@ public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzerTest
                                 {
                                     #region IB
 
-                                    public void {|#0:M|}()
+                                    public void M()
                                     {
                                     }
 
@@ -720,18 +721,66 @@ public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("IA")));
+        await Verify(testData);
     }
 
     /// <summary>
-    /// Characterizes a partial method that implements an interface method: it is judged and reported only at its defining
-    /// part, and the region of its implementing part is not considered. This test pins today's behavior; the decided
-    /// behavior is stated by SHARED-DIAG-004, which judges a partial method by its symbol, and its change belongs to an
-    /// existing follow-up
+    /// Verifies that a method that implements the members of two interfaces and lies in a region named after neither is
+    /// reported in either base-list order
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyPartialImplementationMethodIsJudgedAtItsDefiningPart()
+    [Requirement("RH7409-001")]
+    [Requirement("SHARED-REGGROUP-004")]
+    public async Task VerifyMethodImplementingTwoInterfacesInTheRegionOfNeitherIsReportedInAnyBaseListOrder()
+    {
+        const string testData = """
+                                interface IA
+                                {
+                                    void M();
+                                }
+
+                                interface IB
+                                {
+                                    void M();
+                                }
+
+                                class C : IA, IB
+                                {
+                                    #region Methods
+
+                                    public void {|RH7409:M|}()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+
+                                class D : IB, IA
+                                {
+                                    #region Methods
+
+                                    public void {|RH7409:M|}()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of <see langword="partial"/> methods of which only one part lies in the region
+    /// of their interface: each is reported once, on the part that does not, whichever part that is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7409-001")]
+    [Requirement("SHARED-DIAG-004")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialImplementationMethodWithOnlyOnePartInItsInterfaceRegionIsReportedOnTheOtherPart()
     {
         const string testData = """
                                 interface I
@@ -745,9 +794,9 @@ public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzerTest
                                 {
                                     #region Methods
 
-                                    public partial void {|#0:M|}();
+                                    public partial void {|RH7409:M|}();
 
-                                    public partial void N()
+                                    public partial void {|RH7409:N|}()
                                     {
                                     }
 
@@ -765,7 +814,95 @@ public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("I")));
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a <see langword="partial"/> method whose defining part lies in the region of its interface in one
+    /// file and whose implementing part lies in no region in a second file is reported once, on the implementing part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7409-001")]
+    [Requirement("SHARED-DIAG-012")]
+    public async Task VerifyPartialImplementationMethodWithOnlyItsDefiningPartInItsInterfaceRegionInAnotherFileIsReportedOnTheImplementingPart()
+    {
+        const string definingPart = """
+                                    interface I
+                                    {
+                                        void M();
+                                    }
+
+                                    partial class C : I
+                                    {
+                                        #region I
+
+                                        public partial void M();
+
+                                        #endregion
+                                    }
+                                    """;
+
+        const string implementingPart = """
+                                        partial class C
+                                        {
+                                            public partial void {|RH7409:M|}()
+                                            {
+                                            }
+                                        }
+                                        """;
+
+        await Verify(definingPart, test => test.TestState.Sources.Add(("/0/Test1.cs", implementingPart)));
+    }
+
+    /// <summary>
+    /// Verifies that an interface implementation in a region nested in its interface region is judged by the innermost
+    /// region, and one in the interface region nested in another region is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7409-001")]
+    [Requirement("SHARED-REGGROUP-001")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task VerifyImplementationInNestedRegionIsJudgedByTheInnermostRegion()
+    {
+        const string testData = """
+                                interface I
+                                {
+                                    void M();
+
+                                    void N();
+                                }
+
+                                class C : I
+                                {
+                                    #region I
+
+                                    #region Methods
+
+                                    public void {|RH7409:M|}()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    #endregion
+
+                                    #region Interfaces
+
+                                    #region I
+
+                                    public void N()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     /// <summary>

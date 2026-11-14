@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -77,14 +78,16 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
     }
 
     /// <summary>
-    /// Verifying no code fix is offered when the move would separate a preprocessor directive from its partner,
-    /// with the conditional opened around the target accessor and closed before the moved accessor
+    /// Verifies that an accessor list with a conditional directive around the misordered remove accessor is not
+    /// reported where the symbol is defined
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task NoCodeFixWhenDirectivesAreInAccessorLeadingTrivia()
+    [Requirement("RH7108-001")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task ConditionalDirectiveAroundTheRemoveAccessorKeepsTheAddAccessorFromBeingReported()
     {
-        const string testCode = """
+        const string testData = """
                                 using System;
 
                                 public class TestClass
@@ -107,27 +110,20 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
                                 }
                                 """;
 
-        var actions = await GetCodeFixActionsAsync(testCode,
-                                                   RH7108EventAccessorsMustFollowOrderAnalyzer.DiagnosticId,
-                                                   root => root.DescendantNodes()
-                                                               .OfType<AccessorDeclarationSyntax>()
-                                                               .Single(accessor => accessor.Kind() == SyntaxKind.AddAccessorDeclaration)
-                                                               .Keyword
-                                                               .GetLocation(),
-                                                   "DEBUG");
-
-        Assert.IsEmpty(actions);
+        await Verify(testData, test => test.SolutionTransforms.Add(DefineDebug));
     }
 
     /// <summary>
-    /// Verifying no code fix is offered when a preprocessor directive sits between the accessor attribute list and the
-    /// accessor keyword, since the directive attaches to a later token and moving the accessor would split the pair
+    /// Verifies that an accessor list with a conditional directive between the attribute list and the keyword of the
+    /// add accessor is not reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task NoCodeFixWhenDirectiveFollowsAccessorAttributeList()
+    [Requirement("RH7108-001")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task ConditionalDirectiveBehindTheAttributeListOfTheAddAccessorKeepsItFromBeingReported()
     {
-        const string testCode = """
+        const string testData = """
                                 using System;
 
                                 public class TestClass
@@ -141,7 +137,7 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
                                             _changed -= value;
                                         }
 
-                                        [Obsolete]
+                                        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
                                 #if DEBUG
                                         add
                                         {
@@ -152,16 +148,7 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
                                 }
                                 """;
 
-        var actions = await GetCodeFixActionsAsync(testCode,
-                                                   RH7108EventAccessorsMustFollowOrderAnalyzer.DiagnosticId,
-                                                   root => root.DescendantNodes()
-                                                               .OfType<AccessorDeclarationSyntax>()
-                                                               .Single(accessor => accessor.Kind() == SyntaxKind.AddAccessorDeclaration)
-                                                               .Keyword
-                                                               .GetLocation(),
-                                                   "DEBUG");
-
-        Assert.IsEmpty(actions);
+        await Verify(testData, test => test.SolutionTransforms.Add(DefineDebug));
     }
 
     /// <summary>
@@ -635,7 +622,98 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
         await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies the specification example in which a conditional directive between the accessors keeps the add accessor
+    /// from being reported, and one inside an accessor body does not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7108-001")]
+    public async Task ConditionalDirectiveBetweenTheAccessorsButNotInsideABodyKeepsTheAddAccessorFromBeingReported()
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    private Action _handlers;
+
+                                    public event Action A
+                                    {
+                                #if !NEVER
+                                        remove { _handlers -= value; }
+                                #endif
+                                        add { _handlers += value; }
+                                    }
+
+                                    public event Action B
+                                    {
+                                        remove
+                                        {
+                                #if DEBUG
+                                            Console.WriteLine();
+                                #endif
+                                            _handlers -= value;
+                                        }
+
+                                        {|RH7108:add|}
+                                        {
+                                            _handlers += value;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an accessor list with an empty conditional directive pair between the accessors is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7108-001")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task EmptyConditionalDirectivePairBetweenTheAccessorsKeepsTheAddAccessorFromBeingReported()
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    private Action _handlers;
+
+                                    public event Action A
+                                    {
+                                        remove { _handlers -= value; }
+                                #if DEBUG
+                                #endif
+                                        add { _handlers += value; }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Defines the preprocessor symbol <c>DEBUG</c> for the test project
+    /// </summary>
+    /// <param name="solution">Solution</param>
+    /// <param name="projectId">Project ID</param>
+    /// <returns>Solution</returns>
+    private static Solution DefineDebug(Solution solution, ProjectId projectId)
+    {
+        return solution.GetProject(projectId)?.ParseOptions is CSharpParseOptions parseOptions
+                   ? solution.WithProjectParseOptions(projectId, parseOptions.WithPreprocessorSymbols("DEBUG"))
+                   : solution;
+    }
+
+    #endregion // Methods
 
     #region BatchCodeFixTestsBase
 
