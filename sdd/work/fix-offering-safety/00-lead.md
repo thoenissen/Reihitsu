@@ -107,4 +107,5 @@ Batch 2 (questions 8–10, 2026-11-14):
 - 12 spec checker consistent (0957621). Merged origin/main 23cf11a (clean, build green 0 warnings, no provider left on bare CodeFixProvider).
 - 13 auditor (c4cfd1e) audited 9d38a0b vs main 23cf11a: findings #1 (high, architecture), #2, #3 on #1600; others pass.
 - Repair round 2: test implementer (14) → implementer (15) → cleaner (16) → spec checker (17) → auditor on the repair (18).
-- Next: test implementer (14). After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
+- 14 test implementer (417800b tests, 78a3fce handover): 4 RH3002/RH7101 Fix All tests fail today; word-boundary rows pass.
+- Next: implementer (15). After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
