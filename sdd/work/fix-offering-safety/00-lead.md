@@ -51,6 +51,8 @@ Batch 1 (questions 1–7, 2026-11-14):
 | 5 | skeptic | #1143 scope | Proceed on RH6016, RH8204, RH5110, RH3001, RH3102, RH7102 and the remaining `NumberOfFixAllIterations = 2` tests; RH6024/6023/5506/5204 already resolved; RH5104 and RH5405 if/else are guard-dependent (keep pass with comment) | Skeptic evidence; issue allows guard-dependent passes | SHARED-FIX-002 decides the output | pending |
 | 6 | lead | #1274 option B (withhold fix) | Dropped from the output question | Contradicts SHARED-FIX-011 (this run) and SHARED-DIAG-010 | Removing an option, not deciding an output |  n/a |
 | 8 | batch 1 | Lane | Widen bug fix → behavior change; change doc required | Q1B (new formatter refusal), Q4C (new unsupported shape), Q3B (new type) are visible/structural changes that need a change doc | Lane is internal; outputs decided by the maintainer | pending |
+| 9 | 03 spec author | Visible items beyond the answers: inline `a ? /* c */ 1` refused (FMT-UNSUP-008); SHARED-FIX-012 withholds every fix in a document holding the carrier (and renames touching such a document); a file holding both the carrier and an unsupported shape is left unchanged unreported (FMT-PIPE-033 before precheck); RH5308-006 | Accept all | Inline comment: maintainer said comments are supported only above the `?`/`:` line; whole-document withholding and the double-shape case are rare-class refusals (AGENTS.md *Code-fix coverage*); RH5308-006 is a SHARED-FIX-005 bug fix (#1673) | Covered by Q4/Q3 answers or rare-class refusal; no new output question | c679eb1 |
+| 10 | 03 spec author | Follow-up "true branch after `// c` on `?` line lands in column 8" | Drop: resolved by FMT-UNSUP-008; the wider candidate keeps only `b + // c` and `int A => // c` | Shape now refused as unsupported | n/a | c679eb1 |
 | 7 | lead | #1600 fix-side line kinds | `#elif`/`#else`/`#endif` lines in a multi-line string or `/* */` that starts inside a conditional group, not any `#` line | A plain `#` check withholds fixes on Markdown raw strings; skeptic shows only these lines can hide code | Only offers more fixes than the issue's wording; rare-class withholding | pending |
 
 ## Follow-up candidates
@@ -60,12 +62,12 @@ Batch 1 (questions 1–7, 2026-11-14):
 - Declare unsupported (maintainer answer Q7, 2026-11-14): a preprocessor directive between an embedded statement's header and its unbraced body (FMT-STRUCT-003), in a change of its own; deletes the structural phase's brace guard for it — 02-skeptic.md *Whole run*.
 
 - #1150: SHARED-FIX-011 third sentence conflicts with RH5401-004 (RH5401 reports a property the formatter keeps) — 02-skeptic.md.
-- Formatter class: a continuation line whose previous line ends with a `//` comment is laid out in the enclosing statement's/member's column (`a ? // c`, `b + // c`, `int A => // c`) — 02-skeptic.md #1274 (widens the spec author's candidate below).
-- Formatter places a conditional's true branch that follows a `//` comment on the `?` line in the statement's column (column 8 in the #1274 input) — 01-spec-author.md (#1274).
+- Formatter class: a continuation line whose previous line ends with a `//` comment is laid out in the enclosing statement's/member's column (`b + // c` → `1;` in column 8, `int A => // c` → `1;` in column 4) — 02-skeptic.md #1274; the `?` member is dropped (decision 10).
 
 ## State
 
 - Last step finished: 01 spec author (e36792d): SHARED-FIX-011 written for #1150; open output questions drafted for #1600, #1274, #1678.
 - 02 skeptic done (14a8b5a).
 - Batch 1 answered (see Maintainer answers).
-- Next: fresh spec author (03) — change doc + spec text for all answers and #1150 corrections; then fresh skeptic (04) on the spec diff; then test implementer. After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
+- 03 spec author done (c679eb1): change doc `sdd/changes/2026-11/fix-offering-safety.md` (Draft), FMT-PIPE-033, SHARED-FIX-011/012, FMT-UNSUP-008, RH5308-005/006. Lane check behavior-change confirmed.
+- Next: fresh skeptic (04) on the spec diff; then accept change doc, then test implementer. After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
