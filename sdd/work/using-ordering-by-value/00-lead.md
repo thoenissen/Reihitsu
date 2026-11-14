@@ -46,4 +46,5 @@
 - Disputed test corrected (c7c7e64, 06-test-implementer.md); RH720 analyzer tests 232/232.
 - Cleaner clean (bf83a71, 07-cleaner.md).
 - Spec checker (2102800, 08-spec-checker.md): one finding = the RH7201 example markup item. Repair round 1 (spec only).
-- Next: fresh spec author for the RH7201 example (running), then spec checker, then auditor.
+- Repair round 1 done: 041886c (09-spec-author), spec checker consistent (abe7ba8, 10-spec-checker). Main not ahead; Release build green.
+- Next: auditor (running) on head after this commit.
