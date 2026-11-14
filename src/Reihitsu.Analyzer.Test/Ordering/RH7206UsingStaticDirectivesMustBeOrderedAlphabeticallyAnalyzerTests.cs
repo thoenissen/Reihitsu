@@ -230,6 +230,211 @@ public class RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzerTests
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that a static directive is compared with an earlier static directive of its group across a static
+    /// directive of another root
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7206-001")]
+    public async Task StaticDirectiveIsComparedWithAnEarlierOneOfItsGroupAcrossAStaticDirectiveOfAnotherRoot()
+    {
+        const string testCode = """
+                                using static Microsoft.CodeAnalysis.CSharp.SyntaxFacts;
+                                using static Reihitsu.Core.CasingUtilities;
+                                using static {|RH7206:Microsoft.CodeAnalysis.CSharp.SyntaxFactory|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix organizes a block whose static directive is out of order with an earlier one of its
+    /// group across a static directive of another root, in one pass
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7206-001")]
+    [Requirement("RH7206-004")]
+    public async Task CodeFixOrganizesABlockOutOfOrderAcrossAStaticDirectiveOfAnotherRoot()
+    {
+        const string testCode = """
+                                using static Microsoft.CodeAnalysis.CSharp.SyntaxFacts;
+                                using static Reihitsu.Core.CasingUtilities;
+                                using static {|RH7206:Microsoft.CodeAnalysis.CSharp.SyntaxFactory|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+                                 using static Microsoft.CodeAnalysis.CSharp.SyntaxFacts;
+
+                                 using static Reihitsu.Core.CasingUtilities;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that a static directive is compared with every earlier static directive of its group, not only with the
+    /// one directly above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7206-001")]
+    public async Task StaticDirectiveIsComparedWithEveryEarlierOneOfItsGroup()
+    {
+        const string testCode = """
+                                using static System.Math;
+                                using static {|RH7206:System.Console|};
+                                using static {|RH7206:System.Convert|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a static directive of the global section is compared with an earlier one of its group across a
+    /// static directive of another root
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7206-001")]
+    [Requirement("SHARED-USING-002")]
+    public async Task GlobalStaticDirectiveIsComparedWithAnEarlierOneOfItsGroupAcrossAnotherRoot()
+    {
+        const string testCode = """
+                                global using static Microsoft.CodeAnalysis.CSharp.SyntaxFacts;
+                                global using static Reihitsu.Core.CasingUtilities;
+                                global using static {|RH7206:Microsoft.CodeAnalysis.CSharp.SyntaxFactory|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that static directives of one group in order are not reported across a static directive of another root
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7206-002")]
+    public async Task OrderedStaticDirectivesOfAGroupAreNotReportedAcrossAnotherRoot()
+    {
+        const string testCode = """
+                                using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+                                using static Reihitsu.Core.CasingUtilities;
+                                using static Microsoft.CodeAnalysis.CSharp.SyntaxFacts;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that a static directive whose type name holds whitespace between its tokens is grouped and sorted by its
+    /// value
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7206-001")]
+    public async Task StaticDirectiveWithWhitespaceInItsTypeNameIsComparedByItsValue()
+    {
+        const string testCode = """
+                                using static System . Math;
+                                using static {|RH7206:System.Console|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a static directive whose type name has a verbatim prefix is grouped and sorted by its value
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7206-001")]
+    public async Task VerbatimStaticDirectiveIsComparedByItsValue()
+    {
+        const string testCode = """
+                                using static @System.Math;
+                                using static {|RH7206:System.Console|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that whitespace inside a type-argument list is not part of the sort key, so <c>Comparer&lt;byte&gt;</c>
+    /// is reported after <c>Comparer&lt; int &gt;</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7206-001")]
+    public async Task TypeArgumentWhitespaceIsNotPartOfTheSortKey()
+    {
+        const string testCode = """
+                                using static System.Collections.Generic.Comparer< int >;
+                                using static {|RH7206:System.Collections.Generic.Comparer<byte>|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that static directives in order by their value are not reported, although the whitespace inside a
+    /// type-argument list would sort them the other way by spelling
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7206-002")]
+    public async Task StaticDirectivesInOrderByTheirValueAreNotReported()
+    {
+        const string testCode = """
+                                using static System.Collections.Generic.Comparer<byte>;
+                                using static System.Collections.Generic.Comparer< int >;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
@@ -257,8 +462,8 @@ public class RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzerTests
                                  }
                                  """;
 
-        // All three static directives share the System root group, so each one is compared against its
-        // immediate predecessor and two of them are reported. Both fixes reorganize the same using list, so
+        // All three static directives share the System root group, so each one is compared against every
+        // earlier one of the group and two of them are reported. Both fixes reorganize the same using list, so
         // their text changes cover the identical span and the surviving one already clears both
         return new FixAllScenario(testCode,
                                   fixedCode,

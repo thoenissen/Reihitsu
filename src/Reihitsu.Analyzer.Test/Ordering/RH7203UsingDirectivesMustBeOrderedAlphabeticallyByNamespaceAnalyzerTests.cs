@@ -705,6 +705,250 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that a directive is compared with an earlier directive of its group across a regular directive of
+    /// another root
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    public async Task DirectiveIsComparedWithAnEarlierDirectiveOfItsGroupAcrossARegularDirectiveOfAnotherRoot()
+    {
+        const string testCode = """
+                                using Microsoft.B;
+                                using Alpha.X;
+                                using {|RH7203:Microsoft.A|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix organizes a block whose directive is out of order with an earlier directive of its
+    /// group across a regular directive of another root, in one pass
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("RH7203-004")]
+    public async Task CodeFixOrganizesABlockOutOfOrderAcrossARegularDirectiveOfAnotherRoot()
+    {
+        const string testCode = """
+                                using Microsoft.B;
+                                using Alpha.X;
+                                using {|RH7203:Microsoft.A|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using Alpha.X;
+
+                                 using Microsoft.A;
+                                 using Microsoft.B;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that a directive is compared with every earlier directive of its group, not only with the one directly
+    /// above it: <c>Microsoft.B</c> is reported after <c>Microsoft.C</c>, although <c>Microsoft.A</c> lies between them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    public async Task DirectiveIsComparedWithEveryEarlierDirectiveOfItsGroup()
+    {
+        const string testCode = """
+                                using Microsoft.C;
+                                using {|RH7203:Microsoft.A|};
+                                using {|RH7203:Microsoft.B|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that a directive of the <c>System</c> group is compared with every earlier directive of that group
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    public async Task SystemDirectiveIsComparedWithEveryEarlierDirectiveOfTheSystemGroup()
+    {
+        const string testCode = """
+                                using System.Text;
+                                using {|RH7203:System.Collections|};
+                                using {|RH7203:System.IO|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a directive of the global section is compared with an earlier directive of its group across a
+    /// regular directive of another root
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("SHARED-USING-002")]
+    public async Task GlobalDirectiveIsComparedWithAnEarlierDirectiveOfItsGroupAcrossAnotherRoot()
+    {
+        const string testCode = """
+                                global using Microsoft.B;
+                                global using Alpha.X;
+                                global using {|RH7203:Microsoft.A|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that directives of one group in order are not reported across a regular directive of another root
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-002")]
+    public async Task OrderedDirectivesOfAGroupAreNotReportedAcrossARegularDirectiveOfAnotherRoot()
+    {
+        const string testCode = """
+                                using Microsoft.A;
+                                using Alpha.X;
+                                using Microsoft.B;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that a directive with whitespace between the tokens of its name is compared by its value
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    public async Task DirectiveWithWhitespaceInItsNameIsComparedByItsValue()
+    {
+        const string testCode = """
+                                using System.Linq;
+                                using {|RH7203:System . IO|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a directive written with a verbatim prefix is compared by its value
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    public async Task VerbatimDirectiveIsComparedByItsValue()
+    {
+        const string testCode = """
+                                using System.Linq;
+                                using {|RH7203:@System.IO|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a directive with a comment between the tokens of its name is compared by its value
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    public async Task DirectiveWithCommentInItsNameIsComparedByItsValue()
+    {
+        const string testCode = """
+                                using System.Linq;
+                                using {|RH7203:System/* x */.IO|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a directive whose name holds a Unicode escape is compared by its value
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    public async Task UnicodeEscapedDirectiveIsComparedByItsValue()
+    {
+        const string testCode = """
+                                using System.Linq;
+                                using {|RH7203:\u0053ystem.IO|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a directive whose value sorts after the one above it is not reported, although its spelling with a
+    /// verbatim prefix would sort before it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-002")]
+    public async Task VerbatimSegmentThatSortsAfterByItsValueIsNotReported()
+    {
+        const string testCode = """
+                                using System.Collections;
+                                using System.@Linq;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
@@ -732,8 +976,8 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
                                  }
                                  """;
 
-        // All three directives share the System root group, so each one is compared against its immediate
-        // predecessor and two of them are reported. Both fixes reorganize the same using list, so their text
+        // All three directives share the System root group, so each one is compared against every earlier
+        // one of the group and two of them are reported. Both fixes reorganize the same using list, so their text
         // changes cover the identical span and the surviving one already clears both
         return new FixAllScenario(testCode,
                                   fixedCode,
