@@ -4,7 +4,7 @@
 |---|---|
 | ID prefix | SHARED-BODY |
 | Status | Active |
-| Code owners | `ExpressionBodyAnalyzerBase<TNode>`, `ExpressionBodyToBlockCodeFixProviderBase<TNode>`, `ExpressionBodyRewriteUtilities` |
+| Code owners | `ExpressionBodyAnalyzerBase<TNode>`, `ExpressionBodyToBlockCodeFixProviderBase<TNode>`, `ExpressionBodyCodeFixUtilities`, `ExpressionBodyRewriteUtilities` |
 | Uses | FMT-STRUCT-004, FMT-STRUCT-005, FMT-STRUCT-006, FMT-STRUCT-007, FMT-STRUCT-025, SHARED-FIX-006, SHARED-FIX-007 |
 
 This spec covers what the rules share that report an expression-bodied member so that it gets a block body — RH3202 (methods), RH3203 (constructors), RH3205 (operators), RH3206 (conversion operators), RH3207 (finalizers), and RH3208 (local functions): which members are left alone because the formatter cannot convert them, where the diagnostic is, and what the code fix produces. Each rule's spec states which kind of member it reports. "The member" below is the declaration the rule reports, a local function included.
