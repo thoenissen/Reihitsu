@@ -50,4 +50,5 @@
 - Test implementer done (03-test-implementer.md, 4d0bec2): #1283 and #1284 reproduced; #1285 tests red as expected.
 - Implementer done (04-implementer.md, d1ab24c): all 62 red tests green. Adds new internal type `ExpressionBodyCodeFixUtilities` (~87 code lines) → escalation 9 asked.
 - Escalation 9 answered A.
-- Next step: cleaner (05-cleaner.md).
+- Cleaner clean (356af9d).
+- Next step: spec checker (06-spec-checker.md).
