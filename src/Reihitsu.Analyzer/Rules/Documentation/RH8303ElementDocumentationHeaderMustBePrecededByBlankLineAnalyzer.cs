@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -205,12 +207,21 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer :
             var lineTextWithIndentation = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex]);
             var documentationStart = lineTextWithIndentation.IndexOf("///", StringComparison.Ordinal);
             var diagnosticStart = sourceText.Lines[lineIndex].Start + documentationStart;
+            var documentationTrivia = root.FindTrivia(diagnosticStart);
+
+            // A line below the first line of a comment written behind code continues that comment, which is judged on
+            // its first line below
+            if (documentationTrivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                && DocumentationCommentUtilities.IsWrittenBehindSource(documentationTrivia, sourceText))
+            {
+                continue;
+            }
 
             // The first documentation header of a block is exempt. The decision is read from the token preceding the
             // documentation rather than from line text, so a comment behind the opening brace does not hide it and a
             // comment ending with a brace character behind another token does not imitate it. Continuation lines of
             // documentation that starts behind the brace resolve to the same documentation trivia
-            if (IsFirstInBlock(root.FindTrivia(diagnosticStart)))
+            if (IsFirstInBlock(documentationTrivia))
             {
                 continue;
             }
@@ -226,6 +237,34 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer :
             }
 
             context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(diagnosticStart, diagnosticStart + 3))));
+        }
+
+        AnalyzeDocumentationBehindCode(context, root, sourceText, nonFormattableLineIndices);
+    }
+
+    /// <summary>
+    /// Reports <c>///</c> documentation comments written behind code. Such a comment is judged as if it started its own
+    /// line directly below that code (SHARED-DOC-004): the line in front of it holds code, so it is reported on its
+    /// first <c>///</c> unless the exemptions of a comment on a line of its own apply
+    /// </summary>
+    /// <param name="context">Context</param>
+    /// <param name="root">Syntax root</param>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="nonFormattableLineIndices">Indices of the lines the formatter does not format</param>
+    private void AnalyzeDocumentationBehindCode(SyntaxTreeAnalysisContext context, SyntaxNode root, SourceText sourceText, HashSet<int> nonFormattableLineIndices)
+    {
+        foreach (var documentationTrivia in DocumentationAnalysisUtilities.GetDocumentationCommentsBehindCode(root, sourceText, context.CancellationToken))
+        {
+            var documentationStart = documentationTrivia.FullSpan.Start;
+
+            if (nonFormattableLineIndices.Contains(sourceText.Lines.GetLineFromPosition(documentationStart).LineNumber)
+                || IsFirstInBlock(documentationTrivia)
+                || IsPrecededByCommentOrDirective(documentationTrivia))
+            {
+                continue;
+            }
+
+            context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(documentationStart, documentationStart + 3))));
         }
     }
 

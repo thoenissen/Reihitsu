@@ -33,14 +33,13 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceCodeFixProvider : C
     {
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var line = sourceText.Lines.GetLineFromPosition(diagnosticSpan.Start);
-        var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, line);
-        var trimmed = lineText.TrimStart();
-        var indentation = lineText.Substring(0, lineText.Length - trimmed.Length);
-        var suffix = trimmed.StartsWith("///", StringComparison.Ordinal) ? trimmed.Substring(3) : trimmed;
-        var normalizedSuffix = DocumentationCommentUtilities.NormalizeExteriorSuffix(suffix);
-        var replacement = $"{indentation}///{normalizedSuffix}";
 
-        return document.WithText(sourceText.Replace(TextSpan.FromBounds(line.Start, line.End), replacement));
+        // Only the text behind the reported /// changes, so the indentation, or the code a comment is written behind,
+        // stays as it is
+        var suffixSpan = TextSpan.FromBounds(diagnosticSpan.End, line.End);
+        var normalizedSuffix = DocumentationCommentUtilities.NormalizeExteriorSuffix(sourceText.ToString(suffixSpan));
+
+        return document.WithText(sourceText.Replace(suffixSpan, normalizedSuffix));
     }
 
     #endregion // Methods

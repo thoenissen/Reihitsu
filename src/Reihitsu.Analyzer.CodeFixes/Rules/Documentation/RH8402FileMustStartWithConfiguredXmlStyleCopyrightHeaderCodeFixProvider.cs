@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Data;
 using Reihitsu.Analyzer.Rules.Documentation;
 
@@ -48,7 +49,10 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
 
         expectedHeader = CopyrightHeaderTemplateResolver.NormalizeLineEndings(expectedHeader, sourceText);
 
-        var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        var syntaxRoot = syntaxTree == null
+                             ? null
+                             : DocumentationAnalysisUtilities.GetRootWithParsedDocumentation(syntaxTree, cancellationToken);
         var replaceSpan = GetLeadingHeaderSpan(sourceText, syntaxRoot, EndsWithLineBreak(expectedHeader));
         var replacementText = EnsureHeaderIsSeparatedFromCode(expectedHeader, sourceText, replaceSpan.End);
 
@@ -119,7 +123,7 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
     /// in front of the first token; otherwise the empty span at the start of the file
     /// </summary>
     /// <param name="sourceText">Source text</param>
-    /// <param name="syntaxRoot">Syntax root</param>
+    /// <param name="syntaxRoot">Syntax root with parsed documentation comments, so a documentation comment ends the run of comments in every documentation mode</param>
     /// <param name="headerEndsWithLineBreak">Whether the header ends with a line break</param>
     /// <returns>Leading header span</returns>
     private static TextSpan GetLeadingHeaderSpan(SourceText sourceText, SyntaxNode syntaxRoot, bool headerEndsWithLineBreak)

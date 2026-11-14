@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Clarity;
@@ -26,12 +25,14 @@ public class RH3001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
     #region Methods
 
     /// <summary>
-    /// Builds the comparison with <see langword="false"/> that replaces the logical-not expression. The parentheses are
-    /// annotated for the simplifier, which removes them where the comparison does not need them
+    /// Builds the comparison with <see langword="false"/> that replaces the logical-not expression, with or without
+    /// parentheses around it. The comment between <c>!</c> and the operand stands in front of the operand, without the
+    /// whitespace in front of it (RH3001-005)
     /// </summary>
     /// <param name="node">Logical-not expression</param>
+    /// <param name="isParenthesized">Whether the comparison is put in parentheses</param>
     /// <returns>The replacement expression</returns>
-    private static ExpressionSyntax BuildReplacement(PrefixUnaryExpressionSyntax node)
+    private static ExpressionSyntax BuildReplacement(PrefixUnaryExpressionSyntax node, bool isParenthesized)
     {
         var operandLeadingTrivia = node.OperatorToken.TrailingTrivia.AddRange(node.Operand.GetLeadingTrivia());
 
@@ -41,16 +42,48 @@ public class RH3001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
             operandLeadingTrivia = operandLeadingTrivia.RemoveAt(0);
         }
 
-        var openParenthesis = SyntaxFactory.Token(SyntaxKind.OpenParenToken)
-                                           .WithLeadingTrivia(node.GetLeadingTrivia())
-                                           .WithTrailingTrivia(operandLeadingTrivia);
-        var operand = node.Operand.WithoutLeadingTrivia();
+        // Every token is written with its whitespace, so no elastic trivia is left that the code action would format
+        var operand = node.Operand.WithoutTrivia();
+        var equalsToken = SyntaxFactory.Token(SyntaxFactory.TriviaList(SyntaxFactory.Space), SyntaxKind.EqualsEqualsToken, SyntaxFactory.TriviaList(SyntaxFactory.Space));
+        var falseLiteral = SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression, SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.FalseKeyword, SyntaxFactory.TriviaList()));
+        var comparison = SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, operand, equalsToken, falseLiteral);
 
-        return SyntaxFactory.ParenthesizedExpression(openParenthesis,
-                                                     SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, operand, SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)),
-                                                     SyntaxFactory.Token(SyntaxKind.CloseParenToken))
-                            .WithTrailingTrivia(node.GetTrailingTrivia())
-                            .WithAdditionalAnnotations(Simplifier.Annotation);
+        if (isParenthesized == false)
+        {
+            return comparison.WithLeadingTrivia(node.GetLeadingTrivia().AddRange(operandLeadingTrivia))
+                             .WithTrailingTrivia(node.GetTrailingTrivia());
+        }
+
+        var openParenthesis = SyntaxFactory.Token(node.GetLeadingTrivia(), SyntaxKind.OpenParenToken, operandLeadingTrivia);
+        var closeParenthesis = SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.CloseParenToken, node.GetTrailingTrivia());
+
+        return SyntaxFactory.ParenthesizedExpression(openParenthesis, comparison, closeParenthesis);
+    }
+
+    /// <summary>
+    /// Finds the replacement the fix writes: the comparison without parentheses where it parses as the negation's place in
+    /// its parent, so it binds as the negation did, and in parentheses everywhere else (RH3001-004). The parser gives the
+    /// answer, so no table of operator precedences is kept here. A replacement that does not parse as written in either
+    /// form, such as one that would read as a generic name, is not offered (RH3001-007)
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="node">Logical-not expression</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The replacement, or <see langword="null"/> when no replacement parses as written</returns>
+    private static ExpressionSyntax FindReplacement(SyntaxNode root, PrefixUnaryExpressionSyntax node, CancellationToken cancellationToken)
+    {
+        var replacement = BuildReplacement(node, isParenthesized: false);
+
+        if (RewriteParseUtilities.ParsesAsWritten(root, root.ReplaceNode(node, replacement), cancellationToken))
+        {
+            return replacement;
+        }
+
+        replacement = BuildReplacement(node, isParenthesized: true);
+
+        return RewriteParseUtilities.ParsesAsWritten(root, root.ReplaceNode(node, replacement), cancellationToken)
+                   ? replacement
+                   : null;
     }
 
     /// <summary>
@@ -58,15 +91,16 @@ public class RH3001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="node">Node with diagnostics</param>
+    /// <param name="replacement">The replacement of <paramref name="node"/></param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, PrefixUnaryExpressionSyntax node, CancellationToken cancellationToken)
+    private static async Task<Document> ApplyCodeFixAsync(Document document, PrefixUnaryExpressionSyntax node, ExpressionSyntax replacement, CancellationToken cancellationToken)
     {
         var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         if (syntaxRoot != null)
         {
-            var newSyntaxRoot = syntaxRoot.ReplaceNode(node, BuildReplacement(node));
+            var newSyntaxRoot = syntaxRoot.ReplaceNode(node, replacement);
 
             document = document.WithSyntaxRoot(newSyntaxRoot);
         }
@@ -87,6 +121,38 @@ public class RH3001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
         return node.SyntaxTree.GetDiagnostics().Any(diagnostic => diagnostic.Location.SourceSpan.IntersectsWith(gap)) == false
                && gapTrivia.All(static trivia => SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia) == false
                                                  && trivia.IsKind(SyntaxKind.SkippedTokensTrivia) == false);
+    }
+
+    /// <summary>
+    /// Determines whether the negation touches a word: a keyword or an identifier, contextual keywords included, stands
+    /// directly in front of <c>!</c> or directly behind the negation's last token, with no trivia between them. In front,
+    /// the fix is withheld whatever the operand starts with, because telling an operand that would merge with the word
+    /// from one that would not (<c>(</c> or a kept comment) is a second check for a rare shape. Behind, <c>false</c> would
+    /// merge with the word. Whitespace, a line break, or a comment between the negation and the word keeps the fix
+    /// (RH3001-009)
+    /// </summary>
+    /// <param name="node">Logical-not expression</param>
+    /// <returns><see langword="true"/> if the negation touches a word on either side</returns>
+    private static bool TouchesWord(PrefixUnaryExpressionSyntax node)
+    {
+        var previousToken = node.OperatorToken.GetPreviousToken();
+        var lastToken = node.GetLastToken();
+        var nextToken = lastToken.GetNextToken();
+
+        return (IsWord(previousToken) && previousToken.TrailingTrivia.Count == 0 && node.OperatorToken.LeadingTrivia.Count == 0)
+               || (IsWord(nextToken) && lastToken.TrailingTrivia.Count == 0 && nextToken.LeadingTrivia.Count == 0);
+    }
+
+    /// <summary>
+    /// Determines whether a token is a keyword or an identifier, contextual keywords included: a word that merges with
+    /// an adjacent word or <see langword="false"/> written against it
+    /// </summary>
+    /// <param name="token">Token</param>
+    /// <returns><see langword="true"/> if the token is a word</returns>
+    private static bool IsWord(SyntaxToken token)
+    {
+        return token.IsKind(SyntaxKind.IdentifierToken)
+               || SyntaxFacts.IsKeywordKind(token.Kind());
     }
 
     #endregion // Methods
@@ -111,14 +177,18 @@ public class RH3001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                // The comparison is checked with its parentheses, which a comparison behind a > operator needs: there,
-                // a < in front of the negation and the > can read as a type argument list
-                if (root.FindNode(diagnostic.Location.SourceSpan) is PrefixUnaryExpressionSyntax node
+                // The innermost node is the negation itself, also where it is the whole of an argument, an element, or
+                // another node around it that adds no token of its own (RH3001-004). A negation that is the whole
+                // expression of a constant pattern gets no fix (RH3001-008), and neither does a negation that touches a word
+                // (RH3001-009)
+                if (root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true) is PrefixUnaryExpressionSyntax node
+                    && node.Parent is not ConstantPatternSyntax
+                    && TouchesWord(node) == false
                     && HasSafeOperandTrivia(node)
-                    && RewriteParseUtilities.ParsesAsWritten(root, root.ReplaceNode(node, BuildReplacement(node)), context.CancellationToken))
+                    && FindReplacement(root, node, context.CancellationToken) is { } replacement)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3001Title,
-                                                              cancellationToken => ApplyCodeFixAsync(context.Document, node, cancellationToken),
+                                                              cancellationToken => ApplyCodeFixAsync(context.Document, node, replacement, cancellationToken),
                                                               nameof(RH3001NotOperatorShouldNotBeUsedCodeFixProvider)),
                                             diagnostic);
                 }

@@ -398,12 +398,17 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
     }
 
     /// <summary>
-    /// Characterizes the line endings the fix produces in a CRLF document when the operand starts on the line after
-    /// the operator, behind a comment
+    /// Verifies the fix of an operand on the line after the operator, behind a block comment, keeps the line break that
+    /// ends the operator's line as it was, under LF and CRLF
     /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task FixOfOperandOnTheNextLineInCarriageReturnLineFeedDocument()
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("RH3006-003")]
+    public async Task FixOfCommentedOperandOnTheNextLineKeepsTheLineBreakInFrontOfIt(string endOfLine)
     {
         const string testCode = """
                                 class C
@@ -411,24 +416,390 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
                                     bool M(bool a, bool b, bool c)
                                     {
                                         return a ||
-                                            /* x */ b && c;
+                                            /* x */ {|RH3006:b && c|};
                                     }
                                 }
-
                                 """;
 
-        const string expectedCode = "class C\r\n"
-                                    + "{\r\n"
-                                    + "    bool M(bool a, bool b, bool c)\r\n"
-                                    + "    {\r\n"
-                                    + "        return a ||\n"
-                                    + "            /* x */ (b && c);\r\n"
-                                    + "    }\r\n"
-                                    + "}\r\n";
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(bool a, bool b, bool c)
+                                     {
+                                         return a ||
+                                             /* x */ (b && c);
+                                     }
+                                 }
+                                 """;
 
-        var fixedCode = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode));
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
 
-        Assert.AreEqual(expectedCode, fixedCode);
+    /// <summary>
+    /// Verifies the fix of an operand on the line after the operator keeps the line break in front of it when no
+    /// comment leads it, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task FixOfOperandOnTheNextLineWithoutACommentKeepsTheLineBreakInFrontOfIt(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(bool a, bool b, bool c)
+                                    {
+                                        return a ||
+                                            {|RH3006:b && c|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(bool a, bool b, bool c)
+                                     {
+                                         return a ||
+                                             (b && c);
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the fix of an operand led by a line comment on its own line keeps both line breaks in front of the
+    /// operand, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("RH3006-003")]
+    public async Task FixOfOperandBehindALineCommentOnItsOwnLineKeepsTheLineBreaks(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(bool a, bool b, bool c)
+                                    {
+                                        return a ||
+                                            // x
+                                            {|RH3006:b && c|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(bool a, bool b, bool c)
+                                     {
+                                         return a ||
+                                             // x
+                                             (b && c);
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the fix of an operand behind a blank line and a comment writes the line break of the blank line, which
+    /// lies in the operand's own leading trivia, as the document's line ending, and keeps the line break in front of it,
+    /// under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("SHARED-FIX-008")]
+    [Requirement("RH3006-003")]
+    public async Task FixOfOperandBehindABlankLineAndACommentWritesTheDocumentsLineEnding(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(bool a, bool b, bool c)
+                                    {
+                                        return a ||
+
+                                            /* x */ {|RH3006:b && c|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(bool a, bool b, bool c)
+                                     {
+                                         return a ||
+
+                                             /* x */ (b && c);
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the fix of a commented operand on the next line keeps the line breaks when the semicolon stands on a line
+    /// of its own, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task FixOfCommentedOperandOnTheNextLineKeepsTheLineBreakInFrontOfTheSemicolonLine(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(bool a, bool b, bool c)
+                                    {
+                                        return a ||
+                                            /* x */ {|RH3006:b && c|}
+                                            ;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(bool a, bool b, bool c)
+                                     {
+                                         return a ||
+                                             /* x */ (b && c)
+                                             ;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the fix of a commented left operand on the line after <c>return</c> keeps the line break in front of it,
+    /// under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("RH3006-003")]
+    public async Task FixOfCommentedLeftOperandOnTheNextLineKeepsTheLineBreakInFrontOfIt(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(bool a, bool b, bool c)
+                                    {
+                                        return
+                                            /* x */ {|RH3006:a && b|} || c;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(bool a, bool b, bool c)
+                                     {
+                                         return
+                                             /* x */ (a && b) || c;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the fix of a commented left operand of a whole argument on the line after <c>(</c> keeps the line break
+    /// in front of it, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("RH3006-003")]
+    public async Task FixOfCommentedOperandOfAnArgumentOnTheNextLineKeepsTheLineBreakInFrontOfIt(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void N(bool v)
+                                    {
+                                    }
+
+                                    void M(bool a, bool b, bool c)
+                                    {
+                                        N(
+                                            /* x */ {|RH3006:a && b|} || c);
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void N(bool v)
+                                     {
+                                     }
+
+                                     void M(bool a, bool b, bool c)
+                                     {
+                                         N(
+                                             /* x */ (a && b) || c);
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the fix of a commented pattern operand on the line after <c>or</c> keeps the line break in front of it,
+    /// under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("RH3006-003")]
+    public async Task FixOfCommentedPatternOperandOnTheNextLineKeepsTheLineBreakInFrontOfIt(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(int i)
+                                    {
+                                        return i is 1 or
+                                            /* x */ {|RH3006:> 2 and < 5|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(int i)
+                                     {
+                                         return i is 1 or
+                                             /* x */ (> 2 and < 5);
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the fix of an operand behind a comment on the operator's line keeps the line break behind the comment,
+    /// under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task FixOfOperandBehindALineCommentOnTheOperatorsLineKeepsTheLineBreak(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(bool a, bool b, bool c)
+                                    {
+                                        return a || // x
+                                            {|RH3006:b && c|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(bool a, bool b, bool c)
+                                     {
+                                         return a || // x
+                                             (b && c);
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies Fix All, and the single fix applied to one operand after the other, over two operands that are each led by
+    /// a comment on their own line keep every line break as it was, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("RH3006-003")]
+    public async Task FixAllOfTwoCommentedOperandsOnTheirOwnLinesKeepsTheLineBreaks(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(bool a, bool b, bool c, bool d)
+                                    {
+                                        return
+                                            // first
+                                            {|RH3006:a && b|} ||
+                                            // second
+                                            {|RH3006:c && d|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(bool a, bool b, bool c, bool d)
+                                     {
+                                         return
+                                             // first
+                                             (a && b) ||
+                                             // second
+                                             (c && d);
+                                     }
+                                 }
+                                 """;
+
+        var expectedCode = ConvertEndOfLine(fixedCode, endOfLine);
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), expectedCode);
+
+        var onceFixedCode = await ApplyCodeFixAsync(ConvertEndOfLine(RemoveMarkup(testCode), endOfLine));
+
+        Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(onceFixedCode));
     }
 
     #endregion // Tests

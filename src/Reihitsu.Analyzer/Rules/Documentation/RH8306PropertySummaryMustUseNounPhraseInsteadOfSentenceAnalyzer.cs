@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
 
 using Microsoft.CodeAnalysis;
@@ -169,28 +170,24 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer : D
     }
 
     /// <summary>
-    /// Gets the summary of a declaration's documentation comment when it reads as a sentence
+    /// Gets the top-level summaries of a declaration's documentation comment that read as a sentence, in source order
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <param name="isBooleanProperty"><see langword="true"/> when the summary belongs to a Boolean or nullable Boolean property</param>
-    /// <returns>The summary element, or <see langword="null"/> when the declaration has no summary or its summary is no sentence</returns>
-    private static XmlElementSyntax GetSentenceSummary(MemberDeclarationSyntax declaration, bool isBooleanProperty)
+    /// <returns>The summary elements that read as a sentence; empty when the declaration has none</returns>
+    private static ImmutableArray<XmlElementSyntax> GetSentenceSummaries(MemberDeclarationSyntax declaration, bool isBooleanProperty)
     {
         var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
 
-        if (documentationComment == null
-            || DirectDocumentationSyntaxChecker.GetFirstDirectTag(documentationComment, "summary") is not XmlElementSyntax summaryElement)
-        {
-            return null;
-        }
-
-        return IsSentence(GetTextContent(summaryElement), isBooleanProperty)
-                   ? summaryElement
-                   : null;
+        return DirectDocumentationSyntaxChecker.GetDirectTags(documentationComment, "summary")
+                                               .OfType<XmlElementSyntax>()
+                                               .Where(summaryElement => IsSentence(GetTextContent(summaryElement), isBooleanProperty))
+                                               .ToImmutableArray();
     }
 
     /// <summary>
-    /// Analyzes a property declaration
+    /// Analyze a property declaration. Each summary that reads as a sentence is reported, whatever its position among
+    /// the others; a partial property is reported once, on the part SHARED-DIAG-012 selects
     /// </summary>
     /// <param name="context">Context</param>
     private void OnPropertyDeclaration(SyntaxNodeAnalysisContext context)
@@ -202,25 +199,32 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer : D
 
         var propertySymbol = context.SemanticModel.GetDeclaredSymbol(propertyDeclaration, context.CancellationToken);
         var isBooleanProperty = IsBooleanType(propertySymbol?.Type);
-        var summaryElement = GetSentenceSummary(propertyDeclaration, isBooleanProperty);
+        var summaryElements = GetSentenceSummaries(propertyDeclaration, isBooleanProperty);
 
-        if (summaryElement == null)
+        if (summaryElements.IsEmpty)
         {
             return;
         }
 
-        // A partial property is reported once, on the first part whose summary reads as a sentence (SHARED-DIAG-012)
-        if (propertyDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword)
-            && PartialMemberUtilities.GetReportedPart(propertyDeclaration,
-                                                      propertySymbol,
-                                                      part => GetSentenceSummary(part, isBooleanProperty) != null,
-                                                      context.SemanticModel.Compilation,
-                                                      context.CancellationToken) != propertyDeclaration)
+        if (propertyDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword))
         {
+            // A partial property is reported once, on the first part whose summary reads as a sentence (SHARED-DIAG-012)
+            if (PartialMemberUtilities.GetReportedPart(propertyDeclaration,
+                                                       propertySymbol,
+                                                       part => GetSentenceSummaries(part, isBooleanProperty).IsEmpty == false,
+                                                       context.SemanticModel.Compilation,
+                                                       context.CancellationToken) == propertyDeclaration)
+            {
+                context.ReportDiagnostic(CreateDiagnostic(summaryElements[0].GetLocation()));
+            }
+
             return;
         }
 
-        context.ReportDiagnostic(CreateDiagnostic(summaryElement.GetLocation()));
+        foreach (var summaryElement in summaryElements)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(summaryElement.GetLocation()));
+        }
     }
 
     #endregion // Methods

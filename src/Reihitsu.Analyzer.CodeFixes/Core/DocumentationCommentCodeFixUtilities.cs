@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -82,8 +81,7 @@ internal static class DocumentationCommentCodeFixUtilities
 
     /// <summary>
     /// Determines whether the reported documentation element can be laid out by <see cref="LayOutElementAsync"/>: it is
-    /// closed by an end tag of its own, and its documentation comment is a <c>///</c> comment that starts its own line
-    /// instead of following code
+    /// closed by an end tag of its own, and its documentation comment starts its own line instead of following code
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="sourceText">Source text</param>
@@ -97,7 +95,6 @@ internal static class DocumentationCommentCodeFixUtilities
     {
         return TryGetElementToLayOut(root, diagnosticSpan, out var element)
                && element.FirstAncestorOrSelf<DocumentationCommentTriviaSyntax>() is { } documentationComment
-               && documentationComment.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
                && DocumentationCommentUtilities.IsWrittenBehindSource(documentationComment.ParentTrivia, sourceText) == false;
     }
 

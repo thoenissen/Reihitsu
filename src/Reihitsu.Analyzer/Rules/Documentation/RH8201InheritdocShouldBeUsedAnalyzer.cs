@@ -93,9 +93,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzer : DiagnosticAnalyzerBase
             return true;
         }
 
-        var inherits = node is EventFieldDeclarationSyntax eventFieldDeclaration
-                           ? eventFieldDeclaration.Declaration.Variables.All(variable => DocumentationAnalysisUtilities.OverridesOrImplementsMember(semanticModel.GetDeclaredSymbol(variable, cancellationToken)))
-                           : DocumentationAnalysisUtilities.CanInheritDocumentation(node, semanticModel, cancellationToken);
+        var inherits = DocumentationAnalysisUtilities.CanInheritDocumentation(node, semanticModel, cancellationToken);
 
         if (inherits == false
             || DocumentationAnalysisUtilities.IsExplicitInterfaceImplementation(node))

@@ -423,6 +423,34 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that the fix converts only the body of an operator and keeps the spacing of its signature
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    public async Task VerifyFixKeepsTheSpacingOfTheSignature()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    public static C  operator +( C a, C b ) {|RH3205:=> a|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      public static C  operator +( C a, C b )
+                                      {
+                                          return a;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

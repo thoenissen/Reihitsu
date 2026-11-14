@@ -35,10 +35,20 @@ internal static class DirectDocumentationSyntaxChecker
     /// <returns>The documentation comment, when present</returns>
     internal static DocumentationCommentTriviaSyntax GetDocumentationComment(SyntaxNode declaration)
     {
+        return GetDocumentationComments(declaration).FirstOrDefault();
+    }
+
+    /// <summary>
+    /// Gets every XML documentation comment in the leading trivia of the declaration, in source order
+    /// </summary>
+    /// <param name="declaration">Declaration</param>
+    /// <returns>The documentation comments; empty when the declaration has none</returns>
+    internal static ImmutableArray<DocumentationCommentTriviaSyntax> GetDocumentationComments(SyntaxNode declaration)
+    {
         return declaration.GetLeadingTrivia()
                           .Select(obj => obj.GetStructure())
                           .OfType<DocumentationCommentTriviaSyntax>()
-                          .FirstOrDefault();
+                          .ToImmutableArray();
     }
 
     /// <summary>

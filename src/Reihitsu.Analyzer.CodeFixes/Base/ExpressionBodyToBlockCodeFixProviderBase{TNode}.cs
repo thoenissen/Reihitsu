@@ -6,13 +6,14 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 
+using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Formatter;
 using Reihitsu.Formatter.Pipeline.StructuralTransforms.Utilities;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
 /// <summary>
-/// Code fix provider base class for rules whose fix converts an expression body to a block body by formatting the owning node
+/// Code fix provider base class for rules whose fix converts an expression body to the block body the formatter produces for the owning node
 /// </summary>
 /// <typeparam name="TNode">Node type that owns the expression body</typeparam>
 public abstract class ExpressionBodyToBlockCodeFixProviderBase<TNode> : CodeFixProvider
@@ -50,15 +51,16 @@ public abstract class ExpressionBodyToBlockCodeFixProviderBase<TNode> : CodeFixP
     #region Methods
 
     /// <summary>
-    /// Applying code fix
+    /// Applying code fix: the expression body is replaced with the block body the formatter produces, and the rest of the
+    /// node stays as written (SHARED-BODY-003)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="node">Node that owns the reported expression body</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    protected virtual async Task<Document> ApplyCodeFixAsync(Document document, TNode node, CancellationToken cancellationToken)
+    protected virtual Task<Document> ApplyCodeFixAsync(Document document, TNode node, CancellationToken cancellationToken)
     {
-        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, node, cancellationToken).ConfigureAwait(false)).Output;
+        return ExpressionBodyCodeFixUtilities.ConvertBodyAsync(document, node, cancellationToken);
     }
 
     /// <summary>

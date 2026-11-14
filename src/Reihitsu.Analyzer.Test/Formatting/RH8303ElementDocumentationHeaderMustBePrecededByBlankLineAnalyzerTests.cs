@@ -1033,6 +1033,343 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), actual);
     }
 
+    /// <summary>
+    /// Verifies the specification example: a multi-line documentation comment written behind code is reported on its
+    /// first slashes only, and the fix moves it onto a line of its own below one empty line, in one pass
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8303-001")]
+    [Requirement("RH8303-004")]
+    [Requirement("RH8303-006")]
+    public async Task VerifySpecificationExampleCommentWrittenBehindCodeIsMovedOntoItsOwnLine()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A; {|RH8303:///|} <summary>
+                                    /// B</summary>
+                                    int B;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int A;
+
+                                     /// <summary>
+                                     /// B</summary>
+                                     int B;
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     static test =>
+                            {
+                                test.NumberOfIncrementalIterations = 1;
+                                test.NumberOfFixAllIterations = 1;
+                            });
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment written behind code is reported on its slashes and moved onto
+    /// a line of its own below one empty line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8303-001")]
+    [Requirement("RH8303-004")]
+    [Requirement("RH8303-006")]
+    public async Task VerifySingleLineCommentWrittenBehindCodeIsMovedOntoItsOwnLine()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A; {|RH8303:///|} <summary>B</summary>
+                                    int B;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int A;
+
+                                     /// <summary>B</summary>
+                                     int B;
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     static test =>
+                            {
+                                test.NumberOfIncrementalIterations = 1;
+                                test.NumberOfFixAllIterations = 1;
+                            });
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a documentation comment written behind an opening brace is the first
+    /// documentation comment of its block and is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8303-001")]
+    [Requirement("RH8303-002")]
+    public async Task VerifySpecificationExampleCommentWrittenBehindOpeningBraceDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                { /// <summary>A</summary>
+                                    int A;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment written behind the closing brace of a method is reported and moved onto a
+    /// line of its own
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8303-001")]
+    [Requirement("RH8303-006")]
+    public async Task VerifyCommentWrittenBehindClosingBraceIsMovedOntoItsOwnLine()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                    } {|RH8303:///|} <summary>B</summary>
+                                    int B;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                     }
+
+                                     /// <summary>B</summary>
+                                     int B;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix removes every white-space character between the code and the moved comment, tabs included
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8303-006")]
+    public async Task VerifyFixRemovesWhiteSpaceBetweenCodeAndMovedComment()
+    {
+        var testData = ExpandWhitespaceMarkers("""
+                                               class C
+                                               {
+                                                   int A;··→ {|RH8303:///|} <summary>B</summary>
+                                                   int B;
+                                               }
+                                               """);
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int A;
+
+                                     /// <summary>B</summary>
+                                     int B;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the moved comment is indented with the white space in front of the declaration's first token, also
+    /// when the declaration starts with an attribute list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8303-006")]
+    public async Task VerifyMovedCommentTakesTheColumnOfTheAttributeList()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A; {|RH8303:///|} <summary>B</summary>
+                                    [System.Obsolete]
+                                    int B;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int A;
+
+                                     /// <summary>B</summary>
+                                     [System.Obsolete]
+                                     int B;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the moved comment is indented with the white space in front of the declaration, not with that in
+    /// front of the code it was written behind
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8303-006")]
+    public async Task VerifyMovedCommentTakesTheIndentationOfTheDeclaration()
+    {
+        const string testData = """
+                                namespace N
+                                {
+                                    class C
+                                    {
+                                        int A; {|RH8303:///|} <summary>
+                                        /// B
+                                        /// </summary>
+                                            int B;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 namespace N
+                                 {
+                                     class C
+                                     {
+                                         int A;
+
+                                             /// <summary>
+                                         /// B
+                                         /// </summary>
+                                             int B;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a comment written behind code inside a namespace writes the two indentation levels of
+    /// the declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8303-006")]
+    public async Task VerifyCommentWrittenBehindCodeInNamespaceIsMovedOntoItsOwnLine()
+    {
+        const string testData = """
+                                namespace N
+                                {
+                                    class C
+                                    {
+                                        int A; {|RH8303:///|} <summary>B</summary>
+                                        int B;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 namespace N
+                                 {
+                                     class C
+                                     {
+                                         int A;
+
+                                         /// <summary>B</summary>
+                                         int B;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a comment written behind code writes every line break in the line ending of a CRLF
+    /// document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8303-006")]
+    public async Task VerifyCommentWrittenBehindCodeIsMovedWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A; {|RH8303:///|} <summary>
+                                    /// B</summary>
+                                    int B;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int A;
+
+                                     /// <summary>
+                                     /// B</summary>
+                                     int B;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, "\r\n");
+    }
+
+    /// <summary>
+    /// Verifies that Fix All moves two comments written behind code and inserts the empty line above a comment that
+    /// starts its own line, in one document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8303-005")]
+    [Requirement("RH8303-006")]
+    public async Task VerifyFixAllMovesCommentsWrittenBehindCodeNextToCommentOnItsOwnLine()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A; {|RH8303:///|} <summary>B</summary>
+                                    int B;
+                                    {|RH8303:///|} <summary>D</summary>
+                                    int D; {|RH8303:///|} <summary>
+                                    /// E
+                                    /// </summary>
+                                    int E;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int A;
+
+                                     /// <summary>B</summary>
+                                     int B;
+
+                                     /// <summary>D</summary>
+                                     int D;
+
+                                     /// <summary>
+                                     /// E
+                                     /// </summary>
+                                     int E;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

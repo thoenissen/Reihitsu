@@ -102,15 +102,35 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer : Diagnost
                 continue;
             }
 
-            var indentLength = lineText.Length - trimmed.Length;
-            var suffix = trimmed.Substring(3);
+            AnalyzeExterior(context, sourceText, line.Start + lineText.Length - trimmed.Length);
+        }
 
-            if (string.Equals(suffix, DocumentationCommentUtilities.NormalizeExteriorSuffix(suffix), StringComparison.Ordinal))
-            {
-                continue;
-            }
+        // The first line of a comment written behind code is judged as if the comment started its own line (SHARED-DOC-004);
+        // its other lines start with their own exterior and are judged above
+        foreach (var exteriorStart in DocumentationAnalysisUtilities.GetDocumentationCommentsBehindCode(root, sourceText, context.CancellationToken)
+                                                                    .Select(documentationComment => documentationComment.FullSpan.Start)
+                                                                    .Where(exteriorStart => nonFormattableLineIndices.Contains(sourceText.Lines.GetLineFromPosition(exteriorStart).LineNumber) == false
+                                                                                            && lineIndicesLeftAsWritten.Contains(sourceText.Lines.GetLineFromPosition(exteriorStart).LineNumber) == false))
+        {
+            AnalyzeExterior(context, sourceText, exteriorStart);
+        }
+    }
 
-            context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(line.Start + indentLength, line.Start + indentLength + 3))));
+    /// <summary>
+    /// Reports the <c>///</c> at the given position when the text behind it on its line does not start with exactly one
+    /// space
+    /// </summary>
+    /// <param name="context">Context</param>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="exteriorStart">Position of the <c>///</c></param>
+    private void AnalyzeExterior(SyntaxTreeAnalysisContext context, SourceText sourceText, int exteriorStart)
+    {
+        var line = sourceText.Lines.GetLineFromPosition(exteriorStart);
+        var suffix = sourceText.ToString(TextSpan.FromBounds(exteriorStart + 3, line.End));
+
+        if (string.Equals(suffix, DocumentationCommentUtilities.NormalizeExteriorSuffix(suffix), StringComparison.Ordinal) == false)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(exteriorStart, exteriorStart + 3))));
         }
     }
 
