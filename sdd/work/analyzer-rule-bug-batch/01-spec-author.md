@@ -141,3 +141,10 @@ _None._
 ## Follow-up candidates
 
 _None._
+
+## Amendment
+
+Commit: 1ec15b8 (after the skeptic's handover `02-skeptic.md`).
+
+- **#1276 — RH5404-003 `Why:` reworded.** The old sentence said formatting an extension block "would leave the diagnostic in place". That holds only for an empty block. For a non-empty block, formatting clears RH5404 but leaves the opening brace on the header line and the closing brace on the last member's line. The `Why:` now gives both outcomes: an empty block stays reported (SHARED-FIX-001), and any other block gets a layout that is not the expanded body the rule asks for. The requirement itself is unchanged: no fix is offered for an extension block.
+- **#1613 — placement of examples checked, no change.** The aligned literal that is not reported is already in the RH5202-001 example, and the one-application fix example is in RH5202-003. Tests for "aligned, not reported" carry RH5202-001; only the fix tests carry RH5202-003.
