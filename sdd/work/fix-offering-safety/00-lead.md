@@ -75,6 +75,8 @@ Batch 2 (questions 8–10, 2026-11-14):
 | 25 | 18 spec checker | SHARED-FIX-011/012 and change doc say "when it registers"; the Fix All path that applies without registering (base `CreateFixAllProvider`) is unstated | Clarify in spec text (one sentence each in SHARED-FIX-011, SHARED-FIX-012, change doc *What*); handled inside repair round 2 before its audit, not counted as a new round | Spec-checker finding on the round's own change, docs only | Clarifies behavior already decided by SHARED-FIX-012 | ea52344 |
 | 26 | 21 auditor | Finding #4 (two XML summaries omit the casing Fix All path) | Comment-only: route to cleaner, prove with verify-text-only against audited SHA 970f447. Strict proof FAILED (public-API doc classification; plain proof PASS) → per lead.md §7 this is repair round 3: auditor audits the comment change only | Playbook makes a failing strict proof a repair round | Comments only | 1ffa64f |
 | 27 | 21 auditor | Hint: architecture test does not forbid a future direct `FixAllProvider` subclass | No action | No current bypass; out of the run's needs | Nothing visible | n/a |
+| 28 | publish | Follow-up `N(/* c7 */ 2)` → `N(/* c7 */2)` | Drop | A comment inside an argument list is a rare class (RH5038 reports it); AGENTS.md *Code-fix coverage* | n/a | n/a |
+| 29 | publish | Continuation-line follow-up: `b + // c` member | Fold into the Q10 follow-up (binary-operator shape); keep only `int A => // c` as the continuation-line candidate | Same shape as Q10 | n/a | n/a |
 | 7 | lead | #1600 fix-side line kinds | `#elif`/`#else`/`#endif` lines in a multi-line string or `/* */` that starts inside a conditional group, not any `#` line | A plain `#` check withholds fixes on Markdown raw strings; skeptic shows only these lines can hide code | Only offers more fixes than the issue's wording; rare-class withholding | pending |
 
 ## Follow-up candidates
@@ -121,4 +123,5 @@ Batch 2 (questions 8–10, 2026-11-14):
 - 21 auditor (5b80970): audited SHA **970f447c5db57c04654f770b3a8ec389282772ec**, pass with text cleanup (#4).
 - 22 cleaner (1ffa64f): #4 reworded; strict text-only proof FAIL (public XML docs), plain PASS.
 - 23 auditor (b40d688): pass. Final audited SHA **21112981c3dcb79d6ac0a5734d931d06fcdd97e2**.
-- Next: validator (24) on the final tree, then publish (lane check, issue manager, note, delete sdd/work, CI trigger, PR body). After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
+- 24 validator: pass (all projects green). Lane check on head: confirmed behavior-change.
+- Next: issue manager (25), then note, delete sdd/work, CI trigger, PR body. After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
