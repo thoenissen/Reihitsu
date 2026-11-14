@@ -60,4 +60,5 @@
 - Done: test implementer (04, 0aeb480).
 - Done: spec author amendment (a8ba6f3).
 - Done: implementer (05, c119a8a): 3 disputed tests.
-- Next: spec author (decision 16 wording) + test implementer (decisions 16, 17) in parallel → implementer re-check → cleaner.
+- Done: spec author (8c01778), test implementer (06, 32a99e5); all focused and full formatter tests green.
+- Next: cleaner (07).
