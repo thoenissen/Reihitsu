@@ -25,6 +25,7 @@
 | 3 | Skeptic | Architecture finding FC-015: order within a group decided in Core `ComputeCanonicalOrder` and in three drifted loops in RH7203/RH7204/RH7206 | Change the structure in this run: the three analyzers take the within-group comparison from Core instead of their own loops | A narrow fix would restate SHARED-USING-007 three more times; the change stays in the components the run changes and well under 100 lines | Output is what SHARED-USING-007 already demands | |
 | 4 | Skeptic | #1267 goals: RH7204 change, SHARED-USING-005 mention, two non-name aliases in one section | RH7204 gets only a characterization test; SHARED-USING-005 dropped from scope; order between two non-name aliases stays as on `main` (not locked by new tests) | 02-skeptic: RH7204 already correct for the instance; SHARED-USING-004 does not decide two non-name aliases | Nothing changes for those outputs | |
 | 6 | Test impl. | When to fix the RH7201 spec-example markup gap | Batch it with the spec checker's findings instead of a separate spawn now | One-line example markup; the test already follows the requirement text | The requirement already demands the second report, and `main` reports it | |
+| 7 | Implementer | Pre-existing RH7203 test asserts compare-with-adjacent-only (1 diagnostic) | Test is wrong: mark `…CodeActions` and `…CodeFixes` too, expect 3; fresh test implementer (the earlier one is large) | Amended RH7203-001 aligns to SHARED-USING-007, which the maintainer's P18 clarification on #1266 decides (every earlier element of the group) | The extra reports are demanded by SHARED-USING-007 and the maintainer's P18 clarification; the fixed code is unchanged | |
 | 5 | Skeptic | SHARED-USING-004 wording "between its parts" | Spec author amends to cover `global ::` and type-argument trivia (wording "between its tokens" plus examples for `global :: System.IO` and a generic static type name) | Both are failing members of the #1105 class | Same outputs the agreement and FMT-PIPE-004 already demand | |
 
 ## Follow-up candidates
@@ -41,4 +42,5 @@
 - Spec amendment done (6f629b1, 03-spec-author.md). No further output questions.
 - Test implementer done (5c42d88, 04-test-implementer.md): all three reproduced (51 analyzer + 19 formatter tests fail as intended).
 - Open spec worklist (for the next spec-author spawn, batched with spec-checker findings): RH7201-001 Unicode-escape example in `sdd/specs/analyzer/RH7201.md` must also mark `using {|RH7201:System|};` (04-test-implementer).
-- Next: implementer (running), then cleaner.
+- Implementer done (af78e5d, 05-implementer.md): all handed-over tests pass; disputed pre-existing test `RH7203...Tests.MicrosoftUsingsAreFixedWithoutMovingSortedSystemGroup` (expects 1, gets 3).
+- Next: fresh test implementer for the disputed test (decision 7), then cleaner.
