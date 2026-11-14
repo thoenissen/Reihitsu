@@ -52,6 +52,33 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     #region Tests
 
     /// <summary>
+    /// Verifies that the fix, which lays out its result through the formatter, is not offered in a file with a syntax error,
+    /// while the diagnostic is still reported, and that it is offered once the syntax error is gone
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-011")]
+    public async Task NoFixIsOfferedInAFileWithASyntaxError()
+    {
+        const string source = """
+                              namespace TestNamespace
+                              {
+                                  class TestClass
+                                  {
+                                      public void TestMethod()
+                                      {
+                                          int first
+                                              = 1, second
+                                              = 2;
+                                      }
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
+    }
+
+    /// <summary>
     /// Verifying diagnostics for variable declaration with equals on new line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

@@ -368,6 +368,36 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
     }
 
     /// <summary>
+    /// Verifies that the code fix is offered for the first diagnostic the analyzer reports on the source, and that, once a syntax
+    /// error is added in front of the source's last closing brace (an unclosed parameter list <c>void N(</c>), the analyzer still
+    /// reports a diagnostic and the code fix registers no action for any diagnostic it reports
+    /// </summary>
+    /// <param name="source">The source text without markup, which compiles without a syntax error</param>
+    /// <param name="preprocessorSymbols">Preprocessor symbols to define for parsing</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    protected static async Task VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(string source, params string[] preprocessorSymbols)
+    {
+        var withoutError = await RegisterActionsForEveryDiagnosticAsync(source, preprocessorSymbols).ConfigureAwait(false);
+
+        Assert.IsNotEmpty(withoutError, "The analyzer must report a diagnostic on the source without the syntax error.");
+        Assert.IsNotEmpty(withoutError[0].Actions, "The code fix must be offered on the source without the syntax error.");
+
+        var lastBrace = source.LastIndexOf('}');
+
+        Assert.IsGreaterThanOrEqualTo(0, lastBrace, "The source must end with a closing brace.");
+
+        var endOfLine = source.Contains("\r\n", StringComparison.Ordinal) ? "\r\n" : "\n";
+        var withError = await RegisterActionsForEveryDiagnosticAsync(source.Insert(lastBrace, $"    void N({endOfLine}"), preprocessorSymbols).ConfigureAwait(false);
+
+        Assert.IsNotEmpty(withError, "The analyzer must still report a diagnostic in the file with the syntax error.");
+
+        foreach (var (diagnostic, actions) in withError)
+        {
+            Assert.IsEmpty(actions, $"No code fix may be offered for the diagnostic at {diagnostic.Location.SourceSpan} in a file with a syntax error.");
+        }
+    }
+
+    /// <summary>
     /// Verifies that the analyzer reports exactly the diagnostics marked in the source, and that the code fix
     /// registers no action for any diagnostic the analyzer reports on the source without its markup, parsed with the
     /// given documentation mode and preprocessor symbols
@@ -409,6 +439,43 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
 
                 Assert.IsEmpty(actions, $"No code fix may be offered for the diagnostic at {diagnostic.Location.SourceSpan}.");
             }
+        }
+    }
+
+    /// <summary>
+    /// Runs the analyzer over the source and registers the code fix's actions for every fixable diagnostic it reports
+    /// </summary>
+    /// <param name="source">The source text without markup</param>
+    /// <param name="preprocessorSymbols">Preprocessor symbols to define for parsing</param>
+    /// <returns>Every fixable diagnostic, in the order the analyzer reports them, with the actions registered for it</returns>
+    private static async Task<List<(Diagnostic Diagnostic, List<CodeAction> Actions)>> RegisterActionsForEveryDiagnosticAsync(string source, string[] preprocessorSymbols)
+    {
+        using (var workspace = new AdhocWorkspace())
+        {
+            var (document, _) = CreateTestDocument(workspace, source, DocumentationMode.Parse, preprocessorSymbols);
+
+            var compilation = await document.Project.GetCompilationAsync(CancellationToken.None).ConfigureAwait(false)
+                                  ?? throw new InvalidOperationException("Failed to compile test document.");
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new TAnalyzer());
+            var diagnostics = await compilation.WithAnalyzers(analyzers).GetAnalyzerDiagnosticsAsync(CancellationToken.None).ConfigureAwait(false);
+            var codeFixProvider = new TCodeFix();
+            var result = new List<(Diagnostic Diagnostic, List<CodeAction> Actions)>();
+
+            foreach (var diagnostic in diagnostics.Where(item => codeFixProvider.FixableDiagnosticIds.Contains(item.Id))
+                                                  .OrderBy(item => item.Location.SourceSpan.Start))
+            {
+                var actions = new List<CodeAction>();
+                var context = new CodeFixContext(document,
+                                                 diagnostic,
+                                                 (action, _) => actions.Add(action),
+                                                 CancellationToken.None);
+
+                await codeFixProvider.RegisterCodeFixesAsync(context).ConfigureAwait(false);
+
+                result.Add((diagnostic, actions));
+            }
+
+            return result;
         }
     }
 

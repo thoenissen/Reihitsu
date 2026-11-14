@@ -679,6 +679,34 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
         await VerifyCodeFixMatchesFormatter(NormalizeToCarriageReturnLineFeed(testCode));
     }
 
+    /// <summary>
+    /// Verifies that the fix, which lays out its result through the formatter, is not offered in a file with a syntax error,
+    /// while the diagnostic is still reported, and that it is offered once the syntax error is gone
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-011")]
+    public async Task NoFixIsOfferedInAFileWithASyntaxError()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  private static int Add(int x, int y, int z) => x + y + z;
+
+                                  private static int Inner(int x, int y, int z) => x + y + z;
+
+                                  private static int Use()
+                                  {
+                                      return Add(Inner(1, 2,
+                                                           3),
+                                                  5, 6);
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

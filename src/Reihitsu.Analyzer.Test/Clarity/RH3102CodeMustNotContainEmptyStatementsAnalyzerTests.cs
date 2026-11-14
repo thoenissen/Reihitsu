@@ -584,7 +584,7 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : BatchCodeFix
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId, "Code must not contain empty statements.", 2),
-                                  config => config.NumberOfFixAllIterations = 2);
+                                  config => config.NumberOfFixAllIterations = 1);
     }
 
     #endregion // BatchCodeFixTestsBase

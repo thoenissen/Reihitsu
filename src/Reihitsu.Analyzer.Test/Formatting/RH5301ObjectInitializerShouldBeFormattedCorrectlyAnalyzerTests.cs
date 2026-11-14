@@ -997,6 +997,44 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : Ba
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that the fix, which lays out its result through the formatter, is not offered in a file with a syntax error,
+    /// while the diagnostic is still reported, and that it is offered once the syntax error is gone
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-011")]
+    public async Task NoFixIsOfferedInAFileWithASyntaxError()
+    {
+        const string source = """
+                              internal class Inner
+                              {
+                                  public string Name { get; set; }
+                              }
+
+                              internal class Container
+                              {
+                                  public Inner Value { get; set; }
+                              }
+
+                              internal class Example
+                              {
+                                  private static void Method()
+                                  {
+                                      var container = new Container
+                                          {
+                                              Value = new Inner
+                                                  {
+                                                      Name = "test"
+                                                  }
+                                          };
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

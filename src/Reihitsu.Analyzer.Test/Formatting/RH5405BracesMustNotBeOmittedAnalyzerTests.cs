@@ -1671,6 +1671,9 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
                                  }
                                  """;
 
+        // The second pass is guard-dependent: the fix's guard for other code in front of the owner of the body
+        // (SHARED-BRACE-003) withholds the second body's fix on the starting document, and offers it only once the first
+        // fix has moved that code off the line
         await Verify(testCode,
                      fixedCode,
                      test =>
@@ -1715,6 +1718,9 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : BatchCodeFixTestsBase<R
                                  }
                                  """;
 
+        // The second pass is guard-dependent: the fix's guard for other code in front of the owner of the body
+        // (SHARED-BRACE-003) withholds the second body's fix on the starting document, and offers it only once the first
+        // fix has moved that code off the line
         await Verify(testCode,
                      fixedCode,
                      test =>

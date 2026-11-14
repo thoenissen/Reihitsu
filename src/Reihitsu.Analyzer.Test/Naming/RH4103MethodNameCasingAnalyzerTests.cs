@@ -121,6 +121,122 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     #region Tests
 
     /// <summary>
+    /// Verifies that the rename is not offered when a document it changes, besides the diagnostic's own, holds a comment that
+    /// another build compiles as code: the reference to the method stands behind the carrier, and the diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-012")]
+    public async Task NoRenameIsOfferedWhenAnotherDocumentItChangesHoldsAHidingCarrier()
+    {
+        const string source = """
+                              namespace Reihitsu.Analyzer.Test.Naming.Resources
+                              {
+                                  public class Calculator
+                                  {
+                                      public int {|RH4103:computeTotal|}(int value)
+                                      {
+                                          return value * 2;
+                                      }
+                                  }
+                              }
+                              """;
+        const string otherSource = """
+                                   namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                   {
+                                       public class Client
+                                       {
+                                           public int Use(Calculator calculator)
+                                           {
+                                   #if !X
+                                               /*
+                                   #else
+                                               var s = @"
+                                               */
+                                               int c = 1; //";
+                                   #endif
+                                               return calculator.computeTotal(1);
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     source,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherSource));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", otherSource));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a Fix All in the solution, started from a document without a hiding carrier, renames there and leaves the
+    /// method of a second document that holds a hiding carrier as it is, with its diagnostic still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-012")]
+    public async Task FixAllLeavesADocumentWithAHidingCarrierUnchanged()
+    {
+        const string source = """
+                              namespace Reihitsu.Analyzer.Test.Naming.Resources
+                              {
+                                  public class Calculator
+                                  {
+                                      public int {|RH4103:computeTotal|}(int value)
+                                      {
+                                          return value * 2;
+                                      }
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                   {
+                                       public class Calculator
+                                       {
+                                           public int ComputeTotal(int value)
+                                           {
+                                               return value * 2;
+                                           }
+                                       }
+                                   }
+                                   """;
+        const string otherSource = """
+                                   namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                   {
+                                       public class Client
+                                       {
+                                           public int {|RH4103:useTotal|}(int value)
+                                           {
+                                   #if !X
+                                               /*
+                                   #else
+                                               var s = @"
+                                               */
+                                               int c = 1; //";
+                                   #endif
+                                               return value;
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherSource));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", otherSource));
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                         test.NumberOfFixAllInDocumentIterations = 1;
+                         test.NumberOfFixAllInProjectIterations = 1;
+                     });
+    }
+
+    /// <summary>
     /// Verifying diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

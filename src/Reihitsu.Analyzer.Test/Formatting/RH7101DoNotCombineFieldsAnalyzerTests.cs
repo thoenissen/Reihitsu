@@ -25,6 +25,32 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     #region Tests
 
     /// <summary>
+    /// Verifies that the fix is withheld for a combined declaration in a type that holds a conditional with comments between its
+    /// operators and its branches: the fix formats the type, which the formatter refuses as unsupported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task NoFixIsOfferedInATypeThatHoldsACommentBehindAConditionalOperator()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _x, {|RH7101:_y|};
+
+                                  int M(bool a)
+                                  {
+                                      var x = a ? /* yes */ 1 : /* no */ 2;
+
+                                      return x;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
     /// Verifies that single field declarations do not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

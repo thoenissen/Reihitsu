@@ -6932,13 +6932,12 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
                                  }
                                  """;
 
-        // Both readonly fields are moved in front of the same mutable field, so each fix rewrites the span from
-        // that field to its own declaration and the two text changes overlap. The mutable field carries no
+        // Both readonly fields are moved in front of the same mutable field. The mutable field carries no
         // initializer, so neither move changes initializer execution order and both fixes stay available
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7109MessageFormat, 2),
-                                  static config => config.NumberOfFixAllIterations = 2);
+                                  static config => config.NumberOfFixAllIterations = 1);
     }
 
     #endregion // BatchCodeFixTestsBase

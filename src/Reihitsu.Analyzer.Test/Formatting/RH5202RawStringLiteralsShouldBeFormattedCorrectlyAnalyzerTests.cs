@@ -2896,6 +2896,9 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
+        // The second pass is guard-dependent: the fix withholds the outer literal's fix on the starting document while the
+        // raw string literal nested in its hole is misaligned (RH5202-006), and offers it only once the nested literal is
+        // aligned
         await Verify(testData,
                      resultData,
                      test =>
@@ -2945,6 +2948,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
+        // The second pass is guard-dependent, as in the test above (RH5202-006)
         await Verify(NormalizeToCarriageReturnLineFeed(testData),
                      NormalizeToCarriageReturnLineFeed(resultData),
                      test =>

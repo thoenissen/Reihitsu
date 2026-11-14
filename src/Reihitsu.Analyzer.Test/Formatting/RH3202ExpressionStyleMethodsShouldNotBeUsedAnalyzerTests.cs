@@ -18,6 +18,27 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     #region Tests
 
     /// <summary>
+    /// Verifies that the fix, which lays out its result through the formatter, is not offered in a file with a syntax error,
+    /// while the diagnostic is still reported, and that it is offered once the syntax error is gone
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-011")]
+    public async Task NoFixIsOfferedInAFileWithASyntaxError()
+    {
+        const string source = """
+                              internal class RH3202
+                              {
+                                  public int First() => 1;
+
+                                  public int Second() => 2;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
+    }
+
+    /// <summary>
     /// Verifying that expression-bodied methods are detected and can be fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -757,156 +778,138 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     }
 
     /// <summary>
-    /// Verifies that the fix starts a new line in front of a delimited documentation comment behind the <c>:</c> of a
-    /// one-line conditional expression, puts <c>?</c> and <c>:</c> at the start of their own lines, and lays out the
-    /// converted method around them, under LF and CRLF
+    /// Verifies that the fix is withheld for an expression body with a delimited documentation comment behind the <c>:</c> of a one-line conditional:
+    /// the formatter refuses the converted method as unsupported, and the diagnostic is still reported, under LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("FMT-BREAK-018")]
-    public async Task VerifyFixMovesDelimitedDocumentationBehindColonOfOneLineConditional()
+    [Requirement("SHARED-FIX-010")]
+    public async Task VerifyNoFixForDelimitedDocumentationBehindColonOfOneLineConditional()
     {
-        const string testData = "internal class C\n{\n    internal int M(bool b) {|#0:=> b ? 1 : /** d */ 2|};\n}";
-        const string fixedData = "internal class C\n{\n    internal int M(bool b)\n    {\n        return b\n                   ? 1\n                   :\n\n        /** d */ 2;\n    }\n}";
+        const string testData = "internal class C\n{\n    internal int M(bool b) {|RH3202:=> b ? 1 : /** d */ 2|};\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(testData));
     }
 
     /// <summary>
-    /// Verifies that the fix starts a new line in front of a delimited documentation comment behind a block comment
-    /// behind the <c>:</c> of a one-line conditional expression, puts <c>?</c> and <c>:</c> at the start of their own
-    /// lines, and lays out the converted method around them, under LF and CRLF
+    /// Verifies that the fix is withheld for an expression body with a delimited documentation comment behind a block comment behind the <c>:</c> of a conditional:
+    /// the formatter refuses the converted method as unsupported, and the diagnostic is still reported, under LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("FMT-BREAK-018")]
-    public async Task VerifyFixMovesDelimitedDocumentationBehindBlockCommentBehindColonOfConditional()
+    [Requirement("SHARED-FIX-010")]
+    public async Task VerifyNoFixForDelimitedDocumentationBehindBlockCommentBehindColonOfConditional()
     {
-        const string testData = "internal class C\n{\n    internal int M(bool b) {|#0:=> b ? 1 : /* c */ /** d */ 2|};\n}";
-        const string fixedData = "internal class C\n{\n    internal int M(bool b)\n    {\n        return b\n                   ? 1\n                   : /* c */\n\n        /** d */ 2;\n    }\n}";
+        const string testData = "internal class C\n{\n    internal int M(bool b) {|RH3202:=> b ? 1 : /* c */ /** d */ 2|};\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(testData));
     }
 
     /// <summary>
-    /// Verifies that the fix starts a new line in front of a delimited documentation comment behind the <c>?</c> of a
-    /// one-line conditional expression, puts <c>?</c> and <c>:</c> at the start of their own lines, and lays out the
-    /// converted method around them, under LF and CRLF
+    /// Verifies that the fix is withheld for an expression body with a delimited documentation comment behind the <c>?</c> of a one-line conditional:
+    /// the formatter refuses the converted method as unsupported, and the diagnostic is still reported, under LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("FMT-BREAK-018")]
-    public async Task VerifyFixMovesDelimitedDocumentationBehindQuestionMarkOfOneLineConditional()
+    [Requirement("SHARED-FIX-010")]
+    public async Task VerifyNoFixForDelimitedDocumentationBehindQuestionMarkOfOneLineConditional()
     {
-        const string testData = "internal class C\n{\n    internal int M(bool b) {|#0:=> b ? /** d */ 1 : 2|};\n}";
-        const string fixedData = "internal class C\n{\n    internal int M(bool b)\n    {\n        return b\n                   ?\n\n        /** d */ 1\n                   : 2;\n    }\n}";
+        const string testData = "internal class C\n{\n    internal int M(bool b) {|RH3202:=> b ? /** d */ 1 : 2|};\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(testData));
     }
 
     /// <summary>
-    /// Verifies that the fix starts a new line in front of a delimited documentation comment behind a block comment
-    /// behind the <c>?</c> of a one-line conditional expression, puts <c>?</c> and <c>:</c> at the start of their own
-    /// lines, and lays out the converted method around them, under LF and CRLF
+    /// Verifies that the fix is withheld for an expression body with a delimited documentation comment behind a block comment behind the <c>?</c> of a conditional:
+    /// the formatter refuses the converted method as unsupported, and the diagnostic is still reported, under LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("FMT-BREAK-018")]
-    public async Task VerifyFixMovesDelimitedDocumentationBehindBlockCommentBehindQuestionMarkOfConditional()
+    [Requirement("SHARED-FIX-010")]
+    public async Task VerifyNoFixForDelimitedDocumentationBehindBlockCommentBehindQuestionMarkOfConditional()
     {
-        const string testData = "internal class C\n{\n    internal int M(bool b) {|#0:=> b ? /* c */ /** d */ 1 : 2|};\n}";
-        const string fixedData = "internal class C\n{\n    internal int M(bool b)\n    {\n        return b\n                   ? /* c */\n\n        /** d */ 1\n                   : 2;\n    }\n}";
+        const string testData = "internal class C\n{\n    internal int M(bool b) {|RH3202:=> b ? /* c */ /** d */ 1 : 2|};\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(testData));
     }
 
     /// <summary>
-    /// Verifies that the fix starts a new line in front of a delimited documentation comment behind the <c>:</c> of a
-    /// conditional expression wrapped in front of <c>?</c> only, puts <c>?</c> and <c>:</c> at the start of their own
-    /// lines, and lays out the converted method around them, under LF and CRLF
+    /// Verifies that the fix is withheld for an expression body with a delimited documentation comment behind the <c>:</c> of a partly wrapped conditional:
+    /// the formatter refuses the converted method as unsupported, and the diagnostic is still reported, under LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("FMT-BREAK-018")]
-    public async Task VerifyFixMovesDelimitedDocumentationBehindColonOfPartlyWrappedConditional()
+    [Requirement("SHARED-FIX-010")]
+    public async Task VerifyNoFixForDelimitedDocumentationBehindColonOfPartlyWrappedConditional()
     {
-        const string testData = "internal class C\n{\n    internal int M(bool b) {|#0:=> b\n        ? 1 : /** d */ 2|};\n}";
-        const string fixedData = "internal class C\n{\n    internal int M(bool b)\n    {\n        return b\n                   ? 1\n                   :\n\n        /** d */ 2;\n    }\n}";
+        const string testData = "internal class C\n{\n    internal int M(bool b) {|RH3202:=> b\n        ? 1 : /** d */ 2|};\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(testData));
     }
 
     /// <summary>
-    /// Verifies that the fix starts a new line in front of a delimited documentation comment behind the <c>?</c> of a
-    /// conditional expression wrapped in front of <c>:</c> only, puts <c>?</c> and <c>:</c> at the start of their own
-    /// lines, and lays out the converted method around them, under LF and CRLF
+    /// Verifies that the fix is withheld for an expression body with a delimited documentation comment behind the <c>?</c> of a partly wrapped conditional:
+    /// the formatter refuses the converted method as unsupported, and the diagnostic is still reported, under LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("FMT-BREAK-018")]
-    public async Task VerifyFixMovesDelimitedDocumentationBehindQuestionMarkOfPartlyWrappedConditional()
+    [Requirement("SHARED-FIX-010")]
+    public async Task VerifyNoFixForDelimitedDocumentationBehindQuestionMarkOfPartlyWrappedConditional()
     {
-        const string testData = "internal class C\n{\n    internal int M(bool b) {|#0:=> b ? /** d */ 1\n        : 2|};\n}";
-        const string fixedData = "internal class C\n{\n    internal int M(bool b)\n    {\n        return b\n                   ?\n\n        /** d */ 1\n                   : 2;\n    }\n}";
+        const string testData = "internal class C\n{\n    internal int M(bool b) {|RH3202:=> b ? /** d */ 1\n        : 2|};\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(testData));
     }
 
     /// <summary>
-    /// Verifies that the fix starts a new line in front of a delimited documentation comment behind the <c>:</c> of a
-    /// parenthesized conditional nested in the <c>?</c> branch of a conditional expression, puts <c>?</c> and <c>:</c>
-    /// at the start of their own lines, and lays out the converted method around them, under LF and CRLF
+    /// Verifies that the fix is withheld for an expression body with a delimited documentation comment behind the <c>:</c> of a parenthesized nested conditional:
+    /// the formatter refuses the converted method as unsupported, and the diagnostic is still reported, under LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("FMT-BREAK-018")]
-    public async Task VerifyFixMovesDelimitedDocumentationBehindColonOfParenthesizedNestedConditional()
+    [Requirement("SHARED-FIX-010")]
+    public async Task VerifyNoFixForDelimitedDocumentationBehindColonOfParenthesizedNestedConditional()
     {
-        const string testData = "internal class C\n{\n    internal int M(bool b, bool c) {|#0:=> b ? (c ? 1 : /** d */ 2) : 3|};\n}";
-        const string fixedData = "internal class C\n{\n    internal int M(bool b, bool c)\n    {\n        return b\n                   ? (c\n                          ? 1\n                          :\n\n        /** d */ 2)\n                   : 3;\n    }\n}";
+        const string testData = "internal class C\n{\n    internal int M(bool b, bool c) {|RH3202:=> b ? (c ? 1 : /** d */ 2) : 3|};\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(testData));
     }
 
     /// <summary>
-    /// Verifies that the fix starts a new line in front of a delimited documentation comment behind the <c>?</c> of a
-    /// conditional nested in the <c>:</c> branch of a conditional expression, puts <c>?</c> and <c>:</c> at the start
-    /// of their own lines, and lays out the converted method around them, under LF and CRLF
+    /// Verifies that the fix is withheld for an expression body with a delimited documentation comment behind the <c>?</c> of a nested conditional:
+    /// the formatter refuses the converted method as unsupported, and the diagnostic is still reported, under LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("FMT-BREAK-018")]
-    public async Task VerifyFixMovesDelimitedDocumentationBehindQuestionMarkOfNestedConditional()
+    [Requirement("SHARED-FIX-010")]
+    public async Task VerifyNoFixForDelimitedDocumentationBehindQuestionMarkOfNestedConditional()
     {
-        const string testData = "internal class C\n{\n    internal int M(bool b, bool c) {|#0:=> b ? 1 : c ? /** d */ 2 : 3|};\n}";
-        const string fixedData = "internal class C\n{\n    internal int M(bool b, bool c)\n    {\n        return b\n                   ? 1\n                   : c\n                       ?\n\n        /** d */ 2\n                       : 3;\n    }\n}";
+        const string testData = "internal class C\n{\n    internal int M(bool b, bool c) {|RH3202:=> b ? 1 : c ? /** d */ 2 : 3|};\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(testData));
     }
 
     /// <summary>
-    /// Verifies that the fix starts a new line in front of a delimited documentation comment behind a <c>:</c> that
-    /// already starts its line in a conditional expression, puts <c>?</c> and <c>:</c> at the start of their own lines,
-    /// and lays out the converted method around them, under LF and CRLF
+    /// Verifies that the fix is withheld for an expression body with a delimited documentation comment behind a <c>:</c> that starts its line:
+    /// the formatter refuses the converted method as unsupported, and the diagnostic is still reported, under LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("FMT-BREAK-018")]
-    public async Task VerifyFixMovesDelimitedDocumentationBehindColonStartingItsLine()
+    [Requirement("SHARED-FIX-010")]
+    public async Task VerifyNoFixForDelimitedDocumentationBehindColonStartingItsLine()
     {
-        const string testData = "internal class C\n{\n    internal int M(bool b) {|#0:=> b\n        ? 1\n        : /** d */ 2|};\n}";
-        const string fixedData = "internal class C\n{\n    internal int M(bool b)\n    {\n        return b\n                   ? 1\n                   :\n\n        /** d */ 2;\n    }\n}";
+        const string testData = "internal class C\n{\n    internal int M(bool b) {|RH3202:=> b\n        ? 1\n        : /** d */ 2|};\n}";
 
-        await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(testData));
     }
 
     /// <summary>

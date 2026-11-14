@@ -2064,6 +2064,34 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
                      Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat, 2));
     }
 
+    /// <summary>
+    /// Verifies that the fix, which lays out its result through the formatter, is not offered in a file with a syntax error,
+    /// while the diagnostic is still reported, and that it is offered once the syntax error is gone
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-011")]
+    public async Task NoFixIsOfferedInAFileWithASyntaxError()
+    {
+        const string source = """
+                              internal class RH5408
+                              {
+                                  public int A
+                                  {
+                                      get;
+                                      set;
+                                  }
+                                  public int B
+                                  {
+                                      get;
+                                      set;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

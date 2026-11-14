@@ -5888,6 +5888,9 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
                                  }
                                  """;
 
+        // The inner parentheses are reported only once the outer ones are gone, so they are not among the diagnostics of
+        // the starting code that one Fix All application corrects (SHARED-FIX-002); the second pass corrects the
+        // diagnostic the first one produces
         await Verify(testCode,
                      fixedCode,
                      static config =>

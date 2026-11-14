@@ -22,6 +22,65 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
     #region Tests
 
     /// <summary>
+    /// Verifies the specification example, analyzed in a build with <c>A</c> defined: the comment from <c>/*</c> through
+    /// <c>*/</c> starts inside the <c>#if A</c> group and holds the line <c>#else</c>, so the anonymous method is reported and
+    /// no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-012")]
+    public async Task SpecExampleNoFixIsOfferedInADocumentWithAHidingCarrier()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  int M(int a, int b)
+                                  {
+                              #if A
+                                      /*
+                              #else
+                                      var s = @"
+                                      */
+                                      Action c = {|RH3004:delegate|} ()
+                                          {
+                                              Console.WriteLine(1);
+                                          }; //";
+                              #endif
+                                      return a+b;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source, DocumentationMode.Parse, "A");
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(source), DocumentationMode.Parse, "A");
+    }
+
+    /// <summary>
+    /// Verifies that in a syntax-error-free file with an edit-then-format fix the fix is not offered once a syntax error is added
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-011")]
+    public async Task SpecExampleEditThenFormatFixIsNotOfferedInAFileWithASyntaxError()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      Action a = delegate () { M(); };
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
+    }
+
+    /// <summary>
     /// Verifying anonymous methods with parameters are reported and fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -5419,6 +5478,33 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
                                                              """).Replace("{LF}\r\n", "\n");
 
         Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(testCode));
+    }
+
+    /// <summary>
+    /// Verifies that the fix, which lays out its result through the formatter, is not offered in a file with a syntax error,
+    /// while the diagnostic is still reported, and that it is offered once the syntax error is gone
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-011")]
+    public async Task NoFixIsOfferedInAFileWithASyntaxError()
+    {
+        const string source = """
+                              using System;
+
+                              public class Test
+                              {
+                                  public Func<int, Func<int, int>> GetCurried()
+                                  {
+                                      return delegate(int x)
+                                      {
+                                          return delegate(int y) { return x + y; };
+                                      };
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
     #endregion // Tests

@@ -1,5 +1,6 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -513,6 +514,270 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
                               """;
 
         await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a comment behind the <c>?</c> of one conditional and behind the <c>:</c> of another
+    /// is reported, and no code fix is offered for either, under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5308-005")]
+    public async Task SpecExampleNoFixIsOfferedForACommentBehindAnOperator()
+    {
+        const string source = """
+                              class C
+                              {
+                                  int M(bool a)
+                                  {
+                                      var x = a {|RH5308:?|} // c
+                                          1
+                                          : 2;
+                                      var y = a
+                                                  ? 1 {|RH5308::|} // c
+                                                  2;
+
+                                      return x;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(source));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the conditional whose <c>?</c> a comment follows is reported, although the formatter
+    /// leaves the input unchanged, because the formatter refuses the shape as unsupported and does not keep it; the fix is
+    /// withheld
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-010")]
+    [Requirement("RH5308-005")]
+    public async Task SpecExampleConditionalTheFormatterRefusesIsReported()
+    {
+        const string source = """
+                              class C
+                              {
+                                  int M(bool a)
+                                  {
+                                      var x = a {|RH5308:?|} // c
+                                          1
+                                          : 2;
+
+                                      return x;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that an inline block comment behind the <c>?</c> of a conditional that is not laid out yet withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5308-005")]
+    public async Task NoFixIsOfferedForAnInlineCommentBehindTheQuestionMark()
+    {
+        const string source = """
+                              class C
+                              {
+                                  int M(bool a)
+                                  {
+                                      var z = a {|RH5308:?|} /* c */ 1
+                                              : 2;
+
+                                      return z;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a directive and disabled text behind the <c>?</c> withhold the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5308-005")]
+    public async Task NoFixIsOfferedForADirectiveBehindTheQuestionMark()
+    {
+        const string source = """
+                              class C
+                              {
+                                  int M(bool a)
+                                  {
+                                      return a {|RH5308:?|}
+                              #if DEBUG
+                                          1
+                              #else
+                                          2
+                              #endif
+                                          : 3;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a reported conditional without a comment withholds its fix when the statement the fix formats holds another
+    /// conditional with a comment behind its operator
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5308-005")]
+    public async Task NoFixIsOfferedWhenTheStatementHoldsAnotherConditionalWithACommentBehindItsOperator()
+    {
+        const string source = """
+                              class C
+                              {
+                                  int M(bool a)
+                                  {
+                                      return N(a {|RH5308:?|} 1
+                                               : 2, a ? /* c */ 3 : 4);
+                                  }
+
+                                  int N(int x, int y) => x + y;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of the other side: a comment on the line above the operator's line does not withhold
+    /// the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5308-005")]
+    public async Task SpecExampleCommentAboveTheOperatorsLineDoesNotWithholdTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  int M(bool a)
+                                  {
+                                      var x = a
+                                              // c
+                                              {|RH5308:?|} 1
+                                              : 2;
+
+                                      return x;
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       int M(bool a)
+                                       {
+                                           var x = a
+
+                                                       // c
+                                                       ? 1
+                                                       : 2;
+
+                                           return x;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, "\r\n");
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a conditional in an argument of an <c>[assembly:]</c> attribute stands in no statement
+    /// and no member, so it is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5308-006")]
+    [Requirement("SHARED-FIX-005")]
+    public async Task SpecExampleNoFixIsOfferedForAConditionalInAnAssemblyAttribute()
+    {
+        const string source = """
+                              [assembly: System.CLSCompliant(true {|RH5308:?|}
+                                  true :
+                                  false)]
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional in an argument of a <c>[module:]</c> attribute is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5308-006")]
+    [Requirement("SHARED-FIX-005")]
+    public async Task NoFixIsOfferedForAConditionalInAModuleAttribute()
+    {
+        const string source = """
+                              [module: System.CLSCompliant(true {|RH5308:?|}
+                                  true :
+                                  false)]
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional in an argument of an attribute on a type stands in a member declaration, so the fix is still
+    /// offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5308-006")]
+    public async Task FixIsOfferedForAConditionalInAnAttributeOnAType()
+    {
+        const string source = """
+                              [System.CLSCompliant(true {|RH5308:?|}
+                                  true :
+                                  false)]
+                              public class C
+                              {
+                              }
+                              """;
+
+        Assert.IsNotNull(await TryApplyCodeFixAsync(RemoveMarkup(source)), "The fix must be offered for a conditional in a type's attribute.");
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: in a file with a syntax error elsewhere the conditional is reported, and no code fix
+    /// is offered, because the formatter returns the document unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-011")]
+    public async Task SpecExampleNoFixIsOfferedInAFileWithASyntaxError()
+    {
+        const string source = """
+                              class C
+                              {
+                                  int M(bool a)
+                                  {
+                                      var x = a {|RH5308:?|}
+                                              1 :
+                                              2;
+
+                                      return x;
+                                  }
+
+                                  void N(
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
     }
 
     #endregion // Tests

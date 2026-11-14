@@ -554,6 +554,29 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Bat
         await Verify(testData, resultData);
     }
 
+    /// <summary>
+    /// Verifies that the fix, which lays out its result through the formatter, is not offered in a file with a syntax error,
+    /// while the diagnostic is still reported, and that it is offered once the syntax error is gone
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-011")]
+    public async Task NoFixIsOfferedInAFileWithASyntaxError()
+    {
+        const string source = """
+                              internal class RH3203
+                              {
+                                  private int _value;
+
+                                  public RH3203() => _value = 1;
+
+                                  public RH3203(int value) => _value = value;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

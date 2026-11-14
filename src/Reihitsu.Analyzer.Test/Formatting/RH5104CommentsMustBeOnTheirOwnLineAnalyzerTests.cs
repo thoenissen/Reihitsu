@@ -1367,9 +1367,9 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzerTests : BatchCodeFixTests
                                  }
                                  """";
 
-        // The comment behind the unreported comment stays in the fixed code and is marked there, and the comment behind
-        // the first one is offered its fix only once the first one has left the line, so each way of applying the fixes
-        // needs two passes
+        // The comment behind the unreported comment stays in the fixed code and is marked there. The second pass is
+        // guard-dependent: the fix's guard HasCommentBeforeOnLine withholds the fix of the comment behind the first one on
+        // the starting document, and offers it only once the first one has left the line
         await Verify(testData,
                      fixedData,
                      static test =>
@@ -1495,9 +1495,9 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzerTests : BatchCodeFixTests
                                  }
                                  """;
 
-        // Both comments relocate to the same insertion point (the start of the "if" line), so their zero-length
-        // insertion edits collide at the same offset in the original document; the batch fixer applies only one
-        // insertion per pass and needs a second pass to relocate the comment it deferred
+        // The second pass is guard-dependent: the fix's guard HasCommentBeforeOnLine withholds the fix of the second
+        // comment on the starting document, because the first comment stands in front of it on the line, and offers it
+        // only once the first comment has left the line
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH5104CommentsMustBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5104MessageFormat, 2),

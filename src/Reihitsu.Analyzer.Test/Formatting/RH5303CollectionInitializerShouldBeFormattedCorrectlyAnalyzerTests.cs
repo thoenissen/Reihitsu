@@ -2247,6 +2247,42 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
         await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the fix, which lays out its result through the formatter, is not offered in a file with a syntax error,
+    /// while the diagnostic is still reported, and that it is offered once the syntax error is gone
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-011")]
+    public async Task NoFixIsOfferedInAFileWithASyntaxError()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              internal class Data;
+
+                              internal class Example
+                              {
+                                  private static void Method(Data firstValue, Data secondValue)
+                                  {
+                                      var values = new Dictionary<string, Data>()
+                                                   {
+                                                       {
+                                                           "first",
+                                                       firstValue
+                                                       },
+                                                       {
+                                                           "second",
+                                                       secondValue
+                                                       }
+                                                   };
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

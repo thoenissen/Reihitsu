@@ -1339,12 +1339,10 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
                                  }
                                  """;
 
-        // Both constants are moved in front of the same mutable field, so each fix rewrites the span from that
-        // field to its own declaration and the two text changes overlap. The batch keeps one of them per pass
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH7102ConstantsMustAppearBeforeFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7102MessageFormat, 2),
-                                  static config => config.NumberOfFixAllIterations = 2);
+                                  static config => config.NumberOfFixAllIterations = 1);
     }
 
     #endregion // BatchCodeFixTestsBase

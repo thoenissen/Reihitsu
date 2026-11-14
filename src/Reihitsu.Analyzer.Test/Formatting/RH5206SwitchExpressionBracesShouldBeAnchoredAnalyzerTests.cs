@@ -325,6 +325,38 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : BatchCo
         await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, AnalyzerResources.RH5206MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the fix, which lays out its result through the formatter, is not offered in a file with a syntax error,
+    /// while the diagnostic is still reported, and that it is offered once the syntax error is gone
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-011")]
+    public async Task NoFixIsOfferedInAFileWithASyntaxError()
+    {
+        const string source = """
+                              internal class Example
+                              {
+                                  private static string Outer(int a, int b)
+                                  {
+                                      var value = a switch
+                                      {
+                                          0 => b switch
+                                          {
+                                              0 => "Idle",
+                                                  _ => "Unknown"
+                                          },
+                                              _ => "Fallback"
+                                      };
+
+                                      return value;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -19,6 +20,311 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer, RH6024BinaryOperatorsMustBeSpacedCorrectlyCodeFixProvider>
 {
     #region Tests
+
+    /// <summary>
+    /// Verifies that one Fix All application spaces every operator of a chain of binary operators, whose fixes touch adjacent operands
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-002")]
+    public async Task FixAllCorrectsAChainOfOperatorsInOnePass()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  bool Method(int a, int b, int c)
+                                  {
+                                      var d = a{|RH6024:+|}b{|RH6024:+|}c;
+
+                                      return a{|RH6024:==|}b{|RH6024:&&|}b{|RH6024:>|}0;
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   internal class TestClass
+                                   {
+                                       bool Method(int a, int b, int c)
+                                       {
+                                           var d = a + b + c;
+
+                                           return a == b && b > 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, static test => test.NumberOfFixAllIterations = 1);
+    }
+
+    /// <summary>
+    /// Verifies the specification example, analyzed in a build with <c>A</c> defined: the text-edit fix is withheld in a document
+    /// that holds a hiding carrier, although the other build's string ends in front of its edit, and the diagnostic is still
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-012")]
+    public async Task SpecExampleNoFixIsOfferedInADocumentWithAHidingCarrier()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  int M(int a, int b)
+                                  {
+                              #if A
+                                      /*
+                              #else
+                                      var s = @"
+                                      */
+                                      Action c = delegate ()
+                                          {
+                                              Console.WriteLine(1);
+                                          }; //";
+                              #endif
+                                      return a{|RH6024:+|}b;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source, DocumentationMode.Parse, "A");
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(source), DocumentationMode.Parse, "A");
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld also where its edit lies in front of the hiding carrier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-012")]
+    public async Task NoFixIsOfferedForAnEditInFrontOfTheHidingCarrier()
+    {
+        const string source = """
+                              class C
+                              {
+                                  int M(int a, int b)
+                                  {
+                                      var c = a{|RH6024:+|}b;
+                              #if !X
+                                      /*
+                              #else
+                                      var s = @"
+                                      */
+                                      c = 1; //";
+                              #endif
+                                      return c;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that every kind of hiding carrier withholds the fix: a verbatim string, a raw string, and a delimited
+    /// documentation comment, each in a group that is active in the analyzed build
+    /// </summary>
+    /// <param name="carrier">The carrier's lines inside the group</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-012")]
+    [DataRow("        var s = @\"\n#else\n        \";", DisplayName = "Verbatim string")]
+    [DataRow("        var s = \"\"\"\n            #endif\n            \"\"\";", DisplayName = "Raw string")]
+    [DataRow("        /**\n#elif Y\n        */", DisplayName = "Delimited documentation comment")]
+    public async Task NoFixIsOfferedForEveryKindOfHidingCarrier(string carrier)
+    {
+        var source = $"class C\n{{\n    int M(int a, int b)\n    {{\n#if !X\n{carrier}\n#endif\n        return a{{|RH6024:+|}}b;\n    }}\n}}";
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of the other side: the comment holds directive lines, but no conditional group encloses
+    /// it, so the fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-012")]
+    public async Task SpecExampleFixIsOfferedForACommentOutsideEveryGroup()
+    {
+        const string source = """
+                              class C
+                              {
+                                  int M(int a, int b)
+                                  {
+                                      /*
+                              #if DEBUG
+                                      Log();
+                              #else
+                                      Trace();
+                              #endif
+                                      */
+                                      return a{|RH6024:+|}b;
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       int M(int a, int b)
+                                       {
+                                           /*
+                                   #if DEBUG
+                                           Log();
+                                   #else
+                                           Trace();
+                                   #endif
+                                           */
+                                           return a + b;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that a carrier inside a group whose only line that starts with <c>#</c> is a Markdown heading is no hiding
+    /// carrier, so the fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-012")]
+    public async Task FixIsOfferedForACarrierWithoutALineThatEndsTheGroup()
+    {
+        const string source = """"
+                              class C
+                              {
+                                  int M(int a, int b)
+                                  {
+                              #if !X
+                                      var s = """
+                                          # Title
+                                          """;
+                              #endif
+                                      return a{|RH6024:+|}b;
+                                  }
+                              }
+                              """";
+        const string fixedSource = """"
+                                   class C
+                                   {
+                                       int M(int a, int b)
+                                       {
+                                   #if !X
+                                           var s = """
+                                               # Title
+                                               """;
+                                   #endif
+                                           return a + b;
+                                       }
+                                   }
+                                   """";
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of the decided gap, analyzed in a build without <c>B</c>: the opening of the verbatim
+    /// string is disabled text, so the fix is offered and writes <c>var x = a + b;</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-012")]
+    public async Task SpecExampleFixIsOfferedForAStringThatOnlyAnExcludedBranchOpens()
+    {
+        const string source = """
+                              class C
+                              {
+                                  int M(int a, int b)
+                                  {
+                              #if B
+                                      var s = @"
+                              #endif
+                                      var x = a{|RH6024:+|}b;
+                              #if B
+                              ";
+                              #endif
+                                      return 0;
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       int M(int a, int b)
+                                       {
+                                   #if B
+                                           var s = @"
+                                   #endif
+                                           var x = a + b;
+                                   #if B
+                                   ";
+                                   #endif
+                                           return 0;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that a Fix All in the project, started from a document without a hiding carrier, corrects that document and
+    /// leaves a second document that holds one as it is, with its diagnostic still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-012")]
+    public async Task FixAllLeavesADocumentWithAHidingCarrierUnchanged()
+    {
+        const string source = """
+                              class C
+                              {
+                                  int M(int a, int b)
+                                  {
+                                      return a{|RH6024:+|}b;
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       int M(int a, int b)
+                                       {
+                                           return a + b;
+                                       }
+                                   }
+                                   """;
+        const string otherSource = """
+                                   class D
+                                   {
+                                       int M(int a, int b)
+                                       {
+                                   #if !X
+                                           /*
+                                   #else
+                                           var s = @"
+                                           */
+                                           a = 1; //";
+                                   #endif
+                                           return a{|RH6024:-|}b;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherSource));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", otherSource));
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                         test.NumberOfFixAllInDocumentIterations = 1;
+                         test.NumberOfFixAllInProjectIterations = 1;
+                     });
+    }
 
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
