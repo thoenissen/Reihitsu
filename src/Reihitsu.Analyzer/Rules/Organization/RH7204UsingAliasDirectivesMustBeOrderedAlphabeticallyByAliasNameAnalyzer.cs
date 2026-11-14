@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
@@ -40,7 +39,8 @@ public class RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAna
     #region Methods
 
     /// <summary>
-    /// Analyze the using directive scope
+    /// Analyze the using directive scope: every alias directive whose sort key comes before the key of an earlier
+    /// directive of its group is reported, whatever lies between them
     /// </summary>
     /// <param name="context">Context</param>
     private void OnUsingScope(SyntaxNodeAnalysisContext context)
@@ -52,23 +52,10 @@ public class RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAna
             return;
         }
 
-        foreach (var isGlobalSet in new[] { false, true })
+        foreach (var usingDirective in UsingDirectiveOrderingUtilities.GetDirectivesOutOfOrderWithinTheirGroup(usingDirectives)
+                                                                      .Where(obj => UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(obj) == UsingDirectiveOrderingGroup.Alias))
         {
-            UsingDirectiveSyntax previousAlias = null;
-
-            foreach (var usingDirective in usingDirectives.Where(obj => UsingDirectiveOrderingUtilities.IsGlobalUsing(obj) == isGlobalSet)
-                                                          .Where(obj => UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(obj) == UsingDirectiveOrderingGroup.Alias))
-            {
-                if (previousAlias != null
-                    && UsingDirectiveOrderingUtilities.AreInSameGroup(previousAlias, usingDirective)
-                    && UsingDirectiveOrderingUtilities.CompareSortKeys(UsingDirectiveOrderingUtilities.GetSortKey(usingDirective),
-                                                                       UsingDirectiveOrderingUtilities.GetSortKey(previousAlias)) < 0)
-                {
-                    context.ReportDiagnostic(CreateDiagnostic(UsingDirectiveOrderingUtilities.GetDiagnosticLocation(usingDirective)));
-                }
-
-                previousAlias = usingDirective;
-            }
+            context.ReportDiagnostic(CreateDiagnostic(UsingDirectiveOrderingUtilities.GetDiagnosticLocation(usingDirective)));
         }
     }
 

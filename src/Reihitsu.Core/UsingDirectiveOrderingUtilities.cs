@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -28,7 +29,7 @@ public static class UsingDirectiveOrderingUtilities
     }
 
     /// <summary>
-    /// Determines whether the using directive imports a System namespace
+    /// Determines whether the using directive imports a System namespace, judged by the value of its name
     /// </summary>
     /// <param name="usingDirective">Using directive</param>
     /// <returns><see langword="true"/> if the directive imports a System namespace</returns>
@@ -41,19 +42,19 @@ public static class UsingDirectiveOrderingUtilities
             return false;
         }
 
-        var namespaceName = StripGlobalQualifier(usingDirective.Name.ToString());
+        var namespaceName = GetNameValue(usingDirective);
 
         return namespaceName == "System" || namespaceName.StartsWith("System.", StringComparison.Ordinal);
     }
 
     /// <summary>
-    /// Gets the root namespace segment for a using directive
+    /// Gets the root namespace segment for a using directive, taken from the value of its name
     /// </summary>
     /// <param name="usingDirective">Using directive</param>
-    /// <returns>The first namespace segment (after stripping a leading <c>global::</c> qualifier), or an empty string</returns>
+    /// <returns>The first namespace segment (after stripping a leading <c>global::</c> qualifier), or an empty string when the directive has no name</returns>
     public static string GetRootNamespace(UsingDirectiveSyntax usingDirective)
     {
-        var name = StripGlobalQualifier(usingDirective.Name?.ToString() ?? string.Empty);
+        var name = GetNameValue(usingDirective);
         var dotIndex = name.IndexOf('.');
 
         return dotIndex >= 0 ? name.Substring(0, dotIndex) : name;
@@ -82,7 +83,8 @@ public static class UsingDirectiveOrderingUtilities
     }
 
     /// <summary>
-    /// Gets the sort key for the using directive
+    /// Gets the sort key for the using directive: the value of the alias name for an alias directive, otherwise
+    /// the value of the imported namespace or type name without a leading <c>global::</c> qualifier
     /// </summary>
     /// <param name="usingDirective">Using directive</param>
     /// <returns>The sort key</returns>
@@ -90,7 +92,7 @@ public static class UsingDirectiveOrderingUtilities
     {
         return usingDirective.Alias != null
                    ? usingDirective.Alias.Name.Identifier.ValueText
-                   : usingDirective.Name?.ToString() ?? string.Empty;
+                   : GetNameValue(usingDirective);
     }
 
     /// <summary>
@@ -147,6 +149,35 @@ public static class UsingDirectiveOrderingUtilities
     }
 
     /// <summary>
+    /// Gets the directives whose sort key comes before the key of any earlier directive of their group, whatever
+    /// directives of other groups or kinds lie between them. The analyzers that report a directive out of
+    /// alphabetical order within its group share this comparison (SHARED-USING-007)
+    /// </summary>
+    /// <param name="usingDirectives">Using directives of one scope</param>
+    /// <returns>The directives out of order within their group, in source order</returns>
+    public static List<UsingDirectiveSyntax> GetDirectivesOutOfOrderWithinTheirGroup(SyntaxList<UsingDirectiveSyntax> usingDirectives)
+    {
+        var sortKeys = usingDirectives.Select(GetSortKey).ToList();
+        var outOfOrderDirectives = new List<UsingDirectiveSyntax>();
+
+        for (var usingIndex = 1; usingIndex < usingDirectives.Count; usingIndex++)
+        {
+            for (var earlierIndex = 0; earlierIndex < usingIndex; earlierIndex++)
+            {
+                if (AreInSameGroup(usingDirectives[earlierIndex], usingDirectives[usingIndex])
+                    && CompareSortKeys(sortKeys[usingIndex], sortKeys[earlierIndex]) < 0)
+                {
+                    outOfOrderDirectives.Add(usingDirectives[usingIndex]);
+
+                    break;
+                }
+            }
+        }
+
+        return outOfOrderDirectives;
+    }
+
+    /// <summary>
     /// Determines whether a comment leads the using directive: the first trivia of its leading trivia that is
     /// neither whitespace nor a line break is a comment — single-line or delimited, ordinary or documentation,
     /// on a line of its own or on the directive's line. A blank line in front of that comment does not split
@@ -191,7 +222,8 @@ public static class UsingDirectiveOrderingUtilities
     }
 
     /// <summary>
-    /// Computes the canonical (sorted and grouped) order shared by the analyzers, code fixes and formatter
+    /// Computes the canonical (sorted and grouped) order shared by the analyzers, code fixes and formatter. An alias
+    /// whose target is not a name has no root namespace, so its group comes after every other group of its section
     /// </summary>
     /// <param name="usingDirectives">Using directives</param>
     /// <returns>The canonically ordered list</returns>
@@ -204,6 +236,7 @@ public static class UsingDirectiveOrderingUtilities
                                                                           })
                               .OrderBy(obj => IsGlobalUsing(obj.UsingDirective) ? 0 : 1)
                               .ThenBy(obj => GetUsingTypeOrder(obj.UsingDirective))
+                              .ThenBy(obj => obj.UsingDirective.Name == null ? 1 : 0)
                               .ThenBy(obj => GetNamespaceGroupOrderKey(obj.UsingDirective), StringComparer.OrdinalIgnoreCase)
                               .ThenBy(obj => GetRootNamespace(obj.UsingDirective), StringComparer.Ordinal)
                               .ThenBy(obj => GetSortKey(obj.UsingDirective), StringComparer.OrdinalIgnoreCase)
@@ -336,9 +369,33 @@ public static class UsingDirectiveOrderingUtilities
     }
 
     /// <summary>
+    /// Gets the value of the using directive's name as the compiler interprets it, without a leading <c>global::</c>
+    /// qualifier: the value text of every token, so a verbatim prefix is dropped, Unicode escape sequences are
+    /// decoded, and the whitespace and comments between the tokens are left out (SHARED-USING-004)
+    /// </summary>
+    /// <param name="usingDirective">Using directive</param>
+    /// <returns>The value of the name, or an empty string when the directive has no name</returns>
+    private static string GetNameValue(UsingDirectiveSyntax usingDirective)
+    {
+        if (usingDirective.Name == null)
+        {
+            return string.Empty;
+        }
+
+        var value = new StringBuilder();
+
+        foreach (var token in usingDirective.Name.DescendantTokens())
+        {
+            value.Append(token.ValueText);
+        }
+
+        return StripGlobalQualifier(value.ToString());
+    }
+
+    /// <summary>
     /// Strips a leading <c>global::</c> alias qualifier from a using name
     /// </summary>
-    /// <param name="name">Rendered using name</param>
+    /// <param name="name">Value of the using name</param>
     /// <returns>The name without a leading <c>global::</c> qualifier</returns>
     private static string StripGlobalQualifier(string name)
     {

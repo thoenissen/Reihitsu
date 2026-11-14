@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
@@ -40,7 +39,8 @@ public class RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzer : Di
     #region Methods
 
     /// <summary>
-    /// Analyze the using directive scope
+    /// Analyze the using directive scope: every <c>using static</c> directive whose sort key comes before the key of an earlier
+    /// directive of its group is reported, whatever lies between them
     /// </summary>
     /// <param name="context">Context</param>
     private void OnUsingScope(SyntaxNodeAnalysisContext context)
@@ -52,24 +52,10 @@ public class RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzer : Di
             return;
         }
 
-        foreach (var isGlobalSet in new[] { false, true })
+        foreach (var usingDirective in UsingDirectiveOrderingUtilities.GetDirectivesOutOfOrderWithinTheirGroup(usingDirectives)
+                                                                      .Where(obj => UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(obj) == UsingDirectiveOrderingGroup.Static))
         {
-            UsingDirectiveSyntax previousUsingDirective = null;
-
-            foreach (var usingDirective in usingDirectives.Where(obj => UsingDirectiveOrderingUtilities.IsGlobalUsing(obj) == isGlobalSet)
-                                                          .Where(obj => UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(obj) == UsingDirectiveOrderingGroup.Static))
-            {
-                var currentSortKey = UsingDirectiveOrderingUtilities.GetSortKey(usingDirective);
-
-                if (previousUsingDirective != null
-                    && UsingDirectiveOrderingUtilities.AreInSameGroup(previousUsingDirective, usingDirective)
-                    && UsingDirectiveOrderingUtilities.CompareSortKeys(currentSortKey, UsingDirectiveOrderingUtilities.GetSortKey(previousUsingDirective)) < 0)
-                {
-                    context.ReportDiagnostic(CreateDiagnostic(UsingDirectiveOrderingUtilities.GetDiagnosticLocation(usingDirective)));
-                }
-
-                previousUsingDirective = usingDirective;
-            }
+            context.ReportDiagnostic(CreateDiagnostic(UsingDirectiveOrderingUtilities.GetDiagnosticLocation(usingDirective)));
         }
     }
 
