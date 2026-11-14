@@ -20,7 +20,8 @@ internal static class DocumentationCommentCodeFixUtilities
     #region Methods
 
     /// <summary>
-    /// Moves the diagnostic content to the next documentation comment line
+    /// Moves the diagnostic content to the next documentation comment line. The line break in front of it is the
+    /// document's line ending, not the line break of the affected line (SHARED-FIX-008)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>
@@ -46,7 +47,7 @@ internal static class DocumentationCommentCodeFixUtilities
         }
 
         var replacementSpan = TextSpan.FromBounds(replacementStart, diagnosticSpan.Start);
-        var insertionText = GetLineBreak(sourceText, affectedLine, root) + DocumentationCommentUtilities.GetContinuationPrefix(sourceText, affectedLine);
+        var insertionText = ReihitsuFormatterHelpers.DetectEndOfLine(root) + DocumentationCommentUtilities.GetContinuationPrefix(sourceText, affectedLine);
 
         return document.WithText(sourceText.Replace(replacementSpan, insertionText));
     }
@@ -181,20 +182,6 @@ internal static class DocumentationCommentCodeFixUtilities
     internal static bool IsHorizontalWhitespace(char value)
     {
         return value is ' ' or '\t';
-    }
-
-    /// <summary>
-    /// Gets the line break sequence for the affected line
-    /// </summary>
-    /// <param name="sourceText">Source text</param>
-    /// <param name="line">Affected line</param>
-    /// <param name="root">Syntax root used to detect the document's end-of-line sequence when the line has no trailing line break</param>
-    /// <returns>Line break sequence</returns>
-    private static string GetLineBreak(SourceText sourceText, TextLine line, SyntaxNode root)
-    {
-        return line.EndIncludingLineBreak > line.End
-                   ? sourceText.ToString(TextSpan.FromBounds(line.End, line.EndIncludingLineBreak))
-                   : ReihitsuFormatterHelpers.DetectEndOfLine(root);
     }
 
     /// <summary>

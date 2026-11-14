@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -255,6 +255,7 @@ public class RH5520EventAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
     [TestMethod]
     [Requirement("RH5520-003")]
     [Requirement("SHARED-ATTR-017")]
+    [Requirement("SHARED-FIX-008")]
     public async Task VerifyCodeFixGivesEachEventAttributeAListOfItsOwnWithCarriageReturnLineFeed()
     {
         const string testData = """
@@ -288,6 +289,43 @@ public class RH5520EventAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
         await Verify(NormalizeToCarriageReturnLineFeed(testData),
                      NormalizeToCarriageReturnLineFeed(fixedData),
                      Diagnostics(RH5520EventAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5520MessageFormat));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(RemoveMarkup(testData))), "Every line break the fix inserts must be CRLF.");
+    }
+
+    /// <summary>
+    /// Verifies the spec example: an event-specifier list on the line of the accessor list's opening brace is still reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5520-004")]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task VerifyDiagnosticWithoutCodeFixForEventSpecifierListOnTheLineOfTheAccessorListBrace()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    public event System.Action E { {|#0:[event: A, B]|} add { } remove { } }
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     Diagnostics(RH5520EventAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5520MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(RemoveMarkup(testData),
+                                                   RH5520EventAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AttributeListSyntax>()
+                                                               .First(list => list.Attributes.Count > 1)
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests
@@ -321,8 +359,7 @@ public class RH5520EventAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
                                  internal class Example
                                  {
                                      [First]
-                                     [Second]
-                                     [Third]
+                                     [Second] [Third]
                                      [Fourth]
                                      internal event System.Action Changed;
                                  }
@@ -340,14 +377,14 @@ public class RH5520EventAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
                                  }
                                  """;
 
-        // Two multi-attribute event lists sit back to back on the same declaration: each fix computes its split
-        // against the same original document and both target the same event attribute-list run, so the batch
-        // fixer discards one of the two conflicting changes in its first pass and needs a second pass to correct
-        // the diagnostic that survives
+        // Two multi-attribute event lists sit back to back on one line of the same declaration: each split changes only
+        // its own list, so the second list's first attribute stays on the line on which the first list's last attribute
+        // now stands. Whether the batch fixer needs one pass or two for the two changes is not what this scenario
+        // asserts
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH5520EventAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5520MessageFormat, 2),
-                                  Configure: config => config.NumberOfFixAllIterations = 2);
+                                  Configure: config => config.NumberOfFixAllIterations = -2);
     }
 
     #endregion // BatchCodeFixTestsBase

@@ -1535,6 +1535,90 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
                      });
     }
 
+    /// <summary>
+    /// Verifies the spec example: in a document whose line breaks are all a lone carriage return, the line break the fix
+    /// inserts below the break line in the switch section is LF, and every line break of the input stays a lone carriage
+    /// return. The inserted LF is written in front of the break line's own lone carriage return, the only place where it
+    /// does not join that carriage return into one CRLF line break
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-004")]
+    [Requirement("SHARED-FIX-008")]
+    public async Task FixInsertsLineFeedInADocumentWhoseLineBreaksAreLoneCarriageReturns()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        switch (a)
+                                        {
+                                            case 1:
+                                                a++;
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        var source = ConvertEndOfLine(testCode, "\r");
+        var expected = source.Replace("                break;\r            default:", "                break;\n\r            default:", System.StringComparison.Ordinal);
+
+        Assert.AreEqual(expected, await ApplyCodeFixAsync(source));
+    }
+
+    /// <summary>
+    /// Verifies that in a document whose line breaks are CRLF, except the line break of the break line, which is LF, the
+    /// line break the fix inserts is CRLF, the detected line ending, and the LF of the break line stays
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-004")]
+    [Requirement("SHARED-FIX-008")]
+    public async Task FixInsertsTheDetectedLineEndingWhenTheBreakLineEndsInAnotherOne()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        switch (a)
+                                        {
+                                            case 1:
+                                                a++;
+                                                break;LF
+                                            default:
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         switch (a)
+                                         {
+                                             case 1:
+                                                 a++;
+                                                 break;LF
+
+                                             default:
+                                                 break;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode).Replace("LF\r\n", "\n", System.StringComparison.Ordinal));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode).Replace("LF\r\n", "\n", System.StringComparison.Ordinal), actual);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

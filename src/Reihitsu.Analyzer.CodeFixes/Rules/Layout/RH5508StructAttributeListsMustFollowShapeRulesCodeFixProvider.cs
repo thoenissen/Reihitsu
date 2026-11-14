@@ -28,9 +28,6 @@ public class RH5508StructAttributeListsMustFollowShapeRulesCodeFixProvider : Tar
     protected override TargetAttributeListShapeMode ListShapeMode => TargetAttributeListShapeMode.SplitLists;
 
     /// <inheritdoc/>
-    protected override TargetAttributePlacementMode DefaultPlacementMode => TargetAttributePlacementMode.SeparateLine;
-
-    /// <inheritdoc/>
     protected override string CodeFixTitle => CodeFixResources.RH5508Title;
 
     #endregion // TargetAttributeListShapeCodeFixProviderBase

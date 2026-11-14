@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -202,6 +202,7 @@ public class RH5510EnumAttributeListsMustFollowShapeRulesAnalyzerTests : BatchCo
     [TestMethod]
     [Requirement("RH5510-003")]
     [Requirement("SHARED-ATTR-017")]
+    [Requirement("SHARED-FIX-008")]
     public async Task VerifyCodeFixGivesEachEnumAttributeAListOfItsOwnWithCarriageReturnLineFeed()
     {
         const string testData = """
@@ -233,6 +234,8 @@ public class RH5510EnumAttributeListsMustFollowShapeRulesAnalyzerTests : BatchCo
         await Verify(NormalizeToCarriageReturnLineFeed(testData),
                      NormalizeToCarriageReturnLineFeed(fixedData),
                      Diagnostics(RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5510MessageFormat));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(RemoveMarkup(testData))), "Every line break the fix inserts must be CRLF.");
     }
 
     #endregion // Tests
@@ -261,8 +264,7 @@ public class RH5510EnumAttributeListsMustFollowShapeRulesAnalyzerTests : BatchCo
 
         const string fixedCode = """
                                  [First]
-                                 [Second]
-                                 [Third]
+                                 [Second] [Third]
                                  [Fourth]
                                  internal enum Example { Value }
                                  sealed class FirstAttribute : System.Attribute
@@ -279,14 +281,14 @@ public class RH5510EnumAttributeListsMustFollowShapeRulesAnalyzerTests : BatchCo
                                  }
                                  """;
 
-        // Two multi-attribute enum lists sit back to back on the same declaration: each fix computes its split
-        // against the same original document and both target the same enum attribute-list run, so the batch
-        // fixer discards one of the two conflicting changes in its first pass and needs a second pass to
-        // correct the diagnostic that survives
+        // Two multi-attribute enum lists sit back to back on one line of the same declaration: each split changes only
+        // its own list, so the second list's first attribute stays on the line on which the first list's last attribute
+        // now stands. Whether the batch fixer needs one pass or two for the two changes is not what this scenario
+        // asserts
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5510MessageFormat, 2),
-                                  Configure: config => config.NumberOfFixAllIterations = 2);
+                                  Configure: config => config.NumberOfFixAllIterations = -2);
     }
 
     #endregion // BatchCodeFixTestsBase

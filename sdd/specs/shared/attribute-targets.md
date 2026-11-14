@@ -5,7 +5,7 @@
 | ID prefix | SHARED-ATTR |
 | Status | Active |
 | Code owners | `AttributeTargetRuleAnalyzerBase`, `TargetAttributePlacementAnalyzerBase`, `TargetAttributePlacementCodeFixProviderBase`, `TargetAttributeListShapeAnalyzerBase`, `TargetAttributeListShapeCodeFixProviderBase`, `AttributeTargetUtilities`, `AttributeListMergeSeparators` |
-| Uses | FMT-BREAK-001, FMT-BREAK-024, FMT-BREAK-027, FMT-BREAK-032, FMT-INDENT-028, FMT-STRUCT-028, FMT-STRUCT-029, SHARED-FIX-008 |
+| Uses | FMT-BREAK-001, FMT-BREAK-024, FMT-BREAK-027, FMT-BREAK-032, FMT-INDENT-028, FMT-STRUCT-028, FMT-STRUCT-029, SHARED-FIX-006, SHARED-FIX-008 |
 
 This spec covers the rules that check attribute lists by the target the attributes apply to: how the target of an attribute list is resolved, how a placement rule decides whether a list is placed on its own line or on the line of what follows it, how a list-shape rule decides whether a list holds one attribute or the lists of one target are merged, where the diagnostic is, and what the placement and list-shape fixes produce. Each rule that uses this spec names its target, the declarations that carry it, its placement or its list shape, and any exception of its own. The formatter's counterparts are FMT-BREAK-027 for the placement, and FMT-STRUCT-028, FMT-STRUCT-029, and FMT-BREAK-032 for the list shape.
 
@@ -533,19 +533,13 @@ Why: The list is the unit that has the wrong shape. For lists that must be merge
 
 Example: see SHARED-ATTR-013 and SHARED-ATTR-015.
 
-### SHARED-ATTR-017 — The split fix gives each attribute a list on its own line
+### SHARED-ATTR-017 — The split fix starts each further list on a new line
 
-The code fix of a rule that requires one attribute per list MUST replace the reported list with one list per attribute, in the order the attributes were written, each list with the reported list's specifier. Each list after the first MUST start a new line at the indentation of the reported list. A comment in front of the reported list stays in front of the first list, a comment after it on its line stays after the last list, and nothing else changes. The inserted line breaks MUST use the line ending SHARED-FIX-008 specifies.
+The code fix of a rule that requires one attribute per list MUST replace the reported list with one list per attribute, in the order the attributes were written, each list with the reported list's specifier, and MUST change nothing else (SHARED-FIX-006). The first list stays where the reported list starts. Each list after the first MUST start a new line, behind the whitespace that stands at the start of the line on which the reported list starts, as written. What stands in front of the reported list on its line — a comment or another attribute list — stays in front of the first list, and what follows the reported list on its line — a comment, whitespace, another attribute list, or the declaration the list belongs to — stays behind the last list. The line breaks between the new lists are the only line breaks the fix writes, and they MUST use the line ending SHARED-FIX-008 specifies.
 
-This requirement covers a list for which all of the following hold:
+This holds wherever the list stands: every other line, its indentation, the comments and directives on it, and whitespace at the end of a line stay as written, also where the braces around the list are indented differently from the list, a comment or a directive above or below the list stands in another column, a line ends in whitespace, or the list shares its line with other code, except where SHARED-ATTR-022 withholds the fix for a list behind a `{` on its line that is still open there, and where SHARED-ATTR-023 withholds it for a line break the fix would copy or keep in another line ending. The whitespace in front of each further list is a copy of the whitespace at the start of the reported list's line, character for character, also where it holds a tab: the fix neither replaces a tab with spaces nor counts it as a column.
 
-- the list is the first token on its line, after its closing bracket that line holds nothing or only comments, and the first token after the list starts a later line;
-- every other line between the code before the list, or the start of the file, and the first token after the list is either empty, without even a space, or holds only comments and has its first character other than a space at the list's column; each line of a `///` documentation comment counts as a line of its own, while the continuation lines of a `/* */` or `/** */` comment may start at any column;
-- no preprocessor directive or disabled text lies between the code before the list and the first token after the list;
-- no line from the line of the code before the list to the line before the first token after the list ends in a space or tab that is not part of a comment;
-- the list, the first token after it, and the line of every opening brace that encloses the list are indented with spaces only, four for each namespace, type, enum, block, switch statement, accessor list, initializer, or anonymous object whose braces enclose them, and four more inside the statements of a switch section.
-
-Why: The fix makes only the change the diagnostic asks for: the attributes keep their order and their target, and each gets the line the rule requires.
+Why: The fix makes only the change the diagnostic asks for: the attributes keep their order and their target, and each further attribute gets a line of its own at the indentation the reported list's line already has. The code around the list is a layout the author chose, and placing the declaration or a neighbouring list on a line of its own is the job of the placement rules, which report it on their own.
 
 Example — RH5514, applied to both diagnostics:
 
@@ -627,6 +621,118 @@ class C
     }
 }
 ```
+
+Example — RH5514, the code around the list stays as written:
+
+```csharp
+namespace N
+{
+class C
+{
+#pragma warning disable CS0001
+// c
+    {|RH5514:[A, B]|}
+        // d
+    void M()
+    {
+    }
+}
+}
+```
+
+```csharp
+namespace N
+{
+class C
+{
+#pragma warning disable CS0001
+// c
+    [A]
+    [B]
+        // d
+    void M()
+    {
+    }
+}
+}
+```
+
+The class keeps its braces in column 0, the directive and the comments above and below the list keep their columns, and the new list starts in the column of the reported one. Likewise, `    int _f;   ` above the list, whitespace behind `[A, B]`, and a line that holds only whitespace next to the list keep their whitespace: whitespace behind the reported list stays behind `[B]`.
+
+Example — RH5514, a list that shares its line:
+
+```csharp
+class C
+{
+    [A] {|RH5514:[B, D2]|} void M()
+    {
+    }
+
+    {|RH5514:[A, B]|} [D2] void N()
+    {
+    }
+
+    /* c */ {|RH5514:[A, B]|}
+    void O()
+    {
+    }
+
+    [return: A] {|RH5514:[A, B]|} int R() => 0;
+}
+```
+
+```csharp
+class C
+{
+    [A] [B]
+    [D2] void M()
+    {
+    }
+
+    [A]
+    [B] [D2] void N()
+    {
+    }
+
+    /* c */ [A]
+    [B]
+    void O()
+    {
+    }
+
+    [return: A] [A]
+    [B] int R() => 0;
+}
+```
+
+The list in front of the reported one, the list behind it, the comment, and the declaration stay where they are; the placement rules report the lists and declarations that now share a line, such as RH5513 for `[D2] void M()`. For RH5506, `[A, B] class C` becomes `[A]` and `[B] class C` in the same way, which RH5505 then reports.
+
+Example — RH5514, a tab-indented list: in the input below, `→` stands for a tab, and the class braces are in column 0.
+
+```csharp
+class C
+{
+→{|RH5514:[A, B]|}
+→void M()
+→{
+→}
+}
+```
+
+```csharp
+class C
+{
+→[A]
+→[B]
+→void M()
+→{
+→}
+}
+```
+
+`[B]` starts behind a tab, as `[A]` does, and the tabs in front of the declaration and the method braces stay. With a line that starts with a tab and four spaces, `[B]` starts behind a tab and four spaces.
+
+Example — line endings: in a document whose line breaks are all CRLF, the line break the fix inserts between `[A]` and `[B]` is CRLF, and every other line break stays as it was. In a document whose line breaks are all a lone `\r`, the inserted line break is `\n`.
 
 ### SHARED-ATTR-018 — The merge fix moves the attributes into the first list
 
@@ -812,3 +918,192 @@ namespace N
 →}
 }
 ```
+
+### SHARED-ATTR-022 — The split fix is withheld behind a `{` on the list's line that is still open there
+
+The code fix of a rule that requires one attribute per list MUST NOT be offered when a `{` stands in front of the reported list on the line on which the list starts and the `}` that closes that `{` does not stand in front of the list on that line.
+
+- **Which `{`.** Every `{` token counts, whatever it opens: a type, a namespace, an accessor list, a block, a switch statement, an initializer, or any other body. A `{` inside a literal, a comment, or disabled text is not a token and does not count.
+- **In front of the list on its line.** Only a `{` whose token starts on the line of the reported list's `[`, in front of the `[`, counts. A `{` on a line above, and a `{` behind the list on its line, such as the body of the method the list belongs to, do not withhold the fix.
+- **Not closed in front of the list.** A `{` whose `}` stands in front of the list on that line, such as the body of a method in front of the list, does not withhold the fix. One `{` that is still open there is enough, also behind a `{` that is closed.
+
+What stands between that `{` and the list on their line does not matter. The diagnostic is still reported. Where the fix is not withheld, it is offered as SHARED-ATTR-017 states.
+
+Why: On a line on which a `{` is still open when the list starts, the whitespace at the start of the line is the indentation of the code that owns that `{` or of code further out — the property of an accessor list, the type of a member, the namespace of a type, the member or statement that owns a block, the switch statement of a section — not of the declaration the list belongs to. A further list started behind it, as SHARED-ATTR-017 states, would stand in front of the rest of that body and its `}`, at the column of the code that owns the braces, which is a layout nobody writes. Laying the body out over several lines instead would change code beyond the reported list (SHARED-FIX-006). An attribute list behind an open `{` on its line is rare, and scanning the tokens in front of the list on its line for a `{` without its `}` is a cheap check. It replaces a list of the bodies that hold a declaration directly, which missed the lists whose `{` belongs to code further out, such as a lambda in a statement.
+
+Example — a `{` in front of the reported list on its line that is still open there:
+
+```csharp
+namespace N { {|RH5506:[A, B]|} class E { } }
+
+class C { {|RH5514:[A, B]|} void M() { } }
+
+class C2 { Func<int> f = {|RH5514:[A, B]|} () => 1; }
+
+class C3 { void M() { } {|RH5514:[A, B]|} void N() { } }
+
+class D
+{
+    void N() { {|RH5514:[A, B]|} void L() { } }
+
+    void O() { Func<int> f = {|RH5514:[A, B]|} () => 1; }
+
+    void P(int x)
+    {
+        switch (x) { case 1: {|RH5514:[A, B]|} void L() { } break; }
+    }
+
+    public int Value { {|RH5518:[field: First, Second]|} get => 1; }
+
+    public int Other { {|RH5531:[A, B]|} get => 1;
+        set { } }
+}
+```
+
+is reported, and no code fix is offered. In `C3`, the body of `M` is closed in front of the list, but the body of `C3` is still open.
+
+Example — RH5518 and RH5514, the `{` on a line above the reported list:
+
+```csharp
+class C
+{
+    public int Value
+    {
+        {|RH5518:[field: First, Second]|} get => 1;
+    }
+
+    public int Other {
+        {|RH5518:[field: First, Second]|} get => 1; }
+
+    void M()
+    {
+        Func<int> f = {|RH5514:[A, B]|} () => 1;
+    }
+}
+```
+
+```csharp
+class C
+{
+    public int Value
+    {
+        [field: First]
+        [field: Second] get => 1;
+    }
+
+    public int Other {
+        [field: First]
+        [field: Second] get => 1; }
+
+    void M()
+    {
+        Func<int> f = [A]
+        [B] () => 1;
+    }
+}
+```
+
+Example — RH5514, a `{` in front of the reported list on its line that is closed there:
+
+```csharp
+class C
+{
+    void M() { } {|RH5514:[A, B]|} void N() { }
+}
+```
+
+```csharp
+class C
+{
+    void M() { } [A]
+    [B] void N() { }
+}
+```
+
+Example — RH5514, a `{` inside a literal in front of the reported list on its line:
+
+```csharp
+class C
+{
+    string s = "{"; {|RH5514:[A, B]|} void N() { }
+}
+```
+
+```csharp
+class C
+{
+    string s = "{"; [A]
+    [B] void N() { }
+}
+```
+
+The `{` of the literal is not a token, and the `{` of the body of `N` stands behind the list, so the fix is offered as SHARED-ATTR-017 states.
+
+### SHARED-ATTR-023 — The split fix is withheld for a line break it would copy or keep in another line ending
+
+The code fix of a rule that requires one attribute per list MUST NOT be offered in each of the following cases. The diagnostic is still reported.
+
+- **A line break in the target specifier.** The reported list has a target specifier, such as `field:`, and its first attribute starts on a later line than its `[`: a line break stands between the `[` and the target name, between the target name and its colon, or between the colon and the first attribute. A line break between two attributes, after the last attribute, or in a list without a target specifier does not withhold the fix.
+- **Another line ending in the list.** The reported list, from its `[` through its `]`, holds a line break other than the line ending SHARED-FIX-008 detects for the document, also one inside a literal of an attribute argument, and also one between two attributes, which the fix does not keep. In a document whose line breaks are all a lone `\r`, the detected line ending is `\n`, so the fix is withheld for every list that holds a line break. A line break outside the list, such as the one that ends the list's line, does not withhold the fix, and a list whose line breaks are all the detected line ending keeps it, with each line break inside an attribute kept as written.
+
+Why: The fix writes each new list as the specifier followed by one attribute, as written, so a line break in the specifier would be repeated in front of every attribute, which would lose the indentation of the first one, and a line break inside an attribute is kept. SHARED-FIX-008 requires a kept line break in the code a fix changes to take the detected line ending; the fix keeps the attributes as written, as the moves of SHARED-FIX-008's second paragraph keep their code, so it is withheld instead of rewriting it. A target specifier split from its attributes and a list with mixed line endings are rare, and both are found with a cheap check of the list's tokens and text.
+
+Example — RH5518, a line break in the target specifier:
+
+```csharp
+class C
+{
+    {|RH5518:[field:
+        A, B]|}
+    int _f;
+}
+```
+
+is reported, and no code fix is offered. With the line break between the attributes instead, the fix is offered:
+
+```csharp
+class C
+{
+    {|RH5518:[field: A,
+        B]|}
+    int _f;
+}
+```
+
+```csharp
+class C
+{
+    [field: A]
+    [field: B]
+    int _f;
+}
+```
+
+Example — RH5514, another line ending in the list: in a document whose line breaks are CRLF, except the line break inside the argument list of `A`, which is LF,
+
+```csharp
+class C
+{
+    {|RH5514:[A(1,
+      2), B]|}
+    void M()
+    {
+    }
+}
+```
+
+is reported, and no code fix is offered. In a document whose line breaks are all CRLF, the same list gets the fix, and the line break inside `A` stays as written:
+
+```csharp
+class C
+{
+    [A(1,
+      2)]
+    [B]
+    void M()
+    {
+    }
+}
+```
+
+In a document whose line breaks are all a lone `\r`, no fix is offered for this list, while `[A, B]` on one line gets it, with `\n` inserted between `[A]` and `[B]` (SHARED-ATTR-017).

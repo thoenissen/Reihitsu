@@ -16,6 +16,23 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH5518FieldAttributeListsMustFollowShapeRulesAnalyzerTests : BatchCodeFixTestsBase<RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer, RH5518FieldAttributeListsMustFollowShapeRulesCodeFixProvider>
 {
+    #region Constants
+
+    /// <summary>
+    /// Declarations of the attributes the examples use, appended to each example
+    /// </summary>
+    private const string AttributeDeclarations = """
+
+                                                 sealed class A : System.Attribute
+                                                 {
+                                                 }
+                                                 sealed class B : System.Attribute
+                                                 {
+                                                 }
+                                                 """;
+
+    #endregion // Constants
+
     #region Tests
 
     /// <summary>
@@ -188,14 +205,16 @@ public class RH5518FieldAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
     }
 
     /// <summary>
-    /// Verifies that a merged field-specifier list is still reported when an accessor has an expression body, because the formatter expands the accessor list
+    /// Verifies the spec example: a merged field-specifier list on the line of the accessor list's opening brace is still reported, and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDiagnosticForMergedFieldSpecifierListOnSingleLinePropertyAccessorWithExpressionBody()
+    [Requirement("RH5518-004")]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task VerifyDiagnosticWithoutCodeFixForMergedFieldSpecifierListOnSingleLinePropertyAccessorWithExpressionBody()
     {
         const string testData = """
-                                internal class Example
+                                class C
                                 {
                                     public int Value { {|#0:[field: First, Second]|} get => 1; }
                                 }
@@ -206,25 +225,18 @@ public class RH5518FieldAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
                                 {
                                 }
                                 """;
-        const string fixedData = """
-                                 internal class Example
-                                 {
-                                     public int Value {
-                                         [field: First]
-                                         [field: Second]
-                                         get => 1; }
-                                 }
-                                 sealed class FirstAttribute : System.Attribute
-                                 {
-                                 }
-                                 sealed class SecondAttribute : System.Attribute
-                                 {
-                                 }
-                                 """;
 
         await Verify(testData,
-                     fixedData,
                      Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5518MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(RemoveMarkup(testData),
+                                                   RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AttributeListSyntax>()
+                                                               .First(list => list.Attributes.Count > 1)
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     /// <summary>
@@ -316,6 +328,7 @@ public class RH5518FieldAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
     [TestMethod]
     [Requirement("RH5518-003")]
     [Requirement("SHARED-ATTR-017")]
+    [Requirement("SHARED-FIX-008")]
     public async Task VerifyCodeFixGivesEachFieldAttributeAListOfItsOwnWithCarriageReturnLineFeed()
     {
         const string testData = """
@@ -349,6 +362,258 @@ public class RH5518FieldAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
         await Verify(NormalizeToCarriageReturnLineFeed(testData),
                      NormalizeToCarriageReturnLineFeed(fixedData),
                      Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5518MessageFormat));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(RemoveMarkup(testData))), "Every line break the fix inserts must be CRLF.");
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a merged field-specifier list below an accessor list whose opening brace stands on a line of its own is split, and the accessor stays behind the last list, under LF and CRLF line endings, line endings included
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-022")]
+    [Requirement("SHARED-ATTR-017")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyCodeFixSplitsAFieldSpecifierListBelowAnAccessorListBraceOnItsOwnLine(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    public int Value
+                                    {
+                                        {|RH5518:[field: First, Second]|} get => 1;
+                                    }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     public int Value
+                                     {
+                                         [field: First]
+                                         [field: Second] get => 1;
+                                     }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a merged field-specifier list on the line below an accessor list whose opening brace stands behind the property name is split, and the rest of the line stays behind the last list, under LF and CRLF line endings, line endings included
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-022")]
+    [Requirement("SHARED-ATTR-017")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyCodeFixSplitsAFieldSpecifierListBelowAnAccessorListBraceBehindThePropertyName(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    public int Other {
+                                        {|RH5518:[field: First, Second]|} get => 1; }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     public int Other {
+                                         [field: First]
+                                         [field: Second] get => 1; }
+                                 }
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 sealed class SecondAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a list of an enum member on the line of the <c>{</c> of the enum is reported, and no code fix is
+    /// offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task VerifyDiagnosticWithoutCodeFixForEnumMemberListOnTheLineOfTheEnumBrace()
+    {
+        const string testData = """
+                                enum E { {|RH5518:[A, B]|} X, Y }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData + AttributeDeclarations);
+    }
+
+    /// <summary>
+    /// Verifies that a list of a field on the line of the <c>{</c> of the class is reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5518-004")]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task VerifyDiagnosticWithoutCodeFixForFieldListOnTheLineOfTheClassBrace()
+    {
+        const string testData = """
+                                class C { {|RH5518:[A, B]|} int _f; }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData + AttributeDeclarations);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a line break between the colon of the target specifier and the first attribute withholds
+    /// the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5518-004")]
+    [Requirement("SHARED-ATTR-023")]
+    public async Task VerifyDiagnosticWithoutCodeFixForALineBreakBehindTheColonOfTheTargetSpecifier()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH5518:[field:
+                                        A, B]|}
+                                    int _f;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData + AttributeDeclarations);
+    }
+
+    /// <summary>
+    /// Verifies that a line break between the opening bracket and the target name withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-023")]
+    public async Task VerifyDiagnosticWithoutCodeFixForALineBreakInFrontOfTheTargetName()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH5518:[
+                                        field: A, B]|}
+                                    int _f;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData + AttributeDeclarations);
+    }
+
+    /// <summary>
+    /// Verifies that a line break between the target name and its colon withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-023")]
+    public async Task VerifyDiagnosticWithoutCodeFixForALineBreakBetweenTheTargetNameAndItsColon()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH5518:[field
+                                        : A, B]|}
+                                    int _f;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData + AttributeDeclarations);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a line break between two attributes of a list with a target specifier does not withhold
+    /// the fix, and each list keeps the specifier, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-023")]
+    [Requirement("SHARED-ATTR-017")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyCodeFixSplitsAListWithATargetSpecifierAndALineBreakBetweenTwoAttributes(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH5518:[field: A,
+                                        B]|}
+                                    int _f;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     [field: A]
+                                     [field: B]
+                                     int _f;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData + AttributeDeclarations, fixedData + AttributeDeclarations, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a line break behind the opening bracket of a list without a target specifier does not withhold the
+    /// fix, and the further list starts a new line in the column of the reported list, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-023")]
+    [Requirement("SHARED-ATTR-017")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyCodeFixSplitsAListWithoutATargetSpecifierWhoseFirstAttributeStartsOnTheNextLine(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH5518:[
+                                        A, B]|}
+                                    int _f;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     [A]
+                                     [B]
+                                     int _f;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData + AttributeDeclarations, fixedData + AttributeDeclarations, endOfLine);
     }
 
     #endregion // Tests
@@ -382,8 +647,7 @@ public class RH5518FieldAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
                                  internal class Example
                                  {
                                      [First]
-                                     [Second]
-                                     [Third]
+                                     [Second] [Third]
                                      [Fourth]
                                      internal int value;
                                  }
@@ -401,14 +665,14 @@ public class RH5518FieldAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
                                  }
                                  """;
 
-        // Two multi-attribute field lists sit back to back on the same declaration: each fix computes its split
-        // against the same original document and both target the same field attribute-list run, so the batch
-        // fixer discards one of the two conflicting changes in its first pass and needs a second pass to correct
-        // the diagnostic that survives
+        // Two multi-attribute field lists sit back to back on one line of the same declaration: each split changes only
+        // its own list, so the second list's first attribute stays on the line on which the first list's last attribute
+        // now stands. Whether the batch fixer needs one pass or two for the two changes is not what this scenario
+        // asserts
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH5518FieldAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5518MessageFormat, 2),
-                                  Configure: config => config.NumberOfFixAllIterations = 2);
+                                  Configure: config => config.NumberOfFixAllIterations = -2);
     }
 
     #endregion // BatchCodeFixTestsBase

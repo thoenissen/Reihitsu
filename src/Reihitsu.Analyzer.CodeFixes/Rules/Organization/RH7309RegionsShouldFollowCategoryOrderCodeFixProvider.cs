@@ -54,7 +54,7 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
     /// <summary>
     /// Determines the region blocks of the type and the order the fix puts them in, and whether that reorder is safe
     /// to offer: it must neither move a directive across (RH7309-005) nor change the program or separate a comment
-    /// from its block (RH7309-006)
+    /// from its block (RH7309-006), nor move a block that holds another line ending (RH7309-007)
     /// </summary>
     /// <param name="typeDeclaration">Type declaration whose regions should be reordered</param>
     /// <param name="semanticModel">Semantic model of the document</param>
@@ -99,11 +99,50 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
                           .OrderBy(index => categories[index])
                           .ToList();
 
+        if (MovesOtherLineBreak(typeDeclaration, sourceText, blocks, order, cancellationToken))
+        {
+            return false;
+        }
+
         var layout = new RegionBlockLayout(blocks.Select(block => block.Span).ToList(), order);
 
         return layout.ChangesMemberOrder(typeDeclaration, typeSymbol) == false
                && SeparatesCommentFromBlock(regions, order) == false
                && ChangesDocumentedDeclaration(typeDeclaration, layout) == false;
+    }
+
+    /// <summary>
+    /// Determines whether a block whose place among the blocks changes holds a line break other than the document's line
+    /// ending, from the start of its <c>#region</c> line through the line break that ends its <c>#endregion</c> line. The
+    /// fix moves the blocks as written, so it would keep that line break (RH7309-007)
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration whose regions should be reordered</param>
+    /// <param name="sourceText">Source text of the document</param>
+    /// <param name="blocks">Region blocks in written order</param>
+    /// <param name="order">For each block position, the index of the block that the fix puts there</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> if a moved block holds another line break</returns>
+    private static bool MovesOtherLineBreak(TypeDeclarationSyntax typeDeclaration, SourceText sourceText, IReadOnlyList<(TextSpan Span, string Text)> blocks, IReadOnlyList<int> order, CancellationToken cancellationToken)
+    {
+        var endOfLine = LineEndingUtilities.DetectEndOfLine(typeDeclaration.SyntaxTree.GetRoot(cancellationToken));
+
+        for (var slot = 0; slot < order.Count; slot++)
+        {
+            if (order[slot] == slot)
+            {
+                continue;
+            }
+
+            var span = blocks[order[slot]].Span;
+            var movedSpan = TextSpan.FromBounds(span.Start, sourceText.Lines.GetLineFromPosition(span.End).EndIncludingLineBreak);
+
+            if (LineEndingUtilities.HoldsOtherLineBreak(sourceText, movedSpan, endOfLine))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

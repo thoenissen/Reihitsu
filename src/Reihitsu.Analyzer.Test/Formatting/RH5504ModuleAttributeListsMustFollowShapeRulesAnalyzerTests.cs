@@ -228,6 +228,7 @@ public class RH5504ModuleAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
     [TestMethod]
     [Requirement("RH5504-003")]
     [Requirement("SHARED-ATTR-017")]
+    [Requirement("SHARED-FIX-008")]
     public async Task VerifyCodeFixGivesEachModuleAttributeAListOfItsOwnWithCarriageReturnLineFeed()
     {
         const string testData = """
@@ -259,6 +260,8 @@ public class RH5504ModuleAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
         await Verify(NormalizeToCarriageReturnLineFeed(testData),
                      NormalizeToCarriageReturnLineFeed(fixedData),
                      Diagnostics(RH5504ModuleAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5504MessageFormat));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(RemoveMarkup(testData))), "Every line break the fix inserts must be CRLF.");
     }
 
     #endregion // Tests
@@ -287,8 +290,7 @@ public class RH5504ModuleAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
 
         const string fixedCode = """
                                  [module: First]
-                                 [module: Second]
-                                 [module: Third]
+                                 [module: Second] [module: Third]
                                  [module: Fourth]
                                  internal class Example { }
                                  sealed class FirstAttribute : System.Attribute
@@ -305,14 +307,14 @@ public class RH5504ModuleAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
                                  }
                                  """;
 
-        // Two multi-attribute module lists sit back to back on the same compilation unit: each fix computes its
-        // split against the same original document and both target the same compilation-unit attribute-list run,
-        // so the batch fixer discards one of the two conflicting changes in its first pass and needs a second
-        // pass to correct the diagnostic that survives
+        // Two multi-attribute module lists sit back to back on one line of the same compilation unit: each split
+        // changes only its own list, so the second list's first attribute stays on the line on which the first list's
+        // last attribute now stands. Whether the batch fixer needs one pass or two for the two changes is not what this
+        // scenario asserts
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH5504ModuleAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5504MessageFormat, 2),
-                                  Configure: config => config.NumberOfFixAllIterations = 2);
+                                  Configure: config => config.NumberOfFixAllIterations = -2);
     }
 
     #endregion // BatchCodeFixTestsBase

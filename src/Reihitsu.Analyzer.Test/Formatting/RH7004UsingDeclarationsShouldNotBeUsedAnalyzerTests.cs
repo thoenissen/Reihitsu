@@ -3233,6 +3233,55 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
         await VerifyNoCodeFixIsOffered(source);
     }
 
+    /// <summary>
+    /// Verifies that a <c>#nullable</c> directive and an own-line comment in front of a following statement move into the
+    /// new block with it, and that every line break of the result is the document's line ending, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7004-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task FixWritesTheDocumentsLineEndingAroundADirectiveAndACommentInFrontOfAFollowingStatement(string endOfLine)
+    {
+        const string source = """
+                              using System.IO;
+
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      {|RH7004:using|} var s = new MemoryStream();
+                                      // note
+                                      s.Flush();
+                              #nullable enable
+                                      s.Close();
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.IO;
+
+                                   class C
+                                   {
+                                       void M()
+                                       {
+                                           using (var s = new MemoryStream())
+                                           {
+                                               // note
+                                               s.Flush();
+                                   #nullable enable
+                                               s.Close();
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
     #endregion // Tests
 
     #region Methods
