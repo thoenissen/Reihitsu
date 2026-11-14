@@ -176,20 +176,6 @@ public static class RegionDirectiveUtilities
     }
 
     /// <summary>
-    /// Tries to find the containing top-level region for the member declaration
-    /// </summary>
-    /// <param name="memberDeclaration">Member declaration</param>
-    /// <param name="regions">Region pairs</param>
-    /// <param name="region">Containing region pair</param>
-    /// <returns><see langword="true"/> if a containing region was found</returns>
-    public static bool TryFindContainingRegion(MemberDeclarationSyntax memberDeclaration, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> regions, out (SyntaxTrivia Region, SyntaxTrivia EndRegion) region)
-    {
-        region = regions.FirstOrDefault(currentRegion => Contains(currentRegion, memberDeclaration));
-
-        return region != default;
-    }
-
-    /// <summary>
     /// Tries to find the region that judges a member by its description: the innermost region that encloses the member,
     /// when the member lies in a top-level region
     /// </summary>
