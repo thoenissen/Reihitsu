@@ -41,6 +41,7 @@ Bug fix (all five). Roles: spec author (clarifications: RH5601-001/RH5602-001 al
 | 12 | Implementer | #1708 test `VerifyUnnamedReferenceReceiverParameterIsNotReported` uses `extension(ref int)`, which does not compile (CS9305) | Test is wrong: fresh test implementer drops the `ref` case | Invalid C#; no compiling input reaches it | The asserted output (not reported) is internal to an input that does not compile | — |
 | 13 | Auditor | Finding 1: stale `position` doc comment on `IsInsideLiteralText` | Cleaner fixes it; proven text-only from the audited SHA, no second audit | Comment-only finding (lead.md section 7) | Comment text | — |
 | 14 | Auditor | Hint: the three new Core members are tested only through analyzer tests | No Core.Test tests added | Their behavior is covered by the analyzer tests of every caller | Internal | — |
+| 15 | Cleaner | `verify-text-only --strict-docs` fails on the public XML-doc change of finding 1 (non-strict proof passes, tokens identical) | Treat as repair round 1: spec checker and auditor check the repair only | lead.md section 7: a failing proof makes it a repair round | Comment text | 4f8df5f |
 
 ## Follow-up candidates
 
@@ -50,4 +51,4 @@ Bug fix (all five). Roles: spec author (clarifications: RH5601-001/RH5602-001 al
 
 ## Worklist / next step
 
-- Audited SHA: d75cd95 (tree of ff6c88c plus the audit handover); audit passed with two low text findings. Next: cleaner fixes the doc comment (11), verify-text-only, validator, publish.
+- Audited SHA: d75cd95. Repair round 1 (doc comment, 4f8df5f): spec checker (12) and auditor (13) on the repair only. Then validator, issue manager, publish.
