@@ -69,4 +69,4 @@
 - Done: spec checker (08, 99fa02d): two change-doc findings (status Draft; stale "code not written yet").
 - Repair round 1 done: spec author (09), spec checker (10): consistent.
 - Audited SHA: 8943764 (main 8a26419). Auditor 11: #1642 pass; #1635 finding 1 (decision 18).
-- Repair round 2: spec author (12) + test implementer (13) in parallel → cleaner (14, summary comment) → spec checker → auditor on repair → validator.
+- Repair round 2: spec author (12, d398b2e), test implementer (13, 5336960) done → cleaner (14, summary comment) → spec checker (15) → auditor on repair (16) → validator.
