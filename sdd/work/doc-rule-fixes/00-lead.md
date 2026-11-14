@@ -106,6 +106,8 @@ Batch 1 (before the test implementer):
 - Done: 18 cleaner (ba27404): clean; #5 fixed.
 - Done: 19 spec checker (f1286e4): consistent.
 - Merged origin/main e111918 (only overlap: requirement-ids.txt, auto-merged; decision 26).
+- Done: 20 auditor (5e25e5c): PASS. Audited SHA 24efb25af44adef04eb7b4ad76b2860e1b7e7bd9.
+- Next: validator 21; then publish (issue manager, note, CI trigger, PR).
 - Repair round 2 (of 3): test implementer 16 (done), implementer 17 (done), cleaner 18 (done) → implementer 17 → cleaner 18 → spec checker 19 → auditor 20 → validator.
 - Repair round 1 (of 3): test implementer 11 (done), implementer 12 (done) → implementer 12 → cleaner 13 → spec checker 14 → auditor 15 (repair only) → validator.
 - After answers: spec author repair (revert SHARED-DOC-002 for #1092; FMT-BLANK-010 wording; RH8201-001/RH8203-001 per Q4; Q1/Q2 answers; retag notes), then test implementer.
