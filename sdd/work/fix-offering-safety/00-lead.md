@@ -73,6 +73,8 @@ Batch 2 (questions 8–10, 2026-11-14):
 | 23 | 13 auditor | Hints: first-pass-only starting filter in `DocumentOrderFixAllProvider` (no reachable input found), no arch test tying `FormatsThroughFormatter` to formatter calls, XML summary line breaks | No action | No reachable input; all 29 overrides match; cosmetic | Nothing visible | n/a |
 | 24 | 15 implementer | No guard stops a future provider from calling `FixAllProvider.Create` directly and bypassing the base | Add an architecture test in this round (only the base and `DocumentOrderFixAllProvider` may call it) | Keeps decision 21's single owner enforced; small, in the component the run changes | Test only | 079709c |
 | 25 | 18 spec checker | SHARED-FIX-011/012 and change doc say "when it registers"; the Fix All path that applies without registering (base `CreateFixAllProvider`) is unstated | Clarify in spec text (one sentence each in SHARED-FIX-011, SHARED-FIX-012, change doc *What*); handled inside repair round 2 before its audit, not counted as a new round | Spec-checker finding on the round's own change, docs only | Clarifies behavior already decided by SHARED-FIX-012 | ea52344 |
+| 26 | 21 auditor | Finding #4 (two XML summaries omit the casing Fix All path) | Comment-only: route to cleaner, prove with verify-text-only against audited SHA 970f447 | Auditor passed with text cleanup only | Comments only | pending |
+| 27 | 21 auditor | Hint: architecture test does not forbid a future direct `FixAllProvider` subclass | No action | No current bypass; out of the run's needs | Nothing visible | n/a |
 | 7 | lead | #1600 fix-side line kinds | `#elif`/`#else`/`#endif` lines in a multi-line string or `/* */` that starts inside a conditional group, not any `#` line | A plain `#` check withholds fixes on Markdown raw strings; skeptic shows only these lines can hide code | Only offers more fixes than the issue's wording; rare-class withholding | pending |
 
 ## Follow-up candidates
@@ -116,4 +118,5 @@ Batch 2 (questions 8–10, 2026-11-14):
 - 18 spec checker (c9edf3e): 1 finding (decision 25).
 - 19 spec author (ea52344): clarification written.
 - 20 spec checker consistent (8866098).
-- Next: auditor on the repair (21). After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
+- 21 auditor (5b80970): audited SHA **970f447c5db57c04654f770b3a8ec389282772ec**, pass with text cleanup (#4).
+- Next: cleaner (22) for #4, verify-text-only proof, then validator (23), then publish. After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
