@@ -31,6 +31,7 @@
 | 10 | Skeptic | RH3001 trailing space when `!` ends a line before a comment | Dropped, not a follow-up | Comment inside a binary operand on its own line is a rare input class | — | — |
 | 11 | Skeptic | SHARED-BODY-003 wording ("last token in front of `=>`", name initializer and constraint clauses), RH3001-004 / change doc to name the five extra argument positions, #1283 example tags | Route to the spec author (continued) as one amendment | Small corrections in the area it wrote | Five positions are plain arguments, covered by #1245 Q2 | — |
 | 12 | Skeptic | #1284 goal "reword the SHARED-FIX-003 example" | Already met; drop | Example already says "the node the fix replaces" | — | — |
+| 13 | Test implementer | RH3202 on a tab-indented member: keep the signature line's tabs and write the new block in spaces at the formatter's column, or copy the tabs into the block, or withhold | Keep the tabs on the untouched signature line, write the new block lines in spaces (tests as written) | SHARED-FIX-006 keeps the unedited line; SHARED-FIX-007 lays out the new lines as the formatter does, and the formatter writes no tab after its preparation phase, so copying tabs would contradict SHARED-FIX-007 and need machinery. Tab indentation violates RH5601, so it is a rare class; withholding is not needed because no special case is required | Only one reading is consistent with the unchanged SHARED-FIX-006/-007; rare class (AGENTS.md, Code-fix coverage) | 4d0bec2 |
 
 ## Follow-up candidates
 
@@ -44,4 +45,5 @@
 - Spec author amendment done (ff3315d).
 - Maintainer answered batch 1 (A).
 - Change doc Accepted (b20b8a7).
-- Next step: test implementer (03-test-implementer.md).
+- Test implementer done (03-test-implementer.md, 4d0bec2): #1283 and #1284 reproduced; #1285 tests red as expected.
+- Next step: implementer (04-implementer.md).
