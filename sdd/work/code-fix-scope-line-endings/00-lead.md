@@ -51,7 +51,7 @@
 
 ## State
 
-- Audited SHA: a219aacc2c2b9d45625ce28841048305eb1436c6 (repair audit pending; first audit 888654727cd8)
+- Audited SHA: a219aacc2c2b9d45625ce28841048305eb1436c6, plus text-only repair proven up to 2a6557e (publish diff check base: 2a6557e)
 - Last step finished: spec author (01-spec-author.md, change doc `sdd/changes/2026-11/rh3001-fix-scope.md` Draft).
 - Skeptic done (02-skeptic.md): all reproduced and reachable; one output question (RH3001 `orderby !a` without direction).
 - Spec author amendment done (ff3315d).
@@ -74,4 +74,5 @@
 - Repair audit of a219aacc2c2b9d45625ce28841048305eb1436c6 (round 2 repair since 888654727cd8).
 - Auditor 15 (6b93108): #1–#3 closed; #4 repeats #1 → decision 19 (text-only repair).
 - Spec author 16 (64958ef) done.
-- Next step: cleaner 17 (guard summary), then verify-text-only --strict-docs --base a219aacc2c2b against head; pass → validator.
+- Cleaner 17 (2a6557e): comment fix; TEXT-ONLY PROOF: PASS vs a219aac → no second audit (lead.md §7).
+- Next step: validator 18 on the final tree; then lane check, issue manager, note, publish.
