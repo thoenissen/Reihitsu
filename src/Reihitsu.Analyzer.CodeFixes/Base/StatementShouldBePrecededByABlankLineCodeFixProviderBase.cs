@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// <summary>
 /// Code fix provider base class for rules based on <see cref="StatementShouldBePrecededByABlankLineAnalyzerBase{TStatement}"/>
 /// </summary>
-public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase : CodeFixProvider
+public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase : ReihitsuCodeFixProviderBase
 {
     #region Fields
 
@@ -86,8 +86,12 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -112,5 +116,5 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

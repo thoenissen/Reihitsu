@@ -1,4 +1,4 @@
-using Reihitsu.Formatter;
+﻿using Reihitsu.Formatter;
 
 namespace Reihitsu.Playground;
 
@@ -8,4 +8,5 @@ namespace Reihitsu.Playground;
 /// <param name="Text">The formatted text, or the original input when it could not be formatted</param>
 /// <param name="Formatted">Whether the formatter was able to format the input</param>
 /// <param name="Unsupported">The shape the formatter refused the input for as unsupported, or <see langword="null"/></param>
-public readonly record struct PlaygroundFormatResult(string Text, bool Formatted, UnsupportedSyntax Unsupported = null);
+/// <param name="HoldsHiddenCode">Whether the input was left unchanged because it holds code that another build configuration hides (PLAY-009)</param>
+public readonly record struct PlaygroundFormatResult(string Text, bool Formatted, UnsupportedSyntax Unsupported = null, bool HoldsHiddenCode = false);

@@ -22,7 +22,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// front of a line break, and the whitespace in front of the token behind the list is laid out as the derived rule states
 /// </summary>
 /// <typeparam name="TNode">Node that owns the list</typeparam>
-public abstract class EmptyParenthesesCodeFixProviderBase<TNode> : CodeFixProvider
+public abstract class EmptyParenthesesCodeFixProviderBase<TNode> : ReihitsuCodeFixProviderBase
     where TNode : SyntaxNode
 {
     #region Fields
@@ -229,8 +229,12 @@ public abstract class EmptyParenthesesCodeFixProviderBase<TNode> : CodeFixProvid
         return DocumentOrderFixAllProvider.Create(_analyzer);
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -262,5 +266,5 @@ public abstract class EmptyParenthesesCodeFixProviderBase<TNode> : CodeFixProvid
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

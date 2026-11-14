@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Organization;
 using Reihitsu.Core;
 
@@ -19,7 +20,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH7303DoNotPlaceRegionsWithinElementsCodeFixProvider))]
-public class RH7303DoNotPlaceRegionsWithinElementsCodeFixProvider : CodeFixProvider
+public class RH7303DoNotPlaceRegionsWithinElementsCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -80,8 +81,12 @@ public class RH7303DoNotPlaceRegionsWithinElementsCodeFixProvider : CodeFixProvi
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var syntaxRoot = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -104,5 +109,5 @@ public class RH7303DoNotPlaceRegionsWithinElementsCodeFixProvider : CodeFixProvi
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

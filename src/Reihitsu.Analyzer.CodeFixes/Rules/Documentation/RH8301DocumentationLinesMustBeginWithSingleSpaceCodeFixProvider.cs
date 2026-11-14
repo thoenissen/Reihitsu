@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Documentation;
 using Reihitsu.Core;
 
@@ -18,7 +19,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH8301DocumentationLinesMustBeginWithSingleSpaceCodeFixProvider))]
-public class RH8301DocumentationLinesMustBeginWithSingleSpaceCodeFixProvider : CodeFixProvider
+public class RH8301DocumentationLinesMustBeginWithSingleSpaceCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -55,8 +56,12 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceCodeFixProvider : C
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         foreach (var diagnostic in context.Diagnostics)
         {
@@ -69,5 +74,5 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceCodeFixProvider : C
         return Task.CompletedTask;
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

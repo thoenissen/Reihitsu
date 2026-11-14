@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Data;
 using Reihitsu.Analyzer.Rules.Documentation;
@@ -20,7 +21,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProvider))]
-public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProvider : CodeFixProvider
+public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -224,8 +225,12 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         foreach (var diagnostic in context.Diagnostics)
         {
@@ -238,5 +243,5 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
         return Task.CompletedTask;
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

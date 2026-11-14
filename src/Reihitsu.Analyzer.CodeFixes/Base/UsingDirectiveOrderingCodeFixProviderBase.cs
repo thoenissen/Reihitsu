@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// <summary>
 /// Base class for using directive ordering code fixes
 /// </summary>
-public abstract class UsingDirectiveOrderingCodeFixProviderBase : CodeFixProvider
+public abstract class UsingDirectiveOrderingCodeFixProviderBase : ReihitsuCodeFixProviderBase
 {
     #region Fields
 
@@ -72,8 +72,12 @@ public abstract class UsingDirectiveOrderingCodeFixProviderBase : CodeFixProvide
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -93,5 +97,5 @@ public abstract class UsingDirectiveOrderingCodeFixProviderBase : CodeFixProvide
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

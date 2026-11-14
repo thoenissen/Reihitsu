@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Formatter;
@@ -20,7 +21,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider))]
-public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider : CodeFixProvider
+public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Constants
 
@@ -78,8 +79,15 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider 
         return DocumentOrderFixAllProvider.Create(new RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer());
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected override bool FormatsThroughFormatter => true;
+
+    /// <inheritdoc/>
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -103,5 +111,5 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider 
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

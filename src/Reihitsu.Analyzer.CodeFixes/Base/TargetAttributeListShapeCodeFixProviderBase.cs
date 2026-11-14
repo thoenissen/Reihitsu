@@ -18,7 +18,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// <summary>
 /// Base code-fix provider for target-based attribute list-shape rules
 /// </summary>
-public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvider
+public abstract class TargetAttributeListShapeCodeFixProviderBase : ReihitsuCodeFixProviderBase
 {
     #region Properties
 
@@ -270,8 +270,12 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -294,5 +298,5 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

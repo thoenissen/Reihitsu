@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Clarity;
 using Reihitsu.Core;
 
@@ -20,7 +21,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH3002StatementMustNotUseUnnecessaryParenthesesCodeFixProvider))]
-public class RH3002StatementMustNotUseUnnecessaryParenthesesCodeFixProvider : CodeFixProvider
+public class RH3002StatementMustNotUseUnnecessaryParenthesesCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -148,8 +149,12 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesCodeFixProvider : Co
         return FixAllProvider.Create(ApplyFixAllAsync);
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -168,5 +173,5 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesCodeFixProvider : Co
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

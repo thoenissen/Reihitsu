@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// <summary>
 /// Base class for code fixes that normalize the spacing around an operator token
 /// </summary>
-public abstract class OperatorSpacingCodeFixProviderBase : CodeFixProvider
+public abstract class OperatorSpacingCodeFixProviderBase : ReihitsuCodeFixProviderBase
 {
     #region Fields
 
@@ -98,8 +98,12 @@ public abstract class OperatorSpacingCodeFixProviderBase : CodeFixProvider
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         foreach (var diagnostic in context.Diagnostics)
         {
@@ -112,5 +116,5 @@ public abstract class OperatorSpacingCodeFixProviderBase : CodeFixProvider
         return Task.CompletedTask;
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

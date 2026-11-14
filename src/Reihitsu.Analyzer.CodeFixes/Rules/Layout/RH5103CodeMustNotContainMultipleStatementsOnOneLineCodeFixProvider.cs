@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Core;
 using Reihitsu.Formatter.Utilities;
@@ -20,7 +21,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider))]
-public class RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider : CodeFixProvider
+public class RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -171,8 +172,12 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider 
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -202,5 +207,5 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider 
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

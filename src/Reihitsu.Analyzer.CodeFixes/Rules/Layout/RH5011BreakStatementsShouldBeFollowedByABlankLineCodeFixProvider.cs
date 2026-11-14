@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Core;
 using Reihitsu.Formatter.Utilities;
@@ -22,7 +23,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH5011BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider))]
-public class RH5011BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider : CodeFixProvider
+public class RH5011BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -149,8 +150,12 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider : 
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -173,5 +178,5 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider : 
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

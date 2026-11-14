@@ -22,7 +22,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// Code fix provider for casing rules
 /// </summary>
 /// <typeparam name="T">Node type</typeparam>
-public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
+public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
     where T : SyntaxNode
 {
     #region Fields
@@ -696,8 +696,8 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <summary>
     /// Applies a rename only when it is safe: no method name the compiler looks up implicitly, no namespace member
     /// collision, no name in excluded code or in a caller-argument expression attribute, no Roslyn conflict annotation,
-    /// no changed native entry point, no added compile error, and no change to the properties the compiler declares for
-    /// positional record parameters
+    /// no changed native entry point, no changed document that holds code another build configuration hides, no added
+    /// compile error, and no change to the properties the compiler declares for positional record parameters
     /// </summary>
     /// <param name="solution">Solution containing the declaration</param>
     /// <param name="documentId">Declaration document</param>
@@ -766,7 +766,20 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
             return null;
         }
 
-        var projectChanges = renamedSolution.GetChanges(solution).GetProjectChanges();
+        var projectChanges = renamedSolution.GetChanges(solution).GetProjectChanges().ToList();
+
+        // No document the rename changes may hold code that another build configuration hides (SHARED-FIX-012)
+        foreach (var changedDocumentId in projectChanges.SelectMany(static changes => changes.GetChangedDocuments()))
+        {
+            var document = solution.GetDocument(changedDocumentId);
+
+            if (document != null
+                && await HoldsHidingCarrierAsync(document, cancellationToken).ConfigureAwait(false))
+            {
+                return null;
+            }
+        }
+
         var affectedProjectIds = ExcludedCodeUtilities.GetDependentProjectIds(solution, projectChanges.Select(static changes => changes.ProjectId));
 
         if (await HasAddedCompileErrorsAsync(solution, renamedSolution, affectedProjectIds, cancellationToken).ConfigureAwait(false)
@@ -1279,8 +1292,12 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
         return new CasingFixAllProvider();
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -1316,5 +1333,5 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

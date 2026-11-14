@@ -6,7 +6,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
+using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
@@ -14,9 +16,14 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// <summary>
 /// Base class for type member reordering code fixes
 /// </summary>
-public abstract class TypeMemberOrderingCodeFixProviderBase : CodeFixProvider
+public abstract class TypeMemberOrderingCodeFixProviderBase : ReihitsuCodeFixProviderBase
 {
     #region Fields
+
+    /// <summary>
+    /// Analyzer that reports the diagnostics the code fix corrects
+    /// </summary>
+    private readonly DiagnosticAnalyzer _analyzer;
 
     /// <summary>
     /// Diagnostic ID
@@ -35,10 +42,12 @@ public abstract class TypeMemberOrderingCodeFixProviderBase : CodeFixProvider
     /// <summary>
     /// Constructor
     /// </summary>
+    /// <param name="analyzer">Analyzer that reports the diagnostics the code fix corrects</param>
     /// <param name="diagnosticId">Diagnostic ID</param>
     /// <param name="title">Code fix title</param>
-    protected TypeMemberOrderingCodeFixProviderBase(string diagnosticId, string title)
+    protected TypeMemberOrderingCodeFixProviderBase(DiagnosticAnalyzer analyzer, string diagnosticId, string title)
     {
+        _analyzer = analyzer;
         _diagnosticId = diagnosticId;
         _title = title;
     }
@@ -109,13 +118,21 @@ public abstract class TypeMemberOrderingCodeFixProviderBase : CodeFixProvider
     public sealed override ImmutableArray<string> FixableDiagnosticIds => [_diagnosticId];
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// The moves of one type are applied one after another, each registered on the code the moves in front of it produced, so
+    /// that one application corrects every diagnostic whose fix is offered (SHARED-FIX-002)
+    /// </remarks>
     public sealed override FixAllProvider GetFixAllProvider()
     {
-        return WellKnownFixAllProviders.BatchFixer;
+        return DocumentOrderFixAllProvider.Create(_analyzer);
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
         var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
@@ -138,5 +155,5 @@ public abstract class TypeMemberOrderingCodeFixProviderBase : CodeFixProvider
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

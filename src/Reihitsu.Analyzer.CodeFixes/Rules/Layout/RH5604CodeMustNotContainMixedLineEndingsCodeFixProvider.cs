@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Formatter.Utilities;
 
@@ -18,7 +19,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH5604CodeMustNotContainMixedLineEndingsCodeFixProvider))]
-public class RH5604CodeMustNotContainMixedLineEndingsCodeFixProvider : CodeFixProvider
+public class RH5604CodeMustNotContainMixedLineEndingsCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -78,8 +79,12 @@ public class RH5604CodeMustNotContainMixedLineEndingsCodeFixProvider : CodeFixPr
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         foreach (var diagnostic in context.Diagnostics)
         {
@@ -92,5 +97,5 @@ public class RH5604CodeMustNotContainMixedLineEndingsCodeFixProvider : CodeFixPr
         return Task.CompletedTask;
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

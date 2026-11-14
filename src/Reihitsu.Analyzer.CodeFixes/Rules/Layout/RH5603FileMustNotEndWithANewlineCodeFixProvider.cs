@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Layout;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -17,7 +18,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH5603FileMustNotEndWithANewlineCodeFixProvider))]
-public class RH5603FileMustNotEndWithANewlineCodeFixProvider : CodeFixProvider
+public class RH5603FileMustNotEndWithANewlineCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -48,8 +49,12 @@ public class RH5603FileMustNotEndWithANewlineCodeFixProvider : CodeFixProvider
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         foreach (var diagnostic in context.Diagnostics)
         {
@@ -62,5 +67,5 @@ public class RH5603FileMustNotEndWithANewlineCodeFixProvider : CodeFixProvider
         return Task.CompletedTask;
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }
