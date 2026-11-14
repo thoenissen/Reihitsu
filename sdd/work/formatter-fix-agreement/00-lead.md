@@ -48,4 +48,5 @@
 - Done: test implementer repair (`11`, ce39258): test deleted, coverage confirmed.
 - Done: cleaner (`12`, eaab5a9): clean.
 - Done: spec checker (`13`, 5bf6f9a): consistent.
-- Next: auditor (repair only) → validator.
+- Done: audit 2 (`14`, a2d888a) on 79610f4 (audited SHA): pass; one comment-only finding #2 (`FormattingContext.RootChainBoundary` summary, :152-158).
+- Next: cleaner fixes the comment; prove with `scripts/verify-text-only.sh --strict-docs --base 79610f4 --head worktree`; then validator; then publish.
