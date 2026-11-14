@@ -74,11 +74,12 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer : DiagnosticA
 
         var inheritdocNode = DirectDocumentationSyntaxChecker.GetFirstDirectTag(documentationComment, "inheritdoc");
 
-        // Each part of a partial member is judged by its own documentation comment (SHARED-DIAG-004). The expanded
-        // documentation of a part's symbol can be the other part's comment, so it is read only for other declarations
-        var expandedInheritdocElement = IsPartOfPartialMember(declaration, context.SemanticModel, context.CancellationToken)
-                                            ? null
-                                            : XmlDocumentationExpander.GetFirstExpandedElement(XmlDocumentationExpander.GetExpandedDocumentation(declaration, context.SemanticModel, context.CancellationToken), "inheritdoc");
+        // Each part of a partial member is judged by its own documentation (SHARED-DIAG-004). The expanded documentation
+        // of a part's symbol can be the other part's, so a part's own documentation is expanded on its own
+        var expandedDocumentation = IsPartOfPartialMember(declaration, context.SemanticModel, context.CancellationToken)
+                                        ? XmlDocumentationExpander.GetExpandedDocumentationOfPart(declaration, context.SemanticModel, context.CancellationToken)
+                                        : XmlDocumentationExpander.GetExpandedDocumentation(declaration, context.SemanticModel, context.CancellationToken);
+        var expandedInheritdocElement = XmlDocumentationExpander.GetFirstExpandedElement(expandedDocumentation, "inheritdoc");
 
         if (inheritdocNode == null && expandedInheritdocElement == null)
         {
