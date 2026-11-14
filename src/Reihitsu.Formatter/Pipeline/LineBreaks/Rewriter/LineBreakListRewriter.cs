@@ -526,7 +526,9 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     /// once two elements start on different lines or an element signals a split, including an element that
     /// attribute formatting later in this pass spreads over several lines (FMT-BREAK-012). A line break in front
     /// of a separator — one that a comment, a directive, or disabled text keeps there — separates the elements on
-    /// either side of it, and that separator is left as written. Only the whitespace at the end of a separator's
+    /// either side of it, and that separator is left as written. A first element that a comment, a directive, or
+    /// disabled text keeps off the line of the opening delimiter cannot join that line, starts its own line, and
+    /// so makes the list multi-line, one element per line. Only the whitespace at the end of a separator's
     /// trailing trivia is replaced by the line break; whitespace before or between block comments that stay after
     /// the separator is kept as written
     /// </summary>
