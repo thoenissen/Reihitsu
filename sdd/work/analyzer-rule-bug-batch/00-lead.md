@@ -46,4 +46,4 @@ Bug fix (all five). Roles: spec author (clarifications: RH5601-001/RH5602-001 al
 
 ## Worklist / next step
 
-- Done: spec author (01, 6ab9935), skeptic (02), test implementer (03, e2d65ed; all five reproduced, 78 failing tests). Fresh spec author fixing two spec defects (04). Next: test implementer alignment of the RH5602 example test, then implementer.
+- Done: spec author (01, 04), skeptic (02), test implementer (03 e2d65ed, 05 4d94b88). Next: implementer.
