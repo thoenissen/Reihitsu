@@ -86,5 +86,6 @@ Batch 1 (before the test implementer):
 - Done: 06 test implementer (48bfa0b): 69 failing analyzer tests, all on spec differences.
 - Done: 07 implementer (260c2f9): all tests pass in Debug.
 - Done: 08 cleaner (c88c8d4): clean.
-- Next: spec checker 09.
+- Done: 09 spec checker (704a989): consistent. main not moved; build green; no open output questions.
+- Next: auditor 10.
 - After answers: spec author repair (revert SHARED-DOC-002 for #1092; FMT-BLANK-010 wording; RH8201-001/RH8203-001 per Q4; Q1/Q2 answers; retag notes), then test implementer.
