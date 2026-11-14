@@ -1277,6 +1277,47 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
         await Verify(testData, resultData, Diagnostics(RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer.DiagnosticId, AnalyzerResources.RH5112MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the layout the RH5111 fix gives an assignment behind a conditional access with wrapped links, which is the
+    /// layout formatting the document gives it, is not reported by RH5112
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-006")]
+    public async Task VerifyNoDiagnosticForAssignmentsBehindAConditionalAccessLaidOutAsTheDocument()
+    {
+        const string testData = """
+                                class A
+                                {
+                                    public A B;
+                                    public A this[int i] => null;
+                                    public int C;
+                                }
+
+                                class D
+                                {
+                                    void M(A a)
+                                    {
+                                        a?.B
+                                         .C = 5;
+                                        a?[0].C = 5;
+                                        a?.B?.B
+                                         .C = 5;
+                                        a?.B
+                                         .B
+                                         .C = 5;
+                                        a.B?.B
+                                         .C = 5;
+                                        a?[0].B
+                                             .C = 5;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

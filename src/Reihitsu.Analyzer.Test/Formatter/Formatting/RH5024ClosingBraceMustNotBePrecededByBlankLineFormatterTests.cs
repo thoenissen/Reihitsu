@@ -110,5 +110,205 @@ public class RH5024ClosingBraceMustNotBePrecededByBlankLineFormatterTests : Form
         await VerifyFormatter(input);
     }
 
+    /// <summary>
+    /// Verifies that the formatter removes the blank line between an own-line comment and the closing brace of an array
+    /// initializer, so its output is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BLANK-020")]
+    public async Task VerifyFormatterRemovesBlankLineBehindCommentBeforeClosingBraceOfArrayInitializer()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int[] g;
+                                     g = new int[]
+
+                                         // c
+
+                                         {
+                                             1,
+                                             2
+
+                                             // d
+                             {|#0:
+                             |}            };
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         int[] g;
+                                         g = new int[]
+
+                                             // c
+                                             {
+                                                 1,
+                                                 2
+
+                                                 // d
+                                             };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5024MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter removes the blank line between an own-line comment and the closing brace of an extension
+    /// block, so its output is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BLANK-020")]
+    public async Task VerifyFormatterRemovesBlankLineBehindCommentBeforeClosingBraceOfExtensionBlock()
+    {
+        const string input = """
+                             static class E
+                             {
+                                 extension(int i)
+
+                                 // g
+
+                                 {
+                                     public int D => i;
+
+                                     // h
+                             {|#0:
+                             |}    }
+                             }
+                             """;
+        const string fixedData = """
+                                 static class E
+                                 {
+                                     extension(int i)
+
+                                     // g
+                                     {
+                                         public int D => i;
+
+                                         // h
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5024MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter removes the blank line between an own-line comment and the closing brace of a collection
+    /// initializer assigned to a member, so its output is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BLANK-020")]
+    public async Task VerifyFormatterRemovesBlankLineBehindCommentBeforeClosingBraceOfAssignedCollectionInitializer()
+    {
+        const string input = """
+                             class P
+                             {
+                                 public System.Collections.Generic.List<int> L { get; } = new();
+                             }
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var p = new P
+                                             {
+                                                 L = {
+                                                         1
+
+                                                         // d
+                             {|#0:
+                             |}                        }
+                                             };
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 class P
+                                 {
+                                     public System.Collections.Generic.List<int> L { get; } = new();
+                                 }
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var p = new P
+                                                 {
+                                                     L = {
+                                                             1
+
+                                                             // d
+                                                         }
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5024MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter removes the blank line between an own-line comment and the closing brace of an
+    /// interpolation of a raw interpolated string, so its output is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BLANK-020")]
+    public async Task VerifyFormatterRemovesBlankLineBehindCommentBeforeClosingBraceOfRawStringInterpolation()
+    {
+        const string input = """"
+                             class C
+                             {
+                                 void M(int a)
+                                 {
+                                     var s = $"""
+                                              {
+                                                  a
+
+                                                  // f
+                             {|#0:
+                             |}                 }
+                                              """;
+                                 }
+                             }
+                             """";
+        const string fixedData = """"
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         var s = $"""
+                                                  {
+                                                      a
+
+                                                      // f
+                                                  }
+                                                  """;
+                                     }
+                                 }
+                                 """";
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5024MessageFormat));
+    }
+
     #endregion // Tests
 }
