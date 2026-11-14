@@ -62,7 +62,7 @@ public class RH5601UseTabsCorrectlyCodeFixProvider : ReihitsuCodeFixProviderBase
         foreach (var diagnostic in context.Diagnostics)
         {
             if (root?.FindToken(diagnostic.Location.SourceSpan.Start) is { } token
-                && RH5601UseTabsCorrectlyAnalyzer.IsStringContentToken(token, diagnostic.Location.SourceSpan.Start))
+                && FormattingTextAnalysisUtilities.IsInsideLiteralText(token, diagnostic.Location.SourceSpan.Start))
             {
                 continue;
             }

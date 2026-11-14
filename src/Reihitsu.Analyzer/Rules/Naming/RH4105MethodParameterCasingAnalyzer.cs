@@ -41,9 +41,11 @@ public class RH4105MethodParameterCasingAnalyzer : CasingAnalyzerBase
     #region CasingAnalyzerBase
 
     /// <inheritdoc/>
+    /// <remarks>A parameter without a name, such as the receiver parameter of <c>extension(long)</c>, has nothing to check and is skipped.</remarks>
     protected override IEnumerable<(string Name, Location Location)> GetLocations(SyntaxNode node)
     {
         if (node is ParameterSyntax parameter
+            && parameter.Identifier.Span.IsEmpty == false
             && parameter.Identifier.ValueText != "_"
             && parameter.Parent is not ParameterListSyntax { Parent: RecordDeclarationSyntax })
         {

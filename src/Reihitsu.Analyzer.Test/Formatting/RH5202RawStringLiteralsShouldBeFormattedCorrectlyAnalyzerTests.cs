@@ -3541,6 +3541,232 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
         await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the requirement's example in a document whose line breaks are all a lone carriage return: the aligned
+    /// literal is not reported and the misaligned interpolated literal is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-001")]
+    public async Task VerifyAlignedLiteralIsNotReportedAndMisalignedLiteralIsReportedWithLoneCarriageReturns()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = """
+                                                Hello
+                                                """;
+                                        var b = {|#0:$"""
+                                            Hello {1}
+                                            """|};
+                                    }
+                                }
+                                """";
+
+        await Verify(ConvertEndOfLine(testData, "\r"), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that aligned plain, UTF-8, and interpolated literals in a document whose line breaks are all a lone
+    /// carriage return are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-001")]
+    public async Task VerifyAlignedLiteralsAreNotReportedWithLoneCarriageReturns()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = """
+                                                Hello
+                                                """;
+                                        var b = """
+                                                Hello
+                                                """u8;
+                                        var c = $"""
+                                                 Hello {1}
+                                                 """;
+                                    }
+                                }
+                                """";
+
+        await Verify(ConvertEndOfLine(testData, "\r"));
+    }
+
+    /// <summary>
+    /// Verifies the requirement's fix example in a document whose line breaks are all a lone carriage return: one
+    /// application aligns the literal, the analyzer no longer reports it, and the literal's lone carriage returns stay
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyMisalignedInterpolatedLiteralIsFixedInOneApplicationWithLoneCarriageReturns()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var b = {|RH5202:$"""
+                                            Hello {1}
+                                            """|};
+                                    }
+                                }
+                                """";
+        const string fixedData = """"
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var b = $"""
+                                                  Hello {1}
+                                                  """;
+                                     }
+                                 }
+                                 """";
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, "\r");
+    }
+
+    /// <summary>
+    /// Verifies that a misaligned plain literal in a document whose line breaks are all a lone carriage return is aligned
+    /// in one application, and that the analyzer no longer reports it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-003")]
+    public async Task VerifyMisalignedPlainLiteralIsFixedInOneApplicationWithLoneCarriageReturns()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|RH5202:"""
+                                            Hello
+                                            """|};
+                                    }
+                                }
+                                """";
+        const string fixedData = """"
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var a = """
+                                                 Hello
+                                                 """;
+                                     }
+                                 }
+                                 """";
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, "\r");
+    }
+
+    /// <summary>
+    /// Verifies that the formatter's output for a document whose line breaks are all a lone carriage return, which keeps
+    /// the lone carriage returns inside the literals, is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-001")]
+    public async Task VerifyFormatterOutputForLoneCarriageReturnDocumentIsNotReported()
+    {
+        const string source = """"
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      var a = """
+                                          Hello
+                                          """;
+                                      var b = $"""
+                                          Hello {1}
+                                          """;
+                                  }
+                              }
+                              """";
+
+        await Verify(Format(ConvertEndOfLine(source, "\r")));
+    }
+
+    /// <summary>
+    /// Verifies that aligned literals whose line breaks are U+0085 in an otherwise LF document are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-001")]
+    public async Task VerifyAlignedLiteralsAreNotReportedWithNextLineBreaksInTheLiteral()
+    {
+        await Verify(CreateAlignedLiteralsWithLiteralLineBreak("\u0085"));
+    }
+
+    /// <summary>
+    /// Verifies that aligned literals whose line breaks are U+2028 in an otherwise LF document are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-001")]
+    public async Task VerifyAlignedLiteralsAreNotReportedWithLineSeparatorsInTheLiteral()
+    {
+        await Verify(CreateAlignedLiteralsWithLiteralLineBreak("\u2028"));
+    }
+
+    /// <summary>
+    /// Verifies that aligned literals whose line breaks are U+2029 in an otherwise LF document are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-001")]
+    public async Task VerifyAlignedLiteralsAreNotReportedWithParagraphSeparatorsInTheLiteral()
+    {
+        await Verify(CreateAlignedLiteralsWithLiteralLineBreak("\u2029"));
+    }
+
+    /// <summary>
+    /// Verifies that misaligned plain and interpolated literals whose line breaks are U+0085 are aligned in one
+    /// application, keep their line breaks, and are no longer reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-001")]
+    [Requirement("RH5202-003")]
+    public async Task VerifyMisalignedLiteralsAreFixedWithNextLineBreaksInTheLiteral()
+    {
+        await VerifyMisalignedLiteralsWithLiteralLineBreak("\u0085");
+    }
+
+    /// <summary>
+    /// Verifies that misaligned plain and interpolated literals whose line breaks are U+2028 are aligned in one
+    /// application, keep their line breaks, and are no longer reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-001")]
+    [Requirement("RH5202-003")]
+    public async Task VerifyMisalignedLiteralsAreFixedWithLineSeparatorsInTheLiteral()
+    {
+        await VerifyMisalignedLiteralsWithLiteralLineBreak("\u2028");
+    }
+
+    /// <summary>
+    /// Verifies that misaligned plain and interpolated literals whose line breaks are U+2029 are aligned in one
+    /// application, keep their line breaks, and are no longer reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5202-001")]
+    [Requirement("RH5202-003")]
+    public async Task VerifyMisalignedLiteralsAreFixedWithParagraphSeparatorsInTheLiteral()
+    {
+        await VerifyMisalignedLiteralsWithLiteralLineBreak("\u2029");
+    }
+
     #endregion // Tests
 
     #region Methods
@@ -3589,6 +3815,78 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                 yield return interpolated;
             }
         }
+    }
+
+    /// <summary>
+    /// Creates an LF document holding aligned plain, UTF-8, and interpolated multi-line raw string literals whose own line
+    /// breaks are <paramref name="literalLineBreak"/>
+    /// </summary>
+    /// <param name="literalLineBreak">Line break inside the literals</param>
+    /// <returns>The document text</returns>
+    private static string CreateAlignedLiteralsWithLiteralLineBreak(string literalLineBreak)
+    {
+        const string source = """"
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      var a = """¶
+                                              Hello¶
+                                              """;
+                                      var b = """¶
+                                              Hello¶
+                                              """u8;
+                                      var c = $"""¶
+                                               Hello {1}¶
+                                               """;
+                                  }
+                              }
+                              """";
+
+        return ConvertEndOfLine(source, "\n").Replace("¶\n", literalLineBreak);
+    }
+
+    /// <summary>
+    /// Verifies that misaligned plain and interpolated multi-line raw string literals whose own line breaks are
+    /// <paramref name="literalLineBreak"/>, in an LF document, are reported, are aligned in one application that keeps
+    /// those line breaks, and are not reported afterwards
+    /// </summary>
+    /// <param name="literalLineBreak">Line break inside the literals</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyMisalignedLiteralsWithLiteralLineBreak(string literalLineBreak)
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = {|#0:"""¶
+                                            Hello¶
+                                            """|};
+                                        var b = {|#1:$"""¶
+                                            Hello {1}¶
+                                            """|};
+                                    }
+                                }
+                                """";
+        const string fixedData = """"
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var a = """¶
+                                                 Hello¶
+                                                 """;
+                                         var b = $"""¶
+                                                  Hello {1}¶
+                                                  """;
+                                     }
+                                 }
+                                 """";
+
+        await Verify(ConvertEndOfLine(testData, "\n").Replace("¶\n", literalLineBreak),
+                     ConvertEndOfLine(fixedData, "\n").Replace("¶\n", literalLineBreak),
+                     Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
     }
 
     #endregion // Methods
