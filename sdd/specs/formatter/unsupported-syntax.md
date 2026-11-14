@@ -5,7 +5,7 @@
 | ID prefix | FMT-UNSUP |
 | Status | Active |
 | Code owners | `PrecheckPhase`, `FormattingResult<T>`, `UnsupportedSyntax`, `SyntaxNotSupportedException` |
-| Uses | FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-STRUCT-021, SHARED-FIX-010 |
+| Uses | FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-STRUCT-021, SHARED-FIX-010 |
 
 This spec covers the formatter's *Unsupported* outcome: the input shapes the formatter refuses as a whole, the precheck phase that finds them before any other phase runs (FMT-PIPE-001), a phase's refusal of a shape the precheck does not find, what every entry point returns for a refused input, and the query that tells a code fix whether the formatter refuses a node. Each unsupported shape is a requirement of this spec; a shape is declared here so that no phase has to handle it.
 
@@ -14,7 +14,7 @@ This spec covers the formatter's *Unsupported* outcome: the input shapes the for
 - What a host does with the outcome — the CLI (CLI specs), the code fixes (SHARED-FIX), and the Playground (PLAY).
 - Whether an analyzer rule reports an unsupported shape. The list of unsupported shapes belongs to the formatter and depends on no analyzer rule.
 - Formatting part of a refused input. A refused input is never formatted in part.
-- Code with syntax errors and generated code, which FMT-PIPE-005 and FMT-PIPE-006 leave untouched before this spec applies.
+- Code with syntax errors, generated code, and a document whose text another build compiles as code, which FMT-PIPE-005, FMT-PIPE-006, and FMT-PIPE-033 leave untouched before this spec applies.
 
 ## Requirements
 
@@ -24,8 +24,8 @@ When the input of the formatting phases contains a shape that a requirement of t
 
 Every formatting entry point of `ReihitsuFormatter` — `FormatDocumentAsync`, `FormatSyntaxTree`, `FormatNode`, `FormatNodeInDocumentAsync`, and `FormatNodeInDocumentWithContextAsync` — MUST return a result object, `FormattingResult<T>`, instead of the bare document, tree, or node:
 
-- `Output` is what the entry point returned before this outcome existed: the formatted document, tree, or node, or the input unchanged when the formatter refuses it, and also when FMT-PIPE-005 or FMT-PIPE-006 leaves it untouched.
-- `Unsupported` is null when the input is not refused, also for an input FMT-PIPE-005 or FMT-PIPE-006 leaves untouched. For a refused input it is an `UnsupportedSyntax` that carries the reason — the description the requirement of the shape gives, such as `a comment between a variable declaration's own tokens` for FMT-UNSUP-004 — and the location: the span of the shape in the caller's syntax tree, from which a host derives the line and the column of its first character.
+- `Output` is what the entry point returned before this outcome existed: the formatted document, tree, or node, or the input unchanged when the formatter refuses it, and also when FMT-PIPE-005, FMT-PIPE-006, or FMT-PIPE-033 leaves it untouched.
+- `Unsupported` is null when the input is not refused, also for an input FMT-PIPE-005, FMT-PIPE-006, or FMT-PIPE-033 leaves untouched. For a refused input it is an `UnsupportedSyntax` that carries the reason — the description the requirement of the shape gives, such as `a comment between a variable declaration's own tokens` for FMT-UNSUP-004 — and the location: the span of the shape in the caller's syntax tree, from which a host derives the line and the column of its first character.
 
 When the input holds several unsupported shapes, the reason and the location MUST be those of the shape that starts first in the text.
 
@@ -71,7 +71,7 @@ The formatter MUST decide whether an input is unsupported on exactly the node it
 - `FormatNodeInDocumentAsync` — its target;
 - `FormatNodeInDocumentWithContextAsync` — its context, with the target in it.
 
-`OrganizeUsingDirectivesInDocumentAsync` runs no formatting phase but the using phase (FMT-PIPE-030) and MUST NOT refuse an input under this spec. `FormatDocumentationElementInDocumentAsync` lays out one documentation element and runs no formatting phase on the document (FMT-PIPE-032), and MUST NOT refuse an input under this spec either: no shape this spec declares can stand inside a documentation element. `SplitsFieldDeclaration` answers a question and formats nothing (FMT-PIPE-031). An input that FMT-PIPE-005 or FMT-PIPE-006 returns unchanged is not reported as unsupported: those requirements apply first.
+`OrganizeUsingDirectivesInDocumentAsync` runs no formatting phase but the using phase (FMT-PIPE-030) and MUST NOT refuse an input under this spec. `FormatDocumentationElementInDocumentAsync` lays out one documentation element and runs no formatting phase on the document (FMT-PIPE-032), and MUST NOT refuse an input under this spec either: no shape this spec declares can stand inside a documentation element. `SplitsFieldDeclaration` answers a question and formats nothing (FMT-PIPE-031). An input that FMT-PIPE-005, FMT-PIPE-006, or FMT-PIPE-033 returns unchanged is not reported as unsupported: those requirements apply first.
 
 Why: One check site gives one answer. A second check in an entry point would restate the list of unsupported shapes, and the two statements could drift apart. Checking the context of `FormatNodeInDocumentWithContextAsync`, not only its target, follows from what its phases receive: they format the whole context, so an unsupported shape anywhere in it reaches them.
 
@@ -292,6 +292,86 @@ unsafe struct S
         {
         }
     }
+}
+```
+
+### FMT-UNSUP-008 — Comments and directives between a conditional operator and its branch are unsupported
+
+An input MUST be refused when a comment — `//`, `/* */`, `///`, or `/** */`, in every documentation mode — a preprocessor directive, or disabled text stands between an operator of a conditional expression and the branch behind it:
+
+- between the `?` and the first token of the `true` branch, or
+- between the `:` and the first token of the `false` branch,
+
+that is, in the trailing trivia of the `?` or the `:`, or in the leading trivia of the branch's first token. The requirement holds for every conditional expression, also for one nested in a branch of another, and for one inside a lambda or another expression in a branch, each with its own operators.
+
+These places are not refused:
+
+- in front of the `?` or the `:`: in the trailing trivia of the condition's or the `true` branch's last token, or in the leading trivia of the `?` or the `:` — a comment on the line above the operator's line, or behind the code in front of the operator;
+- inside a branch, behind its first token;
+- the null-conditional operators `?.` and `?[]`, and the null-coalescing operator `??`, which are not conditional expressions.
+
+The reason the formatter gives for this shape is `a comment or directive between a conditional operator and its branch`, and its location is the span of the first comment, directive, or disabled text in that place.
+
+Why: A comment or a directive behind `?` or `:` keeps the branch off the operator's line, and the line-break phase had to refuse its move of the operator and leave the conditional half wrapped, which RH5308 then kept reporting and its fix could not correct. A comment in front of the operator stands on its own line or behind the code before it, where the phases already handle comments for every other wrapped operator, so a comment that explains a branch is written above the operator's line. The shape is rare, and refusing it lets the line-break phase join every branch to its operator without a guard.
+
+Example — each conditional is refused, and the input that holds it is returned unchanged:
+
+```csharp
+class C
+{
+    int M(bool a)
+    {
+        var x = a ? // c1
+            1
+            : 2;
+        var y = a
+                    ? 1 : // c2
+                    2;
+        var z = a ? /* c3 */ 1
+                : 2;
+
+        return x;
+    }
+}
+```
+
+Example — a directive and disabled text behind the `?` refuse the input as well:
+
+```csharp
+class C
+{
+    int M(bool a)
+    {
+        return a ?
+#if DEBUG
+            1
+#else
+            2
+#endif
+            : 3;
+    }
+}
+```
+
+Example — the other side: none of these comments refuses the input, and the input is formatted:
+
+```csharp
+class C
+{
+    int M(bool a)
+    {
+        var x = a
+                    // c4
+                    ? 1
+                    : 2;
+        var y = a /* c5 */
+                    ? 1 // c6
+                    : N(/* c7 */ 2); // c8
+
+        return x;
+    }
+
+    int N(int v) => v;
 }
 ```
 

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Rules.Documentation;
 using Reihitsu.Core;
@@ -21,7 +22,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixProvider))]
-public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixProvider : CodeFixProvider
+public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -90,8 +91,12 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixP
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var syntaxTree = await context.Document.GetSyntaxTreeAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -122,5 +127,5 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixP
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

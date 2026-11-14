@@ -27,7 +27,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// only inside the reported span itself
 /// </para>
 /// </summary>
-public abstract class WhitespaceSpanRemovalCodeFixProviderBase : CodeFixProvider
+public abstract class WhitespaceSpanRemovalCodeFixProviderBase : ReihitsuCodeFixProviderBase
 {
     #region Fields
 
@@ -99,8 +99,12 @@ public abstract class WhitespaceSpanRemovalCodeFixProviderBase : CodeFixProvider
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var sourceText = await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -120,5 +124,5 @@ public abstract class WhitespaceSpanRemovalCodeFixProviderBase : CodeFixProvider
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

@@ -493,6 +493,9 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
                                   }
                                   """;
 
+        // The outer region is reported only once the inner one is gone, so it is not among the diagnostics of the starting
+        // code that one Fix All application corrects (SHARED-FIX-002); the second pass corrects the diagnostic the first
+        // one produces
         await Verify(testData,
                      resultData,
                      onConfigure: config =>

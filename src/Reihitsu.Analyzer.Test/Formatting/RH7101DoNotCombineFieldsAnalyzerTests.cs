@@ -22,7 +22,61 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH7101DoNotCombineFieldsAnalyzer, RH7101DoNotCombineFieldsCodeFixProvider>
 {
+    #region Constants
+
+    /// <summary>
+    /// A document with a combined field declaration in front of a <c>/* */</c> comment that starts inside the <c>#if !X</c> group
+    /// and holds the line <c>#else</c>, so a build with <c>X</c> reads the lines behind it as the content of the verbatim string
+    /// <c>s</c>
+    /// </summary>
+    private const string CarrierDocumentSource = """
+                                                 internal class OtherClass
+                                                 {
+                                                     private int c, {|RH7101:d|};
+
+                                                     int M(int a)
+                                                     {
+                                                 #if !X
+                                                         /*
+                                                 #else
+                                                         var s = @"
+                                                         */
+                                                         a = 1; //";
+                                                 #endif
+                                                         return a;
+                                                     }
+                                                 }
+                                                 """;
+
+    #endregion // Constants
+
     #region Tests
+
+    /// <summary>
+    /// Verifies that the fix is withheld for a combined declaration in a type that holds a conditional with comments between its
+    /// operators and its branches: the fix formats the type, which the formatter refuses as unsupported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task NoFixIsOfferedInATypeThatHoldsACommentBehindAConditionalOperator()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _x, {|RH7101:_y|};
+
+                                  int M(bool a)
+                                  {
+                                      var x = a ? /* yes */ 1 : /* no */ 2;
+
+                                      return x;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
 
     /// <summary>
     /// Verifies that single field declarations do not produce diagnostics
@@ -3021,6 +3075,86 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                               """;
 
         await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a Fix All in the project, started from a document without a hiding carrier, splits the declaration in that
+    /// document and leaves a second document that holds one as it is, with its diagnostic still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-012")]
+    public async Task FixAllInTheProjectLeavesADocumentWithAHidingCarrierUnchanged()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  private int a, {|RH7101:b|};
+                              }
+                              """;
+        const string fixedSource = """
+                                   internal class TestClass
+                                   {
+                                       private int a;
+                                       private int b;
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", CarrierDocumentSource));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", CarrierDocumentSource));
+
+                         // The diagnostic in the carrier document stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                         test.NumberOfFixAllInDocumentIterations = 1;
+                         test.NumberOfFixAllInProjectIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a Fix All in the solution, started from a document without a hiding carrier, splits the declaration in that
+    /// document and leaves a document of another project that holds a hiding carrier as it is, with its diagnostic still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-012")]
+    public async Task FixAllInTheSolutionLeavesADocumentWithAHidingCarrierInAnotherProjectUnchanged()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  private int a, {|RH7101:b|};
+                              }
+                              """;
+        const string fixedSource = """
+                                   internal class TestClass
+                                   {
+                                       private int a;
+                                       private int b;
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         test.TestState.AdditionalProjects["Other"].Sources.Add(("/Other/Test1.cs", CarrierDocumentSource));
+                         test.FixedState.AdditionalProjects["Other"].Sources.Add(("/Other/Test1.cs", CarrierDocumentSource));
+
+                         // The diagnostic in the carrier document stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                         test.NumberOfFixAllInDocumentIterations = 1;
+                         test.NumberOfFixAllInProjectIterations = 1;
+                     });
     }
 
     #endregion // Tests

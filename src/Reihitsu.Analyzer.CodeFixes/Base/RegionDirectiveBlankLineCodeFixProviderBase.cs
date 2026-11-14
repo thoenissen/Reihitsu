@@ -17,7 +17,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// <summary>
 /// Code fix provider base class for rules based on <c>RegionDirectiveBlankLineAnalyzerBase</c>
 /// </summary>
-public abstract class RegionDirectiveBlankLineCodeFixProviderBase : CodeFixProvider
+public abstract class RegionDirectiveBlankLineCodeFixProviderBase : ReihitsuCodeFixProviderBase
 {
     #region Fields
 
@@ -111,8 +111,12 @@ public abstract class RegionDirectiveBlankLineCodeFixProviderBase : CodeFixProvi
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         foreach (var diagnostic in context.Diagnostics)
         {
@@ -125,5 +129,5 @@ public abstract class RegionDirectiveBlankLineCodeFixProviderBase : CodeFixProvi
         return Task.CompletedTask;
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

@@ -5,7 +5,7 @@
 | ID prefix | FMT-PIPE |
 | Status | Active |
 | Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `PreparationPhase`, `FormattingContext`, `PrecedingTokenFacts`, `RootListPosition`, `RootConstruct`, `RootConstructExtensions`, `TriviaFact`, `FluentChainBoundary`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities`, `BlockWrapTriviaUtilities` |
-| Uses | RH3208-003, RH7101-005, RH7101-006, RH7201-004, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-COMMENT-012, SHARED-DIAG-001, SHARED-DOC-004, SHARED-FIX-001, SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-006, SHARED-FIX-007, SHARED-FIX-010, SHARED-USING-009, SHARED-USING-010, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BLANK-018, FMT-BREAK-001, FMT-BREAK-006, FMT-BREAK-007, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-BREAK-033, FMT-BREAK-036, FMT-CLEAN-001, FMT-CLEAN-005, FMT-CLEAN-007, FMT-CLEAN-008, FMT-DOC-001, FMT-DOC-003, FMT-DOC-005, FMT-DOC-008, FMT-DOC-009, FMT-DOC-010, FMT-DOC-011, FMT-DOC-012, FMT-DOC-013, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-018, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-028, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-023, FMT-STRUCT-026, FMT-STRUCT-030, FMT-SWITCH-003, FMT-SWITCH-008, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, FMT-USING-003, FMT-USING-010 |
+| Uses | CLI-021, PLAY-009, RH3208-003, RH7101-005, RH7101-006, RH7201-004, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-COMMENT-012, SHARED-DIAG-001, SHARED-DOC-004, SHARED-FIX-001, SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-006, SHARED-FIX-007, SHARED-FIX-010, SHARED-FIX-011, SHARED-FIX-012, SHARED-USING-009, SHARED-USING-010, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BLANK-018, FMT-BREAK-001, FMT-BREAK-006, FMT-BREAK-007, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-BREAK-033, FMT-BREAK-036, FMT-CLEAN-001, FMT-CLEAN-005, FMT-CLEAN-007, FMT-CLEAN-008, FMT-DOC-001, FMT-DOC-003, FMT-DOC-005, FMT-DOC-008, FMT-DOC-009, FMT-DOC-010, FMT-DOC-011, FMT-DOC-012, FMT-DOC-013, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-018, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-028, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-023, FMT-STRUCT-026, FMT-STRUCT-030, FMT-SWITCH-003, FMT-SWITCH-008, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, FMT-USING-003, FMT-USING-010 |
 
 This spec covers what holds for the formatter as a whole: the public entry points, the fixed phase order, and the invariants every phase must keep. What an individual phase decides is specified in that phase's own spec.
 
@@ -85,7 +85,7 @@ class C
 
 The formatter MUST NOT change what the formatted code compiles to. Phases that rewrite syntax (FMT-STRUCT, FMT-USING, FMT-SWITCH) MUST only produce equivalent code and MUST leave a construct unchanged when they cannot prove the rewrite equivalent.
 
-Why: Users run the formatter over whole repositories without reviewing every line. A layout tool that can change behavior cannot be trusted at that scale.
+Why: Users run the formatter over whole repositories without reviewing every line. A layout tool that can change behavior cannot be trusted at that scale. Code that another build configuration compiles from the text of a string or a comment is decided by FMT-PIPE-033, and so is the case it leaves open.
 
 ### FMT-PIPE-004 — Idempotency
 
@@ -97,7 +97,7 @@ Why: The CLI's `--check` mode, the analyzer code fixes that delegate to the form
 
 `FormatDocumentAsync`, `FormatSyntaxTree`, `FormatNodeInDocumentAsync`, and `FormatNodeInDocumentWithContextAsync` MUST return their input unchanged — for the two node-in-document entry points, the document, whichever node of it is the target or the context — when the syntax tree contains any error-level diagnostic. `FormatNode` checks no syntax errors (FMT-PIPE-012), and neither does `OrganizeUsingDirectivesInDocumentAsync` (FMT-PIPE-030).
 
-Why: Roslyn's error recovery invents missing tokens and attaches skipped text in unpredictable places. Rewriting trivia around them can move or lose code the user is in the middle of typing.
+Why: Roslyn's error recovery invents missing tokens and attaches skipped text in unpredictable places. Rewriting trivia around them can move or lose code the user is in the middle of typing. This is the one reason the node-level entry points decline a code fix's input as a whole, apart from a shape refused as unsupported (FMT-UNSUP-001, SHARED-FIX-010); a fix they decline is not offered (SHARED-FIX-011).
 
 Example:
 
@@ -111,7 +111,7 @@ is returned unchanged, because the `;` after `1` is missing. The same document i
 
 `FormatDocumentAsync` and `FormatSyntaxTree` MUST return their input unchanged when a comment in the leading trivia of the file's first token contains `<auto-generated` or `<autogenerated` (case-insensitive). A marker anywhere else in the file MUST NOT disable formatting. The entry points that only code fixes call — `FormatNode` (FMT-PIPE-012), `FormatNodeInDocumentAsync`, `FormatNodeInDocumentWithContextAsync`, and `OrganizeUsingDirectivesInDocumentAsync` (FMT-PIPE-030) — MUST NOT check the marker: they format their input whatever the file's header says.
 
-Why: Generated files are rewritten by their generator; formatting them only produces churn. Only the file header counts, so a comment that merely mentions the marker in the middle of a file does not switch the formatter off. Whether code is generated is the analyzers' decision for the code fixes (SHARED-DIAG-001): a fix runs only where an analyzer reported, and a file the analyzers analyze — such as one the user marks `generated_code = false` — is one whose fixes must work. A second check in the entry points would refuse the fix's formatting where the analyzer reported, so the fix would change nothing or leave its edit unformatted.
+Why: Generated files are rewritten by their generator; formatting them only produces churn. Only the file header counts, so a comment that merely mentions the marker in the middle of a file does not switch the formatter off. Generated code can be formatted correctly; whole-document formatting skips it only because the result is not useful. Inside a code fix that reason does not apply: the analyzers decide where a fix runs (SHARED-DIAG-001), and a node-level entry point declines a fix's input only for a reason that prevents correct formatting (FMT-PIPE-005). A second check in the entry points would refuse the fix's formatting where the analyzer reported, so the fix would change nothing or leave its edit unformatted.
 
 Example:
 
@@ -156,6 +156,102 @@ class C
     void M()
     {
         int x = 1;
+    }
+}
+```
+
+### FMT-PIPE-033 — Whole-document formatting leaves a file alone whose text another build compiles as code
+
+`FormatDocumentAsync` and `FormatSyntaxTree` MUST return their input unchanged, and MUST NOT report it as unsupported (FMT-UNSUP-001), when the syntax tree holds a *hiding carrier*. A hiding carrier is a string literal or a delimited comment that meets all three conditions:
+
+- **It spans lines.** It is a verbatim string, a raw string literal, an interpolated verbatim string, an interpolated raw string, or a `/* */` or `/** */` comment, and its text holds a line break. A `//` comment and a regular string cannot span lines and are never carriers.
+- **It starts inside a conditional group.** Its first character stands behind an `#if`, `#elif`, or `#else` directive whose group's `#endif` stands behind that character. A carrier in code that no conditional group encloses is not one.
+- **It holds a line that another build reads as a directive.** A line of its text after its first line starts, after whitespace, with `#`, optional whitespace, and the word `elif`, `else`, or `endif`. Any other line that starts with `#`, such as a Markdown heading `# Title`, `#if`, `#region`, or `#nullable`, does not count.
+
+The node-level entry points do not check this: a code fix is not offered in a document that holds a hiding carrier (SHARED-FIX-012), so no caller passes them one. FMT-PIPE-005 and FMT-PIPE-006 apply as well; a document any of the three requirements leaves untouched is returned unchanged and not reported as unsupported, whichever applies. The CLI and the Playground name such a document as skipped, by this requirement's definition (CLI-021, PLAY-009).
+
+Why: A build in which the carrier's branch is excluded does not see the carrier's opening: from the `#elif`, `#else`, or `#endif` line it holds onward, that build reads the text as code, and it can open a string or a comment of its own there whose content is the code behind the carrier. Formatting that code would change a string's value or a comment's text in the other build (FMT-PIPE-002, FMT-PIPE-003). Where that build's string or comment ends could only be found by reading the other build's text as a compiler would, which *Special cases do not grow the source* (`AGENTS.md`) rules out, so the whole file is left as written. A carrier that holds none of these lines is skipped whole by every build that excludes its branch, and one that starts outside every conditional group is a carrier in every build, so neither can hide code; this keeps commented-out code with its directives, and raw strings that hold Markdown or generator templates, formattable wherever they stand outside every conditional group or hold no such line. A carrier inside a conditional group whose `#elif`, `#else`, or `#endif` lines close only groups that the carrier itself opens hides nothing either, but it counts: telling it apart means pairing directives inside the text, the class is rare, and the requirement only ever leaves such a file alone. The formatter returns the file as it returns a file with a syntax error (FMT-PIPE-005), unchanged and with no unsupported shape: the shape costs no special case in any phase, so declaring it would remove nothing. The CLI and the Playground name the file as skipped, as they name a file with a syntax error, so the user learns why it was left as written.
+
+A string or a comment that only an excluded branch opens is not decided by this requirement, and the code behind it is formatted, although a build that compiles that branch reads the code as the content of its string or comment. This is a decided gap, not an oversight: in the build being formatted there is no carrier, only disabled text that holds an opening `@"`, `"""`, or `/*`, and finding where the string or comment it opens ends means reading the excluded text as a compiler would. The one cheap refusal, any disabled text that holds such an opening, would leave every file unformatted whose `#if DEBUG` branch holds an ordinary verbatim string, which is common code.
+
+Example — formatted in a build without `A`, the comment from `/*` through `*/` starts inside the `#if !A` group and holds the line `#else`; in a build with `A`, that line ends the first branch and the lines up to `//";` are the content of `s`. The document is returned unchanged, also the block's indentation that the formatter would correct elsewhere, and nothing is reported as unsupported (the CLI and the Playground name it as skipped, CLI-021, PLAY-009):
+
+```csharp
+using System;
+
+class C
+{
+    void M()
+    {
+#if !A
+        /*
+#else
+        var s = @"
+        */
+        Action a = delegate ()
+            {
+                Console.WriteLine(1);
+            }; //";
+#endif
+    }
+}
+```
+
+Example — the other side: the comment holds `#if` and `#endif` lines but starts in no conditional group, and the raw string's `#` line is a Markdown heading; neither is a hiding carrier, and the document is formatted:
+
+```csharp
+class C
+{
+    string M(string s)
+    {
+        /*
+#if DEBUG
+        Log();
+#endif
+        */
+        var t = """
+                # Title
+                """;
+
+        return s+t;
+    }
+}
+```
+
+```csharp
+class C
+{
+    string M(string s)
+    {
+        /*
+#if DEBUG
+        Log();
+#endif
+        */
+        var t = """
+                # Title
+                """;
+
+        return s + t;
+    }
+}
+```
+
+Example — the decided gap: formatted in a build without `B`, the opening `@"` is disabled text, and line 8 is formatted to `        var x = a + b;`, although in a build with `B` that line is the content of `s`:
+
+```csharp
+class C
+{
+    int M(int a, int b)
+    {
+#if B
+        var s = @"
+#endif
+            var x = a+b;
+#if B
+";
+#endif
+        return 0;
     }
 }
 ```

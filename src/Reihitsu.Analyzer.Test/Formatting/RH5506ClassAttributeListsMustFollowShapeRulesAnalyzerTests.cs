@@ -675,12 +675,11 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
 
         // Two multi-attribute class lists sit back to back on one line of the same declaration: each split changes only
         // its own list, so the second list's first attribute stays on the line on which the first list's last attribute
-        // now stands. Whether the batch fixer needs one pass or two for the two changes is not what this scenario
-        // asserts
+        // now stands.
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH5506ClassAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5506MessageFormat, 2),
-                                  Configure: config => config.NumberOfFixAllIterations = -2);
+                                  Configure: config => config.NumberOfFixAllIterations = 1);
     }
 
     #endregion // BatchCodeFixTestsBase

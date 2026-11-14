@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.CodeFixes.Base;
+using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Spacing;
 using Reihitsu.Core;
 
@@ -28,6 +29,20 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyCodeFixProvider : Com
     }
 
     #endregion // Constructor
+
+    #region CodeFixProvider
+
+    /// <inheritdoc/>
+    /// <remarks>
+    /// The replacements of a conditional access's <c>?</c> and the <c>.</c> behind it share the gap between them, so the
+    /// fixes are applied one after another, each registered on the code the fixes in front of it produced (SHARED-FIX-002)
+    /// </remarks>
+    public sealed override FixAllProvider GetFixAllProvider()
+    {
+        return DocumentOrderFixAllProvider.Create(new RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer());
+    }
+
+    #endregion // CodeFixProvider
 
     #region CommentSafeSpanReplacementCodeFixProviderBase
 

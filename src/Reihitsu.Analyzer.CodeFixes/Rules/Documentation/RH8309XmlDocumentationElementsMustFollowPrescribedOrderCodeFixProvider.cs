@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Rules.Documentation;
 using Reihitsu.Core;
@@ -21,7 +22,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH8309XmlDocumentationElementsMustFollowPrescribedOrderCodeFixProvider))]
-public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderCodeFixProvider : CodeFixProvider
+public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -173,8 +174,12 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderCodeFixProvi
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -203,5 +208,5 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderCodeFixProvi
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

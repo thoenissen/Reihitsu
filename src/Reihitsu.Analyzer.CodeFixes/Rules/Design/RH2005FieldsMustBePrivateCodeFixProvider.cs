@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Design;
 using Reihitsu.Core;
@@ -22,7 +23,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Design;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH2005FieldsMustBePrivateCodeFixProvider))]
-public class RH2005FieldsMustBePrivateCodeFixProvider : CodeFixProvider
+public class RH2005FieldsMustBePrivateCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -140,8 +141,12 @@ public class RH2005FieldsMustBePrivateCodeFixProvider : CodeFixProvider
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -169,5 +174,5 @@ public class RH2005FieldsMustBePrivateCodeFixProvider : CodeFixProvider
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

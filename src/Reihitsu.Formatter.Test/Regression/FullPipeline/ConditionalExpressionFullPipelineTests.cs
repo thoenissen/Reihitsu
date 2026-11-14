@@ -473,15 +473,13 @@ public class ConditionalExpressionFullPipelineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a dangling colon is not joined across a comment that sits between the colon and
-    /// the false branch, because the comment would otherwise absorb the joined token (boundary test:
-    /// the join guard already inspects this span and must keep refusing it after the colon join gained
-    /// the ability to rewrite the false branch's leading trivia)
+    /// Verifies that a comment on its own line between a dangling colon and the false branch is a comment between a
+    /// conditional operator and its branch: the input is refused as unsupported and returned unchanged
     /// </summary>
     [TestMethod]
-    public void DanglingColonBeforeCommentIsNotJoined()
+    [Requirement("FMT-UNSUP-008")]
+    public void DanglingColonBeforeCommentIsUnsupported()
     {
-        // Arrange
         const string input = """
                              class C
                              {
@@ -494,33 +492,17 @@ public class ConditionalExpressionFullPipelineTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var x = cond
-                                                    ? a :
-
-                                        // note
-                                        b;
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(ConditionalOperatorCommentReason, input, "// note");
     }
 
     /// <summary>
-    /// Verifies that a dangling colon is not joined across a preprocessor directive spanning the
-    /// false branch, because removing the colon's trailing end-of-line would move the directive off
-    /// the start of a line (boundary test, same guard as the comment case above)
+    /// Verifies that a preprocessor directive between a dangling colon and the false branch is a directive between a
+    /// conditional operator and its branch: the input is refused as unsupported and returned unchanged
     /// </summary>
     [TestMethod]
-    public void DanglingColonBeforeDirectiveIsNotJoined()
+    [Requirement("FMT-UNSUP-008")]
+    public void DanglingColonBeforeDirectiveIsUnsupported()
     {
-        // Arrange
         const string input = """
                              class C
                              {
@@ -536,24 +518,7 @@ public class ConditionalExpressionFullPipelineTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var x = cond
-                                                    ? a :
-                                #if DEBUG
-                                            b;
-                                #else
-                                        c;
-                                #endif
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(ConditionalOperatorCommentReason, input, "#if DEBUG");
     }
 
     /// <summary>

@@ -377,8 +377,9 @@ public class JoinSeparatorPhaseTests
     }
 
     /// <summary>
-    /// Verifies that a comment in the gap still refuses the join of a property arrow, a conditional branch, a <c>case</c> guard,
-    /// an assignment value, a binary operand, and a named argument's value, after the separator change
+    /// Verifies that a comment in the gap still refuses the join of a property arrow, a <c>case</c> guard, an assignment value, a
+    /// binary operand, and a named argument's value, after the separator change; a comment behind a conditional operator is
+    /// refused as unsupported before this phase (FMT-UNSUP-008)
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-031")]
@@ -406,8 +407,7 @@ public class JoinSeparatorPhaseTests
                                      N(name: // n
                                        a);
 
-                                     return b ? // r
-                                            1 : 2;
+                                     return b ? 1 : 2;
                                  }
                              }
                              """;
@@ -417,7 +417,7 @@ public class JoinSeparatorPhaseTests
             var normalized = input.Replace("\r\n", "\n").Replace("\n", endOfLine);
             var result = ExecuteLineBreakPhase(normalized, endOfLine);
 
-            foreach (var comment in new[] { "// p", "// w", "// x", "// y", "// n", "// r" })
+            foreach (var comment in new[] { "// p", "// w", "// x", "// y", "// n" })
             {
                 Assert.Contains($"{comment}{endOfLine}", result, $"The comment '{comment}' must still end its line.");
             }
@@ -428,7 +428,8 @@ public class JoinSeparatorPhaseTests
 
     /// <summary>
     /// Verifies that a directive in the gap still refuses the join of a property arrow, accessor modifiers in an accessor list, a
-    /// conditional branch, a <c>case</c> guard, and a binary operand, after the separator change
+    /// <c>case</c> guard, and a binary operand, after the separator change; a directive behind a conditional operator is refused
+    /// as unsupported before this phase (FMT-UNSUP-008)
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-031")]
@@ -463,9 +464,7 @@ public class JoinSeparatorPhaseTests
                              #pragma warning disable CS0004
                                              -a;
 
-                                     return b ?
-                             #pragma warning disable CS0005
-                                            1 : 2;
+                                     return b ? 1 : 2;
                                  }
                              }
                              """;
@@ -476,7 +475,7 @@ public class JoinSeparatorPhaseTests
             var result = ExecuteLineBreakPhase(normalized, endOfLine);
             var lines = result.Split(endOfLine).Select(line => line.TrimStart()).ToList();
 
-            foreach (var code in new[] { "CS0001", "CS0002", "CS0003", "CS0004", "CS0005" })
+            foreach (var code in new[] { "CS0001", "CS0002", "CS0003", "CS0004" })
             {
                 Assert.Contains($"#pragma warning disable {code}", lines, $"The directive disabling {code} must still stand on a line of its own:{Environment.NewLine}{result}");
             }

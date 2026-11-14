@@ -16,7 +16,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// <summary>
 /// Base class for modifier ordering code fixes
 /// </summary>
-public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
+public abstract class ModifierOrderingCodeFixProviderBase : ReihitsuCodeFixProviderBase
 {
     #region Fields
 
@@ -84,7 +84,7 @@ public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
 
     /// <summary>
     /// Creates the member declaration the fix writes: the declaration with its modifiers in order. The guard of
-    /// RegisterCodeFixesAsync leaves no comment or directive between the modifiers or behind the last of them, so the
+    /// RegisterCodeFixesCoreAsync leaves no comment or directive between the modifiers or behind the last of them, so the
     /// rewrite writes each modifier with a single space behind it and leaves the token behind the modifiers as it is
     /// (SHARED-MODORDER-002)
     /// </summary>
@@ -146,8 +146,12 @@ public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -167,5 +171,5 @@ public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

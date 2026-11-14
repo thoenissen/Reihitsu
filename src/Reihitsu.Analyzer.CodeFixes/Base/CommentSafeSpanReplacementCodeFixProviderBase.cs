@@ -16,7 +16,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// span contains a comment or a preprocessor directive, so applying it can never delete a comment,
 /// glue it to a token, or drop a directive and leave the code non-compiling
 /// </summary>
-public abstract class CommentSafeSpanReplacementCodeFixProviderBase : CodeFixProvider
+public abstract class CommentSafeSpanReplacementCodeFixProviderBase : ReihitsuCodeFixProviderBase
 {
     #region Fields
 
@@ -84,13 +84,17 @@ public abstract class CommentSafeSpanReplacementCodeFixProviderBase : CodeFixPro
     public sealed override ImmutableArray<string> FixableDiagnosticIds => [_diagnosticId];
 
     /// <inheritdoc/>
-    public sealed override FixAllProvider GetFixAllProvider()
+    public override FixAllProvider GetFixAllProvider()
     {
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -116,5 +120,5 @@ public abstract class CommentSafeSpanReplacementCodeFixProviderBase : CodeFixPro
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

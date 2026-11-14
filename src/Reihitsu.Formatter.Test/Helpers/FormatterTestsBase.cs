@@ -23,6 +23,11 @@ public abstract class FormatterTestsBase
     /// </summary>
     protected const string VariableDeclarationCommentReason = "a comment between a variable declaration's own tokens";
 
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive between a conditional operator and its branch (FMT-UNSUP-008)
+    /// </summary>
+    protected const string ConditionalOperatorCommentReason = "a comment or directive between a conditional operator and its branch";
+
     #endregion // Constants
 
     #region Fields
@@ -222,6 +227,21 @@ public abstract class FormatterTestsBase
     /// <param name="parseOptions">The parse options to use, or <see langword="null"/> for the defaults</param>
     protected void AssertUnsupported(string input, string shapeText, int occurrence = 0, CSharpParseOptions parseOptions = null)
     {
+        AssertUnsupportedFor(VariableDeclarationCommentReason, input, shapeText, occurrence, parseOptions);
+    }
+
+    /// <summary>
+    /// Formats the input with <see cref="ReihitsuFormatter.FormatSyntaxTree"/> under LF and CRLF line endings and verifies that
+    /// the formatter refuses it as unsupported: the output is the input unchanged, and the result names the given reason and the
+    /// span of the shape, which is the given occurrence of <paramref name="shapeText"/> in the input
+    /// </summary>
+    /// <param name="reason">The reason the formatter has to give</param>
+    /// <param name="input">The input source text</param>
+    /// <param name="shapeText">The text of the unsupported shape the formatter has to report, such as the comment</param>
+    /// <param name="occurrence">The zero-based occurrence of <paramref name="shapeText"/> in the input that is reported</param>
+    /// <param name="parseOptions">The parse options to use, or <see langword="null"/> for the defaults</param>
+    protected void AssertUnsupportedFor(string reason, string input, string shapeText, int occurrence = 0, CSharpParseOptions parseOptions = null)
+    {
         foreach (var endOfLine in _lineEndings)
         {
             var endingName = DescribeLineEnding(endOfLine);
@@ -232,7 +252,7 @@ public abstract class FormatterTestsBase
 
             Assert.AreEqual(text, result.Output.GetText(TestContext.CancellationToken).ToString(), $"The formatter must return a refused input unchanged under {endingName} line endings.");
             Assert.IsNotNull(result.Unsupported, $"The formatter must report the input as unsupported under {endingName} line endings.");
-            Assert.AreEqual(VariableDeclarationCommentReason, result.Unsupported.Reason);
+            Assert.AreEqual(reason, result.Unsupported.Reason);
             Assert.AreSame(tree, result.Unsupported.Location.SourceTree, "The location must be in the caller's syntax tree.");
             AssertLocationIsShape(result.Unsupported.Location, text, NormalizeLineEndings(shapeText, endOfLine), occurrence, endingName);
         }

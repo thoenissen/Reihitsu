@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Clarity;
 using Reihitsu.Core;
 
@@ -19,7 +20,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarCodeFixProvider))]
-public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarCodeFixProvider : CodeFixProvider
+public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -67,8 +68,12 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarCode
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         foreach (var diagnostic in context.Diagnostics)
         {
@@ -81,5 +86,5 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarCode
         return Task.CompletedTask;
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

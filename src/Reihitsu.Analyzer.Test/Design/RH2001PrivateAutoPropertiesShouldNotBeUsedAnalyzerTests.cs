@@ -150,6 +150,47 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
     #region Tests
 
     /// <summary>
+    /// Verifies that the fix, which renames the property through the solution, is not offered when another document that holds a
+    /// <c>partial</c> part of the type and a reference to the property holds a comment that another build compiles as code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-012")]
+    public async Task NoFixIsOfferedWhenAPartialPartInAnotherDocumentHoldsAHidingCarrier()
+    {
+        const string source = """
+                              internal partial class C
+                              {
+                                  private int {|RH2001:Value|} { get; set; }
+                              }
+                              """;
+        const string otherSource = """
+                                   internal partial class C
+                                   {
+                                       public int M()
+                                       {
+                                   #if !X
+                                           /*
+                                   #else
+                                           var s = @"
+                                           */
+                                           int c = 1; //";
+                                   #endif
+                                           return Value;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     source,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherSource));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", otherSource));
+                     });
+    }
+
+    /// <summary>
     /// Verifies that a private auto-property is reported and converted to a backing field
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -3649,6 +3690,35 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
                          test.FixedState.MarkupHandling = MarkupMode.Allow;
                          test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
                      });
+    }
+
+    /// <summary>
+    /// Verifies that the fix, which lays out its result through the formatter, is not offered in a file with a syntax error,
+    /// while the diagnostic is still reported, and that it is offered once the syntax error is gone
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-011")]
+    public async Task NoFixIsOfferedInAFileWithASyntaxError()
+    {
+        const string source = """
+                              namespace Reihitsu.Analyzer.Test.Design.Resources
+                              {
+                                  internal class RH2001
+                                  {
+                                      public int Sum()
+                                      {
+                                          return Alpha + Beta;
+                                      }
+
+                                      private int Alpha { get; set; }
+
+                                      private int Beta { get; set; }
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
     #endregion // Tests

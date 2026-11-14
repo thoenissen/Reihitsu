@@ -16,7 +16,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// <summary>
 /// Base class for code-fix providers that convert empty type declarations to semicolon declarations
 /// </summary>
-public abstract class EmptyTypeDeclarationShouldUseSemicolonCodeFixProviderBase : CodeFixProvider
+public abstract class EmptyTypeDeclarationShouldUseSemicolonCodeFixProviderBase : ReihitsuCodeFixProviderBase
 {
     #region Properties
 
@@ -87,8 +87,15 @@ public abstract class EmptyTypeDeclarationShouldUseSemicolonCodeFixProviderBase 
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected override bool FormatsThroughFormatter => true;
+
+    /// <inheritdoc/>
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -111,5 +118,5 @@ public abstract class EmptyTypeDeclarationShouldUseSemicolonCodeFixProviderBase 
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

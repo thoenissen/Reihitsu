@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Layout;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -19,7 +20,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider))]
-public class RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider : CodeFixProvider
+public class RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -109,8 +110,12 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider : Co
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         foreach (var diagnostic in context.Diagnostics)
         {
@@ -123,5 +128,5 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider : Co
         return Task.CompletedTask;
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

@@ -19,7 +19,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// <summary>
 /// Base code-fix provider for target-based attribute placement rules
 /// </summary>
-public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvider
+public abstract class TargetAttributePlacementCodeFixProviderBase : ReihitsuCodeFixProviderBase
 {
     #region Properties
 
@@ -279,8 +279,12 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -301,5 +305,5 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

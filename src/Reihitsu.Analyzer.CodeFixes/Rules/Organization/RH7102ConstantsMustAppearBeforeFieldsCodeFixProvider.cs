@@ -24,7 +24,7 @@ public class RH7102ConstantsMustAppearBeforeFieldsCodeFixProvider : TypeMemberOr
     /// Constructor
     /// </summary>
     public RH7102ConstantsMustAppearBeforeFieldsCodeFixProvider()
-        : base(RH7102ConstantsMustAppearBeforeFieldsAnalyzer.DiagnosticId, CodeFixResources.RH7102Title)
+        : base(new RH7102ConstantsMustAppearBeforeFieldsAnalyzer(), RH7102ConstantsMustAppearBeforeFieldsAnalyzer.DiagnosticId, CodeFixResources.RH7102Title)
     {
     }
 

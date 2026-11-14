@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Documentation;
 using Reihitsu.Core;
 using Reihitsu.Formatter.Utilities;
@@ -19,7 +20,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineCodeFixProvider))]
-public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineCodeFixProvider : CodeFixProvider
+public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -71,8 +72,12 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineCodeFixPro
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         foreach (var diagnostic in context.Diagnostics)
         {
@@ -85,5 +90,5 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineCodeFixPro
         return Task.CompletedTask;
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

@@ -269,14 +269,13 @@ public class ConditionalOperatorSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment the colon carries behind it keeps its place, and the second branch follows it after one space
+    /// Verifies that a comment the colon carries behind it, in front of the second branch, is a comment between a conditional
+    /// operator and its branch: the input is refused as unsupported and returned unchanged
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-SPACE-018")]
-    [Requirement("FMT-SPACE-013")]
-    public void CommentBehindTheColonKeepsItsPlace()
+    [Requirement("FMT-UNSUP-008")]
+    public void CommentBehindTheColonIsUnsupported()
     {
-        // Arrange
         const string input = """
                              class C
                              {
@@ -286,18 +285,8 @@ public class ConditionalOperatorSpacingTests : FormatterTestsBase
                                  }
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    int M(bool b)
-                                    {
-                                        return b ? 1 :/* z */ 2;
-                                    }
-                                }
-                                """;
 
-        // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(ConditionalOperatorCommentReason, input, "/* z */");
     }
 
     #endregion // Tests

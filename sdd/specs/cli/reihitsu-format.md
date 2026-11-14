@@ -5,7 +5,7 @@
 | ID prefix | CLI |
 | Status | Active |
 | Code owners | `Program`, `ParseResult`, `FormatCommandHandler`, `ExitCodes`, `GeneratedFileUtilities`, `FileProcessResult`, `DefaultFileSystem`, `DefaultConsoleInput`, `DefaultSourceFormatter`, `DiffGenerator` |
-| Uses | FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-008, FMT-UNSUP-001 |
+| Uses | FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-008, FMT-PIPE-033, FMT-UNSUP-001, FMT-UNSUP-002 |
 
 This spec covers the `reihitsu-format` .NET tool: its arguments, which files it selects and skips, how it reads and writes them, the `--check` and `--dry-run` modes, its console output, and its exit codes. What the formatter does to a file's content is specified under `formatter/`.
 
@@ -239,13 +239,13 @@ exit code 1. The removed final line break is FMT-CLEAN's.
 
 ### CLI-014 — The summary names every skipped group
 
-After processing, the CLI MUST print an empty line, the mode's summary line (CLI-011 to CLI-013), and then, each only when non-zero: `Skipped <n> generated file(s).`, `Skipped <n> file(s) with syntax errors.`, `Skipped <n> file(s) with unsupported syntax.` (CLI-019), `Skipped <n> file(s) that could not be decoded.`, and `<n> file(s) encountered errors.`
+After processing, the CLI MUST print an empty line, the mode's summary line (CLI-011 to CLI-013), and then, each only when non-zero: `Skipped <n> generated file(s).`, `Skipped <n> file(s) with syntax errors.`, `Skipped <n> file(s) with code hidden in another build configuration.` (CLI-021), `Skipped <n> file(s) with unsupported syntax.` (CLI-019), `Skipped <n> file(s) that could not be decoded.`, and `<n> file(s) encountered errors.`
 
 Why: A run that formatted fewer files than expected must say why.
 
 ### CLI-015 — `--verbose` reports every file
 
-With `--verbose`, the CLI MUST additionally print one line for every file it does not change: `Unchanged: <path>`, `Skipped (generated): <path>`, or `Skipped (syntax errors): <path>`.
+With `--verbose`, the CLI MUST additionally print one line for every file it does not change: `Unchanged: <path>`, `Skipped (generated): <path>`, `Skipped (syntax errors): <path>`, or `Skipped (code hidden in another build configuration): <path>` (CLI-021).
 
 Why: When a file is not formatted, the user needs to know whether it was already clean or skipped.
 
@@ -359,3 +359,40 @@ Skipped 1 file(s) with unsupported syntax.
 ```
 
 to standard output, and exits with code 1, the code the run has for `A.cs` alone.
+
+### CLI-021 — Files whose text another build compiles as code are left alone
+
+The CLI MUST leave a file unchanged, in every mode and also when `--utf8-bom` would change its encoding, when the file holds a hiding carrier as FMT-PIPE-033 defines it — a string literal or a delimited comment that spans lines, starts inside a conditional group, and holds a line that another build reads as an `#elif`, `#else`, or `#endif` directive. It MUST decide this by the definition of FMT-PIPE-033, not by a definition of its own. The file MUST count in the total of the mode's summary line and not as changed, and the summary MUST name it in `Skipped <n> file(s) with code hidden in another build configuration.` (CLI-014); with `--verbose`, the CLI MUST print `Skipped (code hidden in another build configuration): <path>` for it (CLI-015). In `--check` and `--dry-run`, it MUST NOT print a `Not formatted:` or `Would format:` line or a diff for the file, nor count it as a file that needs formatting or would be formatted. A skipped file MUST NOT affect the exit code.
+
+A file whose parse has errors, or that is generated, is skipped as such (CLI-007, CLI-008) and not under this requirement. A file that holds a hiding carrier and also a shape the formatter refuses as unsupported is skipped under this requirement and not reported under CLI-019: FMT-PIPE-033 applies before the formatter's precheck (FMT-UNSUP-002).
+
+Why: The formatter leaves such a file as written, because formatting it would change a string or a comment in another build (FMT-PIPE-033). Counting it as unchanged would tell the user that a file the formatter did not look at is clean; naming it as skipped, as a file with a syntax error is named (CLI-008), says why a file that may need formatting was left alone. The tool did its job by leaving the file alone and nothing in the file is wrong for the build being formatted, so the exit code stays the one the other files give, as for a file with a syntax error. Writing only the encoding would change a file the formatter declined to touch.
+
+Example — `C.cs` holds
+
+```csharp
+class C
+{
+    void M()
+    {
+#if !A
+        /*
+#else
+        var s = @"
+        */
+        int  x = 1; //";
+#endif
+    }
+}
+```
+
+and `reihitsu-format --check --verbose /work/C.cs` writes
+
+```text
+Skipped (code hidden in another build configuration): /work/C.cs
+
+0 of 1 file(s) need formatting.
+Skipped 1 file(s) with code hidden in another build configuration.
+```
+
+and exits with code 0. Without `--verbose`, the first line is not written. `reihitsu-format /work/C.cs` leaves the file unchanged and ends with `Formatted 0 of 1 file(s).` and the same skip line.

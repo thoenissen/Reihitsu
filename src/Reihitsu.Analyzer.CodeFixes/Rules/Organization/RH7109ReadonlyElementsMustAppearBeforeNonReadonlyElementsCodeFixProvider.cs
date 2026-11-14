@@ -24,7 +24,7 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsCodeFixPro
     /// Constructor
     /// </summary>
     public RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsCodeFixProvider()
-        : base(RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer.DiagnosticId, CodeFixResources.RH7109Title)
+        : base(new RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer(), RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer.DiagnosticId, CodeFixResources.RH7109Title)
     {
     }
 

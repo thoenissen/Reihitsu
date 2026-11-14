@@ -16,7 +16,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// Code fix provider base class for rules whose fix converts an expression body to the block body the formatter produces for the owning node
 /// </summary>
 /// <typeparam name="TNode">Node type that owns the expression body</typeparam>
-public abstract class ExpressionBodyToBlockCodeFixProviderBase<TNode> : CodeFixProvider
+public abstract class ExpressionBodyToBlockCodeFixProviderBase<TNode> : ReihitsuCodeFixProviderBase
     where TNode : SyntaxNode
 {
     #region Fields
@@ -99,8 +99,15 @@ public abstract class ExpressionBodyToBlockCodeFixProviderBase<TNode> : CodeFixP
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected override bool FormatsThroughFormatter => true;
+
+    /// <inheritdoc/>
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -131,5 +138,5 @@ public abstract class ExpressionBodyToBlockCodeFixProviderBase<TNode> : CodeFixP
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

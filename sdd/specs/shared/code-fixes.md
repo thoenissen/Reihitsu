@@ -5,13 +5,13 @@
 | ID prefix | SHARED-FIX |
 | Status | Active |
 | Code owners | — |
-| Uses | FMT-PIPE-007, FMT-PIPE-017, FMT-PIPE-018, FMT-PIPE-030, FMT-PIPE-032, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, RH2001-009, RH2001-010, RH3004-006, RH3004-008, RH3004-009, RH5111-004, RH5303-005, RH7004-004, RH7004-007, RH7309-006, RH7309-007, SHARED-BRACE-002, SHARED-BRACE-003, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002, SHARED-ORDER-006, SHARED-ORDER-007, SHARED-ORDER-008, SHARED-ORDER-009, SHARED-ORDER-010 |
+| Uses | FMT-PIPE-005, FMT-PIPE-007, FMT-PIPE-017, FMT-PIPE-018, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-STRUCT-003, FMT-STRUCT-023, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, RH2001-009, RH2001-010, RH3004-006, RH3004-008, RH3004-009, RH5111-004, RH5303-005, RH5308-004, RH7004-004, RH7004-007, RH7309-006, RH7309-007, SHARED-BRACE-002, SHARED-BRACE-003, SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, SHARED-DOC-004, SHARED-JOIN-001, SHARED-ORDER-002, SHARED-ORDER-006, SHARED-ORDER-007, SHARED-ORDER-008, SHARED-ORDER-009, SHARED-ORDER-010 |
 
 This spec covers what holds for every code fix of an analyzer rule, so a rule spec states only what its own fix produces and when it is withheld. It applies to every rule whose header names a code fix, without being listed under `Uses`; SHARED-FIX-002 applies to the rules whose header says `Fix All`.
 
 ## Non-goals
 
-- What a fix produces and when it is withheld — each rule's own spec.
+- What a fix produces and when it is withheld — each rule's own spec, apart from the shared conditions of SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-011, and SHARED-FIX-012.
 - Whether a fix leaves diagnostics of other rules in the code it changed. It is a known failure class (`squad/failure-classes.md`), not specified behavior; SHARED-FIX-004 only forbids a fix that undoes the fix of another rule.
 - How the formatter's node-level entry points keep the code around their target — FMT-PIPE-010.
 - The line ending a fix writes into a document that has no line break, or whose line breaks already mix line endings.
@@ -203,7 +203,7 @@ A code fix MUST NOT be offered when its result would:
 
 The diagnostic is still reported: withholding a fix never removes a report, also for an input where the change the rule asks for can be written at that position and only the fix is withheld, for example `x is !true`, which RH3001 reports without a fix although `x is (true == false)` is valid there. Which inputs a rule reports at all is decided by its own requirements and by the requirements that name inputs a rule does not report, such as SHARED-DIAG-008, SHARED-DIAG-010, SHARED-DIAG-011, and SHARED-JOIN-001; this requirement adds none. The conditions are bounded as follows:
 
-- **Build configurations.** The first two conditions hold in every build configuration, not only in the one the code is analyzed in: a compile error or a run-time difference that only a build defining, or not defining, a conditional compilation symbol would show counts as well. Examples are a statement in an `#if` branch that the fix moves out of the scope of a local the statement uses, and a statement that the fix moves to the other side of an `#if` branch, so that the code of that branch runs where it did not run before. The fifth condition is one instance of this bullet.
+- **Build configurations.** The first two conditions hold in every build configuration, not only in the one the code is analyzed in: a compile error or a run-time difference that only a build defining, or not defining, a conditional compilation symbol would show counts as well. Examples are a statement in an `#if` branch that the fix moves out of the scope of a local the statement uses, and a statement that the fix moves to the other side of an `#if` branch, so that the code of that branch runs where it did not run before. The fifth condition is one instance of this bullet. SHARED-FIX-012 states the check for a string or a comment whose text another build compiles as code, and the case that check leaves open.
 - **Run time.** The new name or the new accessibility that the fix exists to produce does not count; any other difference in behavior does. The native function that a method binds to is not the new name, even where the binding takes the method's name: renaming an `extern` method or local function declared with `[DllImport]`, or a method declared with `[LibraryImport]`, counts when the attribute names no `EntryPoint`, or names one whose value the rename changes, such as `nameof` of the method itself, because the program then calls another native function. A rename that leaves the `EntryPoint` value unchanged, such as a string literal, keeps the native function and does not count. Likewise, the text that a parameter declared with `[CallerArgumentExpression]` receives is not the new name, even where the attribute names the renamed parameter: a rename that changes which parameter the attribute names, or whether it names one, counts. Reordering the instance fields of a type whose field order sets its layout counts; the instance fields include the backing fields the compiler declares for an auto-property, for a property that uses the `field` keyword, and for an instance field-like event. A type whose field order sets its layout is a struct, which has sequential layout unless it declares `LayoutKind.Auto` or `LayoutKind.Explicit`, and any other type declared with `[StructLayout(LayoutKind.Sequential)]`. Under `LayoutKind.Explicit`, each field's `[FieldOffset]` sets its offset, so the field order sets no layout. A reorder that changes neither a layout nor the order in which code runs does not count.
 - **Comment, directive, disabled, and literal text.** Text that a diagnostic of the fix's own rule reports may change. Two kinds of text change together with a name the fix changes, as part of the rename:
   - a name in a documentation comment that binds to a symbol the fix renames, such as a `cref` or a `<param name>`; a word of the comment's text that only reads like the name does not bind to it and stays unchanged;
@@ -696,6 +696,32 @@ public class C
 ```
 
 is reported, and no code fix is offered, because the name the fix derives is `_1st` again.
+
+### SHARED-FIX-011 — A fix that formats through the formatter is offered only where the formatter formats
+
+A code fix whose result a formatter entry point lays out MUST NOT be offered where that entry point returns its input unchanged because the syntax tree holds an error (FMT-PIPE-005), and the diagnostic is still reported (SHARED-FIX-003). A Fix All of such a fix, at any scope, MUST leave a document with a syntax error unchanged, whether it applies fixes it registers one by one or applies them to the document without registering them, and fixes the other documents in its scope as usual. A fix whose formatting the formatter declines for any other reason MUST NOT be offered either, and its rule's spec MUST name the formatter requirement that declines, such as FMT-STRUCT-003 or FMT-STRUCT-023, and ask the formatter instead of copying its condition (FMT-PIPE-031). Where neither holds and the formatter still changes nothing, the formatter or the diagnostic is wrong (SHARED-DIAG-010): the case is a defect, not an input to withhold.
+
+Why: A syntax error may make correct formatting impossible, so the formatter declines and the fix has no result it may offer: a fix that only formats would change nothing (SHARED-FIX-005), and one that edits first would leave its edit unformatted (SHARED-FIX-007). Any other no-op is a disagreement between a rule and the formatter that a guard in the fix would hide.
+
+Example — RH5308, whose fix lays out the conditional expression through the formatter (RH5308-004), in a file with a syntax error elsewhere (the parameter list of `N` is not closed):
+
+```csharp
+class C
+{
+    int M(bool a)
+    {
+        var x = a {|RH5308:?|}
+                1 :
+                2;
+
+        return x;
+    }
+
+    void N(
+}
+```
+
+is reported, and no code fix is offered: the formatter returns the document unchanged (FMT-PIPE-005). Once the parameter list is closed, the fix is offered and lays out the conditional as RH5308-004 shows. The same holds for a fix that edits first and then formats its edit, such as the RH3004 fix, which rewrites `Action a = delegate () { M(); };` into a lambda: in a file with a syntax error it is not offered, because the lambda would stay unformatted. A fix that changes the text without a formatter entry point is not covered: in the same file, the RH6023 fix still writes `a = 1;` for `a=1;`.
 
 ### SHARED-FIX-006 — A fix changes only the code its diagnostic is about
 
@@ -1300,6 +1326,99 @@ public class C
 is reported, and no code fix is offered: whether `_b` has an initializer depends on the build, and the fix does not work it out, although no build would change here. Without the `#if` group, the fix moves `_c` in front of `_a`.
 
 Example — whole members in an excluded branch, for RH7109: the examples of SHARED-ORDER-007, where the fix counts each member of the branch as present and withholds or offers the move on that count.
+
+### SHARED-FIX-012 — No fix is offered in a document whose text another build compiles as code
+
+A code fix MUST NOT be offered when the document of its diagnostic holds a hiding carrier as FMT-PIPE-033 defines it — a string literal or a delimited comment that spans lines, starts inside a conditional group, and holds a line that another build reads as an `#elif`, `#else`, or `#endif` directive. A fix that changes other documents too, such as a rename, MUST NOT be offered when one of the documents it changes holds a hiding carrier. The diagnostic is still reported (SHARED-FIX-003).
+
+This holds for every code fix, whether it formats through the formatter or changes the text itself, and wherever its edit lies in the document, also in front of the carrier. The fix MUST decide it when it registers, before it offers an action, and by the definition of FMT-PIPE-033, not by a definition of its own. A Fix All, at any scope, MUST leave a document that holds a hiding carrier unchanged, whether it applies fixes it registers one by one or applies them to the document without registering them, and fixes the other documents in its scope as usual.
+
+A string or a comment that only an excluded branch opens is not decided by this requirement, and the fixes stay offered, although a build that compiles that branch reads the code behind the opening as the content of its string or comment. This is a decided gap, not an oversight: in the analyzed build there is no carrier, only disabled text, and finding where the excluded branch's string or comment ends means reading that branch as a compiler would, which SHARED-FIX-009 forbids. The one cheap refusal, any disabled text that holds an opening `@"`, `"""`, or `/*`, would withhold every fix in every document whose `#if DEBUG` branch holds an ordinary verbatim string, which is common code.
+
+Why: A build that excludes the carrier's branch reads the carrier's text from its directive line onward as code, and that code can open a string or a comment whose content is the code behind the carrier, up to a point that only that build's text decides. A fix that edits there changes a string's value or a comment's text in that build (SHARED-FIX-003, *Build configurations*). Finding the point is working out another build configuration (SHARED-FIX-009), and neither the diagnostic's position nor the fix's own edit bounds where a fix writes: a rename reaches every reference, and a move writes where the member lands. So the whole document withholds its fixes. The shape is rare — nobody writes it on purpose — and a reported diagnostic without a fix is a supported end state. A check of the diagnostic's document made once, before any fix registers, keeps the one condition in one place instead of in each fix; a fix that changes other documents checks those when it computes them, by the same definition; and one definition shared with the formatter keeps the fixes and whole-document formatting leaving the same documents alone (FMT-PIPE-033).
+
+Example — RH3004 and RH6024, analyzed in a build with `A` defined:
+
+```csharp
+using System;
+
+class C
+{
+    int M(int a, int b)
+    {
+#if A
+        /*
+#else
+        var s = @"
+        */
+        Action c = {|RH3004:delegate|} ()
+            {
+                Console.WriteLine(1);
+            }; //";
+#endif
+        return a{|RH6024:+|}b;
+    }
+}
+```
+
+Both are reported, and no code fix is offered for either. The comment from `/*` through `*/` starts inside the `#if A` group and holds the line `#else`; in a build without `A`, the lines from `*/` through `//";` are the content of `s`, which the RH3004 fix would change. The RH6024 fix is withheld as well, although the other build's string ends in front of `return`: where it ends is what no fix works out.
+
+Example — the other side: the comment holds directive lines, but no conditional group encloses it, so it is a comment in every build, and the fix is offered:
+
+```csharp
+class C
+{
+    int M(int a, int b)
+    {
+        /*
+#if DEBUG
+        Log();
+#else
+        Trace();
+#endif
+        */
+        return a{|RH6024:+|}b;
+    }
+}
+```
+
+```csharp
+class C
+{
+    int M(int a, int b)
+    {
+        /*
+#if DEBUG
+        Log();
+#else
+        Trace();
+#endif
+        */
+        return a + b;
+    }
+}
+```
+
+Example — the decided gap, analyzed in a build without `B`:
+
+```csharp
+class C
+{
+    int M(int a, int b)
+    {
+#if B
+        var s = @"
+#endif
+        var x = a{|RH6024:+|}b;
+#if B
+";
+#endif
+        return 0;
+    }
+}
+```
+
+is reported, and the fix is offered and writes `var x = a + b;`, although in a build with `B` that line is the content of `s`.
 
 ### SHARED-FIX-010 — A fix whose formatting the formatter refuses is withheld
 

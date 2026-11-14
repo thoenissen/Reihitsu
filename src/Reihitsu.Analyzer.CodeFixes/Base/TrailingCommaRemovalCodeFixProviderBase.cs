@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// <summary>
 /// Code fix provider base class for rules whose fix removes a final trailing comma
 /// </summary>
-public abstract class TrailingCommaRemovalCodeFixProviderBase : CodeFixProvider
+public abstract class TrailingCommaRemovalCodeFixProviderBase : ReihitsuCodeFixProviderBase
 {
     #region Fields
 
@@ -53,8 +53,12 @@ public abstract class TrailingCommaRemovalCodeFixProviderBase : CodeFixProvider
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         foreach (var diagnostic in context.Diagnostics)
         {
@@ -67,5 +71,5 @@ public abstract class TrailingCommaRemovalCodeFixProviderBase : CodeFixProvider
         return Task.CompletedTask;
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

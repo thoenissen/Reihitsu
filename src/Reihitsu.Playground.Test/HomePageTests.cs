@@ -39,6 +39,16 @@ public class HomePageTests
     /// </summary>
     private const string SyntaxErrorMessage = "The input contains syntax errors and was left unchanged.";
 
+    /// <summary>
+    /// The message shown when the input holds code that another build configuration hides
+    /// </summary>
+    private const string HiddenCodeMessage = "The input contains code hidden in another build configuration and was left unchanged.";
+
+    /// <summary>
+    /// The input of the PLAY-009 example: the comment starts inside the <c>#if !A</c> group and holds the line <c>#else</c>
+    /// </summary>
+    private const string HiddenCodeSource = "class C\n{\n    void M()\n    {\n#if !A\n        /*\n#else\n        var s = @\"\n        */\n        int  x = 1; //\";\n#endif\n    }\n}";
+
     #endregion // Constants
 
     #region Methods
@@ -257,6 +267,96 @@ public class HomePageTests
 
             Assert.IsEmpty(page.FindAll(".playground-message"));
             Assert.AreEqual("public class Sample\n{\n    int x;\n}", page.Find("#playground-output").GetAttribute("value"));
+        }
+    }
+
+    /// <summary>
+    /// Verifies the specification example: input that holds a comment another build compiles as code is shown unchanged as the
+    /// output, with the message below the button
+    /// </summary>
+    [TestMethod]
+    [Requirement("PLAY-009")]
+    public void SpecExampleInputWithHiddenCodeIsShownUnchangedWithMessage()
+    {
+        using (var context = new BunitContext())
+        {
+            var page = context.Render<Home>();
+
+            page.Find("#playground-input").Input(HiddenCodeSource);
+            page.Find("button").Click();
+
+            var message = page.Find(".playground-message");
+
+            Assert.AreEqual(HiddenCodeSource, page.Find("#playground-output").GetAttribute("value"));
+            Assert.AreEqual(HiddenCodeMessage, message.TextContent);
+            Assert.AreEqual("BUTTON", message.PreviousElementSibling?.TagName, "The message must appear below the button.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that the hidden-code message disappears on the next successful format
+    /// </summary>
+    [TestMethod]
+    [Requirement("PLAY-009")]
+    public void HiddenCodeMessageDisappearsOnNextSuccessfulFormat()
+    {
+        using (var context = new BunitContext())
+        {
+            var page = context.Render<Home>();
+
+            page.Find("#playground-input").Input(HiddenCodeSource);
+            page.Find("button").Click();
+
+            Assert.HasCount(1, page.FindAll(".playground-message"));
+
+            page.Find("#playground-input").Input("public class Sample{ int x; }");
+            page.Find("button").Click();
+
+            Assert.IsEmpty(page.FindAll(".playground-message"));
+            Assert.AreEqual("public class Sample\n{\n    int x;\n}", page.Find("#playground-output").GetAttribute("value"));
+        }
+    }
+
+    /// <summary>
+    /// Verifies that input that holds a hiding carrier and a shape the formatter refuses as unsupported shows the hidden-code
+    /// message, not the unsupported-syntax message
+    /// </summary>
+    [TestMethod]
+    [Requirement("PLAY-009")]
+    public void HiddenCodeBesideAnUnsupportedShapeShowsTheHiddenCodeMessage()
+    {
+        using (var context = new BunitContext())
+        {
+            var input = HiddenCodeSource.Replace("#endif\n", "#endif\n        int /* c */ y = 1;\n", System.StringComparison.Ordinal);
+
+            var page = context.Render<Home>();
+
+            page.Find("#playground-input").Input(input);
+            page.Find("button").Click();
+
+            Assert.AreEqual(input, page.Find("#playground-output").GetAttribute("value"));
+            Assert.AreEqual(HiddenCodeMessage, page.Find(".playground-message").TextContent);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that input with a syntax error that also holds a hiding carrier shows the syntax error message
+    /// </summary>
+    [TestMethod]
+    [Requirement("PLAY-009")]
+    public void HiddenCodeBesideASyntaxErrorShowsTheSyntaxErrorMessage()
+    {
+        using (var context = new BunitContext())
+        {
+            var input = HiddenCodeSource.Replace("    }\n}", "    }\n\n    void N(\n}", System.StringComparison.Ordinal);
+
+            var page = context.Render<Home>();
+
+            page.Find("#playground-input").Input(input);
+            page.Find("button").Click();
+
+            Assert.AreEqual(input, page.Find("#playground-output").GetAttribute("value"));
+            Assert.AreEqual(SyntaxErrorMessage, page.Find(".playground-message").TextContent);
         }
     }
 

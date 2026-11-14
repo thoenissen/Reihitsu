@@ -16,8 +16,8 @@ namespace Reihitsu.Analyzer.CodeFixes.Core;
 /// alone can together write the code the guard exists to prevent, and for fixes that rewrite or move code holding other
 /// diagnostics. The fixes of a document are applied one after another in document order, and each fix is registered
 /// again by its provider on the code the fixes in front of it produced, so its guard decides on that code, as applying
-/// the fixes one after another does (SHARED-FIX-002). A diagnostic whose fix the provider withholds on that code stays as
-/// it is. A diagnostic inside code that an earlier fix rewrote or moved is found again on the changed document, by
+/// the fixes one after another does (SHARED-FIX-002). A diagnostic whose fix the provider withholds on that code, or on
+/// the starting code, stays as it is. A diagnostic inside code that an earlier fix rewrote or moved is found again on the changed document, by
 /// running the rule's analyzer on it, and fixed where that fix left it, until no diagnostic whose fix is offered remains
 /// </summary>
 internal sealed class DocumentOrderFixAllProvider
@@ -201,9 +201,35 @@ internal sealed class DocumentOrderFixAllProvider
     }
 
     /// <summary>
+    /// Gets the diagnostics of the starting document whose fix the provider offers on that document. A diagnostic whose fix a
+    /// guard withholds there is not among the fixes the user asked to apply, also when the fixes in front of it would release
+    /// the guard (SHARED-FIX-002)
+    /// </summary>
+    /// <param name="context">Fix All context</param>
+    /// <param name="document">Starting document</param>
+    /// <param name="diagnostics">Diagnostics of the document</param>
+    /// <returns>The diagnostics whose fix is offered</returns>
+    private static async Task<ImmutableArray<Diagnostic>> GetDiagnosticsWithOfferedFixAsync(FixAllContext context, Document document, ImmutableArray<Diagnostic> diagnostics)
+    {
+        var offered = ImmutableArray.CreateBuilder<Diagnostic>(diagnostics.Length);
+
+        foreach (var diagnostic in diagnostics)
+        {
+            if (diagnostic.Location.IsInSource == false
+                || await GetFirstMatchingActionAsync(context, document, diagnostic).ConfigureAwait(false) != null)
+            {
+                offered.Add(diagnostic);
+            }
+        }
+
+        return offered.ToImmutable();
+    }
+
+    /// <summary>
     /// Applies the fixes of the diagnostics of one document in document order. A pass applies the fixes of the given
-    /// diagnostics; when a fix in it changed code that held a later diagnostic, that diagnostic's place is no longer
-    /// known, so the analyzer runs on the changed document and another pass applies the fixes of what it reports. The
+    /// diagnostics, starting with those whose fix the provider offers on the starting document; when a fix in it changed code
+    /// that held a later diagnostic, that diagnostic's place is no longer known, so the analyzer runs on the changed document
+    /// and another pass applies the fixes of what it reports. The
     /// work ends after a pass that applies no fix or loses no diagnostic. Another pass runs only after a pass that fixed
     /// a diagnostic, so their number is bounded by the number of diagnostics in the starting document, which also stops
     /// a fix that would keep reporting new diagnostics
@@ -215,7 +241,7 @@ internal sealed class DocumentOrderFixAllProvider
     private async Task<Document> ApplyFixAllAsync(FixAllContext context, Document document, ImmutableArray<Diagnostic> diagnostics)
     {
         var currentDocument = document;
-        var currentDiagnostics = diagnostics;
+        var currentDiagnostics = await GetDiagnosticsWithOfferedFixAsync(context, document, diagnostics).ConfigureAwait(false);
         var maximumPasses = diagnostics.Length;
 
         for (var pass = 0; pass < maximumPasses; pass++)

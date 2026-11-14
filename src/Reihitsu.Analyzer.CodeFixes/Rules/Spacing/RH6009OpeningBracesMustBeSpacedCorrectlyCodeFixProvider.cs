@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Spacing;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
@@ -17,7 +18,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH6009OpeningBracesMustBeSpacedCorrectlyCodeFixProvider))]
-public class RH6009OpeningBracesMustBeSpacedCorrectlyCodeFixProvider : CodeFixProvider
+public class RH6009OpeningBracesMustBeSpacedCorrectlyCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -48,8 +49,12 @@ public class RH6009OpeningBracesMustBeSpacedCorrectlyCodeFixProvider : CodeFixPr
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         foreach (var diagnostic in context.Diagnostics)
         {
@@ -62,5 +67,5 @@ public class RH6009OpeningBracesMustBeSpacedCorrectlyCodeFixProvider : CodeFixPr
         return Task.CompletedTask;
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

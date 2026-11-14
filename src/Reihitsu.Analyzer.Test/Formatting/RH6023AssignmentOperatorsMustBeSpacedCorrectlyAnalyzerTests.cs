@@ -21,6 +21,65 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzerTests : Batch
     #region Tests
 
     /// <summary>
+    /// Verifies that one Fix All application spaces an assignment inside an element access and the assignment to that element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-002")]
+    public async Task FixAllCorrectsAnAssignmentInsideTheTargetOfAnotherInOnePass()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  void Method(int[] d)
+                                  {
+                                      int k;
+                                      d[k{|RH6023:=|}1]{|RH6023:=|}2;
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   internal class TestClass
+                                   {
+                                       void Method(int[] d)
+                                       {
+                                           int k;
+                                           d[k = 1] = 2;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, static test => test.NumberOfFixAllIterations = 1);
+    }
+
+    /// <summary>
+    /// Verifies the control of the specification example of SHARED-FIX-011: the fix changes the text without a formatter entry
+    /// point, so it is still offered in a file with a syntax error and writes <c>a = 1;</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixIsStillOfferedInAFileWithASyntaxError()
+    {
+        const string source = """
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      int a;
+                                      a=1;
+                                  }
+
+                                  void N(
+                              }
+                              """;
+
+        var fixedSource = await TryApplyCodeFixAsync(source);
+
+        Assert.IsNotNull(fixedSource, "The text-edit fix must be offered in a file with a syntax error.");
+        Assert.Contains("        a = 1;", fixedSource);
+    }
+
+    /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

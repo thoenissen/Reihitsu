@@ -23,7 +23,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsCodeFixProvider
     /// Constructor
     /// </summary>
     public RH7103StaticElementsMustAppearBeforeInstanceElementsCodeFixProvider()
-        : base(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, CodeFixResources.RH7103Title)
+        : base(new RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer(), RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, CodeFixResources.RH7103Title)
     {
     }
 
