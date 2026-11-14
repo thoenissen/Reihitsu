@@ -52,4 +52,5 @@
 - Done: audit 2 (`14`, a2d888a) on 79610f4 (audited SHA): pass; one comment-only finding #2 (`FormattingContext.RootChainBoundary` summary, :152-158).
 - Done: cleaner (`15`, 7129a6a): comment fixed; strict proof FAIL, plain proof PASS → repair round 2 (decision 8).
 - Done: spec checker (`16`, 51071ef), audit 3 (`17`, c9b1c5e): pass. **Audited SHA: 51071efcb7884ba8fe0528b266d654eaece242f6.** Repair rounds used: 2.
-- Next: validator → publish.
+- Done: validator (`18`, b0e203b) on 4846d24: pass, all projects green.
+- Next: issue manager (1 follow-up candidate) → note + delete sdd/work → trigger → PR body → ready.
