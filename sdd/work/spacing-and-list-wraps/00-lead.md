@@ -71,4 +71,5 @@
 - Audited SHA: 8943764 (main 8a26419). Auditor 11: #1642 pass; #1635 finding 1 (decision 18).
 - Repair round 2 done: cleaner (14), spec checker (15) consistent, auditor (16) pass on e829e1a (audited SHA e829e1a).
 - Done: spec author wording (17, 01623e2); text-only proof vs e829e1a PASS, no second audit.
-- Next: validator (18) → issue manager (19) → publish.
+- Issue manager (19, dfe7944): created #1736, #1737, #1738, #1739; extended #956.
+- Next: validator (18) result → note + delete sdd/work → trigger → publish.
