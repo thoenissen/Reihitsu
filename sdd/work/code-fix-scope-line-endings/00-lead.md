@@ -65,4 +65,5 @@
 - Spec author 10 (a3c0ffe): RH3001-009 added.
 - Test implementer 11 (6481fbe): 14 red, 6 green for RH3001-009.
 - Implementer 12 (f58c116): all green.
-- Next step: cleaner 13, spec checker 14, auditor 15 (repair only).
+- Cleaner 13 (64d42e5): clean.
+- Next step: spec checker 14, then auditor 15 (repair only).
