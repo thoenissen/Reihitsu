@@ -51,4 +51,5 @@
 - Done: spec checker (`13`, 5bf6f9a): consistent.
 - Done: audit 2 (`14`, a2d888a) on 79610f4 (audited SHA): pass; one comment-only finding #2 (`FormattingContext.RootChainBoundary` summary, :152-158).
 - Done: cleaner (`15`, 7129a6a): comment fixed; strict proof FAIL, plain proof PASS → repair round 2 (decision 8).
-- Next: spec checker → auditor (delta 79610f4..head) → validator → publish.
+- Done: spec checker (`16`, 51071ef), audit 3 (`17`, c9b1c5e): pass. **Audited SHA: 51071efcb7884ba8fe0528b266d654eaece242f6.** Repair rounds used: 2.
+- Next: validator → publish.
