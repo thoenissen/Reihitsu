@@ -41,16 +41,29 @@ None beyond the triage comments above, which are the maintainer's (account) re-t
 | 3 | Spec author | RH5102-004, RH5109-004, RH5111-005 alignment (three more analyzers, three tagged tests flip) | In scope of #1337 | The #1337 triage comment names these three requirements; SHARED-DIAG-008 (unchanged) demands the outcome | Unchanged SHARED-DIAG-008 demands it | 187b246 |
 | 4 | Spec author | Rule pages RH7308, RH7401–RH7412 still say "top-level region"/"override methods" | Correct them in this PR (spec author amendment, with the next spec round) | Rule pages must describe the analyzer; the change follows unchanged SHARED-TYPEREGION-006 / SHARED-REGGROUP-006 | Brings the page in line with requirements already in force | pending |
 | 5 | Spec author | RH7308 innermost region with unrecognized label | Not checked; the outer region does not judge it (as written) | SHARED-TYPEREGION-006 + RH7308-002 | Decided by unchanged requirements | 187b246 |
+| 6 | Skeptic | RH7309 fix on `main` breaks a safety rail for regions in a nested enum (unparsable result; enum members swapped) | Repair in this run via the enum ownership fix of #1264 (`GetTopLevelRegions`); tests pin both | Inside #1264's scope; repairable in scope, so no escalation 2 | Brings output in line with unchanged SHARED-TYPEREGION-006 | pending |
+| 7 | Skeptic | Architecture finding #1592: RH7309 analyzer and code fix decide region ownership differently | Change the structure in this run: the fix uses the same ownership decision as the analyzer (one statement) | Not a rare class (`#region Nested types` is common); a narrow fix would keep two statements | Fix result follows SHARED-FIX-005 / RH7309-004 (unchanged) | pending |
+| 8 | Skeptic | #1337 spec defects in 187b246: RH5102-004/RH5109-004 too wide (lambda bodies); RH7107-001/RH7108-001 must say "outside accessor bodies" | Spec author amends both as clarifications | SHARED-DIAG-008 decides; keeps today's output for those inputs | Unchanged requirement decides | pending |
+| 9 | Skeptic | #1339: RH7102-005/RH7109-005 should say "in the same top-level region" | Spec author clarifies | Follows RH7102-003/RH7109-003 | Unchanged requirement decides | pending |
+| 10 | Skeptic | #1412 cause is the Roslyn driver; other constructor rules miss the defining part too | Fix RH7105/RH7106 only; other constructor rules a follow-up | Scope | Narrower than the class; follow-up filed | pending |
+| 11 | Skeptic | #1333: partial field-like event with two declarators | In scope; needs a test | Same requirement SHARED-DIAG-006 | Unchanged requirement decides | pending |
+| 12 | Skeptic | Follow-up candidates: RH7311 branch-vs-outside; formatter `=` continuation after empty `#if` | Dropped | RH7311 decided by its unchanged spec (no defect); formatter case rare and stable | n/a | n/a |
 
 ## Follow-up candidates
 
-(none yet)
+- RH5101-004 wording equals the too-wide RH5102-004; ~60 rule specs say directives only withhold the fix without referring to SHARED-DIAG-008 (02-skeptic, #1337).
+- Every syntax-node rule on constructors misses the defining part of a partial constructor (Roslyn driver), besides RH7105/RH7106 (02-skeptic, #1412).
 
 ## Open output questions (batch 1, before test implementer)
 
 From 01-spec-author.md: Q1 (#1264 RH7309 regions in #if/#else branches), Q2 (#1334 partial member with only some parts in place; RH7405–RH7408 reading), Q3 (#1337 SHARED-MODORDER-003 directive between last modifier and type), Q4 (#1337 RH5111 directive inside the value).
 
+## Batch 1 asked
+
+Q1 (+Q1b), Q2, Q3 (+second input), Q4 posted to the maintainer; waiting.
+
 ## Worklist / next step
 
 - Done: claim (5f66bcd), draft PR #1734, prepare.sh green, spec author 187b246 (lane check: confirmed).
-- Next: skeptic (02), then batch-1 output questions, then spec amendment (rule pages + answers), then test implementer.
+- Skeptic 790f9fc done.
+- Next: wait for batch-1 answers; then spec author amendment (decisions 4, 8, 9 + answers), lane check, then test implementer.
