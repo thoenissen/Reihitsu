@@ -111,4 +111,5 @@ Batch 2 (questions 8–10, 2026-11-14):
 - 14 test implementer (417800b tests, 78a3fce handover): 4 RH3002/RH7101 Fix All tests fail today; word-boundary rows pass.
 - 15 implementer (66a181f, 819807e): audit #1 and #3 repaired; full analyzer/formatter/CLI/architecture green.
 - 16 test implementer (079709c): architecture test added, passes on head, fails on 417800b.
-- Next: cleaner (17), spec checker (18), auditor on the repair (19). After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
+- 17 cleaner (5517687): clean; replaced CollectionAssert.AreEquivalent by ordered Assert.AreSequenceEqual in the arch test (MSTEST0068), meaning unchanged (accepted, decision-free: set equality over a deterministic ordinal order).
+- Next: spec checker (18), auditor on the repair (19). After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
