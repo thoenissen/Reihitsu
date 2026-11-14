@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | RH3001-004, RH3001-008 |
 
@@ -100,7 +100,7 @@ class C
 
 The same behind `>>>=`, in a named attribute argument (`[A(P = !true)]` becomes `[A(P = true == false)]`, also in the `:` form), behind `goto case` (`goto case true == false;`), and in `select`, `group`, and `orderby` (`orderby w == false descending`).
 
-Pending — asked as an output question, not yet answered: a negation that is the whole key of an `orderby` clause without a direction.
+The fix is offered for a negation that is the whole key of an `orderby` clause without a direction:
 
 ```csharp
 using System.Linq;
@@ -116,7 +116,7 @@ class C
 }
 ```
 
-Before: reported, no code fix offered. After, as RH3001-004 now reads: `orderby a == false`. The alternative keeps it without a fix, and RH3001-004 then names the position as an exception.
+Before: reported, no code fix offered. After: `orderby a == false`.
 
 Constant patterns (`x is !true`, a switch-expression arm `!true => 1`, `case !true when x:`) stay reported without a fix: no visible change.
 
@@ -129,6 +129,10 @@ Decided by the maintainer in question round 7a of thoenissen/Reihitsu#912 (2026-
 ### Parentheses only where binding needs them
 
 Decided by the maintainer in question round 7b of thoenissen/Reihitsu#912 (2026-10-20), for thoenissen/Reihitsu#1245 Q3, option A.
+
+### An `orderby` key without a direction gets the fix
+
+Decided by the maintainer in this run (2026-11), option A: a negation that is the whole key of an `orderby` clause without a direction gets the fix, `orderby !a` becomes `orderby a == false`, as `orderby !a descending` becomes `orderby a == false descending`.
 
 ### `case !true:` keeps its fix
 

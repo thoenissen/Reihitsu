@@ -158,3 +158,19 @@ Commit derived from: fb01fda. Inputs: `02-skeptic.md` (5657e17), and decisions 6
 - RH3001-004: `new(!y)`, `o?[!y]`, `new E { [!x] = true }`, `class D(bool x) : Base(!x)`, and `N(!x, y)`.
 - RH3001-008: `case !true when x:` gets no fix. `case !true:` becomes `case true == false:`.
 - SHARED-BODY-003: RH3203 `public C( int value ) :  base( value ) => _value = value;` keeps `:  base( value )`. A method with a constraint clause keeps its clause as written.
+
+## Amendment 2
+
+The maintainer answered the `orderby` question with option A, as relayed by the lead: `orderby !a` without a direction gets the fix and becomes `orderby a == false`.
+
+### thoenissen/Reihitsu#1285
+
+- **RH3001-004 changed.** Its list of positions now names the whole key of an `orderby` clause, with or without a direction, using the example `orderby !w` → `orderby w == false`.
+- **Change doc changed.**
+  - Under *Visible output changes*, the `orderby` entry is no longer marked pending.
+  - *Decisions* gains "An `orderby` key without a direction gets the fix".
+  - Status is set to `Accepted`, on the lead's acceptance.
+
+### Examples for the tests (addition)
+
+- RH3001-004: `from a in v orderby !a select a` → `orderby a == false`.
