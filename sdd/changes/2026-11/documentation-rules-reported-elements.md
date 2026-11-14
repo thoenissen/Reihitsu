@@ -4,7 +4,7 @@
 |---|---|
 | Status | Draft |
 | Date | 2026-11 |
-| Affected requirements | RH8307-001 (changed), RH8307-002 (changed), RH8106-001 (coverage changed), RH8106-002 (changed), RH8306-001 (coverage changed), RH8306-004 (changed), RH8201-001 (changed), RH8201-004 (changed), RH8201-005 (example added), RH8203-001 (changed), the rule page `documentation/rules/RH8307.md` |
+| Affected requirements | RH8307-001 (changed), RH8307-002 (changed), RH8106-001 (coverage changed), RH8106-002 (changed), RH8306-001 (coverage changed), RH8306-004 (changed), RH8201-001 (changed), RH8201-004 (changed), RH8201-005 (example added), RH8203-001 (changed), SHARED-DIAG-004 (second paragraph extended), the rule page `documentation/rules/RH8307.md` |
 
 ## What
 
@@ -12,7 +12,7 @@ Three decisions about what a documentation rule reports, taken while the rules w
 
 - **RH8307 judges only the top-level elements of a documentation comment.** An element nested inside another element — `<para>`, `<b>`, `<c>`, `<see>`, and any other — is no longer reported, whatever its layout (RH8307-001, RH8307-002). The element around it is judged as before. The rule page names the elements it checks.
 - **RH8106 and RH8306 report each reported element.** When one documentation comment holds several `<returns>` elements without text (RH8106) or several `<summary>` elements of a property in one part that read as a sentence (RH8306), each of them gets a diagnostic of its own (RH8106-002, RH8306-004). Their coverage no longer stops at one reported element (RH8106-001, RH8306-001). A partial property is still reported once (RH8306-001).
-- **RH8201 and RH8203 judge a partial member part by part.** For a method, property, indexer, or event declared in a defining and an implementing part, each part's own documentation comment is judged on its own: RH8201 reports each part whose comment holds no `<inheritdoc>`, and its fix replaces only that part's comment; RH8203 reports `<inheritdoc/>` on each part of a member that inherits nothing. Whether the member inherits documentation is decided for the member as a whole, so both parts of a member that implements an interface member inherit it, whichever part the compiler maps the interface member to (RH8201-001, RH8201-004, RH8203-001). Partial types and partial constructors stay uncovered.
+- **RH8201 and RH8203 judge a partial member part by part.** For a method, property, indexer, or event declared in a defining and an implementing part, each part's own documentation comment is judged on its own: RH8201 reports each part whose comment holds no `<inheritdoc>`, and its fix replaces only that part's comment; RH8203 reports `<inheritdoc/>` on each part of a member that inherits nothing, and never reports a part for an `<inheritdoc/>` that only the other part carries. SHARED-DIAG-004's second paragraph names this documentation comment as text one part writes independently. Whether the member inherits documentation is decided for the member as a whole, so both parts of a member that implements an interface member inherit it, whichever part the compiler maps the interface member to (RH8201-001, RH8201-004, RH8203-001). Partial types and partial constructors stay uncovered.
 
 ## Why
 
@@ -182,11 +182,41 @@ A member that implements an interface member and is documented only on its imple
 
 Before (`main`): not reported. After: the implementing part is reported by RH8201, and the fix replaces its summary with `/// <inheritdoc/>`.
 
+A member that inherits nothing, documented with a summary on its defining part and with `<inheritdoc/>` on its implementing part (method, property, indexer, and event alike):
+
+```csharp
+    /// <summary>Stops.</summary>
+    public partial void O();
+
+    /// <inheritdoc/>
+    public partial void O() { }
+```
+
+Before (`main`): both parts are reported by RH8203 — the implementing part on its `<inheritdoc/>`, and the defining part on its name, although its own comment holds no `<inheritdoc>`.
+
+```csharp
+    /// <summary>Stops.</summary>
+    public partial void {|RH8203:O|}();
+
+    /// {|RH8203:<inheritdoc/>|}
+    public partial void O() { }
+```
+
+After: only the implementing part is reported.
+
+```csharp
+    /// <summary>Stops.</summary>
+    public partial void O();
+
+    /// {|RH8203:<inheritdoc/>|}
+    public partial void O() { }
+```
+
 ## Decisions
 
 ### RH8307 reports only top-level elements
 
-Maintainer answer, batch 1 of the squad run `doc-rule-fixes` (Q1, option C, for thoenissen/Reihitsu#1347): RH8307 reports only the top-level elements of a documentation comment, and no nested element (`<para>`, `<b>`, …). Formatting tags are not reported at all. Checking nested elements is a follow-up feature issue, which decides whether it becomes a new rule.
+Maintainer answer, batch 1 of the squad run `doc-rule-fixes` (Q1, option C, for thoenissen/Reihitsu#1347): RH8307 reports only the top-level elements of a documentation comment, and no nested element (`<para>`, `<b>`, …). A formatting tag nested in an element is not reported; a formatting tag written directly at the top level of a comment, outside every element, is a top-level element and is reported as before. Checking nested elements is a follow-up feature issue, which decides whether it becomes a new rule.
 
 ### One diagnostic per reported element for RH8106 and RH8306
 
@@ -196,11 +226,11 @@ Maintainer answer, batch 1 (Q2, option A, for thoenissen/Reihitsu#1270): one dia
 
 Maintainer answer, batch 1 (Q4, option B, for thoenissen/Reihitsu#1617): each part of a partial member documented on both parts is reported on its own, because both parts can carry independent errors; each RH8201 fix replaces only that part's summary; RH8203 reports `<inheritdoc/>` on both parts of a member that inherits nothing.
 
-The inheritance verdict itself stays a verdict on the member as a whole (SHARED-DIAG-004, first paragraph): only the documentation comment is judged per part. The rule specs state the per-part judgment themselves; SHARED-DIAG-004's second paragraph, which lists the text one part writes independently, is not extended in this change.
+The inheritance verdict itself stays a verdict on the member as a whole, by the symbol: only the documentation comment is judged per part. SHARED-DIAG-004's second paragraph, which lists the text one part writes independently, each with the rule that judges it, gains the documentation comment of a part of a partial member as RH8201 and RH8203 judge it, so SHARED-DIAG-004 stays the one place that states how the parts are judged (SHARED-DIAG-006 points there). RH8306, which reports a partial property once, is not named there and is unchanged.
 
 ## Alternatives considered
 
 - **RH8307: keep reporting nested elements, or exclude only inline formatting elements** — rejected by the maintainer's answer (Q1 options A and B).
 - **RH8106/RH8306: one diagnostic per declaration, on the first reported element** — rejected by the maintainer's answer (Q2 option B): the elements after the first would stay unmarked only because of their position.
 - **RH8201/RH8203: judge a partial member once, on its defining part, and withhold the RH8201 fix when both parts are documented** — rejected by the maintainer's answer (Q4 option A).
-- **Extend SHARED-DIAG-004's second paragraph to name documentation comments** — rejected: the shared requirement serves many rules, and RH8306 keeps reporting a partial property once; the per-part judgment is stated where it applies.
+- **State the per-part judgment only in the rule specs, or exclude documentation comments from SHARED-DIAG-004** — rejected: either leaves the rule specs citing a shared requirement whose first paragraph says the member is reported at most once, or moves the statement out of the spec SHARED-DIAG-006 points to.
