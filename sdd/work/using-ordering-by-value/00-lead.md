@@ -28,6 +28,7 @@
 
 ## Follow-up candidates
 
+- SHARED-DIAG-002 names `@`, whitespace and comments but not Unicode escapes, while RH4001 and SHARED-USING-004 decode them; the maintainer's Q1 answer ("order everything by the name as the compiler interprets it") suggests SHARED-DIAG-002 should state escape decoding for every name comparison — spec-wording follow-up carrying that answer (03-spec-author).
 - `UsingDirectiveOrderingUtilities.OrderUsings` (Reihitsu.Core) has no production caller, only tests: dead-code removal (02-skeptic).
 
 ## Worklist / next step
@@ -36,4 +37,5 @@
 - Spec author done (8d25ac5, 01-spec-author.md): clarification only, no change doc, no output questions; lane check confirmed bug-fix. Open: its internal choice that by-value comparison binds the formatter (formatter output changes for `@System.IO` etc.) — skeptic asked for a verdict; lead decides after 02, or asks as an output question if nothing unchanged demands it.
 - Skeptic done (39ebd16, 02-skeptic.md): #1105 proceed + output question (Unicode escape); #1266 proceed; #1267 proceed narrower.
 - Output question 1 answered (A, generalized: technical value, `@` dropped, escapes decoded).
-- Next: spec author amendment (decision 5 + Q1 answer) — running; then test implementer.
+- Spec amendment done (6f629b1, 03-spec-author.md). No further output questions.
+- Next: test implementer (running), then implementer.
