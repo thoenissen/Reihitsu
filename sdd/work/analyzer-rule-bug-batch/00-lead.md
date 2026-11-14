@@ -44,4 +44,4 @@ Bug fix (all five). Roles: spec author (clarifications: RH5601-001/RH5602-001 al
 
 ## Worklist / next step
 
-- Done: spec author (01, 7d38931), skeptic (02, 1ec15b8; all five proceed, no output questions). Spec author amending RH5404-003 Why. Next: test implementer.
+- Done: spec author (01, 7d38931), skeptic (02, 1ec15b8; all five proceed, no output questions). Spec author amendment 6ab9935. Next: test implementer (no output questions open).
