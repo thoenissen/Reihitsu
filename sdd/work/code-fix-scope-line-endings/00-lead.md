@@ -24,13 +24,21 @@
 | 3 | Spec author | RH3001-008 keyed on the constant-pattern node, so `case !true:` keeps its fix | Take it | The maintainer saw `case !true:` fixed as the contrast case in #1245 Q2; withholding it would change visible output nobody asked to change | Keeps today's output | cd2ddbc |
 | 4 | Spec author | #1284 triage comment's "coverage sentence" | SHARED-BODY-003 scope plus RH3202 intro, no new requirement per rule spec | Smallest reading that meets the comment | Spec wording only | cd2ddbc |
 | 5 | Spec author | #1283's "CRLF check in the fix test base" goal | Left to the test implementer to propose; lead decides on its handover | Test infrastructure is internal | Tests only | — |
+| 6 | Skeptic | #1283 test tags | Tag the RH3006 CRLF test SHARED-FIX-006 + RH3006-003; SHARED-FIX-008 only for the blank-line case | The stray LF lies outside the replaced span; SHARED-FIX-008 excludes it, SHARED-FIX-006 governs | Tags are internal | — |
+| 7 | Skeptic | #1283 goal "add a CRLF check to the fix test base" | Drop; `VerifyCodeFixWithEndOfLine` already exists | Goal already met | Test infrastructure | — |
+| 8 | Skeptic | Withhold the RH3006 fix in CRLF documents? | No; repair it | Fix works in LF and the input is common enough | Restores SHARED-FIX-006 output | — |
+| 9 | Skeptic | RH3003 shows the same LF-in-CRLF defect (architecture finding) | Fix narrowly in this run for RH3006; RH3003 becomes a follow-up, unless the implementer's repair lands in a shared component both fixes use, in which case it is reported and the lead decides an adjacent fix | Outside the run's issues; not yet traced whether the mechanism is shared | No visible output of the run changes | — |
+| 10 | Skeptic | RH3001 trailing space when `!` ends a line before a comment | Dropped, not a follow-up | Comment inside a binary operand on its own line is a rare input class | — | — |
+| 11 | Skeptic | SHARED-BODY-003 wording ("last token in front of `=>`", name initializer and constraint clauses), RH3001-004 / change doc to name the five extra argument positions, #1283 example tags | Route to the spec author (continued) as one amendment | Small corrections in the area it wrote | Five positions are plain arguments, covered by #1245 Q2 | — |
+| 12 | Skeptic | #1284 goal "reword the SHARED-FIX-003 example" | Already met; drop | Example already says "the node the fix replaces" | — | — |
 
 ## Follow-up candidates
 
-(none yet)
+- RH3003 code fix writes an LF into a CRLF document (`return a +` / `/* x */ "";`), same symptom as #1283 — 02-skeptic.md.
 
 ## State
 
 - Audited SHA: —
 - Last step finished: spec author (01-spec-author.md, change doc `sdd/changes/2026-11/rh3001-fix-scope.md` Draft).
-- Next step: skeptic; then accept change doc if the skeptic confirms #1245 decisions cover its visible output changes, else output questions.
+- Skeptic done (02-skeptic.md): all reproduced and reachable; one output question (RH3001 `orderby !a` without direction).
+- Next step: spec author amendment (decision 11), then ask output question batch 1 (orderby), then accept change doc and spawn test implementer.
