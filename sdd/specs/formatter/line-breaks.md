@@ -5,7 +5,7 @@
 | ID prefix | FMT-BREAK |
 | Status | Active |
 | Code owners | `LineBreakPhase`, `LineBreakBlockRewriter`, `LineBreakInitializerRewriter`, `LineBreakContainedBlockRewriter`, `LineBreakAssignmentRewriter`, `DeclarationSemicolonLineBreakRewriter`, `ListElementInteriorJoinRewriter`, `ListElementInteriorUtilities`, `LineBreakListRewriter`, `PropertyLayoutLineBreakRewriter`, `GenericConstraintLineBreakRewriter`, `DeclarationBraceLineBreakRewriter`, `MemberLineStartRewriter`, `AttributeTargetFormattingRewriter`, `AttributeTargetFormattingShared`, `BinaryOperatorLineBreakRewriter`, `ChainLineBreakRewriter`, `TernaryLineBreakRewriter`, `SwitchCaseWhenLineBreakRewriter`, `BracePlacer`, `TokenGapNormalizer`, `AccessorListLayout`, `LineBreakDetection`, `LineBreakTriviaUtilities` |
-| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-010, FMT-PIPE-014, FMT-PIPE-021, FMT-PIPE-025, FMT-PIPE-026, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, FMT-UNSUP-008, SHARED-ATTR-014, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-STMT-001 |
+| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-010, FMT-PIPE-014, FMT-PIPE-021, FMT-PIPE-025, FMT-PIPE-026, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, FMT-UNSUP-008, SHARED-ATTR-014, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-DIAG-010, SHARED-STMT-001 |
 
 This spec covers `LineBreakPhase`, the phase of the pipeline that decides where lines break (its position in the phase order is FMT-PIPE-001): brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, the lines that switch sections, their labels, and their first statements start, and `case … when` guards. The phase adds and removes line breaks and keeps the blank lines it finds (FMT-BREAK-030), and it changes tokens only where it shapes an accessor's attribute lists (FMT-BREAK-032). The columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
 
@@ -710,12 +710,13 @@ An argument list, a parameter list — the bracketed parameter list of an indexe
 
 - A list is **multi-line** when two of its elements start on different lines — a line break in front of a comma separates the elements on either side of it — or when an element spans several lines (FMT-BREAK-013). A multi-line list MUST become one element per line, with the first element on the line of the opening parenthesis or bracket.
 - A list whose elements all start on one line, none of them spanning lines, is **single-line**, also when a line break stands behind its opening parenthesis or bracket. Its elements MUST stay on that line, and its first element MUST join the line of the opening parenthesis or bracket. A line break in front of the closing parenthesis of an argument list stays (Non-goals); the closing parenthesis or bracket of a parameter list is FMT-BREAK-011's.
+- A first element that a comment, a preprocessor directive, or disabled text keeps off the line of the opening parenthesis or bracket — one of them stands between the opening delimiter and the element's first token, and a line break separates the two — cannot join that line (FMT-BREAK-001). It MUST stay at the start of its own line, and the list is then **multi-line**, also when all its elements start on that one line: every element MUST start its own line, and the first element stays where it is. Whether a line break separates them is decided as SHARED-BLANK-008 counts line breaks: in `Foo( /* a⏎ b */ 1, 2)` the line break is inside the text of the comment, the first element is on the opening line, and the list stays single-line; in `Foo( // c⏎1, 2)` and `Foo(⏎/* c */⏎1, 2)` the first element is held, and the list becomes one element per line. A line break behind the opening delimiter with no comment, directive, or disabled text in the gap (`Foo(⏎1, 2)`) holds nothing, and the list is joined.
 
 In a multi-line argument list and a multi-line attribute argument list, every comma MUST end the line of the element in front of it, as in a parameter list (FMT-BREAK-011): a comma that starts a line moves behind the element in front of it, and the element behind it starts its own line. A comment behind such a comma, on the comma's line, MUST move with the comma and stay behind it, as in a parameter list: `Foo(1⏎, /* c */ 2, 3)` becomes `Foo(1, /* c */⏎2,⏎3)`, and a `//` comment behind the comma keeps ending the line.
 
 A comma MUST NOT be moved across a comment, a preprocessor directive, or disabled text (FMT-BREAK-001). A comma that one of them keeps off the line of the element in front of it — the comment, directive, or disabled text stands between the element's last token and the comma, and a line break separates the two — MUST stay at the start of the line of the element behind it, in every list this requirement covers; every other comma and element of the list MUST be laid out as the paragraphs above say. When such a held comma stands alone on its line — the element behind it starts on a later line — the line break behind the comma MUST be left as written too: the comma stays alone on its line and the element behind it keeps its own line, as `P` shows below; it is not joined to `, int b`. A held comma with the element behind it on its own line, as in `N` below, keeps that element there. Whether a line break separates them is decided as SHARED-BLANK-008 counts line breaks: a line break inside the text of a multi-line comment does not count, so in `Foo(1 /* a⏎ b */, 2,⏎3)` the comma is on the line of `1` and keeps nothing, and a comment in front of a comma on the element's own line keeps nothing either.
 
-Why: A partly wrapped list hides elements at the end of a line. Whether a list is wrapped is a question about its elements: a line break only behind the opening parenthesis puts every element on one line, so the list reads as a one-line list and is joined like one. Keeping the first element on the opening line lets the remaining elements align under it (FMT-INDENT). A comma at the end of a line shows that the list continues, as it does in a parameter list (FMT-BREAK-011). A comment behind a comma stays behind it, as in a parameter list and in a constraint clause (FMT-BREAK-037), so it goes where the comma goes. Moving a comma across a comment or a directive would change what the comment is about or move code across the directive (FMT-BREAK-001), so only that gap is left as written and the rest of the list is laid out as any other, as the commas of a constraint clause are (FMT-BREAK-037); such commas are rare — RH5035 and RH5038 report a comment inside a parameter or argument list. RH5101, RH5102, and RH5109 report partly wrapped lists.
+Why: A partly wrapped list hides elements at the end of a line. Whether a list is wrapped is a question about its elements: a line break only behind the opening parenthesis puts every element on one line, so the list reads as a one-line list and is joined like one. A first element that a comment or a directive holds off the opening line already stands on a line of its own; joining it would cross the comment or the directive (FMT-BREAK-001), and keeping the others behind it on that line would leave a list RH5102 reports and whose fix it withholds (SHARED-DIAG-010), so the list is laid out as a multi-line list around the held element. Such a list is rare: RH5035 and RH5038 report a comment inside a parameter or argument list. Keeping the first element on the opening line lets the remaining elements align under it (FMT-INDENT). A comma at the end of a line shows that the list continues, as it does in a parameter list (FMT-BREAK-011). A comment behind a comma stays behind it, as in a parameter list and in a constraint clause (FMT-BREAK-037), so it goes where the comma goes. Moving a comma across a comment or a directive would change what the comment is about or move code across the directive (FMT-BREAK-001), so only that gap is left as written and the rest of the list is laid out as any other, as the commas of a constraint clause are (FMT-BREAK-037); such commas are rare — RH5035 and RH5038 report a comment inside a parameter or argument list. RH5101, RH5102, and RH5109 report partly wrapped lists.
 
 Example:
 
@@ -883,6 +884,51 @@ class C
         Foo(1 /* one */,
             2,
             3);
+    }
+}
+```
+
+Example — a first element that a comment or a directive keeps off the line of the opening parenthesis stays on its own line, and the list becomes one element per line:
+
+```csharp
+class C
+{
+    void N( // c
+        int a, int b)
+    {
+    }
+
+    void M()
+    {
+        Foo( // c
+            1, 2);
+        Foo(
+#pragma warning disable CS0168
+            1, 2);
+#pragma warning restore CS0168
+    }
+}
+```
+
+```csharp
+class C
+{
+    void N( // c
+           int a,
+           int b)
+    {
+    }
+
+    void M()
+    {
+        Foo( // c
+            1,
+            2);
+        Foo(
+#pragma warning disable CS0168
+            1,
+            2);
+#pragma warning restore CS0168
     }
 }
 ```
