@@ -43,4 +43,5 @@
 - Skeptic done (02-skeptic.md): all reproduced and reachable; one output question (RH3001 `orderby !a` without direction).
 - Spec author amendment done (ff3315d).
 - Maintainer answered batch 1 (A).
-- Next step: spec author records the answer in the change doc Decisions and sets it Accepted; then test implementer.
+- Change doc Accepted (b20b8a7).
+- Next step: test implementer (03-test-implementer.md).
