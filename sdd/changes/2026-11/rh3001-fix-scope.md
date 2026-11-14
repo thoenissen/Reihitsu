@@ -11,11 +11,11 @@
 - RH3001-004 no longer limits the fix to a negation that covers less text than the syntax node around it. A negation that is a whole argument of any argument list (such as that of an invocation, an object creation with or without its type, an element access or a conditional element access, an index in an object initializer, a constructor initializer, a primary constructor's base type, or a tuple), a whole attribute argument, or a whole collection-expression element gets the fix like any other.
 - RH3001-004 states that the fix puts the comparison in parentheses only where it binds differently from the negation, and in no other position.
 - RH3001-008 is added: a negation that is the whole expression of a constant pattern is reported without a fix.
-- RH3001-009 is added: a negation that touches a keyword or an identifier in front of `!` or behind its operand, with nothing between them (`return!a`, `where !(w)select w`), is reported without a fix.
+- RH3001-009 is added: a negation that touches a keyword or an identifier in front of `!` or behind its operand, with nothing between them (`return!a`, `where !(w)select w`), is reported without a fix. In front of `!`, this holds whatever the operand starts with, a parenthesis or a kept comment included (`return!(a)`, `return!/* c */a`).
 
 ## Why
 
-The limit in RH3001-004 described an accident of how the fix finds its node, not a decision: a negation that fills its argument was not found, while `M(x: !y)` was fixed. Withholding a fix there gives away inputs the rewrite handles safely (`AGENTS.md`, *Code-fix coverage*). The parentheses the fix wrote behind `>>>=` and `??=`, in named attribute arguments, behind `goto case`, and in `select`, `group`, and `orderby` group nothing. Once parentheses are written only where binding needs them, a negation written against a word in front of or behind it cannot take the comparison without parentheses, which group nothing there, or a space the fix would insert; that rare class keeps its report and gets no fix. A constant pattern cannot take the comparison the fix writes without turning into a constant expression the reader has to evaluate, so it keeps its report and gets no fix; once the fix finds whole-node negations, that case has to be stated, because it is a whole-node negation too.
+The limit in RH3001-004 described an accident of how the fix finds its node, not a decision: a negation that fills its argument was not found, while `M(x: !y)` was fixed. Withholding a fix there gives away inputs the rewrite handles safely (`AGENTS.md`, *Code-fix coverage*). The parentheses the fix wrote behind `>>>=` and `??=`, in named attribute arguments, behind `goto case`, and in `select`, `group`, and `orderby` group nothing. Once parentheses are written only where binding needs them, a negation written against a word in front of or behind it cannot take the comparison without parentheses, which group nothing there, or a space the fix would insert, wherever the operand starts with a word or `false` meets the word behind it. Where the operand starts with `(` or a kept comment, nothing would merge, but telling those operands apart is a second check for the same rare shape, so the front side is decided on the gap in front of `!` alone; that rare class keeps its report and gets no fix. A constant pattern cannot take the comparison the fix writes without turning into a constant expression the reader has to evaluate, so it keeps its report and gets no fix; once the fix finds whole-node negations, that case has to be stated, because it is a whole-node negation too.
 
 ## Visible output changes
 
@@ -147,7 +147,37 @@ class C
 }
 ```
 
-After: reported, no code fix offered. The same for `yield return!a` (before: `yield return a == false`), `case!true:` (before: `case true == false:`), `_ when!y =>` (before: `_ when y == false =>`), `select!w` (before: `select (w == false)`), and `where !(w)select w` (before: `where (w) == false` with `select w` moved to the next line). `orderby!w` stays without a fix, as before. With a space or a comment between the negation and the word, the fix is offered as RH3001-004 states: `return !a` becomes `return a == false`.
+After: reported, no code fix offered. The same for `yield return!a` (before: `yield return a == false`), `case!true:` (before: `case true == false:`), `_ when!y =>` (before: `_ when y == false =>`), `select!w` (before: `select (w == false)`), and `where !(w)select w` (before: `where (w) == false` with `select w` moved to the next line). `orderby!w` stays without a fix, as before.
+
+The same holds where the operand starts with a parenthesis or a comment stays between `!` and the operand, although nothing would merge there:
+
+```csharp
+class C
+{
+    bool M(bool a, bool b)
+    {
+        if (b) return!(a);
+        return a;
+    }
+}
+```
+
+Before:
+
+```csharp
+class C
+{
+    bool M(bool a, bool b)
+    {
+        if (b) return(a) == false;
+        return a;
+    }
+}
+```
+
+After: reported, no code fix offered. The same for `yield return!(a)` (before: `yield return(a) == false`), `case!(true):` (before: `case(true) == false:`), `_ when!(y) =>` (before: `_ when(y) == false =>`), `where!(w) select w` (before: `where(w) == false select w`), and `return!/* c */a` (before: `return/* c */a == false`).
+
+With a space or a comment between the negation and the word, the fix is offered as RH3001-004 states: `return !a` becomes `return a == false`.
 
 ## Decisions
 
@@ -169,7 +199,7 @@ A `case` label of a switch statement is not a constant pattern in the syntax tre
 
 ### A negation written against a word gets no fix
 
-Decided by the lead in this run (2026-11) under `AGENTS.md`, *Code-fix coverage*: a word written against the negation is a rare input class, and the comparison fits there only in parentheses that group nothing, which RH3001-004 forbids, or with a space the fix would insert. Withholding a fix for a rare class is the rule's own decision and puts no output question to the maintainer.
+Decided by the lead in this run (2026-11) under `AGENTS.md`, *Code-fix coverage*: a word written against the negation is a rare input class, and where the operand starts with a word, or `false` meets the word behind the operand, the comparison fits there only in parentheses that group nothing, which RH3001-004 forbids, or with a space the fix would insert. The lead also accepted that the front side is decided on the gap in front of `!` alone, so the fix is withheld where the operand starts with `(` or a kept comment and nothing would merge (`return!(a)`, `return!/* c */a`): the class is refused as a whole rather than split by the operand's first token. Withholding a fix for a rare class is the rule's own decision and puts no output question to the maintainer.
 
 ## Alternatives considered
 
@@ -177,4 +207,5 @@ Decided by the lead in this run (2026-11) under `AGENTS.md`, *Code-fix coverage*
 - **Accept the extra parentheses and state them in RH3001-004** — rejected by the maintainer's answer to Q3.
 - **Not report a negation that is a constant pattern** — rejected by the maintainer's answer to Q2 (P23: report, no fix).
 - **Write the comparison in parentheses where the negation touches a word** (`return(a == false)`) — rejected: the parentheses group nothing, which RH3001-004 forbids.
-- **Insert a space between the word and the comparison** (`return a == false`) — rejected: the fix would decide spacing in a gap the author left empty, for a rare class.
+- **Insert a space between the word and the comparison** (`return a == false`, as `main` wrote it) — rejected, although RH3002's fix and the formatter answer a merge of two tokens in the same way, with one space: this fix would need its own second rule for which gaps get the space, for a rare class, where withholding the fix needs none. The repository answers the merge question two ways here, by a space in RH3002 and the formatter and by a refusal in RH3001, and that difference is a decision, not an oversight.
+- **Withhold only where a token would merge, and fix `return!(a)` as `return(a) == false`** — rejected: it adds a check of the operand's first token and of the comments kept in front of it for the same rare shape, and `return(a)` is what RH6001 reports.
