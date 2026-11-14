@@ -96,5 +96,6 @@ Batch 1 (before the test implementer):
 - Done: 11 test implementer (45c8faf): 8 failing RH8203 tests.
 - Done: 12 implementer (27a9160, 683f6db).
 - Done: 13 cleaner (afd4dbe): clean; finding #2 comment fixed.
+- Done: 14 spec checker (1a73351): consistent.
 - Repair round 1 (of 3): test implementer 11 (done), implementer 12 (done) → implementer 12 → cleaner 13 → spec checker 14 → auditor 15 (repair only) → validator.
 - After answers: spec author repair (revert SHARED-DOC-002 for #1092; FMT-BLANK-010 wording; RH8201-001/RH8203-001 per Q4; Q1/Q2 answers; retag notes), then test implementer.
