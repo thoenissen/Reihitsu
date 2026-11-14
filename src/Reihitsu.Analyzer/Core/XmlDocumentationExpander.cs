@@ -4,6 +4,7 @@ using System.Xml;
 using System.Xml.Linq;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Reihitsu.Analyzer.Core;
@@ -41,6 +42,38 @@ internal static class XmlDocumentationExpander
         var declaredSymbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
 
         return ParseExpandedDocumentation(declaredSymbol, cancellationToken);
+    }
+
+    /// <summary>
+    /// Parses the expanded documentation XML of one part of a partial method, property, indexer, or event: the part's own
+    /// documentation comments and the content their <c>&lt;include&gt;</c> elements bring in, never the other part's
+    /// </summary>
+    /// <param name="declaration">Declaration of the part</param>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The expanded XML documentation root, when available</returns>
+    /// <remarks>
+    /// The compiler gives the symbol of a defining part the implementing part's documentation whenever that part has any,
+    /// so the documentation is not read from the part's symbol. The part's documentation comments are compiled instead in
+    /// front of a placeholder type, with the tree's path and the compilation's options, so the compiler resolves every
+    /// <c>&lt;include&gt;</c> element as it does for the part itself
+    /// </remarks>
+    internal static XElement GetExpandedDocumentationOfPart(MemberDeclarationSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        var documentationText = string.Concat(DirectDocumentationSyntaxChecker.GetDocumentationComments(declaration)
+                                                                              .Select(obj => obj.ToFullString() + "\n"));
+
+        if (documentationText.Length == 0
+            || semanticModel.Compilation.Options is not CSharpCompilationOptions compilationOptions
+            || declaration.SyntaxTree.Options is not CSharpParseOptions parseOptions)
+        {
+            return null;
+        }
+
+        var placeholderTree = CSharpSyntaxTree.ParseText(documentationText + "class P\n{\n}\n", parseOptions, declaration.SyntaxTree.FilePath, cancellationToken: cancellationToken);
+        var placeholderCompilation = CSharpCompilation.Create(semanticModel.Compilation.AssemblyName, [placeholderTree], options: compilationOptions);
+
+        return ParseExpandedDocumentation(placeholderCompilation.GetTypeByMetadataName("P"), cancellationToken);
     }
 
     /// <summary>

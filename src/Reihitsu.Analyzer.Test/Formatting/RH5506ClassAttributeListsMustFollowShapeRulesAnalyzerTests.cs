@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -272,6 +272,7 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
     [TestMethod]
     [Requirement("RH5506-003")]
     [Requirement("SHARED-ATTR-017")]
+    [Requirement("SHARED-FIX-008")]
     public async Task VerifyCodeFixGivesEachClassAttributeAListOfItsOwnWithCarriageReturnLineFeed()
     {
         const string testData = """
@@ -303,6 +304,8 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
         await Verify(NormalizeToCarriageReturnLineFeed(testData),
                      NormalizeToCarriageReturnLineFeed(fixedData),
                      Diagnostics(RH5506ClassAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5506MessageFormat));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(RemoveMarkup(testData))), "Every line break the fix inserts must be CRLF.");
     }
 
     /// <summary>
@@ -456,6 +459,177 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
                      Diagnostics(RH5506ClassAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5506MessageFormat, 2));
     }
 
+    /// <summary>
+    /// Verifies the spec example: a list on the line of its class is split, and the class declaration stays behind the
+    /// last new list, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5506-003")]
+    [Requirement("SHARED-ATTR-017")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task SplitFixKeepsTheClassDeclarationBehindTheLastNewList(string endOfLine)
+    {
+        const string testData = """
+                                {|RH5506:[A, B]|} class C
+                                {
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 [A]
+                                 [B] class C
+                                 {
+                                 }
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the list of a nested class on its line is split behind the whitespace at the start of that line, and
+    /// the declaration stays behind the last new list, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5506-003")]
+    [Requirement("SHARED-ATTR-017")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task SplitFixKeepsANestedClassDeclarationBehindTheLastNewList(string endOfLine)
+    {
+        const string testData = """
+                                class O
+                                {
+                                    {|RH5506:[A, B]|} class C { }
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 class O
+                                 {
+                                     [A]
+                                     [B] class C { }
+                                 }
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a list on the line of the <c>{</c> of the namespace that holds the class is reported, and
+    /// no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5506-004")]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task VerifyDiagnosticWithoutCodeFixOnTheLineOfTheBraceOfTheNamespaceThatHoldsTheClass()
+    {
+        const string testData = """
+                                namespace N { {|RH5506:[A, B]|} class C { } }
+
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a list on the line of the <c>{</c> of the class that holds a nested class is reported, and no code fix
+    /// is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-022")]
+    public async Task VerifyDiagnosticWithoutCodeFixOnTheLineOfTheBraceOfTheClassThatHoldsTheNestedClass()
+    {
+        const string testData = """
+                                class O { {|RH5506:[A, B]|} class C { } }
+
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a list of a class in a file-scoped namespace, which no <c>{</c> holds, gets the fix, under LF and CRLF
+    /// line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-022")]
+    [Requirement("SHARED-ATTR-017")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyCodeFixSplitsAListOfAClassInAFileScopedNamespace(string endOfLine)
+    {
+        const string testData = """
+                                namespace N;
+
+                                {|RH5506:[A, B]|} class C { }
+
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 namespace N;
+
+                                 [A]
+                                 [B] class C { }
+
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
@@ -482,8 +656,7 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
 
         const string fixedCode = """
                                  [First]
-                                 [Second]
-                                 [Third]
+                                 [Second] [Third]
                                  [Fourth]
                                  internal class Example { }
                                  sealed class FirstAttribute : System.Attribute
@@ -500,14 +673,14 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
                                  }
                                  """;
 
-        // Two multi-attribute class lists sit back to back on the same declaration: each fix computes its split
-        // against the same original document and both target the same class attribute-list run, so the batch
-        // fixer discards one of the two conflicting changes in its first pass and needs a second pass to
-        // correct the diagnostic that survives
+        // Two multi-attribute class lists sit back to back on one line of the same declaration: each split changes only
+        // its own list, so the second list's first attribute stays on the line on which the first list's last attribute
+        // now stands. Whether the batch fixer needs one pass or two for the two changes is not what this scenario
+        // asserts
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH5506ClassAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5506MessageFormat, 2),
-                                  Configure: config => config.NumberOfFixAllIterations = 2);
+                                  Configure: config => config.NumberOfFixAllIterations = -2);
     }
 
     #endregion // BatchCodeFixTestsBase

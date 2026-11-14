@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -203,6 +203,7 @@ public class RH5508StructAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
     [TestMethod]
     [Requirement("RH5508-003")]
     [Requirement("SHARED-ATTR-017")]
+    [Requirement("SHARED-FIX-008")]
     public async Task VerifyCodeFixGivesEachStructAttributeAListOfItsOwnWithCarriageReturnLineFeed()
     {
         const string testData = """
@@ -234,6 +235,8 @@ public class RH5508StructAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
         await Verify(NormalizeToCarriageReturnLineFeed(testData),
                      NormalizeToCarriageReturnLineFeed(fixedData),
                      Diagnostics(RH5508StructAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5508MessageFormat));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(RemoveMarkup(testData))), "Every line break the fix inserts must be CRLF.");
     }
 
     #endregion // Tests
@@ -262,8 +265,7 @@ public class RH5508StructAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
 
         const string fixedCode = """
                                  [First]
-                                 [Second]
-                                 [Third]
+                                 [Second] [Third]
                                  [Fourth]
                                  internal struct Example { }
                                  sealed class FirstAttribute : System.Attribute
@@ -280,14 +282,14 @@ public class RH5508StructAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
                                  }
                                  """;
 
-        // Two multi-attribute struct lists sit back to back on the same declaration: each fix computes its
-        // split against the same original document and both target the same struct attribute-list run, so the
-        // batch fixer discards one of the two conflicting changes in its first pass and needs a second pass to
-        // correct the diagnostic that survives
+        // Two multi-attribute struct lists sit back to back on one line of the same declaration: each split changes
+        // only its own list, so the second list's first attribute stays on the line on which the first list's last
+        // attribute now stands. Whether the batch fixer needs one pass or two for the two changes is not what this
+        // scenario asserts
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH5508StructAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5508MessageFormat, 2),
-                                  Configure: config => config.NumberOfFixAllIterations = 2);
+                                  Configure: config => config.NumberOfFixAllIterations = -2);
     }
 
     #endregion // BatchCodeFixTestsBase

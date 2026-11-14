@@ -70,6 +70,58 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
                                                 }
                                                 """;
 
+    /// <summary>
+    /// Input of the RH7309-004 specification example, used for the line-ending examples of RH7309-007
+    /// </summary>
+    private const string LineEndingSource = """
+                                            using System;
+
+                                            public class C : IDisposable
+                                            {
+                                                #region IDisposable
+
+                                                public void Dispose()
+                                                {
+                                                }
+
+                                                #endregion // IDisposable
+
+                                                private int _between;
+
+                                                {|RH7309:#region Fields|}
+
+                                                private int _a;
+
+                                                #endregion // Fields
+                                            }
+                                            """;
+
+    /// <summary>
+    /// Result of the RH7309-004 specification example
+    /// </summary>
+    private const string LineEndingFixedSource = """
+                                                 using System;
+
+                                                 public class C : IDisposable
+                                                 {
+                                                     #region Fields
+
+                                                     private int _a;
+
+                                                     #endregion // Fields
+
+                                                     private int _between;
+
+                                                     #region IDisposable
+
+                                                     public void Dispose()
+                                                     {
+                                                     }
+
+                                                     #endregion // IDisposable
+                                                 }
+                                                 """;
+
     #endregion // Constants
 
     #region Tests
@@ -4186,6 +4238,148 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
                               """;
 
         await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the spec example: in a CRLF document whose line break behind a field of a moved block is LF, the
+    /// diagnostic is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-007")]
+    public async Task NoFixIsOfferedForALineFeedInAMovedBlockOfACarriageReturnLineFeedDocument()
+    {
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(LineEndingSource.Replace("_a;", "_a;LF", System.StringComparison.Ordinal)).Replace("LF\r\n", "\n", System.StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// Verifies that in a CRLF document an LF inside a comment of a moved block withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-007")]
+    public async Task NoFixIsOfferedForALineFeedInsideACommentOfAMovedBlock()
+    {
+        var source = LineEndingSource.Replace("    public void Dispose()", "    /* oneLF\n    two */\n    public void Dispose()", System.StringComparison.Ordinal);
+
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(source).Replace("LF\r\n", "\n", System.StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// Verifies the spec example: in a CRLF document whose line break behind the field between the blocks is LF, the fix is
+    /// offered, the blocks change places, and every line break stays as it was, that LF included
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-004")]
+    [Requirement("RH7309-007")]
+    public async Task FixIsOfferedForALineFeedBetweenTheBlocksOfACarriageReturnLineFeedDocument()
+    {
+        var plainSource = LineEndingSource.Replace("{|RH7309:", string.Empty, System.StringComparison.Ordinal)
+                                          .Replace("|}", string.Empty, System.StringComparison.Ordinal);
+
+        var source = NormalizeToCarriageReturnLineFeed(plainSource.Replace("_between;", "_between;LF", System.StringComparison.Ordinal)).Replace("LF\r\n", "\n", System.StringComparison.Ordinal);
+        var expected = NormalizeToCarriageReturnLineFeed(LineEndingFixedSource.Replace("_between;", "_between;LF", System.StringComparison.Ordinal)).Replace("LF\r\n", "\n", System.StringComparison.Ordinal);
+
+        Assert.AreEqual(expected, await ApplyCodeFixAsync(source));
+    }
+
+    /// <summary>
+    /// Verifies the spec example: in a document whose line breaks are all a lone carriage return, the diagnostic is
+    /// reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-007")]
+    public async Task NoFixIsOfferedInADocumentWhoseLineBreaksAreLoneCarriageReturns()
+    {
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(LineEndingSource, "\r"));
+    }
+
+    /// <summary>
+    /// Verifies that in a document whose line breaks are all CRLF the fix of the spec example is offered and keeps every
+    /// line break CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-004")]
+    [Requirement("RH7309-007")]
+    public async Task FixIsOfferedInADocumentWhoseLineBreaksAreAllCarriageReturnLineFeed()
+    {
+        await VerifyCodeFixWithEndOfLine(LineEndingSource, LineEndingFixedSource, "\r\n");
+    }
+
+    /// <summary>
+    /// Verifies that in a CRLF document an LF in a region block that keeps its place among three blocks does not withhold
+    /// the fix, the two other blocks change places, and the LF stays where it was
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-004")]
+    [Requirement("RH7309-007")]
+    public async Task FixIsOfferedForALineFeedInABlockThatKeepsItsPlaceOfACarriageReturnLineFeedDocument()
+    {
+        const string source = """
+                              using System;
+
+                              public class C : IDisposable
+                              {
+                                  #region Fields
+
+                                  private int _a;LF
+
+                                  #endregion // Fields
+
+                                  #region IDisposable
+
+                                  public void Dispose()
+                                  {
+                                  }
+
+                                  #endregion // IDisposable
+
+                                  #region Methods
+
+                                  private void M()
+                                  {
+                                  }
+
+                                  #endregion // Methods
+                              }
+                              """;
+        const string fixedSource = """
+                                   using System;
+
+                                   public class C : IDisposable
+                                   {
+                                       #region Fields
+
+                                       private int _a;LF
+
+                                       #endregion // Fields
+
+                                       #region Methods
+
+                                       private void M()
+                                       {
+                                       }
+
+                                       #endregion // Methods
+
+                                       #region IDisposable
+
+                                       public void Dispose()
+                                       {
+                                       }
+
+                                       #endregion // IDisposable
+                                   }
+                                   """;
+
+        var input = NormalizeToCarriageReturnLineFeed(source).Replace("LF\r\n", "\n", System.StringComparison.Ordinal);
+        var expected = NormalizeToCarriageReturnLineFeed(fixedSource).Replace("LF\r\n", "\n", System.StringComparison.Ordinal);
+
+        Assert.AreEqual(expected, await ApplyCodeFixAsync(input));
     }
 
     #endregion // Tests

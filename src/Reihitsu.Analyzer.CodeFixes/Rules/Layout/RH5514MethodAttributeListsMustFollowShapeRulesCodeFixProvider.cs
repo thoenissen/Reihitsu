@@ -29,9 +29,6 @@ public class RH5514MethodAttributeListsMustFollowShapeRulesCodeFixProvider : Tar
     protected override TargetAttributeListShapeMode ListShapeMode => TargetAttributeListShapeMode.SplitLists;
 
     /// <inheritdoc/>
-    protected override TargetAttributePlacementMode DefaultPlacementMode => TargetAttributePlacementMode.SeparateLine;
-
-    /// <inheritdoc/>
     protected override string CodeFixTitle => CodeFixResources.RH5514Title;
 
     /// <inheritdoc/>

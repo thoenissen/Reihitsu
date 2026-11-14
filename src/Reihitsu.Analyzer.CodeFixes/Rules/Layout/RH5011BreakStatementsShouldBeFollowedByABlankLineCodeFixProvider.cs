@@ -44,7 +44,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider : 
 
     /// <summary>
     /// Applies the code fix. When a line break outside any comment follows the <c>break</c> statement, one empty line is
-    /// inserted directly below the line that break ends, with that line's line break (RH5011-004, RH5011-007); when the next
+    /// inserted directly below the line that break ends, with the document's line ending (RH5011-004, RH5011-007, SHARED-FIX-008); when the next
     /// statement starts on the <c>break</c> line, it is moved onto a line of its own below an empty line
     /// </summary>
     /// <param name="document">Document</param>
@@ -65,13 +65,21 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider : 
         var nextToken = breakStatement.SemicolonToken.GetNextToken(includeZeroWidth: true, includeSkipped: true);
         var lineEndingTrivia = FindLineEndingTrivia(breakStatement, nextToken);
 
+        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
+
         if (lineEndingTrivia.IsKind(SyntaxKind.None) == false)
         {
             var insertPosition = lineEndingTrivia.FullSpan.End;
-            var endedLine = sourceText.Lines.GetLineFromPosition(insertPosition - 1);
-            var lineBreak = sourceText.ToString(TextSpan.FromBounds(endedLine.End, endedLine.EndIncludingLineBreak));
 
-            return document.WithText(sourceText.Replace(new TextSpan(insertPosition, 0), lineBreak));
+            // In a document whose line breaks are lone carriage returns, the detected line ending is a line feed; written
+            // behind the line's own carriage return it would join it into one line break, so it goes in front of it
+            if (endOfLine == "\n"
+                && sourceText[insertPosition - 1] == '\r')
+            {
+                insertPosition--;
+            }
+
+            return document.WithText(sourceText.Replace(new TextSpan(insertPosition, 0), endOfLine));
         }
 
         if (nextToken.IsKind(SyntaxKind.None)
@@ -87,7 +95,6 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider : 
             return document;
         }
 
-        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var indentation = FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, breakLine));
         var gap = TextSpan.FromBounds(breakStatement.SemicolonToken.Span.End, nextToken.SpanStart);
 

@@ -564,7 +564,6 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
         // Read before the base visit: a token it rewrites is detached and no longer knows its position in the text or its parent
         var startsText = token.FullSpan.Start == 0;
         var removesBlankLinesDirectlyBefore = BraceBlankLinePolicy.RemovesBlankLinesDirectlyBefore(token, _context);
-        var removesBlankLinesBehindOwnLineComment = BraceBlankLinePolicy.RemovesBlankLinesBehindOwnLineComment(token, _context);
 
         token = base.VisitToken(token);
 
@@ -631,15 +630,12 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
             token = RemoveBlankLinesAfterTrailingEndRegion(token, _context.EndOfLine);
         }
 
-        // Behind an own-line comment FMT-BLANK-020 decides; above a comment glued to the token, FMT-BLANK-018 decides as
-        // directly before the token
-        if (removesBlankLinesBehindOwnLineComment)
-        {
-            token = RemoveBlankLinesBehindLastOwnLineComment(token, previousToken, _context);
-        }
-
+        // The tokens directly before which no blank line stands are also those behind an own-line comment that no blank
+        // line separates from them (FMT-BLANK-020), and above a comment glued to them FMT-BLANK-018 decides as directly
+        // before the token
         if (removesBlankLinesDirectlyBefore)
         {
+            token = RemoveBlankLinesBehindLastOwnLineComment(token, previousToken, _context);
             token = RemoveBlankLinesAboveGluedComment(token, previousToken, _context);
         }
 

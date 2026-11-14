@@ -72,7 +72,9 @@ public class RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer : Diag
                                                                .Where(obj => string.IsNullOrWhiteSpace(obj) == false)
                                                                .ToImmutableHashSet(StringComparer.Ordinal);
 
-        foreach (var parameter in parameters.Where(parameter => documentedParameterNames.Contains(parameter.Identifier.ValueText) == false))
+        // A receiver parameter without a name, such as the one of extension(long), has nothing a param element could name
+        foreach (var parameter in parameters.Where(parameter => parameter.Identifier.Span.IsEmpty == false
+                                                                && documentedParameterNames.Contains(parameter.Identifier.ValueText) == false))
         {
             context.ReportDiagnostic(CreateDiagnostic(parameter.Identifier.GetLocation()));
         }

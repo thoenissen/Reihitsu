@@ -28,9 +28,6 @@ public class RH5520EventAttributeListsMustFollowShapeRulesCodeFixProvider : Targ
     protected override TargetAttributeListShapeMode ListShapeMode => TargetAttributeListShapeMode.SplitLists;
 
     /// <inheritdoc/>
-    protected override TargetAttributePlacementMode DefaultPlacementMode => TargetAttributePlacementMode.SeparateLine;
-
-    /// <inheritdoc/>
     protected override string CodeFixTitle => CodeFixResources.RH5520Title;
 
     #endregion // TargetAttributeListShapeCodeFixProviderBase

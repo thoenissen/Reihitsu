@@ -88,6 +88,30 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
     }
 
     /// <summary>
+    /// Writes every line break of the provided text as <paramref name="endOfLine"/>, irrespective of how the source file
+    /// is stored, so a test can build an LF, a CRLF, or a lone carriage return document from one text
+    /// </summary>
+    /// <param name="text">Text to convert</param>
+    /// <param name="endOfLine">Line break to write</param>
+    /// <returns>The text with every line break written as <paramref name="endOfLine"/></returns>
+    protected static string ConvertEndOfLine(string text, string endOfLine)
+    {
+        return text.Replace("\r\n", "\n").Replace("\n", endOfLine);
+    }
+
+    /// <summary>
+    /// Removes the diagnostic markup from the provided source text
+    /// </summary>
+    /// <param name="source">Source text with markup</param>
+    /// <returns>The source text without markup</returns>
+    protected static string RemoveMarkup(string source)
+    {
+        TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+
+        return plainSource;
+    }
+
+    /// <summary>
     /// Verifies the diagnostics marked in the source and the result of the code fix with every line break of both texts
     /// written as <paramref name="endOfLine"/>, and asserts that the fix applied to the source without markup returns
     /// exactly the expected text, line endings included
@@ -232,6 +256,38 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
                                              CancellationToken.None);
 
             await codeFixProvider.RegisterCodeFixesAsync(context).ConfigureAwait(false);
+
+            if (actions.Count == 0)
+            {
+                return null;
+            }
+
+            var operations = await actions[0].GetOperationsAsync(CancellationToken.None).ConfigureAwait(false);
+            var applyChanges = operations.OfType<ApplyChangesOperation>().First();
+            var changedDocument = applyChanges.ChangedSolution.GetDocument(documentId)
+                                      ?? throw new InvalidOperationException("Failed to resolve the changed document.");
+            var text = await changedDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
+
+            return text.ToString();
+        }
+    }
+
+    /// <summary>
+    /// Applies the first code action the code fix registers for a diagnostic at the location the callback selects and
+    /// returns the resulting raw source text, or <see langword="null"/> when the code fix registers no action there.
+    /// Used where a source holds several diagnostics and a test has to apply the fix of one of them
+    /// </summary>
+    /// <param name="source">Source text without markup</param>
+    /// <param name="diagnosticId">Diagnostic ID</param>
+    /// <param name="locationProvider">Callback that selects the diagnostic location from the parsed syntax root</param>
+    /// <returns>The source text after applying the first offered code action, or <see langword="null"/> when none is offered</returns>
+    protected static async Task<string> TryApplyCodeFixAtAsync(string source, string diagnosticId, Func<SyntaxNode, Location> locationProvider)
+    {
+        using (var workspace = new AdhocWorkspace())
+        {
+            var (document, documentId) = CreateTestDocument(workspace, source, DocumentationMode.Parse, []);
+
+            var actions = await RegisterCodeFixActionsAsync(document, diagnosticId, locationProvider).ConfigureAwait(false);
 
             if (actions.Count == 0)
             {

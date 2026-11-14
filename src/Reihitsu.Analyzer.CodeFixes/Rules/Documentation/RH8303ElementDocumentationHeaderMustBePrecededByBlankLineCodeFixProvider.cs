@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Documentation;
+using Reihitsu.Core;
 using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
@@ -23,7 +24,8 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineCodeFixPro
     #region Methods
 
     /// <summary>
-    /// Applies the code fix
+    /// Applies the code fix: inserts an empty line above a documentation comment that starts its own line, and moves a
+    /// comment written behind code onto a line of its own below an empty line
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>
@@ -41,8 +43,19 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineCodeFixPro
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var line = sourceText.Lines.GetLineFromPosition(diagnosticSpan.Start);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
+        var whiteSpaceStart = FormattingTextAnalysisUtilities.GetLeadingWhitespaceRunStart(sourceText, diagnosticSpan.Start, line.Start);
 
-        return document.WithText(sourceText.Replace(TextSpan.FromBounds(line.Start, line.Start), endOfLine));
+        if (whiteSpaceStart == line.Start)
+        {
+            return document.WithText(sourceText.Replace(TextSpan.FromBounds(line.Start, line.Start), endOfLine));
+        }
+
+        // A comment written behind code moves onto a line of its own, with one empty line above it, in the column of
+        // the declaration it documents; the white space between the code and the comment goes away
+        var declarationLine = sourceText.Lines.GetLineFromPosition(root.FindTrivia(diagnosticSpan.Start).Token.SpanStart);
+        var indentation = FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, declarationLine));
+
+        return document.WithText(sourceText.Replace(TextSpan.FromBounds(whiteSpaceStart, diagnosticSpan.Start), $"{endOfLine}{endOfLine}{indentation}"));
     }
 
     #endregion // Methods

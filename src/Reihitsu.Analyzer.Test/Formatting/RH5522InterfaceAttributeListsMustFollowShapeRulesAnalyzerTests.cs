@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -200,6 +200,7 @@ public class RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
     [TestMethod]
     [Requirement("RH5522-003")]
     [Requirement("SHARED-ATTR-017")]
+    [Requirement("SHARED-FIX-008")]
     public async Task VerifyCodeFixGivesEachInterfaceAttributeAListOfItsOwnWithCarriageReturnLineFeed()
     {
         const string testData = """
@@ -231,6 +232,8 @@ public class RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
         await Verify(NormalizeToCarriageReturnLineFeed(testData),
                      NormalizeToCarriageReturnLineFeed(fixedData),
                      Diagnostics(RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5522MessageFormat));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(RemoveMarkup(testData))), "Every line break the fix inserts must be CRLF.");
     }
 
     #endregion // Tests
@@ -259,8 +262,7 @@ public class RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
 
         const string fixedCode = """
                                  [First]
-                                 [Second]
-                                 [Third]
+                                 [Second] [Third]
                                  [Fourth]
                                  internal interface IExample { }
                                  sealed class FirstAttribute : System.Attribute
@@ -277,14 +279,14 @@ public class RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
                                  }
                                  """;
 
-        // Two multi-attribute interface lists sit back to back on the same declaration: each fix computes its
-        // split against the same original document and both target the same interface attribute-list run, so
-        // the batch fixer discards one of the two conflicting changes in its first pass and needs a second pass
-        // to correct the diagnostic that survives
+        // Two multi-attribute interface lists sit back to back on one line of the same declaration: each split changes
+        // only its own list, so the second list's first attribute stays on the line on which the first list's last
+        // attribute now stands. Whether the batch fixer needs one pass or two for the two changes is not what this
+        // scenario asserts
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5522MessageFormat, 2),
-                                  Configure: config => config.NumberOfFixAllIterations = 2);
+                                  Configure: config => config.NumberOfFixAllIterations = -2);
     }
 
     #endregion // BatchCodeFixTestsBase

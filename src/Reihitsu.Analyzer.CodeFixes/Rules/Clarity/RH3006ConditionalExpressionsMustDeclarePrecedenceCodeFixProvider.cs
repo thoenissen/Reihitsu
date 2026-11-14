@@ -38,10 +38,16 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceCodeFixProvider : 
             return document;
         }
 
+        // The parentheses carry the operand's own trivia and none else: a token without trivia leaves no elastic
+        // trivia behind, which would make the code action re-format the gaps around the operand and write the host's
+        // line break into them
+        var openParenthesis = SyntaxFactory.Token(node.GetLeadingTrivia(), SyntaxKind.OpenParenToken, SyntaxFactory.TriviaList());
+        var closeParenthesis = SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.CloseParenToken, node.GetTrailingTrivia());
+
         var replacementNode = node switch
                               {
-                                  ExpressionSyntax expressionSyntax => SyntaxFactory.ParenthesizedExpression(expressionSyntax.WithoutTrivia()).WithTriviaFrom(expressionSyntax),
-                                  PatternSyntax patternSyntax => SyntaxFactory.ParenthesizedPattern(patternSyntax.WithoutTrivia()).WithTriviaFrom(patternSyntax),
+                                  ExpressionSyntax expressionSyntax => SyntaxFactory.ParenthesizedExpression(openParenthesis, expressionSyntax.WithoutTrivia(), closeParenthesis),
+                                  PatternSyntax patternSyntax => SyntaxFactory.ParenthesizedPattern(openParenthesis, patternSyntax.WithoutTrivia(), closeParenthesis),
                                   _ => node,
                               };
 

@@ -320,6 +320,41 @@ public class RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzerTests : Batch
         await Verify(testData, resultData);
     }
 
+    /// <summary>
+    /// Verifies that the fix converts only the body of a finalizer and keeps its documentation comment and the spacing of
+    /// its signature
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    public async Task VerifyFixKeepsTheSpacingOfTheSignature()
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    ///<summary>x</summary>
+                                    ~C( ) {|RH3207:=> Console.WriteLine()|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  class C
+                                  {
+                                      ///<summary>x</summary>
+                                      ~C( )
+                                      {
+                                          Console.WriteLine();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

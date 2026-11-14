@@ -543,6 +543,246 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), actual);
     }
 
+    /// <summary>
+    /// Verifies the specification example: the blank line after a documentation comment written behind code is
+    /// reported, and the fix removes it while the comment stays behind the code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8302-001")]
+    [Requirement("RH8302-004")]
+    public async Task VerifySpecificationExampleBlankLineAfterCommentWrittenBehindCodeIsDetectedAndFixed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A; /// <summary>D</summary>
+                                {|RH8302:
+                                |}    int D;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int A; /// <summary>D</summary>
+                                     int D;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that a run of two blank lines after a multi-line documentation comment written behind code is reported
+    /// as one diagnostic and removed by one fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8302-001")]
+    [Requirement("RH8302-003")]
+    [Requirement("RH8302-004")]
+    public async Task VerifyRunAfterMultiLineCommentWrittenBehindCodeIsDetectedAndFixed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A; /// <summary>
+                                    /// D
+                                    /// </summary>
+                                {|RH8302:
+
+                                |}    int D;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int A; /// <summary>
+                                     /// D
+                                     /// </summary>
+                                     int D;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a blank line after a documentation comment written behind code keeps the line endings
+    /// of a CRLF document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8302-004")]
+    public async Task VerifyFixAfterCommentWrittenBehindCodeWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A; /// <summary>D</summary>
+                                {|RH8302:
+                                |}    int D;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int A; /// <summary>D</summary>
+                                     int D;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, "\r\n");
+    }
+
+    /// <summary>
+    /// Verifies the specification example: the blank line between a documentation comment and an active region or
+    /// end-region directive is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8302-002")]
+    public async Task VerifySpecificationExampleBlankLineBeforeRegionDirectiveDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A;
+
+                                    /// <summary>Sixth</summary>
+
+                                    #region R
+
+                                    int F;
+
+                                    /// <summary>Seventh</summary>
+
+                                    #endregion // R
+
+                                    int G;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line between a documentation comment and a region directive is not reported in a CRLF
+    /// document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8302-002")]
+    public async Task VerifyBlankLineBeforeRegionDirectiveDoesNotProduceDiagnosticsWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A;
+
+                                    /// <summary>
+                                    /// Sixth
+                                    /// </summary>
+
+                                    #region R
+
+                                    int F;
+
+                                    #endregion // R
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
+    }
+
+    /// <summary>
+    /// Verifies that a run of two blank lines between a documentation comment and a region directive is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8302-002")]
+    public async Task VerifyRunOfBlankLinesBeforeRegionDirectiveDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A;
+
+                                    /// <summary>Sixth</summary>
+
+
+                                    #region R
+
+                                    int F;
+
+                                    /// <summary>Seventh</summary>
+
+
+                                    #endregion // R
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line between a delimited documentation comment and a region directive is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8302-002")]
+    public async Task VerifyBlankLineBetweenDelimitedCommentAndRegionDirectiveDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A;
+
+                                    /** <summary>Sixth</summary> */
+
+                                    #region R
+
+                                    int F;
+
+                                    #endregion // R
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line between a documentation comment and a preprocessor directive other than a region
+    /// directive is still reported, next to the region directive whose blank line is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8302-001")]
+    [Requirement("RH8302-002")]
+    public async Task VerifyBlankLineBeforeOtherDirectiveIsReportedNextToRegionDirective()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A;
+
+                                    /// <summary>Sixth</summary>
+
+                                    #region R
+
+                                    /// <summary>Seventh</summary>
+                                {|RH8302:
+                                |}#if !NEVER
+                                    int F;
+                                #endif
+
+                                    #endregion // R
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

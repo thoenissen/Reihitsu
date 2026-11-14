@@ -51,11 +51,13 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer : DiagnosticA
             return;
         }
 
-        var summaryElement = documentationComment.Content
-                                                 .OfType<XmlElementSyntax>()
-                                                 .FirstOrDefault(element => element.StartTag.Name.LocalName.ValueText == "summary");
+        // Every top-level summary is judged on its own, whatever its position among the others
+        var summaryElements = documentationComment.Content
+                                                  .OfType<XmlElementSyntax>()
+                                                  .Where(element => element.StartTag.Name.LocalName.ValueText == "summary")
+                                                  .ToList();
 
-        if (summaryElement == null)
+        if (summaryElements.Count == 0)
         {
             return;
         }
@@ -69,15 +71,15 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer : DiagnosticA
             return;
         }
 
-        var startTagSpan = summaryElement.StartTag.Span;
-        var endTagSpan = summaryElement.EndTag.Span;
-
-        var startTagLine = sourceText.Lines.GetLineFromPosition(startTagSpan.Start).LineNumber;
-        var endTagLine = sourceText.Lines.GetLineFromPosition(endTagSpan.Start).LineNumber;
-
-        if (endTagLine - startTagLine < 2)
+        foreach (var summaryElement in summaryElements)
         {
-            context.ReportDiagnostic(CreateDiagnostic(summaryElement.GetLocation()));
+            var startTagLine = sourceText.Lines.GetLineFromPosition(summaryElement.StartTag.Span.Start).LineNumber;
+            var endTagLine = sourceText.Lines.GetLineFromPosition(summaryElement.EndTag.Span.Start).LineNumber;
+
+            if (endTagLine - startTagLine < 2)
+            {
+                context.ReportDiagnostic(CreateDiagnostic(summaryElement.GetLocation()));
+            }
         }
     }
 

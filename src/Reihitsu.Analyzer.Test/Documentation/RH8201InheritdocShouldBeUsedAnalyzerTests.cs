@@ -2482,6 +2482,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH8201-001")]
     public async Task VerifyDiagnosticForDocumentedDefiningPartialInterfaceImplementation()
     {
         const string testData = """
@@ -2524,11 +2525,14 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     }
 
     /// <summary>
-    /// Verifies that the documented implementing declaration of a partial method implementing an interface member is not reported
+    /// Verifies that the documented implementing declaration of a partial method implementing an interface member is
+    /// detected and fixed, as the defining declaration is
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticForDocumentedImplementingPartialInterfaceImplementation()
+    [Requirement("RH8201-001")]
+    [Requirement("RH8201-005")]
+    public async Task VerifyDiagnosticForDocumentedImplementingPartialInterfaceImplementation()
     {
         const string testData = """
                                 internal interface ITest
@@ -2540,14 +2544,33 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                 {
                                     public partial void TestMethod();
 
-                                    /// <summary>Implementation documentation</summary>
-                                    public partial void TestMethod()
+                                    ///{|#0: <summary>Implementation documentation</summary>
+                                |}    public partial void TestMethod()
                                     {
                                     }
                                 }
                                 """;
 
-        await Verify(testData);
+        const string resultData = """
+                                  internal interface ITest
+                                  {
+                                      void TestMethod();
+                                  }
+
+                                  internal partial class TestImplementation : ITest
+                                  {
+                                      public partial void TestMethod();
+
+                                      /// <inheritdoc/>
+                                      public partial void TestMethod()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
     }
 
     /// <summary>
@@ -3872,6 +3895,619 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                    """;
 
         await Verify(source, fixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of a partial member judged part by part: both documented parts of a method and
+    /// the documented implementing part of a property are reported, and the defining part of the property, which uses
+    /// inheritdoc, is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8201-001")]
+    [Requirement("RH8201-004")]
+    public async Task VerifySpecificationExamplePartialMemberIsJudgedPartByPart()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Contract
+                              /// </summary>
+                              public interface I
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  void M();
+
+                                  /// <summary>
+                                  /// Value
+                                  /// </summary>
+                                  int P { get; }
+                              }
+
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public partial class C : I
+                              {
+                                  ///{|RH8201: <summary>Runs here</summary>
+                              |}    public partial void M();
+
+                                  ///{|RH8201: <summary>Runs there</summary>
+                              |}    public partial void M()
+                                  {
+                                  }
+
+                                  /// <inheritdoc/>
+                                  public partial int P { get; }
+
+                                  ///{|RH8201: <summary>Value here</summary>
+                              |}    public partial int P => 0;
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of the fix on a partial member: the fix of each part replaces only that part's
+    /// comment, and applying both gives inheritdoc on both parts
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8201-005")]
+    public async Task VerifySpecificationExampleFixOfPartialMemberReplacesEachPart()
+    {
+        const string testData = """
+                                /// <summary>
+                                /// Contract
+                                /// </summary>
+                                public interface I
+                                {
+                                    /// <summary>
+                                    /// Runs
+                                    /// </summary>
+                                    void M();
+                                }
+
+                                /// <summary>
+                                /// Service
+                                /// </summary>
+                                public partial class C : I
+                                {
+                                    ///{|RH8201: <summary>Runs here</summary>
+                                |}    public partial void M();
+
+                                    ///{|RH8201: <summary>Runs there</summary>
+                                |}    public partial void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 /// <summary>
+                                 /// Contract
+                                 /// </summary>
+                                 public interface I
+                                 {
+                                     /// <summary>
+                                     /// Runs
+                                     /// </summary>
+                                     void M();
+                                 }
+
+                                 /// <summary>
+                                 /// Service
+                                 /// </summary>
+                                 public partial class C : I
+                                 {
+                                     /// <inheritdoc/>
+                                     public partial void M();
+
+                                     /// <inheritdoc/>
+                                     public partial void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of the implementing part of a partial method replaces only that part's comment and leaves the
+    /// defining part, which stays reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8201-001")]
+    [Requirement("RH8201-005")]
+    public async Task VerifyFixOfImplementingPartLeavesDefiningPartReported()
+    {
+        const string testData = """
+                                /// <summary>
+                                /// Contract
+                                /// </summary>
+                                public interface I
+                                {
+                                    /// <summary>
+                                    /// Runs
+                                    /// </summary>
+                                    void M();
+                                }
+
+                                /// <summary>
+                                /// Service
+                                /// </summary>
+                                public partial class C : I
+                                {
+                                    /// <summary>Runs here</summary>
+                                    public partial void M();
+
+                                    /// <summary>Runs there</summary>
+                                    public partial void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 /// <summary>
+                                 /// Contract
+                                 /// </summary>
+                                 public interface I
+                                 {
+                                     /// <summary>
+                                     /// Runs
+                                     /// </summary>
+                                     void M();
+                                 }
+
+                                 /// <summary>
+                                 /// Service
+                                 /// </summary>
+                                 public partial class C : I
+                                 {
+                                     ///{|RH8201: <summary>Runs here</summary>
+                                 |}    public partial void M();
+
+                                     /// <inheritdoc/>
+                                     public partial void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+        const string implementingComment = " <summary>Runs there</summary>\n";
+        var implementingStart = testData.IndexOf(implementingComment, System.StringComparison.Ordinal);
+
+        Assert.IsGreaterThanOrEqualTo(0, implementingStart);
+
+        const string markedData = """
+                                  /// <summary>
+                                  /// Contract
+                                  /// </summary>
+                                  public interface I
+                                  {
+                                      /// <summary>
+                                      /// Runs
+                                      /// </summary>
+                                      void M();
+                                  }
+
+                                  /// <summary>
+                                  /// Service
+                                  /// </summary>
+                                  public partial class C : I
+                                  {
+                                      ///{|RH8201: <summary>Runs here</summary>
+                                  |}    public partial void M();
+
+                                      ///{|RH8201: <summary>Runs there</summary>
+                                  |}    public partial void M()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(markedData);
+
+        var actual = await TryApplyCodeFixAtAsync(testData,
+                                                  RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId,
+                                                  root => Microsoft.CodeAnalysis.Location.Create(root.SyntaxTree, new Microsoft.CodeAnalysis.Text.TextSpan(implementingStart, implementingComment.Length)));
+
+        Assert.AreEqual(RemoveMarkup(fixedData), actual);
+
+        await Verify(fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the documented parts of a partial method whose defining part uses inheritdoc and whose implementing
+    /// part carries a summary are judged on their own: only the implementing part is reported, and the mirrored shape
+    /// reports only the defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8201-001")]
+    public async Task VerifyOnlyThePartWithoutInheritdocOfPartialMethodIsReported()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Contract
+                              /// </summary>
+                              public interface I
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  void M();
+
+                                  /// <summary>
+                                  /// Stops
+                                  /// </summary>
+                                  void N();
+                              }
+
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public partial class C : I
+                              {
+                                  /// <inheritdoc/>
+                                  public partial void M();
+
+                                  ///{|RH8201: <summary>Runs there</summary>
+                              |}    public partial void M()
+                                  {
+                                  }
+
+                                  ///{|RH8201: <summary>Stops here</summary>
+                              |}    public partial void N();
+
+                                  /// <inheritdoc/>
+                                  public partial void N()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies that both documented parts of a partial property and of a partial indexer implementing interface members
+    /// are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8201-001")]
+    [Requirement("RH8201-005")]
+    public async Task VerifyBothPartsOfPartialPropertyAndIndexerAreDetectedAndFixed()
+    {
+        const string testData = """
+                                /// <summary>
+                                /// Contract
+                                /// </summary>
+                                public interface I
+                                {
+                                    /// <summary>
+                                    /// Value
+                                    /// </summary>
+                                    int P { get; }
+
+                                    /// <summary>
+                                    /// Item
+                                    /// </summary>
+                                    /// <param name="index">Index</param>
+                                    int this[int index] { get; }
+                                }
+
+                                /// <summary>
+                                /// Service
+                                /// </summary>
+                                public partial class C : I
+                                {
+                                    ///{|RH8201: <summary>Value here</summary>
+                                |}    public partial int P { get; }
+
+                                    ///{|RH8201: <summary>Value there</summary>
+                                |}    public partial int P => 0;
+
+                                    ///{|RH8201: <summary>Item here</summary>
+                                |}    public partial int this[int index] { get; }
+
+                                    ///{|RH8201: <summary>Item there</summary>
+                                |}    public partial int this[int index] => index;
+                                }
+                                """;
+        const string fixedData = """
+                                 /// <summary>
+                                 /// Contract
+                                 /// </summary>
+                                 public interface I
+                                 {
+                                     /// <summary>
+                                     /// Value
+                                     /// </summary>
+                                     int P { get; }
+
+                                     /// <summary>
+                                     /// Item
+                                     /// </summary>
+                                     /// <param name="index">Index</param>
+                                     int this[int index] { get; }
+                                 }
+
+                                 /// <summary>
+                                 /// Service
+                                 /// </summary>
+                                 public partial class C : I
+                                 {
+                                     /// <inheritdoc/>
+                                     public partial int P { get; }
+
+                                     /// <inheritdoc/>
+                                     public partial int P => 0;
+
+                                     /// <inheritdoc/>
+                                     public partial int this[int index] { get; }
+
+                                     /// <inheritdoc/>
+                                     public partial int this[int index] => index;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that both documented parts of a partial event implementing an interface event, whose defining part is a
+    /// field-like event, are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8201-001")]
+    [Requirement("RH8201-005")]
+    public async Task VerifyBothPartsOfPartialEventAreDetectedAndFixed()
+    {
+        const string testData = """
+                                using System;
+
+                                /// <summary>
+                                /// Contract
+                                /// </summary>
+                                public interface I
+                                {
+                                    /// <summary>
+                                    /// Raised
+                                    /// </summary>
+                                    event EventHandler E;
+                                }
+
+                                /// <summary>
+                                /// Service
+                                /// </summary>
+                                public partial class C : I
+                                {
+                                    ///{|RH8201: <summary>Raised here</summary>
+                                |}    public partial event EventHandler E;
+
+                                    ///{|RH8201: <summary>Raised there</summary>
+                                |}    public partial event EventHandler E
+                                    {
+                                        add { }
+                                        remove { }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 /// <summary>
+                                 /// Contract
+                                 /// </summary>
+                                 public interface I
+                                 {
+                                     /// <summary>
+                                     /// Raised
+                                     /// </summary>
+                                     event EventHandler E;
+                                 }
+
+                                 /// <summary>
+                                 /// Service
+                                 /// </summary>
+                                 public partial class C : I
+                                 {
+                                     /// <inheritdoc/>
+                                     public partial event EventHandler E;
+
+                                     /// <inheritdoc/>
+                                     public partial event EventHandler E
+                                     {
+                                         add { }
+                                         remove { }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that both documented parts of a partial method declared override are reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8201-001")]
+    [Requirement("RH8201-005")]
+    public async Task VerifyBothPartsOfOverridingPartialMethodAreDetectedAndFixed()
+    {
+        const string testData = """
+                                /// <summary>
+                                /// Base
+                                /// </summary>
+                                public abstract class B
+                                {
+                                    /// <summary>
+                                    /// Runs
+                                    /// </summary>
+                                    public abstract void M();
+                                }
+
+                                /// <summary>
+                                /// Service
+                                /// </summary>
+                                public partial class C : B
+                                {
+                                    ///{|RH8201: <summary>Runs here</summary>
+                                |}    public override partial void M();
+
+                                    ///{|RH8201: <summary>Runs there</summary>
+                                |}    public override partial void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 /// <summary>
+                                 /// Base
+                                 /// </summary>
+                                 public abstract class B
+                                 {
+                                     /// <summary>
+                                     /// Runs
+                                     /// </summary>
+                                     public abstract void M();
+                                 }
+
+                                 /// <summary>
+                                 /// Service
+                                 /// </summary>
+                                 public partial class C : B
+                                 {
+                                     /// <inheritdoc/>
+                                     public override partial void M();
+
+                                     /// <inheritdoc/>
+                                     public override partial void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the documented parts of a partial method implementing an interface member, declared in two
+    /// documents, are each reported, and that fixing every diagnostic replaces the comment in both documents
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8201-001")]
+    [Requirement("RH8201-005")]
+    public async Task VerifyPartsOfPartialMethodInTwoDocumentsAreDetectedAndFixed()
+    {
+        const string testData = """
+                                /// <summary>
+                                /// Contract
+                                /// </summary>
+                                public interface I
+                                {
+                                    /// <summary>
+                                    /// Runs
+                                    /// </summary>
+                                    void M();
+                                }
+
+                                /// <summary>
+                                /// Service
+                                /// </summary>
+                                public partial class C : I
+                                {
+                                    ///{|RH8201: <summary>Runs here</summary>
+                                |}    public partial void M();
+                                }
+                                """;
+        const string fixedData = """
+                                 /// <summary>
+                                 /// Contract
+                                 /// </summary>
+                                 public interface I
+                                 {
+                                     /// <summary>
+                                     /// Runs
+                                     /// </summary>
+                                     void M();
+                                 }
+
+                                 /// <summary>
+                                 /// Service
+                                 /// </summary>
+                                 public partial class C : I
+                                 {
+                                     /// <inheritdoc/>
+                                     public partial void M();
+                                 }
+                                 """;
+        const string otherData = """
+                                 /// <summary>
+                                 /// Service
+                                 /// </summary>
+                                 public partial class C
+                                 {
+                                     ///{|RH8201: <summary>Runs there</summary>
+                                 |}    public partial void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+        const string otherFixedData = """
+                                      /// <summary>
+                                      /// Service
+                                      /// </summary>
+                                      public partial class C
+                                      {
+                                          /// <inheritdoc/>
+                                          public partial void M()
+                                          {
+                                          }
+                                      }
+                                      """;
+
+        await Verify(testData,
+                     fixedData,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherData));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", otherFixedData));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that the documented parts of a partial method that inherits nothing are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8201-001")]
+    public async Task VerifyDocumentedPartsOfPartialMethodInheritingNothingAreNotReported()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public partial class C
+                              {
+                                  /// <summary>Runs here</summary>
+                                  public partial void M();
+
+                                  /// <summary>Runs there</summary>
+                                  public partial void M()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
     }
 
     #endregion // Methods

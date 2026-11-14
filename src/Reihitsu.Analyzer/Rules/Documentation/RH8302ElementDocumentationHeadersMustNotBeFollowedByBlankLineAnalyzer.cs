@@ -1,5 +1,8 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Immutable;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -80,16 +83,49 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
     }
 
     /// <summary>
-    /// Reports a diagnostic for the complete blank-line run that begins at the specified line
+    /// Determines whether the line directly behind a run of blank lines starts with an active <c>#region</c> or
+    /// <c>#endregion</c> directive, whose blank line above belongs to the directive (SHARED-BLANK-005)
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="blankLineRun">Span of the blank-line run</param>
+    /// <returns><see langword="true"/> when a region directive follows the run</returns>
+    private static bool IsFollowedByRegionDirective(SyntaxNode root, SourceText sourceText, TextSpan blankLineRun)
+    {
+        if (blankLineRun.End >= sourceText.Length)
+        {
+            return false;
+        }
+
+        var nextLine = sourceText.Lines.GetLineFromPosition(blankLineRun.End);
+        var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, nextLine);
+        var directiveStart = nextLine.Start + lineText.Length - lineText.TrimStart().Length;
+
+        if (directiveStart >= nextLine.End)
+        {
+            return false;
+        }
+
+        var trivia = root.FindTrivia(directiveStart);
+
+        return trivia.GetStructure() is RegionDirectiveTriviaSyntax { IsActive: true } or EndRegionDirectiveTriviaSyntax { IsActive: true };
+    }
+
+    /// <summary>
+    /// Reports a diagnostic for the complete blank-line run that begins at the specified line, unless a region directive
+    /// follows it
     /// </summary>
     /// <param name="context">Context</param>
+    /// <param name="root">Syntax root</param>
     /// <param name="sourceText">Source text</param>
     /// <param name="firstLineIndex">Index of the first possible blank line</param>
     private void ReportFollowingBlankLineRun(SyntaxTreeAnalysisContext context,
+                                             SyntaxNode root,
                                              SourceText sourceText,
                                              int firstLineIndex)
     {
-        if (TryGetBlankLineRun(sourceText, firstLineIndex, out var blankLineRun))
+        if (TryGetBlankLineRun(sourceText, firstLineIndex, out var blankLineRun)
+            && IsFollowedByRegionDirective(root, sourceText, blankLineRun) == false)
         {
             context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, blankLineRun)));
         }
@@ -124,7 +160,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
 
                 var nextLineIndex = commentEndLine.LineNumber + 1;
 
-                ReportFollowingBlankLineRun(context, sourceText, nextLineIndex);
+                ReportFollowingBlankLineRun(context, root, sourceText, nextLineIndex);
             }
         }
     }
@@ -139,6 +175,11 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
         var sourceText = context.Tree.GetText(context.CancellationToken);
         var nonFormattableLineIndices = FormattingTextAnalysisUtilities.GetNonFormattableLineIndices(root, sourceText);
 
+        // The first line of a comment written behind code is judged as if the comment started its own line (SHARED-DOC-004)
+        var lineIndicesBehindCode = DocumentationAnalysisUtilities.GetDocumentationCommentsBehindCode(root, sourceText, context.CancellationToken)
+                                                                  .Select(trivia => sourceText.Lines.GetLineFromPosition(trivia.FullSpan.Start).LineNumber)
+                                                                  .ToImmutableHashSet();
+
         var lineIndex = 0;
 
         while (lineIndex < sourceText.Lines.Count - 1)
@@ -152,7 +193,8 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
 
             var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex]);
 
-            if (DocumentationAnalysisUtilities.IsDocumentationLine(lineText) == false)
+            if (DocumentationAnalysisUtilities.IsDocumentationLine(lineText) == false
+                && lineIndicesBehindCode.Contains(lineIndex) == false)
             {
                 lineIndex++;
 
@@ -168,7 +210,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
                 nextLineIndex++;
             }
 
-            ReportFollowingBlankLineRun(context, sourceText, nextLineIndex);
+            ReportFollowingBlankLineRun(context, root, sourceText, nextLineIndex);
 
             lineIndex = nextLineIndex;
         }

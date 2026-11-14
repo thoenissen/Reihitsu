@@ -27,13 +27,14 @@ internal static class RH4001TypeNameShouldMatchFileNameHelper
     }
 
     /// <summary>
-    /// Gets the expected filename stem for the given type declaration, formatting generic type parameters with curly braces
+    /// Gets the expected filename stem for the given type declaration, formatting generic type parameters with curly braces.
+    /// The type name and the type-parameter names are their values: without a verbatim <c>@</c> prefix and with every Unicode escape sequence replaced
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <returns>Expected filename stem without extension</returns>
     internal static string GetExpectedFileNameStem(MemberDeclarationSyntax typeDeclaration)
     {
-        var typeName = GetIdentifier(typeDeclaration).Text;
+        var typeName = GetIdentifier(typeDeclaration).ValueText;
 
         var typeParameterList = typeDeclaration switch
                                 {
@@ -44,7 +45,7 @@ internal static class RH4001TypeNameShouldMatchFileNameHelper
 
         if (typeParameterList is { Parameters.Count: > 0 })
         {
-            typeName = $"{typeName}{{{string.Join(",", typeParameterList.Parameters.Select(parameter => parameter.Identifier.Text))}}}";
+            typeName = $"{typeName}{{{string.Join(",", typeParameterList.Parameters.Select(parameter => parameter.Identifier.ValueText))}}}";
         }
 
         return typeName;

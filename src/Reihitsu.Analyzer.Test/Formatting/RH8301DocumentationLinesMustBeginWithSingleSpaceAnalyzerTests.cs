@@ -549,6 +549,192 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Bat
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies the specification example: the first line of a documentation comment written behind code is reported on
+    /// its slashes, and the fix writes the separator while the comment stays behind the code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8301-001")]
+    [Requirement("RH8301-004")]
+    public async Task VerifySpecificationExampleCommentWrittenBehindCodeIsDetectedAndFixed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A; {|RH8301:///|}Behind
+                                    int B;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int A; /// Behind
+                                     int B;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the first line of a documentation comment with XML written behind code is reported, and that the
+    /// fix keeps the code and the white space in front of the slashes
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8301-001")]
+    [Requirement("RH8301-004")]
+    public async Task VerifyElementCommentWrittenBehindCodeIsDetectedAndFixed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A;   {|RH8301:///|}<summary>B</summary>
+                                    int B;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int A;   /// <summary>B</summary>
+                                     int B;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the first line and a later line of a multi-line documentation comment written behind code are
+    /// each reported, and that Fix All corrects both while the comment stays behind the code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8301-001")]
+    [Requirement("RH8301-004")]
+    public async Task VerifyEveryLineOfMultiLineCommentWrittenBehindCodeIsDetectedAndFixed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A; {|RH8301:///|}<summary>
+                                    {|RH8301:///|}B
+                                    /// </summary>
+                                    int B;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int A; /// <summary>
+                                     /// B
+                                     /// </summary>
+                                     int B;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that a tab separator on the first line of a documentation comment written behind code is reported and
+    /// replaced by one space
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8301-001")]
+    [Requirement("RH8301-004")]
+    public async Task VerifyTabSeparatorOfCommentWrittenBehindCodeIsDetectedAndReplaced()
+    {
+        var testData = ExpandWhitespaceMarkers("""
+                                               class C
+                                               {
+                                                   int A; {|RH8301:///|}→Behind
+                                                   int B;
+                                               }
+                                               """);
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int A; /// Behind
+                                     int B;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment written behind code with the single space after its slashes is not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8301-001")]
+    public async Task VerifyCommentWrittenBehindCodeWithSingleSpaceDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A; /// <summary>B</summary>
+                                    int B;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a documentation comment written behind code keeps the line endings of a CRLF document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8301-004")]
+    public async Task VerifyFixOfCommentWrittenBehindCodeWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A; {|RH8301:///|}<summary>
+                                    /// B
+                                    /// </summary>
+                                    int B;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int A; /// <summary>
+                                     /// B
+                                     /// </summary>
+                                     int B;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, "\r\n");
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment written behind code is not reported in documentation mode
+    /// <see cref="Microsoft.CodeAnalysis.DocumentationMode.None"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8301-001")]
+    public async Task VerifyCommentWrittenBehindCodeIsNotReportedWhenDocumentationModeIsNone()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A; ///Behind
+                                    int B;
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

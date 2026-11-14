@@ -942,6 +942,101 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
         await Verify(testData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the specification example: a one-line summary behind a summary on three lines in the same comment is
+    /// reported, and the fix lays out only that summary
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-001")]
+    [Requirement("RH8305-004")]
+    public async Task VerifySpecificationExampleSecondSummaryOfCommentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// First
+                                    /// </summary>
+                                    /// {|RH8305:<summary>Second</summary>|}
+                                    int D;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>
+                                     /// First
+                                     /// </summary>
+                                     /// <summary>
+                                     /// Second
+                                     /// </summary>
+                                     int D;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that two one-line summaries in one comment are both reported, and that fixing every diagnostic lays out
+    /// both
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-001")]
+    [Requirement("RH8305-003")]
+    [Requirement("RH8305-004")]
+    public async Task VerifyTwoOneLineSummariesOfCommentAreDetectedAndFixed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// {|RH8305:<summary>First</summary>|}
+                                    /// {|RH8305:<summary>Second</summary>|}
+                                    int D;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>
+                                     /// First
+                                     /// </summary>
+                                     /// <summary>
+                                     /// Second
+                                     /// </summary>
+                                     int D;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that a one-line summary in front of a summary on three lines in the same comment is reported, and the
+    /// summary behind it is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-001")]
+    [Requirement("RH8305-002")]
+    public async Task VerifyFirstSummaryOfCommentIsReportedAlone()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// {|RH8305:<summary>First</summary>|}
+                                    /// <summary>
+                                    /// Second
+                                    /// </summary>
+                                    int D;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

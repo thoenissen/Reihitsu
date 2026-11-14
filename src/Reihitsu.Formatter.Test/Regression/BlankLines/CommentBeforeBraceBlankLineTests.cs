@@ -370,12 +370,12 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the blank lines around an own-line comment in front of an array initializer's brace, which is not one
-    /// of the named tokens, are kept
+    /// Verifies that the blank line between an own-line comment and the opening brace of a property's array initializer is
+    /// removed, while FMT-BLANK-011 keeps the one above the comment
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-020")]
-    public void KeepsBlankLineBetweenCommentAndArrayInitializerBrace()
+    public void RemovesBlankLineBetweenCommentAndOpeningBraceOfPropertyArrayInitializer()
     {
         const string input = """
                              class C
@@ -394,7 +394,6 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
                                     int[] G { get; } =
 
                                     // c
-
                                     {
                                         1
                                     };
@@ -710,12 +709,12 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the change doc's unchanged case: behind an own-line comment, the author's blank line before the closing brace
-    /// of a collection initializer assigned to a member is kept
+    /// Verifies that behind an own-line comment, the author's blank line before the closing brace of a collection initializer
+    /// assigned to a member, written in its formatted layout, is removed
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-020")]
-    public void KeepsBlankLineBetweenCommentAndClosingBraceOfAssignedCollectionInitializer()
+    public void RemovesBlankLineBetweenCommentAndClosingBraceOfAssignedCollectionInitializerInItsFormattedLayout()
     {
         const string input = """
                              class C
@@ -734,8 +733,909 @@ public class CommentBeforeBraceBlankLineTests : FormatterTestsBase
                                  }
                              }
                              """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var p = new P
+                                                {
+                                                    L = {
+                                                            1
 
-        AssertRuleResult(input);
+                                                            // c
+                                                        }
+                                                };
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line between an own-line comment and the opening brace, and between an own-line comment and the
+    /// closing brace, of an array initializer in an assignment is removed
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-020")]
+    public void RemovesBlankLineBetweenCommentAndBothBracesOfAssignedArrayInitializer()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int[] g;
+                                     g = new int[]
+                                         // c
+
+                                         {
+                                             1,
+                                             2
+                                             // d
+
+                                         };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int[] g;
+                                        g = new int[]
+
+                                            // c
+                                            {
+                                                1,
+                                                2
+
+                                                // d
+                                            };
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line between an own-line comment and the closing brace of a field's array initializer, and between
+    /// an own-line comment and the opening brace of a nested element of a multi-dimensional one, is removed
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-020")]
+    public void RemovesBlankLineBetweenCommentAndClosingBraceOfFieldArrayInitializerAndNestedElementBrace()
+    {
+        const string input = """
+                             class C
+                             {
+                                 int[] G =
+                                 {
+                                     1
+                                     // d
+
+                                 };
+
+                                 int[,] H =
+                                 {
+                                     { 1 },
+                                     // e
+
+                                     { 2 }
+                                 };
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int[] G = {
+                                                  1
+
+                                                  // d
+                                              };
+
+                                    int[,] H = {
+                                                   { 1 },
+
+                                                   // e
+                                                   { 2 }
+                                               };
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line between an own-line comment and the closing brace of the array initializer of an implicitly
+    /// typed array and of a <c>stackalloc</c> expression is removed
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-020")]
+    public void RemovesBlankLineBetweenCommentAndClosingBraceOfImplicitArrayAndStackAllocInitializer()
+    {
+        const string input = """
+                             class C
+                             {
+                                 unsafe void M()
+                                 {
+                                     var g = new[]
+                                             {
+                                                 1
+                                                 // d
+
+                                             };
+                                     System.Span<int> s = stackalloc int[]
+                                                          {
+                                                              1
+                                                              // d
+
+                                                          };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    unsafe void M()
+                                    {
+                                        var g = new[]
+                                                {
+                                                    1
+
+                                                    // d
+                                                };
+                                        System.Span<int> s = stackalloc int[]
+                                                             {
+                                                                 1
+
+                                                                 // d
+                                                             };
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line between an own-line comment and the opening brace, and between an own-line comment and the
+    /// closing brace, of an extension block is removed
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-020")]
+    public void RemovesBlankLineBetweenCommentAndBothBracesOfExtensionBlock()
+    {
+        const string input = """
+                             static class E
+                             {
+                                 extension(int i)
+                                 // g
+
+                                 {
+                                     public int D => i;
+                                     // h
+
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                static class E
+                                {
+                                    extension(int i)
+
+                                    // g
+                                    {
+                                        public int D => i;
+
+                                        // h
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line between an own-line comment and the opening brace of a property pattern is removed
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-020")]
+    public void RemovesBlankLineBetweenCommentAndOpeningBraceOfPropertyPattern()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(object o)
+                                 {
+                                     if (o is C
+                                         // c
+
+                                         { })
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(object o)
+                                    {
+                                        if (o is C
+
+                                        // c
+                                        { })
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line between an own-line comment and the closing brace of a collection initializer assigned to a
+    /// member is removed, as before the closing brace of any other collection initializer
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-020")]
+    public void RemovesBlankLineBetweenCommentAndClosingBraceOfAssignedCollectionInitializer()
+    {
+        const string input = """
+                             class P
+                             {
+                                 public System.Collections.Generic.List<int> L { get; } = new();
+                             }
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var p = new P
+                                             {
+                                                 L =
+                                                 {
+                                                     1
+                                                     // d
+
+                                                 }
+                                             };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class P
+                                {
+                                    public System.Collections.Generic.List<int> L { get; } = new();
+                                }
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var p = new P
+                                                {
+                                                    L = {
+                                                            1
+
+                                                            // d
+                                                        }
+                                                };
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line between an own-line comment and the closing brace of an interpolation of a raw interpolated
+    /// string is removed
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-020")]
+    public void RemovesBlankLineBetweenCommentAndClosingBraceOfRawStringInterpolation()
+    {
+        const string input = """"
+                             class C
+                             {
+                                 void M(int a)
+                                 {
+                                     var s = $$"""
+                                         {{
+                                             a
+                                             // f
+
+                                         }}
+                                         """;
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        var s = $$"""
+                                                  {{
+                                                      a
+
+                                                      // f
+                                                  }}
+                                                  """;
+                                    }
+                                }
+                                """";
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line between an own-line comment and <c>else</c>, <c>catch</c>, <c>finally</c>, and a do
+    /// statement's <c>while</c> is removed, while FMT-BLANK-011 keeps the one above the comment
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-020")]
+    public void RemovesBlankLineBetweenCommentAndElseCatchFinallyAndDoWhile()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(int a)
+                                 {
+                                     if (a > 0)
+                                     {
+                                         a++;
+                                     }
+                                     // c
+
+                                     else
+                                     {
+                                         a--;
+                                     }
+
+                                     try
+                                     {
+                                         a++;
+                                     }
+                                     // t
+
+                                     catch
+                                     {
+                                     }
+                                     // u
+
+                                     finally
+                                     {
+                                     }
+
+                                     do
+                                     {
+                                         a++;
+                                     }
+                                     // f
+
+                                     while (a > 0);
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        if (a > 0)
+                                        {
+                                            a++;
+                                        }
+
+                                        // c
+                                        else
+                                        {
+                                            a--;
+                                        }
+
+                                        try
+                                        {
+                                            a++;
+                                        }
+
+                                        // t
+                                        catch
+                                        {
+                                        }
+
+                                        // u
+                                        finally
+                                        {
+                                        }
+
+                                        do
+                                        {
+                                            a++;
+                                        }
+
+                                        // f
+                                        while (a > 0);
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line behind a delimited comment on its own line is removed in front of an array initializer's
+    /// opening brace and in front of <c>else</c>, and that of two comments in front of an array initializer's closing brace only
+    /// the blank line behind the last one is removed, while the one between the two comments stays
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-020")]
+    public void RemovesBlankLineBehindDelimitedCommentAndBehindLastOfTwoCommentsBeforeArrayInitializerBraceAndElse()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(int a)
+                                 {
+                                     int[] g;
+                                     g = new int[]
+                                         /* c */
+
+                                         {
+                                             1
+                                             // d
+
+                                             // e
+
+                                         };
+
+                                     if (a > 0)
+                                     {
+                                         a++;
+                                     }
+                                     /* c */
+
+                                     else
+                                     {
+                                         a--;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        int[] g;
+                                        g = new int[]
+
+                                            /* c */
+                                            {
+                                                1
+
+                                                // d
+
+                                                // e
+                                            };
+
+                                        if (a > 0)
+                                        {
+                                            a++;
+                                        }
+
+                                        /* c */
+                                        else
+                                        {
+                                            a--;
+                                        }
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line between an own-line comment behind an <c>#endif</c> and the closing brace of an array
+    /// initializer, or <c>else</c>, is removed
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-020")]
+    public void RemovesBlankLineBetweenCommentBehindDirectiveAndArrayInitializerBraceOrElse()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(int a)
+                                 {
+                                     int[] g;
+                                     g = new int[]
+                                         {
+                                             1
+                             #if NEVER
+                                             , 2
+                             #endif
+                                             // d
+
+                                         };
+
+                                     if (a > 0)
+                                     {
+                                         a++;
+                                     }
+                             #if NEVER
+                                     a--;
+                             #endif
+                                     // c
+
+                                     else
+                                     {
+                                         a--;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        int[] g;
+                                        g = new int[]
+                                            {
+                                                1
+                                #if NEVER
+                                                , 2
+                                #endif
+                                                // d
+                                            };
+
+                                        if (a > 0)
+                                        {
+                                            a++;
+                                        }
+                                #if NEVER
+                                        a--;
+                                #endif
+                                        // c
+                                        else
+                                        {
+                                            a--;
+                                        }
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: the blank line behind an own-line comment is removed in front of the braces of an array
+    /// initializer, a nested element of one, an extension block, a property pattern, and a collection initializer assigned to a
+    /// member, in front of the closing brace of an interpolation, and in front of <c>else</c>, <c>catch</c>, <c>finally</c>, and a
+    /// do statement's <c>while</c>
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-020")]
+    public void RemovesBlankLineBetweenCommentAndEveryBraceAndChainedKeywordOfSpecificationExample()
+    {
+        const string input = """"
+                             using System.Collections.Generic;
+
+                             static class E
+                             {
+                                 extension(int i)
+                                 // g
+
+                                 {
+                                     public int D => i;
+                                     // h
+
+                                 }
+                             }
+
+                             class P
+                             {
+                                 public List<int> L { get; } = new();
+                             }
+
+                             class C
+                             {
+                                 int[] G =
+                                 {
+                                     1
+                                     // d
+
+                                 };
+
+                                 int[,] H =
+                                 {
+                                     { 1 },
+                                     // e
+
+                                     { 2 }
+                                 };
+
+                                 void M(object o, int a)
+                                 {
+                                     int[] g;
+                                     g = new int[]
+                                         // c
+
+                                         {
+                                             1,
+                                             2
+                                             // d
+
+                                         };
+
+                                     if (o is C
+                                         // e
+
+                                         { })
+                                     {
+                                     }
+
+                                     var p = new P
+                                             {
+                                                 L =
+                                                 {
+                                                     1
+                                                     // d
+
+                                                 }
+                                             };
+
+                                     var s = $$"""
+                                         {{
+                                             a
+                                             // f
+
+                                         }}
+                                         """;
+
+                                     if (a > 0)
+                                     {
+                                         a++;
+                                     }
+                                     // c
+
+                                     else
+                                     {
+                                         a--;
+                                     }
+
+                                     try
+                                     {
+                                         a++;
+                                     }
+                                     // t
+
+                                     catch
+                                     {
+                                     }
+                                     // u
+
+                                     finally
+                                     {
+                                     }
+
+                                     do
+                                     {
+                                         a++;
+                                     }
+                                     // f
+
+                                     while (a > 0);
+                                 }
+                             }
+                             """";
+        const string expected = """"
+                                using System.Collections.Generic;
+
+                                static class E
+                                {
+                                    extension(int i)
+
+                                    // g
+                                    {
+                                        public int D => i;
+
+                                        // h
+                                    }
+                                }
+
+                                class P
+                                {
+                                    public List<int> L { get; } = new();
+                                }
+
+                                class C
+                                {
+                                    int[] G = {
+                                                  1
+
+                                                  // d
+                                              };
+
+                                    int[,] H = {
+                                                   { 1 },
+
+                                                   // e
+                                                   { 2 }
+                                               };
+
+                                    void M(object o, int a)
+                                    {
+                                        int[] g;
+                                        g = new int[]
+
+                                            // c
+                                            {
+                                                1,
+                                                2
+
+                                                // d
+                                            };
+
+                                        if (o is C
+
+                                        // e
+                                        { })
+                                        {
+                                        }
+
+                                        var p = new P
+                                                {
+                                                    L = {
+                                                            1
+
+                                                            // d
+                                                        }
+                                                };
+
+                                        var s = $$"""
+                                                  {{
+                                                      a
+
+                                                      // f
+                                                  }}
+                                                  """;
+
+                                        if (a > 0)
+                                        {
+                                            a++;
+                                        }
+
+                                        // c
+                                        else
+                                        {
+                                            a--;
+                                        }
+
+                                        try
+                                        {
+                                            a++;
+                                        }
+
+                                        // t
+                                        catch
+                                        {
+                                        }
+
+                                        // u
+                                        finally
+                                        {
+                                        }
+
+                                        do
+                                        {
+                                            a++;
+                                        }
+
+                                        // f
+                                        while (a > 0);
+                                    }
+                                }
+                                """";
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line between an own-line comment and the opening brace of a block statement that follows another
+    /// statement is kept, while the one in front of a block behind a case label, which follows no statement, is removed
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-017")]
+    [Requirement("FMT-BLANK-020")]
+    public void KeepsBlankLineBetweenCommentAndBlockStatementAfterStatementButRemovesItBehindCaseLabel()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(int a)
+                                 {
+                                     switch (a)
+                                     {
+                                         case 1:
+                                         // c
+
+                                         {
+                                             a++;
+                                             break;
+                                         }
+                                     }
+
+                                     a++;
+                                     // c
+
+                                     {
+                                         a--;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        switch (a)
+                                        {
+                                            case 1:
+                                                // c
+                                                {
+                                                    a++;
+
+                                                    break;
+                                                }
+                                        }
+
+                                        a++;
+
+                                        // c
+
+                                        {
+                                            a--;
+                                        }
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line between an own-line comment and the closing brace of an interpolation of a regular
+    /// interpolated string is removed; the column of that comment is not decided by this requirement and is not asserted
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-020")]
+    public void RemovesBlankLineBetweenCommentAndClosingBraceOfRegularStringInterpolation()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(int a)
+                                 {
+                                     var s = $"{
+                                         a
+                                         // f
+
+                                         }";
+                                 }
+                             }
+                             """;
+
+        AssertBlankLinesAbove(input, ("}\";", false));
     }
 
     /// <summary>

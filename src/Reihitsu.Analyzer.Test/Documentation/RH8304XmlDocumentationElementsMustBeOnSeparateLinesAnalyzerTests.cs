@@ -680,6 +680,78 @@ public class RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests : 
         await Verify(testData, fixedData, Diagnostics(RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8304MessageFormat, 2));
     }
 
+    /// <summary>
+    /// Verifies the spec example: in a document whose line breaks are all a lone carriage return, each line break the fix
+    /// inserts is LF, and the line breaks around them stay a lone carriage return
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8304-004")]
+    [Requirement("SHARED-FIX-008")]
+    public async Task FixInsertsLineFeedInADocumentWhoseLineBreaksAreLoneCarriageReturns()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    /// <summary>Stops</summary> <remarks>Remarks</remarks> <example>Example</example>
+                                    void N()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     /// <summary>Stops</summary>LF
+                                     /// <remarks>Remarks</remarks>LF
+                                     /// <example>Example</example>
+                                     void N()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        var expected = ConvertEndOfLine(fixedCode, "\r").Replace("LF\r", "\n", System.StringComparison.Ordinal);
+        var afterFirstFix = await ApplyCodeFixAsync(ConvertEndOfLine(testCode, "\r"));
+
+        Assert.AreEqual(expected, await ApplyCodeFixAsync(afterFirstFix));
+    }
+
+    /// <summary>
+    /// Verifies that in a document whose line breaks are CRLF, except the line break of the documentation line, which is
+    /// LF, the line break the fix inserts is CRLF, the detected line ending, and the LF stays behind the moved element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8304-004")]
+    [Requirement("SHARED-FIX-008")]
+    public async Task FixInsertsTheDetectedLineEndingWhenTheDocumentationLineEndsInAnotherOne()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    /// <summary>Stops</summary> <remarks>Remarks</remarks>LF
+                                    void N()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     /// <summary>Stops</summary>
+                                     /// <remarks>Remarks</remarks>LF
+                                     void N()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode).Replace("LF\r\n", "\n", System.StringComparison.Ordinal));
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode).Replace("LF\r\n", "\n", System.StringComparison.Ordinal), actual);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

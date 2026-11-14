@@ -38,11 +38,6 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
     protected abstract TargetAttributeListShapeMode ListShapeMode { get; }
 
     /// <summary>
-    /// Default placement mode for split output
-    /// </summary>
-    protected abstract TargetAttributePlacementMode DefaultPlacementMode { get; }
-
-    /// <summary>
     /// Code-fix title
     /// </summary>
     protected abstract string CodeFixTitle { get; }
@@ -50,16 +45,6 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
     #endregion // Properties
 
     #region Methods
-
-    /// <summary>
-    /// Resolves placement mode for split output
-    /// </summary>
-    /// <param name="attributeList">Attribute list</param>
-    /// <returns>Placement mode</returns>
-    protected virtual TargetAttributePlacementMode ResolvePlacementMode(AttributeListSyntax attributeList)
-    {
-        return DefaultPlacementMode;
-    }
 
     /// <summary>
     /// Resolves the effective list-shape mode for an attribute list
@@ -83,110 +68,98 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
     }
 
     /// <summary>
-    /// Applies split-list fix for a single attribute list
+    /// Applies split-list fix for a single attribute list. The reported list is replaced, in the text, by one list per
+    /// attribute, and nothing else changes (SHARED-ATTR-017): the first list stays where the reported list starts, and each
+    /// further list starts a new line, behind a copy of the whitespace at the start of the line on which the reported list
+    /// starts. The line breaks between the lists are the document's line ending (SHARED-FIX-008)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="attributeList">Attribute list</param>
-    /// <param name="placementMode">Placement mode</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Updated document</returns>
-    private static async Task<Document> ApplySplitCodeFixAsync(Document document, AttributeListSyntax attributeList, TargetAttributePlacementMode placementMode, CancellationToken cancellationToken)
+    private static async Task<Document> ApplySplitCodeFixAsync(Document document, AttributeListSyntax attributeList, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var owner = attributeList.Parent;
 
-        if (root == null || owner == null || SyntaxNodeUtilities.InteriorContainsCommentOrDirective(attributeList))
+        if (root == null
+            || attributeList.Attributes.Count <= 1
+            || SyntaxNodeUtilities.InteriorContainsCommentOrDirective(attributeList))
         {
             return document;
         }
 
-        var lists = AttributeTargetUtilities.GetAttributeLists(owner);
-        var listIndex = IndexOfList(lists, attributeList);
+        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var line = sourceText.Lines.GetLineFromPosition(attributeList.SpanStart);
+        var lineIndentation = FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
+        var separator = ReihitsuFormatterHelpers.DetectEndOfLine(root) + lineIndentation;
+        var target = attributeList.Target?.ToFullString() ?? string.Empty;
+        var replacement = string.Join(separator, attributeList.Attributes.Select(attribute => $"[{target}{attribute}]"));
 
-        if (listIndex < 0 || attributeList.Attributes.Count <= 1)
-        {
-            return document;
-        }
-
-        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-        var indentationTrivia = SyntaxTriviaUtilities.GetLineIndentationTrivia(attributeList.GetLeadingTrivia());
-        var replacementLists = BuildSplitReplacementLists(attributeList, placementMode, endOfLine, indentationTrivia);
-
-        var updatedLists = new List<AttributeListSyntax>(lists.Count - 1 + replacementLists.Count);
-
-        for (var index = 0; index < lists.Count; index++)
-        {
-            if (index == listIndex)
-            {
-                updatedLists.AddRange(replacementLists);
-            }
-            else
-            {
-                updatedLists.Add(lists[index]);
-            }
-        }
-
-        var updatedOwner = AttributeTargetUtilities.WithAttributeLists(owner, SyntaxFactory.List(updatedLists));
-        var updatedRoot = root.ReplaceNode(owner, updatedOwner);
-
-        return document.WithSyntaxRoot(updatedRoot);
+        return document.WithText(sourceText.Replace(attributeList.Span, replacement));
     }
 
     /// <summary>
-    /// Gets the index of the attribute list within the owner's attribute lists
+    /// Determines whether a <c>{</c> token stands in front of the attribute list on the line on which the list starts and
+    /// is still open there, because its <c>}</c> does not stand in front of the list on that line (SHARED-ATTR-022). The
+    /// whitespace at the start of such a line is the indentation of the code that owns that <c>{</c> or of code further
+    /// out, so a further list started behind it would stand at the wrong column, in front of the rest of that body. The
+    /// scan walks the tokens in front of the list on its line backwards and counts the <c>}</c> tokens still waiting for
+    /// their <c>{</c>; a <c>{</c> found while none is waiting is open at the list. A brace inside a literal, a comment, or
+    /// disabled text is no token, and a missing brace has no width, so <see cref="SyntaxToken.GetPreviousToken"/> skips it;
+    /// neither is seen
     /// </summary>
-    /// <param name="lists">Owner attribute lists</param>
-    /// <param name="attributeList">Attribute list to locate</param>
-    /// <returns>The index of the attribute list, or <c>-1</c> when it is not present</returns>
-    private static int IndexOfList(IReadOnlyList<AttributeListSyntax> lists, AttributeListSyntax attributeList)
+    /// <param name="attributeList">Attribute list</param>
+    /// <returns><see langword="true"/> when the split fix is withheld for the list</returns>
+    private static bool StartsBehindAnOpenBraceOnItsLine(AttributeListSyntax attributeList)
     {
-        for (var index = 0; index < lists.Count; index++)
+        var tree = attributeList.SyntaxTree;
+        var listLine = tree.GetLineSpan(attributeList.OpenBracketToken.Span).StartLinePosition.Line;
+        var waitingCloseBraces = 0;
+
+        var token = attributeList.OpenBracketToken.GetPreviousToken();
+
+        while (token.IsKind(SyntaxKind.None) == false
+               && tree.GetLineSpan(token.Span).StartLinePosition.Line == listLine)
         {
-            if (ReferenceEquals(lists[index], attributeList))
+            if (token.IsKind(SyntaxKind.CloseBraceToken))
             {
-                return index;
+                waitingCloseBraces++;
             }
+            else if (token.IsKind(SyntaxKind.OpenBraceToken))
+            {
+                if (waitingCloseBraces == 0)
+                {
+                    return true;
+                }
+
+                waitingCloseBraces--;
+            }
+
+            token = token.GetPreviousToken();
         }
 
-        return -1;
+        return false;
     }
 
     /// <summary>
-    /// Builds the single-attribute lists that replace a multi-attribute list when splitting
+    /// Determines whether the split fix would copy or keep a line break it must not (SHARED-ATTR-023): a list with a target
+    /// specifier whose first attribute starts on a later line than its <c>[</c>, or a list that holds a line break other
+    /// than the document's line ending (SHARED-FIX-008)
     /// </summary>
-    /// <param name="attributeList">Attribute list to split</param>
-    /// <param name="placementMode">Placement mode</param>
-    /// <param name="endOfLine">End-of-line sequence to insert between separate lines</param>
-    /// <param name="indentationTrivia">Indentation applied to attributes moved onto their own line</param>
-    /// <returns>The replacement attribute lists</returns>
-    private static List<AttributeListSyntax> BuildSplitReplacementLists(AttributeListSyntax attributeList, TargetAttributePlacementMode placementMode, string endOfLine, SyntaxTriviaList indentationTrivia)
+    /// <param name="root">Syntax root</param>
+    /// <param name="attributeList">Attribute list</param>
+    /// <returns><see langword="true"/> when the split fix is withheld for the list</returns>
+    private static bool HoldsLineBreakTheSplitCannotWrite(SyntaxNode root, AttributeListSyntax attributeList)
     {
-        var replacementLists = new List<AttributeListSyntax>();
+        var tree = attributeList.SyntaxTree;
 
-        for (var index = 0; index < attributeList.Attributes.Count; index++)
+        if (attributeList.Target != null
+            && tree.GetLineSpan(attributeList.OpenBracketToken.Span).StartLinePosition.Line != tree.GetLineSpan(attributeList.Attributes[0].Span).StartLinePosition.Line)
         {
-            var attribute = attributeList.Attributes[index];
-            var newList = SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(attribute))
-                                       .WithTarget(attributeList.Target);
-
-            if (index == 0)
-            {
-                newList = newList.WithLeadingTrivia(attributeList.GetLeadingTrivia());
-            }
-            else if (placementMode == TargetAttributePlacementMode.SeparateLine)
-            {
-                newList = newList.WithLeadingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine)).AddRange(indentationTrivia));
-            }
-
-            if (index == attributeList.Attributes.Count - 1)
-            {
-                newList = newList.WithTrailingTrivia(attributeList.GetTrailingTrivia());
-            }
-
-            replacementLists.Add(newList);
+            return true;
         }
 
-        return replacementLists;
+        return LineEndingUtilities.HoldsOtherLineBreak(tree.GetText(), attributeList.Span, ReihitsuFormatterHelpers.DetectEndOfLine(root));
     }
 
     /// <summary>
@@ -254,10 +227,15 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
         if (listShapeMode == TargetAttributeListShapeMode.SplitLists)
         {
             // Mirrors the analyzer base: the formatter keeps the lists of an inline auto-property accessor merged, so
-            // splitting one would only be undone again
+            // splitting one would only be undone again. A list with a comment or directive inside is withheld
+            // (SHARED-ATTR-019), and so are a list behind a brace on its line that is still open there
+            // (SHARED-ATTR-022) and a list with a line break the split would copy or keep in another line ending
+            // (SHARED-ATTR-023)
             return attributeList.Attributes.Count > 1
                    && SyntaxNodeUtilities.InteriorContainsCommentOrDirective(attributeList) == false
-                   && AttributeTargetUtilities.IsAttributeListOnInlineAutoPropertyAccessor(attributeList) == false;
+                   && AttributeTargetUtilities.IsAttributeListOnInlineAutoPropertyAccessor(attributeList) == false
+                   && StartsBehindAnOpenBraceOnItsLine(attributeList) == false
+                   && HoldsLineBreakTheSplitCannotWrite(root, attributeList) == false;
         }
 
         var owner = attributeList.Parent;
@@ -308,7 +286,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixTitle,
                                                           token => listShapeMode == TargetAttributeListShapeMode.SplitLists
-                                                                       ? ApplySplitCodeFixAsync(context.Document, attributeList, ResolvePlacementMode(attributeList), token)
+                                                                       ? ApplySplitCodeFixAsync(context.Document, attributeList, token)
                                                                        : ApplyMergeCodeFixAsync(context.Document, attributeList, listShapeMode, token),
                                                           GetType().Name),
                                         diagnostic);

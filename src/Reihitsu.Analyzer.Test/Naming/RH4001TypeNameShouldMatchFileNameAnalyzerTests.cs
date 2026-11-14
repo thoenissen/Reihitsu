@@ -848,5 +848,369 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : SingleCodeFixTests
                      });
     }
 
+    /// <summary>
+    /// Verifies that a type name written with the verbatim prefix is compared by its value, so <c>@class</c> matches
+    /// the file <c>class.cs</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-002")]
+    public async Task VerbatimKeywordTypeNameMatchesFileNamedAfterItsValue()
+    {
+        const string testCode = """
+                                public class @class
+                                {
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/class.cs", testCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a type name written with the verbatim prefix in front of an ordinary identifier matches the file
+    /// named after the identifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-002")]
+    public async Task VerbatimTypeNameMatchesFileNamedAfterItsValue()
+    {
+        const string testCode = """
+                                public class @Order
+                                {
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Order.cs", testCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a type named <c>@class</c> is reported in a file named <c>@class.cs</c>, because the type is named
+    /// <c>class</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-002")]
+    [Requirement("RH4001-004")]
+    public async Task VerbatimTypeNameIsReportedInFileNamedWithTheVerbatimPrefix()
+    {
+        const string testCode = """
+                                public class {|RH4001:@class|}
+                                {
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/@class.cs", testCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a delegate name written with the verbatim prefix is compared by its value
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-002")]
+    public async Task VerbatimDelegateNameMatchesFileNamedAfterItsValue()
+    {
+        const string testCode = """
+                                public delegate void @Handler();
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Handler.cs", testCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a type name written with a Unicode escape is compared by the character the escape stands for
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-002")]
+    public async Task UnicodeEscapedTypeNameMatchesFileNamedAfterItsValue()
+    {
+        const string testCode = """
+                                public class \u0041bc
+                                {
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Abc.cs", testCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a type name written with a Unicode escape is reported in a file named after another type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-002")]
+    [Requirement("RH4001-004")]
+    public async Task UnicodeEscapedTypeNameIsReportedInFileNamedAfterAnotherType()
+    {
+        const string testCode = """
+                                public class {|RH4001:\u0041bc|}
+                                {
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Invoice.cs", testCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a type parameter written with the verbatim prefix is compared by its value
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-003")]
+    public async Task VerbatimTypeParameterMatchesFileNamedAfterItsValue()
+    {
+        const string testCode = """
+                                public class Cache<@TKey>
+                                {
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Cache{TKey}.cs", testCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a type parameter written with the verbatim prefix is reported in a file whose type-parameter list
+    /// keeps the prefix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-003")]
+    public async Task VerbatimTypeParameterIsReportedInFileNamedWithTheVerbatimPrefix()
+    {
+        const string testCode = """
+                                public class {|RH4001:Cache|}<@TKey>
+                                {
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Cache{@TKey}.cs", testCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a type parameter written with a Unicode escape is compared by the character the escape stands for
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-003")]
+    public async Task UnicodeEscapedTypeParameterMatchesFileNamedAfterItsValue()
+    {
+        const string testCode = """
+                                public class Cache<\u0054Key>
+                                {
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Cache{TKey}.cs", testCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that the code fix derives the new file name from the value of a type name written with the verbatim
+    /// prefix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-005")]
+    public async Task CodeFixRenamesFileAfterValueOfVerbatimTypeName()
+    {
+        const string testCode = """
+                                public class {|RH4001:@Order|}
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class @Order
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     null,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Invoice.cs", testCode));
+                         test.FixedState.Sources.Add(("/0/Order.cs", fixedCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that the code fix renames a file named with the verbatim prefix to the value of the keyword type name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-005")]
+    public async Task CodeFixRenamesFileWithVerbatimPrefixAfterValueOfKeywordTypeName()
+    {
+        const string testCode = """
+                                public class {|RH4001:@class|}
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class @class
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     null,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/@class.cs", testCode));
+                         test.FixedState.Sources.Add(("/0/class.cs", fixedCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that the code fix derives the type-parameter part of the new file name from the value of a type
+    /// parameter written with the verbatim prefix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-003")]
+    [Requirement("RH4001-005")]
+    public async Task CodeFixRenamesFileAfterValueOfVerbatimTypeParameter()
+    {
+        const string testCode = """
+                                public class {|RH4001:Cache|}<@TKey>
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Cache<@TKey>
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     null,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Invoice.cs", testCode));
+                         test.FixedState.Sources.Add(("/0/Cache{TKey}.cs", fixedCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that the code fix replaces a Unicode escape in the type name by the character it stands for
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-005")]
+    public async Task CodeFixRenamesFileAfterValueOfUnicodeEscapedTypeName()
+    {
+        const string testCode = """
+                                public class {|RH4001:\u0041bc|}
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class \u0041bc
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     null,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Invoice.cs", testCode));
+                         test.FixedState.Sources.Add(("/0/Abc.cs", fixedCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that the code fix is withheld when a document in the same folder already has the file name derived
+    /// from the value of a type name written with the verbatim prefix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH4001-006")]
+    public async Task NoFixIsOfferedWhenDocumentWithFileNameOfVerbatimTypeNameValueExists()
+    {
+        const string testCode = """
+                                namespace Sales
+                                {
+                                    public class {|RH4001:@Order|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string existingTargetCode = """
+                                          namespace Archive
+                                          {
+                                              public class Order
+                                              {
+                                              }
+                                          }
+                                          """;
+
+        await Verify(testCode,
+                     null,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Invoice.cs", testCode));
+                         test.TestState.Sources.Add(("/0/Order.cs", existingTargetCode));
+                         test.FixedState.Sources.Add(("/0/Invoice.cs", testCode));
+                         test.FixedState.Sources.Add(("/0/Order.cs", existingTargetCode));
+                     });
+    }
+
     #endregion // Tests
 }

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Rules.Documentation;
 using Reihitsu.Core;
 
@@ -28,7 +29,7 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixP
     /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
-    /// <param name="documentationComment">Documentation comment</param>
+    /// <param name="documentationComment">Documentation comment, parsed with documentation comments from the document's text</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, DocumentationCommentTriviaSyntax documentationComment, CancellationToken cancellationToken)
@@ -92,12 +93,14 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixP
     /// <inheritdoc/>
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+        var syntaxTree = await context.Document.GetSyntaxTreeAsync(context.CancellationToken).ConfigureAwait(false);
 
-        if (root == null)
+        if (syntaxTree == null)
         {
             return;
         }
+
+        var root = DocumentationAnalysisUtilities.GetRootWithParsedDocumentation(syntaxTree, context.CancellationToken);
 
         var sourceText = await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
 

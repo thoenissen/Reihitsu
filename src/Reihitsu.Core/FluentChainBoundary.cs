@@ -4,11 +4,9 @@ namespace Reihitsu.Core;
 
 /// <summary>
 /// The facts about the code above the root of a tree that <see cref="FluentChain"/> needs to decide which node of a chain
-/// inside that tree is the outermost one. The chain rule reads up to two levels above a node: whether the parent continues
-/// the node's chain, and, for the target of a null-conditional assignment, whether the assignment is the branch of a
-/// conditional access. For a node whose parent or grandparent lies above a parentless root, the answer comes from these
-/// facts. They are plain values, captured from the document by <see cref="From"/> before the root is detached. The default
-/// value describes a root that has nothing above it, such as a compilation unit
+/// inside that tree is the outermost one: whether the parent of the root continues the root's chain, which a parentless
+/// root cannot read from its tree. It is a plain value, captured from the document by <see cref="From"/> before the root is
+/// detached. The default value describes a root that has nothing above it, such as a compilation unit
 /// </summary>
 public readonly struct FluentChainBoundary
 {
@@ -18,11 +16,9 @@ public readonly struct FluentChainBoundary
     /// Constructor
     /// </summary>
     /// <param name="rootContinuesChain">Whether the parent of the root continues the root's chain</param>
-    /// <param name="rootIsConditionalAccessBranch">Whether the root is the branch that a conditional access evaluates when its expression is not null</param>
-    public FluentChainBoundary(bool rootContinuesChain, bool rootIsConditionalAccessBranch)
+    public FluentChainBoundary(bool rootContinuesChain)
     {
         RootContinuesChain = rootContinuesChain;
-        RootIsConditionalAccessBranch = rootIsConditionalAccessBranch;
     }
 
     #endregion // Constructor
@@ -33,12 +29,6 @@ public readonly struct FluentChainBoundary
     /// Whether the parent of the root continues the root's chain, so that the root is not the outermost node of its chain
     /// </summary>
     public bool RootContinuesChain { get; }
-
-    /// <summary>
-    /// Whether the root is the branch that a conditional access evaluates when its expression is not null
-    /// (<c>WhenNotNull</c>), which makes the target of a root assignment continue the conditional access's chain
-    /// </summary>
-    public bool RootIsConditionalAccessBranch { get; }
 
     #endregion // Properties
 
@@ -53,8 +43,7 @@ public readonly struct FluentChainBoundary
     {
         return root.Parent == null
                    ? default
-                   : new FluentChainBoundary(FluentChain.ContinuesChain(root.Parent, root, default),
-                                             FluentChain.IsConditionalAccessBranch(root, default));
+                   : new FluentChainBoundary(FluentChain.ContinuesChain(root.Parent, root, default));
     }
 
     #endregion // Methods
