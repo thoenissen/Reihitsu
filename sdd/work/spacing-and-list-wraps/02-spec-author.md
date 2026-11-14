@@ -87,3 +87,31 @@ _None._ Entry 6 is covered by the clarification (decision 8); entries 7–11 fol
 ### Follow-up candidates (amended)
 
 Unchanged from above; skeptic 03 adds two that the lead holds (RH5107 fix vs formatter on a comment behind a leading comma; no rule for leading commas in argument lists).
+
+## Amendment after 04-test-implementer (decisions 14 and 15)
+
+Commit the amendment was derived from: e518264. Verdict unchanged: change doc written. My prompt carried no intended fix, suspected cause, or hoped-for verdict beyond the lead's decisions 14 and 15.
+
+### Changed requirements (amended)
+
+- FMT-BREAK-012 — clarified (decision 14): a held comma that stands alone on its line (the element behind it starts on a later line) keeps the line break behind it as written; it is not joined to `, int b`. A held comma with the element behind it on its line keeps that element there (`N`). The third example gains method `P` (`int a // keep⏎,⏎int b`, unchanged) as the case on the other side of the condition, and its caption says "alone on it when it was written alone".
+
+### Change doc (amended)
+
+`What` (held-comma bullet) and `Decisions` (*Only the held gap is left as written*) state the lone-comma case. No visible-output entry: the case is unchanged on `main` (both existing tests pass on 144e6fe), so nothing new reaches the maintainer.
+
+### Examples for the tests (amended)
+
+FMT-BREAK-012, third example, method `P`. The existing tests `ParameterContinuationLineAlignmentTests.CommaAloneOnItsLineStaysAligned` and `CommaAfterDirectiveHeldFirstParameterStaysAligned` match the spec as written and may be tagged `[Requirement("FMT-BREAK-012")]` by the test implementer; they need no change.
+
+### Other (decision 15)
+
+`03-skeptic.md` line 24 now names the earlier run's lead notes in words instead of a path under the squad notes folder; meaning unchanged. `scripts/test.sh --project architecture --filter "FullyQualifiedName~SquadNoteReferenceTests"` passes (3/3).
+
+### Output questions (amended)
+
+_None._
+
+### Internal choices (amended)
+
+- Stated the lone-comma case as part of FMT-BREAK-012's held-comma paragraph rather than as a new requirement ID. Alternative: a separate requirement; rejected as it is a qualifier of the same refusal.

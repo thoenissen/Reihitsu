@@ -713,7 +713,7 @@ An argument list, a parameter list — the bracketed parameter list of an indexe
 
 In a multi-line argument list and a multi-line attribute argument list, every comma MUST end the line of the element in front of it, as in a parameter list (FMT-BREAK-011): a comma that starts a line moves behind the element in front of it, and the element behind it starts its own line. A comment behind such a comma, on the comma's line, MUST move with the comma and stay behind it, as in a parameter list: `Foo(1⏎, /* c */ 2, 3)` becomes `Foo(1, /* c */⏎2,⏎3)`, and a `//` comment behind the comma keeps ending the line.
 
-A comma MUST NOT be moved across a comment, a preprocessor directive, or disabled text (FMT-BREAK-001). A comma that one of them keeps off the line of the element in front of it — the comment, directive, or disabled text stands between the element's last token and the comma, and a line break separates the two — MUST stay at the start of the line of the element behind it, in every list this requirement covers; every other comma and element of the list MUST be laid out as the paragraphs above say. Whether a line break separates them is decided as SHARED-BLANK-008 counts line breaks: a line break inside the text of a multi-line comment does not count, so in `Foo(1 /* a⏎ b */, 2,⏎3)` the comma is on the line of `1` and keeps nothing, and a comment in front of a comma on the element's own line keeps nothing either.
+A comma MUST NOT be moved across a comment, a preprocessor directive, or disabled text (FMT-BREAK-001). A comma that one of them keeps off the line of the element in front of it — the comment, directive, or disabled text stands between the element's last token and the comma, and a line break separates the two — MUST stay at the start of the line of the element behind it, in every list this requirement covers; every other comma and element of the list MUST be laid out as the paragraphs above say. When such a held comma stands alone on its line — the element behind it starts on a later line — the line break behind the comma MUST be left as written too: the comma stays alone on its line and the element behind it keeps its own line, as `P` shows below; it is not joined to `, int b`. A held comma with the element behind it on its own line, as in `N` below, keeps that element there. Whether a line break separates them is decided as SHARED-BLANK-008 counts line breaks: a line break inside the text of a multi-line comment does not count, so in `Foo(1 /* a⏎ b */, 2,⏎3)` the comma is on the line of `1` and keeps nothing, and a comment in front of a comma on the element's own line keeps nothing either.
 
 Why: A partly wrapped list hides elements at the end of a line. Whether a list is wrapped is a question about its elements: a line break only behind the opening parenthesis puts every element on one line, so the list reads as a one-line list and is joined like one. Keeping the first element on the opening line lets the remaining elements align under it (FMT-INDENT). A comma at the end of a line shows that the list continues, as it does in a parameter list (FMT-BREAK-011). A comment behind a comma stays behind it, as in a parameter list and in a constraint clause (FMT-BREAK-037), so it goes where the comma goes. Moving a comma across a comment or a directive would change what the comment is about or move code across the directive (FMT-BREAK-001), so only that gap is left as written and the rest of the list is laid out as any other, as the commas of a constraint clause are (FMT-BREAK-037); such commas are rare — RH5035 and RH5038 report a comment inside a parameter or argument list. RH5101, RH5102, and RH5109 report partly wrapped lists.
 
@@ -809,7 +809,7 @@ class C
 }
 ```
 
-Example — a comma that a comment or a directive keeps off the line of the element in front of it stays at the start of its line, and the rest of the list is laid out around it; a comment behind a comma that moves goes with the comma; a block comment in front of a comma on the element's own line keeps nothing:
+Example — a comma that a comment or a directive keeps off the line of the element in front of it stays at the start of its line, alone on it when it was written alone, and the rest of the list is laid out around it; a comment behind a comma that moves goes with the comma; a block comment in front of a comma on the element's own line keeps nothing:
 
 ```csharp
 class C
@@ -817,6 +817,12 @@ class C
     void N(int a
            , int b // keep
            , int c)
+    {
+    }
+
+    void P(int a // keep
+           ,
+           int b)
     {
     }
 
@@ -847,6 +853,12 @@ class C
     void N(int a,
            int b // keep
            , int c)
+    {
+    }
+
+    void P(int a // keep
+           ,
+           int b)
     {
     }
 
