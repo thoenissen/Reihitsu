@@ -60,10 +60,8 @@ internal static class XmlDocumentationExpander
     /// </remarks>
     internal static XElement GetExpandedDocumentationOfPart(MemberDeclarationSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
-        var documentationText = string.Concat(declaration.GetLeadingTrivia()
-                                                         .Where(obj => obj.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                                                                       || obj.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
-                                                         .Select(obj => obj.ToFullString() + "\n"));
+        var documentationText = string.Concat(DirectDocumentationSyntaxChecker.GetDocumentationComments(declaration)
+                                                                              .Select(obj => obj.ToFullString() + "\n"));
 
         if (documentationText.Length == 0
             || semanticModel.Compilation.Options is not CSharpCompilationOptions compilationOptions

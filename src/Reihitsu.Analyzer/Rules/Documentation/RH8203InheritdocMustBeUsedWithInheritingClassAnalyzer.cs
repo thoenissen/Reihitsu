@@ -83,10 +83,7 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer : DiagnosticA
             // Each part of a partial member is judged by its own documentation (SHARED-DIAG-004). The expanded
             // documentation of a part's symbol can be the other part's, so the part's own comments are read from its
             // syntax, and only content an include element brings in is expanded on its own
-            var documentationComments = declaration.GetLeadingTrivia()
-                                                   .Select(obj => obj.GetStructure())
-                                                   .OfType<DocumentationCommentTriviaSyntax>()
-                                                   .ToList();
+            var documentationComments = DirectDocumentationSyntaxChecker.GetDocumentationComments(declaration);
 
             if (documentationComments.Any(obj => DirectDocumentationSyntaxChecker.GetTagsIncludingNested(obj, "include").Length > 0))
             {
