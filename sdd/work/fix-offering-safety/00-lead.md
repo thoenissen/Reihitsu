@@ -120,4 +120,5 @@ Batch 2 (questions 8–10, 2026-11-14):
 - 20 spec checker consistent (8866098).
 - 21 auditor (5b80970): audited SHA **970f447c5db57c04654f770b3a8ec389282772ec**, pass with text cleanup (#4).
 - 22 cleaner (1ffa64f): #4 reworded; strict text-only proof FAIL (public XML docs), plain PASS.
-- Repair round 3 (last allowed): auditor (23) on 970f447..HEAD comment change only; then validator (24), then publish. After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
+- 23 auditor (b40d688): pass. Final audited SHA **21112981c3dcb79d6ac0a5734d931d06fcdd97e2**.
+- Next: validator (24) on the final tree, then publish (lane check, issue manager, note, delete sdd/work, CI trigger, PR body). After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
