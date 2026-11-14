@@ -51,4 +51,4 @@ Bug fix (all five). Roles: spec author (clarifications: RH5601-001/RH5602-001 al
 
 ## Worklist / next step
 
-- Audited SHA: d75cd95. Repair round 1 (doc comment, 4f8df5f): spec checker (12) and auditor (13) on the repair only. Then validator, issue manager, publish.
+- Audited SHA: 6aa4d31 (repair round 1 audit passed; spec checker 12 consistent). Next: validator (14) and issue manager (15), then publish.
