@@ -45,7 +45,7 @@ internal record FormattingContext
     /// The column of the formatting root's first token in its document, or <see langword="null"/> when the root is laid out at its depth alone
     /// </param>
     /// <param name="rootChainBoundary">
-    /// The facts about the code above the formatting root that the member-access chain rule reads, or <see langword="default"/> when the caller supplies none
+    /// The fact about the code above the formatting root that the member-access chain rule reads, or <see langword="default"/> when the caller supplies none
     /// </param>
     /// <param name="rootConstruct">
     /// The facts about the construct the formatting root stands in in its document, or <see cref="RootConstruct.None"/> when the caller supplies none
@@ -150,19 +150,17 @@ internal record FormattingContext
     public int? RootFirstTokenColumn { get; }
 
     /// <summary>
-    /// The facts about the code above the formatting root that the member-access chain rule reads (FMT-PIPE-024): whether
-    /// the root's parent continues the root's chain, and whether the root is the branch of a conditional access. The rule
-    /// (<see cref="FluentChain.IsOutermostChainNode(Microsoft.CodeAnalysis.SyntaxNode, FluentChainBoundary)"/>) reads them for
-    /// every node of the root whose decision reads above the root, not only for the root itself. Only
-    /// <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> supplies them. Every other entry point leaves them at
-    /// <see langword="default"/>, which decides the root as a chain of its own
+    /// The fact about the code above the formatting root that the member-access chain rule reads (FMT-PIPE-024): whether
+    /// the root's parent continues the root's chain. The rule
+    /// (<see cref="FluentChain.IsOutermostChainNode(Microsoft.CodeAnalysis.SyntaxNode, FluentChainBoundary)"/>) reads it for
+    /// the root itself only. Only <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> supplies it. Every other entry
+    /// point leaves it at <see langword="default"/>, which decides the root as a chain of its own
     /// </summary>
     public FluentChainBoundary RootChainBoundary { get; }
 
     /// <summary>
     /// The facts about the construct the formatting root stands in in its document (FMT-PIPE-024): one flag for each decision
-    /// of the line-break phase that reads the root's ancestors, which a root without a parent does not reach; the blank-line
-    /// phase reads <see cref="RootConstruct.AssignedCollectionInitializer"/> as well (FMT-BLANK-020). Only
+    /// of the line-break phase that reads the root's ancestors, which a root without a parent does not reach. Only
     /// <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> supplies them. Every other entry point leaves them at
     /// <see cref="RootConstruct.None"/>, which decides the root as a construct of its own
     /// </summary>

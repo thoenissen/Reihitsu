@@ -89,5 +89,106 @@ public class RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineFormatterTe
         await VerifyFormatter(input);
     }
 
+    /// <summary>
+    /// Verifies that the formatter removes the blank line between an own-line comment and <c>else</c>, <c>catch</c>, and
+    /// <c>finally</c>, so its output is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-BLANK-020")]
+    public async Task VerifyFormatterRemovesBlankLineBehindCommentBeforeElseCatchAndFinally()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(int a)
+                                 {
+                                     if (a > 0)
+                                     {
+                                         a++;
+                                     }
+
+                                     // c
+                             {|#0:
+                             |}        else
+                                     {
+                                         a--;
+                                     }
+
+                                     try
+                                     {
+                                         a++;
+                                     }
+
+                                     // t
+                             {|#1:
+                             |}        catch
+                                     {
+                                     }
+
+                                     // u
+                             {|#2:
+                             |}        finally
+                                     {
+                                     }
+
+                                     do
+                                     {
+                                         a++;
+                                     }
+
+                                     // f
+
+                                     while (a > 0);
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         if (a > 0)
+                                         {
+                                             a++;
+                                         }
+
+                                         // c
+                                         else
+                                         {
+                                             a--;
+                                         }
+
+                                         try
+                                         {
+                                             a++;
+                                         }
+
+                                         // t
+                                         catch
+                                         {
+                                         }
+
+                                         // u
+                                         finally
+                                         {
+                                         }
+
+                                         do
+                                         {
+                                             a++;
+                                         }
+
+                                         // f
+                                         while (a > 0);
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5026MessageFormat, 3));
+    }
+
     #endregion // Tests
 }

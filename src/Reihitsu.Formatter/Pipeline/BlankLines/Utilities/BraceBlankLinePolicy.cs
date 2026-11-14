@@ -5,15 +5,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Reihitsu.Core;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.Core.Utilities;
-using Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 
 namespace Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
 
 /// <summary>
 /// The one owner of the token and comment facts the blank-line rules around braces, brackets, and comments read: the
 /// opening brace of a block statement that follows a statement (FMT-BLANK-017), the tokens directly before which no blank
-/// line stands (FMT-BLANK-007, FMT-BLANK-008, FMT-BLANK-019), the comment glued to a token (FMT-BLANK-018), and the tokens
-/// behind an own-line comment that no blank line separates from it (FMT-BLANK-020), and the one classification of a
+/// line stands (FMT-BLANK-007, FMT-BLANK-008, FMT-BLANK-019), which are also the tokens behind an own-line comment that no
+/// blank line separates from it (FMT-BLANK-020), the comment glued to a token (FMT-BLANK-018), and the one classification of a
 /// comment's position relative to the token behind it that FMT-BLANK-011, FMT-BLANK-018, and FMT-BLANK-020 read. The
 /// blank-line subphases read these facts from here
 /// </summary>
@@ -47,7 +46,8 @@ internal static class BraceBlankLinePolicy
     /// every opening and closing brace other than the opening brace of a block statement that follows a statement, the
     /// <c>else</c>, <c>catch</c>, and <c>finally</c> keywords, the <c>while</c> keyword of a do statement, the closing bracket
     /// of a collection expression or a list pattern, and the closing parenthesis of a parenthesized pattern. The same set
-    /// decides whether the blank lines above a comment glued to the token are removed (FMT-BLANK-018)
+    /// decides whether the blank lines above a comment glued to the token are removed (FMT-BLANK-018), and whether the blank
+    /// lines between an own-line comment and the token are removed (FMT-BLANK-020)
     /// </summary>
     /// <param name="token">The token to inspect, still part of the visited tree</param>
     /// <param name="context">The formatting context, which carries the position of the formatting root</param>
@@ -61,51 +61,6 @@ internal static class BraceBlankLinePolicy
                    SyntaxKind.WhileKeyword => token.Parent is DoStatementSyntax,
                    _ => IsClosingTokenOfPatternOrCollectionExpression(token),
                };
-    }
-
-    /// <summary>
-    /// Determines whether the blank lines between an own-line comment and the token behind it are removed (FMT-BLANK-020):
-    /// every opening and closing brace other than the braces of an array initializer, an extension block, or an
-    /// interpolation, the opening brace of a property pattern, the closing brace of a collection initializer assigned to a
-    /// member, and the opening brace of a block statement that follows a statement; the closing bracket of a collection
-    /// expression or a list pattern; and the closing parenthesis of a parenthesized pattern
-    /// </summary>
-    /// <param name="token">The token to inspect, still part of the visited tree</param>
-    /// <param name="context">The formatting context, which carries the facts about the formatting root</param>
-    /// <returns><see langword="true"/> if the token is one FMT-BLANK-020 names</returns>
-    /// <remarks>
-    /// Only the kind of the token and the construct it belongs to decide, never the layout of that construct
-    /// </remarks>
-    public static bool RemovesBlankLinesBehindOwnLineComment(SyntaxToken token, FormattingContext context)
-    {
-        switch (token.Kind())
-        {
-            case SyntaxKind.OpenBraceToken:
-                {
-                    return token.Parent switch
-                           {
-                               InitializerExpressionSyntax initializer => initializer.IsKind(SyntaxKind.ArrayInitializerExpression) == false,
-                               PropertyPatternClauseSyntax or ExtensionBlockDeclarationSyntax or InterpolationSyntax => false,
-                               _ => IsOpeningBraceOfBlockStatementAfterStatement(token, context) == false,
-                           };
-                }
-
-            case SyntaxKind.CloseBraceToken:
-                {
-                    return token.Parent switch
-                           {
-                               InitializerExpressionSyntax initializer => initializer.IsKind(SyntaxKind.ArrayInitializerExpression) == false
-                                                                          && LineBreakInitializerRewriter.IsAssignedCollectionInitializer(initializer, context.RootConstruct) == false,
-                               ExtensionBlockDeclarationSyntax or InterpolationSyntax => false,
-                               _ => true,
-                           };
-                }
-
-            default:
-                {
-                    return IsClosingTokenOfPatternOrCollectionExpression(token);
-                }
-        }
     }
 
     /// <summary>
