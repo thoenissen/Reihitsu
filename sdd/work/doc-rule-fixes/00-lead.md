@@ -32,7 +32,11 @@ Bug-fix lane: spec author (clarifications only: RH8303, RH8401/RH8402, RH8307, R
 
 ## Maintainer answers
 
-(none yet)
+Batch 1 (before the test implementer):
+- **Q1 RH8307 (#1347):** first asked A (keep) / B (inline not reported); the maintainer said formatting tags must not be reported at all and the rule is about first-level tags. Asked back B (only inline formatting elements excluded) vs C (only top-level elements reported): **answer C** — RH8307 reports only top-level elements of a documentation comment; no nested element is reported (`<para>`, `<b>`, …). Checking nested elements is a follow-up feature issue; whether that becomes a new rule is decided there.
+- **Q2 RH8106/RH8306 several reported elements (#1270): A** — one diagnostic per reported element.
+- **Q3 escalation 10, `///` behind code (#1345): B** — not declared unsupported; formatter as on main; RH8303 reports the first `///` and its fix moves the comment (RH8303-006).
+- **Q4 RH8201/RH8203 partial member documented on both parts (#1617): B** — each part is reported on its own (both parts can carry independent errors); each RH8201 fix replaces only that part's summary; RH8203 reports `<inheritdoc/>` on both parts of a member that inherits nothing.
 
 ## Decisions taken
 
@@ -46,6 +50,7 @@ Bug-fix lane: spec author (clarifications only: RH8303, RH8401/RH8402, RH8307, R
 | 6 | Spec author | Drop rule-page goals of #1345 and #1347 | Accept | Rule pages list no exceptions (AGENTS.md) | Rule pages unchanged | b148498 |
 | 8 | Skeptic | #1092: fixing the group alone only renames RH8002 to RH8001 on the issue's input, contradicting #1037 Q3a (#1091) | Option C: no code change; `Refs #1092`; characterization test kept; SHARED-DOC-002 clarification reverted | agent-filed goal; A would put visible output in question, B pulls in vNext behavior change | No output changes | pending |
 | 9 | Skeptic | #1348 architecture finding: `BlankLineTokenCleanupRewriter` and `BlankLineRegionDirectiveRewriter` both decide the gap; correct only by order | Fix narrowly (analyzer side); spec author words FMT-BLANK-010 as the required output, not as a single-owner claim; structural single owner becomes a follow-up | Formatter output already correct; structure change outside the components the run changes | No formatter output changes | pending |
+| 10 | Batch 1 answers | Q1 C retires RH8307's nested-element coverage; Q2 A changes RH8106-002/RH8306-004 (one diagnostic per declaration) | Change doc required; widen the run's lane bug fix → behavior change; one change doc for the run's behavior changes; a fresh skeptic checks the amendment | sdd/README *When a change doc is required* | Every visible change is a maintainer answer | pending |
 | 7 | Spec author | #1153: `extension(long)` not reported, from the recorded P8b answer | Accept | The maintainer's P8b answer names it ("An unnamed parameter is not reported") | Covered by a maintainer answer | b148498 |
 
 ## Follow-up candidates
@@ -54,6 +59,7 @@ Bug-fix lane: spec author (clarifications only: RH8303, RH8401/RH8402, RH8307, R
 - RH4105 reports unnamed extension receivers (`extension(long)`) with no source location (SHARED-DIAG-007). — 02-skeptic.md
 - RH8031's verdict depends on the order of several summaries (extend #1449). — 02-skeptic.md
 - RH8107 and RH8202 mark only the first of several elements (same question as output Q2; carry its answer). — 02-skeptic.md
+- RH8307 for nested elements (maintainer, Q1 C): feature issue — whether nested elements of a documentation comment get their own check, possibly a new rule. — maintainer answer Q1
 - Link #1092 to #1091: the group fix only makes sense together with Q3a for partial types. — 02-skeptic.md
 - Blank-line phase: give the gap above a region directive behind a documentation comment one owner (cleanup rewriter vs region rewriter). — 02-skeptic.md (decision 9)
 
@@ -61,5 +67,7 @@ Bug-fix lane: spec author (clarifications only: RH8303, RH8401/RH8402, RH8307, R
 
 - Done: 01 spec author (b148498). Open output questions from 01: Q1 RH8307 wrapped inline element; Q2 RH8106/RH8306 several reported elements.
 - Done: 02 skeptic (8bb05b0).
-- Output batch 1 asked (Q1 RH8307 inline element, Q2 RH8106/RH8306 several elements, Q3 escalation 10 behind-code `///`, Q4 RH8201/RH8203 partial member documented on both parts). Waiting.
+- Output batch 1 asked (Q1 RH8307 inline element, Q2 RH8106/RH8306 several elements, Q3 escalation 10 behind-code `///`, Q4 RH8201/RH8203 partial member documented on both parts). Answered (see Maintainer answers).
+- Lane widened to behavior change (decision 10).
+- Next: spec author 03 (change doc + amendments), then fresh skeptic 04 on the amendment, then test implementer.
 - After answers: spec author repair (revert SHARED-DOC-002 for #1092; FMT-BLANK-010 wording; RH8201-001/RH8203-001 per Q4; Q1/Q2 answers; retag notes), then test implementer.
