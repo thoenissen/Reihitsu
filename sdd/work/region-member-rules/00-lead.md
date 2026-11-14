@@ -57,6 +57,7 @@ None beyond the triage comments above, which are the maintainer's (account) re-t
 | 16 | Implementer | RH7311: a type wholly inside `#if NET…` — implementer counts a branch only when its directive starts inside the type | Accept; spec author states it in RH7311-001, test implementer adds a test | Matches today's output and the maintainer's active-configuration principle; a literal reading would silence RH7311 for common whole-file `#if` | Output unchanged from `main` | e780d7d, 373d0ff |
 | 17 | Implementer | `RegionDirectiveUtilities.TryFindContainingRegion` has no production caller left | Remove it and its Core test | Cleanup the run's change touches | Internal | 373d0ff, c939751 |
 | 18 | Implementer | 156 net production lines, no new type | Accept, no escalation 9 | Spread over seven issues and ~20 rules; per-issue changes are small; no new type | Internal | 69a1330 |
+| 19 | Audit 1 | Auditor hints: duplicate `TryGetContainingRegionName` wrappers (pre-existing), extra `GetDeclaredSymbol` calls | Not taken; no follow-up | Pre-existing duplication, cosmetic; perf negligible | Internal | n/a |
 | 12 | Skeptic | Follow-up candidates: RH7311 branch-vs-outside; formatter `=` continuation after empty `#if` | Dropped | RH7311 decided by its unchanged spec (no defect); formatter case rare and stable | n/a | n/a |
 
 ## Follow-up candidates
@@ -83,4 +84,7 @@ Answered in full (see Maintainer answers).
 - Spec author e780d7d, test implementer 373d0ff: all corrected tests pass.
 - Implementer c939751: helper removed; analyzer 9269/9269, core 652/652 in Debug.
 - Cleaner 1c90aa7 clean (Release build 0 warnings); spec checker b20a7a0 consistent, no findings.
-- Next: auditor (11), then validator, issue manager, publish.
+- Audit 1 at 5dde996 (base 8a26419): findings (#1337: #1 high, #2 medium; #1412: #3 medium) — 11-auditor.md. Audited SHA 5dde996.
+- Repair round 1 worklist: A1 (RH7107/RH7108 expression-bodied accessor `;` outside body → implementer + tests), A2 (RH7105/RH7106 duplicate inline span → one helper, implementer), A3 (directive in front of the first modifier: tests pin reported+fixed, test implementer). All PR-introduced.
+- Output question Q5 asked (auditor hint: RH7102/RH7109 fix now offered across-region case); waiting before routing repairs.
+- Next: answer Q5 → test implementer (12), implementer (13), cleaner, spec checker, auditor (repair only), validator.
