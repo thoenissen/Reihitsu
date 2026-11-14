@@ -245,13 +245,14 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     }
 
     /// <summary>
-    /// Verifying that the fix changes only the layout of a documentation comment and of a raw string literal in the
-    /// methods it converts, and keeps the comment's text and the literal's value
+    /// Verifying that the fix keeps the documentation comment of the method it converts as written, and changes only the
+    /// indentation of a raw string literal in the body it replaces, keeping the literal's value
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-FIX-003")]
-    public async Task VerifyFixChangesOnlyTheLayoutOfDocumentationCommentsAndRawStringLiterals()
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixKeepsTheDocumentationCommentAndChangesOnlyTheLayoutOfRawStringLiterals()
     {
         const string testData = """"
                                 public class C
@@ -270,10 +271,8 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
         const string resultData = """"
                                   public class C
                                   {
-                                      /// <summary>
-                                      /// runs
-                                      /// </summary>
-                                      /// <returns>one</returns>
+                                      ///<summary>runs</summary>
+                                      ///<returns>one</returns>
                                       public int M()
                                       {
                                           return 1;
@@ -292,31 +291,83 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     }
 
     /// <summary>
-    /// Characterizes that the fix collapses two blank lines above the converted method to one
+    /// Verifies the specified layout example: the fix keeps the two blank lines above the converted method and changes
+    /// only the indentation of the raw string literal in the other converted method
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyFixCollapsesTwoBlankLinesAboveTheMethod()
+    [Requirement("SHARED-FIX-003")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("RH3202-002")]
+    public async Task VerifyFixKeepsTwoBlankLinesAboveTheMethod()
     {
-        const string testData = """
-                                class C
+        const string testData = """"
+                                public class C
                                 {
                                     private int _value;
 
 
                                     public int GetValue() {|RH3202:=> _value|};
+
+                                    public string N() {|RH3202:=>
+                                        """
+                                        a
+                                        """|};
+                                }
+                                """";
+
+        const string resultData = """"
+                                  public class C
+                                  {
+                                      private int _value;
+
+
+                                      public int GetValue()
+                                      {
+                                          return _value;
+                                      }
+
+                                      public string N()
+                                      {
+                                          return """
+                                                 a
+                                                 """;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the two blank lines below the converted method
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("RH3202-002")]
+    public async Task VerifyFixKeepsTwoBlankLinesBelowTheMethod()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    public int GetValue() {|RH3202:=> _value|};
+
+
+                                    private int _value;
                                 }
                                 """;
 
         const string resultData = """
                                   class C
                                   {
-                                      private int _value;
-
                                       public int GetValue()
                                       {
                                           return _value;
                                       }
+
+
+                                      private int _value;
                                   }
                                   """;
 
@@ -570,16 +621,17 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     }
 
     /// <summary>
-    /// Verifies that the fix lays out a method indented with tabs from the column the tabs stand for, four columns each
+    /// Verifies that the fix of a method indented with tabs keeps the tabs in front of the signature, which it does not
+    /// replace, and lays out the new block from the column the tabs stand for, four columns each
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("FMT-PIPE-017")]
-    [Requirement("FMT-TAB-001")]
-    public async Task VerifyFixLaysOutMethodIndentedWithTabsFromTheColumnTheTabsStandFor()
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("SHARED-BODY-003")]
+    public async Task VerifyFixKeepsTheTabsInFrontOfTheSignatureOfAMethodIndentedWithTabs()
     {
         const string testData = "namespace N\n{\n\tclass C\n\t{\n\t\tint Get() {|#0:=> 1|};\n\t}\n}";
-        const string fixedData = "namespace N\n{\n\tclass C\n\t{\n        int Get()\n        {\n            return 1;\n        }\n\t}\n}";
+        const string fixedData = "namespace N\n{\n\tclass C\n\t{\n\t\tint Get()\n        {\n            return 1;\n        }\n\t}\n}";
 
         await Verify(testData,
                      fixedData,
@@ -587,8 +639,8 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     }
 
     /// <summary>
-    /// Verifies that the fix of a method indented with tabs moves the content line and the closing marker of a raw string under
-    /// its opening quotes
+    /// Verifies that the fix of a method indented with tabs keeps the tabs in front of the signature and moves the content
+    /// line and the closing marker of a raw string under its opening quotes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -597,7 +649,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     public async Task VerifyFixMovesRawStringOfMethodIndentedWithTabsUnderTheOpeningQuotes()
     {
         const string testData = "namespace N\n{\n\tclass C\n\t{\n\t\tstring Get() {|#0:=> \"\"\"\n                a\n                \"\"\"|};\n\t}\n}";
-        const string fixedData = "namespace N\n{\n\tclass C\n\t{\n        string Get()\n        {\n            return \"\"\"\n                   a\n                   \"\"\";\n        }\n\t}\n}";
+        const string fixedData = "namespace N\n{\n\tclass C\n\t{\n\t\tstring Get()\n        {\n            return \"\"\"\n                   a\n                   \"\"\";\n        }\n\t}\n}";
 
         await Verify(testData,
                      fixedData,
@@ -659,15 +711,16 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     }
 
     /// <summary>
-    /// Verifies that the fix moves the first of two delimited documentation comments behind the previous member onto a new
-    /// line below a blank line, keeps the second behind it, and lays out the converted method below them, under LF and CRLF
+    /// Verifies that the fix keeps two delimited documentation comments behind the previous member where they stand,
+    /// inserts no blank line, and lays out the converted method below them, under LF and CRLF
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyFixMovesFirstOfTwoDelimitedDocumentationCommentsBehindPreviousMember()
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixKeepsTwoDelimitedDocumentationCommentsBehindPreviousMember()
     {
         const string testData = "internal class C\n{\n    private int _a; /** a */ /** b */\n    public int M() {|#0:=> 1|};\n}";
-        const string fixedData = "internal class C\n{\n    private int _a;\n\n    /** a */ /** b */\n    public int M()\n    {\n        return 1;\n    }\n}";
+        const string fixedData = "internal class C\n{\n    private int _a; /** a */ /** b */\n    public int M()\n    {\n        return 1;\n    }\n}";
 
         await Verify(testData, fixedData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
         await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
@@ -1153,6 +1206,377 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
                                  """;
 
         await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the specified example: the fix converts only the body and keeps the spacing of the signature, and leaves
+    /// no whitespace at the end of the signature's line, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-BODY-003")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task FixKeepsTheSpacingOfTheSignature(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _value;
+
+                                    public int  GetValue( ) {|RH3202:=> _value|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private int _value;
+
+                                      public int  GetValue( )
+                                      {
+                                          return _value;
+                                      }
+                                  }
+                                  """;
+
+        await VerifyCodeFixWithEndOfLine(testData, resultData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the documentation comment, the attribute on the method's line, and the spacing of the
+    /// modifiers and the signature as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task FixKeepsTheDocumentationCommentAndTheAttributeOnTheMethodsLine()
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    private int _value;
+
+                                    ///<summary>x</summary>
+                                    [Obsolete] public  int GetValue( ) {|RH3202:=> _value|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  class C
+                                  {
+                                      private int _value;
+
+                                      ///<summary>x</summary>
+                                      [Obsolete] public  int GetValue( )
+                                      {
+                                          return _value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the whitespace between the signature and the arrow goes with the arrow, so no whitespace is left at
+    /// the end of the signature's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    public async Task FixLeavesNoWhitespaceBehindTheSignatureWhenSeveralSpacesStoodInFrontOfTheArrow()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _value;
+
+                                    public int  GetValue( )    {|RH3202:=> _value|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private int _value;
+
+                                      public int  GetValue( )
+                                      {
+                                          return _value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that a block comment behind the signature on its line stays there, the spacing of the signature stays as
+    /// written, and the whitespace between the comment and the arrow goes with the arrow
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    public async Task FixKeepsABlockCommentBehindTheSignatureOnItsLine()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _value;
+
+                                    public int  GetValue( ) /* c */   {|RH3202:=> _value|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private int _value;
+
+                                      public int  GetValue( ) /* c */
+                                      {
+                                          return _value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that a line comment behind the signature stays there when the arrow starts the next line, and the spacing
+    /// of the signature stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    public async Task FixKeepsALineCommentBehindTheSignatureWhenTheArrowStartsTheNextLine()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _value;
+
+                                    public int  GetValue( ) // c
+                                        {|RH3202:=> _value|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private int _value;
+
+                                      public int  GetValue( ) // c
+                                      {
+                                          return _value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a method whose arrow starts the next line keeps the spacing of the signature
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    public async Task FixKeepsTheSpacingOfTheSignatureWhenTheArrowStartsTheNextLine()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _value;
+
+                                    public int  GetValue( )
+                                        {|RH3202:=> _value|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private int _value;
+
+                                      public int  GetValue( )
+                                      {
+                                          return _value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps a constraint clause on the signature's line as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    public async Task FixKeepsAConstraintClauseAsWritten()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    public T  M<T>( )  where T : class {|RH3202:=> default|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      public T  M<T>( )  where T : class
+                                      {
+                                          return default;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of an <c>async</c> method keeps the spacing of its signature
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    public async Task FixKeepsTheSpacingOfTheSignatureOfAnAsyncMethod()
+    {
+        const string testData = """
+                                using System.Threading.Tasks;
+
+                                class C
+                                {
+                                    public async  Task<int>  GetAsync( ) {|RH3202:=> await Task.FromResult(1)|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System.Threading.Tasks;
+
+                                  class C
+                                  {
+                                      public async  Task<int>  GetAsync( )
+                                      {
+                                          return await Task.FromResult(1);
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All converts two methods of one type and keeps the spacing of both signatures and the blank
+    /// lines between them, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-BODY-003")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task FixAllKeepsTheSignaturesOfTwoMethods(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    public int  First( ) {|RH3202:=> 1|};
+
+
+                                    public int Second(  int a ) {|RH3202:=> a|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      public int  First( )
+                                      {
+                                          return 1;
+                                      }
+
+
+                                      public int Second(  int a )
+                                      {
+                                          return a;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine), ConvertEndOfLine(resultData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that no fix is offered for a method whose body holds a comment inside a variable declaration, which the
+    /// formatter refuses
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task NoFixIsOfferedForAMethodWhoseBodyHoldsACommentTheFormatterRefuses()
+    {
+        const string source = """
+                              using System;
+
+                              internal class C
+                              {
+                                  public int Run() {|RH3202:=> Get(() => { int /* c */ y = 1; return y; })|};
+
+                                  private static int Get(Func<int> value)
+                                  {
+                                      return value();
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a comment the formatter refuses in another member of the type does not withhold the fix, and that
+    /// member stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task FixIsOfferedWhenAnotherMemberHoldsACommentTheFormatterRefuses()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int /* c */ _value = 1;
+
+                                    public int  GetValue( ) {|RH3202:=> _value|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private int /* c */ _value = 1;
+
+                                      public int  GetValue( )
+                                      {
+                                          return _value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
     }
 
     /// <summary>
