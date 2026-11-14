@@ -63,4 +63,5 @@
 - Audit base main: cf6d26b03fe1917f193d412c8540916f93a00dc4; audited SHA: a092887ce41998f97a81c4dd8291e5015ba28067 (head before this note).
 - Auditor 09 (a2b86fa): findings — #1 high (RH3001 keyword-touching `!`), #2/#3 low.
 - Spec author 10 (a3c0ffe): RH3001-009 added.
-- Next step: test implementer 11, then implementer 12.
+- Test implementer 11 (6481fbe): 14 red, 6 green for RH3001-009.
+- Next step: implementer 12 (auditor #1, #2, #3), then cleaner, spec checker, auditor (repair only).
