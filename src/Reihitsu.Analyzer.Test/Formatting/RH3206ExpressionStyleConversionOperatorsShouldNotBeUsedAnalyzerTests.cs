@@ -324,6 +324,34 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzerTest
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that the fix converts only the body of a conversion operator and keeps the spacing of its signature
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    public async Task VerifyFixKeepsTheSpacingOfTheSignature()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    public static implicit  operator int( C a ) {|RH3206:=> 0|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      public static implicit  operator int( C a )
+                                      {
+                                          return 0;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

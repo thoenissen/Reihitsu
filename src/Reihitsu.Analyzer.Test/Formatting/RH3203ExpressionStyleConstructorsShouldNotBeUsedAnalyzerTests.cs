@@ -315,12 +315,17 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Bat
     }
 
     /// <summary>
-    /// Characterizes that the fix lays out the whole constructor: the documentation comment, the attribute on the
-    /// signature's line, and the signature's spacing
+    /// Verifies the specified example: the fix replaces only the expression body, and keeps the documentation comment,
+    /// the attribute on the constructor's line, and the spacing of the signature as written, under LF and CRLF
     /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyFixLaysOutTheWholeConstructor()
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("SHARED-BODY-003")]
+    public async Task VerifyFixFormatsOnlyTheReplacedBody(string endOfLine)
     {
         const string testData = """
                                 using System;
@@ -341,26 +346,24 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Bat
                                   {
                                       private int _value;
 
-                                      /// <summary>
-                                      /// x
-                                      /// </summary>
-                                      [Obsolete]
-                                      public C(int value)
+                                      ///<summary>x</summary>
+                                      [Obsolete] public  C( int value )
                                       {
                                           _value = value;
                                       }
                                   }
                                   """;
 
-        await Verify(testData, resultData);
+        await VerifyCodeFixWithEndOfLine(testData, resultData, endOfLine);
     }
 
     /// <summary>
-    /// Characterizes that the fix moves a constructor initializer on the signature's line onto its own line
+    /// Verifies that the fix keeps a constructor initializer on the signature's line where it stands
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyFixMovesTheConstructorInitializerOntoItsOwnLine()
+    [Requirement("SHARED-BODY-003")]
+    public async Task VerifyFixKeepsTheConstructorInitializerOnTheSignaturesLine()
     {
         const string testData = """
                                 using System;
@@ -384,8 +387,7 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Bat
                                       {
                                       }
 
-                                      public C(string s)
-                                          : this(s.Length)
+                                      public C(string s) : this(s.Length)
                                       {
                                           Console.WriteLine(s);
                                       }
@@ -396,11 +398,96 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Bat
     }
 
     /// <summary>
-    /// Characterizes that the fix collapses two blank lines above the converted constructor to one
+    /// Verifies that the fix keeps the spacing of a constructor initializer and of the signature in front of it as written
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyFixCollapsesTwoBlankLinesAboveTheConstructor()
+    [Requirement("SHARED-BODY-003")]
+    public async Task VerifyFixKeepsTheSpacingOfTheConstructorInitializer()
+    {
+        const string testData = """
+                                class B
+                                {
+                                    public B(int value)
+                                    {
+                                    }
+                                }
+
+                                class C : B
+                                {
+                                    private int _value;
+
+                                    public C( int value ) :  base( value ) {|RH3203:=> _value = value|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  class B
+                                  {
+                                      public B(int value)
+                                      {
+                                      }
+                                  }
+
+                                  class C : B
+                                  {
+                                      private int _value;
+
+                                      public C( int value ) :  base( value )
+                                      {
+                                          _value = value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps a constructor initializer on the line below the signature where it stands
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    public async Task VerifyFixKeepsAConstructorInitializerOnTheLineBelowTheSignature()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    public C(int value)
+                                    {
+                                    }
+
+                                    public C( string s )
+                                        : this( s.Length ) {|RH3203:=> s.ToString()|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      public C(int value)
+                                      {
+                                      }
+
+                                      public C( string s )
+                                          : this( s.Length )
+                                      {
+                                          s.ToString();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the two blank lines above the converted constructor
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixKeepsTwoBlankLinesAboveTheConstructor()
     {
         const string testData = """
                                 class C
@@ -417,9 +504,49 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Bat
                                   {
                                       private int _value;
 
+
                                       public C()
                                       {
                                           _value = 1;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All converts two constructors of one type and keeps the spacing of both signatures
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    public async Task VerifyFixAllKeepsTheSignaturesOfTwoConstructors()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _value;
+
+                                    public  C( ) {|RH3203:=> _value = 1|};
+
+                                    public C(  int value ) {|RH3203:=> _value = value|};
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private int _value;
+
+                                      public  C( )
+                                      {
+                                          _value = 1;
+                                      }
+
+                                      public C(  int value )
+                                      {
+                                          _value = value;
                                       }
                                   }
                                   """;

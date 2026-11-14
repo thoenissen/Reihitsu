@@ -2696,6 +2696,91 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
                      });
     }
 
+    /// <summary>
+    /// Verifies that the fix converts only the body of a local function and keeps the spacing of its signature, and of
+    /// the containing method and its other statements
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    public async Task VerifyFixKeepsTheSpacingOfTheSignature()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int  Run( int a )
+                                    {
+                                        int  x = a;
+
+                                        return Local(x);
+
+                                        int  Local( int  v ) {|RH3208:=> v + 1|};
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      int  Run( int a )
+                                      {
+                                          int  x = a;
+
+                                          return Local(x);
+
+                                          int  Local( int  v )
+                                          {
+                                              return v + 1;
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of an <c>async</c> local function keeps the spacing of its signature
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    public async Task VerifyFixKeepsTheSpacingOfTheSignatureOfAnAsyncLocalFunction()
+    {
+        const string testData = """
+                                using System.Threading.Tasks;
+
+                                class C
+                                {
+                                    async Task<int> Run()
+                                    {
+                                        return await Local();
+
+                                        async  Task<int>  Local( ) {|RH3208:=> await Task.FromResult(1)|};
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System.Threading.Tasks;
+
+                                  class C
+                                  {
+                                      async Task<int> Run()
+                                      {
+                                          return await Local();
+
+                                          async  Task<int>  Local( )
+                                          {
+                                              return await Task.FromResult(1);
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

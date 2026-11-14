@@ -90,16 +90,31 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedCodeFixProvider :
     }
 
     /// <summary>
-    /// Converts the local function by formatting it. A local function that shares its line with a preceding label starts
-    /// in the middle of that line, so it is formatted in the context of the label that starts the line, which anchors the
-    /// new body at that line's column. A local function that starts its own line keeps its own column, labeled or not
+    /// Converts the local function's expression body to the block body the formatter produces for it; the rest of the
+    /// local function stays as written (SHARED-BODY-003). A local function that shares its line with a preceding label
+    /// starts in the middle of that line, so it is formatted in the context of the label that starts the line, which
+    /// anchors the new body at that line's column. A local function that starts its own line keeps its own column, labeled
+    /// or not
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="localFunction">Local function</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    private static async Task<Document> FormatAsync(Document document, LocalFunctionStatementSyntax localFunction, CancellationToken cancellationToken)
+    private static Task<Document> FormatAsync(Document document, LocalFunctionStatementSyntax localFunction, CancellationToken cancellationToken)
     {
+        return ExpressionBodyCodeFixUtilities.ConvertBodyAsync(document, localFunction, FormatLocalFunctionAsync, cancellationToken);
+    }
+
+    /// <summary>
+    /// Formats the local function, in the context of the label that starts its line when it does not start the line itself
+    /// </summary>
+    /// <param name="document">Document</param>
+    /// <param name="node">Local function</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The document with the formatted local function</returns>
+    private static async Task<Document> FormatLocalFunctionAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+    {
+        var localFunction = (LocalFunctionStatementSyntax)node;
         var contextNode = GetLineStartingLabel(localFunction);
 
         if (contextNode == localFunction)
