@@ -45,4 +45,5 @@
 - Done: audit 1 (`08-auditor.md`, e60b17f) on 01672a1, base b34c0f1: one low finding (dead fact, #1529); #1543 clean.
 - Repair round 1 worklist: (a) spec author removes FMT-PIPE-024 "Conditional-access branch" row (and any other spec text naming the fact); (b) implementer deletes the flag and boundary branch; keep `RootContinuesChain`.
 - Done: spec author repair (`09`, 2be1c17); implementer repair (`10`, 3940f29) — one disputed test, decision 7.
-- Next: test implementer repair (decision 7) → cleaner → spec checker → auditor (repair only) → validator.
+- Done: test implementer repair (`11`, ce39258): test deleted, coverage confirmed.
+- Next: cleaner → spec checker → auditor (repair only) → validator.
