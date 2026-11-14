@@ -25,6 +25,7 @@
 | 5 | Spec | Accept both change docs | Status set to Accepted | Every visible output change has the maintainer's answer | — | (this commit) |
 | 6 | Audit 1 | Finding #1: the conditional-access-branch fact (`FluentChainBoundary.RootIsConditionalAccessBranch`, its branch in `FluentChain.IsConditionalAccessBranch`, FMT-PIPE-024 row) is dead after the change | Delete it in this run (repair round 1): spec row → spec author, code → implementer | PR-introduced, small, deletes code; a follow-up would cost a run of its own | No caller reaches the fact any more, so no output changes | (repair) |
 | 7 | Repair 1 | Disputed test `ReihitsuFormatterDetachedRootTests.ConditionalAccessAssignmentTargetKeepsTheWrappedLinkOfItsAssignedMember` asserts output for a root no caller passes any more | Delete the test (test implementer) | AGENTS.md *Supported inputs*: no caller reaches it; changed FMT-PIPE-024 leaves the root undecided; its other cases are covered by FMT-PIPE-023 and RH5111-006 tests | Only a direct-call input; no caller produces it | (repair) |
+| 8 | Audit 2 | Comment fix for finding #2 fails `verify-text-only.sh --strict-docs` (public property of an internal record counts as public API doc); plain proof passes with identical tokens | Treat as repair round 2 as `lead.md` section 7 says: spec checker + auditor on the comment-only delta | Follow the playbook rather than override the proof | Comment-only; token stream identical | 7129a6a |
 | 1 | Claim | Branch name | Use the session's designated branch `claude/squad-1529-1543-wokrft` instead of `claude/issues-1529-1543-<slug>` | The session environment permits pushes only to the designated branch | Branch names are internal | claim commit |
 
 ## Follow-up candidates
@@ -49,4 +50,5 @@
 - Done: cleaner (`12`, eaab5a9): clean.
 - Done: spec checker (`13`, 5bf6f9a): consistent.
 - Done: audit 2 (`14`, a2d888a) on 79610f4 (audited SHA): pass; one comment-only finding #2 (`FormattingContext.RootChainBoundary` summary, :152-158).
-- Next: cleaner fixes the comment; prove with `scripts/verify-text-only.sh --strict-docs --base 79610f4 --head worktree`; then validator; then publish.
+- Done: cleaner (`15`, 7129a6a): comment fixed; strict proof FAIL, plain proof PASS → repair round 2 (decision 8).
+- Next: spec checker → auditor (delta 79610f4..head) → validator → publish.
