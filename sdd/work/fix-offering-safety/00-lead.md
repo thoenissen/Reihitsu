@@ -115,4 +115,5 @@ Batch 2 (questions 8–10, 2026-11-14):
 - 17 cleaner (5517687): clean; replaced CollectionAssert.AreEquivalent by ordered Assert.AreSequenceEqual in the arch test (MSTEST0068), meaning unchanged (accepted, decision-free: set equality over a deterministic ordinal order).
 - 18 spec checker (c9edf3e): 1 finding (decision 25).
 - 19 spec author (ea52344): clarification written.
-- Next: spec checker (20), auditor on the repair (21). After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
+- 20 spec checker consistent (8866098).
+- Next: auditor on the repair (21). After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
