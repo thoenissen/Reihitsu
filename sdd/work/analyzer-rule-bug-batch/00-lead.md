@@ -21,7 +21,7 @@ Bug fix (all five). Roles: spec author (clarifications: RH5601-001/RH5602-001 al
 
 ## Maintainer answers
 
-(none yet)
+1. #1079 (maintainer decision posted on the issue, 2026-10-18, before this run): for `class C⏎{⏎}⏎···⏎`, the RH5603 fix removes the whole whitespace-only tail in one application, as the formatter does (FMT-CLEAN-005). This covers the new RH5603 expected values (span from the first line break after `}`, fix result `}`). The issue's claim that RH5603 reports the result again was wrong (decision 9).
 
 ## Decisions taken
 
@@ -39,12 +39,15 @@ Bug fix (all five). Roles: spec author (clarifications: RH5601-001/RH5602-001 al
 | 10 | Test implementer | RH5602-001 example does not compile; RH5404 spec misses SHARED-FIX-001 under Uses | Fresh spec author fixes both (04); test implementer then aligns the RH5602 test with the renamed example | Spec defects found by tests, internal | Spec text only | — |
 | 11 | Test implementer | Formatter output for `M(/** c */→"abc");` | Dropped, not a follow-up | A comment inside an argument list is a rare input class (RH5038 reports it) | — | — |
 | 12 | Implementer | #1708 test `VerifyUnnamedReferenceReceiverParameterIsNotReported` uses `extension(ref int)`, which does not compile (CS9305) | Test is wrong: fresh test implementer drops the `ref` case | Invalid C#; no compiling input reaches it | The asserted output (not reported) is internal to an input that does not compile | — |
+| 13 | Auditor | Finding 1: stale `position` doc comment on `IsInsideLiteralText` | Cleaner fixes it; proven text-only from the audited SHA, no second audit | Comment-only finding (lead.md section 7) | Comment text | — |
+| 14 | Auditor | Hint: the three new Core members are tested only through analyzer tests | No Core.Test tests added | Their behavior is covered by the analyzer tests of every caller | Internal | — |
 
 ## Follow-up candidates
 
 1. RH5603 reports a file that ends in a line break after a directive line or a `///` comment; the formatter keeps such files with or without that line break (FC-013). Carry an output question: A not reported (recommended), B the formatter removes the line break. Source: 02-skeptic.md, #1079.
 2. Formatter output for a document whose line breaks are all lone `\r` reportedly contains mixed line endings (confirmed by the test implementer: the RH5202 analyzer reports the formatter's output for such a document; after 7d29e2b RH5202 no longer reports it; whether the formatter's output still has mixed line endings is unverified). Source: 02-skeptic.md, #1613.
+3. The formatter keeps a private interpolation-brace check in `RawStringLineShifts` (Reihitsu.Formatter), a second statement of the check that Core's `IsInterpolationBrace` now owns for the analyzers (FC-015). Source: 10-auditor.md hints.
 
 ## Worklist / next step
 
-- Done: through spec checker (09 d87d1b7, consistent). No output questions open. Next: auditor.
+- Audited SHA: d75cd95 (tree of ff6c88c plus the audit handover); audit passed with two low text findings. Next: cleaner fixes the doc comment (11), verify-text-only, validator, publish.
