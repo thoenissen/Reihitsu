@@ -87,13 +87,13 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
     }
 
     /// <summary>
-    /// Characterizes a documentation-style comment in a syntax tree whose documentation mode is none: it is not reported.
-    /// This test pins today's behavior; the decided behavior is stated by SHARED-DOC-008, under which a rule about an
-    /// ordinary comment checks every documentation mode, and its change belongs to an existing follow-up
+    /// Verifies that a documentation-style comment in a syntax tree whose documentation mode is none is reported and
+    /// fixed as in mode parse
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
+    [Requirement("RH8401-006")]
+    public async Task VerifyDiagnosticAndCodeFixWhenDocumentationModeIsNone()
     {
         const string source = """
                               namespace TestNamespace;
@@ -107,7 +107,22 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
                               }
                               """;
 
-        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+        const string fixedSource = """
+                                   namespace TestNamespace;
+
+                                   internal class TestClass
+                                   {
+                                       // just a comment
+                                       internal void TestMethod()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject),
+                     Diagnostics(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, AnalyzerResources.RH8401MessageFormat));
     }
 
     /// <summary>
@@ -494,6 +509,231 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
                                    "}\r\n");
 
         await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example with the documentation mode none: the two lines of a comment without XML are
+    /// reported and converted, and a comment with an inline element is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8401-006")]
+    public async Task VerifySpecificationExampleWhenDocumentationModeIsNone()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        {|RH8401:///|} workaround
+                                        {|RH8401:///|} for the old service
+                                    }
+
+                                    /// Stops <c>now</c>
+                                    void N()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         // workaround
+                                         // for the old service
+                                     }
+
+                                     /// Stops <c>now</c>
+                                     void N()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that with the documentation mode none, comments without XML are reported wherever they stand, as in mode
+    /// parse: in front of a declaration, in a method body, behind code, with a character reference, and without text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8401-006")]
+    public async Task VerifyCommentsWithoutXmlAreReportedWhereverTheyStandWhenDocumentationModeIsNone()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|#0:///|} Temporary workaround
+                                    {|#1:///|} for the old service
+                                    int A;
+
+                                    void M()
+                                    {
+                                        {|#2:///|} Call it again
+                                        M();
+                                        int b = 0; {|#3:///|} Behind code
+                                    }
+
+                                    {|#4:///|} Tom &amp; Jerry
+                                    int D;
+
+                                    {|#5:///|}
+                                    int E;
+                                }
+                                """;
+
+        await Verify(testData,
+                     test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject),
+                     Diagnostics(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, AnalyzerResources.RH8401MessageFormat, 6));
+    }
+
+    /// <summary>
+    /// Verifies that with the documentation mode none, comments that hold XML on any of their lines, a delimited comment,
+    /// and a four-slash comment are not reported, as in mode parse
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8401-006")]
+    public async Task VerifyCommentsWithXmlAreNotReportedWhenDocumentationModeIsNone()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// Runs the service
+                                    /// </summary>
+                                    void M()
+                                    {
+                                    }
+
+                                    /// Stops <c>now</c>
+                                    void N()
+                                    {
+                                    }
+
+                                    /// <!-- Note -->
+                                    int A;
+
+                                    /** Plain text */
+                                    int B;
+
+                                    //// Four slashes
+                                    int D;
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that with the documentation mode none, a comment whose first line stands behind code and whose second
+    /// line holds an element is one comment with XML, as in mode parse, and is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8401-006")]
+    public async Task VerifyCommentContinuedBelowCodeWithElementIsNotReportedWhenDocumentationModeIsNone()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A; /// x
+                                    /// <c>y</c>
+                                    int B;
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that with the documentation mode none, a blank line ends a comment as in mode parse: the plain line above
+    /// it is reported, and the line with an element below it is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8401-006")]
+    public async Task VerifyBlankLineEndsTheCommentWhenDocumentationModeIsNone()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH8401:///|} first
+
+                                    /// <c>second</c>
+                                    int A;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     // first
+
+                                     /// <c>second</c>
+                                     int A;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that with the documentation mode none, the fix converts every line of a comment in a CRLF document and
+    /// keeps its line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8401-006")]
+    public async Task VerifyCodeFixWithCarriageReturnLineFeedWhenDocumentationModeIsNone()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        {|RH8401:///|} workaround
+                                        {|RH8401:///|} for the old service
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         // workaround
+                                         // for the old service
+                                     }
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData),
+                     NormalizeToCarriageReturnLineFeed(fixedData),
+                     test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that with the documentation mode none, a comment with a byte order mark in front of its second line's
+    /// slashes is reported on both lines and gets no code fix, as in mode parse
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8401-006")]
+    public async Task VerifyNoCodeFixForByteOrderMarkInFrontOfSecondLineWhenDocumentationModeIsNone()
+    {
+        var source = string.Concat("class C\n",
+                                   "{\n",
+                                   "    void M()\n",
+                                   "    {\n",
+                                   "        {|RH8401:///|} first\n",
+                                   "        ﻿{|RH8401:///|} second\n",
+                                   "    }\n",
+                                   "}\n");
+
+        await VerifyNoCodeFixIsOffered(source, DocumentationMode.None);
     }
 
     #endregion // Tests

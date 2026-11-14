@@ -55,15 +55,11 @@ public class RH8106ElementReturnValueDocumentationMustHaveTextAnalyzer : Diagnos
             return;
         }
 
-        var returnsNode = DirectDocumentationSyntaxChecker.GetFirstDirectTag(documentationComment, "returns");
-
-        if (returnsNode == null
-            || DocumentationAnalysisUtilities.IsEmpty(returnsNode) == false)
+        // Each top-level returns element is judged on its own, whatever its position among the others
+        foreach (var returnsNode in DirectDocumentationSyntaxChecker.GetDirectTags(documentationComment, "returns").Where(DocumentationAnalysisUtilities.IsEmpty))
         {
-            return;
+            context.ReportDiagnostic(CreateDiagnostic(returnsNode.GetLocation()));
         }
-
-        context.ReportDiagnostic(CreateDiagnostic(returnsNode.GetLocation()));
     }
 
     #endregion // Methods

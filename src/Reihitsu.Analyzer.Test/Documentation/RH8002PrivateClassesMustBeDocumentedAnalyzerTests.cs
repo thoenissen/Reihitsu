@@ -208,6 +208,38 @@ public class RH8002PrivateClassesMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
         await Verify(source, Diagnostics(RH8002PrivateClassesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8002MessageFormat, 2));
     }
 
+    /// <summary>
+    /// Characterizes a nested partial class whose first part is public and documented and whose second part states no
+    /// accessibility and is undocumented: the private-group rule reports the second part. The group of a partial type
+    /// across its parts is not decided by this test; it pins today's behavior
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyUndocumentedPartWithoutAccessibilityOfPublicPartialClassIsReported()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Container.</summary>
+                              public partial class Container
+                              {
+                                  /// <summary>Visible.</summary>
+                                  public partial class Visible
+                                  {
+                                  }
+                              }
+
+                              public partial class Container
+                              {
+                                  partial class {|#0:Visible|}
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8002PrivateClassesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8002MessageFormat));
+    }
+
     #endregion // Diagnostic cases
 
     #region No-diagnostic cases

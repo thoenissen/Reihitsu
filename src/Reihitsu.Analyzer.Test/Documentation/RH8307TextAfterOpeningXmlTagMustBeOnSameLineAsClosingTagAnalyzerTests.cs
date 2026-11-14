@@ -228,8 +228,8 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
     }
 
     /// <summary>
-    /// Verifies that top-level and nested elements whose content starts beside the start tag while the end tag is on
-    /// a later line are reported, with text or a nested element as the first content
+    /// Verifies that top-level elements whose content starts beside the start tag while the end tag is on a later line
+    /// are reported, with text or a nested element as the first content
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -257,24 +257,15 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
                                     }
 
                                     /// <summary>
-                                    /// Value
-                                    /// </summary>
-                                    /// <remarks>
-                                    /// {|#2:<para>First
-                                    /// second</para>|}
-                                    /// </remarks>
-                                    int A;
-
-                                    /// <summary>
                                     /// Count
                                     /// </summary>
-                                    /// {|#3:<remarks><see cref="C"/>
+                                    /// {|#2:<remarks><see cref="C"/>
                                     /// tail</remarks>|}
                                     int B;
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat, 4));
+        await Verify(testData, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat, 3));
     }
 
     /// <summary>
@@ -816,12 +807,12 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
     }
 
     /// <summary>
-    /// Verifies the specification example: no fix is offered for an element of a delimited documentation comment
+    /// Verifies that a half-wrapped top-level element of a delimited documentation comment is not reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH8307-006")]
-    public async Task VerifySpecificationExampleNoCodeFixForElementOfDelimitedDocumentationComment()
+    [Requirement("RH8307-002")]
+    public async Task VerifyElementOfDelimitedDocumentationCommentDoesNotProduceDiagnostics()
     {
         const string source = """
                               class C
@@ -829,22 +820,23 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
                                   /** <summary>
                                   Total
                                   </summary>
-                                  {|RH8307:<remarks>Sum
-                                  more</remarks>|} */
+                                  <remarks>Sum
+                                  more</remarks> */
                                   int A;
                               }
                               """;
 
-        await VerifyNoCodeFixIsOffered(source);
+        await Verify(source);
     }
 
     /// <summary>
-    /// Verifies that no fix is offered for an element nested in another element of a delimited documentation comment
+    /// Verifies that a half-wrapped element nested in another element of a delimited documentation comment is not
+    /// reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH8307-006")]
-    public async Task VerifyNoCodeFixForNestedElementOfDelimitedDocumentationComment()
+    [Requirement("RH8307-002")]
+    public async Task VerifyNestedElementOfDelimitedDocumentationCommentDoesNotProduceDiagnostics()
     {
         const string source = """
                               class C
@@ -853,25 +845,23 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
                                   Total
                                   </summary>
                                   <remarks>
-                                  {|RH8307:<para>Sum
-                                  more</para>|}
+                                  <para>Sum
+                                  more</para>
                                   </remarks> */
                                   int A;
                               }
                               """;
 
-        await VerifyNoCodeFixIsOffered(source);
+        await Verify(source);
     }
 
     /// <summary>
-    /// Verifies that the same nested element in a single-line documentation comment still gets the fix, next to the
-    /// delimited comment that gets none
+    /// Verifies that the same half-wrapped nested element in a single-line documentation comment is not reported either
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH8307-004")]
-    [Requirement("RH8307-006")]
-    public async Task VerifyFixForNestedElementOfSingleLineDocumentationComment()
+    [Requirement("RH8307-002")]
+    public async Task VerifyNestedElementOfSingleLineDocumentationCommentDoesNotProduceDiagnostics()
     {
         const string testData = """
                                 class C
@@ -880,29 +870,14 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
                                     /// Total
                                     /// </summary>
                                     /// <remarks>
-                                    /// {|#0:<para>Sum
-                                    /// more</para>|}
+                                    /// <para>Sum
+                                    /// more</para>
                                     /// </remarks>
                                     int A;
                                 }
                                 """;
-        const string fixedData = """
-                                 class C
-                                 {
-                                     /// <summary>
-                                     /// Total
-                                     /// </summary>
-                                     /// <remarks>
-                                     /// <para>
-                                     /// Sum
-                                     /// more
-                                     /// </para>
-                                     /// </remarks>
-                                     int A;
-                                 }
-                                 """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat));
+        await Verify(testData);
     }
 
     /// <summary>
@@ -973,6 +948,168 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
                                 """;
 
         await Verify(testData, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: half-wrapped top-level elements of delimited documentation comments are not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-002")]
+    public async Task VerifySpecificationExampleElementsOfDelimitedDocumentationCommentsDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /** <summary>Total
+                                     * sum</summary> */
+                                    int A;
+
+                                    /** <summary>
+                                    Count
+                                    </summary>
+                                    <remarks>Sum
+                                    more</remarks> */
+                                    int B;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: half-wrapped elements nested inside another element, a paragraph and an inline
+    /// formatting element, are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-002")]
+    public async Task VerifySpecificationExampleNestedElementsDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// Value
+                                    /// </summary>
+                                    /// <remarks>
+                                    /// <para>First
+                                    /// second</para>
+                                    /// Text <b>bold
+                                    /// still bold</b>
+                                    /// </remarks>
+                                    int A;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of the qualifier "at the top level": the half-wrapped remarks element is
+    /// reported, and the half-wrapped paragraph nested inside it is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-001")]
+    [Requirement("RH8307-002")]
+    public async Task VerifySpecificationExampleOnlyTheTopLevelElementIsReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// Value
+                                    /// </summary>
+                                    /// {|RH8307:<remarks>Text
+                                    /// <para>First
+                                    /// second</para>
+                                    /// </remarks>|}
+                                    int A;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a top-level element whose first content is a half-wrapped nested element is reported, and the nested
+    /// element is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-001")]
+    [Requirement("RH8307-002")]
+    public async Task VerifyTopLevelElementStartingWithHalfWrappedNestedElementIsReportedAlone()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// Value
+                                    /// </summary>
+                                    /// {|RH8307:<remarks><para>First
+                                    /// second</para>
+                                    /// </remarks>|}
+                                    int A;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that half-wrapped elements two levels deep, a list item and its description inside remarks, are not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-002")]
+    public async Task VerifyElementsNestedTwoLevelsDeepDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// Value
+                                    /// </summary>
+                                    /// <remarks>
+                                    /// <list type="bullet">
+                                    /// <item><description>First
+                                    /// second</description>
+                                    /// </item>
+                                    /// </list>
+                                    /// </remarks>
+                                    int A;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that half-wrapped inline elements nested in a summary, a code span and a reference with content, are not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-002")]
+    public async Task VerifyInlineElementsNestedInSummaryDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// Uses <c>first
+                                    /// second</c> and <see cref="C">the
+                                    /// type</see>
+                                    /// </summary>
+                                    int A;
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     #endregion // Tests

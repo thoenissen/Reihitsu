@@ -722,5 +722,242 @@ public class BlankLineRequirementTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies the specification example: a region directive directly below a documentation comment gets one blank line
+    /// above it, and several blank lines above an end-region directive collapse to one
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-010")]
+    public void RegionDirectiveBelowDocumentationCommentKeepsOneBlankLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int _a;
+
+                                 /// <summary>
+                                 /// Doc
+                                 /// </summary>
+                                 #region A
+
+                                 void M()
+                                 {
+                                 }
+
+                                 /// <summary>
+                                 /// Doc
+                                 /// </summary>
+
+
+                                 #endregion // A
+
+                                 int B;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int _a;
+
+                                    /// <summary>
+                                    /// Doc
+                                    /// </summary>
+
+                                    #region A
+
+                                    void M()
+                                    {
+                                    }
+
+                                    /// <summary>
+                                    /// Doc
+                                    /// </summary>
+
+                                    #endregion // A
+
+                                    int B;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that one blank line between a documentation comment and a region directive stays as it is
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-010")]
+    public void OneBlankLineBetweenDocumentationCommentAndRegionDirectiveStays()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int _a;
+
+                                 /// <summary>
+                                 /// Doc
+                                 /// </summary>
+
+                                 #region A
+
+                                 void M()
+                                 {
+                                 }
+
+                                 #endregion // A
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that several blank lines between a documentation comment and a region directive collapse to one
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-010")]
+    public void SeveralBlankLinesBetweenDocumentationCommentAndRegionDirectiveCollapseToOne()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int _a;
+
+                                 /// <summary>
+                                 /// Doc
+                                 /// </summary>
+
+
+
+                                 #region A
+
+                                 void M()
+                                 {
+                                 }
+
+                                 #endregion // A
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int _a;
+
+                                    /// <summary>
+                                    /// Doc
+                                    /// </summary>
+
+                                    #region A
+
+                                    void M()
+                                    {
+                                    }
+
+                                    #endregion // A
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an end-region directive directly below a documentation comment gets one blank line above it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-010")]
+    public void EndRegionDirectiveDirectlyBelowDocumentationCommentGetsOneBlankLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 #region A
+
+                                 void M()
+                                 {
+                                 }
+
+                                 /// <summary>
+                                 /// Doc
+                                 /// </summary>
+                                 #endregion // A
+
+                                 int B;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    #region A
+
+                                    void M()
+                                    {
+                                    }
+
+                                    /// <summary>
+                                    /// Doc
+                                    /// </summary>
+
+                                    #endregion // A
+
+                                    int B;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the blank line between a documentation comment and a declaration is still removed next to a region
+    /// directive whose blank line stays
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-010")]
+    public void BlankLineBeforeDeclarationIsRemovedNextToRegionDirective()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 #region A
+
+                                 /// <summary>
+                                 /// Doc
+                                 /// </summary>
+
+                                 void M()
+                                 {
+                                 }
+
+                                 #endregion // A
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    #region A
+
+                                    /// <summary>
+                                    /// Doc
+                                    /// </summary>
+                                    void M()
+                                    {
+                                    }
+
+                                    #endregion // A
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

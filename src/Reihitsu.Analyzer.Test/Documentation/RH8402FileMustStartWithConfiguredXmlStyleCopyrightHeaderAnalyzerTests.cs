@@ -755,6 +755,120 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
                                          SpecificationCopyrightTextEndingInLineBreak);
     }
 
+    /// <summary>
+    /// Verifies the specification example with the documentation mode none: a file without the header is reported, and
+    /// the fix writes the header in front of the code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-007")]
+    public async Task SpecificationExampleMissingHeaderWhenDocumentationModeIsNone()
+    {
+        await VerifySpecificationFileFixWhenDocumentationModeIsNone("namespace N;",
+                                                                    "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\nnamespace N;");
+    }
+
+    /// <summary>
+    /// Verifies the specification example with the documentation mode none: the fix replaces an old header and keeps the
+    /// documentation comment directly behind it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-007")]
+    public async Task SpecificationExampleDocumentationCommentBehindOldHeaderIsKeptWhenDocumentationModeIsNone()
+    {
+        await VerifySpecificationFileFixWhenDocumentationModeIsNone("// Copyright (c) Old Corp.\n/// <summary>\n/// Type\n/// </summary>\nclass C\n{\n}\n",
+                                                                    "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\n/// <summary>\n/// Type\n/// </summary>\nclass C\n{\n}\n");
+    }
+
+    /// <summary>
+    /// Verifies that with the documentation mode none, the fix replaces an old header and keeps the delimited
+    /// documentation comment directly behind it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-007")]
+    public async Task DelimitedDocumentationCommentBehindOldHeaderIsKeptWhenDocumentationModeIsNone()
+    {
+        await VerifySpecificationFileFixWhenDocumentationModeIsNone("// Copyright (c) Old Corp.\n/** <summary>Type</summary> */\nclass C\n{\n}\n",
+                                                                    "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\n/** <summary>Type</summary> */\nclass C\n{\n}\n");
+    }
+
+    /// <summary>
+    /// Verifies that with the documentation mode none, the fix writes the header in front of a documentation comment
+    /// that starts the file
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-007")]
+    public async Task FixInsertsHeaderInFrontOfDocumentationCommentWhenDocumentationModeIsNone()
+    {
+        await VerifySpecificationFileFixWhenDocumentationModeIsNone("/// <summary>Type</summary>\nclass C\n{\n}\n",
+                                                                    "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\n/// <summary>Type</summary>\nclass C\n{\n}\n");
+    }
+
+    /// <summary>
+    /// Verifies that with the documentation mode none, the fix replaces an old header and keeps the blank line and the
+    /// documentation comment behind it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-007")]
+    public async Task FixReplacesOldHeaderAndKeepsBlankLineInFrontOfDocumentationCommentWhenDocumentationModeIsNone()
+    {
+        await VerifySpecificationFileFixWhenDocumentationModeIsNone("// Copyright (c) Old Corp.\n\n/// <summary>Type</summary>\nclass C\n{\n}\n",
+                                                                    "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\n\n/// <summary>Type</summary>\nclass C\n{\n}\n");
+    }
+
+    /// <summary>
+    /// Verifies that with the documentation mode none, the fix replaces an old header in a CRLF file and keeps the
+    /// documentation comment behind it and every line break CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-007")]
+    public async Task DocumentationCommentBehindOldHeaderIsKeptWithCarriageReturnLineFeedWhenDocumentationModeIsNone()
+    {
+        await VerifySpecificationFileFixWhenDocumentationModeIsNone("// Copyright (c) Old Corp.\r\n/// <summary>Type</summary>\r\nclass C\r\n{\r\n}\r\n",
+                                                                    "// <copyright file=\"C.cs\" company=\"Example\">\r\n// Copyright (c) Example.\r\n// </copyright>\r\n/// <summary>Type</summary>\r\nclass C\r\n{\r\n}\r\n");
+    }
+
+    /// <summary>
+    /// Verifies that with the documentation mode none, a file without the header, with a header naming another file, and
+    /// with a blank line in front of the header is reported at the start of the file
+    /// </summary>
+    /// <param name="source">Checked file</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("namespace N;\n\nclass C\n{\n}\n")]
+    [DataRow("// <copyright file=\"Other.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\nnamespace N;\n")]
+    [DataRow("\n// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\nnamespace N;\n")]
+    [Requirement("RH8402-007")]
+    public async Task FileNotStartingWithHeaderWhenDocumentationModeIsNone(string source)
+    {
+        await VerifySpecificationFile(source,
+                                      CreateSpecificationConfiguration(),
+                                      test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject),
+                                      CreateSpecificationFileDiagnostic());
+    }
+
+    /// <summary>
+    /// Verifies that with the documentation mode none, a file that starts with the header, also when a documentation
+    /// comment follows it, is not reported
+    /// </summary>
+    /// <param name="source">Checked file</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\nnamespace N;\n")]
+    [DataRow("// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\n/// <summary>Type</summary>\nclass C\n{\n}\n")]
+    [Requirement("RH8402-007")]
+    public async Task FileStartingWithHeaderIsNotReportedWhenDocumentationModeIsNone(string source)
+    {
+        await VerifySpecificationFile(source,
+                                      CreateSpecificationConfiguration(),
+                                      test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
     #endregion // Tests
 
     #region Methods
@@ -872,6 +986,33 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
                          test.FixedState.Sources.Add((SpecificationFilePath, fixedSource));
                          test.FixedState.AdditionalFiles.Add(("reihitsu.json", configuration));
                          test.TestBehaviors |= TestBehaviors.SkipSuppressionCheck;
+                     },
+                     CreateSpecificationFileDiagnostic());
+    }
+
+    /// <summary>
+    /// Verifies the diagnostic and the code fix on the file that the specification examples check, in a syntax tree
+    /// whose documentation mode is none
+    /// </summary>
+    /// <param name="source">Text of the checked file</param>
+    /// <param name="fixedSource">Expected text after the fix</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifySpecificationFileFixWhenDocumentationModeIsNone(string source, string fixedSource)
+    {
+        var configuration = CreateSpecificationConfiguration();
+
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add((SpecificationFilePath, source));
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                         test.FixedState.Sources.Clear();
+                         test.FixedState.Sources.Add((SpecificationFilePath, fixedSource));
+                         test.FixedState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                         test.TestBehaviors |= TestBehaviors.SkipSuppressionCheck;
+                         test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject);
                      },
                      CreateSpecificationFileDiagnostic());
     }
