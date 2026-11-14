@@ -99,4 +99,5 @@ Batch 2 (questions 8–10, 2026-11-14):
 - 07 implementer done (3c1336e code, 0723292 handover): all tests pass except 2 disputed (setup).
 - 08 test implementer done (0b5dfd9): both disputed tests fixed (setup), fail on 53f6660 for the right reason.
 - 09 cleaner clean (dfff379).
-- Next: spec checker (10), then pre-audit steps and auditor. After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
+- 10 spec checker (6595b16): 1 finding — change doc does not mention SHARED-FIX-011 / RH5308-006. Repair round 1: route to fresh spec author (11), then spec checker again (12).
+- Next: spec author (11). After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
