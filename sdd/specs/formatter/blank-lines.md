@@ -2072,21 +2072,20 @@ class C
 }
 ```
 
-### FMT-BLANK-020 — Behind a comment on its own line, no blank line before a brace or closing bracket
+### FMT-BLANK-020 — Behind a comment on its own line, no blank line before a brace, closing bracket, or chained keyword
 
 When the last content in the gap before one of the following tokens is an ordinary comment on its own line, as FMT-BLANK-018 classifies it, the formatter MUST remove the blank lines between that comment and the token:
 
-- an opening or closing brace, other than
-  - a brace of an array initializer, of an extension block, or of an interpolation,
-  - the opening brace of a property pattern,
-  - the closing brace of a collection initializer that is assigned to a member inside an object initializer (`L = { 1 }`),
-  - the opening brace of a block statement that follows another statement, above which FMT-BLANK-017 decides the blank lines, comments included;
+- an opening or closing brace, whatever construct it belongs to — a type, a block, an accessor list, a switch statement, an initializer of any kind, an array initializer and a nested element of one included, an anonymous object, a switch expression, a property pattern, an extension block, and the closing brace of an interpolation — other than the opening brace of a block statement that follows another statement, above which FMT-BLANK-017 decides the blank lines, comments included;
+- the `else`, `catch`, `finally`, and do-statement `while` keywords;
 - the closing bracket of a collection expression or a list pattern;
 - the closing parenthesis of a parenthesized pattern.
 
-What stands in front of the comment on its line does not matter: a line that holds `/* a */ /* b */`, `/** d */ // c`, or the end of a multi-line comment followed by `// c` ends with an ordinary comment like a line that holds `// c` alone. The kind of the token and the construct it belongs to decide, never the layout of that construct: the opening brace of a complex element initializer is named whether the element stays on one line or spans several, and the opening brace of a collection initializer assigned to a member is named like the opening brace of any other collection initializer. The blank lines above that comment are decided by the other requirements, such as FMT-BLANK-011 for the first comment of the gap. A comment that trails the previous token on its line is not in the gap's own lines; the blank lines behind it are directly before the token (FMT-BLANK-007, FMT-BLANK-008). A comment on the token's line is FMT-BLANK-018's, also a delimited comment that starts on an earlier line and ends on the token's line (`// c⏎⏎/* x⏎ */ }`: FMT-BLANK-018 removes the blank line above `/* x`), and a documentation comment that ends its line is FMT-BLANK-010's.
+These are the tokens FMT-BLANK-007, FMT-BLANK-008, and FMT-BLANK-019 remove a blank line directly in front of.
 
-Why: The comment describes the token below it, or the end of the construct the token closes; a blank line between the two detaches it, as a blank line directly before the token would (FMT-BLANK-007, FMT-BLANK-008, FMT-BLANK-019). The formatter mirrors RH5024 and RH5025, which report such a blank line before a closing and an opening brace. Behind the braces excluded, the formatter's output has kept the author's blank line; whether it should remove it there too is not decided by this requirement. The set is decided by syntax alone, because a layout that the line-break phase changes later cannot decide a blank line the blank-line phase writes.
+What stands in front of the comment on its line does not matter: a line that holds `/* a */ /* b */`, `/** d */ // c`, or the end of a multi-line comment followed by `// c` ends with an ordinary comment like a line that holds `// c` alone. The kind of the token decides, and for an opening brace whether it opens a block statement that follows another statement, never the layout of the construct: the opening brace of a complex element initializer is named whether the element stays on one line or spans several, and both braces of a collection initializer assigned to a member are named like the braces of any other collection initializer. The blank lines above that comment are decided by the other requirements, such as FMT-BLANK-011 for the first comment of the gap. A comment that trails the previous token on its line is not in the gap's own lines; the blank lines behind it are directly before the token (FMT-BLANK-007, FMT-BLANK-008). A comment on the token's line is FMT-BLANK-018's, also a delimited comment that starts on an earlier line and ends on the token's line (`// c⏎⏎/* x⏎ */ }`: FMT-BLANK-018 removes the blank line above `/* x`), and a documentation comment that ends its line is FMT-BLANK-010's.
+
+Why: The comment describes the token below it, or the end of the construct the token closes; a blank line between the two detaches it, as a blank line directly before the token would (FMT-BLANK-007, FMT-BLANK-008, FMT-BLANK-019). The formatter mirrors RH5024, RH5025, RH5026, and RH5027, which report such a blank line before a closing brace, an opening brace, `else`, `catch`, or `finally`, and a do-statement's `while`, whatever construct the brace belongs to; one set of tokens for the blank line directly in front of them and behind a comment keeps the formatter's output free of their reports. The set is decided by syntax alone, because a layout that the line-break phase changes later cannot decide a blank line the blank-line phase writes.
 
 Example — before a closing bracket, the opening brace of an object initializer, and a closing brace; the blank line between two comments stays, and FMT-BLANK-011 puts one above the first comment of each gap:
 
@@ -2229,6 +2228,229 @@ class C
         a++;
 
         /* a */ /* b */
+    }
+}
+```
+
+Behind a comment on its own line in front of the braces of an array initializer, a nested element of one, an extension block, a property pattern, and a collection initializer assigned to a member, in front of the closing brace of an interpolation, and in front of `else`, `catch`, `finally`, and a do-statement's `while`. FMT-BLANK-011 puts a blank line above each comment, as above any other comment that starts its own line:
+
+```csharp
+using System.Collections.Generic;
+
+static class E
+{
+    extension(int i)
+    // g
+
+    {
+        public int D => i;
+        // h
+
+    }
+}
+
+class P
+{
+    public List<int> L { get; } = new();
+}
+
+class C
+{
+    int[] G =
+    {
+        1
+        // d
+
+    };
+
+    int[,] H =
+    {
+        { 1 },
+        // e
+
+        { 2 }
+    };
+
+    void M(object o, int a)
+    {
+        int[] g;
+        g = new int[]
+            // c
+
+            {
+                1,
+                2
+                // d
+
+            };
+
+        if (o is C
+            // e
+
+            { })
+        {
+        }
+
+        var p = new P
+                {
+                    L =
+                    {
+                        1
+                        // d
+
+                    }
+                };
+
+        var s = $$"""
+            {{
+                a
+                // f
+
+            }}
+            """;
+
+        if (a > 0)
+        {
+            a++;
+        }
+        // c
+
+        else
+        {
+            a--;
+        }
+
+        try
+        {
+            a++;
+        }
+        // t
+
+        catch
+        {
+        }
+        // u
+
+        finally
+        {
+        }
+
+        do
+        {
+            a++;
+        }
+        // f
+
+        while (a > 0);
+    }
+}
+```
+
+```csharp
+using System.Collections.Generic;
+
+static class E
+{
+    extension(int i)
+
+    // g
+    {
+        public int D => i;
+
+        // h
+    }
+}
+
+class P
+{
+    public List<int> L { get; } = new();
+}
+
+class C
+{
+    int[] G = {
+                  1
+
+                  // d
+              };
+
+    int[,] H = {
+                   { 1 },
+
+                   // e
+                   { 2 }
+               };
+
+    void M(object o, int a)
+    {
+        int[] g;
+        g = new int[]
+
+            // c
+            {
+                1,
+                2
+
+                // d
+            };
+
+        if (o is C
+
+        // e
+        { })
+        {
+        }
+
+        var p = new P
+                {
+                    L = {
+                            1
+
+                            // d
+                        }
+                };
+
+        var s = $$"""
+                  {{
+                      a
+
+                      // f
+                  }}
+                  """;
+
+        if (a > 0)
+        {
+            a++;
+        }
+
+        // c
+        else
+        {
+            a--;
+        }
+
+        try
+        {
+            a++;
+        }
+
+        // t
+        catch
+        {
+        }
+
+        // u
+        finally
+        {
+        }
+
+        do
+        {
+            a++;
+        }
+
+        // f
+        while (a > 0);
     }
 }
 ```
