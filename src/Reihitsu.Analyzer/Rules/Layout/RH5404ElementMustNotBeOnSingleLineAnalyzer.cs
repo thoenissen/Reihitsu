@@ -38,7 +38,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
-    /// Analyzes a type declaration
+    /// Analyzes a type declaration or an extension block
     /// </summary>
     /// <param name="context">Context</param>
     private void OnDeclaration(SyntaxNodeAnalysisContext context)
@@ -65,7 +65,12 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBase
 
         if (openBraceLine == closeBraceLine)
         {
-            context.ReportDiagnostic(CreateDiagnostic(declaration.Identifier.GetLocation()));
+            // An extension block has no name, so its diagnostic is located on its 'extension' keyword.
+            var location = declaration is ExtensionBlockDeclarationSyntax extensionBlock
+                               ? extensionBlock.Keyword.GetLocation()
+                               : declaration.Identifier.GetLocation();
+
+            context.ReportDiagnostic(CreateDiagnostic(location));
         }
     }
 

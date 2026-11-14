@@ -48,7 +48,7 @@ public class RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyz
 
         foreach (var token in root.DescendantTokens().Where(currentToken => currentToken.IsKind(SyntaxKind.CloseBraceToken)))
         {
-            if (FormattingTextAnalysisUtilities.IsInsideInterpolatedString(token))
+            if (FormattingTextAnalysisUtilities.IsInterpolationBrace(token))
             {
                 continue;
             }

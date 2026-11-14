@@ -56,7 +56,9 @@ public class RH5404ElementMustNotBeOnSingleLineCodeFixProvider : CodeFixProvider
         {
             foreach (var diagnostic in context.Diagnostics)
             {
+                // No fix is offered for an extension block: the formatter does not place its braces on their own lines.
                 if (root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.FirstAncestorOrSelf<BaseTypeDeclarationSyntax>() is { } declaration
+                    && declaration is not ExtensionBlockDeclarationSyntax
                     && ReihitsuFormatter.FindUnsupportedSyntax(declaration) == null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5404Title,

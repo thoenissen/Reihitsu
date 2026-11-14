@@ -40,5 +40,30 @@ public class RH6010ClosingBracesMustBeSpacedCorrectlyFormatterTests : FormatterT
                               Diagnostics(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6010MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the closing brace of an array initializer in an interpolation hole is reported, and that the
+    /// formatter writes a space in front of it and clears the diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH6010-001")]
+    public async Task VerifyFormatterFixesArrayInitializerBraceInAHole()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string s = $"{new int[] { 1{|#0:}|}.Length}";
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     string s = $"{new int[] { 1 }.Length}";
+                                 }
+                                 """;
+
+        await VerifyFormatter(testData, fixedData, Diagnostics(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6010MessageFormat));
+    }
+
     #endregion // Tests
 }

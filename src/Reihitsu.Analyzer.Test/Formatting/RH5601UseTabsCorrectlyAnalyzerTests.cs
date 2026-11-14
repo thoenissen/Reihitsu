@@ -711,6 +711,498 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : BatchCodeFixTestsBase<RH5601U
         await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that every tab of the requirement's example is reported, the tabs in front of and behind literals,
+    /// in front of a literal behind a <c>/** */</c> comment, and inside an interpolation hole included
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    [Requirement("SHARED-DIAG-003")]
+    public async Task VerifyEveryTabOfTheRequirementExampleIsReported()
+    {
+        const string testData = """"
+                                #define{|RH5601:→|}FEATURE
+                                class C
+                                {
+                                {|RH5601:→|}int{|RH5601:→|}x;{|RH5601:→|}// note
+                                    string u = $"""
+                                        {1
+                                {|RH5601:→|}+ 2}
+                                        """;
+                                #pragma{|RH5601:→|}warning disable CS0168
+                                #pragma warning restore CS0168
+                                    string a ={|RH5601:→|}"abc";{|RH5601:→|}// note
+                                    string b =
+                                {|RH5601:→|}"abc";
+                                    string c = /** c */{|RH5601:→|}"abc";
+                                    char d ={|RH5601:→|}'d';
+                                    string e = $"{{|RH5601:→|}1{|RH5601:→|}}";
+                                }
+                                """";
+
+        await Verify(ExpandWhitespaceMarkers(testData));
+    }
+
+    /// <summary>
+    /// Verifies that a tab that starts a line in front of a string literal is code, and is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    [Requirement("RH5601-004")]
+    public async Task VerifyTabStartingALineInFrontOfAStringLiteralIsDetectedAndFixed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string b =
+                                {|#0:→|}"abc";
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     string b =
+                                     "abc";
+                                 }
+                                 """;
+
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a tab that starts a line in front of a string literal is reported and fixed under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    [Requirement("RH5601-004")]
+    public async Task VerifyTabStartingALineInFrontOfAStringLiteralIsDetectedAndFixedWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string b =
+                                {|#0:→|}"abc";
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     string b =
+                                     "abc";
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(testData)), NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(fixedData)), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a tab that starts a line in front of the opening quotes of a multi-line raw string literal is
+    /// code, and is reported and fixed without touching the literal's lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    [Requirement("RH5601-004")]
+    public async Task VerifyTabStartingALineInFrontOfARawStringIsDetectedAndFixed()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    string m =
+                                {|#0:→|}"""
+                                        a
+                                        """;
+                                }
+                                """";
+        const string fixedData = """"
+                                 class C
+                                 {
+                                     string m =
+                                     """
+                                         a
+                                         """;
+                                 }
+                                 """";
+
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a tab between a <c>/** */</c> comment and a string literal is code, and is reported and fixed, with
+    /// the documentation mode the verifier parses with by default
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    [Requirement("RH5601-004")]
+    public async Task VerifyTabBehindADelimitedDocumentationCommentInFrontOfAStringLiteralIsDetectedAndFixed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string c = /** c */{|#0:→|}"abc";
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     string c = /** c */    "abc";
+                                 }
+                                 """;
+
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a tab between a <c>/** */</c> comment and a string literal is reported and fixed when the document is
+    /// parsed with <see cref="DocumentationMode.Parse"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    [Requirement("RH5601-004")]
+    public async Task VerifyTabBehindADelimitedDocumentationCommentInFrontOfAStringLiteralIsDetectedAndFixedInDocumentationModeParse()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string c = /** c */{|#0:→|}"abc";
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     string c = /** c */    "abc";
+                                 }
+                                 """;
+
+        await Verify(ExpandWhitespaceMarkers(testData),
+                     ExpandWhitespaceMarkers(fixedData),
+                     static test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject),
+                     Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a tab between a <c>/** */</c> comment and a string literal is reported and fixed when the document is
+    /// parsed with <see cref="DocumentationMode.None"/>, where the comment is an ordinary comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    [Requirement("RH5601-004")]
+    public async Task VerifyTabBehindADelimitedDocumentationCommentInFrontOfAStringLiteralIsDetectedAndFixedInDocumentationModeNone()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string c = /** c */{|#0:→|}"abc";
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     string c = /** c */    "abc";
+                                 }
+                                 """;
+
+        await Verify(ExpandWhitespaceMarkers(testData),
+                     ExpandWhitespaceMarkers(fixedData),
+                     static test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject),
+                     Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a tab behind a regular string literal, in front of an operator, is code, and is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    [Requirement("RH5601-004")]
+    public async Task VerifyTabBehindAStringLiteralIsDetectedAndFixed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string f = "a"{|#0:→|}+ "b";
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     string f = "a"    + "b";
+                                 }
+                                 """;
+
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a tab behind a regular string literal is reported and fixed under CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    [Requirement("RH5601-004")]
+    public async Task VerifyTabBehindAStringLiteralIsDetectedAndFixedWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string f = "a"{|#0:→|}+ "b";
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     string f = "a"    + "b";
+                                 }
+                                 """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(testData)), NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(fixedData)), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a tab between a string literal and the semicolon behind it is code, and is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    [Requirement("RH5601-004")]
+    public async Task VerifyTabBetweenAStringLiteralAndItsSemicolonIsDetectedAndFixed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string i = "a"{|#0:→|};
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     string i = "a"    ;
+                                 }
+                                 """;
+
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a tab behind a character literal is code, and is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    [Requirement("RH5601-004")]
+    public async Task VerifyTabBehindACharacterLiteralIsDetectedAndFixed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int g = 'a'{|#0:→|}+ 1;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int g = 'a'    + 1;
+                                 }
+                                 """;
+
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a tab in front of a character literal is code, and is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    [Requirement("RH5601-004")]
+    public async Task VerifyTabInFrontOfACharacterLiteralIsDetectedAndFixed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    char d ={|#0:→|}'d';
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     char d =    'd';
+                                 }
+                                 """;
+
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a tab behind a verbatim string literal is code, and is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    [Requirement("RH5601-004")]
+    public async Task VerifyTabBehindAVerbatimStringLiteralIsDetectedAndFixed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string h = @"a"{|#0:→|}+ "b";
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     string h = @"a"    + "b";
+                                 }
+                                 """;
+
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a tab behind a UTF-8 string literal is code, and is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    [Requirement("RH5601-004")]
+    public async Task VerifyTabBehindAUtf8StringLiteralIsDetectedAndFixed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var j = "a"u8{|#0:→|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var j = "a"u8    ;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a tab behind a single-line raw string literal is code, and is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    [Requirement("RH5601-004")]
+    public async Task VerifyTabBehindASingleLineRawStringLiteralIsDetectedAndFixed()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    string k = """a"""{|#0:→|};
+                                }
+                                """";
+        const string fixedData = """"
+                                 class C
+                                 {
+                                     string k = """a"""    ;
+                                 }
+                                 """";
+
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a tab behind the closing quotes of a multi-line raw string literal is code, and is reported and
+    /// fixed without touching the literal's lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    [Requirement("RH5601-004")]
+    public async Task VerifyTabBehindTheClosingQuotesOfARawStringIsDetectedAndFixed()
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    string l = """
+                                        a
+                                        """{|#0:→|};
+                                }
+                                """";
+        const string fixedData = """"
+                                 class C
+                                 {
+                                     string l = """
+                                         a
+                                         """    ;
+                                 }
+                                 """";
+
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the tabs on both sides of a string literal inside an interpolation hole are code, and are reported
+    /// and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    [Requirement("RH5601-004")]
+    [Requirement("SHARED-DIAG-003")]
+    public async Task VerifyTabsAroundAStringLiteralInAHoleAreDetectedAndFixed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string n = $"{{|#0:→|}"x"{|#1:→|}}";
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     string n = $"{    "x"    }";
+                                 }
+                                 """;
+
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that a tab inside the text of a literal next to a reported tab stays content: the fix replaces only the
+    /// tab behind the literal
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5601-001")]
+    [Requirement("RH5601-002")]
+    public async Task VerifyCodeFixReplacesTheTabBehindAStringLiteralAndKeepsTheTabInsideIt()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string o = "a→b"{|#0:→|};
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     string o = "a→b"    ;
+                                 }
+                                 """;
+
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(fixedData), Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
