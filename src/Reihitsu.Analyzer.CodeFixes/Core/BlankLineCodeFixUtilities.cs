@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -130,7 +131,24 @@ internal static class BlankLineCodeFixUtilities
     /// <param name="member">Member</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The updated document</returns>
-    public static async Task<Document> FormatMemberOnLinesOfItsOwnAsync(Document document, MemberDeclarationSyntax member, CancellationToken cancellationToken)
+    public static Task<Document> FormatMemberOnLinesOfItsOwnAsync(Document document, MemberDeclarationSyntax member, CancellationToken cancellationToken)
+    {
+        return FormatMemberOnLinesOfItsOwnAsync(document, member, FormatNodeAsync, cancellationToken);
+    }
+
+    /// <summary>
+    /// Gives a member lines of its own as <see cref="FormatMemberOnLinesOfItsOwnAsync(Document, MemberDeclarationSyntax, CancellationToken)"/>
+    /// does, and then lets the caller format it
+    /// </summary>
+    /// <param name="document">Document</param>
+    /// <param name="member">Member</param>
+    /// <param name="formatAsync">Formats the given member, which belongs to the given document, and returns the updated document</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The updated document</returns>
+    public static async Task<Document> FormatMemberOnLinesOfItsOwnAsync(Document document,
+                                                                        MemberDeclarationSyntax member,
+                                                                        Func<Document, SyntaxNode, CancellationToken, Task<Document>> formatAsync,
+                                                                        CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -176,7 +194,19 @@ internal static class BlankLineCodeFixUtilities
 
         return node == null
                    ? document
-                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(newDocument, node, cancellationToken).ConfigureAwait(false)).Output;
+                   : await formatAsync(newDocument, node, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Formats a node through the formatter
+    /// </summary>
+    /// <param name="document">Document</param>
+    /// <param name="node">Node, which belongs to <paramref name="document"/></param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The document with the formatted node</returns>
+    private static async Task<Document> FormatNodeAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+    {
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, node, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     /// <summary>
