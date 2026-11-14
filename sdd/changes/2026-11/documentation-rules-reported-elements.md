@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | RH8307-001 (changed), RH8307-002 (changed), RH8106-001 (coverage changed), RH8106-002 (changed), RH8306-001 (coverage changed), RH8306-004 (changed), RH8201-001 (changed), RH8201-004 (changed), RH8201-005 (example added), RH8203-001 (changed), SHARED-DIAG-004 (second paragraph extended), the rule page `documentation/rules/RH8307.md` |
 
