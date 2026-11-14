@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-BREAK-012 (changed), FMT-BREAK-011 (changed) |
 
@@ -26,7 +26,7 @@ thoenissen/Reihitsu#1635 observed that `Foo(1⏎, 2, 3);` stays partly wrapped a
 
 ## Visible output changes
 
-Each entry shows the formatter's output on `main` (`scripts/format.sh` at 62e50b5, which has no production change against f8239ce) and the output after this change. Entries 1 to 5 are the maintainer's answers for #1635; entries 6 to 11 follow from them for the other list kinds, for commas held or accompanied by a comment or directive, and for the code fixes that delegate to the formatter. The "after" outputs are the requirements' outputs; the code to produce them is not written yet.
+Each entry shows the formatter's output on `main` (`scripts/format.sh` at 62e50b5, which has no production change against f8239ce) and the output after this change. Entries 1 to 5 are the maintainer's answers for #1635; entries 6 to 11 follow from them for the other list kinds, for commas held or accompanied by a comment or directive, and for the code fixes that delegate to the formatter. The "after" outputs are the requirements' outputs and what the formatter produces with this change.
 
 **1. An argument list wrapped in front of a comma**
 
