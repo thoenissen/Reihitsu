@@ -5,7 +5,7 @@
 | ID prefix | PLAY |
 | Status | Active |
 | Code owners | `Home`, `MainLayout`, `PlaygroundFormatter`, `PlaygroundFormatResult`, `PlaygroundVersion` |
-| Uses | FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-008, FMT-PIPE-007, FMT-UNSUP-001 |
+| Uses | FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-008, FMT-PIPE-007, FMT-PIPE-033, FMT-UNSUP-001, FMT-UNSUP-002 |
 
 This spec covers the user-visible behavior of the Reihitsu Playground, a Blazor WebAssembly page that formats pasted C# with the Reihitsu formatter: what it shows, when it formats, and what it does with input it cannot format.
 
@@ -100,3 +100,29 @@ class C
 ```
 
 The output is the same text, and the message "The input contains syntax the formatter does not support and was left unchanged: line 5, column 13 — a comment between a variable declaration's own tokens." is shown.
+
+### PLAY-009 — Input whose text another build compiles as code is shown unchanged with a message
+
+When the input holds a hiding carrier as FMT-PIPE-033 defines it — a string literal or a delimited comment that spans lines, starts inside a conditional group, and holds a line that another build reads as an `#elif`, `#else`, or `#endif` directive — the Playground MUST show the input unchanged as the output and show the message "The input contains code hidden in another build configuration and was left unchanged." below the button. It MUST decide this by the definition of FMT-PIPE-033, not by a definition of its own. Input with a syntax error shows the message of PLAY-006 instead, and input that also holds a shape the formatter refuses as unsupported shows this message, not PLAY-008's: FMT-PIPE-033 applies before the formatter's precheck (FMT-UNSUP-002). The message MUST disappear on the next successful format.
+
+Why: The formatter leaves such input as written (FMT-PIPE-033); without the message the unchanged output would look like the formatter had nothing to do, the reason PLAY-006 gives for syntax errors.
+
+Example — input:
+
+```csharp
+class C
+{
+    void M()
+    {
+#if !A
+        /*
+#else
+        var s = @"
+        */
+        int  x = 1; //";
+#endif
+    }
+}
+```
+
+The output is the same text, and the message is shown.
