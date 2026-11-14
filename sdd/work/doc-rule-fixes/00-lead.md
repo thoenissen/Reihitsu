@@ -51,6 +51,8 @@ Batch 1 (before the test implementer):
 | 8 | Skeptic | #1092: fixing the group alone only renames RH8002 to RH8001 on the issue's input, contradicting #1037 Q3a (#1091) | Option C: no code change; `Refs #1092`; characterization test kept; SHARED-DOC-002 clarification reverted | agent-filed goal; A would put visible output in question, B pulls in vNext behavior change | No output changes | pending |
 | 9 | Skeptic | #1348 architecture finding: `BlankLineTokenCleanupRewriter` and `BlankLineRegionDirectiveRewriter` both decide the gap; correct only by order | Fix narrowly (analyzer side); spec author words FMT-BLANK-010 as the required output, not as a single-owner claim; structural single owner becomes a follow-up | Formatter output already correct; structure change outside the components the run changes | No formatter output changes | pending |
 | 10 | Batch 1 answers | Q1 C retires RH8307's nested-element coverage; Q2 A changes RH8106-002/RH8306-004 (one diagnostic per declaration) | Change doc required; widen the run's lane bug fix → behavior change; one change doc for the run's behavior changes; a fresh skeptic checks the amendment | sdd/README *When a change doc is required* | Every visible change is a maintainer answer | pending |
+| 11 | Spec author 03 | RH8307 rule page Description now names top-level elements | Accept as covered by Q1 C | The page states the scope the maintainer decided; no further question | Covered by maintainer answer Q1 C | be4ef83 |
+| 12 | Spec author 03 | One change doc covering Q1 C, Q2 A, Q4 B; Q4 B written into the rule specs, not SHARED-DIAG-004 | Accept | Extending SHARED-DIAG-004 would contradict RH8306's once-per-partial-property | Internal placement | be4ef83 |
 | 7 | Spec author | #1153: `extension(long)` not reported, from the recorded P8b answer | Accept | The maintainer's P8b answer names it ("An unnamed parameter is not reported") | Covered by a maintainer answer | b148498 |
 
 ## Follow-up candidates
@@ -69,5 +71,6 @@ Batch 1 (before the test implementer):
 - Done: 02 skeptic (8bb05b0).
 - Output batch 1 asked (Q1 RH8307 inline element, Q2 RH8106/RH8306 several elements, Q3 escalation 10 behind-code `///`, Q4 RH8201/RH8203 partial member documented on both parts). Answered (see Maintainer answers).
 - Lane widened to behavior change (decision 10).
-- Next: spec author 03 (change doc + amendments), then fresh skeptic 04 on the amendment, then test implementer.
+- Done: 03 spec author (be4ef83), change doc `sdd/changes/2026-11/documentation-rules-reported-elements.md` (Draft).
+- Next: fresh skeptic 04 on the amendment; then accept change doc (set Accepted); then test implementer 05.
 - After answers: spec author repair (revert SHARED-DOC-002 for #1092; FMT-BLANK-010 wording; RH8201-001/RH8203-001 per Q4; Q1/Q2 answers; retag notes), then test implementer.
