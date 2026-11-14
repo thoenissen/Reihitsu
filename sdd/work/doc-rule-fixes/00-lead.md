@@ -39,11 +39,18 @@ Bug-fix lane: spec author (clarifications only: RH8303, RH8401/RH8402, RH8307, R
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name | Use the session-designated branch `claude/squad-tickets-review-y2yb3m` instead of `claude/batch-1345-<slug>` | The session environment permits pushing only to that branch | Internal | 065c044 |
+| 2 | Spec author | Clarify RH8301/RH8302 too for #1345, not only RH8303 | Accept | SHARED-DOC-004 names all three rules | Required by an unchanged shared requirement | b148498 |
+| 3 | Spec author | Mode `None` defined as "same result as mode `Parse`" (RH8401-006, RH8402-007) | Accept | Shortest statement of SHARED-DOC-008 | Required by SHARED-DOC-008 | b148498 |
+| 4 | Spec author | Retire RH8307-006 instead of rewording | Accept | No diagnostic, nothing to withhold | Follows SHARED-DIAG-010 | b148498 |
+| 5 | Spec author | #1092 clarification placed in SHARED-DOC-002 | Accept | The group is decided there for all private-group rules | Required by SHARED-DIAG-004 | b148498 |
+| 6 | Spec author | Drop rule-page goals of #1345 and #1347 | Accept | Rule pages list no exceptions (AGENTS.md) | Rule pages unchanged | b148498 |
+| 7 | Spec author | #1153: `extension(long)` not reported, from the recorded P8b answer | Accept | The maintainer's P8b answer names it ("An unnamed parameter is not reported") | Covered by a maintainer answer | b148498 |
 
 ## Follow-up candidates
 
-(none yet)
+- Non-private documentation rules judge a partial type part by part (reported once per undocumented part; a part counts undocumented though another part is documented; SHARED-DOC-001, SHARED-DIAG-004). Possibly tracked by #1091 / #1037 Q3a. — 01-spec-author.md
 
 ## Worklist / next step
 
-- Next: spawn spec author (01).
+- Done: 01 spec author (b148498). Open output questions from 01: Q1 RH8307 wrapped inline element; Q2 RH8106/RH8306 several reported elements.
+- Next: skeptic (02), then the output-question batch before the test implementer.
