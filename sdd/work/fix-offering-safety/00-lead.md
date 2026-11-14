@@ -101,4 +101,5 @@ Batch 2 (questions 8–10, 2026-11-14):
 - 09 cleaner clean (dfff379).
 - 10 spec checker (6595b16): 1 finding — change doc does not mention SHARED-FIX-011 / RH5308-006. Repair round 1: route to fresh spec author (11), then spec checker again (12).
 - 11 spec author (a63cc2f): change doc #6, #7 and two Decisions added (docs only; cleaner skipped, no compiled change).
-- Next: spec checker (12). After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
+- 12 spec checker consistent (0957621). Merged origin/main 23cf11a (clean, build green 0 warnings, no provider left on bare CodeFixProvider).
+- Next: auditor (13) on head cf53db6 vs main 23cf11a. After answers: fresh spec author (spec corrections for #1150, answers' spec text/change doc; lane may widen to behavior change), then test implementer.
