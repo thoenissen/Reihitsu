@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
@@ -319,6 +320,10 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : BatchCode
                      {
                          test.TestState.Sources.Add(("/0/Test1.cs", otherSource));
                          test.FixedState.Sources.Add(("/0/Test1.cs", otherSource));
+
+                         // The diagnostic in the carrier document stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
                          test.NumberOfIncrementalIterations = 1;
                          test.NumberOfFixAllIterations = 1;
                          test.NumberOfFixAllInDocumentIterations = 1;
