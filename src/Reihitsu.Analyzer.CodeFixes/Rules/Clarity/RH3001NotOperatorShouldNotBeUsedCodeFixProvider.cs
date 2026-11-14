@@ -123,6 +123,34 @@ public class RH3001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
                                                  && trivia.IsKind(SyntaxKind.SkippedTokensTrivia) == false);
     }
 
+    /// <summary>
+    /// Determines whether the negation touches a word: a keyword or an identifier, contextual keywords included, stands
+    /// directly in front of <c>!</c> or directly behind the negation's last token, with no trivia between them. Without the
+    /// <c>!</c>, the operand or <see langword="false"/> would merge with that word, so the fix is withheld (RH3001-009)
+    /// </summary>
+    /// <param name="node">Logical-not expression</param>
+    /// <returns><see langword="true"/> if the negation touches a word on either side</returns>
+    private static bool TouchesWord(PrefixUnaryExpressionSyntax node)
+    {
+        var previousToken = node.OperatorToken.GetPreviousToken();
+        var lastToken = node.GetLastToken();
+        var nextToken = lastToken.GetNextToken();
+
+        return (IsWord(previousToken) && previousToken.TrailingTrivia.Count == 0 && node.OperatorToken.LeadingTrivia.Count == 0)
+               || (IsWord(nextToken) && lastToken.TrailingTrivia.Count == 0 && nextToken.LeadingTrivia.Count == 0);
+    }
+
+    /// <summary>
+    /// Determines whether a token is a keyword or an identifier, contextual keywords included
+    /// </summary>
+    /// <param name="token">Token</param>
+    /// <returns><see langword="true"/> if the token is a word</returns>
+    private static bool IsWord(SyntaxToken token)
+    {
+        return token.IsKind(SyntaxKind.IdentifierToken)
+               || SyntaxFacts.IsKeywordKind(token.Kind());
+    }
+
     #endregion // Methods
 
     #region CodeFixProvider
@@ -147,9 +175,11 @@ public class RH3001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
             {
                 // The innermost node is the negation itself, also where it is the whole of an argument, an element, or
                 // another node around it that adds no token of its own (RH3001-004). A negation that is the whole
-                // expression of a constant pattern gets no fix (RH3001-008)
+                // expression of a constant pattern gets no fix (RH3001-008), and neither does a negation that touches a word
+                // (RH3001-009)
                 if (root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true) is PrefixUnaryExpressionSyntax node
                     && node.Parent is not ConstantPatternSyntax
+                    && TouchesWord(node) == false
                     && HasSafeOperandTrivia(node)
                     && FindReplacement(root, node, context.CancellationToken) is { } replacement)
                 {

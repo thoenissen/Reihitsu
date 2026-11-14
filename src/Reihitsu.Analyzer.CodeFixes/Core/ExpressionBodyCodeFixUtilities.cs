@@ -7,8 +7,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Reihitsu.Formatter;
-
 namespace Reihitsu.Analyzer.CodeFixes.Core;
 
 /// <summary>
@@ -31,7 +29,7 @@ internal static class ExpressionBodyCodeFixUtilities
     /// <returns>The document with the expression body replaced, or the unchanged document when the formatter does not convert the body</returns>
     public static Task<Document> ConvertBodyAsync(Document document, SyntaxNode member, CancellationToken cancellationToken)
     {
-        return ConvertBodyAsync(document, member, FormatNodeAsync, cancellationToken);
+        return ConvertBodyAsync(document, member, BlankLineCodeFixUtilities.FormatNodeInDocumentAsync, cancellationToken);
     }
 
     /// <summary>
@@ -84,18 +82,6 @@ internal static class ExpressionBodyCodeFixUtilities
         var convertedMember = member.ReplaceToken(lastSignatureToken, lastSignatureToken.WithTrailingTrivia(formattedLastSignatureToken.TrailingTrivia));
 
         return document.WithSyntaxRoot(root.ReplaceNode(member, WithBody(convertedMember, body)));
-    }
-
-    /// <summary>
-    /// Formats a member where it stands in the document
-    /// </summary>
-    /// <param name="document">Document</param>
-    /// <param name="member">Member, which belongs to <paramref name="document"/></param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The document with the formatted member</returns>
-    private static async Task<Document> FormatNodeAsync(Document document, SyntaxNode member, CancellationToken cancellationToken)
-    {
-        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, member, cancellationToken).ConfigureAwait(false)).Output;
     }
 
     /// <summary>

@@ -117,15 +117,9 @@ internal static class BlankLineCodeFixUtilities
     }
 
     /// <summary>
-    /// Formats a member through the formatter after giving it lines of its own (SHARED-FIX-007, shared line): a whitespace
-    /// gap to a sibling member on the member's first or last line becomes a line break, and the code behind that line
-    /// break starts in the column of the line on which the member starts. That column is a member column only when the
-    /// line begins with a member of the same list, the member itself or one in front of it: the line's first token starts
-    /// the line behind nothing but whitespace and comments whose text starts on that line, and it is the first token of
-    /// such a member. On any other line, such as one that begins with the header of a type written on one line, the
-    /// continuation of a sibling's initializer, a statement of a sibling's body, the tail of a multi-line literal, or the
-    /// tail of a comment that starts on an earlier line, no gap is broken and only the member is formatted (RH5417-003,
-    /// RH3202-002)
+    /// Gives a member lines of its own as
+    /// <see cref="FormatMemberOnLinesOfItsOwnAsync(Document, MemberDeclarationSyntax, Func{Document, SyntaxNode, CancellationToken, Task{Document}}, CancellationToken)"/>
+    /// does, and then formats the whole member through the formatter (RH5417-003)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="member">Member</param>
@@ -133,12 +127,19 @@ internal static class BlankLineCodeFixUtilities
     /// <returns>The updated document</returns>
     public static Task<Document> FormatMemberOnLinesOfItsOwnAsync(Document document, MemberDeclarationSyntax member, CancellationToken cancellationToken)
     {
-        return FormatMemberOnLinesOfItsOwnAsync(document, member, FormatNodeAsync, cancellationToken);
+        return FormatMemberOnLinesOfItsOwnAsync(document, member, FormatNodeInDocumentAsync, cancellationToken);
     }
 
     /// <summary>
-    /// Gives a member lines of its own as <see cref="FormatMemberOnLinesOfItsOwnAsync(Document, MemberDeclarationSyntax, CancellationToken)"/>
-    /// does, and then lets the caller format it
+    /// Gives a member lines of its own (SHARED-FIX-007, shared line) and then hands it to the caller to format: a whitespace
+    /// gap to a sibling member on the member's first or last line becomes a line break, and the code behind that line
+    /// break starts in the column of the line on which the member starts. That column is a member column only when the
+    /// line begins with a member of the same list, the member itself or one in front of it: the line's first token starts
+    /// the line behind nothing but whitespace and comments whose text starts on that line, and it is the first token of
+    /// such a member. On any other line, such as one that begins with the header of a type written on one line, the
+    /// continuation of a sibling's initializer, a statement of a sibling's body, the tail of a multi-line literal, or the
+    /// tail of a comment that starts on an earlier line, no gap is broken, and the separators around the member stay as
+    /// written (RH3202-002, RH5417-003)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="member">Member</param>
@@ -198,13 +199,15 @@ internal static class BlankLineCodeFixUtilities
     }
 
     /// <summary>
-    /// Formats a node through the formatter
+    /// Formats a node where it stands in its document through the formatter. It is the default formatting step of the
+    /// helpers that let their caller format the node they produce, such as
+    /// <see cref="ExpressionBodyCodeFixUtilities.ConvertBodyAsync(Document, SyntaxNode, CancellationToken)"/>
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="node">Node, which belongs to <paramref name="document"/></param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The document with the formatted node</returns>
-    private static async Task<Document> FormatNodeAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+    public static async Task<Document> FormatNodeInDocumentAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
     {
         return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, node, cancellationToken).ConfigureAwait(false)).Output;
     }
