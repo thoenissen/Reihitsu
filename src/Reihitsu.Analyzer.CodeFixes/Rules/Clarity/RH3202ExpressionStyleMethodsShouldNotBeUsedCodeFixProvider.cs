@@ -26,7 +26,8 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider : CodeFi
 
     /// <summary>
     /// Applying code fix. A method that shares its line with another member is first separated from it, so that both stand
-    /// on lines of their own (SHARED-FIX-007)
+    /// on lines of their own (SHARED-FIX-007); then its expression body is replaced with the block body the formatter
+    /// produces, and the rest of the method stays as written (SHARED-BODY-003)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="methodDeclaration">Method declaration</param>
@@ -34,7 +35,10 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider : CodeFi
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     private static Task<Document> ApplyCodeFixAsync(Document document, MethodDeclarationSyntax methodDeclaration, CancellationToken cancellationToken)
     {
-        return BlankLineCodeFixUtilities.FormatMemberOnLinesOfItsOwnAsync(document, methodDeclaration, cancellationToken);
+        return BlankLineCodeFixUtilities.FormatMemberOnLinesOfItsOwnAsync(document,
+                                                                          methodDeclaration,
+                                                                          ExpressionBodyCodeFixUtilities.ConvertBodyAsync,
+                                                                          cancellationToken);
     }
 
     #endregion // Methods
