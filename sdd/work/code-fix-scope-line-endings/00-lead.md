@@ -35,6 +35,7 @@
 
 ## Follow-up candidates
 
+- RH3005 code fix builds its binary operator with elastic trivia; same CRLF hazard as RH3006, untested — 04-implementer.md.
 - RH3003 code fix writes an LF into a CRLF document (`return a +` / `/* x */ "";`), same symptom as #1283 — 02-skeptic.md.
 
 ## State
@@ -46,4 +47,5 @@
 - Maintainer answered batch 1 (A).
 - Change doc Accepted (b20b8a7).
 - Test implementer done (03-test-implementer.md, 4d0bec2): #1283 and #1284 reproduced; #1285 tests red as expected.
-- Next step: implementer (04-implementer.md).
+- Implementer done (04-implementer.md, d1ab24c): all 62 red tests green. Adds new internal type `ExpressionBodyCodeFixUtilities` (~87 code lines) → escalation 9 asked.
+- Next step: wait for the maintainer on escalation 9; then cleaner.
