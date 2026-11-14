@@ -14,6 +14,7 @@
 ## Maintainer answers
 
 - Batch 1, Q1 — RH3001, negation as an `orderby` key without a direction (`orderby !a`): **A** — offer the fix, output `orderby a == false` (as recommended).
+- Escalation 9 — new internal type `ExpressionBodyCodeFixUtilities` for #1284: **A** — keep it as a separate internal class (as recommended). Maintainer asked whether the rules forbid new types and suggested the squad may be too strict here; note for the run note's process suggestions: escalation 9 was applied to the issue's own main fix, not to an architecture-finding structural change.
 
 ## Decisions taken
 
@@ -48,4 +49,5 @@
 - Change doc Accepted (b20b8a7).
 - Test implementer done (03-test-implementer.md, 4d0bec2): #1283 and #1284 reproduced; #1285 tests red as expected.
 - Implementer done (04-implementer.md, d1ab24c): all 62 red tests green. Adds new internal type `ExpressionBodyCodeFixUtilities` (~87 code lines) → escalation 9 asked.
-- Next step: wait for the maintainer on escalation 9; then cleaner.
+- Escalation 9 answered A.
+- Next step: cleaner (05-cleaner.md).
