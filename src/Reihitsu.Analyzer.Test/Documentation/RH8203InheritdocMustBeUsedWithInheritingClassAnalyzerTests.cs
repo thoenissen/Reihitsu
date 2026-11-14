@@ -13,6 +13,27 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 [TestClass]
 public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzerTests : AnalyzerTestsBase<RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer>
 {
+    #region Constants
+
+    /// <summary>
+    /// Included documentation file for the partial member tests: member <c>I</c> holds an inheritdoc element, member
+    /// <c>S</c> a summary
+    /// </summary>
+    private const string PartialMemberIncludedDocumentation = """
+                                                              <doc>
+                                                                  <members>
+                                                                      <member name="I">
+                                                                          <inheritdoc/>
+                                                                      </member>
+                                                                      <member name="S">
+                                                                          <summary>Runs</summary>
+                                                                      </member>
+                                                                  </members>
+                                                              </doc>
+                                                              """;
+
+    #endregion // Constants
+
     #region Tests
 
     /// <summary>
@@ -985,6 +1006,624 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzerTests : Analyz
                                    """;
 
         await Verify(source, test => test.TestState.Sources.Add(("/0/Test1.cs", otherSource)));
+    }
+
+    /// <summary>
+    /// Verifies that an inheritdoc element in a later documentation comment of a part of a partial method is considered
+    /// for that part alone and reported on its name: neither part of a member that implements an interface member is
+    /// reported, both parts of a member that inherits nothing are, and of a member with the later comment on one part only,
+    /// only that part is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("RH8203-002")]
+    public async Task VerifyInheritdocInLaterCommentOfPartialMethodPartIsJudgedPartByPart()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Contract
+                              /// </summary>
+                              public interface I
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  void M();
+                              }
+
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public partial class C : I
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial void M();
+
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial void M()
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Stops
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial void {|RH8203:N|}();
+
+                                  /// <summary>
+                                  /// Stops
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial void {|RH8203:N|}()
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Pauses
+                                  /// </summary>
+                                  public partial void O();
+
+                                  /// <summary>
+                                  /// Pauses
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial void {|RH8203:O|}()
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Resumes
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial void {|RH8203:P|}();
+
+                                  /// <summary>
+                                  /// Resumes
+                                  /// </summary>
+                                  public partial void P()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies that an inheritdoc element in a later documentation comment of a part of a partial property is considered
+    /// for that part alone and reported on its name, as for a partial method
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("RH8203-002")]
+    public async Task VerifyInheritdocInLaterCommentOfPartialPropertyPartIsJudgedPartByPart()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Contract
+                              /// </summary>
+                              public interface I
+                              {
+                                  /// <summary>
+                                  /// Value
+                                  /// </summary>
+                                  int M { get; }
+                              }
+
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public partial class C : I
+                              {
+                                  /// <summary>
+                                  /// Value
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial int M { get; }
+
+                                  /// <summary>
+                                  /// Value
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial int M => 0;
+
+                                  /// <summary>
+                                  /// Value
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial int {|RH8203:N|} { get; }
+
+                                  /// <summary>
+                                  /// Value
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial int {|RH8203:N|} => 0;
+
+                                  /// <summary>
+                                  /// Value
+                                  /// </summary>
+                                  public partial int O { get; }
+
+                                  /// <summary>
+                                  /// Value
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial int {|RH8203:O|} => 0;
+
+                                  /// <summary>
+                                  /// Value
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial int {|RH8203:P|} { get; }
+
+                                  /// <summary>
+                                  /// Value
+                                  /// </summary>
+                                  public partial int P => 0;
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies that an inheritdoc element in a later documentation comment of a part of a partial indexer is considered
+    /// for that part alone and reported on its this keyword, as for a partial method
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("RH8203-002")]
+    public async Task VerifyInheritdocInLaterCommentOfPartialIndexerPartIsJudgedPartByPart()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Contract
+                              /// </summary>
+                              public interface I
+                              {
+                                  /// <summary>
+                                  /// Item
+                                  /// </summary>
+                                  /// <param name="index">Index</param>
+                                  int this[int index] { get; }
+                              }
+
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public partial class C : I
+                              {
+                                  /// <summary>
+                                  /// Item
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial int this[int index] { get; }
+
+                                  /// <summary>
+                                  /// Item
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial int this[int index] => index;
+
+                                  /// <summary>
+                                  /// Item
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial int {|RH8203:this|}[string key] { get; }
+
+                                  /// <summary>
+                                  /// Item
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial int {|RH8203:this|}[string key] => 0;
+
+                                  /// <summary>
+                                  /// Item
+                                  /// </summary>
+                                  public partial int this[long key] { get; }
+
+                                  /// <summary>
+                                  /// Item
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial int {|RH8203:this|}[long key] => 0;
+
+                                  /// <summary>
+                                  /// Item
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial int {|RH8203:this|}[short key] { get; }
+
+                                  /// <summary>
+                                  /// Item
+                                  /// </summary>
+                                  public partial int this[short key] => 0;
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies that an inheritdoc element in a later documentation comment of a part of a partial event, whose defining
+    /// part is a field-like event, is considered for that part alone and reported on its name, as for a partial method
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("RH8203-002")]
+    public async Task VerifyInheritdocInLaterCommentOfPartialEventPartIsJudgedPartByPart()
+    {
+        const string source = """
+                              using System;
+
+                              /// <summary>
+                              /// Contract
+                              /// </summary>
+                              public interface I
+                              {
+                                  /// <summary>
+                                  /// Raised
+                                  /// </summary>
+                                  event EventHandler M;
+                              }
+
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public partial class C : I
+                              {
+                                  /// <summary>
+                                  /// Raised
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial event EventHandler M;
+
+                                  /// <summary>
+                                  /// Raised
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial event EventHandler M
+                                  {
+                                      add { }
+                                      remove { }
+                                  }
+
+                                  /// <summary>
+                                  /// Raised
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial event EventHandler {|RH8203:N|};
+
+                                  /// <summary>
+                                  /// Raised
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial event EventHandler {|RH8203:N|}
+                                  {
+                                      add { }
+                                      remove { }
+                                  }
+
+                                  /// <summary>
+                                  /// Raised
+                                  /// </summary>
+                                  public partial event EventHandler O;
+
+                                  /// <summary>
+                                  /// Raised
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial event EventHandler {|RH8203:O|}
+                                  {
+                                      add { }
+                                      remove { }
+                                  }
+
+                                  /// <summary>
+                                  /// Raised
+                                  /// </summary>
+
+                                  /// <inheritdoc/>
+                                  public partial event EventHandler {|RH8203:P|};
+
+                                  /// <summary>
+                                  /// Raised
+                                  /// </summary>
+                                  public partial event EventHandler P
+                                  {
+                                      add { }
+                                      remove { }
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies that an inheritdoc element that an include element brings into a part of a partial method is considered
+    /// for that part alone and reported on its name: neither part of a member that implements an interface member is
+    /// reported, both parts of a member that inherits nothing are, and of a member with the include element on one part
+    /// only, only that part is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("RH8203-002")]
+    public async Task VerifyIncludedInheritdocOfPartialMethodPartIsJudgedPartByPart()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Contract
+                              /// </summary>
+                              public interface I
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  void M();
+                              }
+
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public partial class C : I
+                              {
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial void M();
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial void M()
+                                  {
+                                  }
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial void {|RH8203:N|}();
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial void {|RH8203:N|}()
+                                  {
+                                  }
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="S"]/*'/>
+                                  public partial void O();
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial void {|RH8203:O|}()
+                                  {
+                                  }
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial void {|RH8203:P|}();
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="S"]/*'/>
+                                  public partial void P()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", PartialMemberIncludedDocumentation)));
+    }
+
+    /// <summary>
+    /// Verifies that an inheritdoc element that an include element brings into a part of a partial property is considered
+    /// for that part alone and reported on its name, as for a partial method
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("RH8203-002")]
+    public async Task VerifyIncludedInheritdocOfPartialPropertyPartIsJudgedPartByPart()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Contract
+                              /// </summary>
+                              public interface I
+                              {
+                                  /// <summary>
+                                  /// Value
+                                  /// </summary>
+                                  int M { get; }
+                              }
+
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public partial class C : I
+                              {
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial int M { get; }
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial int M => 0;
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial int {|RH8203:N|} { get; }
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial int {|RH8203:N|} => 0;
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="S"]/*'/>
+                                  public partial int O { get; }
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial int {|RH8203:O|} => 0;
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial int {|RH8203:P|} { get; }
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="S"]/*'/>
+                                  public partial int P => 0;
+                              }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", PartialMemberIncludedDocumentation)));
+    }
+
+    /// <summary>
+    /// Verifies that an inheritdoc element that an include element brings into a part of a partial indexer is considered
+    /// for that part alone and reported on its this keyword, as for a partial method
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("RH8203-002")]
+    public async Task VerifyIncludedInheritdocOfPartialIndexerPartIsJudgedPartByPart()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Contract
+                              /// </summary>
+                              public interface I
+                              {
+                                  /// <summary>
+                                  /// Item
+                                  /// </summary>
+                                  /// <param name="index">Index</param>
+                                  int this[int index] { get; }
+                              }
+
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public partial class C : I
+                              {
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial int this[int index] { get; }
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial int this[int index] => index;
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial int {|RH8203:this|}[string key] { get; }
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial int {|RH8203:this|}[string key] => 0;
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="S"]/*'/>
+                                  public partial int this[long key] { get; }
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial int {|RH8203:this|}[long key] => 0;
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial int {|RH8203:this|}[short key] { get; }
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="S"]/*'/>
+                                  public partial int this[short key] => 0;
+                              }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", PartialMemberIncludedDocumentation)));
+    }
+
+    /// <summary>
+    /// Verifies that an inheritdoc element that an include element brings into a part of a partial event, whose defining
+    /// part is a field-like event, is considered for that part alone and reported on its name, as for a partial method
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("RH8203-002")]
+    public async Task VerifyIncludedInheritdocOfPartialEventPartIsJudgedPartByPart()
+    {
+        const string source = """
+                              using System;
+
+                              /// <summary>
+                              /// Contract
+                              /// </summary>
+                              public interface I
+                              {
+                                  /// <summary>
+                                  /// Raised
+                                  /// </summary>
+                                  event EventHandler M;
+                              }
+
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public partial class C : I
+                              {
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial event EventHandler M;
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial event EventHandler M
+                                  {
+                                      add { }
+                                      remove { }
+                                  }
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial event EventHandler {|RH8203:N|};
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial event EventHandler {|RH8203:N|}
+                                  {
+                                      add { }
+                                      remove { }
+                                  }
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="S"]/*'/>
+                                  public partial event EventHandler O;
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial event EventHandler {|RH8203:O|}
+                                  {
+                                      add { }
+                                      remove { }
+                                  }
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="I"]/*'/>
+                                  public partial event EventHandler {|RH8203:P|};
+
+                                  /// <include file='docs.xml' path='doc/members/member[@name="S"]/*'/>
+                                  public partial event EventHandler P
+                                  {
+                                      add { }
+                                      remove { }
+                                  }
+                              }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", PartialMemberIncludedDocumentation)));
     }
 
     /// <summary>
