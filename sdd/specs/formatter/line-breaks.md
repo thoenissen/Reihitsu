@@ -809,7 +809,7 @@ class C
 }
 ```
 
-Example — a comma that a comment or a directive keeps off the line of the element in front of it stays at the start of its line, alone on it when it was written alone, and the rest of the list is laid out around it; a comment behind a comma that moves goes with the comma; a block comment in front of a comma on the element's own line keeps nothing:
+Example — a comma that a comment or a directive keeps off the line of the element in front of it stays at the start of its line, alone on it when it was written alone, and the rest of the list is laid out around it; a comment behind a comma that moves goes with the comma; a block comment in front of a comma on the element's own line keeps nothing. The `#if X` list is shown as parsed in a build that defines `X`: there `, 3` is code, and its comma is the one the directive holds. In a build that does not define `X`, `, 3` is disabled text in front of `)`, the list holds only `1` and `2`, which start on one line, so it is single-line and stays as written:
 
 ```csharp
 class C

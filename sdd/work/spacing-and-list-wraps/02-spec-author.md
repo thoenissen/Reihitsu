@@ -115,3 +115,27 @@ _None._
 ### Internal choices (amended)
 
 - Stated the lone-comma case as part of FMT-BREAK-012's held-comma paragraph rather than as a new requirement ID. Alternative: a separate requirement; rejected as it is a qualifier of the same refusal.
+
+## Amendment after 05-implementer (decision 16)
+
+Commit the amendment was derived from: c053836. Verdict unchanged: change doc written. My prompt carried no intended fix, suspected cause, or hoped-for verdict beyond the lead's decision 16.
+
+### Changed requirements (amended)
+
+- FMT-BREAK-012 — clarified (decision 16): the third example's caption states that the `#if X` list is shown as parsed in a build that defines `X`, where `, 3` is code and its comma is the held one; in a build without `X`, `, 3` is disabled text, the list holds `1` and `2` on one line, and it stays as written. The normative text is unchanged; the second reading follows from the unchanged elements-decide definition and the Non-goal on the closing parenthesis.
+
+### Change doc (amended)
+
+Entry 8 gains one line stating the same build condition, and that the input is unchanged before and after in a build without `X`. No new visible-output entry: the build without `X` is unchanged on `main`.
+
+### Examples for the tests (amended)
+
+FMT-BREAK-012, third example, the `#if X` list: parsed with the preprocessor symbol `X` for the specified output; a test without `X` expects the input unchanged.
+
+### Output questions (amended)
+
+_None._
+
+### Internal choices (amended)
+
+- Stated the build in the example caption and in entry 8 rather than in the normative paragraph. Alternative: a sentence in the requirement saying that a list is laid out per build as parsed; rejected as it restates how the formatter already reads disabled text and adds nothing a test needs.

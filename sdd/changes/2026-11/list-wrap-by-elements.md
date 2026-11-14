@@ -267,6 +267,8 @@ class C
 
 **8. A comma held at the start of a line by a directive**
 
+Shown in a build that defines `X`, where `, 3` is code and its comma is a separator of the list. In a build that does not define `X`, `, 3` is disabled text, the list holds only `1` and `2` on one line, and the input stays unchanged, before and after.
+
 ```csharp
 // input
 Foo(1, 2
