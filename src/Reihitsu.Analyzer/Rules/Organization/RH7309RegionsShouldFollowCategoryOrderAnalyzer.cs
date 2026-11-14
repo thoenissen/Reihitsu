@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -66,7 +66,8 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzer : DiagnosticAnalyzer
 
         foreach (var region in regions)
         {
-            if (region.Region.GetStructure() is not RegionDirectiveTriviaSyntax regionDirective)
+            // A region in a branch the active configuration excludes is not reported and is no earlier region (RH7309-002)
+            if (region.Region.GetStructure() is not RegionDirectiveTriviaSyntax { IsActive: true } regionDirective)
             {
                 continue;
             }

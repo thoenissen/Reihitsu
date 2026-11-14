@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -214,17 +214,18 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer : 
     }
 
     /// <summary>
-    /// Tries to get the containing top-level region name for the member
+    /// Tries to get the name of the region that judges the member: the innermost region that encloses it, when the member
+    /// lies in a top-level region (SHARED-TYPEREGION-006)
     /// </summary>
     /// <param name="memberDeclaration">Member declaration</param>
-    /// <param name="regions">Top-level regions</param>
-    /// <param name="regionName">Containing region name</param>
-    /// <returns><see langword="true"/> if a containing top-level region exists</returns>
-    private static bool TryGetContainingRegionName(MemberDeclarationSyntax memberDeclaration, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> regions, out string regionName)
+    /// <param name="regions">Regions of the type with their nesting depth</param>
+    /// <param name="regionName">Name of the innermost enclosing region</param>
+    /// <returns><see langword="true"/> if the member lies in a top-level region and its innermost region has a name</returns>
+    private static bool TryGetContainingRegionName(MemberDeclarationSyntax memberDeclaration, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion, int NestingDepth)> regions, out string regionName)
     {
         regionName = string.Empty;
 
-        if (RegionDirectiveUtilities.TryFindContainingRegion(memberDeclaration, regions, out var region) == false
+        if (RegionDirectiveUtilities.TryFindInnermostContainingRegion(memberDeclaration, regions, out var region) == false
             || region.Region.GetStructure() is not RegionDirectiveTriviaSyntax regionDirective)
         {
             return false;
@@ -246,7 +247,7 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer : 
             return;
         }
 
-        var regions = RegionDirectiveUtilities.GetTopLevelRegions(typeDeclaration);
+        var regions = RegionDirectiveUtilities.GetTypeRegions(typeDeclaration);
 
         if (regions.Count == 0)
         {

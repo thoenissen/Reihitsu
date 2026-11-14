@@ -44,7 +44,10 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzer : DiagnosticAnalyzerBas
     /// <param name="context">Context</param>
     private void OnDeclaration(SyntaxNodeAnalysisContext context)
     {
-        if (context.Node is not EventDeclarationSyntax { AccessorList: not null } eventDeclaration)
+        // A conditional directive outside the accessors' bodies lets another build configuration compile another
+        // accessor list (RH7108-001, SHARED-DIAG-008)
+        if (context.Node is not EventDeclarationSyntax { AccessorList: not null } eventDeclaration
+            || AccessorOrderingUtilities.ContainsConditionalCompilationBoundaryOutsideBodies(eventDeclaration.AccessorList))
         {
             return;
         }

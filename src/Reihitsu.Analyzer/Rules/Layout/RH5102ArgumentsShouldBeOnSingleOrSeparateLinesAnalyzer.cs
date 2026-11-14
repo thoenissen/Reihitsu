@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -47,7 +48,10 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer : Diagnostic
     {
         var argumentList = (ArgumentListSyntax)context.Node;
 
-        if (argumentList.Arguments.Count < 2)
+        // A conditional directive in a gap of the list lets another build configuration compile other arguments
+        // (RH5102-004, SHARED-DIAG-008)
+        if (argumentList.Arguments.Count < 2
+            || SyntaxTriviaUtilities.ContainsConditionalCompilationBoundaryInElementGaps(argumentList.Arguments.GetWithSeparators(), argumentList.CloseParenToken))
         {
             return;
         }

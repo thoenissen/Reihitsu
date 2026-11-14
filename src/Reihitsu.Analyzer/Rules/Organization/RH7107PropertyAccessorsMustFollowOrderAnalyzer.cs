@@ -51,7 +51,10 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzer : DiagnosticAnalyzer
                                _ => null,
                            };
 
-        if (accessorList == null)
+        // A conditional directive outside the accessors' bodies lets another build configuration compile another
+        // accessor list (RH7107-001, SHARED-DIAG-008)
+        if (accessorList == null
+            || AccessorOrderingUtilities.ContainsConditionalCompilationBoundaryOutsideBodies(accessorList))
         {
             return;
         }

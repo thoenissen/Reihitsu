@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -50,7 +51,10 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer : Diagnosti
             return;
         }
 
-        if (parameterList.Parameters.Count <= 1)
+        // A conditional directive in a gap of the list lets another build configuration compile other parameters
+        // (RH5109-004, SHARED-DIAG-008)
+        if (parameterList.Parameters.Count <= 1
+            || SyntaxTriviaUtilities.ContainsConditionalCompilationBoundaryInElementGaps(parameterList.Parameters.GetWithSeparators(), parameterList.CloseParenToken))
         {
             return;
         }

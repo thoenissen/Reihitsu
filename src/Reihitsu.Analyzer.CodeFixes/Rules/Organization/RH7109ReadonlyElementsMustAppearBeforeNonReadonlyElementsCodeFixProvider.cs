@@ -46,6 +46,8 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsCodeFixPro
 
         var accessibilityGroup = OrderingDeclarationUtilities.GetEffectiveAccessibilityGroupForReadonlyOrdering(typeDeclaration, fieldDeclaration);
         var isStaticField = modifiers.Any(SyntaxKind.StaticKeyword);
+        var regions = RegionDirectiveUtilities.GetTopLevelRegions(typeDeclaration);
+        var regionIndex = RegionDirectiveUtilities.GetContainingRegionIndex(fieldDeclaration, regions);
 
         foreach (var currentMember in typeDeclaration.Members)
         {
@@ -58,7 +60,8 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsCodeFixPro
                 && currentFieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) == false
                 && currentFieldDeclaration.Modifiers.Any(SyntaxKind.ReadOnlyKeyword) == false
                 && currentFieldDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword) == isStaticField
-                && OrderingDeclarationUtilities.GetEffectiveAccessibilityGroupForReadonlyOrdering(typeDeclaration, currentFieldDeclaration) == accessibilityGroup)
+                && OrderingDeclarationUtilities.GetEffectiveAccessibilityGroupForReadonlyOrdering(typeDeclaration, currentFieldDeclaration) == accessibilityGroup
+                && RegionDirectiveUtilities.GetContainingRegionIndex(currentFieldDeclaration, regions) == regionIndex)
             {
                 targetMember = currentFieldDeclaration;
 

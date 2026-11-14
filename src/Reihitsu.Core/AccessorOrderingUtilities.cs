@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -98,6 +99,28 @@ public static class AccessorOrderingUtilities
     public static bool MoveRangeContainsDirectives(AccessorListSyntax accessorList, AccessorDeclarationSyntax accessorToMove, AccessorDeclarationSyntax targetAccessor)
     {
         return OrderingMoveSafety.MoveRangeContainsDirectives(accessorList, accessorList.Accessors, accessorToMove, targetAccessor);
+    }
+
+    /// <summary>
+    /// Determines whether a conditional-compilation directive, or code such a directive excludes, stands between the
+    /// braces of an accessor list outside the accessors' bodies: in front of, between, or behind the accessors, their
+    /// attribute lists and keywords included (SHARED-DIAG-008). The inside of a block or an expression body is not
+    /// read; the gap in front of a body is
+    /// </summary>
+    /// <param name="accessorList">Accessor list</param>
+    /// <returns><see langword="true"/> if such a directive or such code stands in the list outside every body</returns>
+    public static bool ContainsConditionalCompilationBoundaryOutsideBodies(AccessorListSyntax accessorList)
+    {
+        var bodySpans = accessorList.Accessors
+                                    .Select(accessor => (SyntaxNode)accessor.Body ?? accessor.ExpressionBody)
+                                    .Where(body => body != null)
+                                    .Select(body => body.Span)
+                                    .ToList();
+
+        return accessorList.DescendantTokens()
+                           .Where(token => token != accessorList.OpenBraceToken
+                                           && bodySpans.Any(bodySpan => bodySpan.Start < token.SpanStart && bodySpan.Contains(token.SpanStart)) == false)
+                           .Any(SyntaxTriviaUtilities.LeadingTriviaContainsConditionalCompilationBoundary);
     }
 
     /// <summary>
