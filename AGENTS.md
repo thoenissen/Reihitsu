@@ -6,7 +6,7 @@ These are the repository instructions for every agent and every contributor. Age
 
 The repository scripts under `scripts/` are the canonical entry points — use them instead of hand-written `dotnet` invocations. They are Bash scripts for Linux and macOS; the repository ships no PowerShell variants. See `scripts/README.md`.
 
-Each script resolves the .NET SDK itself: it probes `dotnet --list-sdks` and installs .NET 10 into `$HOME/.dotnet` only when no `10.*` SDK is present. In an environment that must not change — a preinstalled SDK, a locked-down sandbox — pass `--no-install`, so a missing SDK fails instead of being installed.
+Each script resolves the .NET SDK itself: it probes `dotnet --list-sdks` and installs .NET 11 into `$HOME/.dotnet` only when no `11.*` SDK is present. In an environment that must not change — a preinstalled SDK, a locked-down sandbox — pass `--no-install`, so a missing SDK fails instead of being installed.
 
 ```shell
 scripts/prepare.sh        # verify the toolchain, installing only if needed

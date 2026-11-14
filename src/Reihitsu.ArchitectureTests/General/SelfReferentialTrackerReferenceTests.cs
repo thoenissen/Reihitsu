@@ -139,7 +139,7 @@ public sealed class SelfReferentialTrackerReferenceTests
             fixture.WriteFile("Sample.cs",
                               "#nullable enable\n"
                               + "#region Constants\n"
-                              + "// RH5201 measures the reference column; CS8632 governs nullable annotations; targets net10.0\n"
+                              + "// RH5201 measures the reference column; CS8632 governs nullable annotations; targets net11.0\n"
                               + "#endregion // Constants\n"
                               + "internal class Sample\n{\n}\n");
 

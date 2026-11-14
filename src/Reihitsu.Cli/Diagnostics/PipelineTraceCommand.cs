@@ -45,7 +45,7 @@ internal static class PipelineTraceCommand
     {
         if (TryParseArguments(args, out var filePath, out var passes, out var showHelp, out var parseError) == false)
         {
-            await error.WriteLineAsync($"trace: {parseError}").ConfigureAwait(false);
+            await error.WriteLineAsync($"trace: {parseError}", cancellationToken).ConfigureAwait(false);
             PrintUsage(error);
 
             return ExitCodes.Error;
@@ -64,13 +64,13 @@ internal static class PipelineTraceCommand
         }
         catch (OperationCanceledException)
         {
-            await error.WriteLineAsync("trace: operation canceled.").ConfigureAwait(false);
+            await error.WriteLineAsync("trace: operation canceled.", CancellationToken.None).ConfigureAwait(false);
 
             return ExitCodes.Error;
         }
         catch (Exception exception)
         {
-            await error.WriteLineAsync($"trace: {exception.Message}").ConfigureAwait(false);
+            await error.WriteLineAsync($"trace: {exception.Message}", CancellationToken.None).ConfigureAwait(false);
 
             return ExitCodes.Error;
         }
@@ -100,21 +100,21 @@ internal static class PipelineTraceCommand
                               ? $"trace: '{filePath}' is a directory; expected one C# file."
                               : $"trace: file not found: {filePath}";
 
-            await error.WriteLineAsync(message).ConfigureAwait(false);
+            await error.WriteLineAsync(message, cancellationToken).ConfigureAwait(false);
 
             return ExitCodes.Error;
         }
 
         if (GeneratedFileUtilities.IsGeneratedFile(fullPath))
         {
-            await output.WriteLineAsync($"Skipped (generated): {fullPath}").ConfigureAwait(false);
+            await output.WriteLineAsync($"Skipped (generated): {fullPath}", cancellationToken).ConfigureAwait(false);
 
             return ExitCodes.Success;
         }
 
         var fileRead = await fileSystem.ReadFileAsync(fullPath, cancellationToken).ConfigureAwait(false);
 
-        await output.WriteLineAsync($"Tracing {fullPath} (maximum passes: {passes})").ConfigureAwait(false);
+        await output.WriteLineAsync($"Tracing {fullPath} (maximum passes: {passes})", cancellationToken).ConfigureAwait(false);
 
         return TracePasses(fileRead.Content, fullPath, filePath.Replace('\\', '/'), passes, output, error, cancellationToken);
     }

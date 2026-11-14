@@ -14,7 +14,7 @@ Issues labeled `help wanted` are open for anyone to take, and `good first issue`
 
 ## Development setup
 
-You need the .NET 10 SDK. The scripts under `scripts/` are the entry points for everything, and they install the SDK into `$HOME/.dotnet` when it is missing (see [`scripts/README.md`](scripts/README.md)). They are Bash scripts for Linux and macOS; on Windows, use WSL or Git Bash.
+You need the .NET 11 SDK. The scripts under `scripts/` are the entry points for everything, and they install the SDK into `$HOME/.dotnet` when it is missing (see [`scripts/README.md`](scripts/README.md)). They are Bash scripts for Linux and macOS; on Windows, use WSL or Git Bash.
 
 ```shell
 scripts/prepare.sh   # verify the toolchain
