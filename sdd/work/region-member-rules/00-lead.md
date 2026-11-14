@@ -30,7 +30,11 @@ None beyond the triage comments above, which are the maintainer's (account) re-t
 
 ## Maintainer answers
 
-(none yet)
+- Q1 (#1264, RH7309, regions in the `#if` and `#else` branches of one conditional): **A** — not reported.
+- Q1b (#1264, RH7309, region in one branch after a region outside every branch): unanswered; asked back.
+- Q2 (#1334, RH7401–RH7412, partial member with only some parts in a matching region): **A** — reported once (implementing part in the example); for RH7405–RH7408 no part may lie in an override region.
+- Q3 (#1337, RH7105/RH7106, conditional directive between the last modifier and the type, also when it selects the type): **B** — stays reported, no fix (unchanged; SHARED-MODORDER-003 keeps its clause). Maintainer's reasoning, summarized: the analyzer judges the code as the currently active defines leave it; no fix is offered.
+- Q4 (#1337, RH5111, conditional directive inside the value): **A** — reported, no fix (unchanged).
 
 ## Decisions taken
 
@@ -47,6 +51,7 @@ None beyond the triage comments above, which are the maintainer's (account) re-t
 | 9 | Skeptic | #1339: RH7102-005/RH7109-005 should say "in the same top-level region" | Spec author clarifies | Follows RH7102-003/RH7109-003 | Unchanged requirement decides | pending |
 | 10 | Skeptic | #1412 cause is the Roslyn driver; other constructor rules miss the defining part too | Fix RH7105/RH7106 only; other constructor rules a follow-up | Scope | Narrower than the class; follow-up filed | pending |
 | 11 | Skeptic | #1333: partial field-like event with two declarators | In scope; needs a test | Same requirement SHARED-DIAG-006 | Unchanged requirement decides | pending |
+| 13 | Batch 1 | Q3-B leaves RH7105/RH7106's judged span different from RH7102/RH7103's (skeptic's conditional architecture finding) | Keep both statements, narrow fix: RH7105/RH7106 use the span up to the last modifier; no follow-up | The maintainer chose the visible output; the two rules judge different things (keyword order vs. modifier placement) | Output decided by the maintainer | pending |
 | 12 | Skeptic | Follow-up candidates: RH7311 branch-vs-outside; formatter `=` continuation after empty `#if` | Dropped | RH7311 decided by its unchanged spec (no defect); formatter case rare and stable | n/a | n/a |
 
 ## Follow-up candidates
