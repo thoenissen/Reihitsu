@@ -769,5 +769,71 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTest
                      Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the specification example: a summary that reads as a sentence is reported whether it comes before or
+    /// after a summary that reads as a noun phrase
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8306-001")]
+    public async Task VerifySpecificationExampleSentenceSummaryIsReportedInEitherOrder()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>Current depth</summary>
+                                    /// {|RH8306:<summary>Gets the depth.</summary>|}
+                                    public int Depth { get; }
+
+                                    /// {|RH8306:<summary>Gets the height.</summary>|}
+                                    /// <summary>Current height</summary>
+                                    public int Height { get; }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: each of several summaries of a property that read as a sentence is reported
+    /// with a diagnostic of its own
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8306-004")]
+    public async Task VerifySpecificationExampleEverySentenceSummaryIsReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// {|RH8306:<summary>Gets the size.</summary>|}
+                                    /// {|RH8306:<summary>Gets the length.</summary>|}
+                                    public int Size { get; }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a property with several summaries that read as noun phrases is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8306-001")]
+    public async Task VerifyNoDiagnosticForSeveralNounPhraseSummaries()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>Current size</summary>
+                                    /// <summary>Current length</summary>
+                                    public int Size { get; }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

@@ -1017,5 +1017,106 @@ public class RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzerTests :
         await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8032MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the specification example: the parameter of a documented extension declaration without a matching param
+    /// element is reported on its name, and an extension declaration whose parameter has no name is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8032-001")]
+    public async Task VerifySpecificationExampleParameterWithoutNameIsNotReported()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Extensions
+                              /// </summary>
+                              public static class Extensions
+                              {
+                                  /// <summary>
+                                  /// Adds helpers to text values
+                                  /// </summary>
+                                  extension(string {|#0:value|})
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Adds helpers to integer values
+                                  /// </summary>
+                                  /// <param name="value">Value</param>
+                                  extension(int value)
+                                  {
+                                  }
+
+                                  /// <summary>
+                                  /// Adds static helpers to long values
+                                  /// </summary>
+                                  extension(long)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8032MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the parameter without a name of a documented generic extension declaration is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8032-001")]
+    public async Task VerifyParameterWithoutNameOfGenericExtensionDeclarationIsNotReported()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Extensions
+                              /// </summary>
+                              public static class Extensions
+                              {
+                                  /// <summary>
+                                  /// Adds static helpers to arrays
+                                  /// </summary>
+                                  /// <typeparam name="T">Element type</typeparam>
+                                  extension<T>(T[])
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies that the parameter without a name of a documented extension declaration with a static member is not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8032-001")]
+    public async Task VerifyParameterWithoutNameOfExtensionDeclarationWithStaticMemberIsNotReported()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Extensions
+                              /// </summary>
+                              public static class Extensions
+                              {
+                                  /// <summary>
+                                  /// Adds static helpers to long values
+                                  /// </summary>
+                                  extension(long)
+                                  {
+                                      /// <summary>
+                                      /// Zero
+                                      /// </summary>
+                                      /// <returns>Zero</returns>
+                                      public static long Zero() => 0;
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
     #endregion // Tests
 }

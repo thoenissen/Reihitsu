@@ -161,5 +161,66 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineFormat
                               Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat, 2));
     }
 
+    /// <summary>
+    /// Verifies that the blank lines the formatter keeps or writes between a documentation comment and a region
+    /// directive are not reported, before and after formatting
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8302-002")]
+    public async Task VerifyBlankLineBeforeRegionDirectiveIsNotReportedBeforeOrAfterFormatting()
+    {
+        const string input = """
+                             class C
+                             {
+                                 int _a;
+
+                                 /// <summary>
+                                 /// Doc
+                                 /// </summary>
+                                 #region A
+
+                                 void M()
+                                 {
+                                 }
+
+                                 /// <summary>
+                                 /// Doc
+                                 /// </summary>
+
+
+                                 #endregion // A
+
+                                 int B;
+                             }
+                             """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int _a;
+
+                                     /// <summary>
+                                     /// Doc
+                                     /// </summary>
+
+                                     #region A
+
+                                     void M()
+                                     {
+                                     }
+
+                                     /// <summary>
+                                     /// Doc
+                                     /// </summary>
+
+                                     #endregion // A
+
+                                     int B;
+                                 }
+                                 """;
+
+        await VerifyFormatter(input, fixedData);
+    }
+
     #endregion // Tests
 }

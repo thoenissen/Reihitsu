@@ -287,5 +287,126 @@ public class RH8106ElementReturnValueDocumentationMustHaveTextAnalyzerTests : An
         await Verify(source, Diagnostics(RH8106ElementReturnValueDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8106MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the specification example: an empty returns element is reported whether it comes before or after a
+    /// returns element with text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8106-001")]
+    public async Task VerifySpecificationExampleEmptyReturnsElementIsReportedInEitherOrder()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public class C
+                              {
+                                  /// <summary>
+                                  /// First
+                                  /// </summary>
+                                  /// <returns>Value</returns>
+                                  /// {|RH8106:<returns></returns>|}
+                                  public int F() => 0;
+
+                                  /// <summary>
+                                  /// Second
+                                  /// </summary>
+                                  /// {|RH8106:<returns></returns>|}
+                                  /// <returns>Value</returns>
+                                  public int G() => 0;
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: each of several returns elements without text is reported with a diagnostic of
+    /// its own
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8106-002")]
+    public async Task VerifySpecificationExampleEveryEmptyReturnsElementIsReported()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public class C
+                              {
+                                  /// <summary>
+                                  /// Finds
+                                  /// </summary>
+                                  /// {|RH8106:<returns/>|}
+                                  /// {|RH8106:<returns></returns>|}
+                                  public int F() => 0;
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies that two returns elements with text are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8106-001")]
+    public async Task VerifyNoDiagnosticForSeveralReturnsElementsWithText()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public class C
+                              {
+                                  /// <summary>
+                                  /// Finds
+                                  /// </summary>
+                                  /// <returns>Value</returns>
+                                  /// <returns>Other value</returns>
+                                  public int F() => 0;
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies that an empty returns element nested in remarks is not reported next to an empty top-level returns
+    /// element that is, in either order
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8106-001")]
+    public async Task VerifyOnlyTheTopLevelEmptyReturnsElementIsReportedNextToNestedOne()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Service
+                              /// </summary>
+                              public class C
+                              {
+                                  /// <summary>
+                                  /// First
+                                  /// </summary>
+                                  /// <remarks><returns></returns></remarks>
+                                  /// {|RH8106:<returns></returns>|}
+                                  public int F() => 0;
+
+                                  /// <summary>
+                                  /// Second
+                                  /// </summary>
+                                  /// {|RH8106:<returns/>|}
+                                  /// <remarks><returns/></remarks>
+                                  public int G() => 0;
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
     #endregion // Tests
 }
