@@ -31,11 +31,17 @@ Bug fix (all five). Roles: spec author (clarifications: RH5601-001/RH5602-001 al
 | 2 | Claim | Scope of #1079 and #1276 | Only the parts the triage comments kept (RH5603 for #1079; RH5404 extension-block location for #1276); the split-off parts belong to #1444/#1446 | Maintainer triage comments on the issues | Follows the issues' recorded split | — |
 | 3 | Spec author | #1276: fix on an extension block — format it or withhold it | Withhold the fix for extension blocks (RH5404 spec as written in 7d38931) | The RH5404 rule page already says extension blocks are expanded by hand; formatting the block would leave its own diagnostic (formatter extension braces are #1446), violating SHARED-FIX-001 | Matches the published rule page; today's fix formats a different type, which is the bug | 7d38931 |
 | 4 | Spec author | #1074: rewriting RH5601-001/RH5602-001 without a change doc | No change doc | Triage comment on #1074 decided bug-fix lane, clarification to SHARED-DIAG-003 | The behavior is demanded by SHARED-DIAG-003, an unchanged requirement | 7d38931 |
+| 5 | Skeptic | #1613 architecture finding: analyzer and fix find the raw string's closing line in two ways | Change the structure in this run: one shared way of finding the closing line, used by the RH5202 analyzer and its fix | The two are counterparts the run changes anyway; a narrow fix in the analyzer alone would keep two statements of the rule | Brings the analyzer back to RH5202-001/-003 | — |
+| 6 | Skeptic | #1074 RH6009/RH6010: RH5025 already has a private check for interpolation braces | Do not add a third copy; RH6009, RH6010 and RH5025 share one check | FC-015; small, within the run's components | Internal structure only | — |
+| 7 | Skeptic | RH5404-003 `Why:` wording; RH5202 aligned-not-reported examples belong to -001 | Spec author amends (continued, once) | Skeptic finding, internal spec wording | Spec wording is internal | — |
+| 8 | Skeptic | RH5603 not reporting a file ending in U+2028/U+2029/U+0085 | Dropped, not a follow-up | Rare input class (AGENTS.md, Code-fix coverage) | — | — |
+| 9 | Skeptic | #1079: issue says RH5603 reports `}⏎···` again; it is RH5602 | Implement the defect that exists: the fix removes the whole whitespace-only tail; PR states the difference | AGENTS.md, Issue intake | Fix result is decided by the maintainer's answer on #1079 | — |
 
 ## Follow-up candidates
 
-(none yet)
+1. RH5603 reports a file that ends in a line break after a directive line or a `///` comment; the formatter keeps such files with or without that line break (FC-013). Carry an output question: A not reported (recommended), B the formatter removes the line break. Source: 02-skeptic.md, #1079.
+2. Formatter output for a document whose line breaks are all lone `\r` reportedly contains mixed line endings (not run by the skeptic; verify before filing). Source: 02-skeptic.md, #1613.
 
 ## Worklist / next step
 
-- Done: spec author (01, 7d38931). Next: skeptic.
+- Done: spec author (01, 7d38931), skeptic (02, 1ec15b8; all five proceed, no output questions). Spec author amending RH5404-003 Why. Next: test implementer.
