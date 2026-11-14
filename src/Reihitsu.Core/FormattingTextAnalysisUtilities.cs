@@ -357,7 +357,7 @@ public static class FormattingTextAnalysisUtilities
     /// also inside an interpolation hole, is code (SHARED-DIAG-003)
     /// </summary>
     /// <param name="token">Token whose full span contains <paramref name="position"/></param>
-    /// <param name="position">Position of the tab</param>
+    /// <param name="position">Position to classify: the position of a tab, or the start of a whitespace run</param>
     /// <returns><see langword="true"/> if the position lies in the text of a literal; otherwise, <see langword="false"/></returns>
     public static bool IsInsideLiteralText(SyntaxToken token, int position)
     {
