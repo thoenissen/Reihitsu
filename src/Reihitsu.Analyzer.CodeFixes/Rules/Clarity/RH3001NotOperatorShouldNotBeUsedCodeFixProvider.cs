@@ -125,8 +125,11 @@ public class RH3001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
 
     /// <summary>
     /// Determines whether the negation touches a word: a keyword or an identifier, contextual keywords included, stands
-    /// directly in front of <c>!</c> or directly behind the negation's last token, with no trivia between them. Without the
-    /// <c>!</c>, the operand or <see langword="false"/> would merge with that word, so the fix is withheld (RH3001-009)
+    /// directly in front of <c>!</c> or directly behind the negation's last token, with no trivia between them. In front,
+    /// the fix is withheld whatever the operand starts with, because telling an operand that would merge with the word
+    /// from one that would not (<c>(</c> or a kept comment) is a second check for a rare shape. Behind, <c>false</c> would
+    /// merge with the word. Whitespace, a line break, or a comment between the negation and the word keeps the fix
+    /// (RH3001-009)
     /// </summary>
     /// <param name="node">Logical-not expression</param>
     /// <returns><see langword="true"/> if the negation touches a word on either side</returns>
@@ -141,7 +144,8 @@ public class RH3001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Determines whether a token is a keyword or an identifier, contextual keywords included
+    /// Determines whether a token is a keyword or an identifier, contextual keywords included: a word that merges with
+    /// an adjacent word or <see langword="false"/> written against it
     /// </summary>
     /// <param name="token">Token</param>
     /// <returns><see langword="true"/> if the token is a word</returns>
