@@ -70,4 +70,5 @@
 - Repair round 1 done: spec author (09), spec checker (10): consistent.
 - Audited SHA: 8943764 (main 8a26419). Auditor 11: #1642 pass; #1635 finding 1 (decision 18).
 - Repair round 2 done: cleaner (14), spec checker (15) consistent, auditor (16) pass on e829e1a (audited SHA e829e1a).
-- Next: spec author wording hint from 16 (cross-reference in FMT-BREAK-012 first bullet), proved text-only → validator → issue manager → publish.
+- Done: spec author wording (17, 01623e2); text-only proof vs e829e1a PASS, no second audit.
+- Next: validator (18) → issue manager (19) → publish.
