@@ -5,9 +5,9 @@
 | ID prefix | SHARED-REGGROUP |
 | Status | Active |
 | Code owners | `MembersShouldBeGroupedByRegionsAnalyzerBase`, `NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase`, `OverrideMemberUtilities`, `InterfaceImplementationUtilities` |
-| Uses | SHARED-REGDESC-001, SHARED-TYPEREGION-006 |
+| Uses | SHARED-DIAG-006, SHARED-DIAG-009, SHARED-REGDESC-001, SHARED-TYPEREGION-006 |
 
-This spec covers what the rules that group members by the type they come from share: which type declarations they check, how a region's name is matched against a type, which type an override comes from (RH7401–RH7408), which interface an implementation comes from (RH7409–RH7412), when a region is an override region (RH7405–RH7408), and where the diagnostic is. Which members a rule checks, and whether it asks for a region or forbids one, is each rule's own spec. Which top-level regions a type declaration has, and when a member lies in one, is SHARED-TYPEREGION-006.
+This spec covers what the rules that group members by the type they come from share: which type declarations they check, how a region's name is matched against a type, which type an override comes from (RH7401–RH7408), which interface an implementation comes from (RH7409–RH7412), when a region is an override region (RH7405–RH7408), and where the diagnostic is. Which members a rule checks, and whether it asks for a region or forbids one, is each rule's own spec. Which top-level regions a type declaration has, when a member lies in one, and which region judges a member that lies in a region nested in one, is SHARED-TYPEREGION-006.
 
 ## Non-goals
 
@@ -19,7 +19,7 @@ This spec covers what the rules that group members by the type they come from sh
 
 ### SHARED-REGGROUP-001 — Class, struct, and record declarations are checked
 
-A rule MUST check every class, struct, record, and record struct declaration, nested ones included, and each declaration of a `partial` type on its own, against that declaration's own top-level regions (SHARED-TYPEREGION-006). It MUST NOT check an interface declaration.
+A rule MUST check every class, struct, record, and record struct declaration, nested ones included, and each declaration of a `partial` type on its own, against that declaration's own top-level regions and the regions nested in them (SHARED-TYPEREGION-006). A rule MUST judge a member that lies in one of them by the innermost region that encloses it, as SHARED-TYPEREGION-006 states: the top-level region, or the innermost region nested in it that encloses the member. It MUST NOT check an interface declaration.
 
 Why: Overrides and interface implementations are members of the types that inherit them, and a nested type has an outline of its own, so a region around the nested type groups the nested type, not its members. Each declaration of a partial type is what the user reads in one file. An interface declares a contract; the outline of its body is not grouped by where its members come from.
 
@@ -87,6 +87,48 @@ interface IB : IA
 ```
 
 is not reported.
+
+Example — RH7401 judges a member in a nested region by the innermost region, so `M`, which lies in `Methods` inside `B`, is reported, and `N`, which lies in `B` inside `Overrides`, is not:
+
+```csharp
+class B
+{
+    public virtual void M()
+    {
+    }
+
+    public virtual void N()
+    {
+    }
+}
+
+class D : B
+{
+    #region B
+
+    #region Methods
+
+    public override void {|RH7401:M|}()
+    {
+    }
+
+    #endregion
+
+    #endregion
+
+    #region Overrides
+
+    #region B
+
+    public override void N()
+    {
+    }
+
+    #endregion
+
+    #endregion
+}
+```
 
 ### SHARED-REGGROUP-002 — A region name matches the type's simple name
 
@@ -270,9 +312,9 @@ class C
 
 ### SHARED-REGGROUP-004 — An implementation comes from the interface that declares the member
 
-The interface an explicit interface implementation comes from MUST be the interface its name is qualified with. The interface an implicit implementation comes from MUST be the interface that declares the member it implements, also when the type lists only an interface derived from it. A member that is an override MUST NOT come from an interface, even when it implements an interface member; it comes from its base type (SHARED-REGGROUP-003).
+The interface an explicit interface implementation comes from MUST be the interface its name is qualified with. The interface an implicit implementation comes from MUST be the interface that declares the member it implements, also when the type lists only an interface derived from it. An implicit implementation that implements members of several interfaces MUST come from each of them, so a region whose name matches any one of them is a region of the member's interface (SHARED-DIAG-009), whatever the order of the interfaces in the base list. A member that is an override MUST NOT come from an interface, even when it implements an interface member; it comes from its base type (SHARED-REGGROUP-003).
 
-Why: The interface that declares a member is the contract the member fulfils, and it is the name the member is implemented under, whichever derived interface the type lists. An override that also implements an interface member is grouped once, under the type it overrides, so that one member is never asked to lie in two regions.
+Why: The interface that declares a member is the contract the member fulfils, and it is the name the member is implemented under, whichever derived interface the type lists. A member that fulfils the contracts of two interfaces is in its place under either name; the order of the base list is incidental. An override that also implements an interface member is grouped once, under the type it overrides, so that one member is never asked to lie in two regions.
 
 Example — RH7409:
 
@@ -341,13 +383,13 @@ class D : B, IA
 }
 ```
 
-is not reported by RH7409.
+is not reported by RH7409. A member that implements a member of each of two interfaces comes from both; the example of SHARED-DIAG-009 shows it.
 
 ### SHARED-REGGROUP-005 — The diagnostic is on the member's name
 
-A rule MUST report one diagnostic per reported member declaration, located on its identifier: for an explicit interface implementation the identifier after the interface name, for an indexer the `this` keyword, and for a field-like event with one declarator the identifier of that declarator.
+A rule MUST report one diagnostic per reported member declaration, located on its identifier: for an explicit interface implementation the identifier after the interface name, and for an indexer the `this` keyword. A field-like event declaration declares one event per declarator: a rule MUST judge each declarator on its own and MUST report one diagnostic per reported declarator, located on that declarator's identifier (SHARED-DIAG-006).
 
-Why: The name is what a reader scans for, and one diagnostic per member lets the user move members one at a time.
+Why: The name is what a reader scans for, and one diagnostic per member lets the user move members one at a time. Each declarator of a field-like event is an event of its own, which can override or implement another member than its neighbours, so its position among the declarators decides nothing.
 
 Example — RH7410, RH7411, and RH7412:
 
@@ -373,11 +415,44 @@ class C : I
 }
 ```
 
+Example — RH7411, where each declarator of one field-like event declaration is judged and reported on its own:
+
+```csharp
+using System;
+
+interface IA
+{
+    event EventHandler A;
+}
+
+interface IB
+{
+    event EventHandler X;
+
+    event EventHandler Y;
+
+    event EventHandler Z;
+}
+
+class C : IA, IB
+{
+    #region IA
+
+    public event EventHandler A, {|RH7411:X|};
+
+    #endregion
+
+    public event EventHandler {|RH7411:Y|}, {|RH7411:Z|};
+}
+```
+
+`A` lies in the region of its interface and `X` does not, although both share one declaration; `Y` and `Z` lie in no region, so each has a diagnostic of its own.
+
 ### SHARED-REGGROUP-006 — An override region
 
-A top-level region MUST count as an override region of a rule when its name matches (SHARED-REGGROUP-002) the type that an override of the rule's member kind comes from (SHARED-REGGROUP-003), for an override that the analyzed type declaration declares, wherever that override lies — in the region, in another region, or in none. A region whose name matches no type that an override in any declaration of the type comes from MUST NOT count as an override region.
+A region of a type declaration — a top-level region or a region nested in one (SHARED-TYPEREGION-006) — MUST count as an override region when its name matches (SHARED-REGGROUP-002) the type that an override comes from (SHARED-REGGROUP-003), for an override of any member kind — a method, a property, an indexer, or an event, each declarator of a field-like event on its own — that any declaration of the type declares, wherever that override lies — in the region, in another region, in none, or in another declaration of a `partial` type. A region whose name matches no type that such an override comes from MUST NOT count as an override region. Which member kind a rule reports, and that the override making a region an override region is of another kind or in another part, MUST NOT change the verdict (SHARED-DIAG-009).
 
-Why: A region named after a base type of the type's overrides is where those overrides belong, whether or not they have been moved there yet; a member that overrides nothing does not belong in it. A region that only happens to carry a base type's name, in a type that overrides nothing of it, is an ordinary region.
+Why: A region named after a base type of the type's overrides is where those overrides belong, whether or not they have been moved there yet; a member that overrides nothing does not belong in it. A region that only happens to carry a base type's name, in a type that overrides nothing of it, is an ordinary region. Whether the override that makes it an override region is a method or a property, and which part of a `partial` type declares it, is incidental: the region groups the same base type's members either way.
 
 Example — RH7405, where the override lies outside the region named after its base type:
 
@@ -425,3 +500,54 @@ class C : B
 ```
 
 is not reported.
+
+Example — RH7405, where the override that makes `B` an override region is a property:
+
+```csharp
+class B
+{
+    public virtual int P => 0;
+}
+
+class C : B
+{
+    #region B
+
+    public override int P => 1;
+
+    public void {|RH7405:N|}()
+    {
+    }
+
+    #endregion
+}
+```
+
+Example — RH7405, where the override lies in another declaration of the `partial` type:
+
+```csharp
+class B
+{
+    public virtual void M()
+    {
+    }
+}
+
+partial class C : B
+{
+    public override void M()
+    {
+    }
+}
+
+partial class C
+{
+    #region B
+
+    public void {|RH7405:N|}()
+    {
+    }
+
+    #endregion
+}
+```
