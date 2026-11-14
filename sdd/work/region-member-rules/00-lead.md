@@ -53,6 +53,10 @@ None beyond the triage comments above, which are the maintainer's (account) re-t
 | 11 | Skeptic | #1333: partial field-like event with two declarators | In scope; needs a test | Same requirement SHARED-DIAG-006 | Unchanged requirement decides | pending |
 | 13 | Batch 1 | Q3-B leaves RH7105/RH7106's judged span different from RH7102/RH7103's (skeptic's conditional architecture finding) | Keep both statements, narrow fix: RH7105/RH7106 use the span up to the last modifier; no follow-up | The maintainer chose the visible output; the two rules judge different things (keyword order vs. modifier placement) | Output decided by the maintainer | cfa5e69 |
 | 14 | Test implementer | RH7101: conditional directive in the initializer of a non-last declarator | Not reported (test as written) | RH7101-001's unchanged text "stands between its declarators" covers it literally; rare input | Decided by the unchanged requirement's literal text; reviewer can overrule | b47e6b2 |
+| 15 | Implementer | #1339: new RH7102-005/RH7109-005 examples and tests `…CodeFixTargetsTheFirstFieldOfTheGroupIn…OwnRegion` expect a move across the `#region B` line, which unchanged SHARED-ORDER-004 forbids | Spec author rewrites both examples so the target is not the first member of its region; test implementer rewrites the two tests and pins that the SHARED-ORDER-004 shape stays without a fix | Unchanged SHARED-ORDER-004 decides; no shared move change | Decided by an unchanged requirement (today's output: reported, no fix) | pending |
+| 16 | Implementer | RH7311: a type wholly inside `#if NET…` — implementer counts a branch only when its directive starts inside the type | Accept; spec author states it in RH7311-001, test implementer adds a test | Matches today's output and the maintainer's active-configuration principle; a literal reading would silence RH7311 for common whole-file `#if` | Output unchanged from `main` | pending |
+| 17 | Implementer | `RegionDirectiveUtilities.TryFindContainingRegion` has no production caller left | Remove it and its Core test | Cleanup the run's change touches | Internal | pending |
+| 18 | Implementer | 156 net production lines, no new type | Accept, no escalation 9 | Spread over seven issues and ~20 rules; per-issue changes are small; no new type | Internal | 69a1330 |
 | 12 | Skeptic | Follow-up candidates: RH7311 branch-vs-outside; formatter `=` continuation after empty `#if` | Dropped | RH7311 decided by its unchanged spec (no defect); formatter case rare and stable | n/a | n/a |
 
 ## Follow-up candidates
@@ -74,4 +78,6 @@ Answered in full (see Maintainer answers).
 - Skeptic 790f9fc done.
 - Spec author amendment cfa5e69 done (decisions 4, 8, 9, 13 + answers carried out).
 - Test implementer b47e6b2 done: all seven reproduce (96 analyzer + 1 core failing tests, all new/rewritten).
-- Next: implementer (05), then cleaner, spec checker, auditor, validator.
+- Implementer 69a1330 / 0edad3b: all pass except the two #1339 fix tests (decision 15).
+- Not run locally by the implementer: formatter/CLI tests, self-hosting scan (CI runs it; RH7308/RH7311/RH74xx changes may show new findings there).
+- Next: spec author (06: decisions 15, 16), test implementer (07: decisions 15, 16, 17 test side), implementer (08: decision 17 helper, make all pass), then cleaner, spec checker, auditor, validator.
