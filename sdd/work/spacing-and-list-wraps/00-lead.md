@@ -56,4 +56,5 @@
 - Done: spec author (02), skeptic on spec diff (03).
 - Done: spec author amendment (aae1cae); change doc accepted by the lead.
 - Done: test implementer (04, 0aeb480).
-- Next: spec author (decisions 14, 15) → implementer (05).
+- Done: spec author amendment (a8ba6f3).
+- Next: implementer (05).
