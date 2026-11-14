@@ -56,7 +56,10 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : CodeFixP
     }
 
     /// <summary>
-    /// Gets the containing node whose tokens provide positional context while formatting
+    /// Gets the containing node whose tokens provide positional context while formatting. An assignment behind a
+    /// conditional access's <c>?</c> continues the chain that starts at the root in front of the <c>?</c>, so the
+    /// column of its wrapped links and whether its first link joins the root are decided by the whole chain, and the
+    /// chain's outermost node is its context (RH5111-006); any other assignment is its own context
     /// </summary>
     /// <param name="formattingNode">The node whose formatted result will be applied</param>
     /// <returns>The node to use as formatting context</returns>
@@ -64,6 +67,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : CodeFixP
     {
         return formattingNode switch
                {
+                   AssignmentExpressionSyntax assignment => FluentChain.GetOutermostChainNode(assignment),
                    VariableDeclaratorSyntax variableDeclarator => variableDeclarator.Parent?.Parent ?? formattingNode,
                    ParameterSyntax parameter => parameter.Parent ?? formattingNode,
                    EnumMemberDeclarationSyntax enumMember => enumMember.Parent ?? formattingNode,
