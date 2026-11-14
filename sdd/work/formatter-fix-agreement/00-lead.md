@@ -22,10 +22,12 @@
 
 ## Follow-up candidates
 
-- Comment in front of the closing `}` of a multi-line interpolation hole stays in column 12 while the hole's other lines move to column 8 (outside #1543; carries an open question) — `01-spec-author.md`.
+- Comment in front of the closing `}` of a multi-line interpolation hole stays in column 12 while the hole's other lines move to column 8 (outside #1543; carries an open question, readings A move with the hole's other lines / B keep; refined by `02-skeptic.md`: in a regular interpolated string the formatter moves the comment to column 12 even from column 8) — `01-spec-author.md`, `02-skeptic.md`.
 
 ## Worklist / next step
 
 - Done: claim, draft PR #1697, `scripts/prepare.sh` (SDK 10.0.404 installed).
 - Done: spec author (`01-spec-author.md`, a49e965): two draft change docs, two output questions (#1529 rec. B, #1543 rec. A).
-- Next: skeptic, then output-question batch before the test implementer.
+- Done: skeptic (`02-skeptic.md`, 7cfa03f): #1529 rec. B, adds the column-9 input and option D (withhold fix); names escalation 10 (declare the null-conditional assignment with a wrapped target unsupported), not recommended. #1543 rec. A; change-doc corrections (oscillation claim, field array initializer `}`, nested array `{`, RH5027 for do-while).
+- Waiting: maintainer answers to output questions 1 (#1529, incl. escalation 10 as option E) and 2 (#1543), asked before the test implementer.
+- Next after answers: spec author amends change docs + specs per answers and skeptic's corrections; then test implementer.
