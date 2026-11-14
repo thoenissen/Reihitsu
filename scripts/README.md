@@ -41,7 +41,7 @@ The trace defaults to at most three passes and requires a positive pass count. I
 
 Exit codes are `0` when formatting stabilizes or the input is legitimately skipped, `1` when the source is still changing after the requested pass count, and `2` for invalid arguments, missing files, unavailable tooling, or execution failures. Execution errors identify the active pass and, when available, the active phase.
 
-The implementation lives in `trace/trace.cs` as a [.NET 10 file-based app](https://learn.microsoft.com/en-us/dotnet/core/sdk/file-based-apps) with a repository-only project reference to `Reihitsu.Cli`. Like the text-only proof app, it is outside `Reihitsu.sln`; its local `Directory.Build.props` isolates it from solution packaging and analyzer settings.
+The implementation lives in `trace/trace.cs` as a [.NET 11 file-based app](https://learn.microsoft.com/en-us/dotnet/core/sdk/file-based-apps) with a repository-only project reference to `Reihitsu.Cli`. Like the text-only proof app, it is outside `Reihitsu.sln`; its local `Directory.Build.props` isolates it from solution packaging and analyzer settings.
 
 ## The code-fix fixture runner
 

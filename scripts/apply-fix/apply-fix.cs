@@ -1,5 +1,5 @@
 #:project ../../src/Reihitsu.Tooling/Reihitsu.Tooling.csproj
-#:property TargetFramework=net10.0
+#:property TargetFramework=net11.0
 #:property AssemblyName=Reihitsu.ApplyFix
 #:property PublishAot=false
 #:property PackAsTool=false

@@ -1,5 +1,5 @@
 #:project ../../src/Reihitsu.Cli/Reihitsu.Cli.csproj
-#:property TargetFramework=net10.0
+#:property TargetFramework=net11.0
 #:property AssemblyName=Reihitsu.Trace
 #:property PublishAot=false
 #:property PackAsTool=false

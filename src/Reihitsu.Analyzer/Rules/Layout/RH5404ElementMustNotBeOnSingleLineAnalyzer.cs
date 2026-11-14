@@ -83,7 +83,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBase
         // dropped, and RH5404's test class carries a canary over the declaration types themselves.
         //
         // SyntaxKind.UnionDeclaration is deliberately absent. Union declarations parse only under a preview
-        // language version and need runtime support types .NET 10 does not ship, and registering the kind would
+        // language version and need runtime support types .NET 11 does not ship, and registering the kind would
         // pull an experimental Roslyn API into the analyzer. They are left out until the feature is released.
         context.RegisterSyntaxNodeAction(OnDeclaration,
                                          SyntaxKind.ClassDeclaration,

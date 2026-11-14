@@ -10,8 +10,8 @@
 # sandbox without an SDK and on a machine where the SDK is preinstalled: it
 # probes first and installs only when the required SDK is genuinely missing.
 
-REIHITSU_DOTNET_CHANNEL="${REIHITSU_DOTNET_CHANNEL:-10.0}"
-REIHITSU_DOTNET_MAJOR="${REIHITSU_DOTNET_MAJOR:-10}"
+REIHITSU_DOTNET_CHANNEL="${REIHITSU_DOTNET_CHANNEL:-11.0}"
+REIHITSU_DOTNET_MAJOR="${REIHITSU_DOTNET_MAJOR:-11}"
 REIHITSU_DOTNET_ROOT="${REIHITSU_DOTNET_ROOT:-$HOME/.dotnet}"
 
 # Absolute path of the repository root, derived from this file's location.
