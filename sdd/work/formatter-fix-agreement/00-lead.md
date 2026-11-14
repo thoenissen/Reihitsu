@@ -37,4 +37,5 @@
 - Answers received (1B, 2A).
 - Done: spec author amendment (`03-spec-author.md`, b8924f4): RH5111-006, FMT-BLANK-020 widened, change docs finalized and accepted.
 - Done: test implementer (`04-test-implementer.md`, 4e241e5): failing tests exactly on changed outputs; rewritten existing asserts (3 old RH5111 conditional-access tests, 2 FMT-BLANK kept-blank-line tests) are covered by answers 1B/2A.
-- Next: implementer.
+- Done: implementer (`05-implementer.md`, 0c30c38): +17/−64 production; withheld rare class: RH5111 fix withheld when the receiver before `?` holds an unsupported shape (FMT-UNSUP-004) — for PR Review notes.
+- Next: cleaner.
