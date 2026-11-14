@@ -24,6 +24,7 @@
 | 4 | Spec | Edit merged `node-root-detached.md` for the superseded answer? | No; supersession recorded in the new change doc only (spec author's objection taken) | `sdd/README.md`: merged change docs are history | Doc history only | b8924f4 |
 | 5 | Spec | Accept both change docs | Status set to Accepted | Every visible output change has the maintainer's answer | — | (this commit) |
 | 6 | Audit 1 | Finding #1: the conditional-access-branch fact (`FluentChainBoundary.RootIsConditionalAccessBranch`, its branch in `FluentChain.IsConditionalAccessBranch`, FMT-PIPE-024 row) is dead after the change | Delete it in this run (repair round 1): spec row → spec author, code → implementer | PR-introduced, small, deletes code; a follow-up would cost a run of its own | No caller reaches the fact any more, so no output changes | (repair) |
+| 7 | Repair 1 | Disputed test `ReihitsuFormatterDetachedRootTests.ConditionalAccessAssignmentTargetKeepsTheWrappedLinkOfItsAssignedMember` asserts output for a root no caller passes any more | Delete the test (test implementer) | AGENTS.md *Supported inputs*: no caller reaches it; changed FMT-PIPE-024 leaves the root undecided; its other cases are covered by FMT-PIPE-023 and RH5111-006 tests | Only a direct-call input; no caller produces it | (repair) |
 | 1 | Claim | Branch name | Use the session's designated branch `claude/squad-1529-1543-wokrft` instead of `claude/issues-1529-1543-<slug>` | The session environment permits pushes only to the designated branch | Branch names are internal | claim commit |
 
 ## Follow-up candidates
@@ -43,4 +44,5 @@
 - Done: spec checker (`07-spec-checker.md`, be1cc6d): consistent, no findings. origin/main unchanged (b34c0f1); build green.
 - Done: audit 1 (`08-auditor.md`, e60b17f) on 01672a1, base b34c0f1: one low finding (dead fact, #1529); #1543 clean.
 - Repair round 1 worklist: (a) spec author removes FMT-PIPE-024 "Conditional-access branch" row (and any other spec text naming the fact); (b) implementer deletes the flag and boundary branch; keep `RootContinuesChain`.
-- Next: spec author repair → implementer repair → cleaner → spec checker → auditor (repair only) → validator.
+- Done: spec author repair (`09`, 2be1c17); implementer repair (`10`, 3940f29) — one disputed test, decision 7.
+- Next: test implementer repair (decision 7) → cleaner → spec checker → auditor (repair only) → validator.
