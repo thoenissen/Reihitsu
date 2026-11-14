@@ -1,4 +1,5 @@
 ﻿using System.Threading;
+using System.Xml.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -74,19 +75,45 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer : DiagnosticA
 
         var inheritdocNode = DirectDocumentationSyntaxChecker.GetFirstDirectTag(documentationComment, "inheritdoc");
 
-        // Each part of a partial member is judged by its own documentation (SHARED-DIAG-004). The expanded documentation
-        // of a part's symbol can be the other part's, so a part's own documentation is expanded on its own
-        var expandedDocumentation = IsPartOfPartialMember(declaration, context.SemanticModel, context.CancellationToken)
-                                        ? XmlDocumentationExpander.GetExpandedDocumentationOfPart(declaration, context.SemanticModel, context.CancellationToken)
-                                        : XmlDocumentationExpander.GetExpandedDocumentation(declaration, context.SemanticModel, context.CancellationToken);
-        var expandedInheritdocElement = XmlDocumentationExpander.GetFirstExpandedElement(expandedDocumentation, "inheritdoc");
+        XElement expandedInheritdocElement;
+        XmlNodeSyntax laterInheritdocNode = null;
 
-        if (inheritdocNode == null && expandedInheritdocElement == null)
+        if (IsPartOfPartialMember(declaration, context.SemanticModel, context.CancellationToken))
+        {
+            // Each part of a partial member is judged by its own documentation (SHARED-DIAG-004). The expanded
+            // documentation of a part's symbol can be the other part's, so the part's own comments are read from its
+            // syntax, and only content an include element brings in is expanded on its own
+            var documentationComments = declaration.GetLeadingTrivia()
+                                                   .Select(obj => obj.GetStructure())
+                                                   .OfType<DocumentationCommentTriviaSyntax>()
+                                                   .ToList();
+
+            if (documentationComments.Any(obj => DirectDocumentationSyntaxChecker.GetTagsIncludingNested(obj, "include").Length > 0))
+            {
+                expandedInheritdocElement = XmlDocumentationExpander.GetFirstExpandedElement(XmlDocumentationExpander.GetExpandedDocumentationOfPart(declaration, context.SemanticModel, context.CancellationToken), "inheritdoc");
+            }
+            else
+            {
+                expandedInheritdocElement = null;
+                laterInheritdocNode = documentationComments.Skip(1)
+                                                           .Select(obj => DirectDocumentationSyntaxChecker.GetFirstDirectTag(obj, "inheritdoc"))
+                                                           .FirstOrDefault(obj => obj != null);
+            }
+        }
+        else
+        {
+            expandedInheritdocElement = XmlDocumentationExpander.GetFirstExpandedElement(XmlDocumentationExpander.GetExpandedDocumentation(declaration, context.SemanticModel, context.CancellationToken), "inheritdoc");
+        }
+
+        if (inheritdocNode == null
+            && laterInheritdocNode == null
+            && expandedInheritdocElement == null)
         {
             return;
         }
 
         if ((inheritdocNode != null && DocumentationAnalysisUtilities.HasCrefAttribute(inheritdocNode))
+            || (laterInheritdocNode != null && DocumentationAnalysisUtilities.HasCrefAttribute(laterInheritdocNode))
             || (expandedInheritdocElement != null && DocumentationAnalysisUtilities.HasCrefAttribute(expandedInheritdocElement)))
         {
             return;

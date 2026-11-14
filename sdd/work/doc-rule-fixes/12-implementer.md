@@ -47,3 +47,15 @@ _None._ (The compiler's partial-member documentation merging is outside the repo
 
 ## Follow-up candidates
 - Other readers of a partial member's expanded documentation (RH8032, RH8033, RH8101, RH8105, RH8108 via `XmlDocumentationExpander.GetExpandedDocumentation`) read the defining part's symbol, which carries the implementing part's documentation when it has any; `GetExpandedDocumentationOfPart` could serve them (already listed in `00-lead.md` from 04-skeptic).
+
+## Decision 23 (lead): detached compilation only for `<include>`
+
+Commit: 27a9160 (base of this addendum)
+
+| File | What changed | Requirement |
+|---|---|---|
+| `src/Reihitsu.Analyzer/Rules/Documentation/RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.cs` | For a part of a partial member, `GetExpandedDocumentationOfPart` (the detached compilation) is called only when one of the part's own documentation comments holds an `<include>` element (`GetTagsIncludingNested(comment, "include")`, nested ones counted, since the compiler expands those too). Otherwise the part's later comments are read from syntax: the first top-level `<inheritdoc>` of the part's second and later documentation comments, with its `cref` checked by the syntax overload of `HasCrefAttribute`; the report stays on the declaration's name (RH8203-002). Non-partial declarations are unchanged | RH8203-001, RH8203-002 |
+
+`XmlDocumentationExpander.GetExpandedDocumentationOfPart` is unchanged and now serves the `<include>` case alone.
+
+Tests run: `scripts/test.sh --configuration Debug --project analyzer` — Passed: 8937, Failed: 0 (the 8 tests from 11 included). Build: no new warning.
