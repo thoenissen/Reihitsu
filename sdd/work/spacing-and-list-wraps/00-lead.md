@@ -61,4 +61,5 @@
 - Done: spec author amendment (a8ba6f3).
 - Done: implementer (05, c119a8a): 3 disputed tests.
 - Done: spec author (8c01778), test implementer (06, 32a99e5); all focused and full formatter tests green.
-- Next: cleaner (07).
+- Done: cleaner (07, 48ccd41): clean.
+- Next: spec checker (08).
