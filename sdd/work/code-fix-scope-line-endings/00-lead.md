@@ -75,4 +75,5 @@
 - Auditor 15 (6b93108): #1–#3 closed; #4 repeats #1 → decision 19 (text-only repair).
 - Spec author 16 (64958ef) done.
 - Cleaner 17 (2a6557e): comment fix; TEXT-ONLY PROOF: PASS vs a219aac → no second audit (lead.md §7).
-- Next step: validator 18 on the final tree; then lane check, issue manager, note, publish.
+- Validator 18 (5deb158): pass. LANE CHECK: confirmed — behavior-change.
+- Next step: issue manager 19 (3 follow-up candidates), then note, publish.
