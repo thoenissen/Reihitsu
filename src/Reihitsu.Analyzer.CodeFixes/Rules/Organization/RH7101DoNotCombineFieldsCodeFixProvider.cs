@@ -123,7 +123,7 @@ public class RH7101DoNotCombineFieldsCodeFixProvider : ReihitsuCodeFixProviderBa
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider()
     {
-        return FixAllProvider.Create(ApplyFixAllAsync);
+        return CreateFixAllProvider(ApplyFixAllAsync);
     }
 
     #endregion // CodeFixProvider

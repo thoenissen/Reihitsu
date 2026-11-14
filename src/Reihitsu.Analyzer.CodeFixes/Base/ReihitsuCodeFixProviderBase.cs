@@ -1,4 +1,6 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,8 +13,9 @@ using Reihitsu.Formatter.Utilities;
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
 /// <summary>
-/// The base of every code-fix provider: it decides, once and before any fix registers, whether the diagnostic's document lets
-/// a fix be offered at all. No fix is offered in a document that holds code another build configuration hides
+/// The base of every code-fix provider and the one owner of whether a document lets a fix be offered at all: it decides it
+/// before any fix registers, and a Fix All that does not register its fixes asks it for each document through
+/// <see cref="CreateFixAllProvider"/>. No fix is offered in a document that holds code another build configuration hides
 /// (SHARED-FIX-012), and no fix whose result the formatter lays out is offered in a document the formatter declines because of
 /// a syntax error (SHARED-FIX-011). Both answers are the formatter's own
 /// </summary>
@@ -61,6 +64,25 @@ public abstract class ReihitsuCodeFixProviderBase : CodeFixProvider
     }
 
     /// <summary>
+    /// Creates a Fix All provider that applies the provider's fixes to one document at a time without registering them, and
+    /// leaves a document in which no fix may be offered unchanged (SHARED-FIX-011, SHARED-FIX-012)
+    /// </summary>
+    /// <param name="fixAllAsync">Applies every fix of the given diagnostics to a document in which a fix may be offered</param>
+    /// <returns>The Fix All provider</returns>
+    protected FixAllProvider CreateFixAllProvider(Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document>> fixAllAsync)
+    {
+        return FixAllProvider.Create(async (context, document, diagnostics) =>
+                                     {
+                                         if (await MayOfferFixesAsync(document, context.CancellationToken).ConfigureAwait(false) == false)
+                                         {
+                                             return document;
+                                         }
+
+                                         return await fixAllAsync(context, document, diagnostics).ConfigureAwait(false);
+                                     });
+    }
+
+    /// <summary>
     /// Registers the provider's fixes for the context's diagnostics. It is called only for a document in which a fix may be
     /// offered
     /// </summary>
@@ -90,6 +112,23 @@ public abstract class ReihitsuCodeFixProviderBase : CodeFixProvider
         return _syntaxErrorVerdicts.GetValue(syntaxTree, tree => new StrongBox<bool>(ReihitsuFormatterHelpers.HasSyntaxErrors(tree))).Value;
     }
 
+    /// <summary>
+    /// Determines whether the provider's fixes may be offered in a document: not in a document that holds a hiding carrier
+    /// (SHARED-FIX-012), and, for a fix whose result the formatter lays out, not in a document with a syntax error
+    /// (SHARED-FIX-011)
+    /// </summary>
+    /// <param name="document">The document</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> if a fix may be offered in the document; otherwise, <see langword="false"/></returns>
+    private async Task<bool> MayOfferFixesAsync(Document document, CancellationToken cancellationToken)
+    {
+        var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+        return syntaxTree != null
+               && HoldsHidingCarrier(syntaxTree, cancellationToken) == false
+               && (FormatsThroughFormatter == false || HasSyntaxErrors(syntaxTree) == false);
+    }
+
     #endregion // Methods
 
     #region CodeFixProvider
@@ -101,16 +140,10 @@ public abstract class ReihitsuCodeFixProviderBase : CodeFixProvider
     /// </remarks>
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        var syntaxTree = await context.Document.GetSyntaxTreeAsync(context.CancellationToken).ConfigureAwait(false);
-
-        if (syntaxTree == null
-            || HoldsHidingCarrier(syntaxTree, context.CancellationToken)
-            || (FormatsThroughFormatter && HasSyntaxErrors(syntaxTree)))
+        if (await MayOfferFixesAsync(context.Document, context.CancellationToken).ConfigureAwait(false))
         {
-            return;
+            await RegisterCodeFixesCoreAsync(context).ConfigureAwait(false);
         }
-
-        await RegisterCodeFixesCoreAsync(context).ConfigureAwait(false);
     }
 
     #endregion // CodeFixProvider

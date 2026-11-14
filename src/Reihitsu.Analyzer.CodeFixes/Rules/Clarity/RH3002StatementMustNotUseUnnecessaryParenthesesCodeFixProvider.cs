@@ -146,7 +146,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesCodeFixProvider : Re
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider()
     {
-        return FixAllProvider.Create(ApplyFixAllAsync);
+        return CreateFixAllProvider(ApplyFixAllAsync);
     }
 
     #endregion // CodeFixProvider

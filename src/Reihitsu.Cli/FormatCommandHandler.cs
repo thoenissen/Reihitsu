@@ -328,7 +328,7 @@ internal sealed class FormatCommandHandler
 
             // The formatter leaves such a file as written; it is named as skipped, by the formatter's own definition, so that
             // the user learns why a file that may need formatting was left alone (CLI-021)
-            if (ReihitsuFormatter.HoldsHidingCarrier(syntaxTree, cancellationToken))
+            if (_formatter.HoldsHidingCarrier(syntaxTree, cancellationToken))
             {
                 if (_verbose)
                 {
