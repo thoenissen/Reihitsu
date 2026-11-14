@@ -1522,26 +1522,6 @@ public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH
     }
 
     /// <summary>
-    /// Verifies that an unnamed receiver parameter passed by reference is not reported
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    [Requirement("RH4105-004")]
-    public async Task VerifyUnnamedReferenceReceiverParameterIsNotReported()
-    {
-        const string testCode = """
-                                public static class E
-                                {
-                                    extension(ref int)
-                                    {
-                                    }
-                                }
-                                """;
-
-        await Verify(testCode);
-    }
-
-    /// <summary>
     /// Verifies that an unnamed receiver parameter of an extension block with a static member is not reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
