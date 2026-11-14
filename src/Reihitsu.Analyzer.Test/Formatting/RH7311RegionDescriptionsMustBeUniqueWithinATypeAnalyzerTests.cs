@@ -840,6 +840,113 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies the specification example in which a conditional directive encloses the whole declaration, so its
+    /// regions lie in no branch and are compared
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7311-001")]
+    public async Task RegionsOfADeclarationThatAConditionalDirectiveEnclosesAreCompared()
+    {
+        const string testData = """
+                                #if !NEVER
+                                class C
+                                {
+                                    #region Methods
+
+                                    void A()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    {|RH7311:#region Methods|}
+
+                                    void B()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                #endif
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that two regions in one branch of a conditional directive that starts inside the declaration are not
+    /// compared, also when the branch is the one the configuration compiles
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7311-001")]
+    public async Task RegionsInABranchThatStartsInsideTheDeclarationAreNotCompared()
+    {
+        const string testData = """
+                                class C
+                                {
+                                #if !NEVER
+                                    #region Methods
+
+                                    void A()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    #region Methods
+
+                                    void B()
+                                    {
+                                    }
+
+                                    #endregion
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a region in a branch that starts inside the declaration is not compared, also when another
+    /// conditional directive encloses the whole declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7311-001")]
+    public async Task RegionInABranchInsideADeclarationThatAConditionalDirectiveEnclosesIsNotCompared()
+    {
+        const string testData = """
+                                #if !NEVER
+                                class C
+                                {
+                                    #region Methods
+
+                                    void A()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                #if !NEVER
+                                    #region Methods
+
+                                    void B()
+                                    {
+                                    }
+
+                                    #endregion
+                                #endif
+                                }
+                                #endif
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region Methods

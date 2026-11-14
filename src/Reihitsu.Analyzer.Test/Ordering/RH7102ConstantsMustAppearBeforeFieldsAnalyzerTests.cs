@@ -1359,7 +1359,7 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
 
     /// <summary>
     /// Verifies the specification example in which the first field of the group lies in an earlier region, so the code
-    /// fix moves the constant in front of the field in its own region
+    /// fix moves the constant in front of the field in its own region, which is not the first member of that region
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -1377,6 +1377,7 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
 
                                     #region B
 
+                                    public int B;
                                     private int _b;
                                     private const int {|RH7102:K|} = 1;
 
@@ -1394,6 +1395,7 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
 
                                      #region B
 
+                                     public int B;
                                      private const int K = 1;
                                      private int _b;
 
@@ -1402,6 +1404,37 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
                                  """;
 
         await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the diagnostic is reported without a code fix when the first field of the group in the constant's own
+    /// region is the first member of that region, because the region's opening line lies in the crossed span
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7102-006")]
+    [Requirement("SHARED-ORDER-004")]
+    public async Task NoCodeFixWhenTheFirstFieldOfTheGroupInTheOwnRegionIsTheFirstMemberOfThatRegion()
+    {
+        const string source = """
+                              class C
+                              {
+                                  #region A
+
+                                  private int _a;
+
+                                  #endregion
+
+                                  #region B
+
+                                  private int _b;
+                                  private const int {|RH7102:K|} = 1;
+
+                                  #endregion
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     #endregion // Tests

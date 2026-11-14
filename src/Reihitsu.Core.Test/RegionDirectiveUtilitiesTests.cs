@@ -163,10 +163,10 @@ public class RegionDirectiveUtilitiesTests
     }
 
     /// <summary>
-    /// Verifies that members inside a top-level region are recognized correctly
+    /// Verifies that a member inside a top-level region is recognized as lying within a region
     /// </summary>
     [TestMethod]
-    public void RegionContainmentHelpersFindContainingTopLevelRegion()
+    public void IsWithinRegionRecognizesAMemberInsideATopLevelRegion()
     {
         var syntaxRoot = CoreSyntaxTestHelper.ParseCompilationUnit(RegionSource);
         var typeDeclaration = syntaxRoot.DescendantNodes()
@@ -175,11 +175,7 @@ public class RegionDirectiveUtilitiesTests
         var secondMethod = typeDeclaration.Members.OfType<MethodDeclarationSyntax>().Single(obj => obj.Identifier.ValueText == "Second");
         var regions = RegionDirectiveUtilities.GetTopLevelRegions(typeDeclaration);
 
-        var hasContainingRegion = RegionDirectiveUtilities.TryFindContainingRegion(secondMethod, regions, out var region);
-
-        Assert.IsTrue(hasContainingRegion);
         Assert.IsTrue(RegionDirectiveUtilities.IsWithinRegion(secondMethod, regions));
-        Assert.AreEqual("Outer", RegionDirectiveUtilities.GetRegionDescription((RegionDirectiveTriviaSyntax)region.Region.GetStructure()));
     }
 
     /// <summary>

@@ -6941,7 +6941,8 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
 
     /// <summary>
     /// Verifies the specification example in which the first field of the group lies in an earlier region, so the code
-    /// fix moves the readonly field in front of the field in its own region
+    /// fix moves the readonly field in front of the field in its own region, which is not the first member of that
+    /// region
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -6959,6 +6960,7 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
 
                                     #region B
 
+                                    public int B;
                                     private int _b;
                                     private readonly int {|RH7109:_c|};
 
@@ -6976,6 +6978,7 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
 
                                      #region B
 
+                                     public int B;
                                      private readonly int _c;
                                      private int _b;
 
@@ -6984,6 +6987,37 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
                                  """;
 
         await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the diagnostic is reported without a code fix when the first field of the group in the readonly
+    /// field's own region is the first member of that region, because the region's opening line lies in the crossed span
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7109-006")]
+    [Requirement("SHARED-ORDER-004")]
+    public async Task NoCodeFixWhenTheFirstFieldOfTheGroupInTheOwnRegionIsTheFirstMemberOfThatRegion()
+    {
+        const string source = """
+                              class C
+                              {
+                                  #region A
+
+                                  private int _a;
+
+                                  #endregion
+
+                                  #region B
+
+                                  private int _b;
+                                  private readonly int {|RH7109:_c|};
+
+                                  #endregion
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     #endregion // Tests
