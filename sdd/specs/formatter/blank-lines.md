@@ -786,9 +786,9 @@ class D
 
 ### FMT-BLANK-010 — No blank line after a documentation comment
 
-The formatter MUST remove the blank lines between a documentation comment and the next line of its token's leading trivia, whether that line holds the documented code or another comment. When that next line is an active `#region` or `#endregion` directive, the formatter MUST NOT remove the blank line that SHARED-BLANK-005 requires above it: the gap keeps one blank line, as FMT-BLANK-013 states.
+The formatter MUST remove the blank lines between a documentation comment and the next line of its token's leading trivia, whether that line holds the documented code or another comment. When that next line is an active `#region` or `#endregion` directive, the formatted output MUST have exactly one blank line between the documentation comment and the directive, the line SHARED-BLANK-005 requires above the directive (FMT-BLANK-013), whether the input has none, one, or several there.
 
-Why: A documentation comment belongs to the code below it; a blank line would visually detach it. The formatter mirrors RH8302. The blank line above a region directive belongs to the directive, which RH8302 does not report either; it has one owner, FMT-BLANK-013, so the result does not depend on which of the two requirements is applied last.
+Why: A documentation comment belongs to the code below it; a blank line would visually detach it. The formatter mirrors RH8302. The blank line above a region directive belongs to the directive, not to the comment, and RH8302 does not report it either; without it, the output would carry the shape RH5031 reports.
 
 Example:
 

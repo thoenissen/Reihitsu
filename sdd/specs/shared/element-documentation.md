@@ -5,7 +5,7 @@
 | ID prefix | SHARED-DOC |
 | Status | Active |
 | Code owners | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `DocumentationModeAnalysisContextExtensions`, `DocumentationCommentCodeFixUtilities` |
-| Uses | FMT-DOC-013, SHARED-DIAG-004, SHARED-FIX-003, SHARED-FIX-006, SHARED-ORDER-002, SHARED-ORDER-006, SHARED-ORDER-009 |
+| Uses | FMT-DOC-013, SHARED-FIX-003, SHARED-FIX-006, SHARED-ORDER-002, SHARED-ORDER-006, SHARED-ORDER-009 |
 
 This spec covers the rules that require one kind of element to be documented. It defines which declarations such a rule checks, the private and non-private groups that split each kind between two rules, the declarations it exempts, and when a declaration counts as documented. It also defines what every documentation rule relies on: which documentation comments belong to a declaration, when a summary has text, when the parameters and type parameters of an element count as documented, and in which documentation modes documentation rules run. For the rules that check the descriptions of parameters, type parameters, and return values, it defines when such a description has text, how the descriptions are paired with the parameters, and when a description lacks a name. For the code fixes that remove, unwrap, or reorder documentation elements, it defines when an element has an end tag of its own and withholds them for one that has none; for the code fixes that remove an element, it defines which lines go with it. Each rule that uses this spec states which element kind it checks, which group, and where its diagnostic is located.
 
@@ -56,11 +56,9 @@ A declaration MUST belong to exactly one of two groups, decided by its own modif
 
 The accessibility of the containing declarations MUST NOT change the group.
 
-A partial type declared in several parts MUST be judged as one declaration (SHARED-DIAG-004): its group is decided as above from the modifiers of all its parts together, and every part belongs to that group. A part without an access modifier in a class, struct, record, or record struct therefore belongs to the non-private group when another part of the same type declares `public`, `internal`, `protected`, or `file`.
+This requirement covers every declaration except a static constructor declared in an interface and a partial type declared in several parts.
 
-This requirement covers every declaration except a static constructor declared in an interface.
-
-Why: The split separates what other code can use from the implementation details of one type, so a project can require documentation for the first and decide separately about the second. A `private protected` element is visible to derived types, so other code builds on it. Without a modifier, C# makes an element declared in a class, struct, record, or extension block private, and one declared in a namespace or an interface internal or public; a partial type declared in several parts is the exception, because it takes the accessibility that any of its parts declares, so a part without a modifier belongs to a type that other code may use. A static constructor of a class, struct, or record, which takes no access modifier, is private. The group is decided from the declaration as written, so a nested element keeps its rule when its container's accessibility changes.
+Why: The split separates what other code can use from the implementation details of one type, so a project can require documentation for the first and decide separately about the second. A `private protected` element is visible to derived types, so other code builds on it. Without a modifier, C# makes an element declared in a class, struct, record, or extension block private, and one declared in a namespace or an interface internal or public; a partial type declared in several parts is the exception, because it takes the accessibility that any of its parts declares. A static constructor of a class, struct, or record, which takes no access modifier, is private. The group is decided from the declaration as written, so a nested element keeps its rule when its container's accessibility changes.
 
 Example — RH8001, which checks the non-private group:
 
@@ -136,40 +134,6 @@ public struct S
     }
 }
 ```
-
-Example — the parts of a partial type belong to the group of the type, so neither part of `Visible` and neither part of `S` is in the private group:
-
-```csharp
-/// <summary>
-/// Outer
-/// </summary>
-public class Outer
-{
-    /// <summary>
-    /// Visible
-    /// </summary>
-    public partial class Visible
-    {
-    }
-
-    partial class Visible
-    {
-    }
-
-    /// <summary>
-    /// S
-    /// </summary>
-    internal partial struct S
-    {
-    }
-
-    partial struct S
-    {
-    }
-}
-```
-
-is not reported by RH8002 or RH8004.
 
 Example — RH8021, which checks the methods of the private group:
 
@@ -562,40 +526,6 @@ is reported.
 A rule that requires the declarations of its element kind to be documented MUST NOT report a method, property, indexer, event, operator, or conversion operator declaration that explicitly implements an interface member — one whose name is qualified by the interface, such as `void IDisposable.Dispose()` — whatever its documentation and whichever type or interface declares it.
 
 Why: An explicit implementation can only be reached through the interface, so the editor and the generated documentation lead the reader to the interface member it implements, and that member carries the description. A summary on the implementation would only repeat it, and it would drift when the interface member changes.
-
-Example — the parts of a partial type belong to the group of the type, so neither part of `Visible` and neither part of `S` is in the private group:
-
-```csharp
-/// <summary>
-/// Outer
-/// </summary>
-public class Outer
-{
-    /// <summary>
-    /// Visible
-    /// </summary>
-    public partial class Visible
-    {
-    }
-
-    partial class Visible
-    {
-    }
-
-    /// <summary>
-    /// S
-    /// </summary>
-    internal partial struct S
-    {
-    }
-
-    partial struct S
-    {
-    }
-}
-```
-
-is not reported by RH8002 or RH8004.
 
 Example — RH8021, which checks the methods of the private group:
 
