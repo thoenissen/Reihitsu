@@ -37,6 +37,8 @@
 | 11 | Skeptic 03 | Comment behind a leading comma that moves (`Foo(1⏎, /* c */ 2, 3)`) | Comment moves with its comma: `Foo(1, /* c */⏎2,⏎3)`, as parameter lists on `main` and FMT-BREAK-037 already do (FMT-PIPE-014) | Existing precedent decides it | Decided by existing requirements | – |
 | 12 | Skeptic 03 | Line counting in the exception paragraph | Count lines as SHARED-BLANK-008 does, like the first paragraph | Consistency | Internal reading | – |
 | 13 | Skeptic 03 | Change doc completeness | Add RH5101's fix result change (`Foo(⏎1⏎, 2, 3)` → `Foo(1,⏎2,⏎3)`) and RH5102's convergence | Missing visible entries; follow from answer C | Follow from answer C | – |
+| 14 | Test impl. 04 | A held comma alone on its line (`int first // keep⏎,⏎int second`): join to `, int second` or leave in place? | Leave in place: the held comma and the line break behind it stay as written; existing tests `CommaAloneOnItsLineStaysAligned` and `CommaAfterDirectiveHeldFirstParameterStaysAligned` stand; spec author states the case in FMT-BREAK-012 | Rare class (RH5035/RH5038 report the comment); refusing needs no extra machinery | Rare class: leaving a construct as written | – |
+| 15 | Test impl. 04 | Architecture test `RepositoryFilesReferenceNoSquadNote` fails on `03-skeptic.md` line 24 | Spec author rewords that line (no squad-note path) | Keeps the validator green before `sdd/work/` is deleted | Internal text | – |
 | 5 | Skeptic | Refuse leading-comma argument lists instead? | No | Common code; maintainer triage keeps it a bug for 1.2.2; declaring unsupported deletes nothing | – | – |
 
 ## Follow-up candidates
@@ -53,4 +55,5 @@
 - Answers received (see above).
 - Done: spec author (02), skeptic on spec diff (03).
 - Done: spec author amendment (aae1cae); change doc accepted by the lead.
-- Next: test implementer (04).
+- Done: test implementer (04, 0aeb480).
+- Next: spec author (decisions 14, 15) → implementer (05).
