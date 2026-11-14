@@ -23,6 +23,7 @@
 | 3 | Spec | #1543 issue goals: issue's own input (now refused by FMT-UNSUP-004) and complex element initializer | Replace input with assignment/initializer-interior forms; keep existing element-initializer coverage; extend round trips to RH5026/RH5027 | Skeptic findings | Test selection is internal | — |
 | 4 | Spec | Edit merged `node-root-detached.md` for the superseded answer? | No; supersession recorded in the new change doc only (spec author's objection taken) | `sdd/README.md`: merged change docs are history | Doc history only | b8924f4 |
 | 5 | Spec | Accept both change docs | Status set to Accepted | Every visible output change has the maintainer's answer | — | (this commit) |
+| 6 | Audit 1 | Finding #1: the conditional-access-branch fact (`FluentChainBoundary.RootIsConditionalAccessBranch`, its branch in `FluentChain.IsConditionalAccessBranch`, FMT-PIPE-024 row) is dead after the change | Delete it in this run (repair round 1): spec row → spec author, code → implementer | PR-introduced, small, deletes code; a follow-up would cost a run of its own | No caller reaches the fact any more, so no output changes | (repair) |
 | 1 | Claim | Branch name | Use the session's designated branch `claude/squad-1529-1543-wokrft` instead of `claude/issues-1529-1543-<slug>` | The session environment permits pushes only to the designated branch | Branch names are internal | claim commit |
 
 ## Follow-up candidates
@@ -40,4 +41,6 @@
 - Done: implementer (`05-implementer.md`, 0c30c38): +17/−64 production; withheld rare class: RH5111 fix withheld when the receiver before `?` holds an unsupported shape (FMT-UNSUP-004) — for PR Review notes.
 - Done: cleaner (`06-cleaner.md`, c821499): clean, Release 0 warnings.
 - Done: spec checker (`07-spec-checker.md`, be1cc6d): consistent, no findings. origin/main unchanged (b34c0f1); build green.
-- Next: auditor (base b34c0f1).
+- Done: audit 1 (`08-auditor.md`, e60b17f) on 01672a1, base b34c0f1: one low finding (dead fact, #1529); #1543 clean.
+- Repair round 1 worklist: (a) spec author removes FMT-PIPE-024 "Conditional-access branch" row (and any other spec text naming the fact); (b) implementer deletes the flag and boundary branch; keep `RootContinuesChain`.
+- Next: spec author repair → implementer repair → cleaner → spec checker → auditor (repair only) → validator.
