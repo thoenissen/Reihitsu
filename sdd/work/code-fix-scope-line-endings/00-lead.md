@@ -47,7 +47,7 @@
 
 ## State
 
-- Audited SHA: a092887ce41998f97a81c4dd8291e5015ba28067
+- Audited SHA: a219aacc2c2b9d45625ce28841048305eb1436c6 (repair audit pending; first audit 888654727cd8)
 - Last step finished: spec author (01-spec-author.md, change doc `sdd/changes/2026-11/rh3001-fix-scope.md` Draft).
 - Skeptic done (02-skeptic.md): all reproduced and reachable; one output question (RH3001 `orderby !a` without direction).
 - Spec author amendment done (ff3315d).
@@ -66,4 +66,6 @@
 - Test implementer 11 (6481fbe): 14 red, 6 green for RH3001-009.
 - Implementer 12 (f58c116): all green.
 - Cleaner 13 (64d42e5): clean.
-- Next step: spec checker 14, then auditor 15 (repair only).
+- Spec checker 14 (a219aac): consistent. main unchanged (cf6d26b); Release build green.
+- Repair audit of a219aacc2c2b9d45625ce28841048305eb1436c6 (round 2 repair since 888654727cd8).
+- Next step: auditor 15 (repair only).
