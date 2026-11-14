@@ -13,7 +13,7 @@
 
 ## Maintainer answers
 
-(none yet)
+- Batch 1, Q1 — RH3001, negation as an `orderby` key without a direction (`orderby !a`): **A** — offer the fix, output `orderby a == false` (as recommended).
 
 ## Decisions taken
 
@@ -42,4 +42,5 @@
 - Last step finished: spec author (01-spec-author.md, change doc `sdd/changes/2026-11/rh3001-fix-scope.md` Draft).
 - Skeptic done (02-skeptic.md): all reproduced and reachable; one output question (RH3001 `orderby !a` without direction).
 - Spec author amendment done (ff3315d).
-- Next step: waiting for the maintainer on output question batch 1 (RH3001 `orderby !a` without direction); then accept change doc and spawn test implementer.
+- Maintainer answered batch 1 (A).
+- Next step: spec author records the answer in the change doc Decisions and sets it Accepted; then test implementer.
