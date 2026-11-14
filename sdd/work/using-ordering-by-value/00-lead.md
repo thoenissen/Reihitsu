@@ -24,6 +24,7 @@
 | 2 | Skeptic | Does by-value name comparison also bind the formatter's using phase? | Yes; the formatter's order changes through the shared Core policy | 02-skeptic: formatter `UsingGrouping` delegates to Core `UsingDirectiveOrderingUtilities`, which RH7207 also uses; SHARED-USING-004 and FMT-USING-001 demand one order; FMT-PIPE-004 idempotence is broken on `main` by the spelling read | Demanded by unchanged requirements (SHARED-DIAG-002, SHARED-USING-004, FMT-USING-001, FMT-PIPE-004, SHARED-FIX-001/005); the PR lists the moved directives under Review notes | |
 | 3 | Skeptic | Architecture finding FC-015: order within a group decided in Core `ComputeCanonicalOrder` and in three drifted loops in RH7203/RH7204/RH7206 | Change the structure in this run: the three analyzers take the within-group comparison from Core instead of their own loops | A narrow fix would restate SHARED-USING-007 three more times; the change stays in the components the run changes and well under 100 lines | Output is what SHARED-USING-007 already demands | |
 | 4 | Skeptic | #1267 goals: RH7204 change, SHARED-USING-005 mention, two non-name aliases in one section | RH7204 gets only a characterization test; SHARED-USING-005 dropped from scope; order between two non-name aliases stays as on `main` (not locked by new tests) | 02-skeptic: RH7204 already correct for the instance; SHARED-USING-004 does not decide two non-name aliases | Nothing changes for those outputs | |
+| 6 | Test impl. | When to fix the RH7201 spec-example markup gap | Batch it with the spec checker's findings instead of a separate spawn now | One-line example markup; the test already follows the requirement text | The requirement already demands the second report, and `main` reports it | |
 | 5 | Skeptic | SHARED-USING-004 wording "between its parts" | Spec author amends to cover `global ::` and type-argument trivia (wording "between its tokens" plus examples for `global :: System.IO` and a generic static type name) | Both are failing members of the #1105 class | Same outputs the agreement and FMT-PIPE-004 already demand | |
 
 ## Follow-up candidates
@@ -38,4 +39,6 @@
 - Skeptic done (39ebd16, 02-skeptic.md): #1105 proceed + output question (Unicode escape); #1266 proceed; #1267 proceed narrower.
 - Output question 1 answered (A, generalized: technical value, `@` dropped, escapes decoded).
 - Spec amendment done (6f629b1, 03-spec-author.md). No further output questions.
-- Next: test implementer (running), then implementer.
+- Test implementer done (5c42d88, 04-test-implementer.md): all three reproduced (51 analyzer + 19 formatter tests fail as intended).
+- Open spec worklist (for the next spec-author spawn, batched with spec-checker findings): RH7201-001 Unicode-escape example in `sdd/specs/analyzer/RH7201.md` must also mark `using {|RH7201:System|};` (04-test-implementer).
+- Next: implementer (running), then cleaner.
