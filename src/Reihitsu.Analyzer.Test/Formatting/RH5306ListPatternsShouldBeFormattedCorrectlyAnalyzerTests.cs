@@ -337,12 +337,14 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzerTests : BatchCo
 
     /// <summary>
     /// Verifies that a comment behind the token in front of the list pattern does not withhold the fix and stays on its
-    /// line
+    /// line, and that the list pattern keeps its opening bracket in its line and column and is laid out from there, while the
+    /// statement around it stays as written
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5306-001")]
     [Requirement("RH5306-004")]
+    [Requirement("SHARED-FIX-006")]
     public async Task VerifyFixLaysOutListPatternBehindTrailingCommentOfPrecedingToken()
     {
         const string testCode = """
@@ -364,10 +366,10 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzerTests : BatchCo
                                      bool M(int[] v)
                                      {
                                          var c = v is // note
-                                         [
-                                             1,
-                                             2
-                                         ];
+                                                 [
+                                                     1,
+                                                     2
+                                                 ];
 
                                          return c;
                                      }
@@ -379,12 +381,14 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzerTests : BatchCo
 
     /// <summary>
     /// Verifies that a comment behind the token in front of the list pattern does not withhold the fix and stays on its
-    /// line, with CRLF line endings
+    /// line, and that the list pattern keeps its opening bracket in its line and column and is laid out from there, while the
+    /// statement around it stays as written, with CRLF line endings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5306-001")]
     [Requirement("RH5306-004")]
+    [Requirement("SHARED-FIX-006")]
     public async Task VerifyFixLaysOutListPatternBehindTrailingCommentOfPrecedingTokenWithCarriageReturnLineFeed()
     {
         const string testCode = """
@@ -406,10 +410,10 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzerTests : BatchCo
                                      bool M(int[] v)
                                      {
                                          var c = v is // note
-                                         [
-                                             1,
-                                             2
-                                         ];
+                                                 [
+                                                     1,
+                                                     2
+                                                 ];
 
                                          return c;
                                      }
@@ -520,6 +524,49 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzerTests : BatchCo
                                 """;
 
         await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out the list pattern from the column its opening bracket keeps, while the misspaced
+    /// declaration in front of it stays as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5306-004")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixLeavesTheCodeInFrontOfTheListPatternAsWritten(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    bool M(int[] v)
+                                    {
+                                        var  a=v is {|RH5306:[1, .. var rest
+                                                    ]|};
+
+                                        return a;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     bool M(int[] v)
+                                     {
+                                         var  a=v is [
+                                                         1,
+                                                         .. var rest
+                                                     ];
+
+                                         return a;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
     #endregion // Tests

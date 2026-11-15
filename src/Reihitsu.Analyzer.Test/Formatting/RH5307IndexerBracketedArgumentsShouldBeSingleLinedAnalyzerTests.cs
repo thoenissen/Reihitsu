@@ -568,6 +568,42 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzerTests : B
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifies that the fix joins only the bracketed argument list, while the misspaced declaration in front of the
+    /// element access and the code behind it stay as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5307-004")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixLeavesTheCodeAroundTheElementAccessAsWritten(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M(int[,] m)
+                                    {
+                                        var  a={|RH5307:m[
+                                            1, 2]|}+1;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M(int[,] m)
+                                     {
+                                         var  a=m[1, 2]+1;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

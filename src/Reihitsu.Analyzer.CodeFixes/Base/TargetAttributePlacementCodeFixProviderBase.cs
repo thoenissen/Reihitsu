@@ -69,7 +69,9 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : ReihitsuCode
     }
 
     /// <summary>
-    /// Applies the placement fix
+    /// Applies the placement fix. A member whose list is placed on a line of its own and that shares its last line with a
+    /// member behind it is then separated from that member, so that both stand on lines of their own (SHARED-FIX-007, shared
+    /// line)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="attributeList">Attribute list</param>
@@ -77,6 +79,33 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : ReihitsuCode
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, AttributeListSyntax attributeList, TargetAttributePlacementMode placementMode, CancellationToken cancellationToken)
+    {
+        var listAnnotation = new SyntaxAnnotation();
+        var placedDocument = await PlaceAttributeListAsync(document, attributeList, placementMode, listAnnotation, cancellationToken).ConfigureAwait(false);
+
+        if (placementMode != TargetAttributePlacementMode.SeparateLine
+            || attributeList.Parent is not MemberDeclarationSyntax)
+        {
+            return placedDocument;
+        }
+
+        var placedRoot = await placedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        return placedRoot?.GetAnnotatedTokens(listAnnotation).FirstOrDefault().Parent?.Parent is MemberDeclarationSyntax placedMember
+                   ? await BlankLineCodeFixUtilities.FormatMemberOnLinesOfItsOwnAsync(placedDocument, placedMember, static (separatedDocument, _, _) => Task.FromResult(separatedDocument), cancellationToken).ConfigureAwait(false)
+                   : placedDocument;
+    }
+
+    /// <summary>
+    /// Places the attribute list on a line of its own or on the line of the token behind it
+    /// </summary>
+    /// <param name="document">Document</param>
+    /// <param name="attributeList">Attribute list</param>
+    /// <param name="placementMode">Placement mode</param>
+    /// <param name="listAnnotation">The annotation the closing bracket of the placed list carries in the result</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Updated document</returns>
+    private static async Task<Document> PlaceAttributeListAsync(Document document, AttributeListSyntax attributeList, TargetAttributePlacementMode placementMode, SyntaxAnnotation listAnnotation, CancellationToken cancellationToken)
     {
         if (AttributeTargetUtilities.TryGetTokenAfterAttributeList(attributeList, out var tokenAfter) == false)
         {
@@ -124,6 +153,8 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : ReihitsuCode
         {
             updatedCloseBracket = closeBracket.WithTrailingTrivia(SyntaxFactory.Space);
         }
+
+        updatedCloseBracket = updatedCloseBracket.WithAdditionalAnnotations(listAnnotation);
 
         var updatedTokenAfter = tokenAfter.WithLeadingTrivia(SyntaxFactory.TriviaList());
         var openBracket = attributeList.OpenBracketToken;

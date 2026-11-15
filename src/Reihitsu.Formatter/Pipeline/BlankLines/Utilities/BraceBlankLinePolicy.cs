@@ -22,13 +22,12 @@ internal static class BraceBlankLinePolicy
 
     /// <summary>
     /// Determines whether a token is the opening brace of a block statement that follows another statement of the same
-    /// block or switch section (FMT-BLANK-017). A detached formatting root has no parent, so for the root block the
-    /// position it has in its document decides (FMT-PIPE-024)
+    /// block or switch section (FMT-BLANK-017). A detached formatting root has no parent, so the root block follows no
+    /// statement; the node-level entry points write back its leading trivia as it stands in the document (FMT-PIPE-018)
     /// </summary>
     /// <param name="token">The token to inspect, still part of the visited tree</param>
-    /// <param name="context">The formatting context, which carries the position of the formatting root</param>
     /// <returns><see langword="true"/> if the token opens a block statement that follows a statement</returns>
-    public static bool IsOpeningBraceOfBlockStatementAfterStatement(SyntaxToken token, FormattingContext context)
+    public static bool IsOpeningBraceOfBlockStatementAfterStatement(SyntaxToken token)
     {
         if (token.IsKind(SyntaxKind.OpenBraceToken) == false
             || token.Parent is not BlockSyntax block)
@@ -36,9 +35,7 @@ internal static class BraceBlankLinePolicy
             return false;
         }
 
-        return block.Parent == null
-                   ? context.RootListPosition.HasPreviousStatement
-                   : BlankLineSpacingPolicy.IsBlockStatementAfterStatement(block);
+        return BlankLineSpacingPolicy.IsBlockStatementAfterStatement(block);
     }
 
     /// <summary>
@@ -50,13 +47,12 @@ internal static class BraceBlankLinePolicy
     /// lines between an own-line comment and the token are removed (FMT-BLANK-020)
     /// </summary>
     /// <param name="token">The token to inspect, still part of the visited tree</param>
-    /// <param name="context">The formatting context, which carries the position of the formatting root</param>
     /// <returns><see langword="true"/> if no blank line stands directly before the token</returns>
-    public static bool RemovesBlankLinesDirectlyBefore(SyntaxToken token, FormattingContext context)
+    public static bool RemovesBlankLinesDirectlyBefore(SyntaxToken token)
     {
         return token.Kind() switch
                {
-                   SyntaxKind.OpenBraceToken => IsOpeningBraceOfBlockStatementAfterStatement(token, context) == false,
+                   SyntaxKind.OpenBraceToken => IsOpeningBraceOfBlockStatementAfterStatement(token) == false,
                    SyntaxKind.CloseBraceToken or SyntaxKind.ElseKeyword or SyntaxKind.CatchKeyword or SyntaxKind.FinallyKeyword => true,
                    SyntaxKind.WhileKeyword => token.Parent is DoStatementSyntax,
                    _ => IsClosingTokenOfPatternOrCollectionExpression(token),

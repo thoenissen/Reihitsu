@@ -101,7 +101,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
     }
 
     /// <summary>
-    /// Replaces the annotated property with its backing field declaration and formats the result
+    /// Replaces the annotated property with its backing field declaration and formats the result. A field that shares its
+    /// line with another member is first separated from it, so that both stand on lines of their own (SHARED-FIX-007)
     /// </summary>
     /// <param name="document">Document holding the annotated property</param>
     /// <param name="propertyAnnotation">Annotation tracking the property declaration</param>
@@ -127,7 +128,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
 
         return formattedFieldDeclaration == null
                    ? updatedDocument.Project.Solution
-                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedFieldDeclaration, cancellationToken).ConfigureAwait(false)).Output.Project.Solution;
+                   : (await BlankLineCodeFixUtilities.FormatMemberOnLinesOfItsOwnAsync(updatedDocument, formattedFieldDeclaration, cancellationToken).ConfigureAwait(false)).Project.Solution;
     }
 
     /// <summary>

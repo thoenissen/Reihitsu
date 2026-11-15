@@ -2199,6 +2199,68 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
         await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies that the fix lays out only the reported assignment, from the column its first token keeps, while
+    /// another assignment of the object initializer stays as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5304-004")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixLeavesTheOtherAssignmentsOfTheInitializerAsWritten(string endOfLine)
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    int X { get; set; }
+
+                                    List<int> L { get; } = new List<int>();
+
+                                    void M()
+                                    {
+                                        var a = new C
+                                                {
+                                                    X=1,
+                                                    {|RH5304:L =
+                                                    {
+                                                        1,
+                                                        2
+                                                    }|}
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     int X { get; set; }
+
+                                     List<int> L { get; } = new List<int>();
+
+                                     void M()
+                                     {
+                                         var a = new C
+                                                 {
+                                                     X=1,
+                                                     L = {
+                                                             1,
+                                                             2
+                                                         }
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

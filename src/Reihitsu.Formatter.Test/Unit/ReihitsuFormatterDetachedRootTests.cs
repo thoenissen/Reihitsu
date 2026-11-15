@@ -266,23 +266,24 @@ public class ReihitsuFormatterDetachedRootTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the spec example: a statement target behind a local declaration gets the blank line its list position calls for,
-    /// with and without a tab in the target
+    /// Verifies the spec example: a statement target behind a local declaration gets no blank line in front of it, because the
+    /// entry point writes back the target's leading trivia as it stands in the document, with and without a tab in the target
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
+    [Requirement("FMT-PIPE-018")]
     [Requirement("FMT-PIPE-024")]
-    public async Task StatementTargetBehindLocalDeclarationGetsTheBlankLineOfItsListPosition()
+    public async Task StatementTargetBehindLocalDeclarationGetsNoBlankLine()
     {
         const string input = "class C\n{\n    void M()\n    {\n        var a = 1;\n        Call(1,⇥2);\n    }\n}";
-        const string expected = "class C\n{\n    void M()\n    {\n        var a = 1;\n\n        Call(1, 2);\n    }\n}";
+        const string expected = "class C\n{\n    void M()\n    {\n        var a = 1;\n        Call(1, 2);\n    }\n}";
 
         await AssertFormatsTarget(input, expected, SelectCall);
     }
 
     /// <summary>
-    /// Verifies the spec example: <see cref="ReihitsuFormatter.FormatNode"/> on a statement behind a local declaration supplies no
-    /// list position and returns the statement without a line break in front of it
+    /// Verifies the spec example: <see cref="ReihitsuFormatter.FormatNode"/> on a statement behind a local declaration does not
+    /// read the code in front of it and returns the statement without a line break in front of it
     /// </summary>
     [TestMethod]
     [Requirement("FMT-PIPE-024")]
@@ -320,15 +321,15 @@ public class ReihitsuFormatterDetachedRootTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that an initializer target inside a collection initializer that starts behind the last line of a multi-line comment
-    /// places the comment's first line at the indentation phase's depth, which adds no level for the initializer around it
+    /// keeps the comment, which is the target's leading trivia, in its column, and formats only the initializer behind it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
-    [Requirement("FMT-PIPE-024")]
-    public async Task InitializerTargetBehindMultiLineCommentTakesTheIndentationPhaseDepth()
+    [Requirement("FMT-PIPE-018")]
+    public async Task InitializerTargetBehindMultiLineCommentKeepsTheCommentInItsColumn()
     {
         const string input = "using System.Collections.Generic;\n\nclass C\n{\n    void M()\n    {\n        var d = new Dictionary<int, int>\n        {\n            /* a\n             b */ { 1,⇥2 }\n        };\n    }\n}";
-        const string expected = "using System.Collections.Generic;\n\nclass C\n{\n    void M()\n    {\n        var d = new Dictionary<int, int>\n        {\n        /* a\n             b */ { 1, 2 }\n        };\n    }\n}";
+        const string expected = "using System.Collections.Generic;\n\nclass C\n{\n    void M()\n    {\n        var d = new Dictionary<int, int>\n        {\n            /* a\n             b */ { 1, 2 }\n        };\n    }\n}";
 
         await AssertFormatsTarget(input, expected, SelectInnerInitializer);
     }

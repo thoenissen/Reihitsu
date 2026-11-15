@@ -2,24 +2,18 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline.BlankLines.Utilities;
 
 namespace Reihitsu.Formatter.Pipeline.BlankLines.Rewriter;
 
 /// <summary>
 /// Subphase that inserts blank lines after break statements. A formatting root that is itself a statement or switch section
-/// following a <see langword="break"/> is decided against its preceding sibling in the document, which
-/// <see cref="FormattingContext.RootListPosition"/> carries
+/// has no sibling in front of it, and the node-level entry points write back its leading trivia as it stands in the
+/// document (FMT-PIPE-018)
 /// </summary>
 internal sealed class BlankLineBreakSpacingRewriter : CSharpSyntaxRewriter
 {
     #region Fields
-
-    /// <summary>
-    /// Formatting context of the current blank-line subphase
-    /// </summary>
-    private readonly FormattingContext _context;
 
     /// <summary>
     /// Shared blank-line query and edit collaborator
@@ -31,11 +25,6 @@ internal sealed class BlankLineBreakSpacingRewriter : CSharpSyntaxRewriter
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
-    /// <summary>
-    /// Whether the formatting root has been entered, so that every later <see cref="Visit"/> call visits a descendant
-    /// </summary>
-    private bool _isRootEntered;
-
     #endregion // Fields
 
     #region Constructor
@@ -43,12 +32,10 @@ internal sealed class BlankLineBreakSpacingRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="context">The formatting context</param>
     /// <param name="editor">Shared blank-line query and edit collaborator</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public BlankLineBreakSpacingRewriter(FormattingContext context, BlankLineEditor editor, CancellationToken cancellationToken)
+    public BlankLineBreakSpacingRewriter(BlankLineEditor editor, CancellationToken cancellationToken)
     {
-        _context = context;
         _editor = editor;
         _cancellationToken = cancellationToken;
     }
@@ -121,43 +108,6 @@ internal sealed class BlankLineBreakSpacingRewriter : CSharpSyntaxRewriter
     #endregion // Methods
 
     #region CSharpSyntaxVisitor
-
-    /// <inheritdoc />
-    /// <remarks>
-    /// The first call receives the formatting root. After its descendants are visited, a root statement or switch section is
-    /// decided against its preceding sibling in the document, because the visitor of the list that contains it lies outside
-    /// this run
-    /// </remarks>
-    public override SyntaxNode Visit(SyntaxNode node)
-    {
-        if (_isRootEntered)
-        {
-            return base.Visit(node);
-        }
-
-        _isRootEntered = true;
-
-        var visited = base.Visit(node);
-        var position = _context.RootListPosition;
-
-        switch (visited)
-        {
-            case StatementSyntax statement when position.HasPreviousStatement:
-                {
-                    return EnsureBlankLineAfterBreak(statement, position.PreviousStatementKind);
-                }
-
-            case SwitchSectionSyntax section when position.IsBehindSectionEndingInBreak:
-                {
-                    return _editor.EnsureBlankLineBeforeSection(section);
-                }
-
-            default:
-                {
-                    return visited;
-                }
-        }
-    }
 
     /// <inheritdoc />
     public override SyntaxNode VisitBlock(BlockSyntax node)

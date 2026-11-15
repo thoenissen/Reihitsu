@@ -428,6 +428,68 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifies the spec example: the one-line documentation comment above the property the fix puts on one line stays
+    /// as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixKeepsTheOneLineDocumentationCommentAboveTheProperty(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>A</summary>
+                                    {|RH5401:int A
+                                        => 1;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>A</summary>
+                                     int A => 1;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a property the fix puts on one line, which shares its line with a member behind it, keeps its own
+    /// line, and that the member behind it starts on the next line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixGivesThePropertyAndTheMemberBehindItLinesOfTheirOwn(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH5401:int A
+                                        => 1;|} int _b;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int A => 1;
+                                     int _b;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

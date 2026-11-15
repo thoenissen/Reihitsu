@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.CodeFixes.Base;
+using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Formatter;
 
@@ -36,27 +37,20 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     }
 
     /// <summary>
-    /// Try to get the formatting scope that should be formatted
+    /// Gets the node the fix formats: the reported assignment of the object initializer, whose first token keeps its line and
+    /// column, so the other assignments of the initializer and the code around the object creation stay as written
+    /// (RH5304-004, SHARED-FIX-006)
     /// </summary>
     /// <param name="root">Root</param>
     /// <param name="diagnostic">Diagnostic</param>
-    /// <returns>The formatting scope</returns>
+    /// <returns>The assignment, or <see langword="null"/> when there is none</returns>
     private static SyntaxNode TryGetFormatTarget(SyntaxNode root, Diagnostic diagnostic)
     {
-        var objectCreationExpression = root.FindToken(diagnostic.Location.SourceSpan.Start)
-                                           .Parent
-                                           ?.AncestorsAndSelf()
-                                           .OfType<ExpressionSyntax>()
-                                           .FirstOrDefault(node => node is ObjectCreationExpressionSyntax or ImplicitObjectCreationExpressionSyntax);
-
-        if (objectCreationExpression == null)
-        {
-            return null;
-        }
-
-        return objectCreationExpression.AncestorsAndSelf()
-                                       .FirstOrDefault(node => node is StatementSyntax or EqualsValueClauseSyntax or ArrowExpressionClauseSyntax)
-                   ?? objectCreationExpression;
+        return root.FindToken(diagnostic.Location.SourceSpan.Start)
+                   .Parent
+                   ?.AncestorsAndSelf()
+                   .OfType<AssignmentExpressionSyntax>()
+                   .FirstOrDefault(node => node.Parent is InitializerExpressionSyntax);
     }
 
     #endregion // Methods
@@ -69,7 +63,9 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider()
     {
-        return WellKnownFixAllProviders.BatchFixer;
+        // The fix changes only the reported construct and lays it out from the column its first token has, so two constructs
+        // on one line are fixed one after another, each from the column the fix in front of it left (SHARED-FIX-002)
+        return DocumentOrderFixAllProvider.Create(new RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer());
     }
 
     #endregion // CodeFixProvider

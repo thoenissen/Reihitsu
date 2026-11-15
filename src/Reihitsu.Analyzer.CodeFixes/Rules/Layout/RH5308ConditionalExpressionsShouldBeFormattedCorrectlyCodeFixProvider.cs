@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.CodeFixes.Base;
+using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Formatter;
 
@@ -37,27 +38,24 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyCodeFixProvid
             return document;
         }
 
-        var target = GetFormatTarget(conditional);
-
-        if (target == null)
-        {
-            return document;
-        }
-
-        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, target, cancellationToken).ConfigureAwait(false)).Output;
+        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, GetFormatTarget(conditional), cancellationToken).ConfigureAwait(false)).Output;
     }
 
     /// <summary>
-    /// Gets the node the fix formats: the enclosing statement or member. Those start on their own line, so the formatter's
-    /// indentation anchor stays consistent and the whole ternary chain, including nested conditionals, is laid out just like
-    /// a full format run
+    /// Gets the node the fix formats: the conditional expression, or the outermost conditional it is directly nested in as a
+    /// condition or a branch, so that a nested conditional is laid out with the conditionals around it, as one stair. Its
+    /// first token keeps its line and column, so the code around it stays as written (RH5308-004, SHARED-FIX-006)
     /// </summary>
     /// <param name="conditional">Conditional expression</param>
-    /// <returns>The node to format, or <see langword="null"/> when there is none</returns>
-    private static SyntaxNode GetFormatTarget(ConditionalExpressionSyntax conditional)
+    /// <returns>The node to format</returns>
+    private static ConditionalExpressionSyntax GetFormatTarget(ConditionalExpressionSyntax conditional)
     {
-        return conditional.FirstAncestorOrSelf<StatementSyntax>()
-                   ?? (SyntaxNode)conditional.FirstAncestorOrSelf<MemberDeclarationSyntax>();
+        while (conditional.Parent is ConditionalExpressionSyntax parent)
+        {
+            conditional = parent;
+        }
+
+        return conditional;
     }
 
     #endregion // Methods
@@ -70,7 +68,9 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyCodeFixProvid
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider()
     {
-        return WellKnownFixAllProviders.BatchFixer;
+        // The fix changes only the reported construct and lays it out from the column its first token has, so two constructs
+        // on one line are fixed one after another, each from the column the fix in front of it left (SHARED-FIX-002)
+        return DocumentOrderFixAllProvider.Create(new RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer());
     }
 
     #endregion // CodeFixProvider
@@ -91,10 +91,8 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyCodeFixProvid
             {
                 var operatorToken = root.FindToken(diagnostic.Location.SourceSpan.Start);
 
-                // A conditional outside any statement or member has no node to format (RH5308-006)
                 if (operatorToken.Parent is ConditionalExpressionSyntax conditional
-                    && GetFormatTarget(conditional) is { } target
-                    && ReihitsuFormatter.FindUnsupportedSyntax(target) == null)
+                    && ReihitsuFormatter.FindUnsupportedSyntax(GetFormatTarget(conditional)) == null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5308Title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, operatorToken, cancellationToken),

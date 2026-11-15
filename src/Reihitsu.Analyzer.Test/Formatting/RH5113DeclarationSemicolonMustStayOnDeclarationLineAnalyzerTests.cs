@@ -459,12 +459,12 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies that the fix, which lays out its result through the formatter, is not offered in a file with a syntax error,
-    /// while the diagnostic is still reported, and that it is offered once the syntax error is gone
+    /// Verifies that the fix, which moves only the semicolon, is still not offered in a file with a syntax error, while
+    /// the diagnostic is still reported, and that it is offered once the syntax error is gone
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-FIX-011")]
+    [Requirement("RH5113-004")]
     public async Task NoFixIsOfferedInAFileWithASyntaxError()
     {
         const string source = """
@@ -481,6 +481,152 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
                               """;
 
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: the fix moves only the semicolon behind the declaration, while the one-line
+    /// documentation comment and the spacing of the declaration stay as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5113-003")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixMovesOnlyTheSemicolonAndKeepsTheDocumentationComment(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>A</summary>
+                                    int  _a
+                                        {|RH5113:;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>A</summary>
+                                     int  _a;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a declaration whose semicolon the fix moves, and which shares its line with a member in front of
+    /// it, starts on the next line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixGivesADeclarationThatSharesItsLineWithAMemberInFrontALineOfItsOwn(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int _b; int _a
+                                        {|RH5113:;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int _b;
+                                     int _a;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above a comment that leads the declaration whose semicolon the fix moves
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixInsertsNoBlankLineAboveCommentThatLeadsTheDeclaration(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int _b;
+                                    // c
+                                    int _a
+                                        {|RH5113:;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int _b;
+                                     // c
+                                     int _a;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a declaration whose variable declaration holds a comment, a shape the formatter refuses,
+    /// is reported, and no fix is offered, although the gap in front of the semicolon holds no comment
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5113-004")]
+    public async Task SpecExampleNoFixIsOfferedForADeclarationWithACommentInsideItsVariableDeclaration(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int /* c */ _a
+                                        {|RH5113:;|}
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData.Replace("\r\n", "\n").Replace("\n", endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the spec example: the same declaration without the comment is offered the fix, which moves the semicolon
+    /// behind the declaration
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5113-004")]
+    public async Task SpecExampleFixIsOfferedForTheDeclarationWithoutTheComment(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int _a
+                                        {|RH5113:;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int _a;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
     #endregion // Tests

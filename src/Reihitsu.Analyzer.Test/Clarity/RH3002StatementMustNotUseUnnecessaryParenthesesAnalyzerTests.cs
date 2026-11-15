@@ -8410,6 +8410,333 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
         await Verify(testData, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
     }
 
+    /// <summary>
+    /// Verifying parentheses around a returned value whose excluded code stands behind <c>#if DEBUG</c> inside the
+    /// parentheses are reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-010")]
+    public async Task VerifyConditionalDirectiveInsideReturnedParenthesesIsReportedWithoutCodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a)
+                                    {
+                                        return {|RH3002:(a
+                                #if DEBUG
+                                            + 1
+                                #endif
+                                            )|};
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around a returned value whose excluded code stands behind <c>#if DEBUG</c> inside the
+    /// parentheses are reported, and no code fix is offered, with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-010")]
+    public async Task VerifyConditionalDirectiveInsideReturnedParenthesesIsReportedWithoutCodeFixWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a)
+                                    {
+                                        return {|RH3002:(a
+                                #if DEBUG
+                                            + 1
+                                #endif
+                                            )|};
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testCode, "\r\n"));
+    }
+
+    /// <summary>
+    /// Verifying parentheses around a returned value whose guarded code is active, because the <c>#if</c> condition
+    /// holds, are reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-010")]
+    public async Task VerifyConditionalDirectiveWithActiveCodeInsideReturnedParenthesesIsReportedWithoutCodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a)
+                                    {
+                                        return {|RH3002:(a
+                                #if !NEVER
+                                            + 1
+                                #endif
+                                            )|};
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around a returned value whose excluded code stands behind <c>#if false</c> inside the
+    /// parentheses are reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-010")]
+    public async Task VerifyIfFalseDirectiveInsideReturnedParenthesesIsReportedWithoutCodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a)
+                                    {
+                                        return {|RH3002:(a
+                                #if false
+                                            + 1
+                                #endif
+                                            )|};
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around a returned value split into an excluded <c>#if</c> branch and an active
+    /// <c>#else</c> branch are reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-010")]
+    public async Task VerifyElseDirectiveInsideReturnedParenthesesIsReportedWithoutCodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a, int b)
+                                    {
+                                        return {|RH3002:(
+                                #if X
+                                            a + b
+                                #else
+                                            a
+                                #endif
+                                            )|};
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around a returned value split into <c>#if</c>, <c>#elif</c>, and <c>#else</c> branches are
+    /// reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-010")]
+    public async Task VerifyElifDirectiveInsideReturnedParenthesesIsReportedWithoutCodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a, int b)
+                                    {
+                                        return {|RH3002:(
+                                #if X
+                                            a + b
+                                #elif Y
+                                            a - b
+                                #else
+                                            a
+                                #endif
+                                            )|};
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around an argument whose excluded code stands behind <c>#if</c> inside the parentheses are
+    /// reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-010")]
+    public async Task VerifyConditionalDirectiveInsideArgumentParenthesesIsReportedWithoutCodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        N({|RH3002:(a
+                                #if X
+                                            + 1
+                                #endif
+                                            )|});
+                                    }
+
+                                    void N(int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around an invocation receiver are reported, without a code fix, when the build leaves only a
+    /// name between them because the <c>#if</c> code that would make them necessary is excluded
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-010")]
+    public async Task VerifyReceiverParenthesesAroundExcludedCodeAreReportedWithoutCodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string M(int a)
+                                    {
+                                        return {|RH3002:(a
+                                #if X
+                                            + 1
+                                #endif
+                                            )|}.ToString();
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifying parentheses around an invocation receiver are not reported when the build defines the symbol whose
+    /// <c>#if</c> code makes them necessary
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-010")]
+    public async Task VerifyReceiverParenthesesAroundActiveBinaryCodeAreNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string M(int a)
+                                    {
+                                        return (a
+                                #if X
+                                            + 1
+                                #endif
+                                            ).ToString();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode,
+                     static test => test.SolutionTransforms.Add(static (solution, projectId) => solution.GetProject(projectId)?.ParseOptions is CSharpParseOptions parseOptions
+                                                                                                    ? solution.WithProjectParseOptions(projectId, parseOptions.WithPreprocessorSymbols("X"))
+                                                                                                    : solution));
+    }
+
+    /// <summary>
+    /// Verifying parentheses around an invocation receiver whose active <c>#else</c> branch holds only a name are
+    /// reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-010")]
+    public async Task VerifyReceiverParenthesesAroundElseBranchNameAreReportedWithoutCodeFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string M(int a, int b)
+                                    {
+                                        return {|RH3002:(
+                                #if X
+                                            a + b
+                                #else
+                                            a
+                                #endif
+                                            )|}.ToString();
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifying Fix All removes a removable pair and leaves the reported pair with a conditional directive inside it
+    /// unchanged in the same document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-009")]
+    [Requirement("RH3002-010")]
+    public async Task VerifyFixAllLeavesParenthesesWithConditionalDirectiveReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int M(int a)
+                                    {
+                                        var first = {|RH3002:(a)|};
+
+                                        return {|RH3002:(first
+                                #if DEBUG
+                                            + 1
+                                #endif
+                                            )|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int M(int a)
+                                     {
+                                         var first = a;
+
+                                         return {|RH3002:(first
+                                 #if DEBUG
+                                             + 1
+                                 #endif
+                                             )|};
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static test =>
+                            {
+                                // The diagnostic whose fix is withheld stays and is marked in the expected source
+                                test.FixedState.MarkupHandling = MarkupMode.Allow;
+                                test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                            });
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

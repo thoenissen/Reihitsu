@@ -43,16 +43,15 @@ internal sealed class CommentIndentationContributor : ILayoutContributor
     /// Aligns comment trivia in a token's leading trivia to the token's own indentation. Only a comment that starts its line
     /// is aligned: a documentation comment that Roslyn files as leading trivia of the token but that is written behind the
     /// preceding code shares that code's line, whose indentation belongs to the code rather than to the comment. The first
-    /// token of a node formatted on its own has no previous token in its tree, so its preceding token in the document is read
-    /// from <see cref="FormattingContext.RootPrecedingToken"/>. The column is the one the token's line has in the output of
+    /// token of a node formatted on its own has no previous token in its tree, so its comments are aligned as if no token
+    /// stood in front of the node. The column is the one the token's line has in the output of
     /// the indentation phase, after the phase moved the lines of multi-line raw string literals
     /// (<see cref="LayoutModel.TryGetPlacedColumn"/>). A comment in front of a closing brace or of the closing bracket of a
     /// collection expression is indented one level deeper than that token, inside the scope it closes
     /// </summary>
     /// <param name="token">The token whose leading trivia to inspect</param>
     /// <param name="model">The layout model</param>
-    /// <param name="context">The formatting context</param>
-    private static void AlignCommentsBeforeToken(SyntaxToken token, LayoutModel model, FormattingContext context)
+    private static void AlignCommentsBeforeToken(SyntaxToken token, LayoutModel model)
     {
         var tokenLine = LayoutComputer.GetLine(token);
 
@@ -69,7 +68,7 @@ internal sealed class CommentIndentationContributor : ILayoutContributor
             alignColumn += FormattingContext.IndentSize;
         }
 
-        var previousToken = PrecedingTokenFacts.Resolve(token.GetPreviousToken(), context);
+        var previousToken = PrecedingTokenFacts.From(token.GetPreviousToken());
         var leadingTrivia = token.LeadingTrivia;
 
         for (var triviaIndex = 0; triviaIndex < leadingTrivia.Count; triviaIndex++)
@@ -102,7 +101,7 @@ internal sealed class CommentIndentationContributor : ILayoutContributor
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            AlignCommentsBeforeToken(token, model, context);
+            AlignCommentsBeforeToken(token, model);
         }
     }
 
