@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -59,22 +57,9 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer : Diagnosti
             return;
         }
 
-        // The parameters alone decide whether the list is multi-line: they start on different lines, or one of them
-        // spans lines. A line break behind the opening or in front of the closing parenthesis does not (RH5109-001)
-        var startLines = new HashSet<int>();
-        var isMultiLine = false;
-        var sharesLine = false;
-
-        foreach (var parameter in parameterList.Parameters)
-        {
-            var parameterLineSpan = parameter.GetLocation().GetLineSpan();
-
-            isMultiLine |= parameterLineSpan.StartLinePosition.Line != parameterLineSpan.EndLinePosition.Line;
-            sharesLine |= startLines.Add(parameterLineSpan.StartLinePosition.Line) == false;
-        }
-
-        if ((isMultiLine || startLines.Count > 1)
-            && sharesLine)
+        // The parameters alone decide whether the list is multi-line; a line break behind the opening or in front of the
+        // closing parenthesis does not (RH5109-001)
+        if (SyntaxNodeUtilities.IsPartlyWrapped(parameterList.Parameters))
         {
             context.ReportDiagnostic(CreateDiagnostic(parameterList.OpenParenToken.GetLocation()));
         }
