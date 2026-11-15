@@ -33,4 +33,5 @@ None yet.
 - Last step: skeptic done (01-skeptic.md, fa73983): proceed; two output questions (file-scoped/compilation-unit indented usings with header; tab-indented block namespace).
 - Maintainer answered 1A, 2A.
 - Spec author done (02-spec-author.md, a8adc34): FMT-USING-011 added; lane check confirmed bug-fix.
-- Next: test implementer.
+- Test implementer done (03-test-implementer.md, a9b2d9b): reproduced; 17 formatter + RH7201–RH7207 code-fix tests failing as expected.
+- Next: implementer.
