@@ -178,6 +178,132 @@ public class TrailingCommaDocumentationCommentTests : FormatterTestsBase
         AssertRuleResult(input, expected, CreateParseOptions(documentationMode));
     }
 
+    /// <summary>
+    /// Verifies that removing an enum's trailing comma with a documentation comment in front of it and a comment line between
+    /// the comma's line and the closing brace gives the comma-less text's output in one pass, without a blank line in front of
+    /// the comment line, in the documentation modes that make the documentation comment the comma's leading trivia
+    /// </summary>
+    /// <param name="documentationMode">The documentation mode the input is parsed with</param>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-019")]
+    [Requirement("FMT-PIPE-004")]
+    [DataRow(DocumentationMode.Parse, DisplayName = "Parse")]
+    [DataRow(DocumentationMode.Diagnose, DisplayName = "Diagnose")]
+    public void DocumentationCommentInFrontOfTheEnumTrailingCommaStaysBehindTheLastMemberInFrontOfACommentLine(DocumentationMode documentationMode)
+    {
+        // Arrange
+        const string input = """
+                             enum E
+                             {
+                                 A,
+                                 B /** doc B */,
+                                 // note
+                             }
+                             """;
+        const string expected = """
+                                enum E
+                                {
+                                    A,
+                                    B /** doc B */
+                                    // note
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected, CreateParseOptions(documentationMode));
+    }
+
+    /// <summary>
+    /// Verifies that removing an array initializer's trailing comma with a documentation comment in front of it and a comment
+    /// line between the comma's line and the closing brace gives the comma-less text's output in one pass, without a blank line
+    /// in front of the comment line, in the documentation modes that make the documentation comment the comma's leading trivia
+    /// </summary>
+    /// <param name="documentationMode">The documentation mode the input is parsed with</param>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-020")]
+    [Requirement("FMT-PIPE-004")]
+    [DataRow(DocumentationMode.Parse, DisplayName = "Parse")]
+    [DataRow(DocumentationMode.Diagnose, DisplayName = "Diagnose")]
+    public void DocumentationCommentInFrontOfTheArrayInitializerTrailingCommaStaysBehindTheLastElementInFrontOfACommentLine(DocumentationMode documentationMode)
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int[] _c = {
+                                                1,
+                                                2 /** two */,
+                                                // note
+                                            };
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int[] _c = {
+                                                   1,
+                                                   2 /** two */
+                                                   // note
+                                               };
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected, CreateParseOptions(documentationMode));
+    }
+
+    /// <summary>
+    /// Verifies that removing a collection initializer's trailing comma with a documentation comment in front of it and a
+    /// comment line between the comma's line and the closing brace gives the comma-less text's output in one pass, without a
+    /// blank line in front of the comment line, in the documentation modes that make the documentation comment the comma's
+    /// leading trivia
+    /// </summary>
+    /// <param name="documentationMode">The documentation mode the input is parsed with</param>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-020")]
+    [Requirement("FMT-PIPE-004")]
+    [DataRow(DocumentationMode.Parse, DisplayName = "Parse")]
+    [DataRow(DocumentationMode.Diagnose, DisplayName = "Diagnose")]
+    public void DocumentationCommentInFrontOfTheCollectionInitializerTrailingCommaStaysBehindTheLastElementInFrontOfACommentLine(DocumentationMode documentationMode)
+    {
+        // Arrange
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var l = new List<int>
+                                             {
+                                                 1,
+                                                 2 /** two */,
+                                                 // note
+                                             };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var l = new List<int>
+                                                {
+                                                    1,
+                                                    2 /** two */
+                                                    // note
+                                                };
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected, CreateParseOptions(documentationMode));
+    }
+
     #endregion // Tests
 
     #region Methods
