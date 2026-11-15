@@ -30,10 +30,12 @@
 | 7 | Skeptic (spec) | Split the markup-reading paragraphs into their own requirement | Yes: new RH2109-004, RH2109-001 points to it; tests tag RH2109-004 | Different reason → different requirement (sdd/README.md) | Spec structure is internal | — |
 | 8 | Skeptic (spec) | SHARED-DIAG-003 sentence wording | State plainly that RH2109 departs from SHARED-DIAG-003 for this class | Clearer exception record | Spec wording internal | — |
 | 9 | Skeptic (spec) | Continue spec author for the amendments | Continue (small correction, small agent, first correction this stage) | Continue table | Process | — |
+| 10 | Test implementer | Architecture test `UsesListsExactlyTheReferencedRequirements` fails: RH2109-004 referenced in shared/diagnostics.md but missing from its Uses | PR-introduced spec gap; route to a fresh spec author before the implementer | Spec author was already continued once this stage | Spec metadata only | — |
 
 ## Follow-up candidates
 
 - RH2109: a Razor/HTML comment opened behind other text on its line (`<p>Counter</p><!--`) does not hide a `@code {` on the next line, so it is reported though SHARED-DIAG-003 makes it comment text; RH2109-001 does not record it. Carries an output question (spec author recommends: keep reported, record in RH2109-001). Source: 02-spec-author.md.
+- RH7203 (possibly other ordering fixes): in a block-scoped namespace whose first using has a comment above it (`// Header` or `/* Header */`), the fix writes the moved using at column 0 instead of the namespace indentation; pre-existing on main, LF and CRLF; the formatter writes column 4. Source: 05-test-implementer.md.
 
 ## Worklist / next step
 
@@ -42,5 +44,6 @@
 - Spec author done (02-spec-author.md, f824e7c): SHARED-USING-009 clarified (no change doc); RH2109-001 amended + change doc `sdd/changes/2026-11/rh2109-csharp-lines-read-as-markup.md` (Draft; visible output: none).
 - Skeptic on spec diff done (03-skeptic.md, 40dd17c): proceed with amendments (decisions 5-8); test members A9, closer-pairing input, converse with `@*` and `<!--`, issue shape, CRLF.
 - Spec author amendments done (04-spec-author.md, 79d44d2). Change doc set Accepted by lead. RH2109 tests tag RH2109-004.
-- Next: test implementer.
+- Test implementer done (05-test-implementer.md, fc647e9): #966 guard tests fail as expected (Core, RH7201–RH7207, formatter); #1289 tests pass (no production change, answer A).
+- Next: fresh spec author for decision 10 → implementer (#966 only).
 - Then: spec author (SHARED-USING-009 clarification; RH2109-001 amendment if A) → test implementer → implementer (#966) → cleaner → spec checker → auditor → validator.
