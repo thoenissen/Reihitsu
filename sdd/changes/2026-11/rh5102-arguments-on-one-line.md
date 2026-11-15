@@ -15,7 +15,11 @@ The code fix is unchanged: it lays out every list that is still reported as the 
 
 ## Why
 
-thoenissen/Reihitsu#1755 found that RH5102 and the formatter read the same list differently, as thoenissen/Reihitsu#1736 found for RH5109. FMT-BREAK-012 counts a list whose elements all start on one line as single-line, also when a line break stands behind its opening parenthesis, and joins it (`M(⏎1, 2);` becomes `M(1, 2);`). RH5102 reported that list and its fix split it into one argument per line, which the formatter keeps, because its arguments then start on different lines. One input therefore had two stable results, depending on whether the code fix or the CLI ran first.
+thoenissen/Reihitsu#1755 found that RH5102 and the formatter read the same list differently, as thoenissen/Reihitsu#1736 found for RH5109. FMT-BREAK-012 decides whether a list is multi-line by its elements; RH5102 decided it by the lines of `(` and `)`. The issue assumed that RH5102's fix splits `M(⏎1, 2);` into one argument per line; it does not: the fix delegates to the formatter, which joins the list to `M(1, 2);`, as the CLI does. Running the rule on `main` shows what the different readings actually cost:
+
+- `M(1, 2⏎);` and `M(⏎1, 2⏎);`: RH5102 reports a shape the formatter keeps, and offers a fix that changes nothing (`M(⏎1, 2⏎)` is joined to `M(1, 2⏎)` first), so the diagnostic stays for good — against SHARED-DIAG-010 and SHARED-FIX-005.
+- `M(1, 2 // c⏎);` and `M( /* a⏎b */ 1, 2);`: RH5102 reports, without a fix, a shape the formatter keeps — against SHARED-DIAG-010.
+- `M(⏎1, 2);`: RH5102 and RH5101 both report the list, and both fixes give the same `M(1, 2);` — a duplicate diagnostic for a list whose arguments are all on one line, which RH5102's own title calls compliant.
 
 The maintainer decided (2026-11-15, on thoenissen/Reihitsu#1755): option A — RH5102 does not report an argument list whose arguments all stand on one line, even when that line is not the line of the opening parenthesis, as decided for RH5109.
 
@@ -40,13 +44,12 @@ class C
 ```
 
 ```csharp
-// before: RH5102 reports the argument list; the fix gives
+// before: RH5102 reports the argument list; the fix delegates to the formatter and gives
 class C
 {
     void N()
     {
-        M(1,
-          2);
+        M(1, 2);
     }
 
     void M(params int[] values)
@@ -92,21 +95,9 @@ class C
 ```
 
 ```csharp
-// before: RH5102 reports the argument list; the fix delegates to the formatter, which keeps
-// a line break in front of an argument list's `)` (FMT-BREAK-012), so it gives
-class C
-{
-    void N()
-    {
-        M(1,
-          2
-          );
-    }
-
-    void M(params int[] values)
-    {
-    }
-}
+// before: RH5102 reports the argument list; a fix is offered but changes nothing, because the
+// formatter keeps a line break in front of an argument list's `)` (FMT-BREAK-012), so the
+// diagnostic stays
 ```
 
 ```csharp
@@ -125,7 +116,7 @@ class C
 }
 ```
 
-The *before* output of this entry is derived from RH5102-003 and FMT-BREAK-012, not run; the test implementer confirms it on `main`.
+The same holds for a line break on both sides of the arguments, `M(⏎1, 2⏎);`: before, RH5102 reports it and its fix joins it to `M(1, 2⏎);`, after which the fix changes nothing and the diagnostic stays; after, it is not reported, and RH5101 still reports the first argument below `(`.
 
 **3. A comment holds the closing parenthesis on a later line**
 
@@ -308,6 +299,6 @@ FMT-BREAK-012's Why justified laying out a list with a held first element one el
 
 ## Alternatives considered
 
-- **Keep reporting a list wrapped only behind `(` and let the fix split it (option B of thoenissen/Reihitsu#1755)** — rejected by the maintainer: the formatter joins such a list (FMT-BREAK-012), so the code fix and the CLI produce two different stable results from one input.
+- **Keep reporting a list wrapped only behind `(` (option B of thoenissen/Reihitsu#1755)** — rejected by the maintainer. The issue showed this option with the fix splitting the list; in fact the fix joins it to `M(1, 2)`, as the formatter does, so the option meant a second diagnostic next to RH5101's for the same list, on a list whose arguments are all on one line as RH5102's own title asks.
 - **Report a list whose first argument a comment or directive holds off the `(` line, as FMT-BREAK-012 lays it out, without a fix** — rejected: the arguments all start on one line, and RH5109 decided the same shape the other way; a comment in the list is RH5038's.
 - **Keep reporting a list whose `)` a line break or a comment holds on a later line** — rejected: the formatter keeps that line break in an argument list, so the rule would report a shape the formatter keeps (SHARED-DIAG-010).

@@ -32,3 +32,16 @@ Entry 2's *before* output (fix result for `M(1, 2⏎)`, with `)` kept on its own
 ## Follow-up candidates
 
 _None._
+
+## Amendment
+
+On the skeptic's must-corrections (`02-skeptic.md`, *Internal choices* 1) and `00-lead.md` decisions 4–7, the change doc `sdd/changes/2026-11/rh5102-arguments-on-one-line.md` now records `main` as it is. No visible output in the spec or the change doc's *after* blocks changed.
+
+- *Why*: the claim that the fix splits `M(⏎1, 2)` and leaves two stable results is replaced by the real defects: `M(1, 2⏎)` and `M(⏎1, 2⏎)` are reported with a fix that changes nothing (SHARED-DIAG-010, SHARED-FIX-005); `M(1, 2 // c⏎)` and `M( /* a⏎b */ 1, 2)` are reported without a fix for a shape the formatter keeps (SHARED-DIAG-010); `M(⏎1, 2)` duplicates RH5101's report.
+- Entry 1 *before*: the fix gives `M(1, 2);`.
+- Entry 2 *before*: reported, a fix is offered that changes nothing. The "derived, not run" note is removed; the skeptic settled the entry on `main`.
+- Entry 2 also names `M(⏎1, 2⏎)` (the skeptic's optional suggestion, taken).
+- *Alternatives considered*, option B: rejected for the duplicate with RH5101 and the rule's title, not for "two stable results".
+- RH5102-001's *Why* gains the skeptic's optional clause: reporting a line break in front of `)` left a fix that changes nothing (SHARED-DIAG-010). Taken because it names the defect the change removes.
+- Not taken: nothing else. Skeptic *Internal choices* 3 (keep the P11 wording for entry 4) and 4 (line counting unstated) agree with the spec as written.
+- For the tests: the skeptic's *Breaking inputs* matrix supersedes my *Examples for the tests* where it is wider (`M(⏎1, 2⏎)`, `M( /* a⏎b */ 1, 2)`, a non-invocation parent, CRLF, the spanning-argument variants behind `(⏎`).
