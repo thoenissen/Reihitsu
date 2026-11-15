@@ -49,5 +49,6 @@
 - Implementer done (07-implementer.md, 63130a3): UsingDirectiveOrderingSafety reads directive trivia (ContainsDirectives), regex removed; +6/-41; all tests pass (Debug).
 - Cleaner clean (08-cleaner.md, 7c8aa8e).
 - Spec checker consistent (09-spec-checker.md, 34dc9f8).
-- Next: auditor.
+- Auditor pass, no findings (10-auditor.md, aa42544). Audited SHA: 8c4b165 (handover commit aa42544).
+- Next: validator → issue manager (2 follow-up candidates) → note → publish.
 - Then: spec author (SHARED-USING-009 clarification; RH2109-001 amendment if A) → test implementer → implementer (#966) → cleaner → spec checker → auditor → validator.
