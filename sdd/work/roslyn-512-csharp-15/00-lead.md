@@ -55,6 +55,7 @@ Batch 2 (after audit 09):
 - Decision: auditor's interim union layout hints are input for #1762–#1767 (already filed), not new follow-ups. Playground/trace now parse C# 15 (PLAY-005 already requires) -> change-doc mention, internal text.
 - Batch 2 answered: 5A.
 - Repair round 1: 10-spec-author (e3d0609, change doc adds answer 5 + Playground), 11-cleaner (f42e30d comment).
+- S1125 seen by cleaner 11 during format.sh: a clean Debug build of the CLI on main and on head shows none; treated as transient, no action.
 - Decision 6: pin answer 5A with a CLI end-to-end test (test implementer 12) so the decided output is locked in.
 - Next: test implementer 12, then spec checker 13, auditor 14 (repair only), validator 15.
 - Next after answer: repair round 1 — spec author (change doc: top-level `union` statements per answer, Playground mention), cleaner (#2 comment), then spec checker, auditor (repair only), validator.
