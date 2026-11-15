@@ -1791,6 +1791,30 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
                      });
     }
 
+    /// <summary>
+    /// Verifies the specification example of a partial constructor judged from its containing type: neither part
+    /// states an accessibility, so the defining part carries the diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-012")]
+    [Requirement("SHARED-DIAG-013")]
+    public async Task VerifySpecificationExamplePartialConstructorIsReportedOnTheDefiningPart()
+    {
+        const string testData = """
+                                public partial class C
+                                {
+                                    partial {|RH2004:C|}(int value);
+
+                                    partial C(int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

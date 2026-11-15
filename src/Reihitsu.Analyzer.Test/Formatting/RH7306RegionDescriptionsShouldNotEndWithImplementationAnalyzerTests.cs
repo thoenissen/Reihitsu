@@ -347,6 +347,46 @@ public class RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzerTests
         await Verify(source, fixedSource);
     }
 
+    /// <summary>
+    /// Verifies that an end-region description ending with implementation in front of the closing brace of a class with
+    /// a primary constructor is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7306-001")]
+    [Requirement("SHARED-REGDESC-002")]
+    public async Task VerifyEndRegionInFrontOfClosingBraceOfClassWithPrimaryConstructorIsReportedOnce()
+    {
+        const string testData = """
+                                public class Service(int value)
+                                {
+                                    #region Properties
+                                    public int Value => value;
+                                    {|#0:#endregion // Member Implementation|}
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer.DiagnosticId, AnalyzerResources.RH7306MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a region description ending with implementation in front of a positional record is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7306-001")]
+    [Requirement("SHARED-REGDESC-002")]
+    public async Task VerifyRegionInFrontOfPositionalRecordIsReportedOnce()
+    {
+        const string testData = """
+                                {|#0:#region Record Implementation|}
+                                public record R(int A);
+                                #endregion // Record
+                                """;
+
+        await Verify(testData, Diagnostics(RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer.DiagnosticId, AnalyzerResources.RH7306MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

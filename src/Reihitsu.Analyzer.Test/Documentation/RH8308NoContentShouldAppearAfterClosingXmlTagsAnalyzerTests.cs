@@ -499,6 +499,131 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Batch
         await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat, 2));
     }
 
+    /// <summary>
+    /// Verifies that text after a closing tag in the documentation comment of a positional record is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8308-001")]
+    [Requirement("RH8308-003")]
+    public async Task VerifyTextAfterClosingTagOfPositionalRecordIsReportedOnce()
+    {
+        const string testData = """
+                                /// <summary>Customer.</summary> {|#0:trailing|}
+                                public record R(int A);
+                                """;
+
+        await Verify(testData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that text after a closing tag in the documentation comment of a class with a primary constructor is
+    /// reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8308-001")]
+    [Requirement("RH8308-003")]
+    public async Task VerifyTextAfterClosingTagOfClassWithPrimaryConstructorIsReportedOnce()
+    {
+        const string testData = """
+                                /// <summary>Service.</summary> {|#0:trailing|}
+                                public class Service(int value)
+                                {
+                                    public int Value => value;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that text after a closing tag in the documentation comment of a positional record nested in a class is
+    /// reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8308-001")]
+    [Requirement("RH8308-003")]
+    public async Task VerifyTextAfterClosingTagOfNestedPositionalRecordIsReportedOnce()
+    {
+        const string testData = """
+                                public class Outer
+                                {
+                                    /// <summary>Inner.</summary> {|#0:trailing|}
+                                    public sealed record Inner(int A);
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that text after a closing tag in a documentation comment inside the parameter list of a positional record
+    /// is still reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8308-003")]
+    public async Task VerifyTextAfterClosingTagInsideParameterListOfPositionalRecordIsReportedOnce()
+    {
+        const string testData = """
+                                public record R(
+                                    /// <summary>A.</summary> {|#0:trailing|}
+                                    int A);
+                                """;
+
+        await Verify(testData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix removes text after a closing tag in the documentation comment of a class with a primary
+    /// constructor in one application
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8308-001")]
+    [Requirement("RH8308-003")]
+    [Requirement("RH8308-004")]
+    public async Task VerifyTextAfterClosingTagOfClassWithPrimaryConstructorIsRemoved()
+    {
+        const string testData = """
+                                /// <summary>Service.</summary> {|#0:trailing|}
+                                public class Service(int value)
+                                {
+                                    public int Value => value;
+                                }
+                                """;
+        const string fixedData = """
+                                 /// <summary>Service.</summary>
+                                 public class Service(int value)
+                                 {
+                                     public int Value => value;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that text after a closing tag in a documentation comment in front of the attribute list of a positional
+    /// record is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8308-001")]
+    [Requirement("RH8308-003")]
+    public async Task VerifyTextAfterClosingTagInFrontOfAttributeListOfPositionalRecordIsReportedOnce()
+    {
+        const string testData = """
+                                /// <summary>Customer.</summary> {|#0:trailing|}
+                                [System.Obsolete]
+                                public record R(int A);
+                                """;
+
+        await Verify(testData, Diagnostics(RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH8308MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
