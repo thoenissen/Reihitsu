@@ -14,7 +14,7 @@
 - Batch 1, Q1 (#1738, comma that starts a line inside initializer / collection expression / pattern): **A**, with one change — in an array initializer (case `e`, `new int[] { 1⏎, 2 }`) the comma also moves behind the previous element (`1,` ⏎ `2`), as in the other constructs. A comma held off the previous line by a `//` comment (case `c`) stays alone on its line at the elements' column, element on the next line, as in A.
 - Batch 1, Q2 (escalation 10, declare "comma separated from the previous token by a line break" unsupported): **not declared (B)**; the comma keeps moving up behind the previous element as today.
 
-- Batch 1b (asked at once, blocks tests): array initializer with a comma held off the previous line by a comment (`1 // k⏎, 2`) — answered **A** (keep `, 2`, column only). The maintainer is considering declaring unsupported the shape "a comment between a list element and its following comma" ("no comment belongs there") and asked which special cases it would delete → escalation 10, being investigated (04-skeptic).
+- Batch 1b (asked at once, blocks tests): array initializer with a comma held off the previous line by a comment (`1 // k⏎, 2`) — answered **A** (keep `, 2`, column only). The maintainer is considering declaring unsupported the shape "a comment between a list element and its following comma" ("no comment belongs there") and asked which special cases it would delete → escalation 10, investigated (04-skeptic, 485162a): only a shape covering comments AND directives/disabled text deletes code. Asked as escalation 10: Q4 declare (A rec.) / not (B); Q5 in this run (A rec.) / own change (B). Awaiting answer.
 
 ## Decisions taken
 
@@ -41,4 +41,4 @@
 
 ## Open worklist / next step
 
-- Fresh skeptic (04): enumerate the special cases a declaration of "comment/directive between list element and following comma" would delete or keep, across formatter, code fixes and specs, and the common code it would refuse. Then ask escalation 10 with that list. Tests wait for the answer.
+- Waiting for escalation-10 answer (Q4/Q5). On declare-in-run: fresh spec author amends change doc (Special cases section), unsupported-syntax spec (new FMT-UNSUP), deletes held-comma spec text per 04-skeptic §2, drops FMT-INDENT-033 + held half of FMT-BREAK-038. On not-declare: proceed with 19e8ee2 specs to test implementer.
