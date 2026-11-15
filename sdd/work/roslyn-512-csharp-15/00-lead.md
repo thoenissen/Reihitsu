@@ -43,4 +43,5 @@ Batch 1 (before test implementer):
 - Done: 05-implementer (b5bea19, handover 3b9120d).
 - Done: 06-spec-author (README fd5f2ed).
 - Done: 07-cleaner (clean, build 0 warnings).
-- Next: spec checker 08.
+- Done: 08-spec-checker (consistent, no findings). Merged origin/main 1defac1 cleanly; build green.
+- Next: auditor 09.
