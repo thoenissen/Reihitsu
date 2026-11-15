@@ -547,7 +547,14 @@ The code fix MUST NOT be offered when renaming to the derived name would collide
 
 A type with the new name in the same namespace makes the rename fail to compile only when both types have the same number of type parameters, and, when either of them is file-local, only when both are declared in the same file; otherwise the fix is offered. A declaration that has the type's name is not a compile error in every type: an enum member may have the name of its enum, and a method of an interface the name of its interface, so neither collides with it, and the fix is offered. The diagnostic is still reported.
 
-Why: A collision cannot be resolved without knowing which of the two names the author meant, so it is left to the author. The renamer renames every symbol of the rename cascade (SHARED-CASING-007), in whichever type and document it is declared, but a member declared in a referenced assembly keeps its name, so a compile error can appear in a type that does not contain the renamed declaration. Types with a different number of type parameters, and a file-local type and a type of another file, can share a name, so renaming to it is safe.
+The code fix MUST NOT be offered either when the rename would change which symbol an existing reference binds to, where that reference refers to a symbol outside the rename cascade (SHARED-CASING-007), in whichever document of the solution it stands. This holds in both of the ways such a binding can change:
+
+- **Rewritten.** The renamer rewrites the reference so that it keeps its binding, without reporting a conflict: it qualifies a name with `this.`, `base.`, a type, or a namespace, turns an extension-method call into a static call, or casts an argument. The reference may be a simple name, a member access, a type name, a `nameof` operand, an invocation whose overload or extension method the new name would win, or an enum member's initializer.
+- **Left as written.** The renamer leaves the reference's text unchanged, and the reference then binds to the renamed symbol: for example a member access whose receiver has the renaming type, or a type derived from it, where the rename makes the renamed member hide a member of a base type that the access called before. The compiler reports at most a warning.
+
+A reference to a symbol of the rename cascade is renamed with it and is not such a reference. A reference to another symbol whose binding the rename leaves unchanged, such as a call of an extension method in a namespace that the renamed method's namespace does not import, does not withhold the fix. So the fix changes no code other than the declarations and references of the rename cascade. The diagnostic is still reported.
+
+Why: A collision cannot be resolved without knowing which of the two names the author meant, so it is left to the author. The renamer renames every symbol of the rename cascade (SHARED-CASING-007), in whichever type and document it is declared, but a member declared in a referenced assembly keeps its name, so a compile error can appear in a type that does not contain the renamed declaration. Types with a different number of type parameters, and a file-local type and a type of another file, can share a name, so renaming to it is safe. A rename whose new name meets an existing binding is the same collision even when it compiles: a reference that the renamer rewrites is an edit of code the diagnostic does not name, and a reference that the renamer leaves as written calls another member at run time (SHARED-FIX-003). Either way the author decides which name to give up. A wrongly cased declaration whose corrected spelling is exactly a name already bound at a reference in its scope is uncommon, and a diagnostic without a fix is a supported end state.
 
 Example — RH4106:
 
@@ -661,6 +668,98 @@ public class Leaf : Middle
 ```
 
 Where RH4103 reports `Leaf.process`, no code fix is offered: renaming it would rename `Middle.process` with it, and `Middle` would then fail to compile, because `MetaBase.process` keeps its name and `Middle.Process` overrides nothing. The same holds for a property or an event that overrides or implements a member declared in a referenced assembly through a type declared in source. When `MetaBase` is declared in source, the rename renames all three methods together, and the fix is offered.
+
+Example — RH4103, a rename that would win an extension-method call:
+
+```csharp
+using System.Collections.Generic;
+using System.Linq;
+
+namespace N
+{
+    public static class Extensions
+    {
+        public static List<int> {|RH4103:toList|}(this IEnumerable<int> source) => new List<int>();
+    }
+
+    public class User
+    {
+        public List<int> Get(int[] values) => values.ToList();
+    }
+}
+```
+
+is reported, and no code fix is offered: `values.ToList()` calls `Enumerable.ToList` today, and the renamer would rewrite it to `Enumerable.ToList(values)` so that it keeps calling it. The same holds for an instance method `first()` of a type that implements `IEnumerable<int>`, next to a call `bag.First()`.
+
+When `User` is declared in another namespace, `M`, that does not import `N`:
+
+```csharp
+namespace M
+{
+    public class User
+    {
+        public List<int> Get(int[] values) => values.ToList();
+    }
+}
+```
+
+the call keeps binding to `Enumerable.ToList` after the rename, and the fix is offered: it renames `toList` to `ToList` and leaves the call as written.
+
+Example — RH4103, a rename that would win overload resolution:
+
+```csharp
+public class Box
+{
+    public void {|RH4103:write|}(int value)
+    {
+    }
+
+    public void Write(object value)
+    {
+    }
+
+    public void Use(Box box) => box.Write(1);
+}
+```
+
+is reported, and no code fix is offered: `box.Write(1)` calls `Write(object)` today, and the renamer would rewrite it to `box.Write((object)1)`.
+
+Example — RH4105, a parameter that would hide a field:
+
+```csharp
+public class Person
+{
+    private string name;
+
+    public void Rename(string {|RH4105:Name|})
+    {
+        name = Name.Trim();
+    }
+}
+```
+
+is reported, and no code fix is offered: `name` refers to the field today, and the renamer would rewrite it to `this.name`. The same holds for a local variable (RH4115), for a static field that the renamer would qualify with its type, and for a type that the renamer would qualify with its namespace, such as a class `order` (RH4002) whose namespace already uses a class `Order` imported from another namespace.
+
+Example — RH4103, a rename that would hide an inherited member:
+
+```csharp
+public class Base
+{
+    public int Process() => 1;
+}
+
+public class Derived : Base
+{
+    public int {|RH4103:process|}() => 2;
+}
+
+public class User
+{
+    public int Use(Derived derived) => derived.Process();
+}
+```
+
+is reported, and no code fix is offered: `derived.Process()` calls `Base.Process` and returns `1` today. After the rename the renamer leaves it as written, and it would call `Derived.Process` and return `2`. The same holds for a property (RH4114) or a field (RH4109) that the rename would make hide a member of a base type.
 
 ### SHARED-CASING-010 — Fix All skips names that would collide with each other
 
@@ -876,7 +975,7 @@ The argument may be a string literal, a `nameof` expression, or any other consta
 
 The diagnostic is still reported.
 
-Why: The attribute names a parameter by the value of its argument. The renamer changes that value only where the argument is a `nameof` that refers to a renamed parameter. The exemption relies on the scope C# 11 gives a `nameof` inside an attribute of a parameter list, where an unqualified name refers to the parameter of that name in the list. For an earlier language version the exemption is not taken: the check does not decide what the operand refers to there, and it refuses the fix from the document's language version alone, a conservative refusal that costs only a fix for code compiled before C# 11. Every other argument keeps its value through the rename: a string, a constant, and a `nameof` of another symbol, qualified or not, even where the renamer qualifies it to keep its binding. When the value is the old name, the rename leaves the attribute naming no parameter; when it is the new name, the rename makes the attribute name the renamed parameter. Either way, the parameter that carries the attribute receives another value at run time (SHARED-FIX-003), and the compiler only warns. The check compares constant values with the cascade's names and looks only at the shape of a `nameof` argument, never at what it binds to; so an extension block, whose members' attributes can name the receiver from another parameter list, is refused for every such argument, `nameof` included. Such inputs are rare, and a rare class is refused with a cheap check (`AGENTS.md`, *Special cases do not grow the source*).
+Why: The attribute names a parameter by the value of its argument. The renamer changes that value only where the argument is a `nameof` that refers to a renamed parameter. The exemption relies on the scope C# 11 gives a `nameof` inside an attribute of a parameter list, where an unqualified name refers to the parameter of that name in the list. For an earlier language version the exemption is not taken: the check does not decide what the operand refers to there, and it refuses the fix from the document's language version alone, a conservative refusal that costs only a fix for code compiled before C# 11. Every other argument keeps its value through the rename: a string, a constant, and a `nameof` of another symbol, qualified or not; a rename for which the renamer would qualify such an operand to keep its binding is withheld by SHARED-CASING-009 in any case. When the value is the old name, the rename leaves the attribute naming no parameter; when it is the new name, the rename makes the attribute name the renamed parameter. Either way, the parameter that carries the attribute receives another value at run time (SHARED-FIX-003), and the compiler only warns. The check compares constant values with the cascade's names and looks only at the shape of a `nameof` argument, never at what it binds to; so an extension block, whose members' attributes can name the receiver from another parameter list, is refused for every such argument, `nameof` included. Such inputs are rare, and a rare class is refused with a cheap check (`AGENTS.md`, *Special cases do not grow the source*).
 
 Example — RH4105:
 
