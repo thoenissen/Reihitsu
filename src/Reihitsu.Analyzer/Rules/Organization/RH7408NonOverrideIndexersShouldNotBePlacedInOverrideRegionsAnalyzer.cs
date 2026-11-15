@@ -1,11 +1,8 @@
-﻿using System.Threading;
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
-using Reihitsu.Analyzer.Core;
 
 namespace Reihitsu.Analyzer.Rules.Organization;
 
@@ -39,24 +36,10 @@ public class RH7408NonOverrideIndexersShouldNotBePlacedInOverrideRegionsAnalyzer
     #region NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase
 
     /// <inheritdoc/>
-    protected override bool TryGetOverrideRegionName(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken, out string overrideRegionName)
+    protected override bool IsRelevantNonOverrideMember(MemberDeclarationSyntax memberDeclaration, ISymbol symbol)
     {
-        overrideRegionName = string.Empty;
-
-        if (memberDeclaration is IndexerDeclarationSyntax indexerDeclaration
-            && semanticModel.GetDeclaredSymbol(indexerDeclaration, cancellationToken) is IPropertySymbol { OverriddenProperty: not null } propertySymbol)
-        {
-            overrideRegionName = OverrideMemberUtilities.GetOriginalDeclaringTypeName(propertySymbol);
-        }
-
-        return string.IsNullOrEmpty(overrideRegionName) == false;
-    }
-
-    /// <inheritdoc/>
-    protected override bool IsRelevantNonOverrideMember(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
-    {
-        return memberDeclaration is IndexerDeclarationSyntax indexerDeclaration
-               && (semanticModel.GetDeclaredSymbol(indexerDeclaration, cancellationToken) as IPropertySymbol) is { OverriddenProperty: null };
+        return memberDeclaration is IndexerDeclarationSyntax
+               && symbol is IPropertySymbol { OverriddenProperty: null };
     }
 
     #endregion // NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase

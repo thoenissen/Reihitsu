@@ -39,7 +39,8 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzer : DiagnosticAnalyz
     #region Methods
 
     /// <summary>
-    /// Analyze the declaration
+    /// Analyze the declaration, and for a type declaration the defining parts of its partial constructors, which no
+    /// syntax-node action receives on their own (RH7105-001, SHARED-DIAG-004)
     /// </summary>
     /// <param name="context">Context</param>
     private void OnDeclaration(SyntaxNodeAnalysisContext context)
@@ -49,7 +50,27 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzer : DiagnosticAnalyz
             return;
         }
 
+        foreach (var judgedDeclaration in DeclarationModifierUtilities.GetDeclarationsJudgedWith(memberDeclaration))
+        {
+            AnalyzeModifiers(context, judgedDeclaration);
+        }
+    }
+
+    /// <summary>
+    /// Analyze the modifiers of one declaration
+    /// </summary>
+    /// <param name="context">Context</param>
+    /// <param name="memberDeclaration">Declaration</param>
+    private void AnalyzeModifiers(SyntaxNodeAnalysisContext context, MemberDeclarationSyntax memberDeclaration)
+    {
         var modifiers = DeclarationModifierUtilities.GetModifiers(memberDeclaration);
+
+        // A conditional directive in front of a modifier but the first lets another build configuration compile other
+        // modifiers (RH7105-001, SHARED-DIAG-008); one behind the last modifier lies outside the judged span (SHARED-MODORDER-003)
+        if (OrderingDeclarationUtilities.HasConditionalDirectiveBetweenModifiers(memberDeclaration))
+        {
+            return;
+        }
 
         if (ModifierOrderingUtilities.TryGetRh7105Violation(modifiers, out var diagnosticToken))
         {

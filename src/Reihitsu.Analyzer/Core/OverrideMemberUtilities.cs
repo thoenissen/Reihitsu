@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+
+using Microsoft.CodeAnalysis;
 
 namespace Reihitsu.Analyzer.Core;
 
@@ -8,6 +10,23 @@ namespace Reihitsu.Analyzer.Core;
 internal static class OverrideMemberUtilities
 {
     #region Methods
+
+    /// <summary>
+    /// Gets the names of the regions an override belongs in: the name of the type that introduced the member it overrides
+    /// (SHARED-REGGROUP-003)
+    /// </summary>
+    /// <param name="memberSymbol">Symbol of a method, property, indexer, or event</param>
+    /// <returns>The one name, or no name when the member overrides nothing</returns>
+    internal static IReadOnlyList<string> GetOverrideRegionNames(ISymbol memberSymbol)
+    {
+        return memberSymbol switch
+               {
+                   IMethodSymbol { OverriddenMethod: not null } methodSymbol => [GetOriginalDeclaringTypeName(methodSymbol)],
+                   IPropertySymbol { OverriddenProperty: not null } propertySymbol => [GetOriginalDeclaringTypeName(propertySymbol)],
+                   IEventSymbol { OverriddenEvent: not null } eventSymbol => [GetOriginalDeclaringTypeName(eventSymbol)],
+                   _ => []
+               };
+    }
 
     /// <summary>
     /// Gets the type name that introduced the original method in the override chain

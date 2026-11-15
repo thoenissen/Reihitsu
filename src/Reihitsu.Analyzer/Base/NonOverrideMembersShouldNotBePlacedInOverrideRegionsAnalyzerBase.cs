@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Threading;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -35,36 +34,26 @@ public abstract class NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyz
     #region Methods
 
     /// <summary>
-    /// Tries to determine the expected override region name for the member
-    /// </summary>
-    /// <param name="memberDeclaration">Member declaration</param>
-    /// <param name="semanticModel">Semantic model</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <param name="overrideRegionName">Expected override region name</param>
-    /// <returns><see langword="true"/> if the member is an override of the analyzer's target kind</returns>
-    protected abstract bool TryGetOverrideRegionName(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken, out string overrideRegionName);
-
-    /// <summary>
     /// Determines whether the member is a non-override member checked by this analyzer
     /// </summary>
     /// <param name="memberDeclaration">Member declaration</param>
-    /// <param name="semanticModel">Semantic model</param>
-    /// <param name="cancellationToken">Cancellation token</param>
+    /// <param name="symbol">Symbol the declaration declares; for a field-like event, the event of one of its declarators</param>
     /// <returns><see langword="true"/> if the member should be checked</returns>
-    protected abstract bool IsRelevantNonOverrideMember(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken);
+    protected abstract bool IsRelevantNonOverrideMember(MemberDeclarationSyntax memberDeclaration, ISymbol symbol);
 
     /// <summary>
-    /// Tries to get the containing top-level region name for the member
+    /// Tries to get the name of the region that judges the member: the innermost region that encloses it, when the member
+    /// lies in a top-level region (SHARED-REGGROUP-001)
     /// </summary>
     /// <param name="memberDeclaration">Member declaration</param>
-    /// <param name="regions">Top-level regions</param>
-    /// <param name="regionName">Containing region name</param>
-    /// <returns><see langword="true"/> if a containing top-level region exists</returns>
-    private static bool TryGetContainingRegionName(MemberDeclarationSyntax memberDeclaration, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> regions, out string regionName)
+    /// <param name="regions">Regions of the member's type declaration with their nesting depth</param>
+    /// <param name="regionName">Name of the innermost enclosing region</param>
+    /// <returns><see langword="true"/> if the member lies in a top-level region and its innermost region has a name</returns>
+    private static bool TryGetContainingRegionName(MemberDeclarationSyntax memberDeclaration, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion, int NestingDepth)> regions, out string regionName)
     {
         regionName = string.Empty;
 
-        if (RegionDirectiveUtilities.TryFindContainingRegion(memberDeclaration, regions, out var region) == false
+        if (RegionDirectiveUtilities.TryFindInnermostContainingRegion(memberDeclaration, regions, out var region) == false
             || region.Region.GetStructure() is not RegionDirectiveTriviaSyntax regionDirective)
         {
             return false;
@@ -76,61 +65,39 @@ public abstract class NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyz
     }
 
     /// <summary>
-    /// Gets the names of the override regions of a type declaration: the regions named after the type that introduced
-    /// a member the declaration overrides
+    /// Gets the names of the override regions of a type (SHARED-REGGROUP-006): the names of the types that introduced a
+    /// member that any declaration of the type overrides, whatever the member's kind
     /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
-    /// <param name="semanticModel">Semantic model of the declaration's tree</param>
-    /// <param name="cancellationToken">Cancellation token</param>
+    /// <param name="typeSymbol">Type symbol</param>
     /// <returns>The region names</returns>
-    private HashSet<string> GetOverrideRegionNames(TypeDeclarationSyntax typeDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+    private static HashSet<string> GetOverrideRegionNames(INamedTypeSymbol typeSymbol)
     {
         var overrideRegionNames = new HashSet<string>(StringComparer.Ordinal);
 
-        foreach (var memberDeclaration in typeDeclaration.Members)
+        foreach (var member in typeSymbol.GetMembers())
         {
-            if (TryGetOverrideRegionName(memberDeclaration, semanticModel, cancellationToken, out var overrideRegionName))
+            if (member.IsImplicitlyDeclared
+                || member is IMethodSymbol { MethodKind: not MethodKind.Ordinary })
             {
-                overrideRegionNames.Add(overrideRegionName);
+                continue;
             }
+
+            overrideRegionNames.UnionWith(OverrideMemberUtilities.GetOverrideRegionNames(member));
         }
 
         return overrideRegionNames;
     }
 
     /// <summary>
-    /// Determines whether a part of a partial member lies in an override region of the type declaration that holds it
+    /// Determines whether a part of a partial member lies in an override region of the type that holds it
     /// </summary>
     /// <param name="part">Part of the partial member</param>
-    /// <param name="analyzedTypeDeclaration">Type declaration being analyzed</param>
-    /// <param name="analyzedOverrideRegionNames">Override region names of the analyzed type declaration</param>
-    /// <param name="semanticModel">Semantic model of the analyzed type declaration's tree</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>
-    /// <see langword="true"/> when the part lies in an override region, and for a part in another syntax tree, whose
-    /// override regions this analysis cannot bind, so that the part counts as reported as every part of a covered member is
-    /// </returns>
-    private bool LiesInOverrideRegion(MemberDeclarationSyntax part,
-                                      TypeDeclarationSyntax analyzedTypeDeclaration,
-                                      HashSet<string> analyzedOverrideRegionNames,
-                                      SemanticModel semanticModel,
-                                      CancellationToken cancellationToken)
+    /// <param name="overrideRegionNames">Override region names of the type</param>
+    /// <returns><see langword="true"/> when the part lies in an override region</returns>
+    private static bool LiesInOverrideRegion(MemberDeclarationSyntax part, HashSet<string> overrideRegionNames)
     {
-        if (part.Parent is not TypeDeclarationSyntax partTypeDeclaration)
-        {
-            return false;
-        }
-
-        if (partTypeDeclaration.SyntaxTree != semanticModel.SyntaxTree)
-        {
-            return true;
-        }
-
-        var overrideRegionNames = partTypeDeclaration == analyzedTypeDeclaration
-                                      ? analyzedOverrideRegionNames
-                                      : GetOverrideRegionNames(partTypeDeclaration, semanticModel, cancellationToken);
-
-        return TryGetContainingRegionName(part, RegionDirectiveUtilities.GetTopLevelRegions(partTypeDeclaration), out var regionName)
+        return part.Parent is TypeDeclarationSyntax partTypeDeclaration
+               && TryGetContainingRegionName(part, RegionDirectiveUtilities.GetTypeRegions(partTypeDeclaration), out var regionName)
                && overrideRegionNames.Contains(regionName);
     }
 
@@ -145,14 +112,15 @@ public abstract class NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyz
             return;
         }
 
-        var regions = RegionDirectiveUtilities.GetTopLevelRegions(typeDeclaration);
+        var regions = RegionDirectiveUtilities.GetTypeRegions(typeDeclaration);
 
-        if (regions.Count == 0)
+        if (regions.Count == 0
+            || context.SemanticModel.GetDeclaredSymbol(typeDeclaration, context.CancellationToken) is not INamedTypeSymbol typeSymbol)
         {
             return;
         }
 
-        var overrideRegionNames = GetOverrideRegionNames(typeDeclaration, context.SemanticModel, context.CancellationToken);
+        var overrideRegionNames = GetOverrideRegionNames(typeSymbol);
 
         if (overrideRegionNames.Count == 0)
         {
@@ -161,25 +129,33 @@ public abstract class NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyz
 
         foreach (var memberDeclaration in typeDeclaration.Members)
         {
-            if (IsRelevantNonOverrideMember(memberDeclaration, context.SemanticModel, context.CancellationToken) == false
-                || TryGetContainingRegionName(memberDeclaration, regions, out var regionName) == false
+            if (TryGetContainingRegionName(memberDeclaration, regions, out var regionName) == false
                 || overrideRegionNames.Contains(regionName) == false)
             {
                 continue;
             }
 
-            // A partial member is one member and is reported once, on the first part in an override region (SHARED-DIAG-012)
-            if (memberDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword)
-                && PartialMemberUtilities.GetReportedPart(memberDeclaration,
-                                                          PartialMemberUtilities.GetDeclaredSymbol(memberDeclaration, context.SemanticModel, context.CancellationToken),
-                                                          part => LiesInOverrideRegion(part, typeDeclaration, overrideRegionNames, context.SemanticModel, context.CancellationToken),
-                                                          context.SemanticModel.Compilation,
-                                                          context.CancellationToken) != memberDeclaration)
+            // Each declarator of a field-like event is judged on its own (SHARED-REGGROUP-005)
+            foreach (var (symbol, location) in PartialMemberUtilities.GetDeclaredSymbols(memberDeclaration, context.SemanticModel, context.CancellationToken))
             {
-                continue;
-            }
+                if (IsRelevantNonOverrideMember(memberDeclaration, symbol) == false)
+                {
+                    continue;
+                }
 
-            context.ReportDiagnostic(CreateDiagnostic(OrderingDeclarationUtilities.GetDiagnosticLocation(memberDeclaration), regionName));
+                // A partial member is one member and is reported once, on the first part in an override region (SHARED-DIAG-012)
+                if (memberDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword)
+                    && PartialMemberUtilities.GetReportedPart(memberDeclaration,
+                                                              symbol,
+                                                              part => LiesInOverrideRegion(part, overrideRegionNames),
+                                                              context.SemanticModel.Compilation,
+                                                              context.CancellationToken) != memberDeclaration)
+                {
+                    continue;
+                }
+
+                context.ReportDiagnostic(CreateDiagnostic(location, regionName));
+            }
         }
     }
 

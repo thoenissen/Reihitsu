@@ -52,11 +52,14 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzer : DiagnosticAnalyzerB
             return;
         }
 
-        var seenNonConstantAccessibilityGroups = new HashSet<OrderingAccessibilityGroup>();
+        var regions = RegionDirectiveUtilities.GetTopLevelRegions(typeDeclaration);
+        var seenNonConstantAccessibilityGroups = new HashSet<(int RegionIndex, OrderingAccessibilityGroup AccessibilityGroup)>();
 
         foreach (var fieldDeclaration in typeDeclaration.Members.OfType<FieldDeclarationSyntax>())
         {
-            var accessibilityGroup = OrderingDeclarationUtilities.GetAccessibilityGroup(fieldDeclaration);
+            // A field is compared only within its own top-level region, or outside every region (RH7102-003)
+            var accessibilityGroup = (RegionDirectiveUtilities.GetContainingRegionIndex(fieldDeclaration, regions),
+                                      OrderingDeclarationUtilities.GetAccessibilityGroup(fieldDeclaration));
 
             if (fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword))
             {

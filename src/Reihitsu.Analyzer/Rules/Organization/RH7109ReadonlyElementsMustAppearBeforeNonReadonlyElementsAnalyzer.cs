@@ -52,7 +52,8 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer :
             return;
         }
 
-        var seenNonReadonlyGroups = new HashSet<(OrderingAccessibilityGroup AccessibilityGroup, bool IsStaticField)>();
+        var regions = RegionDirectiveUtilities.GetTopLevelRegions(typeDeclaration);
+        var seenNonReadonlyGroups = new HashSet<(int RegionIndex, OrderingAccessibilityGroup AccessibilityGroup, bool IsStaticField)>();
 
         foreach (var fieldDeclaration in typeDeclaration.Members.OfType<FieldDeclarationSyntax>())
         {
@@ -61,7 +62,9 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer :
                 continue;
             }
 
-            var group = (OrderingDeclarationUtilities.GetEffectiveAccessibilityGroupForReadonlyOrdering(typeDeclaration, fieldDeclaration),
+            // A field is compared only within its own top-level region, or outside every region (RH7109-003)
+            var group = (RegionDirectiveUtilities.GetContainingRegionIndex(fieldDeclaration, regions),
+                         OrderingDeclarationUtilities.GetEffectiveAccessibilityGroupForReadonlyOrdering(typeDeclaration, fieldDeclaration),
                          fieldDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword));
 
             if (fieldDeclaration.Modifiers.Any(SyntaxKind.ReadOnlyKeyword))

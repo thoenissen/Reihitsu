@@ -2,10 +2,12 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Organization;
 
@@ -50,6 +52,15 @@ public class RH7101DoNotCombineFieldsAnalyzer : DiagnosticAnalyzerBase
         if (context.Node is not FieldDeclarationSyntax fieldDeclaration
             || fieldDeclaration.Declaration.Variables.Count <= 1
             || fieldDeclaration.Parent.IsKind(SyntaxKind.ExtensionBlockDeclaration))
+        {
+            return;
+        }
+
+        // A conditional directive between the declarators lets another build configuration compile another set of
+        // declarators (RH7101-001, SHARED-DIAG-008)
+        var variables = fieldDeclaration.Declaration.Variables;
+
+        if (SyntaxTriviaUtilities.ContainsConditionalCompilationBoundary(fieldDeclaration, TextSpan.FromBounds(variables.First().SpanStart, variables.Last().SpanStart)))
         {
             return;
         }

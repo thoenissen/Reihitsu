@@ -292,14 +292,14 @@ public class RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzerTests :
     }
 
     /// <summary>
-    /// Characterizes a field-like override event with several declarators: only its first declarator is judged, so a second
-    /// declarator from another base type is not reported in the region of the first one's base type. This test pins
-    /// today's behavior; the decided behavior is stated by SHARED-DIAG-006, which checks every declarator, and its change
-    /// belongs to an existing follow-up
+    /// Verifies that each declarator of a field-like override event is judged on its own: the second declarator, which
+    /// overrides a member of another base type, is reported in the region of the first one's base type
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyFieldLikeOverrideEventWithSeveralDeclaratorsIsJudgedByItsFirstDeclarator()
+    [Requirement("RH7403-001")]
+    [Requirement("SHARED-REGGROUP-005")]
+    public async Task VerifyEachDeclaratorOfFieldLikeOverrideEventIsJudgedOnItsOwn()
     {
         const string testData = """
                                 using System;
@@ -318,7 +318,43 @@ public class RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzerTests :
                                 {
                                     #region B1
 
-                                    public override event EventHandler A, X;
+                                    public override event EventHandler A, {|RH7403:X|};
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that each declarator of a field-like override event is judged on its own when the declarator from
+    /// another base type comes first
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7403-001")]
+    [Requirement("SHARED-REGGROUP-005")]
+    public async Task VerifyEachDeclaratorOfFieldLikeOverrideEventIsJudgedOnItsOwnInReversedOrder()
+    {
+        const string testData = """
+                                using System;
+
+                                class B1
+                                {
+                                    public virtual event EventHandler A;
+                                }
+
+                                class B2 : B1
+                                {
+                                    public virtual event EventHandler X;
+                                }
+
+                                class D : B2
+                                {
+                                    #region B1
+
+                                    public override event EventHandler {|RH7403:X|}, A;
 
                                     #endregion
                                 }

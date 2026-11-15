@@ -577,17 +577,19 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     }
 
     /// <summary>
-    /// Verifies that a preprocessor directive between two parameters is reported and withholds the code fix
+    /// Verifies that an empty conditional directive pair between two parameters keeps the parameter list from being
+    /// reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5109-004")]
-    public async Task VerifyDirectiveInsideParameterListWithholdsTheCodeFix()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyConditionalDirectiveBetweenParametersKeepsTheListFromBeingReported()
     {
         const string testData = """
                                 internal class TestClass
                                 {
-                                    void Method{|#0:(|}int first, int second,
+                                    void Method(int first, int second,
                                 #if DEBUG
                                 #endif
                                                 int third)
@@ -596,17 +598,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5109MessageFormat));
-
-        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0:", string.Empty).Replace("|}", string.Empty),
-                                                   RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId,
-                                                   root => root.DescendantNodes()
-                                                               .OfType<ParameterListSyntax>()
-                                                               .First()
-                                                               .OpenParenToken
-                                                               .GetLocation());
-
-        Assert.IsEmpty(actions);
+        await Verify(testData);
     }
 
     /// <summary>
@@ -659,6 +651,46 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a conditional directive in a gap between the parameters keeps the list from
+    /// being reported, a pragma there withholds only the fix, and a conditional directive inside a default value
+    /// withholds only the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5109-004")]
+    public async Task VerifyConditionalDirectiveInAGapKeepsTheListFromBeingReportedButNotOneInsideAParameter()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M(int a, int b,
+                                #if DEBUG
+                                #endif
+                                           int c)
+                                    {
+                                    }
+
+                                    void N{|RH5109:(|}int a, int b,
+                                #pragma warning disable CS0168
+                                           int c)
+                                    {
+                                    }
+
+                                    void O{|RH5109:(|}int a, int b,
+                                           int c = 1
+                                #if DEBUG
+                                               + 1
+                                #endif
+                                               + 2)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     #endregion // Tests
