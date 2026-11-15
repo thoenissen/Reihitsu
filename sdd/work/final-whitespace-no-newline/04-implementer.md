@@ -1,5 +1,5 @@
 Role: implementer
-Commit: see the commit that adds this handover (`Fix whitespace at the end of a file without a final line break`)
+Commit: 970fe19 (production change; this handover is amended in the commit after it)
 Verdict: tests pass
 
 My prompt carried no intended fix, suspected cause, or hoped-for verdict.
@@ -16,7 +16,7 @@ The byte order mark guard is load-bearing: disabling it fails the existing `Byte
 `EndOfLineWhitespace.StripBeforeFollowingLineBreak` is not changed, so its node-level consumer (`ReihitsuFormatter.cs`) keeps its behavior (`GapInFrontOfATargetOnTheSameLineIsKept` passes).
 
 ## Policy owners
-- `rg "static.*RemoveTrailingWhitespace" src`: `TriviaListUtilities.RemoveTrailingWhitespace` (Pipeline/Core/Utilities, reused here) and `LineBreakTriviaUtilities.RemoveTrailingWhitespace` (LineBreaks/Utilities, a second copy with its own consumers; not touched, see follow-ups).
+- `rg "static.*RemoveTrailingWhitespace" src`: `TriviaListUtilities.RemoveTrailingWhitespace` (Pipeline/Core/Utilities, reused here) and `LineBreakTriviaUtilities.RemoveTrailingWhitespace`, which only forwards to it. One owner.
 - `rg "RemoveTrailingEndOfLineTrivia" src/Reihitsu.Formatter`: `CleanupPhase` (private, reused) and `LineBreakTriviaUtilities` (line-break phase's own); unchanged.
 - Byte order mark: `ByteOrderMarkUtilities.StartsWithByteOrderMark` / `CreateByteOrderMarkTrivia`, reused.
 
@@ -39,4 +39,4 @@ _None._
 _None._
 
 ## Follow-up candidates
-- `LineBreakTriviaUtilities.RemoveTrailingWhitespace` duplicates `TriviaListUtilities.RemoveTrailingWhitespace` (FC-015-shaped private copy, pre-existing, not touched by this run). Small: point the line-break consumers at the shared owner and delete the copy, if the two are behaviorally identical.
+_None_ beyond those already in `00-lead.md`.
