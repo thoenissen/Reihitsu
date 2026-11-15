@@ -76,7 +76,7 @@ when the line `    disabled text` and the line `string t = @"g h` end in spaces,
 
 ### FMT-CLEAN-005 — The file does not end with a line break or whitespace
 
-The formatter MUST remove every line break, whitespace-only line, and whitespace trivia after the last token of a file, so the file ends with the last token's text. Whitespace trivia that ends the file MUST be removed whether or not a line break follows it: a file without a final line break gives the same output as the same file with one.
+The formatter MUST remove the line breaks and whitespace-only lines that end a file and the whitespace trivia that ends the file, so the file ends with the text of its last token, or of the comment or directive that follows it (FMT-CLEAN-006, FMT-CLEAN-007). Whitespace in front of a comment that follows the last token, such as the space in `} /* c */`, does not end the file and stays. Whitespace trivia that ends the file MUST be removed whether or not a line break follows it: a file without a final line break gives the same output as the same file with one.
 
 This holds wherever that whitespace trivia stands: directly behind the last token, behind a block comment that follows the last token on its line, and behind a block comment on a line of its own after the last token, also in a file that holds no token but comments. The file then ends with the comment's text, and the line breaks in front of a comment on a line of its own stay (FMT-CLEAN-006). A byte order mark at the start of the text stays (FMT-CLEAN-009).
 
