@@ -20,8 +20,8 @@
 | 6 | Skeptic | Follow-up candidates: RH5102 reports `M(1, 2, /* a⏎b */ 3)` without fix; formatter drops space after `M( /* a⏎b */ 1, 2)` | Drop both | Only serve a rare input class (multi-line comment inside an argument list, which RH5038 reports) — lead.md, *Follow-ups* | Not taken in; nothing changes | — |
 | 7 | Skeptic | Declare "comment/directive between `(` and first element" unsupported? | Not an option: deletes no special case and would refuse common code | Skeptic 02 | No declaration | — |
 | 8 | Implementer | Architecture finding: RH5102 and RH5109 now carry the same multi-line-by-elements loop (one rule stated in two places) | Change the structure in this run: one shared helper used by both analyzers, no new type if an existing utility class fits; RH5109 behavior unchanged | README *Architecture findings*: the narrow fix itself added a copy; RH5109 is RH5102's parameter-list counterpart; a few lines | Pure refactor; RH5109 tests must stay green unchanged | 5c8c36c |
-| 9 | Implementer | Architecture test `UsesListsExactlyTheReferencedRequirements` fails: RH5102.md references SHARED-DIAG-010 without listing it; line-breaks.md lists it without referencing it | Route to spec author | Spec text owner | Spec metadata is internal | — |
-| 10 | Implementer | Direct Core test for `SyntaxNodeUtilities.IsPartlyWrapped`? | Yes, route to test implementer | Core tests cover the shared utility assembly directly (AGENTS.md architecture) | Test only | — |
+| 9 | Implementer | Architecture test `UsesListsExactlyTheReferencedRequirements` fails: RH5102.md references SHARED-DIAG-010 without listing it; line-breaks.md lists it without referencing it | Route to spec author | Spec text owner | Spec metadata is internal | cee5505 |
+| 10 | Implementer | Direct Core test for `SyntaxNodeUtilities.IsPartlyWrapped`? | Yes, route to test implementer | Core tests cover the shared utility assembly directly (AGENTS.md architecture) | Test only | 7e2ec7f |
 | 1 | Claim | Branch name | Use `claude/pensive-davinci-jjfo8i` instead of `claude/issue-1755-<slug>` | The session environment only permits pushing to that branch | Branch names are internal | c59c687 |
 
 ## Follow-up candidates
@@ -36,4 +36,5 @@
 - Test implementer done (03; tests e863195, handover d12dd19): 28 failing runs, all RH5102-001 not-reported cases.
 - Implementer done (04; 37c9930): all RH5102 tests green; lane check confirmed behavior-change.
 - Decision 8 done (5c8c36c).
-- Next: spec author (decision 9) ∥ test implementer (decision 10) → cleaner.
+- Decisions 9 (cee5505) and 10 (7e2ec7f) done.
+- Next: cleaner → spec checker → before-auditor steps → auditor → validator.
