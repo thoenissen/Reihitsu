@@ -27,6 +27,7 @@
 | 6 | Skeptic | #1737 architecture finding (fix and line-break phase own comma placement) | Refuse the class (decision 5); structural change (fix delegates to formatter) as follow-up | README, Architecture findings: refuse first | Internal | — |
 | 7 | Skeptic | #1738 question shape | Use the skeptic's single reworded question (spec author's Q2 option A conflicted with RH5301/5303/5304; Q3 folded in) | Avoids a permanent diagnostic (FC-013) | Asked as output question | — |
 | 8 | Spec author 05 | Declaration in its own change doc; FMT-INDENT-033 retired; FMT-UNSUP-004 reason wins where both shapes hold; RH5110-003 fix withheld via SHARED-FIX-010; AGENTS.md precheck row updated | Accepted as proposed | Follow the answered declaration; same pattern as FMT-UNSUP-008 | The visible part (refusal, withheld fixes) is the maintainer's 4A/5A answer; rest is spec bookkeeping | 57771bb |
+| 9 | Test implementer | Delete 40 tests whose input FMT-UNSUP-009 now refuses (shapes moved to precheck rows); expected values for uncovered #1738 cases = main's output of the comma-last form | Accepted | Follows the declaration and answer 1A | Covered by maintainer answers 1A/4A | cf2ad90 |
 | 4 | Spec author | New requirement IDs vs. extending existing ones | New requirements (FMT-BREAK-038, FMT-INDENT-033) | Keeps existing requirements stable | Wording/IDs internal | pending |
 
 ## Follow-up candidates
@@ -42,4 +43,4 @@
 
 ## Open worklist / next step
 
-- Specs done (57771bb): RH5107-004, FMT-BREAK-038 (unheld), FMT-UNSUP-009, held-comma text removed. Change docs accepted (skeptic ran via 02/04). Next: test implementer (06).
+- Tests done (cf2ad90): both reproduced; 101 new/changed tests fail as expected. Next: implementer (07).
