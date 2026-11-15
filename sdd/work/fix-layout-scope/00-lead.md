@@ -28,11 +28,14 @@
 |---|---|---|---|---|---|---|
 | D1 | Claim | Branch name | Use `claude/magical-edison-h81uj2` | Session environment forbids pushing to other branches | Internal | ed5cd61 |
 | D2 | Claim | Lane | bug-fix for all three | Each reports observed vs. expected against an unchanged shared requirement | Internal | ed5cd61 |
+| D3 | Spec author | Change doc needed for the eight rule-requirement rewrites? | No; accepted as clarifications | They remove text contradicting unchanged SHARED-FIX-006 or apply M1; triage on #1140 already called this a clarification | Behavior demanded by unchanged SHARED-FIX-006 / M1 | d1884a0 |
+| D4 | Spec author | Keep a rewritten requirement whose fix this run may not change? | Decide per rule after the implementer: any requirement whose fix stays as on main is reverted and its instance left on #1140 | Avoid spec/code contradiction in the PR | Spec text only | pending |
 
 ## Follow-up candidates
 
-(none yet)
+- FU1 (01-spec-author): SHARED-FIX-007 *Shared line* read literally makes a gap-only fix (e.g. RH6024 on `int _a = 1+2; int _b;`) split two members on one line; recommend reading A, only the gaps change. Outside the run's issues; output question carried in the follow-up.
 
 ## Worklist / next step
 
-- Next: spawn spec author.
+- Open output questions (batch before test implementer): Q1 RH5112 chain in `if` header; Q2 RH5101 operator spacing inside list element; Q3 RH5206 switch expression in `if` header (all from 01-spec-author).
+- Next: spawn skeptic (02).
