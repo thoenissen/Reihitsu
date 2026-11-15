@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -128,6 +130,44 @@ internal static class CommentPositionUtilities
         var length = text.TrimEnd('\r', '\n').Length;
 
         return Location.Create(comment.SyntaxTree, new TextSpan(comment.FullSpan.Start, length));
+    }
+
+    /// <summary>
+    /// Gets the locations a comment in a reported position is reported at (SHARED-COMMENT-003): one for each line of a
+    /// run of <c>///</c> lines, from that line's <c>///</c> to the end of its text, as when documentation comments are not
+    /// parsed and every line is a comment of its own; for any other comment, its <see cref="GetCommentLocation"/>
+    /// </summary>
+    /// <param name="comment">Comment trivia</param>
+    /// <returns>The locations of the comment</returns>
+    internal static IEnumerable<Location> GetCommentLocations(SyntaxTrivia comment)
+    {
+        if (comment.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) == false)
+        {
+            yield return GetCommentLocation(comment);
+
+            yield break;
+        }
+
+        var text = comment.SyntaxTree.GetText();
+        var lineSpan = comment.SyntaxTree.GetLineSpan(comment.FullSpan);
+
+        for (var lineNumber = lineSpan.StartLinePosition.Line; lineNumber <= lineSpan.EndLinePosition.Line; lineNumber++)
+        {
+            var line = text.Lines[lineNumber];
+            var start = Math.Max(line.Start, comment.FullSpan.Start);
+            var end = Math.Min(line.End, comment.FullSpan.End);
+
+            while (start < end
+                   && char.IsWhiteSpace(text[start]))
+            {
+                start++;
+            }
+
+            if (start < end)
+            {
+                yield return Location.Create(comment.SyntaxTree, TextSpan.FromBounds(start, end));
+            }
+        }
     }
 
     /// <summary>

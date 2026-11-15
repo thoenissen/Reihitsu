@@ -82,8 +82,10 @@ internal static class InitializerLayoutAnalysisUtilities
 
     /// <summary>
     /// Determines whether a token's line starts at the expected column (SHARED-INIT-001). Every comment in the token's
-    /// leading trivia that starts on an earlier line starts at the expected column, one level deeper in front of a closing
-    /// brace, with the further lines of a <c>///</c> comment aligned to it. On the token's line, the comment that starts
+    /// leading trivia that starts an earlier line - only whitespace in front of it on that line - starts at the expected
+    /// column, one level deeper in front of a closing brace, with the further lines of a <c>///</c> comment aligned to
+    /// it; a further comment behind it on that line, or behind the tail of a comment from a line above, is not checked,
+    /// also when it ends on the token's line. On the token's line, the comment that starts
     /// the line is its first element and starts at the expected column (SHARED-COMMENT-011); a further comment behind it
     /// is not checked, and neither is the token behind a comment that ends on its line. Otherwise the token starts at the
     /// expected column
@@ -98,8 +100,18 @@ internal static class InitializerLayoutAnalysisUtilities
                                     ? expectedColumn + SyntaxIndentationUtilities.IndentSize
                                     : expectedColumn;
 
-        foreach (var trivia in token.LeadingTrivia.Where(SyntaxTriviaUtilities.IsCommentTrivia))
+        var leadingTrivia = token.LeadingTrivia;
+
+        for (var triviaIndex = 0; triviaIndex < leadingTrivia.Count; triviaIndex++)
         {
+            var trivia = leadingTrivia[triviaIndex];
+
+            if (SyntaxTriviaUtilities.IsCommentTrivia(trivia) == false
+                || TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, triviaIndex) == false)
+            {
+                continue;
+            }
+
             var commentStart = CommentPositionUtilities.GetStartPosition(trivia);
 
             if (commentStart.Line != tokenLine

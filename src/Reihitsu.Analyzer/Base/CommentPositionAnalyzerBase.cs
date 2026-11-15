@@ -9,7 +9,8 @@ namespace Reihitsu.Analyzer.Base;
 
 /// <summary>
 /// Base class for analyzers that report ordinary comments placed in a specific position inside a declaration or a
-/// statement. Each comment is reported at its own location, whether or not it shares a line with code
+/// statement. Each comment is reported at its own location, whether or not it shares a line with code, and each line of
+/// a <c>///</c> comment that documents nothing is reported as a comment of its own
 /// </summary>
 public abstract class CommentPositionAnalyzerBase : DiagnosticAnalyzerBase
 {
@@ -54,7 +55,10 @@ public abstract class CommentPositionAnalyzerBase : DiagnosticAnalyzerBase
                 && CommentPositionUtilities.TryGetSurroundingTokens(trivia, out var previousToken, out var nextToken)
                 && IsMisplaced(trivia, previousToken, nextToken))
             {
-                context.ReportDiagnostic(CreateDiagnostic(CommentPositionUtilities.GetCommentLocation(trivia)));
+                foreach (var location in CommentPositionUtilities.GetCommentLocations(trivia))
+                {
+                    context.ReportDiagnostic(CreateDiagnostic(location));
+                }
             }
         }
     }
