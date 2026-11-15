@@ -171,6 +171,101 @@ public class SyntaxNodeUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that an argument list is partly wrapped when it is multi-line by its arguments and two arguments start on the same line: arguments that start on two lines, or an argument that spans lines next to another one, also when every argument stands below the opening parenthesis, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="statement">Statement whose outermost invocation holds the argument list, written with LF line endings</param>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [DataRow("Method(1, 2,\n       3);")]
+    [DataRow("Method(\n    1, 2,\n    3);")]
+    [DataRow("Method(1,\n       2, 3);")]
+    [DataRow("Method(1, () =>\n{\n});")]
+    [DataRow("Method(\n    1, () =>\n    {\n    });")]
+    [DataRow("Method(\n    1, @\"a\nb\");")]
+    [DataRow("Method(\n    1, Inner(2,\n             3));")]
+    [DataRow("Method(\n    1, 2 /* a\n    b */ + 3);")]
+    public void IsPartlyWrappedReturnsTrueForArgumentsSharingALineInAMultiLineList(string statement)
+    {
+        Assert.IsTrue(SyntaxNodeUtilities.IsPartlyWrapped(GetArgumentList(statement).Arguments));
+        Assert.IsTrue(SyntaxNodeUtilities.IsPartlyWrapped(GetArgumentList(statement.Replace("\n", "\r\n")).Arguments));
+    }
+
+    /// <summary>
+    /// Verifies that an argument list whose arguments all start on one line, none of them spanning lines, is not partly wrapped, wherever its parentheses stand and whatever comment or directive keeps the first argument off the line of the opening parenthesis, and that a multi-line argument list in which every argument starts its own line is not partly wrapped either, however many lines an argument spans, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="statement">Statement whose outermost invocation holds the argument list, written with LF line endings</param>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [DataRow("Method(1, 2, 3);")]
+    [DataRow("Method(\n    1, 2);")]
+    [DataRow("Method(1, 2\n      );")]
+    [DataRow("Method(\n    1, 2\n      );")]
+    [DataRow("Method(1, 2 // c\n      );")]
+    [DataRow("Method( // c\n    1, 2);")]
+    [DataRow("Method(\n    /* c */ 1, 2);")]
+    [DataRow("Method( /* a\n    b */ 1, 2);")]
+    [DataRow("Method(\n#pragma warning disable CS0168\n    1, 2);")]
+    [DataRow("Method(\n#region R\n    1, 2\n#endregion // R\n      );")]
+    [DataRow("Method(1,\n       2);")]
+    [DataRow("Method(\n    1,\n    2);")]
+    [DataRow("Method(1,\n       () =>\n       {\n       });")]
+    public void IsPartlyWrappedReturnsFalseForArgumentsThatAllStartOnOneLineOrEachOnTheirOwn(string statement)
+    {
+        Assert.IsFalse(SyntaxNodeUtilities.IsPartlyWrapped(GetArgumentList(statement).Arguments));
+        Assert.IsFalse(SyntaxNodeUtilities.IsPartlyWrapped(GetArgumentList(statement.Replace("\n", "\r\n")).Arguments));
+    }
+
+    /// <summary>
+    /// Verifies that a list with fewer than two elements is never partly wrapped, also when its only element spans lines
+    /// </summary>
+    /// <param name="statement">Statement whose outermost invocation holds the argument list</param>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [DataRow("Method();")]
+    [DataRow("Method(1);")]
+    [DataRow("Method(() =>\n{\n});")]
+    [DataRow("Method(\n    1\n      );")]
+    public void IsPartlyWrappedReturnsFalseForFewerThanTwoArguments(string statement)
+    {
+        Assert.IsFalse(SyntaxNodeUtilities.IsPartlyWrapped(GetArgumentList(statement).Arguments));
+    }
+
+    /// <summary>
+    /// Verifies that a parameter list is partly wrapped when its parameters start on two lines, or when a parameter whose type spans lines shares its line with another one, also below the opening parenthesis, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="declaration">Method declaration, written with LF line endings</param>
+    [TestMethod]
+    [Requirement("RH5109-001")]
+    [DataRow("void M(int a, int b,\n       int c)\n{\n}")]
+    [DataRow("void M(\n    int a, int b,\n    int c)\n{\n}")]
+    [DataRow("void M(\n    int a, Dictionary<int,\n                      int> b)\n{\n}")]
+    public void IsPartlyWrappedReturnsTrueForParametersSharingALineInAMultiLineList(string declaration)
+    {
+        Assert.IsTrue(SyntaxNodeUtilities.IsPartlyWrapped(GetParameterList(declaration).Parameters));
+        Assert.IsTrue(SyntaxNodeUtilities.IsPartlyWrapped(GetParameterList(declaration.Replace("\n", "\r\n")).Parameters));
+    }
+
+    /// <summary>
+    /// Verifies that a parameter list whose parameters all start on one line, none of them spanning lines, or in which every parameter starts its own line, is not partly wrapped, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="declaration">Method declaration, written with LF line endings</param>
+    [TestMethod]
+    [Requirement("RH5109-001")]
+    [DataRow("void M(int a, int b)\n{\n}")]
+    [DataRow("void M(\n    int a, int b)\n{\n}")]
+    [DataRow("void M(int a, int b\n      )\n{\n}")]
+    [DataRow("void M(int a, int b // c\n      )\n{\n}")]
+    [DataRow("void M( // c\n    int a, int b)\n{\n}")]
+    [DataRow("void M(\n#pragma warning disable CS0168\n    int a, int b)\n{\n}")]
+    [DataRow("void M(int a,\n       int b)\n{\n}")]
+    [DataRow("void M(int a,\n       Dictionary<int,\n                  int> b)\n{\n}")]
+    public void IsPartlyWrappedReturnsFalseForParametersThatAllStartOnOneLineOrEachOnTheirOwn(string declaration)
+    {
+        Assert.IsFalse(SyntaxNodeUtilities.IsPartlyWrapped(GetParameterList(declaration).Parameters));
+        Assert.IsFalse(SyntaxNodeUtilities.IsPartlyWrapped(GetParameterList(declaration.Replace("\n", "\r\n")).Parameters));
+    }
+
+    /// <summary>
     /// Verifies that the full-span predicate also counts the documentation comment attached in front of the
     /// node, which is the scope that makes it wrong for a guard over a node's interior
     /// </summary>
@@ -488,6 +583,29 @@ public class SyntaxNodeUtilitiesTests
                                    .OfType<InvocationExpressionSyntax>()
                                    .First()
                                    .ArgumentList;
+    }
+
+    /// <summary>
+    /// Parses the method declaration inside a wrapping class and returns its parameter list
+    /// </summary>
+    /// <param name="declaration">Method declaration source text</param>
+    /// <returns>The parameter list</returns>
+    private static ParameterListSyntax GetParameterList(string declaration)
+    {
+        var source = $$"""
+                       using System.Collections.Generic;
+
+                       internal class TestClass
+                       {
+                       {{declaration}}
+                       }
+                       """;
+
+        return CoreSyntaxTestHelper.ParseCompilationUnit(source)
+                                   .DescendantNodes()
+                                   .OfType<MethodDeclarationSyntax>()
+                                   .First()
+                                   .ParameterList;
     }
 
     #endregion // Methods
