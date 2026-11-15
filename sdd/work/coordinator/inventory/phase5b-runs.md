@@ -74,13 +74,13 @@ Maintainer 2026-11-13: release 1.2.1 and 1.2.2 first; deferred minor bugs #1140 
 | 1 | P5 | 1.2.1 | `/squad #1416 #1388 #1627 #1142` | merged #1691 |
 | 2 | P13 | 1.2.1+1.2.2 | `/squad #1529 #1543` | merged #1697 |
 | 3 | P9 | 1.2.1 | `/squad #1283 #1284 #1285` | merged #1699 |
-| 4 | P11 | 1.2.1 | `/squad #1600 #1150 #1274 #1143 #1673 #1678` | last of 1.2.1 |
-| 5 | Q3 | 1.2.2 | `/squad #1105 #1266 #1267` | without #966 (stays with PR #1669, maintainer 2026-11-14) |
+| 4 | P11 | 1.2.1 | `/squad #1600 #1150 #1274 #1143 #1673 #1678` | merged #1718 |
+| 5 | Q3 | 1.2.2 | `/squad #1105 #1266 #1267` | merged #1735 (without #966) |
 | 6 | Q6 | 1.2.2 | `/squad #1074 #1079 #1276 #1613 #1708` | merged #1719 |
-| 7 | Q2 | 1.2.2 | `/squad #1264 #1333 #1334 #1339 #1337 #1412 #1592` | |
+| 7 | Q2 | 1.2.2 | `/squad #1264 #1333 #1334 #1339 #1337 #1412 #1592` | merged #1734 |
 | 8 | Q4 | 1.2.2 | `/squad #1345 #1346 #1347 #1348 #1270 #1092 #1153 #1617` | merged #1700 (Refs #1092, remainder open) |
-| 9 | Q7 | 1.2.2 | `/squad #1642 #1635` | |
-| 10 | Q1 | 1.2.2 | `/squad #1147 #1152 #1386 #1387 #1594 #1655` | |
+| 9 | Q7 | 1.2.2 | `/squad #1642 #1635` | merged #1733 |
+| 10 | Q1 | 1.2.2 | `/squad #1147 #1152 #1386 #1387 #1594 #1655` | next (last of 1.2.2) |
 | 11 | Q5 | 1.2.2 | `/squad #1071 #1268 #1289 #974` | merged #1692 (Refs #1289, remainder stays open) |
 
 ## Parallel batches (proposed 2026-11-14; maintainer may run the runs of one batch in parallel)
