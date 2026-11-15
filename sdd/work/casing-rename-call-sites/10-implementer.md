@@ -1,5 +1,5 @@
 Role: implementer
-Commit: (this commit; see `git log -1 -- sdd/work/casing-rename-call-sites/10-implementer.md`)
+Commit: 8c7e443 (production change; this handover amended in the next commit)
 Verdict: tests pass
 
 Repair round 1. The prompt carried no intended fix, suspected cause, or hoped-for verdict; it named decisions 6 and 7 of `00-lead.md`, which this round implements as stated there.
@@ -18,7 +18,7 @@ Both repairs are cheap checks; neither needed more.
 - Which member implements an interface member: `rg -n "FindImplementationForInterfaceMember" src --glob '!*Test*'` → `CountImplementedInterfaceMembers` (new) and `InterfaceImplementationUtilities.GetImplementedInterfaceNames` (`src/Reihitsu.Analyzer/Core/InterfaceImplementationUtilities.cs:61`, private). The latter answers a different question (the names of the interfaces whose region an implementation belongs in, SHARED-REGGROUP-004; it short-circuits on explicit implementations and returns distinct interface names), so it is not a second owner of the rename decision; both read the compiler's mapping directly rather than modelling it.
 
 ## Production diff size
-- Run: `git diff --shortstat origin/main...HEAD -- src ':(exclude,glob)src/*Test*/**'` → 1 file changed, 106 insertions(+), 7 deletions(-) (round 0: +87/−2). No new type. About 100 production lines for the run, at the limit the lead named; nothing beyond the two repairs.
+- Run: `git diff --shortstat origin/main...HEAD -- src ':(exclude,glob)src/*Test*/**'` → 1 file changed, 114 insertions(+), 5 deletions(-) (round 0: +87/−2). No new type. This is slightly past the ~100 production lines the lead named; about 30 of the 114 are XML documentation and comments, and nothing goes beyond the two repairs.
 - Round delta: 1 file changed, 41 insertions(+), 17 deletions(-) (of which ~20 lines are XML documentation).
 
 ## Deleted special cases
