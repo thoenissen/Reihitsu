@@ -5,7 +5,7 @@
 | ID prefix | SHARED-INIT |
 | Status | Active |
 | Code owners | `InitializerLayoutAnalysisUtilities` |
-| Uses | FMT-INDENT-023, FMT-INDENT-030 |
+| Uses | FMT-INDENT-023, FMT-INDENT-030, SHARED-COMMENT-011 |
 
 This spec covers what the rules that check the layout of object and collection initializers share: which column a line holding a comment in front of a brace or an element counts as, and when a complex element initializer (`{ 1, 2 }` inside a collection initializer) is laid out correctly. Each rule that uses this spec states which initializers it checks, the columns it expects, and where it reports.
 
@@ -18,14 +18,14 @@ This spec covers what the rules that check the layout of object and collection i
 
 ### SHARED-INIT-001 — A comment in front of a token anchors its line
 
-A rule that uses this requirement and checks the column at which a brace or an element of an initializer starts MUST check a token in front of which at most one comment starts on the token's own line as follows, with every comment in the token's leading trivia taken into account:
+A rule that uses this requirement and checks the column at which a brace or an element of an initializer starts MUST check a token in front of which comments may stand as follows, with every comment in the token's leading trivia taken into account:
 
 - A comment that starts on an earlier line than the token MUST start at the expected column; in front of a closing brace, one level (four columns) deeper. This holds whether the comment ends above the token's line or on it.
-- A comment that starts on the token's line in front of it MUST start at the expected column.
+- A comment that starts the token's line — only whitespace stands in front of it on that line — MUST start at the expected column. Every further comment on the token's line in front of the token, whether behind that comment or behind the end of a comment that started on an earlier line, MUST NOT be checked: the comment that starts the line is the line's first element (SHARED-COMMENT-011).
 - Every further line of a `///` comment MUST start its `///` at the same column as the comment's first line.
 - When a comment ends on the token's line, the token itself MUST NOT be checked: it may follow the comment anywhere on that line. Otherwise the token MUST start at the expected column.
 
-Why: The formatter indents the first thing on a line, and a comment that starts the line is that first thing; the code after it on the same line keeps its distance to the comment. A comment that starts above a closing brace belongs to the last element of the block, so it is indented like the elements, also when it ends on the brace's line.
+Why: The formatter indents the first thing on a line, and a comment that starts the line is that first thing; the code after it on the same line, a further comment included, keeps its distance to that comment. A comment that starts above a closing brace belongs to the last element of the block, so it is indented like the elements, also when it ends on the brace's line.
 
 Example — RH5301, whose braces belong at the column of `new` and whose members one level deeper:
 
@@ -71,6 +71,42 @@ class C
                     P = 1
                 /* last
                    one */ }|};
+    }
+}
+```
+
+Example — RH5301, with several comments in front of a member on its line: only the comment that starts the line is checked, so
+
+```csharp
+class C
+{
+    int P { get; set; }
+    int Q { get; set; }
+
+    void M()
+    {
+        var c = new C
+                {
+                    /* a */ /* b */ P = 1,
+                    Q = 2
+                };
+    }
+}
+```
+
+is not reported, while the same comments starting their line in the wrong column are reported on the member behind them:
+
+```csharp
+class C
+{
+    int P { get; set; }
+
+    void M()
+    {
+        var c = new C
+                {
+            /* a */ /* b */ {|RH5301:P = 1|}
+                };
     }
 }
 ```
