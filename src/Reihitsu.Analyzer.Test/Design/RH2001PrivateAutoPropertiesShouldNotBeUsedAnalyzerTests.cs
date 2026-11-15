@@ -5906,6 +5906,363 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
         await Verify(testData, resultData);
     }
 
+    /// <summary>
+    /// Verifies that no code fix is offered when the property is read through another construction of its own generic
+    /// type, a shape whose fix this rule withholds
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenThePropertyIsReadThroughAnotherConstructionOfItsGenericType()
+    {
+        const string testData = """
+                                class Sample<T>
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get(Sample<int> other)
+                                    {
+                                        return other.Value + Value;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when the property is assigned in an object initializer of another construction
+    /// of its own generic type, a shape whose fix this rule withholds
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenThePropertyIsAssignedInAnObjectInitializerOfAnotherConstructionOfItsGenericType()
+    {
+        const string testData = """
+                                class Sample<T>
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    Sample<TOther> Cast<TOther>()
+                                    {
+                                        return new Sample<TOther> { Value = Value };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when the property, read through another construction of its own generic type,
+    /// gives an anonymous-object member its inferred name that code reads
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenThePropertyReadThroughAnotherConstructionOfItsGenericTypeGivesAnAnonymousObjectMemberItsInferredName()
+    {
+        const string testData = """
+                                class Sample<T>
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get(Sample<int> other)
+                                    {
+                                        var pair = new { other.Value };
+
+                                        return pair.Value;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when the property is the receiver of a member of another type named like the
+    /// field and a local named like the field is in scope, so the rename has to qualify the receiver
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenThePropertyIsTheReceiverOfAMemberNamedLikeTheFieldNextToALocalNamedLikeTheField()
+    {
+        const string testData = """
+                                class Outer
+                                {
+                                    private int _value;
+
+                                    class Inner
+                                    {
+                                        private Outer {|RH2001:Value|} { get; set; }
+
+                                        int Get()
+                                        {
+                                            var _value = 1;
+
+                                            return Value._value + _value;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when a constructor deconstructs its parameters into the properties, since a
+    /// deconstruction target gives no tuple element a name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedWhenAConstructorDeconstructsItsParametersIntoTheProperties()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    internal Sample(int value, string name) => (Value, Name) = (value, name);
+
+                                    private int {|RH2001:Value|} { get; }
+
+                                    private string {|RH2001:Name|} { get; }
+
+                                    string Describe()
+                                    {
+                                        return Name + Value;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Sample
+                                  {
+                                      internal Sample(int value, string name) => (_value, _name) = (value, name);
+
+                                      private readonly int _value;
+
+                                      private readonly string _name;
+
+                                      string Describe()
+                                      {
+                                          return _name + _value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when the property is an element of a tuple converted to the unnamed tuple type a
+    /// method returns, which drops the inferred element name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedWhenThePropertyIsAnElementOfATupleReturnedAsAnUnnamedTupleType()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    (int, int) Get()
+                                    {
+                                        return (Value, 1);
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      (int, int) Get()
+                                      {
+                                          return (_value, 1);
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when the property is an element of a tuple assigned to a local of an explicitly
+    /// named tuple type, which replaces the inferred element name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedWhenThePropertyIsAnElementOfATupleAssignedToAnExplicitlyTypedTupleLocal()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        (int First, int Second) pair = (Value, 1);
+
+                                        return pair.First;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      int Get()
+                                      {
+                                          (int First, int Second) pair = (_value, 1);
+
+                                          return pair.First;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when the property is an element of a tuple passed to a parameter of an unnamed
+    /// tuple type, which drops the inferred element name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedWhenThePropertyIsAnElementOfATuplePassedAsAnUnnamedTupleArgument()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        return Use((Value, 1));
+                                    }
+
+                                    private static int Use((int, int) pair)
+                                    {
+                                        return pair.Item1;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      int Get()
+                                      {
+                                          return Use((_value, 1));
+                                      }
+
+                                      private static int Use((int, int) pair)
+                                      {
+                                          return pair.Item1;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when the property is a target of a deconstruction assignment, which gives no tuple
+    /// element a name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedWhenThePropertyIsADeconstructionTarget()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    void Set((int, int) pair)
+                                    {
+                                        int other;
+
+                                        (Value, other) = pair;
+                                    }
+
+                                    int Get()
+                                    {
+                                        return Value;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      void Set((int, int) pair)
+                                      {
+                                          int other;
+
+                                          (_value, other) = pair;
+                                      }
+
+                                      int Get()
+                                      {
+                                          return _value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when the property is an element of the tuple a deconstruction assignment reads,
+    /// which gives no tuple element a name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedWhenThePropertyIsAnElementOfTheSourceOfADeconstruction()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    void Deconstruct(out int value, out int count)
+                                    {
+                                        (value, count) = (Value, 1);
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      void Deconstruct(out int value, out int count)
+                                      {
+                                          (value, count) = (_value, 1);
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
     #endregion // Tests
 
     #region Methods
