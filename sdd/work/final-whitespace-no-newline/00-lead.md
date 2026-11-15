@@ -30,4 +30,5 @@ None yet.
 ## Worklist / next step
 
 - Done: skeptic `01-skeptic.md` (proceed, no output questions).
-- Next: spec author clarification `02-spec-author.md`, then test implementer `03`.
+- Done: spec author `02-spec-author.md` (FMT-CLEAN-005 widened, commit 889d042; no output questions). Output-question batch 1: nothing open, no stop.
+- Next: test implementer `03-test-implementer.md`.
