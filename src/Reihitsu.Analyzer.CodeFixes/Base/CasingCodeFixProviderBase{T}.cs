@@ -697,9 +697,9 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
     /// Applies a rename only when it is safe: no method name the compiler looks up implicitly, no namespace member
     /// collision, no name in excluded code or in a caller-argument expression attribute, no Roslyn conflict annotation,
     /// no rewritten or rebound reference to a symbol outside the rename cascade, no reference of the cascade rewritten
-    /// beyond its name, no change of the interface members the renamed member implements, no changed native entry
-    /// point, no changed document that holds code another build configuration hides, no added compile error, and no change to the
-    /// properties the compiler declares for positional record parameters
+    /// beyond its name, no new name that a member of an interface in the renamed member's type hierarchy has, no
+    /// changed native entry point, no changed document that holds code another build configuration hides, no added
+    /// compile error, and no change to the properties the compiler declares for positional record parameters
     /// </summary>
     /// <param name="solution">Solution containing the declaration</param>
     /// <param name="documentId">Declaration document</param>
@@ -733,6 +733,13 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
             return null;
         }
 
+        // A new name that a member of an interface in the renamed member's type hierarchy has may change which member
+        // implements it, which a rename may not do (SHARED-CASING-009)
+        if (await HasInterfaceMemberOfNameInHierarchyAsync(solution, prepared.Value.Symbol, identifier, cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
         cancellationToken.ThrowIfCancellationRequested();
 
         var renamedSolution = await Renamer.RenameSymbolAsync(solution,
@@ -758,11 +765,10 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
         var oldNames = GetOldNames(prepared.Value.Cascade, renamedCascade);
 
         // The rename may change no binding of a reference to a symbol outside the cascade, whether the renamer rewrites
-        // that reference or leaves it as written, and no member that implements an interface member (SHARED-CASING-009)
+        // that reference or leaves it as written (SHARED-CASING-009)
         if (await RewritesOtherCodeAsync(solution, renamedSolution, oldNames, cancellationToken).ConfigureAwait(false)
             || await CountReferenceLocationsAsync(renamedSolution, renamedDeclaration.Value.Symbol, cancellationToken).ConfigureAwait(false)
-               != await CountReferenceLocationsAsync(solution, prepared.Value.Symbol, cancellationToken).ConfigureAwait(false)
-            || CountImplementedInterfaceMembers(renamedDeclaration.Value.Symbol) != CountImplementedInterfaceMembers(prepared.Value.Symbol))
+               != await CountReferenceLocationsAsync(solution, prepared.Value.Symbol, cancellationToken).ConfigureAwait(false))
         {
             return null;
         }
@@ -1096,25 +1102,44 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
     }
 
     /// <summary>
-    /// Counts the interface members that a symbol implements in its containing type
+    /// Determines whether a member of an interface in the type hierarchy of a renamed method, property, or event has
+    /// the new name
     /// </summary>
-    /// <param name="symbol">Symbol</param>
-    /// <returns>The number of members of the containing type's interfaces whose implementation is the symbol</returns>
+    /// <param name="solution">Solution before the rename</param>
+    /// <param name="symbol">Renamed symbol</param>
+    /// <param name="identifier">Proposed replacement identifier</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> when such an interface member has the new name; otherwise, <see langword="false"/></returns>
     /// <remarks>
-    /// A rename to the name of an interface member that the containing type lists among its own base types makes the
-    /// renamed member implement it in place of the member that implements it today, such as an inherited one, so a
-    /// call through the interface reaches another member. Such a rename raises the count. When the type does not list
-    /// the interface itself, the compiler keeps the inherited implementation and the count stays the same
+    /// The hierarchy is the containing type and every type of the solution derived from it; for an interface, every type
+    /// that implements it and every interface that inherits from it. Which member implements an interface member depends
+    /// on all their interface mappings, so the check refuses by name instead of comparing the mappings
     /// </remarks>
-    private static int CountImplementedInterfaceMembers(ISymbol symbol)
+    private static async Task<bool> HasInterfaceMemberOfNameInHierarchyAsync(Solution solution,
+                                                                             ISymbol symbol,
+                                                                             string identifier,
+                                                                             CancellationToken cancellationToken)
     {
-        var containingType = symbol.ContainingType;
+        if (symbol.Kind is not (SymbolKind.Method or SymbolKind.Property or SymbolKind.Event)
+            || symbol.ContainingType is not { } containingType)
+        {
+            return false;
+        }
 
-        return containingType == null
-                   ? 0
-                   : containingType.AllInterfaces
-                                   .SelectMany(static interfaceType => interfaceType.GetMembers())
-                                   .Count(member => SymbolEqualityComparer.Default.Equals(containingType.FindImplementationForInterfaceMember(member), symbol));
+        IEnumerable<INamedTypeSymbol> types = [containingType];
+
+        if (containingType.TypeKind == TypeKind.Interface)
+        {
+            types = types.Concat(await SymbolFinder.FindImplementationsAsync(containingType, solution, cancellationToken: cancellationToken).ConfigureAwait(false))
+                         .Concat(await SymbolFinder.FindDerivedInterfacesAsync(containingType, solution, cancellationToken: cancellationToken).ConfigureAwait(false));
+        }
+        else if (containingType.TypeKind == TypeKind.Class)
+        {
+            types = types.Concat(await SymbolFinder.FindDerivedClassesAsync(containingType, solution, cancellationToken: cancellationToken).ConfigureAwait(false));
+        }
+
+        return types.SelectMany(static type => type.AllInterfaces)
+                    .Any(interfaceType => interfaceType.GetMembers(identifier).IsEmpty == false);
     }
 
     /// <summary>
