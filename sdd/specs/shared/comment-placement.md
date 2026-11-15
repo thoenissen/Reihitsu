@@ -106,7 +106,9 @@ is not reported.
 
 A rule MUST report one diagnostic for each comment in a position it reports, located on that comment, whether the comment stands on a line of its own or shares a line with code. Two comments in the same gap MUST be reported separately. A comment in a position that several rules report MUST be reported by each of them, each rule deciding on its own.
 
-Why: Each comment has to be moved on its own, and the author may want to move one and delete the other. A comment behind code on the same line is just as misplaced as one on its own line. A comment inside, say, an argument list that is itself inside a statement header splits both constructs.
+A diagnostic on a `///` or `/** */` comment (SHARED-COMMENT-001) MUST start at the comment's first `///` or `/**` and end at the end of the comment's text on its last line; it MUST NOT include the line break behind that text.
+
+Why: Each comment has to be moved on its own, and the author may want to move one and delete the other. A comment behind code on the same line is just as misplaced as one on its own line. A comment inside, say, an argument list that is itself inside a statement header splits both constructs. The `///` or `/**` is where the comment starts, and the line break behind a `///` comment belongs to the line, not to the comment's text — the same span RH5204-005 gives a documentation comment.
 
 Example — RH5038:
 
@@ -142,6 +144,24 @@ class C
 ```
 
 RH5039 reports the same comment, because the argument list is part of the `if` header.
+
+Example — RH5038, whose diagnostics on a `///` and a `/** */` comment cover the comment's text from its `///` or `/**` on, and not the line break behind it:
+
+```csharp
+class C
+{
+    int M(params object[] values) => 0;
+
+    void N()
+    {
+        M(
+            {|RH5038:/// first value|}
+            1,
+            {|RH5038:/** second value */|}
+            2);
+    }
+}
+```
 
 ### SHARED-COMMENT-004 — A comment inside a region is reported
 
