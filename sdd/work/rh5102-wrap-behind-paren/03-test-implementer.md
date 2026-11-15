@@ -58,3 +58,31 @@ _N/A_ — behavior change.
 ```shell
 scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH5102ArgumentsShouldBeOnSingleOrSeparateLines"
 ```
+
+## Amendment
+
+Lead decision 10 asked for direct Core tests for `SyntaxNodeUtilities.IsPartlyWrapped<TNode>`, which the implementer introduced in 5c8c36c (`04-implementer.md`, *Amendment*). The tests are added to `src/Reihitsu.Core.Test/SyntaxNodeUtilitiesTests.cs`, next to the `AreAllSingleLine` tests. They follow the project's conventions: `[TestMethod]`, `[DataRow]` inputs, and the `GetArgumentList` helper, plus a new private `GetParameterList` helper.
+
+Each `DataRow` is written with LF. The rows that matter for layout are asserted a second time with every line break of the list written as CRLF.
+
+| Test | Requirement / failure class | Helper | Expected now |
+|---|---|---|---|
+| `IsPartlyWrappedReturnsTrueForArgumentsSharingALineInAMultiLineList` — `M(1, 2,⏎3)`, `M(⏎1, 2,⏎3)`, `M(1,⏎2, 3)`, block lambda behind `(` and behind `(⏎`, verbatim string behind `(⏎`, nested wrapped call, multi-line comment inside an argument | RH5102-001; FC-003, FC-022, FC-027 | `Assert.IsTrue`, LF and CRLF | passes |
+| `IsPartlyWrappedReturnsFalseForArgumentsThatAllStartOnOneLineOrEachOnTheirOwn` — single line; `M(⏎1, 2)`; `M(1, 2⏎)`; `M(⏎1, 2⏎)`; `M(1, 2 // c⏎)`; `M( // c⏎1, 2)`; `M(⏎/* c */ 1, 2)`; `M( /* a⏎b */ 1, 2)`; `#pragma`; `#region`/`#endregion`; `M(1,⏎2)`; `M(⏎1,⏎2)`; `M(1,⏎() =>⏎{⏎})` | RH5102-001; FC-003, FC-019, FC-020, FC-021 | `Assert.IsFalse`, LF and CRLF | passes |
+| `IsPartlyWrappedReturnsFalseForFewerThanTwoArguments` — `M()`, `M(1)`, a lone spanning lambda, `M(⏎1⏎)` | RH5102-001 ("at least two arguments"); FC-003 | `Assert.IsFalse` | passes |
+| `IsPartlyWrappedReturnsTrueForParametersSharingALineInAMultiLineList` — `M(int a, int b,⏎int c)`, the same below `(`, and `M(⏎int a, Dictionary<int,⏎int> b)` (a type that spans lines) | RH5109-001 | `Assert.IsTrue`, LF and CRLF | passes |
+| `IsPartlyWrappedReturnsFalseForParametersThatAllStartOnOneLineOrEachOnTheirOwn` — single line, `(⏎`, `⏎)`, `// c⏎)`, `( // c⏎`, `#pragma`, one per line, and one per line with a spanning type | RH5109-001 | `Assert.IsFalse`, LF and CRLF | passes |
+
+All of them pass on this head. A direct test of a helper the implementer has already written cannot be watched failing before that code exists.
+
+The false rows `M(⏎1, 2)`, `M(1, 2⏎)`, `M(1, 2 // c⏎)`, and `M( // c⏎1, 2)` are the inputs the old reading, by the lines of the parentheses, called multi-line. The true rows behind `(⏎` cover the other side of that boundary.
+
+A separate test for "returns false" with an argument list and with a parameter list was a duplicate body, which Sonar S4144 refuses. I merged it into one test per list kind.
+
+Command:
+
+```shell
+scripts/test.sh --project core --filter "FullyQualifiedName~Reihitsu.Core.Test.SyntaxNodeUtilitiesTests"
+```
+
+Result: Passed 67, Failed 0.
