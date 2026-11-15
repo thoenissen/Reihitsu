@@ -30,12 +30,17 @@ Behavior-change lane: spec author → skeptic → test implementer → implement
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name | Use the session-designated branch `claude/nice-hypatia-whvcc2` | The session allows pushes only to that branch | Branch names are internal | claim commit |
+| 2 | Spec | Change doc for the clarifications (SHARED-INIT-001, RH7304-001, RH5204-005, SHARED-ATTR-019/020, RH5111-005) | No change doc; clarifications/bug fixes against existing principles P12, P13, P22, SHARED-DIAG-010 | Triage comments on the issues say so | Their outputs are decided by unchanged principles or by output questions 1–2 | 3b1b3d3 |
+| 3 | Spec | New IDs vs combined headings for SHARED-ATTR-019/020 | Keep combined headings | Avoids editing ~17 rule specs' `Uses` | Spec structure is internal | 3b1b3d3 |
 
 ## Follow-up candidates
 
-(none yet)
+- F1 (01-spec-author): RH5102 has the #1736 contradiction for argument lists (`M(⏎1, 2)`).
+- F2 (01-spec-author): RH3002-009 keeps a conditional directive inside the parentheses reported, against SHARED-DIAG-008.
+- F3 (01-spec-author): RH7304 with the first token behind a multi-line comment's `*/` — rare; candidate to drop.
 
 ## State
 
-- Last step: claim, prepare, 00-lead.md.
-- Next: spawn spec author.
+- Last step: spec author done (3b1b3d3); lane check confirmed behavior-change.
+- Open output questions (from 01-spec-author): OQ1 RH7304 fix for comment-led region line; OQ2 RH5111 comment/#pragma in wrapped gap; #1736 change-doc visible output changes (5 entries, entry 3 comment keeping first parameter off `(` line).
+- Next: skeptic (02), then batch output questions before the test implementer.
