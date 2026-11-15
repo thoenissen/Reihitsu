@@ -22,6 +22,8 @@
 - Most expensive: the auditor (four audits, each tracing many fixtures on head and `main`) and the RH2001 binding-check mechanism, whose boundaries the audits kept finding one class at a time.
 - The analyzer test project was OOM-killed in single runs during implementation; the validator's single run completed (9963 tests).
 
+- After publishing, the maintainer asked to fix merge conflicts with `main` (#1760 touched the RH2001 provider and test class). The implementer and test implementer resolved them keeping both sides, the cleaner ran; RH2001 tests 258/258 and the Release build were checked locally, the full suite in CI; no re-audit (mechanical resolution, no change to the run's logic).
+
 ## Usage
 
 ## Usage
