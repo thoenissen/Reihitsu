@@ -6512,6 +6512,126 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
         await Verify(testData, resultData);
     }
 
+    /// <summary>
+    /// Verifies that the fix is offered when the property is an element of a tuple whose own conversion goes to
+    /// <see cref="object"/>, which is not a tuple type and so keeps no element name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedWhenThePropertyIsAnElementOfATupleConvertedToObject()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    object Get()
+                                    {
+                                        object pair = (Value, 1);
+
+                                        return pair;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      object Get()
+                                      {
+                                          object pair = (_value, 1);
+
+                                          return pair;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when the property is an element of a tuple whose own conversion goes to a
+    /// nullable tuple type without element names, which is not a tuple type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedWhenThePropertyIsAnElementOfATupleConvertedToANullableUnnamedTupleType()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    object Get()
+                                    {
+                                        (int, int)? pair = (Value, 1);
+
+                                        return pair;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      object Get()
+                                      {
+                                          (int, int)? pair = (_value, 1);
+
+                                          return pair;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when the property is an element of a tuple whose own conversion goes to a
+    /// nullable tuple type that names the element, which is not a tuple type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedWhenThePropertyIsAnElementOfATupleConvertedToANullableNamedTupleType()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        (int Value, int Other)? pair = (Value, 1);
+
+                                        return pair.Value.Value;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      int Get()
+                                      {
+                                          (int Value, int Other)? pair = (_value, 1);
+
+                                          return pair.Value.Value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
     #endregion // Tests
 
     #region Methods
