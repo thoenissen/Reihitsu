@@ -82,4 +82,5 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 - Spec author (#9) done: `32-spec-author.md` (db9c72a).
 - Text-only proof vs audited SHA: PASS.
 - Validator 1: `33-validator.md` BLOCKED (OOM kill during analyzer tests; 5586 passed, 0 failed before abort).
-- Next: validator per project (decision 17) → publish.
+- Validator 2: `34-validator.md` PASS (all 7 projects, 0 failed).
+- Next: lane check → issue manager (RH2001 candidate) → note + delete sdd/work → trigger commit → PR.
