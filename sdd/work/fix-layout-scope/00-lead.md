@@ -64,7 +64,7 @@
 
 ## Follow-up candidates
 
-- FU1 (01-spec-author): SHARED-FIX-007 *Shared line* read literally makes a gap-only fix (e.g. RH6024 on `int _a = 1+2; int _b;`) split two members on one line; recommend reading A, only the gaps change. Outside the run's issues; output question carried in the follow-up.
+- FU1 (01-spec-author): SHARED-FIX-007 *Shared line* read literally makes a gap-only fix (e.g. RH6024 on `int _a = 1+2; int _b;`) split two members on one line; recommend reading A, only the gaps change. Outside the run's issues; output question carried in the follow-up. Add example (17-auditor hint 1): RH5111 on a field declarator `private int _a; private int _b =⏎ 1;` keeps the shared line while the property target is separated; RH5111 enum members likewise.
 
 - FU4 (M6): shared write-back step so parts inside a reported construct keep their own code (RH5101, RH5102, RH5303–RH5308, RH5403, RH5404, RH5417) — carries maintainer answers M3, M5 (=A) and the open spanning-part question (options from 04-skeptic Q1, recommended A). Related #1605, #1140 FU3.
 - FU5 (07-implementer, D23): one owner for the line break in front of a member that shares its line (`FormatMemberOnLinesOfItsOwnAsync` vs private branch in `TargetAttributePlacementCodeFixProviderBase`); they disagree on column (tab vs spaces) — e.g. `→private int _pad; [First] internal Example() { }`. Visible for RH5511/RH5513/RH5517: carries an output question.
@@ -75,7 +75,7 @@
 ## Worklist / next step
 
 - FU2 (02-skeptic): RH5303–RH5308, RH3201 scope instances unmeasured; stay on #1140 (no new issue; #1140 stays open via `Refs`).
-- FU3 (02-skeptic, D6): entry point that writes back only changed code whose first token moves to a new line (RH5110, RH5403/RH5404 header) — design question already recorded on #1140; extend #1140 rather than a new issue.
+- FU3 (02-skeptic, D6): entry point that writes back only changed code whose first token moves to a new line (RH5110, RH5403/RH5404 header) — design question already recorded on #1140; extend #1140 rather than a new issue. Also (17-auditor hint 2): RH5110 on an empty generic type rewrites `{ }` to `;` through the whole-declaration formatting.
 
 ## Worklist / next step
 
@@ -89,7 +89,9 @@
 - Done: implementer 07 (a356c2e): +281/−532, no new type; 2 disputed RH5201 tests.
 - Done: test implementer 08 (8d8e4fc).
 - Done: cleaner 09 (1da79ef, clean); spec checker 10 (afbc1a1, consistent); merged origin/main (8333c46, base 4838e9a); auditor 11 (31f19c0): findings #1 (high), #2 (medium).
-- Repair round 1 worklist: spec author (D26 RH5113 decision text) → test implementer (tests for D25 members; RH5113 test summary/tag) → implementer (D25 routing; RH5113 comments) → cleaner → spec checker → auditor (repair only) → validator.
+- Repair round 1 done; audit 17 (e3c088f) PASS. Audited SHA: 1552682 (handover e3c088f). Hint 4 (RH5113 `CanApplyCodeFix` summary wording: `/* */` comment would be deleted, not absorbed) routed to cleaner as comment-only fix, proof via verify-text-only --base 1552682.
+- Next: cleaner (18) comment fix → validator (19) → issue manager → note → publish.
+- (old) Repair round 1 worklist: spec author (D26 RH5113 decision text) → test implementer (tests for D25 members; RH5113 test summary/tag) → implementer (D25 routing; RH5113 comments) → cleaner → spec checker → auditor (repair only) → validator.
 - Pending internal after answers: SHARED-FIX-006 Leading-trivia exception for SHARED-FIX-007 shared line (accept skeptic rec); rewrite D6 bullet in change doc Alternatives; change-doc completeness items (04-skeptic Internal choices 3); pipeline.md code owners row; Fix All tests for nested constructs.
 - (old) Next: skeptic (fresh) on change doc + spec diff → 04-skeptic.md; then batch 2 output questions (change-doc visible changes not covered by M1–M5; spec author's open: argument spanning lines in RH5101/5102; tab-indented target) → then test implementer.
 - (old) After answers: spec author (fresh) for D6 reverts, D7 consolidation, D5 FMT-PIPE-010/024 amendment, answers; then test implementer.
