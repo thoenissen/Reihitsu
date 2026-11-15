@@ -75,7 +75,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterCodeFixProvider : Rei
         }
         else
         {
-            // Content remains on the comma's line after it (the next element, or a comment): replace the leading
+            // Content remains on the comma's line after it (the next element): replace the leading
             // whitespace — together with the comma and any whitespace run following it — with the exact column
             // the parameter list's first parameter starts at, not one column past the opening parenthesis (the
             // formula RH5109's fix uses). The two anchors coincide whenever the first parameter immediately follows
