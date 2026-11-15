@@ -4,7 +4,7 @@
 - Slug: `fix-layout-scope`
 - Branch: `claude/magical-edison-h81uj2` (the session environment only permits pushing to this branch; used instead of `claude/issues-1140-1687-1748-<slug>`).
 - Draft PR: thoenissen/Reihitsu#1760
-- Lane: **bug-fix**
+- Lane: **behavior-change** (widened from bug-fix, D12)
   - #1140: code fixes that format more than the code their diagnostic is about, against SHARED-FIX-006 and the rules' fix requirements — observed vs. expected; no new behavior.
   - #1687: fixes that format a member leave a sibling member on the member's line, against SHARED-FIX-007 (shared line) — observed vs. expected.
   - #1748: RH5403/RH5404 fixes insert a blank line above a comment that leads the target, against SHARED-FIX-006 — observed vs. expected.
@@ -41,6 +41,8 @@
 | D9 | Skeptic | #1687 RH3208 statement case; RH5417 rarity premise | Drop both | SHARED-FIX-007 covers members only; RH5417 does not report two members on one line | Nothing changes | n/a |
 | D10 | Skeptic | RH5111 node choice; RH5113 semicolon only | In scope as narrow fixes | Cheap, local | Demanded by clarified RH5111-004/RH5113-003 + SHARED-FIX-006 | pending |
 | D11 | Skeptic | #1748 wider class (no-comment `if`, switch section, misindented comment) | In scope; covered by M1 and RH5403-003 | Same mechanism (D5) | Covered by M1 | pending |
+| D12 | Spec author 03 | Change doc required for D5/M2/M4 (changes FMT-PIPE-010/017/018/024, SHARED-CHAIN-009, RH5206-003) | Accept; widen lane bug-fix → behavior-change (lane check confirmed); run the skeptic on the change doc and spec diff before the test implementer | `sdd/README.md` requires a change doc for changed requirements with new behavior | Visible changes of the change doc go to the maintainer (batch 2) | 8349028 |
+| D13 | Spec author 03 | Remove the preceding-token and list-position facts of FMT-PIPE-024 | Accept | No consumer remains once leading trivia is kept | Internal | 8349028 |
 
 ## Follow-up candidates
 
@@ -54,4 +56,6 @@
 ## Worklist / next step
 
 - Asked maintainer (batch 1, before test implementer): Q1 RH5112 chain in `if` header (options A whole header line / B main / C chain only); Q2 RH5101 list element interior; Q3 RH5206 switch expr in `if` header; Q4 RH5403/RH5404 interior members rewritten by other rules. ANSWERED 1C, 2A, 3A, 4A (M2–M5).
-- After answers: spec author (fresh) for D6 reverts, D7 consolidation, D5 FMT-PIPE-010/024 amendment, answers; then test implementer.
+- Done: spec author 03 (8349028) — change doc `sdd/changes/2026-11/fix-layout-scope.md`; lane now behavior-change.
+- Next: skeptic (fresh) on change doc + spec diff → 04-skeptic.md; then batch 2 output questions (change-doc visible changes not covered by M1–M5; spec author's open: argument spanning lines in RH5101/5102; tab-indented target) → then test implementer.
+- (old) After answers: spec author (fresh) for D6 reverts, D7 consolidation, D5 FMT-PIPE-010/024 amendment, answers; then test implementer.
