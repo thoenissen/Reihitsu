@@ -16,11 +16,16 @@
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name `claude/issue-1757-<slug>` vs. the session's designated branch | Use `claude/squad-1757-pm9s4n` | The session may push only to its designated branch | Branch naming is internal | claim commit |
+| 2 | Skeptic | Issue's example as reproduction | Keep it as a characterization test; reproductions are the run-time-changing rows of 01-skeptic (f05, t4, e2, f08, f09, s01, s12, s06, t1, s13) | Example yields `this._value + _value`, which SHARED-CASING-009 allows | No output change; goal of an agent-filed issue adjusted | — |
+| 3 | Skeptic | FC-015 architecture finding: reuse the casing fixes' private `RenameWithoutConflictAsync` vs. a narrow refusal in RH2001 | Fix narrowly in RH2001 with a cheap refusal (withhold when the derived field name already binds to another symbol); file unifying the rename-safety owner as a follow-up | Extraction from the 1485-line generic base is a structural change likely past ~100 lines/new type; the class is rare except f05/t4, which a cheap refusal also covers | Withholding for the run-time class is demanded by unchanged SHARED-FIX-003; the rewrite class waits on output question 1 | — |
 
 ## Follow-up candidates
 
-(none yet)
+- Unify the rename-safety decision of `CasingCodeFixProviderBase<T>.RenameWithoutConflictAsync` and RH2001's own guards into one owner (01-skeptic, Architecture findings, FC-015).
+- RH2001 Fix All: two reported properties deriving the same field name (`Value`, `value`) may write two `_value` members (01-skeptic, Follow-up candidates) — rare (second name breaks RH4111); see decision when routed.
 
 ## Worklist / next step
 
-- Next: skeptic (01).
+- Skeptic done (01-skeptic.md, commit 994a2e2).
+- Waiting: output question 1 (inherited `_value` rewrite → A keep fix / B withhold).
+- Next after the answer: spec author if B (change doc + RH2001 spec; lane widens to behavior change), then test implementer.
