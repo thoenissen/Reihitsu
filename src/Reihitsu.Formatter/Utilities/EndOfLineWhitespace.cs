@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp;
 namespace Reihitsu.Formatter.Utilities;
 
 /// <summary>
-/// Owns the policy that removes the whitespace a token's trailing trivia ends with when the line ends right after it
+/// Owns the policy that removes the whitespace a token's trailing trivia ends with when a line break in the following token's leading trivia ends the line right after it
 /// </summary>
 internal static class EndOfLineWhitespace
 {

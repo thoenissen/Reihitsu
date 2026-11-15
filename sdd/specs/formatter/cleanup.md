@@ -7,7 +7,7 @@
 | Code owners | `CleanupPhase`, `EndOfLineWhitespace` |
 | Uses | FMT-BLANK-007, FMT-BLANK-008, FMT-PIPE-002, FMT-PIPE-010, FMT-PIPE-023, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003 |
 
-This spec covers `CleanupPhase`: the removal of whitespace that ends a line and the removal of the line breaks at the end of a file — including the cases where a file's final directive keeps its line break.
+This spec covers `CleanupPhase`: the removal of whitespace that ends a line and the removal of the line breaks and whitespace at the end of a file — including the cases where a file's final directive keeps its line break.
 
 ## Non-goals
 
@@ -16,7 +16,7 @@ This spec covers `CleanupPhase`: the removal of whitespace that ends a line and 
 - Tabs in whitespace and inside directives — FMT-TAB replaces them in the preparation phase, so this phase receives none.
 - Whitespace after `///` on a documentation line (FMT-DOC-005, FMT-DOC-006).
 - Which character sequence a line break uses (FMT-PIPE-007, FMT-EOL).
-- Whitespace at the end of a single-line comment, a documentation comment line, or a directive line, and whitespace behind the last token of a file that has no final line break — the phase currently leaves all of these in place. Removing that whitespace is decided: at the end of a comment or a documentation comment line as a behavior change, tracked in thoenissen/Reihitsu#959, and at the end of a directive line without message text and behind the last token as a bug, tracked in thoenissen/Reihitsu#960.
+- Whitespace at the end of a single-line comment, a documentation comment line, or a directive line — the phase currently leaves all of these in place. Removing that whitespace is decided: at the end of a comment or a documentation comment line as a behavior change, tracked in thoenissen/Reihitsu#959, and at the end of a directive line without message text as a bug, tracked in thoenissen/Reihitsu#960. Whitespace trivia at the end of a file is not part of this non-goal (FMT-CLEAN-005).
 
 ## Requirements
 
@@ -74,11 +74,15 @@ line";
 
 when the line `    disabled text` and the line `string t = @"g h` end in spaces, every one of those spaces is kept.
 
-### FMT-CLEAN-005 — The file does not end with a line break
+### FMT-CLEAN-005 — The file does not end with a line break or whitespace
 
-The formatter MUST remove every line break and whitespace-only line after the last token of a file, so the file ends with the last token's text.
+The formatter MUST remove the line breaks and whitespace-only lines that end a file and the whitespace trivia that ends the file, so the file ends with the text of its last token, or of the comment or directive that follows it (FMT-CLEAN-006, FMT-CLEAN-007). Whitespace in front of a comment that follows the last token, such as the space in `} /* c */`, does not end the file and stays. Whitespace trivia that ends the file MUST be removed whether or not a line break follows it: a file without a final line break gives the same output as the same file with one.
 
-Why: The formatter applies one fixed end-of-file shape, so a file never differs from its formatted form only in its trailing newlines.
+This holds wherever that whitespace trivia stands: directly behind the last token, behind a block comment that follows the last token on its line, and behind a block comment on a line of its own after the last token, also in a file that holds no token but comments. The file then ends with the comment's text, and the line breaks in front of a comment on a line of its own stay (FMT-CLEAN-006). A byte order mark at the start of the text stays (FMT-CLEAN-009).
+
+The condition is that nothing but whitespace trivia and line breaks follows the whitespace up to the end of the file. Whitespace between two tokens or between a token and a comment on a line that continues is not covered; the gaps on a line are FMT-SPACE's. Whitespace that is part of a comment's or a directive's text is not whitespace trivia and is not covered either (FMT-CLEAN-004, *Non-goals*), and a file ending in a directive keeps the directive's line break (FMT-CLEAN-007).
+
+Why: The formatter applies one fixed end-of-file shape, so a file never differs from its formatted form only in its trailing newlines or the invisible whitespace in front of them.
 
 Example:
 
@@ -97,6 +101,19 @@ class C
     int x;
 }
 ```
+
+Example — not shown as blocks because the difference is trailing whitespace and the missing final line break: in
+
+```csharp
+class C
+{
+    int x;
+}
+```
+
+when the file ends with `}` followed by three spaces and no line break, the three spaces are removed and the file ends with `}`, exactly as when `}` is followed by three spaces and a line break. The same holds in a file with CRLF line breaks, and when the three spaces are a tab, which the preparation phase has already replaced with four spaces (FMT-TAB-001). When the last line is `} /* c */` followed by three spaces and no line break, the file ends with `} /* c */`; when the file ends with `}`, a blank line, and `/* end */` followed by three spaces and no line break, it ends with `}`, the blank line, and `/* end */`; a file that holds nothing but `/* only */` followed by three spaces ends with `/* only */`.
+
+On the other side of the condition: in `int y = x + 1;` as the last statement of a method, the space behind `=`, which ends the trailing whitespace trivia of `=` with code following on the line, and every other gap on the line stay, and in a file that ends with `}`, a blank line, and `// end` followed by three spaces, the three spaces are part of the comment and stay (FMT-CLEAN-004).
 
 ### FMT-CLEAN-006 — A trailing comment keeps its own line
 
