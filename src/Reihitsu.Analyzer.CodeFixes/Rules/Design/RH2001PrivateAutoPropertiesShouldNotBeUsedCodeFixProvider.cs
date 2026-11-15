@@ -88,16 +88,149 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
             return solution;
         }
 
-        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var annotatedRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var annotatedNode = annotatedRoot?.GetAnnotatedNodes(propertyAnnotation).OfType<PropertyDeclarationSyntax>().FirstOrDefault();
-        var symbol = annotatedNode != null
-                         ? semanticModel?.GetDeclaredSymbol(annotatedNode, cancellationToken)
-                         : null;
+        var symbol = await GetAnnotatedPropertySymbolAsync(document, propertyAnnotation, cancellationToken).ConfigureAwait(false);
 
         return symbol == null
                    ? solution
                    : await Renamer.RenameSymbolAsync(solution, symbol, default, fieldName, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Gets the symbol of the property declaration that carries the annotation
+    /// </summary>
+    /// <param name="document">Document holding the annotated property</param>
+    /// <param name="propertyAnnotation">Annotation tracking the property declaration</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The property symbol, or <see langword="null"/> when the document holds no annotated property</returns>
+    private static async Task<IPropertySymbol> GetAnnotatedPropertySymbolAsync(Document document, SyntaxAnnotation propertyAnnotation, CancellationToken cancellationToken)
+    {
+        if (document == null)
+        {
+            return null;
+        }
+
+        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var annotatedRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var annotatedNode = annotatedRoot?.GetAnnotatedNodes(propertyAnnotation).OfType<PropertyDeclarationSyntax>().FirstOrDefault();
+
+        return annotatedNode != null
+                   ? semanticModel?.GetDeclaredSymbol(annotatedNode, cancellationToken)
+                   : null;
+    }
+
+    /// <summary>
+    /// Checks whether the rename to the field name would change which symbol a reference binds to, or rewrite a reference
+    /// to another symbol (RH2001-011)
+    /// </summary>
+    /// <param name="document">Document holding the property</param>
+    /// <param name="node">Property declaration</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>
+    /// <see langword="true"/> if the rename changes a binding or rewrites a reference to another symbol, or its result
+    /// cannot be checked
+    /// </returns>
+    /// <remarks>
+    /// The check runs the rename and compares, in every document that can refer to the property, the references spelled
+    /// like the field name that bind to a symbol other than the property, before and after the rename. A reference to
+    /// another symbol that the renamer rewrites, such as qualifying it with <c>base.</c> or a type, or turning an
+    /// extension call into a static call, changes its qualifier. A reference to another symbol left as written that then
+    /// binds to the renamed property disappears from the references to that symbol, and a renamed reference to the
+    /// property that binds to another symbol adds one. A reference to the property that the renamer qualifies with
+    /// <c>this.</c> or its type binds to the renamed property and is not compared, so the fix stays offered for it
+    /// </remarks>
+    private static async Task<bool> RenameChangesBindingAsync(Document document, PropertyDeclarationSyntax node, CancellationToken cancellationToken)
+    {
+        if (GetFieldName(node, out var fieldName) == false)
+        {
+            return false;
+        }
+
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return true;
+        }
+
+        var propertyAnnotation = new SyntaxAnnotation();
+        var annotatedDocument = document.WithSyntaxRoot(root.ReplaceNode(node, node.WithAdditionalAnnotations(propertyAnnotation)));
+        var originalSolution = annotatedDocument.Project.Solution;
+        var renamedSolution = await RenamePropertyToFieldNameAsync(annotatedDocument, node, propertyAnnotation, cancellationToken).ConfigureAwait(false);
+        var renamedSymbol = await GetAnnotatedPropertySymbolAsync(renamedSolution.GetDocument(document.Id), propertyAnnotation, cancellationToken).ConfigureAwait(false);
+
+        if (renamedSymbol == null)
+        {
+            return true;
+        }
+
+        foreach (var documentId in ExcludedCodeUtilities.GetReferringDocuments(renamedSolution, renamedSymbol).Select(static referringDocument => referringDocument.Id))
+        {
+            var originalReferences = await GetOtherSymbolReferencesAsync(originalSolution.GetDocument(documentId), fieldName, null, cancellationToken).ConfigureAwait(false);
+            var renamedReferences = await GetOtherSymbolReferencesAsync(renamedSolution.GetDocument(documentId), fieldName, renamedSymbol, cancellationToken).ConfigureAwait(false);
+
+            if (originalReferences.SequenceEqual(renamedReferences, StringComparer.Ordinal) == false)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Gets a description of every reference spelled like the field name that does not bind to the property: the symbol
+    /// it binds to, or its candidates, and the qualifier written in front of it, sorted ordinally
+    /// </summary>
+    /// <param name="document">Document</param>
+    /// <param name="fieldName">Field name</param>
+    /// <param name="property">Property whose references are skipped, or <see langword="null"/> when none is named like the field</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The sorted descriptions</returns>
+    private static async Task<List<string>> GetOtherSymbolReferencesAsync(Document document, string fieldName, IPropertySymbol property, CancellationToken cancellationToken)
+    {
+        var references = new List<string>();
+        var root = document == null
+                       ? null
+                       : await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var semanticModel = document == null
+                                ? null
+                                : await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+        if (root == null
+            || semanticModel == null)
+        {
+            return references;
+        }
+
+        foreach (var identifierName in root.DescendantNodes().OfType<IdentifierNameSyntax>().Where(identifierName => identifierName.Identifier.ValueText == fieldName))
+        {
+            var symbolInfo = semanticModel.GetSymbolInfo(identifierName, cancellationToken);
+
+            if (property != null
+                && SymbolEqualityComparer.Default.Equals(symbolInfo.Symbol, property))
+            {
+                continue;
+            }
+
+            var symbols = symbolInfo.Symbol != null
+                              ? [symbolInfo.Symbol]
+                              : symbolInfo.CandidateSymbols;
+            var qualifier = identifierName.Parent switch
+                            {
+                                MemberAccessExpressionSyntax memberAccess when memberAccess.Name == identifierName => memberAccess.Expression.ToString(),
+                                QualifiedNameSyntax qualifiedName when qualifiedName.Right == identifierName => qualifiedName.Left.ToString(),
+                                MemberBindingExpressionSyntax => "?",
+                                _ => string.Empty
+                            };
+
+            var boundSymbols = string.Join("|", symbols.Select(static symbol => $"{symbol.Kind} {symbol.ContainingSymbol?.ToDisplayString()} {symbol.ToDisplayString()}"));
+
+            references.Add($"{boundSymbols} {symbolInfo.CandidateReason} {qualifier}");
+        }
+
+        references.Sort(StringComparer.Ordinal);
+
+        return references;
     }
 
     /// <summary>
@@ -479,7 +612,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
                 && semanticModel?.GetDeclaredSymbol(node, context.CancellationToken) is { } symbol
                 && HasValueSafeFieldType(symbol.Type)
                 && await HasExcludedCodeOccurrenceAsync(context.Document, symbol, node, context.CancellationToken).ConfigureAwait(false) == false
-                && await HasHidingCarrierInReferringDocumentAsync(context.Document, symbol, context.CancellationToken).ConfigureAwait(false) == false)
+                && await HasHidingCarrierInReferringDocumentAsync(context.Document, symbol, context.CancellationToken).ConfigureAwait(false) == false
+                && await RenameChangesBindingAsync(context.Document, node, context.CancellationToken).ConfigureAwait(false) == false)
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH2001Title,
                                                           cancellationToken => ApplyCodeFixAsync(context.Document, node, cancellationToken),
