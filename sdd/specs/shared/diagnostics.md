@@ -703,12 +703,12 @@ public partial class C
 
 The compiler hands a rule the elements of a partial constructor's implementing part one by one, but none of its defining part — the part without a body: neither the declaration, nor its attribute lists, parameter list, parameters, parameter types, and default values, nor the documentation comment and the directives in front of it. A rule that judges such elements one at a time, as the compiler hands them to it, MUST NOT report a diagnostic in the defining part of a partial constructor or in the documentation comment and directives in front of it:
 
-- A diagnostic that both parts carry alike, because the compiler requires both parts to write the same, such as a parameter's name or type, MUST be reported once, on the implementing part.
-- A violation that only the defining part writes, such as its own documentation comment or a `#region` in front of it, is not reported.
+- A diagnostic on what both parts write alike MUST be reported once, on the implementing part. This holds for what the compiler requires both parts to write the same, such as a parameter's type, and for what the parts may write differently but write the same, such as a parameter name that both parts spell alike.
+- A violation that only the defining part writes is not reported, such as its own documentation comment, a `#region` in front of it, or a parameter name that differs from the implementing part's; the compiler allows a different name and only warns about it.
 
 A rule that reaches the defining part another way is not covered by this requirement and judges that part as its own spec says: a rule that reports the constructor once from its symbol or its containing type places that diagnostic as SHARED-DIAG-012 says, a rule that judges the modifiers each part writes, such as RH7105 and RH7106, judges the defining part's modifiers, and a rule that judges the text of a whole file, line by line or token by token, judges the defining part like any other text. The parts of a partial method, property, indexer, or event are not covered either: the compiler hands each of their parts to a rule.
 
-Why: The compiler's analyzer host never hands the defining part of a partial constructor to a rule that judges elements one at a time, so such a rule cannot see it. Reaching it from the containing type would have to be added to each of these rules on its own, for a construct that is new and rare. Where the language makes both parts write the same, the diagnostic on the implementing part already names what has to change, and reporting the second part would repeat the finding; only a violation written in the defining part alone goes unreported.
+Why: The compiler's analyzer host never hands the defining part of a partial constructor to a rule that judges elements one at a time, so such a rule cannot see it. Reaching it from the containing type would have to be added to each of these rules on its own, for a construct that is new and rare. Where both parts write the same, the diagnostic on the implementing part already names what has to change, and reporting the second part would repeat the finding; only a violation written in the defining part alone goes unreported.
 
 Example — RH4122 reports the parameter `a` once, on the implementing part, although the defining part declares the same name:
 
@@ -722,6 +722,21 @@ public partial class C
     }
 }
 ```
+
+Example — the defining part names the parameter `a`, the implementing part names it `value`, so RH4122 does not report the constructor:
+
+```csharp
+public partial class C
+{
+    public partial C(int a);
+
+    public partial C(int value)
+    {
+    }
+}
+```
+
+is not reported by RH4122.
 
 Example — RH7302 judges each `#region` as the compiler hands it, and the `#region` in front of the defining part is not handed to it:
 

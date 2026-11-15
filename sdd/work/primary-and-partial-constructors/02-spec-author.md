@@ -37,12 +37,12 @@ Records maintainer answer 1 (B, with the clarification that a diagnostic identic
 - SHARED-DIAG-013 — The defining part of a partial constructor is judged through its implementing part — added (clarification of today's behavior). Ledger updated.
 
 Scope of the requirement, as written:
-- covered: rules that judge elements one at a time as the compiler hands them — the defining part, its attribute lists, parameter list, parameters, parameter types, default values, and the documentation comment and directives in front of it are not reported; a diagnostic both parts carry alike is reported once on the implementing part; a violation only the defining part writes is not reported;
+- covered: rules that judge elements one at a time as the compiler hands them — the defining part, its attribute lists, parameter list, parameters, parameter types, default values, and the documentation comment and directives in front of it are not reported; a diagnostic on what both parts write alike (a parameter type, which the compiler requires to match, or a parameter name both parts spell alike) is reported once on the implementing part; a violation only the defining part writes (its doc comment, a `#region` in front of it, a parameter name that differs from the implementing part's) is not reported;
 - not covered (judge the defining part as their specs say): once-per-constructor rules reaching it from the symbol or containing type (SHARED-DIAG-012, e.g. RH2004), the per-part modifier rules RH7105/RH7106, whole-file text rules (line/token, e.g. RH5031, RH6002), and partial methods, properties, indexers, events.
 
 ### Examples for the tests
 
-SHARED-DIAG-013: three examples — RH4122 reports `a` once on the implementing part; RH7302 does not report `#region lower` in front of the defining part; RH2004 reports the defining part `partial {|RH2004:C|}(int value);` when neither part states an accessibility (RH2004 already has tests of this shape with `P`; tag them or add one with the spec's input).
+SHARED-DIAG-013: four examples — RH4122 reports `a` once on the implementing part when both parts name it `a`; RH4122 reports nothing when the defining part names it `a` and the implementing part `value`; RH7302 does not report `#region lower` in front of the defining part; RH2004 reports the defining part `partial {|RH2004:C|}(int value);` when neither part states an accessibility (RH2004 already has tests of this shape with `P`; tag them or add one with the spec's input).
 
 ### Output questions
 
@@ -50,7 +50,7 @@ _None._ The answer decides every visible case.
 
 ### Internal choices
 
-1. Change doc: not written. The answer keeps today's output, and the requirement writes down existing behavior, which `sdd/README.md` (*When a change doc is required*, *Open questions*: "a clarification adds the current behavior as a requirement") classifies as a clarification. Alternative: treat it as a changed requirement because it narrows what rule specs such as RH7302-001 ("every `#region`") and SHARED-DIAG-006 demand, and write a change doc — that would move the run's lane to behavior change. Recommend no change doc; the lead decides.
+1. Change doc: not written; the lead has decided none is required (clarification). The answer keeps today's output, and the requirement writes down existing behavior, which `sdd/README.md` (*When a change doc is required*, *Open questions*: "a clarification adds the current behavior as a requirement") classifies as a clarification. Alternative: treat it as a changed requirement because it narrows what rule specs such as RH7302-001 ("every `#region`") and SHARED-DIAG-006 demand, and write a change doc — that would move the run's lane to behavior change. Recommend no change doc; the lead decides.
 2. Placement: one shared requirement in `diagnostics.md`, which applies to every rule, instead of an exception in each of ~35 rule specs. Alternative: per-rule non-goals — rejected as 35 copies of one driver fact. No rule spec and no rule page changed (a narrowed report in a corner case, `spec-author.md` step 4).
 3. Wording names no driver API; it describes which rules are covered by how they reach the element ("one at a time, as the compiler hands them") because that is what decides the output. `Uses` unchanged: the requirement names only SHARED-DIAG-012 of its own spec and rule IDs, no other spec's requirement ID.
 
@@ -61,3 +61,7 @@ None new; the lead already holds the RH8102 candidate from 01-skeptic.md.
 ## Whole run
 
 Files: `sdd/specs/shared/diagnostics.md`, `sdd/specs/requirement-ids.txt`, this handover.
+
+## Amendment (lead check of SHARED-DIAG-013)
+
+Checked with the installed SDK 11.0.100 compiler (scratch project, `LangVersion` preview, deleted afterwards): a partial constructor whose parts name a parameter differently (`partial C(int a);` / `partial C(int b) { }`) compiles with warning CS9256 ("Partial member declarations ... have signature differences"), not an error; different parameter types (`int` / `long`) are errors (CS9275, CS9276: the parts no longer match). The first version's claim that the compiler requires both parts to write the same parameter name was wrong. Fixed: the first bullet now covers what both parts write alike — a type the compiler requires to match, or a name both parts spell alike; the second bullet lists a parameter name that differs from the implementing part's as a violation only the defining part writes; a second RH4122 example (`a` on the defining part, `value` on the implementing part) is not reported. The first RH4122 example stays: both parts name it `a`, reported once on the implementing part. The *Why* no longer says the language makes both parts write the same.
