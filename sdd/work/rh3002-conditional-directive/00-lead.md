@@ -32,4 +32,5 @@
 - Done: spec author (01-spec-author.md, a61d023).
 - Done: skeptic (02-skeptic.md, fb67e5b): go ahead.
 - Done: spec author amendment (40a9913).
-- Next: test implementer (03-test-implementer.md).
+- Done: test implementer (03, 6ff8e66): 11 tests, all green on unchanged code.
+- Next: cleaner (04), then spec checker (05) and validator (06).
