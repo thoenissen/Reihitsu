@@ -601,6 +601,318 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : BatchCodeFixTest
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies the fix of a literal on the line after the operator, with a comment in front of it, keeps the line break in front of
+    /// it, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">The line ending of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("RH3003-004")]
+    public async Task FixOfCommentedLiteralOnTheNextLineKeepsTheLineBreakInFrontOfIt(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string M(string a, string b)
+                                    {
+                                        return a +
+                                            /* x */ {|RH3003:""|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     string M(string a, string b)
+                                     {
+                                         return a +
+                                             /* x */ string.Empty;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the fix of a literal behind a line that holds only a comment keeps the line break behind the operator and the one
+    /// behind the comment, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">The line ending of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("RH3003-004")]
+    public async Task FixOfLiteralBehindACommentLineKeepsBothLineBreaksInFrontOfIt(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string M(string a, string b)
+                                    {
+                                        return a +
+                                            // c
+                                            {|RH3003:""|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     string M(string a, string b)
+                                     {
+                                         return a +
+                                             // c
+                                             string.Empty;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the fix of a variable initializer on the line after <c>=</c>, with a comment in front of it, keeps the line break
+    /// in front of it, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">The line ending of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("RH3003-004")]
+    public async Task FixOfCommentedInitializerOnTheNextLineKeepsTheLineBreakInFrontOfIt(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string M(string a, string b)
+                                    {
+                                        var s =
+                                            /* x */ {|RH3003:""|};
+                                        return s + a + b;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     string M(string a, string b)
+                                     {
+                                         var s =
+                                             /* x */ string.Empty;
+                                         return s + a + b;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the fix of an argument on the line after the opening parenthesis, with a comment in front of it, keeps the line
+    /// break in front of it, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">The line ending of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("RH3003-004")]
+    public async Task FixOfCommentedArgumentOnTheNextLineKeepsTheLineBreakInFrontOfIt(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string M(string a, string b)
+                                    {
+                                        N(
+                                            /* x */ {|RH3003:""|}, b);
+                                        return a;
+                                    }
+                                    void N(string a, string b) { }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     string M(string a, string b)
+                                     {
+                                         N(
+                                             /* x */ string.Empty, b);
+                                         return a;
+                                     }
+                                     void N(string a, string b) { }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the fix of a literal with a comment in front of it, on the line after an operator followed by a comment, keeps
+    /// the line break in front of it, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">The line ending of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("RH3003-004")]
+    public async Task FixOfCommentedLiteralBehindALineEndingInACommentKeepsTheLineBreakInFrontOfIt(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string M(string a, string b)
+                                    {
+                                        return a + // c
+                                            /* x */ {|RH3003:""|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     string M(string a, string b)
+                                     {
+                                         return a + // c
+                                             /* x */ string.Empty;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the fix of a literal on the line after the operator, without a comment, keeps the line break in front of it, under
+    /// LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">The line ending of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("RH3003-004")]
+    public async Task FixOfLiteralOnTheNextLineKeepsTheLineBreakInFrontOfIt(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string M(string a, string b)
+                                    {
+                                        return a +
+                                            {|RH3003:""|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     string M(string a, string b)
+                                     {
+                                         return a +
+                                             string.Empty;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the fix of a literal on the line after an operator followed by a delimited comment keeps the line break in front of
+    /// it, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">The line ending of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("RH3003-004")]
+    public async Task FixOfLiteralBehindAnOperatorFollowedByACommentKeepsTheLineBreakInFrontOfIt(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string M(string a, string b)
+                                    {
+                                        return a + /* x */
+                                            {|RH3003:""|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     string M(string a, string b)
+                                     {
+                                         return a + /* x */
+                                             string.Empty;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the fix of a literal with a comment in front of it, behind an operator that starts its line, keeps the line break
+    /// in front of the operator, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">The line ending of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("RH3003-004")]
+    public async Task FixOfCommentedLiteralBehindAnOperatorThatStartsItsLineKeepsTheLineBreakInFrontOfTheOperator(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    string M(string a, string b)
+                                    {
+                                        return a
+                                            + /* x */ {|RH3003:""|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     string M(string a, string b)
+                                     {
+                                         return a
+                                             + /* x */ string.Empty;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
