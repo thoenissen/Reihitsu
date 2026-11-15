@@ -14,7 +14,7 @@ Change doc: `sdd/changes/2026-11/rh5102-arguments-on-one-line.md` (Status: Draft
 ## Examples for the tests
 
 - RH5102-001: the reported block (new: `M(⏎1, 2,⏎3)` and `M(⏎1, () =>⏎{⏎})` stay reported) and the not-reported block (`M(⏎1, 2)`, `M(1, 2⏎)`, `M( // c⏎1, 2)`, `M(⏎#pragma …⏎1, 2)`, `M(1, 2 // c⏎)`).
-- The issue's "Done when": `M(⏎1, 2)` not reported (new), `M(1,⏎2)` reported... note: as written in the issue, `M(1,⏎2)` has every argument on its own line and is NOT reported, today and after; the reported counterpart is `M(1, 2,⏎3)` / `M(⏎1, 2,⏎3)`. Change-doc entry 5 shows both. Cover `M(1,⏎2)` as not reported and `M(⏎1, 2,⏎3)` as reported.
+- The issue's "Done when" (and `00-lead.md`) calls `M(1,⏎2)` reported. It is not: every argument starts its own line, so it is not reported today and after (RH5102-001); the reported counterpart is `M(1, 2,⏎3)` / `M(⏎1, 2,⏎3)`. Change-doc entry 5 shows both. Cover `M(1,⏎2)` as not reported and `M(⏎1, 2,⏎3)` as reported.
 - Existing tests that today expect a report for a list whose arguments all start on one line must flip to not reported; none was found among the RH5102 fix tests (`FixMovesLeadingCommaOfListWrappedBehindOpeningParenthesis` has arguments on two lines and stays reported), but the test implementer should grep for any.
 
 ## Output questions
