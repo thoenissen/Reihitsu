@@ -20,7 +20,7 @@ This spec covers the rules that require one kind of element to be documented. It
 
 ### SHARED-DOC-001 — Every declaration of the rule's element kind is checked
 
-A rule MUST check the declarations of the element kind it names wherever they are declared — in a namespace, at file level, or nested in a class, struct, interface, record, record struct, enum, or extension block — and MUST decide each declaration on its own: whether a containing declaration is documented MUST NOT change whether a nested one is reported.
+A rule MUST check the declarations of the element kind it names wherever they are declared — in a namespace, at file level, or nested in a class, struct, interface, record, record struct, union, enum, or extension block — and MUST decide each declaration on its own: whether a containing declaration is documented MUST NOT change whether a nested one is reported.
 
 This requirement covers an element with a single declaration; a partial element declared in several parts — a type, constructor, method, property, indexer, or event — is not covered.
 
@@ -47,18 +47,35 @@ public class Documented
 }
 ```
 
+Example — RH8020, in the body of a union:
+
+```csharp
+/// <summary>
+/// Value
+/// </summary>
+public union Value(int, string)
+{
+    public int {|RH8020:Count|}() => 0;
+}
+
+public union {|RH8035:Shape|}(int, string)
+{
+    public int {|RH8020:Sides|}() => 0;
+}
+```
+
 ### SHARED-DOC-002 — Private and non-private groups
 
 A declaration MUST belong to exactly one of two groups, decided by its own modifiers and the kind of declaration that directly contains it:
 
-- the private group, when its modifiers include `private` and none of `public`, `internal`, `protected`, and `file`, or when it has none of these five modifiers and is declared directly in a class, struct, record, record struct, or extension block;
+- the private group, when its modifiers include `private` and none of `public`, `internal`, `protected`, and `file`, or when it has none of these five modifiers and is declared directly in a class, struct, record, record struct, union, or extension block;
 - the non-private group otherwise — including a `private protected` declaration, a `file` type, and a declaration without any of these five modifiers in a namespace, at file level, or in an interface.
 
 The accessibility of the containing declarations MUST NOT change the group.
 
 This requirement covers every declaration except a static constructor declared in an interface and a partial type declared in several parts.
 
-Why: The split separates what other code can use from the implementation details of one type, so a project can require documentation for the first and decide separately about the second. A `private protected` element is visible to derived types, so other code builds on it. Without a modifier, C# makes an element declared in a class, struct, record, or extension block private, and one declared in a namespace or an interface internal or public; a partial type declared in several parts is the exception, because it takes the accessibility that any of its parts declares. A static constructor of a class, struct, or record, which takes no access modifier, is private. The group is decided from the declaration as written, so a nested element keeps its rule when its container's accessibility changes.
+Why: The split separates what other code can use from the implementation details of one type, so a project can require documentation for the first and decide separately about the second. A `private protected` element is visible to derived types, so other code builds on it. Without a modifier, C# makes an element declared in a class, struct, record, union, or extension block private, and one declared in a namespace or an interface internal or public; a partial type declared in several parts is the exception, because it takes the accessibility that any of its parts declares. A static constructor of a class, struct, or record, which takes no access modifier, is private. The group is decided from the declaration as written, so a nested element keeps its rule when its container's accessibility changes.
 
 Example — RH8001, which checks the non-private group:
 
@@ -157,6 +174,24 @@ public static class Extensions
 
         internal int Assembly() => 0;
     }
+}
+```
+
+Example — RH8021 and RH8036, which check the private group, in the body of a union:
+
+```csharp
+/// <summary>
+/// Value
+/// </summary>
+public union Value(int, string)
+{
+    int {|RH8021:Implicit|}() => 0;
+
+    private int {|RH8021:Explicit|}() => 0;
+
+    public int Visible() => 0;
+
+    union {|RH8036:Nested|}(int, long);
 }
 ```
 
