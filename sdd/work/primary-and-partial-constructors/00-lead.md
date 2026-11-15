@@ -12,7 +12,7 @@
 
 ## Maintainer answers
 
-None yet.
+1. #1742, partial constructors, defining part (escalation 9 + output question, A = report both parts via new shared mechanism, B = output unchanged, specs state the limitation): **B**. Clarification: a diagnostic that is always identical on both parts is reported once (on the part the analyzer reaches, the implementing part). The PR closes #1742 with `Closes` (not `Refs`).
 
 ## Decisions taken
 
@@ -31,5 +31,5 @@ None yet.
 ## State
 
 - Last step: skeptic (01-skeptic.md, 71ae774).
-- Open: escalation 9 + output question for #1742 (report defining part via new shared mechanism vs record limitation) — asked in chat, waiting. Whole run stopped until answered.
-- Next after the answer: (B) spec author records the limitation; test implementer for #1680 reproductions.
+- Answer 1B received. Spec author runs for #1742 (clarification: record the limitation per answer 1) — no spec change for #1680.
+- Next: spec author -> test implementer (#1680 reproductions; #1742 characterization of the recorded limitation) -> implementer -> cleaner -> spec checker -> auditor -> validator.
