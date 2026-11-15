@@ -11,7 +11,7 @@
 - **A rewritten reference to another symbol withholds the fix** (RH2001-011). When a symbol other than the property already answers to the derived `_camelCase` field name, such as an inherited field, an extension method, a statically imported member, or a member of an enclosing type, and the rename would rewrite a reference to that symbol to keep its binding (`base._value`, `Extensions._value(this)` for a property whose type is a delegate, `Holder._value`, `Outer._value`), the fix is no longer offered. The diagnostic stays.
 - **A reference left as written that would bind to the field withholds the fix** (RH2001-011), as SHARED-FIX-003 already demands: for example `this._value` or `other._value` that reads an inherited field today, or a `<see cref="_value"/>` in a documentation comment that names it.
 - **A renamed reference to the property that would bind to another symbol withholds the fix** (RH2001-011, under SHARED-FIX-003), where the renamer leaves the reference unqualified: for example a parameter of a lambda or a query range variable in a statement of a block body, a variable declared by `out` in the same expression, or a primary-constructor parameter named like the field.
-- **A reference to the property that gives an anonymous-object member or a tuple element an inferred name withholds the fix** (RH2001-011), except for a tuple element in two positions: the target of a deconstruction, also nested in one, such as the deconstructing constructor `(Value, Name) = (value, name);`, and a tuple whose own conversion drops the name, such as `return (Value, 1);` from a method that returns `(int, int)` or the source `(value, count) = (Value, 1);`; there the fix stays offered, unchanged from `main`. Where code reads the inferred name, such as `pair.Value` after `var pair = (Value, 1);`, or `ToString()` prints it, as for `new { Value }`, the rename would ship code that does not compile or other text, and the withholding is a fix against SHARED-FIX-003. Everywhere else it is a refusal of a rare class (`AGENTS.md`, *Code-fix coverage*), decided by the maintainer for the governing tuple of a `switch` (`switch (Value, input)`, `(Value, input) switch { … }`): a tuple whose names no code reads, as with `is`, `==`, or an interpolation; a tuple whose conversion is applied to an enclosing expression, as for a tuple nested in another tuple, a tuple cast, or a conditional branch or `switch`-expression arm whose branches or arms all carry the name; and a tuple converted to a type that supplies the name, such as `(int Value, int Other) pair = (Value, 1);`. A member or element named explicitly, such as `new { Value = Value }`, keeps the fix.
+- **A reference to the property that gives an anonymous-object member or a tuple element an inferred name withholds the fix** (RH2001-011), except for a tuple element in two positions: the target of a deconstruction, also nested in one, such as the deconstructing constructor `(Value, Name) = (value, name);`, and a tuple whose own conversion drops the name, such as `return (Value, 1);` from a method that returns `(int, int)` or the source `(value, count) = (Value, 1);`; there the fix stays offered, unchanged from `main`. Where code reads the inferred name, such as `pair.Value` after `var pair = (Value, 1);`, or `ToString()` prints it, as for `new { Value }`, the rename would ship code that does not compile or other text, and the withholding is a fix against SHARED-FIX-003. Everywhere else the withholding is a refusal of a rare class (`AGENTS.md`, *Code-fix coverage*). Everywhere else means three groups of tuple positions. First, a tuple whose names no code reads, as with `is`, `==`, or an interpolation, and as the governing tuple of a `switch` (`switch (Value, input)`, `(Value, input) switch { … }`), which the maintainer decided. Second, a tuple whose conversion is applied to an enclosing expression, as for a tuple nested in another tuple, a tuple cast, or a conditional branch or `switch`-expression arm whose branches or arms all carry the name. Third, a tuple converted to a tuple type that supplies the name, such as `(int Value, int Other) pair = (Value, 1);`; a nullable tuple type is not one, so `(int Value, int Other)? pair = (Value, 1);` keeps the fix. A member or element named explicitly, such as `new { Value = Value }`, keeps the fix.
 - **Two rare shapes withhold the fix** (RH2001-011), although the renamer would keep every binding: a reference to the property through another construction of its generic containing type, such as `other.Value` with `Sample<int> other` inside `Sample<T>`, and a member named like the field reached through the property's own value whose receiver the renamer also qualifies, such as `Value._value` next to a local `_value`, which `main` rewrites to `this._value._value`. This is a refusal of a rare class (`AGENTS.md`, *Code-fix coverage*), not a fix against SHARED-FIX-003.
 - **The rename itself is unchanged.** A reference to the property that the renamer qualifies with `this.` or the type next to a local or parameter named like the field, also a lambda parameter in an expression body, an inherited method or an extension method still reached by its call written as before, an inherited member that no reference names, and a member named like the field reached through the property's own value (`Value._value` becomes `_value._value`, where no symbol of an inner scope is named like the field) keep the fix (RH2001-011, the paragraph on a symbol named like the field). RH2001-004's coverage now points to RH2001-011.
 
@@ -29,7 +29,7 @@ The rewritten cases and the tuple `switch` change intended behavior by a maintai
 
 ## Visible output changes
 
-Code-fix output measured with `scripts/apply-fix.sh RH2001` on `main` at `962d0c4` (`sdd/work/rh2001-rename-safety/05-test-implementer.md`); the inherited-field, statically imported, and enclosing-type rows were first measured at `52ae88c` (`sdd/work/rh2001-rename-safety/01-skeptic.md`).
+Code-fix output measured with `scripts/apply-fix.sh RH2001` on `main` at `962d0c4`; the inherited-field, statically imported, and enclosing-type rows were first measured at `52ae88c`.
 
 An inherited field read unqualified:
 
@@ -133,7 +133,7 @@ return _value + Outer._value;
 
 After: no code fix is offered; RH2001 is still reported on `Value`.
 
-A reference to the property through another construction of its generic containing type (measured at `0696846` and on `main` at `4838e9a`, `sdd/work/rh2001-rename-safety/16-auditor.md`):
+A reference to the property through another construction of its generic containing type (measured at `0696846` and on `main` at `4838e9a`):
 
 ```csharp
 class Sample<T>
@@ -181,7 +181,7 @@ return this._value._value + _value;
 
 After: no code fix is offered; RH2001 is still reported on `Value`.
 
-The governing tuple of a `switch` expression, whose element names no code reads (measured on `main` at `4838e9a`, `sdd/work/rh2001-rename-safety/22-auditor.md`, a01):
+The governing tuple of a `switch` expression, whose element names no code reads (measured on `main` at `4838e9a`):
 
 ```csharp
 internal class Sample
@@ -217,9 +217,9 @@ internal class Sample
 }
 ```
 
-After: no code fix is offered; RH2001 is still reported on `Value`. The same holds for the `switch` statement `switch (Value, input)`, which `main` turns into `switch (_value, input)` (a02).
+After: no code fix is offered; RH2001 is still reported on `Value`. The same holds for the `switch` statement `switch (Value, input)`, which `main` turns into `switch (_value, input)`.
 
-The other rare tuple positions, where `main`'s fix compiles and changes nothing at run time but renames the element's inferred name (measured at `4838e9a`, `sdd/work/rh2001-rename-safety/22-auditor.md`): `(Value, input) is (1, 2)`, `(Value, input) == (1, 2)`, `$"{(Value, 1)}"`, `((int, int), int) pair = ((Value, 1), 2);`, `var ((a, b), c) = ((Value, 1), 2);`, `return ((int, int))(Value, 1);`, `return flag ? (Value, 1) : (Value, 2);` and `return input switch { 1 => (Value, 1), _ => (Value, 2) };` from a method that returns `(int, int)`, and `(int Value, int Other) pair = (Value, 1);`. Before: the fix is offered and renames the reference, such as `((_value, 1), 2)`. After: no code fix is offered; RH2001 is still reported on `Value`.
+The other rare tuple positions, where `main`'s fix compiles and changes nothing at run time but renames the element's inferred name (measured at `4838e9a`): `(Value, input) is (1, 2)`, `(Value, input) == (1, 2)`, `$"{(Value, 1)}"`, `((int, int), int) pair = ((Value, 1), 2);`, `var ((a, b), c) = ((Value, 1), 2);`, `return ((int, int))(Value, 1);`, `return flag ? (Value, 1) : (Value, 2);` and `return input switch { 1 => (Value, 1), _ => (Value, 2) };` from a method that returns `(int, int)`, and `(int Value, int Other) pair = (Value, 1);`. Before: the fix is offered and renames the reference, such as `((_value, 1), 2)`. After: no code fix is offered; RH2001 is still reported on `Value`.
 
 ## Decisions
 
@@ -237,7 +237,7 @@ The renamer qualifies a reference to the property with `this.` where a local, a 
 
 ### The rare shapes are refused, not compared more precisely
 
-A reference through another construction of the generic type, and a receiver the renamer qualifies, are each a way in which the property's own rename changes more than its name. Earlier repairs of this run enumerated such ways one at a time; the remaining ones are rare, so the fix is withheld for them (`sdd/work/rh2001-rename-safety/00-lead.md`, decision 19).
+A reference through another construction of the generic type, and a receiver the renamer qualifies, are each a way in which the property's own rename changes more than its name. Earlier repairs of this run enumerated such ways one at a time; the remaining ones are rare, so the fix is withheld for them.
 
 ### The governing tuple of a `switch` on the property withholds the fix
 
@@ -245,7 +245,7 @@ Maintainer's answer to question 2 of the run: **A** — the fix is withheld for 
 
 ### The other tuple positions are refused as a rare class
 
-Whether a tuple element's inferred name survives the rename observably depends on conversions applied to enclosing expressions and on every read of the name. Two repairs of this run decided it from one tuple and each missed positions, so the class is refused rather than reasoned further: the fix stays offered only in the two positions a cheap check decides (`sdd/work/rh2001-rename-safety/00-lead.md`, decision 23).
+Whether a tuple element's inferred name survives the rename observably depends on conversions applied to enclosing expressions and on every read of the name. Two repairs of this run decided it from one tuple and each missed positions, so the class is refused rather than reasoned further: the fix stays offered only in the two positions a cheap check decides.
 
 ## Alternatives considered
 
