@@ -153,7 +153,11 @@ internal static class UsingLeadingTriviaBuilder
     /// <summary>
     /// Finds the index right after the last blank line within the significant trivia. Comments before
     /// that point are a header block separated from the directive by a blank line; when no blank line
-    /// exists, the split lands at the end of the list so the whole significant trivia becomes the header
+    /// exists, the split lands at the end of the list so the whole significant trivia becomes the header.
+    /// What counts as a blank line is the shared measure of <see cref="TokenGapAnalysis"/>
+    /// (SHARED-BLANK-001): a line that holds nothing but whitespace, also the line below a single-line
+    /// documentation comment, which carries its own line break. A blank line always ends at an
+    /// end-of-line trivia, so the split lands behind each one that completes another blank line
     /// </summary>
     /// <param name="leadingTrivia">Leading trivia to inspect</param>
     /// <param name="firstSignificantTriviaIndex">Index of the first significant trivia</param>
@@ -161,13 +165,21 @@ internal static class UsingLeadingTriviaBuilder
     private static int GetHeaderSplitIndex(SyntaxTriviaList leadingTrivia, int firstSignificantTriviaIndex)
     {
         var splitIndex = leadingTrivia.Count;
+        var blankLineCount = 0;
 
-        for (var triviaIndex = firstSignificantTriviaIndex; triviaIndex < leadingTrivia.Count - 1; triviaIndex++)
+        for (var triviaIndex = firstSignificantTriviaIndex; triviaIndex < leadingTrivia.Count; triviaIndex++)
         {
-            if (leadingTrivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia)
-                && leadingTrivia[triviaIndex + 1].IsKind(SyntaxKind.EndOfLineTrivia))
+            if (leadingTrivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia) == false)
             {
-                splitIndex = triviaIndex + 2;
+                continue;
+            }
+
+            var blankLineCountThroughLineBreak = TokenGapAnalysis.OfTriviaRange(leadingTrivia, firstSignificantTriviaIndex, triviaIndex + 1).BlankLineCount;
+
+            if (blankLineCountThroughLineBreak > blankLineCount)
+            {
+                blankLineCount = blankLineCountThroughLineBreak;
+                splitIndex = triviaIndex + 1;
             }
         }
 
