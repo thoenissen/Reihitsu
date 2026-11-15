@@ -39,13 +39,15 @@ Bug-fix lane: spec author (for the FMT-PIPE-010 clarification of #1695, and any 
 | 7 | Skeptic | #1707 RH3005 part does not reproduce | Narrow #1707 to RH3003; RH3005 gets characterization tests as the issue's own Done-when prescribes; keep `Closes #1707` (RH3003 reproduces) | Issue anticipated it; no escalation 4 since the issue's bug reproduces | RH3005 output unchanged | – |
 | 8 | Answers | Lane after Q2=B | Widen to behavior change; one change doc for RH8402 (RH8402-002 fix part, RH8402-005); Q1=B recorded as a FMT-PIPE-010 clarification (SHARED-FIX-007/008 span), mentioned in the change doc's visible output changes too if the spec author finds it changes a requirement | RH8402-005 changes an unchanged requirement's output | Maintainer answered both | – |
 | 9 | Tests | Non-last enum member `B =\r\n2,\n`: the `\n` belongs to the separator comma, not the target | Out of FMT-PIPE-010's scope; not tested, no follow-up | The separator's trivia is outside the fix's span (SHARED-FIX-006 keeps it) | Output unchanged | 3082127 |
+| 10 | Audit 1 | RH3003 fix glues `string.Empty` to an adjacent word token (`returnstring.Empty`) — PR-introduced | Repair round 1: test implementer adds tests (word token on each side, punctuation neighbour keeps author's spacing), implementer repairs | Safety rail (meaning/compile) introduced by the run; restores `main`'s output for word neighbours | Output returns to `main`'s for these inputs; punctuation neighbours keep author spacing, as SHARED-FIX-006/RH3003-004 require | – |
 
 ## Follow-up candidates
 
+- Whole-document formatting keeps whitespace after the file's last token when the file has no final newline, against FMT-CLEAN-005; reachable through the CLI. Source: 08-auditor.md.
 - RH5403/RH5404 (FormatNodeInDocumentAsync callers) insert a blank line above a comment that leads their target, against SHARED-FIX-006; carries the output question in 02-skeptic.md (#1695 follow-ups, item 1). Source: 02-skeptic.md.
 - (dropped, Decision 5) FMT-PIPE-018 writes back the target's leading trivia with its original line endings; SHARED-FIX-008's span names trailing trivia only (e.g. RH5111 fix, LF blank line above target in a CRLF document). Source: 01-spec-author.md.
 
 ## State
 
-- Last step finished: cleaner 06 (clean), spec checker 07 (consistent, 6997d0f). Main 846aca4 not moved; Release build green.
-- Next: auditor (08) against main 846aca462c94c0d85bc19a1d5ad9d78605590c29.
+- Audited SHA: dff2aa91b8092aae06c248a1cf6916106541510a (main 846aca4). Audit 1: #1707 finding (RH3003 glued tokens); others pass.
+- Repair round 1 of 3: test implementer (09) -> implementer (10) -> cleaner (11) -> spec checker (12) -> auditor on repair (13).
