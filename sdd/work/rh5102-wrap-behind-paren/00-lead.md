@@ -30,4 +30,5 @@
 - Last step: spec author (01, commits 854d92e, afe2faf).
 - Last step: skeptic (02, f8430c5): proceed; change-doc corrections routed to spec author.
 - Spec author amendment done (6c24569); change doc accepted. No output questions open.
-- Next: test implementer.
+- Test implementer done (03; tests e863195, handover d12dd19): 28 failing runs, all RH5102-001 not-reported cases.
+- Next: implementer.
