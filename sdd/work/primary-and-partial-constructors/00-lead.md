@@ -34,5 +34,5 @@
 ## State
 
 - Last step: skeptic (01-skeptic.md, 71ae774).
-- Implementer done (04-implementer.md, 5e6cbda/fccabfb), correction pending (decision 8). Earlier: test implementer done (03-test-implementer.md, a3cffd5): #1680 reproduced (25 failing), #1742 5 characterization tests pass. Next: implementer.
+- Implementer done incl. decision-8 correction (33b7a5a); spec code-owner rename (69757e5). Next: cleaner -> spec checker. Earlier: test implementer done (03-test-implementer.md, a3cffd5): #1680 reproduced (25 failing), #1742 5 characterization tests pass. Next: implementer.
 - Next: spec author -> test implementer (#1680 reproductions; #1742 characterization of the recorded limitation) -> implementer -> cleaner -> spec checker -> auditor -> validator.
