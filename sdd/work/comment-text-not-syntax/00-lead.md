@@ -41,5 +41,6 @@
 - Maintainer answered Q1: A.
 - Spec author done (02-spec-author.md, f824e7c): SHARED-USING-009 clarified (no change doc); RH2109-001 amended + change doc `sdd/changes/2026-11/rh2109-csharp-lines-read-as-markup.md` (Draft; visible output: none).
 - Skeptic on spec diff done (03-skeptic.md, 40dd17c): proceed with amendments (decisions 5-8); test members A9, closer-pairing input, converse with `@*` and `<!--`, issue shape, CRLF.
-- Next: spec author amendments → accept change doc → test implementer.
+- Spec author amendments done (04-spec-author.md, 79d44d2). Change doc set Accepted by lead. RH2109 tests tag RH2109-004.
+- Next: test implementer.
 - Then: spec author (SHARED-USING-009 clarification; RH2109-001 amendment if A) → test implementer → implementer (#966) → cleaner → spec checker → auditor → validator.
