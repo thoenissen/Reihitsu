@@ -33,4 +33,5 @@
 - Done: skeptic (02-skeptic.md, fb67e5b): go ahead.
 - Done: spec author amendment (40a9913).
 - Done: test implementer (03, 6ff8e66): 11 tests, all green on unchanged code.
-- Next: cleaner (04), then spec checker (05) and validator (06).
+- Done: cleaner (04, 1250f19): clean. Spec checker (05, 89e6676): findings — two `Uses` rows (RH3002.md header, diagnostics.md header) miss the new cross-references; architecture test fails.
+- Repair round 1 (of 3): spec author (06) fixes both Uses rows; then cleaner skipped (no C#), spec checker (07), validator (08).
