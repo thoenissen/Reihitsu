@@ -10,7 +10,8 @@
 
 ## Maintainer answers
 
-None yet.
+1. Output question 1 (indented usings with a header comment in a file-scoped namespace or compilation unit, RH7201–RH7207 fixes): **A** — every directive of the organized block keeps the indentation of the original first directive's line (column 4 in the example), as the same block without the comment is fixed today.
+2. Output question 2 (tab-indented block namespace with a header comment): **A** — the moved directive keeps the tab, as the same block without the comment is fixed today.
 
 ## Decisions taken
 
@@ -21,7 +22,7 @@ None yet.
 | 3 | Skeptic | Issue goals | Widen "moved directive" to every line of the organized block; narrow "same text as whole-document formatting" to the using block's lines; drop the issue's naming of the code-fix utilities as cause | 01-skeptic, Issue goals | Demanded by SHARED-FIX-007; no other output changes | — |
 | 4 | Skeptic | Refuse the class instead of fixing | No: fix in the using phase | The class is common code (usings inside block namespaces with a header comment); declaring unsupported deletes nothing, so not an option | Fixing restores an unchanged requirement | — |
 | 5 | Skeptic | Test placement | RH7203 matrix plus one block-namespace test per other rule, plus Fix All and whole-document guard | One entry point and one cause; each provider still exercised | Internal | — |
-| 6 | Skeptic | FMT-USING-009 clarification | Decide after the maintainer answers output question 1 (add it if 1A) | Only needed to record the s1/u1 answer | Internal | — |
+| 6 | Skeptic | FMT-USING-009 clarification | Add it (maintainer answered 1A): spec author records answers 1 and 2 in FMT-USING-009 (or where the spec author finds they belong), with a block-namespace example | Records the maintainer's answers where they take effect | Covered by maintainer answers 1A/2A | — |
 
 ## Follow-up candidates
 
@@ -30,4 +31,5 @@ None yet.
 ## Worklist / state
 
 - Last step: skeptic done (01-skeptic.md, fa73983): proceed; two output questions (file-scoped/compilation-unit indented usings with header; tab-indented block namespace).
-- Next: waiting on the maintainer's answers to output questions 1 and 2 (asked before the test implementer); then spec author if needed, then test implementer.
+- Maintainer answered 1A, 2A.
+- Next: spec author (clarification), then test implementer.
