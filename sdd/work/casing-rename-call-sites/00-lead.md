@@ -75,4 +75,5 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 - Test implementer (14, 15) done: `27-test-implementer.md` (ff34514; 3 failing as intended, RH4120 pair passing).
 - Implementer (14, 15) done: `28-implementer.md` (8847090; Naming 762 pass; analyzer 9610 pass). Production diff +155/−6, one file.
 - Cleaner round 3 done: `29-cleaner.md` (clean).
-- Next: spec checker → auditor (delta since 27789ab) → validator.
+- Spec checker round 3 done: `30-spec-checker.md` (consistent).
+- Next: auditor (delta since 27789ab) → validator.
