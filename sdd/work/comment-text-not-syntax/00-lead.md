@@ -3,7 +3,7 @@
 - Issues: thoenissen/Reihitsu#966 (`agent-filed`), thoenissen/Reihitsu#1289 (`agent-filed`) — goals are proposals.
 - Slug: `comment-text-not-syntax`
 - Branch: `claude/determined-faraday-q5zic1` (session-designated branch; see decision 1). PR: thoenissen/Reihitsu#1745 (draft).
-- Lane: **bug fix**, for both issues.
+- Lane: **behavior change** (widened from bug fix, decision 4), for both issues.
   - #966: observed-vs-expected difference in shipped behavior (using-directive ordering safety check in `Reihitsu.Formatter`/`Reihitsu.Core`, shared by RH7201–RH7207 and the formatter's using phase).
   - #1289: observed-vs-expected difference in RH2109 against RH2109-001 and SHARED-DIAG-003.
 - Roles run: skeptic → test implementer → implementer → cleaner → spec checker → auditor → validator. Spec author only for a clarification. Issue manager before publishing if follow-up candidates exist.
@@ -24,14 +24,16 @@
 | 1 | Claim | Branch name `claude/issues-966-1289-<slug>` vs. session branch | Use the session-designated branch `claude/determined-faraday-q5zic1` | The cloud session only permits pushes to its designated branch | Branch name is internal | 0c615d1 |
 | 2 | Skeptic | SHARED-USING-009: does "trivia of its directives" cover directives between a using's tokens? | Token-wise reading; route a one-sentence clarification to the spec author; keep the textual guard's protection for directives between tokens (skeptic matrix B stays not reordered/not reported) | Only that reading fits the requirement's Why; the node-wise reading would move `#pragma`/split `#if` pairs (safety rail) | Matrix B keeps today's output; matrix A's new reports/reorders are demanded by unchanged SHARED-USING-009 | — |
 | 3 | Skeptic | #966 goal "only `HasUnsafeTrivia` blocks" and case 2 | Adjust goal to "only real directives, wherever in the directives, block"; drop case 2 (fixed on main by #1735) | Prescribed solution rests on a false premise; case 2 already done | No output change beyond SHARED-USING-009 | — |
+| 4 | Spec author | Change doc for RH2109-001 (requirement flips from not-reported to reported; output unchanged) puts the diff in behavior-change | Accept the change doc's necessity; widen the lane bug fix → behavior change; run the added skeptic pass on the spec diff before the test implementer | Lane check demands it; spec author's reasoning holds (changed requirement) | Output unchanged per maintainer answer A; lane is internal | f824e7c |
 
 ## Follow-up candidates
 
-(none yet)
+- RH2109: a Razor/HTML comment opened behind other text on its line (`<p>Counter</p><!--`) does not hide a `@code {` on the next line, so it is reported though SHARED-DIAG-003 makes it comment text; RH2109-001 does not record it. Carries an output question (spec author recommends: keep reported, record in RH2109-001). Source: 02-spec-author.md.
 
 ## Worklist / next step
 
 - Skeptic done (01-skeptic.md, d281c31): #966 proceed narrower; #1289 output question (A keep reported vs B not reported).
 - Maintainer answered Q1: A.
-- Next: spec author (SHARED-USING-009 clarification; RH2109-001 amendment per answer A).
+- Spec author done (02-spec-author.md, f824e7c): SHARED-USING-009 clarified (no change doc); RH2109-001 amended + change doc `sdd/changes/2026-11/rh2109-csharp-lines-read-as-markup.md` (Draft; visible output: none).
+- Next: fresh skeptic on the spec diff (behavior-change lane), then accept change doc, then test implementer.
 - Then: spec author (SHARED-USING-009 clarification; RH2109-001 amendment if A) → test implementer → implementer (#966) → cleaner → spec checker → auditor → validator.
