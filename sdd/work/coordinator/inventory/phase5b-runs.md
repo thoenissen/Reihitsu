@@ -91,3 +91,17 @@ Maintainer 2026-11-13: release 1.2.1 and 1.2.2 first; deferred minor bugs #1140 
 | B2 | Q7 + Q2 | Q7 = formatter singletons; Q2 = organization/region analyzers' report scope; #1592 needs P11 merged (B1) |
 | B3 | Q1 | needs P11; #1655 touches what the formatter keeps (after Q7) |
 | B2 | Q3 (#1105 #1266 #1267) | without #966 (maintainer 2026-11-14); using ordering shares no files with Q7/Q2; rebase conflict possible later with PR #1669 (same using-ordering code) |
+
+## Final 1.2.2 batches (planned 2026-11-15; all minor bugs pulled into 1.2.2 by the maintainer)
+
+| Batch | Run | Lane | Command | Area | Status |
+|---|---|---|---|---|---|
+| B1 | R1 | bug fix | `/squad #1695 #1696 #1707 #1721` | line endings / trailing trivia (formatter write-back, LineEndingUtilities, RH8402, RH3003/3005) | |
+| B1 | R2 | bug fix | `/squad #1680 #1742` | constructor nodes: primary-ctor double report, partial-ctor defining part (shared registration guard) | |
+| B1 | R3 | bug fix | `/squad #966 #1289` | textual scan reads comment/literal text as structure (using safety regex, RH2109) | |
+| B2 | Q1 | bug fix | `/squad #1147 #1152 #1386 #1387 #1594 #1655 #1736` | layout analyzers' report scope; after R2 (RH5109) | |
+| B2 | R5 | behavior change | `/squad #1737 #1738` | formatter leading/trailing comma lines + RH5107 fix; output questions | |
+| B2 | R6 | bug fix | `/squad #1676` | casing fix renamer call sites; output question | |
+| B3 | R7 | bug fix | `/squad #1140 #1687` | formatter-delegating fixes change more than their member; after R1 and R5 | |
+
+Risks: Q1 lane (if #1736 needs a change doc, run it alone in B2); soft overlap Q1/R5 on SyntaxTriviaUtilities (move R5 to B3 if its skeptic names it); R2 may grow wide (shared guard, escalation 9); #1140 umbrella — re-measure on main; #1721/#1738/#1289 may end as characterization/spec-only.
