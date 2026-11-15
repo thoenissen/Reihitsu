@@ -62,4 +62,5 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 - Spec checker (decision 10) done: `18-spec-checker.md` (consistent).
 - Auditor on 07b4f2f: `19-auditor.md` — #4 closed; F5 (architecture, decision 12), F6 (repair round 2, decision 13). Repair rounds used: 2.
 - Worklist: spec author (decisions 12, 13) → test implementer → implementer → cleaner → spec checker → auditor (delta since 07b4f2f) → validator.
-- Next: spec author.
+- Spec author (decisions 12, 13) done: `20-spec-author.md` (8938f16).
+- Next: test implementer.
