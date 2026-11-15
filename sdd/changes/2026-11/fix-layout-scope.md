@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | FMT-PIPE-010, FMT-PIPE-012, FMT-PIPE-017, FMT-PIPE-018, FMT-PIPE-023, FMT-PIPE-024, FMT-DOC-001, SHARED-FIX-006, SHARED-CHAIN-008, SHARED-CHAIN-009, RH5110-003, RH5111-004, RH5113-003, RH5206-003, RH5303-005, RH5304-004, RH5305-004, RH5306-004, RH5307-004, RH5308-004, RH5308-005, RH5308-006, RH5401-003, RH5403-003, RH5404-003, RH5408-005 |
+| Affected requirements | FMT-PIPE-010, FMT-PIPE-012, FMT-PIPE-017, FMT-PIPE-018, FMT-PIPE-023, FMT-PIPE-024, FMT-DOC-001, SHARED-FIX-006, SHARED-CHAIN-008, SHARED-CHAIN-009, RH5110-003, RH5111-004, RH5113-003, RH5113-004, RH5206-003, RH5303-005, RH5304-004, RH5305-004, RH5306-004, RH5307-004, RH5308-004, RH5308-005, RH5308-006, RH5401-003, RH5403-003, RH5404-003, RH5408-005 |
 | Depends on | [The context entry point's target keeps its first line, and its other lines follow it](context-target-first-line.md) |
 
 ## What
@@ -344,6 +344,10 @@ The entry point keeps the trivia, not each fix. The fixes are its only callers, 
 ### The line break in front of a member that shares its line
 
 SHARED-FIX-006 (*Leading trivia*) names the line break SHARED-FIX-007 (*Shared line*) writes as its one exception besides trivia the diagnostic is about, so the two requirements do not disagree on their face. The fix writes that line break into the document before the entry point formats the member, so the entry point keeps it as part of the leading trivia.
+
+### RH5113 keeps its withholding
+
+Once the RH5113 fix moves only the semicolon, it lays out nothing through the formatter, so SHARED-FIX-010 and SHARED-FIX-011 no longer withhold it in a file with a syntax error or for a declaration the formatter refuses. It stays withheld there, as before this change, and RH5113-004 records that as a decision: offering it would change what the user sees, which no answer of the maintainer covers. Whether to offer it there is left to a change of its own.
 
 ## Alternatives considered
 
