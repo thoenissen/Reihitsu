@@ -238,8 +238,9 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
     /// <param name="elementName">Inferred name of the element</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>
-    /// <see langword="false"/> if the tuple, or a tuple it is nested in, is the target of a deconstruction, or the tuple is
-    /// converted to a type whose element at that position has no name or another name, as the source of a deconstruction is
+    /// <see langword="false"/> if the tuple, or a tuple it is nested in, is the target of a deconstruction, or if the
+    /// conversion of the tuple itself gives its element at that position no name or another name; <see langword="true"/>
+    /// in every other position, where the fix is withheld
     /// </returns>
     private static bool TupleTypeKeepsElementName(SemanticModel semanticModel, ArgumentSyntax argument, string elementName, CancellationToken cancellationToken)
     {
