@@ -16,7 +16,7 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
-| 2 | Skeptic | Spec examples with union `Value` | Fresh spec author amends examples (original agent large: 61 tool uses) | Examples must compile; no rule output changes | Rename of example identifiers only | – |
+| 2 | Skeptic | Spec examples with union `Value` | Fresh spec author amends examples (original agent large: 61 tool uses) | Examples must compile; no rule output changes | Rename of example identifiers only | 5019e1a |
 | 1 | Claim | Branch name | Use `claude/squad-1766-qkoyls` instead of `claude/issue-1766-<slug>` | The session environment permits pushing only to this branch | Branch name is internal | 81a7af9 |
 
 ## Follow-up candidates
@@ -26,5 +26,5 @@
 ## Worklist / state
 
 - Spec author done (01-spec-author.md, commit 2a43412): change doc `sdd/changes/2026-11/union-naming-documentation.md`, new RH4012/RH8035/RH8036, 5 output questions. Lane check confirmed behavior-change.
-- Skeptic done (02-skeptic.md, 2ce1739): premise holds, agrees with A on Q1–5; three spec examples name a union `Value` (CS0542) — amendment routed to a fresh spec author (03). Recommends a source polyfill (IUnion, UnionAttribute) for analyzer tests.
+- Skeptic done (02-skeptic.md, 2ce1739): premise holds, agrees with A on Q1–5; three spec examples name a union `Value` (CS0542) — amendment done by a fresh spec author (03-spec-author.md, 5019e1a; also fixed RH8035 rule page example, CS0246). Recommends a source polyfill (IUnion, UnionAttribute) for analyzer tests.
 - Output-question batch 1 (Q1–Q5 from 01-spec-author.md) posted to the maintainer; waiting for answers. Test implementer must not start before.
