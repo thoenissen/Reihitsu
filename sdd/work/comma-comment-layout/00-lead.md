@@ -14,6 +14,8 @@
 - Batch 1, Q1 (#1738, comma that starts a line inside initializer / collection expression / pattern): **A**, with one change — in an array initializer (case `e`, `new int[] { 1⏎, 2 }`) the comma also moves behind the previous element (`1,` ⏎ `2`), as in the other constructs. A comma held off the previous line by a `//` comment (case `c`) stays alone on its line at the elements' column, element on the next line, as in A.
 - Batch 1, Q2 (escalation 10, declare "comma separated from the previous token by a line break" unsupported): **not declared (B)**; the comma keeps moving up behind the previous element as today.
 
+- Batch 1b (asked at once, blocks tests): array initializer with a comma held off the previous line by a comment (`1 // k⏎, 2`) — A keep `, 2` (column only), B comma alone + `2` on next line. Awaiting answer.
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -39,4 +41,4 @@
 
 ## Open worklist / next step
 
-- Next: fresh spec author (03) — amend #1737 change doc + RH5107 spec for decision 5 (withheld class); write #1738 change doc Decisions + spec diff per Q1 answer (including array initializers moving the comma; FMT-BREAK-021's array-layout `Why:` must be reconciled); ledger IDs. Then test implementer.
+- 03-spec-author done (19e8ee2): RH5107-004, FMT-BREAK-038, FMT-INDENT-033. Waiting for batch 1b answer; on B, continue spec author 03 to change examples `g`/`x`. Then test implementer.
