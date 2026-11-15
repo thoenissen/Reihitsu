@@ -30,4 +30,4 @@
 ## Worklist / next step
 
 - Skeptic done (01-skeptic.md, commit 994a2e2).
-- Answer 1 = B. Spec author done (02, 454da9a). Next: test implementer (03).
+- Answer 1 = B. Spec author done (02, 454da9a). Test implementer done (03, f95f956): reproduced, 19 red. Next: implementer (04).
