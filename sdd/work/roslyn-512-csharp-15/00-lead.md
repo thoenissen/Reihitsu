@@ -59,5 +59,6 @@ Batch 2 (after audit 09):
 - Decision 6: pin answer 5A with a CLI end-to-end test (test implementer 12) so the decided output is locked in.
 - Done: 12-test-implementer (d4c7b90).
 - Done: 13-cleaner (clean).
-- Next: spec checker 14, auditor 15 (repair only), validator 16.
+- Done: 14-spec-checker (consistent).
+- Next:, auditor 15 (repair only), validator 16.
 - Next after answer: repair round 1 — spec author (change doc: top-level `union` statements per answer, Playground mention), cleaner (#2 comment), then spec checker, auditor (repair only), validator.
