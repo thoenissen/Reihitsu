@@ -46,5 +46,5 @@ Bug-fix lane: spec author (for the FMT-PIPE-010 clarification of #1695, and any 
 
 ## State
 
-- Last step finished: maintainer answered batch 1 (1B, 2B).
-- Next: spec author (continued) writes change doc + spec amendments; lane check; then test implementer.
+- Last step finished: spec author 03 (0c3d3d9); change doc accepted by the lead; lane check behavior-change confirmed.
+- Next: test implementer (04).

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | RH8402-002 (changed: the fix part), RH8402-005 (changed), FMT-PIPE-010 (changed: whitespace and line break at the end of the target's trailing trivia) |
 
