@@ -25,6 +25,9 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 | 4 | Skeptic (01) | Where to record the withheld class | Extend SHARED-CASING-009 (spec author clarification) | One requirement for "new name meets an existing binding" | Spec wording is internal | 9e7419d |
 | 5 | Spec checker (06) | Finding 1: handover table row for f26 omits the SHARED-FIX-003 tag the test carries | No repair round; handovers are deleted before publishing and the test's tags are correct | The defect is only in a temporary handover | Handover text is internal | — |
 
+| 6 | Auditor (07) | F1 (architecture finding): R1 guard's private `oldNames` set differs from the base's `GetOldNames` policy, letting rewritten references of other symbols through (c4, c6, c7, d1) | Change the structure in this run: the guard reuses the base's single old-name policy; tests for c4 and d1 (and c6/c7 as cheap variants) | The narrow fix would keep a second statement of the rule; stays within the one file the run changes | Brings the code to SHARED-CASING-009 as answered (withhold) | — |
+| 7 | Auditor (07) | F2: interface re-implementation rebinding (a3) passes the R2 count | Refuse the class: withhold when the rename changes which member implements an interface member; test for a3 | SHARED-FIX-003 forbids the run-time change; rare class (a camelCase member that re-implements via hiding) | Withholding for a rare class under an unchanged requirement | — |
+| 8 | Auditor (07) | F3: PR-introduced withholding when the renamer rewrites a cascade reference beyond its name (a1 `Extensions.ToList(values)`, a2 `box.Write((object)1)`) | Keep the withholding; spec author records the class in SHARED-CASING-009; tests for a1 and a2 | Rewriting the call's shape is an edit beyond the rename, in line with the maintainer's answer A; rare class (lower-case extension/overload colliding with an existing binding) | Withholding for a rare class; covered by answer A's intent | — |
 ## Follow-up candidates
 
 - RH2001 code fix (`RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider.cs:100`) also calls `Renamer.RenameSymbolAsync`; unchecked whether it rewrites or rebinds references to other symbols (SHARED-FIX-003/006). Source: `04-implementer.md`.
@@ -38,4 +41,6 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 - Implementer done: `04-implementer.md` (tests pass; +87/−2 in `CasingCodeFixProviderBase{T}.cs`, no new type; commit 4e56156).
 - Cleaner done: `05-cleaner.md` (clean, no changes; Release 0 warnings).
 - Spec checker done: `06-spec-checker.md` (1 minor handover-only finding, decision 5).
-- Next: merge main if behind, build, auditor.
+- Auditor 1 on 62b92c4 (base 6ab3d75): `07-auditor.md`, findings F1–F3 (decisions 6–8).
+- Repair round 1 worklist: spec author (F3 class in SHARED-CASING-009) → test implementer (c4, c6, c7, d1, a3, a1, a2) → implementer (F1, F2) → cleaner → spec checker → auditor (repair only) → validator.
+- Next: spec author (repair round 1).
