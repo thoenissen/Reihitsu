@@ -3251,6 +3251,38 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that in a CRLF document the fix writes the LF behind the split declaration as CRLF behind its last field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-010")]
+    [Requirement("SHARED-FIX-008")]
+    public async Task FixWritesTheDetectedLineEndingBehindTheLastFieldInAMixedDocument()
+    {
+        const string testData = "internal class TestClass\r\n{\r\n    private int _a, _b;\n    private int _c;\r\n}\r\n";
+        const string resultData = "internal class TestClass\r\n{\r\n    private int _a;\r\n    private int _b;\r\n    private int _c;\r\n}\r\n";
+
+        Assert.AreEqual(resultData, await ApplyCodeFixAsync(testData));
+    }
+
+    /// <summary>
+    /// Verifies that the fix removes the whitespace behind the split declaration, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">The line ending of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-PIPE-010")]
+    public async Task FixRemovesWhitespaceBehindTheLastField(string endOfLine)
+    {
+        const string testData = "internal class TestClass\n{\n    private int _a, {|RH7101:_b|};   \n    private int _c;\n}\n";
+        const string resultData = "internal class TestClass\n{\n    private int _a;\n    private int _b;\n    private int _c;\n}\n";
+
+        await VerifyCodeFixWithEndOfLine(testData, resultData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region Methods

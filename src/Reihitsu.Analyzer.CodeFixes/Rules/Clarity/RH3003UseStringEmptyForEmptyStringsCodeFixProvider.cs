@@ -39,10 +39,56 @@ public class RH3003UseStringEmptyForEmptyStringsCodeFixProvider : ReihitsuCodeFi
             return document;
         }
 
-        var replacementExpression = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)), SyntaxFactory.IdentifierName(nameof(string.Empty))).WithTriviaFrom(literalExpression);
+        // Every token of the replacement carries explicit trivia: elastic trivia would let the code-action clean-up re-format
+        // the gap in front of the literal and rewrite its line breaks in the host's line ending (SHARED-FIX-006, RH3003-004).
+        // A literal can touch a keyword or identifier without trivia in between, but `string` and `Empty` cannot, so the
+        // replacement gets one space on each side where it would otherwise be glued to such a word token
+        var leadingTrivia = literalExpression.GetLeadingTrivia();
+        var trailingTrivia = literalExpression.GetTrailingTrivia();
+        var literalToken = literalExpression.Token;
+
+        if (TouchesWordToken(literalToken.GetPreviousToken(), literalToken))
+        {
+            leadingTrivia = SyntaxFactory.TriviaList(SyntaxFactory.Space);
+        }
+
+        if (TouchesWordToken(literalToken, literalToken.GetNextToken()))
+        {
+            trailingTrivia = SyntaxFactory.TriviaList(SyntaxFactory.Space);
+        }
+
+        var stringKeyword = SyntaxFactory.Token(leadingTrivia, SyntaxKind.StringKeyword, SyntaxFactory.TriviaList());
+        var dotToken = SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.DotToken, SyntaxFactory.TriviaList());
+        var emptyIdentifier = SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), nameof(string.Empty), trailingTrivia);
+        var replacementExpression = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                                                         SyntaxFactory.PredefinedType(stringKeyword),
+                                                                         dotToken,
+                                                                         SyntaxFactory.IdentifierName(emptyIdentifier));
         var updatedRoot = root.ReplaceNode(literalExpression, replacementExpression);
 
         return document.WithSyntaxRoot(updatedRoot);
+    }
+
+    /// <summary>
+    /// Determines whether two neighbouring tokens touch without trivia in between and the one that is not the literal is a
+    /// word token, i.e. its text adjoins the literal with an identifier character
+    /// </summary>
+    /// <param name="first">The token in front</param>
+    /// <param name="second">The token behind</param>
+    /// <returns><see langword="true"/> if the replacement of the literal would be glued to a keyword or identifier</returns>
+    private static bool TouchesWordToken(SyntaxToken first, SyntaxToken second)
+    {
+        if (first.RawKind == 0
+            || second.RawKind == 0
+            || first.Span.End != second.SpanStart
+            || first.Span.IsEmpty
+            || second.Span.IsEmpty)
+        {
+            return false;
+        }
+
+        return SyntaxFacts.IsIdentifierPartCharacter(first.Text[first.Text.Length - 1])
+               || SyntaxFacts.IsIdentifierPartCharacter(second.Text[0]);
     }
 
     #endregion // Methods

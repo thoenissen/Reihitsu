@@ -512,15 +512,18 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     }
 
     /// <summary>
-    /// Verifies that the fix writes the header and a line break in front of the code of a one-line file
+    /// Verifies the specification example: the fix writes the header and a line break in front of the code of a one-line file,
+    /// in the line ending of the machine the fix runs on
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH8402-005")]
     public async Task FixInsertsHeaderInFrontOfCode()
     {
+        var newLine = Environment.NewLine;
+
         await VerifySpecificationFileFix("namespace N;",
-                                         "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\nnamespace N;");
+                                         $"// <copyright file=\"C.cs\" company=\"Example\">{newLine}// Copyright (c) Example.{newLine}// </copyright>{newLine}namespace N;");
     }
 
     /// <summary>
@@ -583,6 +586,129 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     {
         await VerifySpecificationFileFix("namespace N;\r\n\r\nclass C\r\n{\r\n}\r\n",
                                          "// <copyright file=\"C.cs\" company=\"Example\">\r\n// Copyright (c) Example.\r\n// </copyright>\r\nnamespace N;\r\n\r\nclass C\r\n{\r\n}\r\n");
+    }
+
+    /// <summary>
+    /// Verifies the specification example: in a file whose first line ends in LF and whose other line breaks are CRLF, the fix
+    /// writes the header's line breaks and the separating line break as CRLF, and the first line keeps its LF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-005")]
+    public async Task FixWritesTheDetectedLineEndingWhenTheFirstLineEndsInTheMinorityLineEnding()
+    {
+        await VerifySpecificationFileFix("namespace N;\nclass C\r\n{\r\n}\r\n",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\r\n// Copyright (c) Example.\r\n// </copyright>\r\nnamespace N;\nclass C\r\n{\r\n}\r\n");
+    }
+
+    /// <summary>
+    /// Verifies that a configured header that ends in a line break is written in the detected line ending, also behind its last
+    /// line, in a file whose first line ends in LF and whose other line breaks are CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-005")]
+    public async Task FixWithHeaderEndingInLineBreakWritesTheDetectedLineEndingWhenTheFirstLineEndsInTheMinorityLineEnding()
+    {
+        await VerifySpecificationFileFix("namespace N;\nclass C\r\n{\r\n}\r\n",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\r\n// Copyright (c) Example.\r\n// </copyright>\r\nnamespace N;\nclass C\r\n{\r\n}\r\n",
+                                         SpecificationCopyrightTextEndingInLineBreak);
+    }
+
+    /// <summary>
+    /// Verifies that in a file whose first line ends in CRLF and whose other line breaks are LF, the fix writes the header's line
+    /// breaks and the separating line break as LF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-005")]
+    public async Task FixWritesLineFeedWhenTheFirstLineEndsInCarriageReturnLineFeedAndTheOthersInLineFeed()
+    {
+        await VerifySpecificationFileFix("namespace N;\r\nclass C\n{\n}\n",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\nnamespace N;\r\nclass C\n{\n}\n");
+    }
+
+    /// <summary>
+    /// Verifies that in a file with mixed line breaks whose first line ends in the line ending of most lines, the fix writes the
+    /// header in that line ending
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-005")]
+    public async Task FixWritesTheDetectedLineEndingWhenTheFirstLineEndsInTheMajorityLineEnding()
+    {
+        await VerifySpecificationFileFix("namespace N;\r\nclass C\r\n{\n}\r\n",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\r\n// Copyright (c) Example.\r\n// </copyright>\r\nnamespace N;\r\nclass C\r\n{\n}\r\n");
+    }
+
+    /// <summary>
+    /// Verifies the specification example's prose: in a file whose line breaks are all a lone carriage return, the fix writes
+    /// the header's line breaks and the separating line break as LF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-005")]
+    public async Task FixWritesLineFeedInAFileOfLoneCarriageReturns()
+    {
+        await VerifySpecificationFileFix("namespace N;\rclass C\r{\r}\r",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\nnamespace N;\rclass C\r{\r}\r");
+    }
+
+    /// <summary>
+    /// Verifies that a configured header that ends in a line break is written with LF line breaks in a file whose line breaks
+    /// are all a lone carriage return
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-005")]
+    public async Task FixWithHeaderEndingInLineBreakWritesLineFeedInAFileOfLoneCarriageReturns()
+    {
+        await VerifySpecificationFileFix("namespace N;\rclass C\r{\r}\r",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\nnamespace N;\rclass C\r{\r}\r",
+                                         SpecificationCopyrightTextEndingInLineBreak);
+    }
+
+    /// <summary>
+    /// Verifies the specification example's prose with a configured header that ends in a line break: in a one-line file, the
+    /// header's line breaks are the line ending of the machine the fix runs on
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-005")]
+    public async Task FixWithHeaderEndingInLineBreakWritesTheMachineLineEndingInAOneLineFile()
+    {
+        var newLine = Environment.NewLine;
+
+        await VerifySpecificationFileFix("namespace N;",
+                                         $"// <copyright file=\"C.cs\" company=\"Example\">{newLine}// Copyright (c) Example.{newLine}// </copyright>{newLine}namespace N;",
+                                         SpecificationCopyrightTextEndingInLineBreak);
+    }
+
+    /// <summary>
+    /// Verifies that the fix writes the header that replaces an old header in the detected line ending, and keeps the line
+    /// break that ends the old header's line as it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-005")]
+    [Requirement("RH8402-006")]
+    public async Task FixReplacingAnOldHeaderWritesTheDetectedLineEndingAndKeepsTheLineBreakBehindIt()
+    {
+        await VerifySpecificationFileFix("// Copyright (c) Old Corp.\nnamespace N;\r\nclass C\r\n{\r\n}\r\n",
+                                         "// <copyright file=\"C.cs\" company=\"Example\">\r\n// Copyright (c) Example.\r\n// </copyright>\nnamespace N;\r\nclass C\r\n{\r\n}\r\n");
+    }
+
+    /// <summary>
+    /// Verifies that the analyzer compares the header in the line ending of the file's first line, also where the file's other
+    /// line breaks are a different line ending
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-002")]
+    public async Task HeaderInTheFirstLineEndingOfAFileWithMixedLineBreaksIsNotReported()
+    {
+        await VerifySpecificationFile("// <copyright file=\"C.cs\" company=\"Example\">\n// Copyright (c) Example.\n// </copyright>\nnamespace N;\r\nclass C\r\n{\r\n}\r\n\r\n",
+                                      CreateSpecificationConfiguration());
     }
 
     /// <summary>
