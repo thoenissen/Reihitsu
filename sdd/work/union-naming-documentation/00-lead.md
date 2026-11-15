@@ -20,9 +20,9 @@
 
 ## Follow-up candidates
 
-(none yet)
+- Stale comment in RH5404 analyzer (unions parse only under preview) — belongs to #1762 (union layout), not a new issue (01-spec-author.md).
 
 ## Worklist / state
 
-- Last step: claim, lane, `prepare.sh` green (SDK 11.0.100 installed).
-- Next: spec author.
+- Spec author done (01-spec-author.md, commit 2a43412): change doc `sdd/changes/2026-11/union-naming-documentation.md`, new RH4012/RH8035/RH8036, 5 output questions. Lane check confirmed behavior-change.
+- Next: skeptic (running), then output-question batch 1 before the test implenter.
