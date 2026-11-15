@@ -25,6 +25,13 @@ Behavior-change lane: spec author → skeptic → test implementer → implement
 1. 2026-11-15, lane: run all seven issues as one run in the behavior-change lane (not split off #1736).
 2. #1736 (triage on the issue, 2026-11-15): RH5109 does not report a parameter list whose parameters all stand on one line, even when that line is not the line of `(`; whether such a layout should be reported belongs to a different rule.
 
+3. Batch 1 (2026-11-15):
+   - OQ1 RH7304 → **A**: comment-led region line (one-line and multi-line comment): directives still reported when misaligned; the fix is offered and indents them to the column where the comment starts.
+   - OQ2 RH5111 → **B**: a comment, `#pragma` or `#region` in the wrapped `=` gap (enum member, property, assignment, parameter default) stays reported with no fix. The maintainer: the formatter cannot and should not handle it, and such syntax is unwanted. SHARED-DIAG-010 gets the exception for RH5111; conditional directives stay unreported (SHARED-DIAG-008).
+   - OQ3 RH5111 declarator with directive-only gap and comment elsewhere → **B**: reported, no fix (follows from OQ2 B with no extra check). Maintainer asked whether the check is simple / unsupported syntax; answered: under B no copy of FMT-UNSUP-004 is needed.
+   - OQ4 RH5109 → **A**: `void N(⏎int a, int b)`, `void N(int a, int b⏎)`, and `)` held by a comment are not reported; rule page Description changes as in change-doc entry 5.
+   - OQ5 RH5109 → **A**: a comment or directive keeping the first parameter off the `(` line → not reported. RH5109-001's "as FMT-BREAK-012 decides it" and the change doc's "exactly when FMT-BREAK-012 does" must be corrected.
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -53,4 +60,5 @@ Behavior-change lane: spec author → skeptic → test implementer → implement
 - Last step: spec author done (3b1b3d3); lane check confirmed behavior-change.
 - Open output questions (from 01-spec-author): OQ1 RH7304 fix for comment-led region line; OQ2 RH5111 comment/#pragma in wrapped gap; #1736 change-doc visible output changes (5 entries, entry 3 comment keeping first parameter off `(` line).
 - Skeptic done (829026e). Output-question batch 1 posted to maintainer (OQ1 RH7304 fix, OQ2 RH5111 gap, OQ3 RH5111 declarator directive-only gap, OQ4 #1736 entries 1/2/`)`-comment/5, OQ5 #1736 entry 3).
-- Next: on answers, spec author amends (SHARED-COMMENT-001 clarification, RH7304-001 multi-line, change doc per answers, RH5111-005 per OQ2/3), then test implementer.
+- Answers recorded. Next: fresh spec author for amendments (03), then test implementer.
+- (old) Next: on answers, spec author amends (SHARED-COMMENT-001 clarification, RH7304-001 multi-line, change doc per answers, RH5111-005 per OQ2/3), then test implementer.
