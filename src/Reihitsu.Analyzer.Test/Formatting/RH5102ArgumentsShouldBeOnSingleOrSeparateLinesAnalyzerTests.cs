@@ -707,6 +707,172 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifying that the fix of an argument list wrapped only in front of a comma moves the comma behind the argument in
+    /// front of it and puts every argument on its own line, under LF and CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-003")]
+    [Requirement("FMT-BREAK-012")]
+    public async Task FixMovesLeadingCommaBehindPreviousArgument()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call{|RH5102:(1
+                                             , 2, 3)|};
+                                    }
+
+                                    void Call(int a, int b, int c)
+                                    {
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  internal class TestClass
+                                  {
+                                      void Method()
+                                      {
+                                          Call(1,
+                                               2,
+                                               3);
+                                      }
+
+                                      void Call(int a, int b, int c)
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await VerifyCodeFixWithEndOfLine(testData, resultData, "\n");
+        await VerifyCodeFixWithEndOfLine(testData, resultData, "\r\n");
+    }
+
+    /// <summary>
+    /// Verifying that the fix of an argument list wrapped behind its opening parenthesis and in front of a comma joins the
+    /// first argument, moves the comma behind it, and puts every argument on its own line, under LF and CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-003")]
+    [Requirement("FMT-BREAK-012")]
+    public async Task FixMovesLeadingCommaOfListWrappedBehindOpeningParenthesis()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call{|RH5102:(
+                                            1
+                                            , 2, 3)|};
+                                    }
+
+                                    void Call(int a, int b, int c)
+                                    {
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  internal class TestClass
+                                  {
+                                      void Method()
+                                      {
+                                          Call(1,
+                                               2,
+                                               3);
+                                      }
+
+                                      void Call(int a, int b, int c)
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await VerifyCodeFixWithEndOfLine(testData, resultData, "\n");
+        await VerifyCodeFixWithEndOfLine(testData, resultData, "\r\n");
+    }
+
+    /// <summary>
+    /// Verifying that two argument lists wrapped in front of a comma in one document are both fixed, one after the other
+    /// and all at once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-003")]
+    [Requirement("FMT-BREAK-012")]
+    public async Task FixMovesLeadingCommasOfSeveralArgumentListsInOneDocument()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call{|#0:(1
+                                             , 2, 3)|};
+                                        Call{|#1:(
+                                            1
+                                            , 2, 3)|};
+                                    }
+
+                                    void Call(int a, int b, int c)
+                                    {
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  internal class TestClass
+                                  {
+                                      void Method()
+                                      {
+                                          Call(1,
+                                               2,
+                                               3);
+                                          Call(1,
+                                               2,
+                                               3);
+                                      }
+
+                                      void Call(int a, int b, int c)
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5102MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifying that an argument list laid out with one argument per line and a comma a comment keeps at the start of its
+    /// line is not reported, as the formatter leaves it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    public async Task VerifyCommentHeldLeadingCommaWithOneArgumentPerLineIsNotReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call(1,
+                                             2 // keep
+                                             , 3);
+                                    }
+
+                                    void Call(int a, int b, int c)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
