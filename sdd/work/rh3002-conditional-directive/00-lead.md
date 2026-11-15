@@ -34,4 +34,5 @@
 - Done: spec author amendment (40a9913).
 - Done: test implementer (03, 6ff8e66): 11 tests, all green on unchanged code.
 - Done: cleaner (04, 1250f19): clean. Spec checker (05, 89e6676): findings — two `Uses` rows (RH3002.md header, diagnostics.md header) miss the new cross-references; architecture test fails.
-- Repair round 1 (of 3): spec author (06) fixes both Uses rows; then cleaner skipped (no C#), spec checker (07), validator (08).
+- Repair round 1 (of 3): spec author (06, ef8710a) fixed both Uses rows; cleaner skipped (no C# changed); spec checker (07, 9105436): consistent.
+- Next: validator (08), then issue manager (extend #1759), note, publish.
