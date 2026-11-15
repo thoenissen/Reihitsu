@@ -21,6 +21,10 @@
 | # | Question | Answer |
 |---|---|---|
 | M1 | #1748 RH5403/RH5404 blank line above a leading comment | A — no blank line inserted; leading trivia kept as written (given on the issue, 2026-11-15) |
+| M2 | Q1 RH5112 chain in `if` header (#1140) | C — only the chain is joined; rest of the header (`x==1`) and the body stay as written. Applies to the SHARED-CHAIN-009 fallback (RH5112, RH5201) |
+| M3 | Q2 RH5101 spacing inside a list element (#1140) | A — only the list's line breaks change; element interiors (`1+2`) stay. Same for RH5102 and the other list-layout rules (RH5303–RH5308, RH5417-003 interior where the spec author found the same sentence) |
+| M4 | Q3 RH5206 switch expression in `if` header (#1140) | A — only the switch expression is laid out; the `if` body stays |
+| M5 | Q4 RH5404/RH5403 contents rewritten by other rules (#1140) | A — the declaration/statement is broken onto lines; members/statements inside keep their own shape (no expression-body-to-block conversion, no attribute split, no blank line inserted) |
 
 ## Decisions taken
 
@@ -49,5 +53,5 @@
 
 ## Worklist / next step
 
-- Asked maintainer (batch 1, before test implementer): Q1 RH5112 chain in `if` header (options A whole header line / B main / C chain only); Q2 RH5101 list element interior; Q3 RH5206 switch expr in `if` header; Q4 RH5403/RH5404 interior members rewritten by other rules. WAITING.
+- Asked maintainer (batch 1, before test implementer): Q1 RH5112 chain in `if` header (options A whole header line / B main / C chain only); Q2 RH5101 list element interior; Q3 RH5206 switch expr in `if` header; Q4 RH5403/RH5404 interior members rewritten by other rules. ANSWERED 1C, 2A, 3A, 4A (M2–M5).
 - After answers: spec author (fresh) for D6 reverts, D7 consolidation, D5 FMT-PIPE-010/024 amendment, answers; then test implementer.
