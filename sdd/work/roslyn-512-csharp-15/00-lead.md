@@ -60,5 +60,5 @@ Batch 2 (after audit 09):
 - Done: 12-test-implementer (d4c7b90).
 - Done: 13-cleaner (clean).
 - Done: 14-spec-checker (consistent).
-- Next:, auditor 15 (repair only), validator 16.
-- Next after answer: repair round 1 — spec author (change doc: top-level `union` statements per answer, Playground mention), cleaner (#2 comment), then spec checker, auditor (repair only), validator.
+- Done: 15-auditor PASS on 494c075 (audited SHA: 494c075ed347bc1510fea203375dd875b03f0774).
+- Next: validator 16 + issue manager 17 (4 follow-up candidates), then note, delete sdd/work, trigger commit, PR.
