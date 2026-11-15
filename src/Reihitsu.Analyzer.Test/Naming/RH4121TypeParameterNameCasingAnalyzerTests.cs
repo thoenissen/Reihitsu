@@ -824,6 +824,32 @@ public class RH4121TypeParameterNameCasingAnalyzerTests : BatchCodeFixTestsBase<
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that a type parameter keeps its diagnostic but gets no fix when its new name would hide a type that the declaring class
+    /// uses today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideATypeUsedInTheClass()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    public class TItem
+                                    {
+                                    }
+
+                                    public class Box<{|RH4121:item|}>
+                                    {
+                                        public TItem Create() => new TItem();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -883,6 +883,36 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     }
 
     /// <summary>
+    /// Verifies that an event of a nested class keeps its diagnostic but gets no fix when its new name would hide, inside the nested
+    /// class, the static method of the outer class that a call there binds to today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAnOuterMethodInANestedClass()
+    {
+        const string testCode = """
+                                using System;
+
+                                public class Outer
+                                {
+                                    public static void Changed()
+                                    {
+                                    }
+
+                                    public class Inner
+                                    {
+                                        public event EventHandler {|RH4102:changed|};
+
+                                        public void Use() => Changed();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
     /// Verifies the code fix on an event with accessors
     /// </summary>
     /// <param name="testCode">Test source</param>

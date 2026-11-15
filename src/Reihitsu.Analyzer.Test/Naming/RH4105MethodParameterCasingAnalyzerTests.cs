@@ -1580,6 +1580,159 @@ public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH
         await Verify(testCode, fixedCode, Diagnostics(RH4105MethodParameterCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4105MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a parameter keeps its diagnostic but gets no fix when its new name would hide a field that an unqualified
+    /// reference in the method binds to today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAFieldUsedUnqualified()
+    {
+        const string testCode = """
+                                public class Person
+                                {
+                                    private string name;
+
+                                    public void Rename(string {|RH4105:Name|})
+                                    {
+                                        name = Name.Trim();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a parameter is renamed when the field its new name hides is only referenced through <c>this</c>, so the
+    /// reference keeps its binding and is left as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixRenamesAParameterWhoseNewNameHidesAFieldReferencedOnlyThroughThis()
+    {
+        const string testCode = """
+                                public class Person
+                                {
+                                    private string name;
+
+                                    public void Rename(string {|RH4105:Name|})
+                                    {
+                                        this.name = Name.Trim();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Person
+                                 {
+                                     private string name;
+
+                                     public void Rename(string name)
+                                     {
+                                         this.name = name.Trim();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a parameter of a static method keeps its diagnostic but gets no fix when its new name would hide a static field
+    /// that an unqualified reference in the method binds to today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAStaticFieldUsedUnqualified()
+    {
+        const string testCode = """
+                                public class Person
+                                {
+                                    private static string name;
+
+                                    public static void Rename(string {|RH4105:Name|})
+                                    {
+                                        name = Name.Trim();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a parameter keeps its diagnostic but gets no fix when its new name would change what the operand of a
+    /// <c>nameof</c> in the method binds to today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldChangeTheOperandOfANameof()
+    {
+        const string testCode = """
+                                public static class Guard
+                                {
+                                    public static int value;
+
+                                    public static string Describe(int {|RH4105:Value|}) => nameof(value) + Value;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All renames the parameter whose new name meets no existing binding and skips the parameter whose new name
+    /// would hide a field used unqualified, which keeps its diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixAllSkipsTheRenameThatWouldHideAFieldUsedUnqualified()
+    {
+        const string testCode = """
+                                public class Person
+                                {
+                                    private string name;
+
+                                    public void Rename(string {|RH4105:Name|})
+                                    {
+                                        name = Name.Trim();
+                                    }
+
+                                    public string Greet(string {|RH4105:Greeting|}) => Greeting + name;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Person
+                                 {
+                                     private string name;
+
+                                     public void Rename(string {|RH4105:Name|})
+                                     {
+                                         name = Name.Trim();
+                                     }
+
+                                     public string Greet(string greeting) => greeting + name;
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static test =>
+                            {
+                                // The diagnostic that keeps no fix is marked in the expected source
+                                test.FixedState.MarkupHandling = MarkupMode.Allow;
+                                test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                                test.NumberOfFixAllIterations = 1;
+                            });
+    }
+
     #endregion // Tests
 
     #region Methods

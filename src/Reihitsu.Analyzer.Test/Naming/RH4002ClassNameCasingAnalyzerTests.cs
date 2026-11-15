@@ -942,6 +942,41 @@ public class RH4002ClassNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4002Cl
                             });
     }
 
+    /// <summary>
+    /// Verifies that a class keeps its diagnostic but gets no fix when its new name would win over a class that a <c>using</c>
+    /// directive imports and its namespace uses today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldWinOverAnImportedClass()
+    {
+        const string testCode = """
+                                namespace Other
+                                {
+                                    public class Order
+                                    {
+                                    }
+                                }
+
+                                namespace N
+                                {
+                                    using Other;
+
+                                    public class {|RH4002:order|}
+                                    {
+                                    }
+
+                                    public class Shop
+                                    {
+                                        public Order Create() => new Order();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

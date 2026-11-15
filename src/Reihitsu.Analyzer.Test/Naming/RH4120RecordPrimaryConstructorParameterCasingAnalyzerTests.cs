@@ -419,6 +419,30 @@ public class RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests : BatchC
                             });
     }
 
+    /// <summary>
+    /// Verifies that a record primary constructor parameter keeps its diagnostic but gets no fix when its new name would hide, inside the
+    /// record, a constant of the enclosing class that a reference there binds to today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAConstantOfTheEnclosingClass()
+    {
+        const string testCode = """
+                                public class Outer
+                                {
+                                    public const string Name = "outer";
+
+                                    public record Item(string {|RH4120:name|})
+                                    {
+                                        public string Label => Name;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

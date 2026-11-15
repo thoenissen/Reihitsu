@@ -432,6 +432,62 @@ public class RH4109PublicFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH4109
     }
 
     /// <summary>
+    /// Verifies that a field of a nested class keeps its diagnostic but gets no fix when its new name would hide, inside the nested
+    /// class, the static field of the outer class that a reference there binds to today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAnOuterFieldInANestedClass()
+    {
+        const string testCode = """
+                                public class Outer
+                                {
+                                    public static int Limit = 1;
+
+                                    public class Inner
+                                    {
+                                        public int {|RH4109:limit|} = 2;
+
+                                        public int Use() => Limit;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a field keeps its diagnostic but gets no fix when its new name would hide an inherited field that a member access
+    /// on the derived type reads today, so that the unchanged access would read the renamed field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAnInheritedFieldReadOnTheDerivedType()
+    {
+        const string testCode = """
+                                public class Base
+                                {
+                                    public int Limit = 1;
+                                }
+
+                                public class Derived : Base
+                                {
+                                    public int {|RH4109:limit|} = 2;
+                                }
+
+                                public class User
+                                {
+                                    public int Use(Derived derived) => derived.Limit;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
     /// Asserts that the fix was withheld, or that it renamed the field and every reference in every project without a
     /// compile error that the solution did not have
     /// </summary>

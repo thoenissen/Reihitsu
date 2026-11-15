@@ -477,6 +477,32 @@ public class RH4104LocalFunctionNameCasingAnalyzerTests : BatchCodeFixTestsBase<
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that a local function keeps its diagnostic but gets no fix when its new name would hide a method of the class that a
+    /// call in the same method binds to today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAMethodOfTheClass()
+    {
+        const string testCode = """
+                                public class Worker
+                                {
+                                    public int Helper() => 1;
+
+                                    public int Run()
+                                    {
+                                        int {|RH4104:helper|}() => 2;
+
+                                        return helper() + Helper();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

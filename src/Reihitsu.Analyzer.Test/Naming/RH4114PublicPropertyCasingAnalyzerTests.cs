@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Naming;
@@ -533,6 +534,170 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
                                 """;
 
         await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a property keeps its diagnostic but gets no fix when its new name would hide, inside its class, a type that a
+    /// member access there binds to today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideATypeUsedInTheClass()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    public static class Node
+                                    {
+                                        public static int Create() => 1;
+                                    }
+
+                                    public class Tree
+                                    {
+                                        public int {|RH4114:node|} { get; set; }
+
+                                        public int Build() => Node.Create();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a property keeps its diagnostic but gets no fix when its new name would hide an inherited property that a member
+    /// access on the derived type reads today, so that the unchanged access would read the renamed property
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAnInheritedPropertyReadOnTheDerivedType()
+    {
+        const string testCode = """
+                                public class Base
+                                {
+                                    public int Size { get; set; } = 1;
+                                }
+
+                                public class Derived : Base
+                                {
+                                    public int {|RH4114:size|} { get; set; } = 2;
+                                }
+
+                                public class User
+                                {
+                                    public int Use(Derived derived) => derived.Size;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a property is renamed when its new name hides an inherited property, but the only access of that property has
+    /// the base type as its receiver, so its binding does not change and it is left as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixRenamesAPropertyThatHidesAnInheritedPropertyReadOnlyOnTheBaseType()
+    {
+        const string testCode = """
+                                public class Base
+                                {
+                                    public int Size { get; set; } = 1;
+                                }
+
+                                public class Derived : Base
+                                {
+                                    public int {|RH4114:size|} { get; set; } = 2;
+                                }
+
+                                public class User
+                                {
+                                    public int Use(Base item) => item.Size;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Base
+                                 {
+                                     public int Size { get; set; } = 1;
+                                 }
+
+                                 public class Derived : Base
+                                 {
+                                     public int Size { get; set; } = 2;
+                                 }
+
+                                 public class User
+                                 {
+                                     public int Use(Base item) => item.Size;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All renames the property whose new name meets no existing binding and skips the property whose new name would
+    /// hide an inherited property read on the derived type, which keeps its diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixAllSkipsTheRenameThatWouldHideAnInheritedPropertyReadOnTheDerivedType()
+    {
+        const string testCode = """
+                                public class Base
+                                {
+                                    public int Size { get; set; } = 1;
+                                }
+
+                                public class Derived : Base
+                                {
+                                    public int {|RH4114:size|} { get; set; } = 2;
+
+                                    public int {|RH4114:weight|} { get; set; } = 3;
+                                }
+
+                                public class User
+                                {
+                                    public int Use(Derived derived) => derived.Size + derived.weight;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Base
+                                 {
+                                     public int Size { get; set; } = 1;
+                                 }
+
+                                 public class Derived : Base
+                                 {
+                                     public int {|RH4114:size|} { get; set; } = 2;
+
+                                     public int Weight { get; set; } = 3;
+                                 }
+
+                                 public class User
+                                 {
+                                     public int Use(Derived derived) => derived.Size + derived.Weight;
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static test =>
+                            {
+                                // The diagnostic that keeps no fix is marked in the expected source
+                                test.FixedState.MarkupHandling = MarkupMode.Allow;
+                                test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                                test.NumberOfFixAllIterations = 1;
+                            });
     }
 
     #endregion // Tests
