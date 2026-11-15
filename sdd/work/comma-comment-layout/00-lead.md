@@ -38,6 +38,8 @@
 | 17 | Audit 1 hints | Dead zero-width loop in `PrecheckPhase.EnumerateGapTrivia`; FMT-BREAK-038 line-count wording | Implementer removes the loop if proven unreachable; spec author aligns wording to text lines | Cleanup in touched code | No visible change | loop kept: reachable for broken documents through FindUnsupportedSyntax in code fixes (16-implementer) |
 | 18 | Repair round 1 (14-spec-author Q1) | Decision 16's target is unstable: the documentation-comment phase (owner of off-position `///`/`/** */` relocation) moves such a comment onto its own line, for comma-last code too | Option A: comma-first formats exactly like comma-last; FMT-BREAK-012/038's "comment behind the comma moves with it" covers ordinary comments (and every comment in None mode); documentation comments are placed by the documentation-comment phase. No src change for 16; doc-comment rows are characterization tests | Phase ownership (AGENTS.md table): the doc phase owns the relocation; B would make the line-break phase override it and change main's comma-last output | Output equals main's output for the comma-last form, which the doc phase already produces; rare class (doc comment inside a list) | 53c3d03 |
 | 19 | Before audit 2 | origin/main moved (#1753), touching RH5301/5303/5304/5203 tests | Merged before the repair audit; test implementer resolved 4 conflicts keeping both sides (RH5203 keeps this run's deletion of a now-refused input); analyzer/formatter/architecture green | lead.md §6.1 | Internal | 569da61, 64dcc16 |
+| 20 | Audit 2, repair round 2 | #3: no test for `B /** doc B */,⏎// note⏎}` (output now converges in one pass; main needs two) | Test implementer adds Parse/Diagnose rows per removing transform; spec author notes the one-pass convergence in the change doc | PR-introduced test gap; FMT-PIPE-004 decides the output | Output demanded by unchanged FMT-PIPE-004 | pending |
+| 21 | Audit 2, repair round 2 | #4: stale inline comment in RH5107 fix | Cleaner drops "or a comment" | Text only | None | pending |
 | 4 | Spec author | New requirement IDs vs. extending existing ones | New requirements (FMT-BREAK-038, FMT-INDENT-033) | Keeps existing requirements stable | Wording/IDs internal | pending |
 
 ## Follow-up candidates
@@ -51,7 +53,8 @@
 ## Audited SHA
 
 - Audit 1: d1741804bd97da6e977138d52b67f995bc997266 (base main 3b3639e) → findings (13-auditor).
+- Audit 2 (repair round 1): 31dd2dd137cfbbbb236f54da09c018c3c487c0bd (base main 450f274) → findings #3 (medium, test gap), #4 (low, stale code comment) (21-auditor). Neither repeats audit 1's class.
 
 ## Open worklist / next step
 
-- Main merged (569da61). Next: auditor repair-only (21) on HEAD, then validator.
+- Repair round 2 (of 3): test implementer (22) + spec author (23) in parallel → cleaner (24, incl. #4) → spec checker (25) → auditor repair-only (26) → validator.
