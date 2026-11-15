@@ -35,4 +35,5 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 - Spec author done: `02-spec-author.md` (SHARED-CASING-009 extended, 5 examples; SHARED-CASING-012 Why adjusted).
 - Test implementer done: `03-test-implementer.md` (reproduced; 40 tests, 36 failing on 9fc76b7, commit b66f38a).
 - Implementer done: `04-implementer.md` (tests pass; +87/−2 in `CasingCodeFixProviderBase{T}.cs`, no new type; commit 4e56156).
-- Next: cleaner.
+- Cleaner done: `05-cleaner.md` (clean, no changes; Release 0 warnings).
+- Next: spec checker.
