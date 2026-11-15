@@ -48,5 +48,6 @@
 - Spec author fixed Uses row (06-spec-author.md, 6a72638); architecture tests pass.
 - Implementer done (07-implementer.md, 63130a3): UsingDirectiveOrderingSafety reads directive trivia (ContainsDirectives), regex removed; +6/-41; all tests pass (Debug).
 - Cleaner clean (08-cleaner.md, 7c8aa8e).
-- Next: spec checker → auditor.
+- Spec checker consistent (09-spec-checker.md, 34dc9f8).
+- Next: auditor.
 - Then: spec author (SHARED-USING-009 clarification; RH2109-001 amendment if A) → test implementer → implementer (#966) → cleaner → spec checker → auditor → validator.
