@@ -26,6 +26,7 @@
 | 5 | Skeptic | #1737: fix follows formatter (A), formatter follows fix (B), or withhold | Withhold RH5107's fix when the reported comma's trailing trivia holds a comment; T (comment only on the next line) keeps its fix. Spec RH5107 records the withheld class; change doc reworded accordingly. Issue goal reworded to "no fix result disagrees with the formatter"; still `Closes #1737` | Class is rare by definition (RH5035 reports every comment in a parameter list); B would ship a SHARED-FIX-003 violation for Q/R; A copies FMT-BREAK-012 into a hand-written text edit (architecture finding → refuse first) | Withholding a fix for a rare class is not in question (README, What reaches the maintainer) | pending |
 | 6 | Skeptic | #1737 architecture finding (fix and line-break phase own comma placement) | Refuse the class (decision 5); structural change (fix delegates to formatter) as follow-up | README, Architecture findings: refuse first | Internal | — |
 | 7 | Skeptic | #1738 question shape | Use the skeptic's single reworded question (spec author's Q2 option A conflicted with RH5301/5303/5304; Q3 folded in) | Avoids a permanent diagnostic (FC-013) | Asked as output question | — |
+| 8 | Spec author 05 | Declaration in its own change doc; FMT-INDENT-033 retired; FMT-UNSUP-004 reason wins where both shapes hold; RH5110-003 fix withheld via SHARED-FIX-010; AGENTS.md precheck row updated | Accepted as proposed | Follow the answered declaration; same pattern as FMT-UNSUP-008 | The visible part (refusal, withheld fixes) is the maintainer's 4A/5A answer; rest is spec bookkeeping | 57771bb |
 | 4 | Spec author | New requirement IDs vs. extending existing ones | New requirements (FMT-BREAK-038, FMT-INDENT-033) | Keeps existing requirements stable | Wording/IDs internal | pending |
 
 ## Follow-up candidates
@@ -41,4 +42,4 @@
 
 ## Open worklist / next step
 
-- Next: fresh spec author (05): change doc for the declaration with *Special cases* (Deleted / Checked and kept, from 04-skeptic §2), new FMT-UNSUP requirement, delete held-comma spec text (FMT-BREAK-011/012/037, FMT-INDENT-032, FMT-STRUCT-027), drop FMT-INDENT-033 and FMT-BREAK-038's held paragraph, reword the indentation non-goal. Then test implementer.
+- Specs done (57771bb): RH5107-004, FMT-BREAK-038 (unheld), FMT-UNSUP-009, held-comma text removed. Change docs accepted (skeptic ran via 02/04). Next: test implementer (06).
