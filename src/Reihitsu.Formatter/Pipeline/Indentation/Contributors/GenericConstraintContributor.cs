@@ -8,17 +8,18 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
 /// <summary>
 /// Indents generic <c>where</c> constraint clauses +1 level from the declaration (FMT-INDENT-017), and aligns the lines of
-/// a clause that start with its colon, a constraint, or a comma between two constraints (FMT-INDENT-032)
+/// a clause that start with its colon or a constraint (FMT-INDENT-032)
 /// </summary>
 internal sealed class GenericConstraintContributor : ILayoutContributor
 {
     #region Methods
 
     /// <summary>
-    /// Aligns the lines of a clause that start with its colon, a constraint, or a comma between two constraints
-    /// (FMT-INDENT-032): a colon one level deeper than the <c>where</c> keyword, and the constraints and commas to the
-    /// column of the first constraint, or to the column behind the colon and one space when the first constraint starts
-    /// a line itself
+    /// Aligns the lines of a clause that start with its colon or a constraint (FMT-INDENT-032): a colon one level deeper
+    /// than the <c>where</c> keyword, and the constraints to the column of the first constraint, or to the column behind
+    /// the colon and one space when the first constraint starts a line itself. No comma between two constraints starts a
+    /// line: the line-break phase joins every one behind its constraint, and the precheck refuses one that a comment, a
+    /// directive, or disabled text holds there (FMT-UNSUP-009)
     /// </summary>
     /// <param name="constraint">The constraint clause</param>
     /// <param name="model">The layout model</param>
@@ -42,8 +43,6 @@ internal sealed class GenericConstraintContributor : ILayoutContributor
         {
             LayoutComputer.SetIfFirstOnLine(typeParameterConstraint.GetFirstToken(), constraintColumn, "GenericConstraintAlignment", model);
         }
-
-        ListElementAligner.AlignSeparators(constraint.Constraints, constraintColumn, "GenericConstraintAlignment", model);
     }
 
     #endregion // Methods

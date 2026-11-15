@@ -18,7 +18,9 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 /// <summary>
 /// Code fix provider for <see cref="RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer"/>. The fix is withheld
 /// when the gap between the previous parameter and the comma contains a comment or a preprocessor directive, so
-/// hoisting the comma can never move it across a directive boundary and corrupt an undefined-symbol configuration
+/// hoisting the comma can never move it across a directive boundary and corrupt an undefined-symbol configuration,
+/// and when a comment stands behind the comma on the comma's line, which the fix would leave behind while the
+/// formatter moves it with the comma (RH5107-004)
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH5107CommaMustBeOnSameLineAsPreviousParameterCodeFixProvider))]
@@ -145,7 +147,8 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterCodeFixProvider : Rei
             var previousToken = token.GetPreviousToken();
             var guardSpan = TextSpan.FromBounds(previousToken.Span.End, token.SpanStart);
 
-            if (SyntaxNodeUtilities.SpanContainsCommentOrDirective(root, guardSpan))
+            if (SyntaxNodeUtilities.SpanContainsCommentOrDirective(root, guardSpan)
+                || token.TrailingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia))
             {
                 continue;
             }

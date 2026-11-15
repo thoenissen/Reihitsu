@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
@@ -27,6 +28,12 @@ internal sealed class PrecheckPhase : IFormattingPhase
     /// The reason given for a comment, a directive, or disabled text between a conditional operator and its branch (FMT-UNSUP-008)
     /// </summary>
     internal const string ConditionalOperatorCommentReason = "a comment or directive between a conditional operator and its branch";
+
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text between a list element and the comma behind it, with the
+    /// comma on a later line (FMT-UNSUP-009)
+    /// </summary>
+    internal const string ListSeparatorCommentReason = "a comment or directive between a list element and the comma behind it";
 
     #endregion // Constants
 
@@ -61,16 +68,122 @@ internal sealed class PrecheckPhase : IFormattingPhase
             }
         }
 
-        if (firstComment == null
-            && firstOperatorTrivia == null)
+        var (firstSeparatorTrivia, isDeclaratorComma) = FindTriviaInFrontOfComma(node);
+
+        // Of two shapes that start at the same comment, the one listed first wins: FMT-UNSUP-004 keeps its reason for a comma
+        // between two declarators, and FMT-UNSUP-009 gives its own for every other comma inside a variable declaration
+        var candidates = isDeclaratorComma
+                             ? new List<(SyntaxTrivia? Trivia, string Reason)>
+                               {
+                                   (firstComment, VariableDeclarationCommentReason),
+                                   (firstSeparatorTrivia, ListSeparatorCommentReason),
+                                   (firstOperatorTrivia, ConditionalOperatorCommentReason)
+                               }
+                             : new List<(SyntaxTrivia? Trivia, string Reason)>
+                               {
+                                   (firstSeparatorTrivia, ListSeparatorCommentReason),
+                                   (firstComment, VariableDeclarationCommentReason),
+                                   (firstOperatorTrivia, ConditionalOperatorCommentReason)
+                               };
+
+        (SyntaxTrivia? Trivia, string Reason) first = (null, null);
+
+        foreach (var candidate in candidates)
         {
-            return null;
+            if (candidate.Trivia != null
+                && (first.Trivia == null || candidate.Trivia.Value.FullSpan.Start < first.Trivia.Value.FullSpan.Start))
+            {
+                first = candidate;
+            }
         }
 
-        return firstOperatorTrivia == null
-               || (firstComment != null && firstComment.Value.FullSpan.Start < firstOperatorTrivia.Value.FullSpan.Start)
-                   ? new UnsupportedSyntax(VariableDeclarationCommentReason, Location.Create(node.SyntaxTree, firstComment.Value.FullSpan))
-                   : new UnsupportedSyntax(ConditionalOperatorCommentReason, Location.Create(node.SyntaxTree, firstOperatorTrivia.Value.FullSpan));
+        return first.Trivia == null
+                   ? null
+                   : new UnsupportedSyntax(first.Reason, Location.Create(node.SyntaxTree, first.Trivia.Value.FullSpan));
+    }
+
+    /// <summary>
+    /// Finds the first comment, directive, or disabled text between a comma token of a node and the token in front of it, where
+    /// the comma stands on a later line of the text than the line that token ends on (FMT-UNSUP-009). The gap starts behind the
+    /// last token with text in front of the comma, so an omitted element without text belongs to it, and a line break counts
+    /// wherever it stands in the gap's text, also inside a multi-line comment
+    /// </summary>
+    /// <param name="node">The node</param>
+    /// <returns>The first such trivia, or <see langword="null"/>, and whether its comma separates two declarators of a variable declaration</returns>
+    private static (SyntaxTrivia? Trivia, bool IsDeclaratorComma) FindTriviaInFrontOfComma(SyntaxNode node)
+    {
+        foreach (var comma in node.DescendantTokens())
+        {
+            if (comma.IsKind(SyntaxKind.CommaToken) == false)
+            {
+                continue;
+            }
+
+            var previousToken = comma.GetPreviousToken();
+
+            if (previousToken == default
+                || previousToken.SpanStart < node.FullSpan.Start)
+            {
+                continue;
+            }
+
+            SyntaxTrivia? firstTrivia = null;
+            var hasLineBreak = false;
+
+            foreach (var trivia in EnumerateGapTrivia(previousToken, comma))
+            {
+                var text = trivia.ToFullString();
+
+                hasLineBreak |= text.Contains('\n') || text.Contains('\r');
+
+                if (firstTrivia == null
+                    && (SyntaxTriviaUtilities.IsCommentTrivia(trivia) || SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia)))
+                {
+                    firstTrivia = trivia;
+                }
+            }
+
+            if (firstTrivia != null
+                && hasLineBreak)
+            {
+                return (firstTrivia, comma.Parent is VariableDeclarationSyntax);
+            }
+        }
+
+        return (null, false);
+    }
+
+    /// <summary>
+    /// Gets the trivia between two tokens in text order: the trailing trivia of the first, the trivia of every token without
+    /// text between them, and the leading trivia of the second
+    /// </summary>
+    /// <param name="previousToken">The token in front of the gap</param>
+    /// <param name="nextToken">The token behind the gap</param>
+    /// <returns>The trivia of the gap</returns>
+    private static IEnumerable<SyntaxTrivia> EnumerateGapTrivia(SyntaxToken previousToken, SyntaxToken nextToken)
+    {
+        foreach (var trivia in previousToken.TrailingTrivia)
+        {
+            yield return trivia;
+        }
+
+        for (var token = previousToken.GetNextToken(includeZeroWidth: true); token != nextToken && token != default; token = token.GetNextToken(includeZeroWidth: true))
+        {
+            foreach (var trivia in token.LeadingTrivia)
+            {
+                yield return trivia;
+            }
+
+            foreach (var trivia in token.TrailingTrivia)
+            {
+                yield return trivia;
+            }
+        }
+
+        foreach (var trivia in nextToken.LeadingTrivia)
+        {
+            yield return trivia;
+        }
     }
 
     /// <summary>
