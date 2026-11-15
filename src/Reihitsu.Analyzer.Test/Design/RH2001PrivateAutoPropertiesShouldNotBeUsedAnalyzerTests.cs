@@ -3904,13 +3904,44 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
     }
 
     /// <summary>
-    /// Verifies that the fix is withheld for an extension method named like the field, whose call the rename would turn
-    /// into a static call
+    /// Verifies that the fix is withheld for an extension method named like the field of a delegate-typed property, whose
+    /// call the rename would turn into a static call
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH2001-011")]
-    public async Task VerifyNoFixIsOfferedWhenAnExtensionMethodIsNamedLikeTheField()
+    public async Task VerifyNoFixIsOfferedWhenAnExtensionMethodIsNamedLikeTheFieldOfADelegateTypedProperty()
+    {
+        const string testData = """
+                                using System;
+
+                                static class Extensions
+                                {
+                                    public static int _value(this Sample sample) => 1;
+                                }
+
+                                class Sample
+                                {
+                                    private Func<int> {|RH2001:Value|} { get; set; } = () => 2;
+
+                                    int Get()
+                                    {
+                                        return Value() + this._value();
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered next to an extension method named like the field of a property whose type is not
+    /// invocable, whose call keeps its text and its binding
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedNextToAnExtensionMethodNamedLikeTheFieldWhoseCallKeepsItsBinding()
     {
         const string testData = """
                                 static class Extensions
@@ -3929,7 +3960,24 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
                                 }
                                 """;
 
-        await VerifyNoCodeFixIsOffered(testData);
+        const string resultData = """
+                                  static class Extensions
+                                  {
+                                      public static int _value(this Sample sample) => 1;
+                                  }
+
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      int Get()
+                                      {
+                                          return _value + this._value();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
     }
 
     /// <summary>
@@ -3994,12 +4042,38 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
 
     /// <summary>
     /// Verifies that the fix is withheld when the renamed property reference would read the parameter of a simple lambda
-    /// with an inferred type instead of the field
+    /// with an inferred type, returned from a block body, instead of the field
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH2001-011")]
-    public async Task VerifyNoFixIsOfferedWhenASimpleLambdaParameterIsNamedLikeTheField()
+    public async Task VerifyNoFixIsOfferedWhenASimpleLambdaParameterInABlockBodyIsNamedLikeTheField()
+    {
+        const string testData = """
+                                using System;
+
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    Func<int, int> Add()
+                                    {
+                                        return _value => Value + _value;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered for a parameter of a simple lambda with an inferred type in an expression body
+    /// named like the field, and qualifies the renamed property reference with <see langword="this"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixQualifiesThePropertyReferenceNextToASimpleLambdaParameterInAnExpressionBodyNamedLikeTheField()
     {
         const string testData = """
                                 using System;
@@ -4012,17 +4086,54 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
                                 }
                                 """;
 
-        await VerifyNoCodeFixIsOffered(testData);
+        const string resultData = """
+                                  using System;
+
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      Func<int, int> Add() => _value => this._value + _value;
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
     }
 
     /// <summary>
     /// Verifies that the fix is withheld when the renamed property reference would read the parameter of a parenthesized
-    /// lambda with an inferred type instead of the field
+    /// lambda with an inferred type, returned from a block body, instead of the field
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH2001-011")]
-    public async Task VerifyNoFixIsOfferedWhenAParenthesizedLambdaParameterWithAnInferredTypeIsNamedLikeTheField()
+    public async Task VerifyNoFixIsOfferedWhenAParenthesizedLambdaParameterWithAnInferredTypeInABlockBodyIsNamedLikeTheField()
+    {
+        const string testData = """
+                                using System;
+
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    Func<int, int> Add()
+                                    {
+                                        return (_value) => Value + _value;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered for a parameter of a parenthesized lambda with an inferred type in an expression
+    /// body named like the field, and qualifies the renamed property reference with <see langword="this"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixQualifiesThePropertyReferenceNextToAParenthesizedLambdaParameterWithAnInferredTypeInAnExpressionBodyNamedLikeTheField()
     {
         const string testData = """
                                 using System;
@@ -4035,17 +4146,54 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
                                 }
                                 """;
 
-        await VerifyNoCodeFixIsOffered(testData);
+        const string resultData = """
+                                  using System;
+
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      Func<int, int> Add() => (_value) => this._value + _value;
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
     }
 
     /// <summary>
-    /// Verifies that the fix is withheld for a static property when the renamed reference inside a static method would read
-    /// the parameter of a simple lambda instead of the field
+    /// Verifies that the fix is withheld for a static property when the renamed reference inside the block body of a static
+    /// method would read the parameter of a simple lambda instead of the field
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH2001-011")]
-    public async Task VerifyNoFixIsOfferedWhenALambdaParameterInAStaticMethodIsNamedLikeTheFieldOfAStaticProperty()
+    public async Task VerifyNoFixIsOfferedWhenALambdaParameterInTheBlockBodyOfAStaticMethodIsNamedLikeTheFieldOfAStaticProperty()
+    {
+        const string testData = """
+                                using System;
+
+                                class Sample
+                                {
+                                    private static int {|RH2001:Value|} { get; set; }
+
+                                    static Func<int, int> Add()
+                                    {
+                                        return _value => Value + _value;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered for a static property next to a lambda parameter named like the field in the
+    /// expression body of a static method, and qualifies the renamed reference with the type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixQualifiesTheStaticPropertyReferenceWithTheTypeNextToALambdaParameterInAnExpressionBodyNamedLikeTheField()
     {
         const string testData = """
                                 using System;
@@ -4058,7 +4206,18 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
                                 }
                                 """;
 
-        await VerifyNoCodeFixIsOffered(testData);
+        const string resultData = """
+                                  using System;
+
+                                  class Sample
+                                  {
+                                      private static int _value;
+
+                                      static Func<int, int> Add() => _value => Sample._value + _value;
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
     }
 
     /// <summary>
@@ -4167,7 +4326,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
 
     /// <summary>
     /// Verifies that the fix is withheld when the renamed property reference that would read a lambda parameter instead of
-    /// the field stands in another document, in another <c>partial</c> part of the type
+    /// the field stands in a block body in another document, in another <c>partial</c> part of the type
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -4185,7 +4344,10 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
 
                                    partial class Sample
                                    {
-                                       Func<int, int> Add() => _value => Value + _value;
+                                       Func<int, int> Add()
+                                       {
+                                           return _value => Value + _value;
+                                       }
                                    }
                                    """;
 
