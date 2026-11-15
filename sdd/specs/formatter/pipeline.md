@@ -1930,7 +1930,7 @@ using System.Linq; class C { } } }
 
 ### FMT-PIPE-031 — The formatter answers whether it splits a field declaration
 
-`SplitsFieldDeclaration` MUST return whether the structural phase splits the field declaration it is given: true exactly when the declaration has more than one declarator, is a member of a class, struct, record, or interface (FMT-STRUCT-021), carries no directive or disabled text (FMT-STRUCT-023), and has no documentation comment when the documentation mode of its syntax tree is `Parse` or `Diagnose` (FMT-STRUCT-030). Whether the formatter refuses the declaration, or the type around it, as unsupported is not part of the answer: `FindUnsupportedSyntax` answers that (FMT-UNSUP-007).
+`SplitsFieldDeclaration` MUST return whether the structural phase splits the field declaration it is given: true exactly when the declaration has more than one declarator, is a member of a class, struct, record, interface, or union declaration (FMT-STRUCT-021), carries no directive or disabled text (FMT-STRUCT-023), and has no documentation comment when the documentation mode of its syntax tree is `Parse` or `Diagnose` (FMT-STRUCT-030). Whether the formatter refuses the declaration, or the type around it, as unsupported is not part of the answer: `FindUnsupportedSyntax` answers that (FMT-UNSUP-007).
 
 This requirement decides the input the RH7101 code fix passes (`AGENTS.md`, *Supported inputs*): the field declaration of a diagnostic.
 
