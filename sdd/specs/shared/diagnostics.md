@@ -5,7 +5,7 @@
 | ID prefix | SHARED-DIAG |
 | Status | Active |
 | Code owners | `DiagnosticAnalyzerBase`, `PartialMemberUtilities` |
-| Uses | FMT-DOC-012, FMT-UNSUP-001, FMT-UNSUP-008, RH5308-005, SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-010, SHARED-JOIN-001, SHARED-TRAIL-002 |
+| Uses | FMT-DOC-012, FMT-UNSUP-001, FMT-UNSUP-008, RH2109-004, RH5308-005, SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-010, SHARED-JOIN-001, SHARED-TRAIL-002 |
 
 This spec covers what holds for every analyzer rule, so a rule spec states only what the rule itself reports. It applies to every rule without being listed under `Uses`.
 
@@ -101,7 +101,7 @@ An analyzer rule MUST treat the text of a literal and the text of a comment as c
 
 What the text of a literal protects is its value. How the literal spells that value — an escape sequence such as `\t` or the `{{` of an interpolated string, or the indentation of a raw string's lines that the compiler removes — is the literal's own syntax.
 
-This requirement restricts only rules that check code. A rule whose subject is the text of a comment or of a directive, such as RH3201, RH7301, or a documentation rule (RH8###), checks that text as its subject. A rule whose subject is a literal, such as RH5202, checks how the literal spells its value.
+This requirement restricts only rules that check code. A rule whose subject is the text of a comment or of a directive, such as RH3201, RH7301, or a documentation rule (RH8###), checks that text as its subject. A rule whose subject is a literal, such as RH5202, checks how the literal spells its value. RH2109 is an exception to this requirement for a line inside a multi-line C# comment or literal of a Razor file: it reads such a line like markup, as RH2109-004 states.
 
 Why: The text of a literal is the program's data, and the text of a comment is the author's prose — in a Razor file as much as in C#, where `@@` writes a plain `@` and an `@` inside a word, such as an e-mail address, is part of the word; their characters — spaces, tabs, empty lines, commas, braces — carry a meaning that a rule about code cannot judge. How a literal spells its value belongs to the literal's own syntax: the value stays the same however it is spelled, so a rule about literals may judge the spelling. Everything else is code the compiler reads as tokens. Exempting it because a literal is next to it, or because it is written inside an interpolated string, would leave ordinary code unchecked only for where it stands.
 
