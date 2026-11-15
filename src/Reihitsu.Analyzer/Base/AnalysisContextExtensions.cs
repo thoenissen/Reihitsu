@@ -1,3 +1,5 @@
+﻿using System.Collections.Immutable;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -6,12 +8,45 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Reihitsu.Analyzer.Base;
 
 /// <summary>
-/// Analysis context extensions for syntax node actions on structured trivia, such as documentation comments, their XML
-/// elements, and preprocessor directives
+/// Analysis context extensions: registrations that run only when documentation mode is not
+/// <see cref="DocumentationMode.None"/>, and registrations on structured trivia kinds, such as documentation comments,
+/// their XML elements, and preprocessor directives, that run once per trivia node
 /// </summary>
-internal static class StructuredTriviaAnalysisContextExtensions
+internal static class AnalysisContextExtensions
 {
     #region Methods
+
+    /// <summary>
+    /// Registers a syntax tree action that runs only when documentation mode is not <see cref="DocumentationMode.None"/>
+    /// </summary>
+    /// <param name="context">Analysis context</param>
+    /// <param name="action">Action</param>
+    internal static void RegisterSyntaxTreeActionWithDocumentationModeCheck(this AnalysisContext context, Action<SyntaxTreeAnalysisContext> action)
+    {
+        context.RegisterSyntaxTreeAction(WrapWithDocumentationModeCheck(action));
+    }
+
+    /// <summary>
+    /// Registers a syntax node action that runs only when documentation mode is not <see cref="DocumentationMode.None"/>
+    /// </summary>
+    /// <param name="context">Analysis context</param>
+    /// <param name="action">Action</param>
+    /// <param name="syntaxKinds">Syntax kinds</param>
+    internal static void RegisterSyntaxNodeActionWithDocumentationModeCheck(this AnalysisContext context, Action<SyntaxNodeAnalysisContext> action, params SyntaxKind[] syntaxKinds)
+    {
+        context.RegisterSyntaxNodeAction(WrapWithDocumentationModeCheck(action), syntaxKinds);
+    }
+
+    /// <summary>
+    /// Registers a syntax node action that runs only when documentation mode is not <see cref="DocumentationMode.None"/>
+    /// </summary>
+    /// <param name="context">Analysis context</param>
+    /// <param name="action">Action</param>
+    /// <param name="syntaxKinds">Syntax kinds</param>
+    internal static void RegisterSyntaxNodeActionWithDocumentationModeCheck(this AnalysisContext context, Action<SyntaxNodeAnalysisContext> action, ImmutableArray<SyntaxKind> syntaxKinds)
+    {
+        context.RegisterSyntaxNodeAction(WrapWithDocumentationModeCheck(action), syntaxKinds);
+    }
 
     /// <summary>
     /// Registers a syntax node action on structured trivia kinds that runs once per trivia node
@@ -109,6 +144,44 @@ internal static class StructuredTriviaAnalysisContextExtensions
         return currentContext =>
                {
                    if (IsRepeatedRun(currentContext))
+                   {
+                       return;
+                   }
+
+                   action(currentContext);
+               };
+    }
+
+    /// <summary>
+    /// Wraps an action so it only runs when documentation mode is not <see cref="DocumentationMode.None"/>
+    /// </summary>
+    /// <param name="action">Action</param>
+    /// <returns>The wrapped action</returns>
+    private static Action<SyntaxNodeAnalysisContext> WrapWithDocumentationModeCheck(Action<SyntaxNodeAnalysisContext> action)
+    {
+        return currentContext =>
+               {
+                   if (currentContext.Node.SyntaxTree.Options is CSharpParseOptions parseOptions
+                       && parseOptions.DocumentationMode == DocumentationMode.None)
+                   {
+                       return;
+                   }
+
+                   action(currentContext);
+               };
+    }
+
+    /// <summary>
+    /// Wraps an action so it only runs when documentation mode is not <see cref="DocumentationMode.None"/>
+    /// </summary>
+    /// <param name="action">Action</param>
+    /// <returns>The wrapped action</returns>
+    private static Action<SyntaxTreeAnalysisContext> WrapWithDocumentationModeCheck(Action<SyntaxTreeAnalysisContext> action)
+    {
+        return currentContext =>
+               {
+                   if (currentContext.Tree.Options is CSharpParseOptions parseOptions
+                       && parseOptions.DocumentationMode == DocumentationMode.None)
                    {
                        return;
                    }
