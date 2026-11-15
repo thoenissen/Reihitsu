@@ -96,14 +96,18 @@ Maintainer 2026-11-13: release 1.2.1 and 1.2.2 first; deferred minor bugs #1140 
 
 | Batch | Run | Lane | Command | Area | Status |
 |---|---|---|---|---|---|
-| B1 | R1 | bug fix | `/squad #1695 #1696 #1707 #1721` | line endings / trailing trivia (formatter write-back, LineEndingUtilities, RH8402, RH3003/3005) | PR #1743 (Refs #1721: already specified, close) |
-| B1 | R2 | bug fix | `/squad #1680 #1742` | constructor nodes: primary-ctor double report, partial-ctor defining part (shared registration guard) | PR #1744 |
+| B1 | R1 | bug fix | `/squad #1695 #1696 #1707 #1721` | line endings / trailing trivia (formatter write-back, LineEndingUtilities, RH8402, RH3003/3005) | merged #1743 |
+| B1 | R2 | bug fix | `/squad #1680 #1742` | constructor nodes: primary-ctor double report, partial-ctor defining part (shared registration guard) | merged #1744 |
 | B1 | R3 | bug fix | `/squad #966 #1289` | textual scan reads comment/literal text as structure (using safety regex, RH2109) | merged #1745 |
-| B2 | Q1 | bug fix | `/squad #1147 #1152 #1386 #1387 #1594 #1655 #1736` | layout analyzers' report scope; after R2 (RH5109) | |
-| B2 | R5 | behavior change | `/squad #1737 #1738` | formatter leading/trailing comma lines + RH5107 fix; output questions | |
-| B2 | R6 | bug fix | `/squad #1676` | casing fix renamer call sites; output question | |
-| B2 | R8 | bug fix | `/squad #1747` | formatter cleanup: whitespace behind last token without final line break (CleanupPhase) | |
-| B2 | R9 | bug fix | `/squad #1746` | RH7203 (using-ordering fixes) moved using at column 0 under a leading comment | |
-| B3 | R7 | bug fix | `/squad #1140 #1687 #1748` | formatter-delegating fixes change more than their member / blank line above leading comment (FormatNodeInDocumentAsync, SHARED-FIX-006); after R1 and R5 | |
+| B2 | Q1 | bug fix | `/squad #1147 #1152 #1386 #1387 #1594 #1655 #1736` | layout analyzers' report scope; after R2 (RH5109) | merged #1753 |
+| B2 | R5 | behavior change | `/squad #1737 #1738` | formatter leading/trailing comma lines + RH5107 fix; output questions | merged #1749 |
+| B2 | R6 | bug fix | `/squad #1676` | casing fix renamer call sites; output question | merged #1751 |
+| B2 | R8 | bug fix | `/squad #1747` | formatter cleanup: whitespace behind last token without final line break (CleanupPhase) | merged #1750 |
+| B2 | R9 | bug fix | `/squad #1746` | RH7203 (using-ordering fixes) moved using at column 0 under a leading comment | merged #1752 |
+| B3 | R7 | bug fix | `/squad #1140 #1687 #1748` | formatter-delegating fixes change more than their member / blank line above leading comment (FormatNodeInDocumentAsync, SHARED-FIX-006); after R1 and R5 | next (B3) |
 
 Risks: Q1 lane (if #1736 needs a change doc, run it alone in B2); soft overlap Q1/R5 on SyntaxTriviaUtilities (move R5 to B3 if its skeptic names it); R2 may grow wide (shared guard, escalation 9); #1140 umbrella — re-measure on main; #1721/#1738/#1289 may end as characterization/spec-only.
+| B3 | R10 | bug fix | `/squad #1754` | using header split: whitespace-only line counts as blank (UsingLeadingTriviaBuilder, FMT-USING-009) | next (B3) |
+| B3 | R11 | behavior change | `/squad #1756` | RH3002 conditional directive inside parentheses (SHARED-DIAG-008 vs RH3002-009); output question | next (B3) |
+| B3 | R12 | bug fix | `/squad #1757` | RH2001 fix rename withholding like the casing fixes (unconfirmed) | next (B3) |
+| B4 | R13 | behavior change | `/squad #1755` | RH5102 argument list wrapped only behind `(` (like #1736); after R7 (RH5102 fix) | |

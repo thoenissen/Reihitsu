@@ -36,6 +36,7 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 Prompts are plain `/squad #a #b …` (maintainer 2026-10-25): every decision lives on the issues (triage comments), never in a prompt. Added 2026-10-25: #1458 (RH5202 fix changes verbatim value, 1.2.0, alone, after R3), #1463 (formatter phases must not predict later phases; behavior change, Maintenance; after R1, R3, #1458; before R10, R11), #1464 (squad architecture escalation, tooling; after #1441; body edited: no decisions entry). R3 = PR #1457.
 
+Status 2026-11-15 (h): B2 merged (Q1 #1753, #1749, #1751, #1750, #1752; B1 #1743 #1744). 1.2.2 open before triage: #1140 #1687 #1748. New #1754-#1757 -> 1.2.2, #1758 -> Maintenance (APPLIED). B3 = R7 + #1754 + #1756 + #1757; B4 = #1755 (after R7). Output questions #1755 #1756 asked up front.
 Status 2026-11-15 (g): #1721 closed by maintainer. #1748 output question DECIDED A (no blank line above leading comment), comment posted on the issue. Next: B2 after #1743 #1744 merge.
 Status 2026-11-15 (f): B1: R3 merged #1745 (closed #966 #1289); R1 PR #1743 (Refs #1721 — already specified, propose close), R2 PR #1744 waiting for CI. New #1746 #1747 #1748 -> 1.2.2 (APPLIED, per all-bugs-into-1.2.2 rule): R9 #1746 and R8 #1747 into B2, #1748 into R7 (B3). Output question #1748 asked up front.
 Status 2026-11-15 (e): final 1.2.2 plan: B1 R1 R2 R3, B2 Q1(+#1736) R5 R6, B3 R7 (table in runs file). Output questions expected from R5 (#1737 #1738) and R6 (#1676). Next: B1.
