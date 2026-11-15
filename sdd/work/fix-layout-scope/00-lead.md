@@ -57,5 +57,7 @@
 
 - Asked maintainer (batch 1, before test implementer): Q1 RH5112 chain in `if` header (options A whole header line / B main / C chain only); Q2 RH5101 list element interior; Q3 RH5206 switch expr in `if` header; Q4 RH5403/RH5404 interior members rewritten by other rules. ANSWERED 1C, 2A, 3A, 4A (M2–M5).
 - Done: spec author 03 (8349028) — change doc `sdd/changes/2026-11/fix-layout-scope.md`; lane now behavior-change.
-- Next: skeptic (fresh) on change doc + spec diff → 04-skeptic.md; then batch 2 output questions (change-doc visible changes not covered by M1–M5; spec author's open: argument spanning lines in RH5101/5102; tab-indented target) → then test implementer.
+- Done: skeptic 04 (ac7d832). Asked maintainer batch 2: Q6 escalation 9 — scope of M3/M5 write-back (A build / B one-line parts only / C defer to follow-up, recommended C); Q7 RH5303–RH5308 code around construct (A main / B only the construct, recommended). WAITING.
+- Pending internal after answers: SHARED-FIX-006 Leading-trivia exception for SHARED-FIX-007 shared line (accept skeptic rec); rewrite D6 bullet in change doc Alternatives; change-doc completeness items (04-skeptic Internal choices 3); pipeline.md code owners row; Fix All tests for nested constructs.
+- (old) Next: skeptic (fresh) on change doc + spec diff → 04-skeptic.md; then batch 2 output questions (change-doc visible changes not covered by M1–M5; spec author's open: argument spanning lines in RH5101/5102; tab-indented target) → then test implementer.
 - (old) After answers: spec author (fresh) for D6 reverts, D7 consolidation, D5 FMT-PIPE-010/024 amendment, answers; then test implementer.
