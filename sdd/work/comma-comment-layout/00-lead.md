@@ -14,7 +14,7 @@
 - Batch 1, Q1 (#1738, comma that starts a line inside initializer / collection expression / pattern): **A**, with one change — in an array initializer (case `e`, `new int[] { 1⏎, 2 }`) the comma also moves behind the previous element (`1,` ⏎ `2`), as in the other constructs. A comma held off the previous line by a `//` comment (case `c`) stays alone on its line at the elements' column, element on the next line, as in A.
 - Batch 1, Q2 (escalation 10, declare "comma separated from the previous token by a line break" unsupported): **not declared (B)**; the comma keeps moving up behind the previous element as today.
 
-- Batch 1b (asked at once, blocks tests): array initializer with a comma held off the previous line by a comment (`1 // k⏎, 2`) — A keep `, 2` (column only), B comma alone + `2` on next line. Awaiting answer.
+- Batch 1b (asked at once, blocks tests): array initializer with a comma held off the previous line by a comment (`1 // k⏎, 2`) — answered **A** (keep `, 2`, column only). The maintainer is considering declaring unsupported the shape "a comment between a list element and its following comma" ("no comment belongs there") and asked which special cases it would delete → escalation 10, being investigated (04-skeptic).
 
 ## Decisions taken
 
@@ -41,4 +41,4 @@
 
 ## Open worklist / next step
 
-- 03-spec-author done (19e8ee2): RH5107-004, FMT-BREAK-038, FMT-INDENT-033. Waiting for batch 1b answer; on B, continue spec author 03 to change examples `g`/`x`. Then test implementer.
+- Fresh skeptic (04): enumerate the special cases a declaration of "comment/directive between list element and following comma" would delete or keep, across formatter, code fixes and specs, and the common code it would refuse. Then ask escalation 10 with that list. Tests wait for the answer.
