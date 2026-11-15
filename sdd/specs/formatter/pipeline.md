@@ -317,7 +317,7 @@ Roslyn decides which tree a node passed to `FormatNode` reports, by how the node
 
 `Default`, `Latest`, and `LatestMajor` MUST resolve to the newest supported version (C# 15), and `Preview` or any newer version MUST be clamped to it. Without C# parse options, the newest supported version applies.
 
-Why: The formatter must not produce syntax the project's compiler rejects, such as an expression-bodied property in a C# 5 project. Clamping keeps the formatter's output stable when Roslyn learns a version the formatter has not been reviewed against.
+Why: The formatter must not produce syntax the project's compiler rejects, such as an expression-bodied property in a C# 5 project. Clamping keeps a new Roslyn `Latest` or `Preview` from switching on version-gated rules that were never reviewed for that version: the maximum names the newest version whose gates were reviewed. It does not mean that every construct of that version has a reviewed layout.
 
 Example — the same input under C# 5 and under C# 6:
 
