@@ -42,4 +42,5 @@ Batch 1 (before test implementer):
 - Done: 04-test-implementer (tests 6b7fb49, handover b353d60).
 - Done: 05-implementer (b5bea19, handover 3b9120d).
 - Done: 06-spec-author (README fd5f2ed).
-- Next: cleaner 07 (incl. stale doc comment PlaygroundFormatterTests.cs:90).
+- Done: 07-cleaner (clean, build 0 warnings).
+- Next: spec checker 08.
