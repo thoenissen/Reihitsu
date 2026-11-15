@@ -696,7 +696,10 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
     /// <summary>
     /// Applies a rename only when it is safe: no method name the compiler looks up implicitly, no namespace member
     /// collision, no name in excluded code or in a caller-argument expression attribute, no Roslyn conflict annotation,
-    /// no changed native entry point, no changed document that holds code another build configuration hides, no added
+    /// no rewritten or rebound reference to a symbol outside the rename cascade, no reference of the cascade rewritten
+    /// beyond its name, no new name that a member of an interface in the type hierarchy of a cascade property, event, or
+    /// ordinary method has, no
+    /// changed native entry point, no changed document that holds code another build configuration hides, no added
     /// compile error, and no change to the properties the compiler declares for positional record parameters
     /// </summary>
     /// <param name="solution">Solution containing the declaration</param>
@@ -706,10 +709,12 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The renamed solution when it is safe; otherwise, <see langword="null"/></returns>
     /// <remarks>
-    /// The checks that depend on what the rename reaches take it from <see cref="GetRenameCascadeAsync"/>: the native
-    /// entry points of every cascade member, the caller-argument expression attributes of every parameter list that
-    /// declares a cascade parameter, and the excluded code of every document that can refer to one, each searched for
-    /// the new name and for the old names that the cascade before and after the rename gives. The compile
+    /// The checks that depend on what the rename reaches take it from <see cref="GetRenameCascadeAsync"/>: the interface
+    /// members in the type hierarchy of every cascade property, event, and ordinary method, the native entry points of every
+    /// cascade member, the caller-argument expression attributes of every parameter list that
+    /// declares a cascade parameter, the changes the renamer makes, which may lie only on identifiers that carry an
+    /// old name, and the excluded code of every document that can refer to one, each searched for the new name and for
+    /// the old names that the cascade before and after the rename gives. The compile
     /// error and positional property checks inspect every document of every project the rename changes or that depends
     /// on one of them
     /// </remarks>
@@ -726,6 +731,13 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
                                                 cancellationToken).ConfigureAwait(false);
 
         if (prepared == null)
+        {
+            return null;
+        }
+
+        // A new name that a member of an interface in the type hierarchy of a cascade property, event, or ordinary method
+        // has may change which member implements it, which a rename may not do (SHARED-CASING-009)
+        if (await HasInterfaceMemberOfNameInHierarchyAsync(solution, prepared.Value.Cascade, identifier, cancellationToken).ConfigureAwait(false))
         {
             return null;
         }
@@ -752,13 +764,23 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
         }
 
         var renamedCascade = await GetRenameCascadeAsync(renamedSolution, renamedDeclaration.Value.Symbol, cancellationToken).ConfigureAwait(false);
+        var oldNames = GetOldNames(prepared.Value.Cascade, renamedCascade);
+
+        // The rename may change no binding of a reference to a symbol outside the cascade, whether the renamer rewrites
+        // that reference or leaves it as written (SHARED-CASING-009)
+        if (await RewritesOtherCodeAsync(solution, renamedSolution, oldNames, cancellationToken).ConfigureAwait(false)
+            || await CountReferenceLocationsAsync(renamedSolution, renamedDeclaration.Value.Symbol, cancellationToken).ConfigureAwait(false)
+               != await CountReferenceLocationsAsync(solution, prepared.Value.Symbol, cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
 
         if (GetNativeEntryPoints(prepared.Value.Cascade).SequenceEqual(GetNativeEntryPoints(renamedCascade), StringComparer.Ordinal) == false)
         {
             return null;
         }
 
-        var renamedNames = GetOldNames(prepared.Value.Cascade, renamedCascade).Add(identifier);
+        var renamedNames = oldNames.Add(identifier);
 
         if (HasCallerArgumentExpressionNaming(prepared.Value.Cascade, renamedNames, identifier, cancellationToken)
             || await ExcludedCodeUtilities.HasExcludedCodeOccurrenceAsync(solution, prepared.Value.Cascade, renamedNames, cancellationToken).ConfigureAwait(false))
@@ -1006,6 +1028,133 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
         return node == null || symbol == null
                    ? null
                    : (node, symbol);
+    }
+
+    /// <summary>
+    /// Determines whether a rename changed code other than the references of the rename cascade
+    /// </summary>
+    /// <param name="originalSolution">Solution before the rename</param>
+    /// <param name="renamedSolution">Solution after the rename</param>
+    /// <param name="oldNames">Old names of the rename, as <see cref="GetOldNames"/> gives them</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> when a change reaches a token that is no reference of the cascade; otherwise, <see langword="false"/></returns>
+    /// <remarks>
+    /// The renamer keeps the binding of a reference to another symbol that the new name would capture by rewriting
+    /// that reference, such as qualifying it, turning an extension call into a static call, or casting an argument,
+    /// without reporting a conflict. Renaming the cascade only replaces, or qualifies, identifiers that carry an old
+    /// name, so every change has to lie on such identifiers: a replaced span may only overlap them, and an insertion
+    /// has to touch one of them. A name the cascade still carries after the rename is no old name, so a reference to
+    /// another symbol spelled that way, such as a field spelled like the parameter of the other part of a partial
+    /// method, does not count as a reference of the cascade
+    /// </remarks>
+    private static async Task<bool> RewritesOtherCodeAsync(Solution originalSolution,
+                                                           Solution renamedSolution,
+                                                           ImmutableHashSet<string> oldNames,
+                                                           CancellationToken cancellationToken)
+    {
+        foreach (var documentId in renamedSolution.GetChanges(originalSolution)
+                                                  .GetProjectChanges()
+                                                  .SelectMany(static changes => changes.GetChangedDocuments()))
+        {
+            var originalTree = await originalSolution.GetDocument(documentId).GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var renamedTree = await renamedSolution.GetDocument(documentId).GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var originalRoot = await originalTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+
+            foreach (var span in renamedTree.GetChanges(originalTree).Select(static change => change.Span))
+            {
+                var searchSpan = TextSpan.FromBounds(Math.Max(0, span.Start - 1), Math.Min(originalRoot.FullSpan.End, span.End + 1));
+                var tokens = originalRoot.DescendantTokens(searchSpan, descendIntoTrivia: true)
+                                         .Where(token => span.IsEmpty
+                                                             ? token.Span.Start <= span.Start && span.Start <= token.Span.End
+                                                             : token.Span.OverlapsWith(span))
+                                         .ToList();
+                var cascadeReferenceCount = tokens.Count(token => token.IsKind(SyntaxKind.IdentifierToken) && oldNames.Contains(token.ValueText));
+
+                if (cascadeReferenceCount == 0
+                    || (span.IsEmpty == false && cascadeReferenceCount != tokens.Count))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Counts the source locations that refer to a symbol or to another symbol of its rename cascade
+    /// </summary>
+    /// <param name="solution">Solution</param>
+    /// <param name="symbol">Symbol</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The number of distinct reference locations</returns>
+    /// <remarks>
+    /// A reference to another symbol that the renamer leaves as written can bind to the renamed symbol afterwards, for
+    /// example a member access whose receiver has the renaming type when the renamed member now hides an inherited one.
+    /// Such a reference adds a location, so a rename that keeps every other binding keeps the count
+    /// </remarks>
+    private static async Task<int> CountReferenceLocationsAsync(Solution solution, ISymbol symbol, CancellationToken cancellationToken)
+    {
+        var referencedSymbols = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+
+        return referencedSymbols.SelectMany(static referencedSymbol => referencedSymbol.Locations)
+                                .Select(static location => (location.Document.Id, location.Location.SourceSpan))
+                                .Distinct()
+                                .Count();
+    }
+
+    /// <summary>
+    /// Determines whether a member of an interface in the type hierarchy of a property, event, or ordinary method of the
+    /// rename cascade has the new name
+    /// </summary>
+    /// <param name="solution">Solution before the rename</param>
+    /// <param name="cascade">Rename cascade before the rename</param>
+    /// <param name="identifier">Proposed replacement identifier</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> when such an interface member has the new name; otherwise, <see langword="false"/></returns>
+    /// <remarks>
+    /// Only the kinds that can implement an interface member by their name are checked: properties, events, and ordinary
+    /// methods. Every other symbol of the cascade — a constructor, finalizer, operator, accessor, explicit interface
+    /// implementation of a method, local function, field, parameter, type, or type parameter — adds no hierarchy, so a
+    /// type rename whose cascade holds its constructors is not refused, while a positional record parameter is refused
+    /// through the property in its cascade. For each checked member, the hierarchy is its containing type and every type
+    /// of the solution derived from it; for an interface, every type that implements it and every interface that
+    /// inherits from it. Which member implements an interface member depends on all their interface mappings, so the
+    /// check refuses by name instead of comparing the mappings
+    /// </remarks>
+    private static async Task<bool> HasInterfaceMemberOfNameInHierarchyAsync(Solution solution,
+                                                                             ImmutableArray<ISymbol> cascade,
+                                                                             string identifier,
+                                                                             CancellationToken cancellationToken)
+    {
+        foreach (var symbol in cascade)
+        {
+            if (symbol is not (IPropertySymbol or IEventSymbol or IMethodSymbol { MethodKind: MethodKind.Ordinary })
+                || symbol.ContainingType is not { } containingType)
+            {
+                continue;
+            }
+
+            IEnumerable<INamedTypeSymbol> types = [containingType];
+
+            if (containingType.TypeKind == TypeKind.Interface)
+            {
+                types = types.Concat(await SymbolFinder.FindImplementationsAsync(containingType, solution, cancellationToken: cancellationToken).ConfigureAwait(false))
+                             .Concat(await SymbolFinder.FindDerivedInterfacesAsync(containingType, solution, cancellationToken: cancellationToken).ConfigureAwait(false));
+            }
+            else if (containingType.TypeKind == TypeKind.Class)
+            {
+                types = types.Concat(await SymbolFinder.FindDerivedClassesAsync(containingType, solution, cancellationToken: cancellationToken).ConfigureAwait(false));
+            }
+
+            if (types.SelectMany(static type => type.AllInterfaces)
+                     .Any(interfaceType => interfaceType.GetMembers(identifier).IsEmpty == false))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

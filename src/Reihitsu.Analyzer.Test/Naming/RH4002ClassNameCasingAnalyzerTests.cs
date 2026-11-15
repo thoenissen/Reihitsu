@@ -942,6 +942,115 @@ public class RH4002ClassNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4002Cl
                             });
     }
 
+    /// <summary>
+    /// Verifies that a class keeps its diagnostic but gets no fix when its new name would win over a class that a <c>using</c>
+    /// directive imports and its namespace uses today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldWinOverAnImportedClass()
+    {
+        const string testCode = """
+                                namespace Other
+                                {
+                                    public class Order
+                                    {
+                                    }
+                                }
+
+                                namespace N
+                                {
+                                    using Other;
+
+                                    public class {|RH4002:order|}
+                                    {
+                                    }
+
+                                    public class Shop
+                                    {
+                                        public Order Create() => new Order();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a class is renamed to the name of a member of an interface it implements, because its rename cascade holds only its constructor besides the class, and a constructor cannot implement an interface member
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixRenamesAClassToTheNameOfAMemberOfAnInterfaceItImplements()
+    {
+        const string testCode = """
+                                public interface IHasProcessor
+                                {
+                                    int Processor => 1;
+                                }
+
+                                public class {|RH4002:processor|} : IHasProcessor
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public interface IHasProcessor
+                                 {
+                                     int Processor => 1;
+                                 }
+
+                                 public class Processor : IHasProcessor
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a class is renamed to the name of a member of an interface that a class derived from it implements
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixRenamesAClassToTheNameOfAMemberOfAnInterfaceThatADerivedClassImplements()
+    {
+        const string testCode = """
+                                public interface IHasProcessor
+                                {
+                                    int Processor => 1;
+                                }
+
+                                public class {|RH4002:processor|}
+                                {
+                                }
+
+                                public class Derived : processor, IHasProcessor
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public interface IHasProcessor
+                                 {
+                                     int Processor => 1;
+                                 }
+
+                                 public class Processor
+                                 {
+                                 }
+
+                                 public class Derived : Processor, IHasProcessor
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

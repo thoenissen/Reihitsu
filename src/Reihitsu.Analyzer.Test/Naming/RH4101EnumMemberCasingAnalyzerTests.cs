@@ -249,6 +249,31 @@ public class RH4101EnumMemberCasingAnalyzerTests : BatchCodeFixTestsBase<RH4101E
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that an enum member keeps its diagnostic but gets no fix when its new name would change what a name in another
+    /// member's initializer binds to today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAConstantUsedInAnInitializer()
+    {
+        const string testCode = """
+                                public class Outer
+                                {
+                                    public const int Red = 5;
+
+                                    public enum Color
+                                    {
+                                        {|RH4101:red|},
+                                        Blue = Red + 1,
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

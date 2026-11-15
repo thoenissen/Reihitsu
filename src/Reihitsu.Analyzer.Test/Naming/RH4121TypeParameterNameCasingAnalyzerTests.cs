@@ -824,6 +824,65 @@ public class RH4121TypeParameterNameCasingAnalyzerTests : BatchCodeFixTestsBase<
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that a type parameter keeps its diagnostic but gets no fix when its new name would hide a type that the declaring class
+    /// uses today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideATypeUsedInTheClass()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    public class TItem
+                                    {
+                                    }
+
+                                    public class Box<{|RH4121:item|}>
+                                    {
+                                        public TItem Create() => new TItem();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a type parameter of a partial method keeps its diagnostic but gets no fix when the renamer would qualify a
+    /// reference to a class with its namespace, although the other part of the method spells its type parameter like the class
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAClassSpelledLikeTheTypeParameterOfTheOtherPart()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    public class TItem
+                                    {
+                                        public static int Size() => 1;
+                                    }
+
+                                    public partial class Counter
+                                    {
+                                        public partial int Count<TItem>();
+
+                                        public partial int Count<{|RH4121:item|}>()
+                                        {
+                                            var total = 1;
+                                            return total + TItem.Size();
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

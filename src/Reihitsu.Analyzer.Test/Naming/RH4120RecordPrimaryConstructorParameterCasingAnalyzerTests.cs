@@ -419,6 +419,80 @@ public class RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests : BatchC
                             });
     }
 
+    /// <summary>
+    /// Verifies that a record primary constructor parameter keeps its diagnostic but gets no fix when its new name would hide, inside the
+    /// record, a constant of the enclosing class that a reference there binds to today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAConstantOfTheEnclosingClass()
+    {
+        const string testCode = """
+                                public class Outer
+                                {
+                                    public const string Name = "outer";
+
+                                    public record Item(string {|RH4120:name|})
+                                    {
+                                        public string Label => Name;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a positional record parameter keeps its diagnostic but gets no fix when the property the compiler declares for it would implement a member of an interface the record implements, because that interface member would return another value at run time
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheParametersPropertyWouldImplementAnInterfaceProperty()
+    {
+        const string testCode = """
+                                public interface INamed
+                                {
+                                    string Name => "default";
+                                }
+
+                                public record Person(string {|RH4120:name|}) : INamed;
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a positional record parameter is renamed when the interface its record implements has no member of the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixRenamesTheParameterWhenTheInterfaceHasNoMemberOfTheNewName()
+    {
+        const string testCode = """
+                                public interface INamed
+                                {
+                                    string Other => "default";
+                                }
+
+                                public record Person(string {|RH4120:name|}) : INamed;
+                                """;
+
+        const string fixedCode = """
+                                 public interface INamed
+                                 {
+                                     string Other => "default";
+                                 }
+
+                                 public record Person(string Name) : INamed;
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

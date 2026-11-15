@@ -1460,6 +1460,34 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
         await Verify(testCode, testCode);
     }
 
+    /// <summary>
+    /// Verifies that a local variable keeps its diagnostic but gets no fix when its new name would hide a field that an unqualified
+    /// reference in the method binds to today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAFieldUsedUnqualified()
+    {
+        const string testCode = """
+                                public class Counter
+                                {
+                                    private int total;
+
+                                    public int Add(int amount)
+                                    {
+                                        int {|RH4115:Total|} = amount;
+
+                                        total = total + Total;
+
+                                        return total;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region Methods
