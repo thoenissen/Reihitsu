@@ -18,6 +18,9 @@
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name | Use the session's designated branch | Harness restricts pushes to it | Internal | claim commit |
+| 2 | Spec author | One change doc per issue or one shared | One per issue | Causes differ (fix vs. formatter layout) | Doc structure is internal | 81bfa87 |
+| 3 | Spec author | #1738 scope: object initializers only or the whole FMT-BREAK-021/022 family | Whole family, pending skeptic | Same mechanism; one class, not instances | The family's outputs are asked as output questions | 81bfa87 |
+| 4 | Spec author | New requirement IDs vs. extending existing ones | New requirements (FMT-BREAK-038, FMT-INDENT-033) | Keeps existing requirements stable | Wording/IDs internal | pending |
 
 ## Follow-up candidates
 
@@ -29,4 +32,4 @@
 
 ## Open worklist / next step
 
-- Next: spawn spec author.
+- Spec author done (01, open questions Q1–Q3, two Draft change docs). Next: skeptic (02), then ask Q1–Q3 (+ any skeptic questions) before the test implementer.
