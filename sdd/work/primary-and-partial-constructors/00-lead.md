@@ -33,5 +33,5 @@
 ## State
 
 - Last step: skeptic (01-skeptic.md, 71ae774).
-- Spec author done (02-spec-author.md, e966660). SHARED-DIAG-013 added.
+- Test implementer done (03-test-implementer.md, a3cffd5): #1680 reproduced (25 failing), #1742 5 characterization tests pass. Next: implementer.
 - Next: spec author -> test implementer (#1680 reproductions; #1742 characterization of the recorded limitation) -> implementer -> cleaner -> spec checker -> auditor -> validator.
