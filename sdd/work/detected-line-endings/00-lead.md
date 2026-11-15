@@ -4,7 +4,7 @@
 - Branch: `claude/keen-feynman-1ww7fe` (the session's designated branch; see Decisions #1)
 - PR: thoenissen/Reihitsu#1743 (draft claim)
 - Base at claim: `846aca462c94c0d85bc19a1d5ad9d78605590c29`
-- Lane: **bug fix** (all four issues)
+- Lane: **behavior change** (widened from bug fix after Q2=B, Decision 8)
 
 ## Issues
 
@@ -23,7 +23,8 @@ Bug-fix lane: spec author (for the FMT-PIPE-010 clarification of #1695, and any 
 
 ## Maintainer answers
 
-- Batch 1 asked (Q1 #1695 whitespace A'/B/C rec. B; Q2 #1696 RH8402 ending A/B rec. B): awaiting answer.
+- Batch 1, Q1 (#1695, whitespace at the end of the fixed target's last line): maintainer chose B — always remove it, as document formatting does.
+- Batch 1, Q2 (#1696, RH8402 inserted header's line endings): maintainer chose B — use the detected line ending (`\n` for all-lone-`\r`, `Environment.NewLine` for a file without a line break).
 
 ## Decisions taken
 
@@ -36,6 +37,7 @@ Bug-fix lane: spec author (for the FMT-PIPE-010 clarification of #1695, and any 
 | 5 | Skeptic | Spec author's leading-trivia candidate | Drop | FMT-PIPE-018 already decides it; probe confirmed the code does it | – | – |
 | 6 | Skeptic | #1721 premise | Do not change; link `Refs #1721`; PR states the observed output (`\n` outside, lone `\r` inside literal) is what FMT-PIPE-007/FMT-EOL-004 specify and that `ReihitsuFormatterLineEndingIndependenceTests.KeptLineBreaksInsideLiteralsCommentsAndDisabledTextAreTheSameInTheCopy` already pins it; skip remaining roles for it except spec checker and validator | Specified behavior, agent-filed, nothing visible in question | Output unchanged | – |
 | 7 | Skeptic | #1707 RH3005 part does not reproduce | Narrow #1707 to RH3003; RH3005 gets characterization tests as the issue's own Done-when prescribes; keep `Closes #1707` (RH3003 reproduces) | Issue anticipated it; no escalation 4 since the issue's bug reproduces | RH3005 output unchanged | – |
+| 8 | Answers | Lane after Q2=B | Widen to behavior change; one change doc for RH8402 (RH8402-002 fix part, RH8402-005); Q1=B recorded as a FMT-PIPE-010 clarification (SHARED-FIX-007/008 span), mentioned in the change doc's visible output changes too if the spec author finds it changes a requirement | RH8402-005 changes an unchanged requirement's output | Maintainer answered both | – |
 
 ## Follow-up candidates
 
@@ -44,5 +46,5 @@ Bug-fix lane: spec author (for the FMT-PIPE-010 clarification of #1695, and any 
 
 ## State
 
-- Last step finished: skeptic (02, commit 70a9857). Batch 1 output questions asked.
-- Next: on answers, Q2=B -> widen lane to behavior change, spec author writes change doc (RH8402-002/005) and FMT-PIPE-010 whitespace sentence per Q1 + wording note (a); then test implementer.
+- Last step finished: maintainer answered batch 1 (1B, 2B).
+- Next: spec author (continued) writes change doc + spec amendments; lane check; then test implementer.
