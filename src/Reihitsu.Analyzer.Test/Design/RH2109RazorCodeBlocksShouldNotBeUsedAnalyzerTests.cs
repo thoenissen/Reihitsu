@@ -52,6 +52,34 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
                                                        }
                                                        """;
 
+    /// <summary>
+    /// Razor source of the specification example of code-block lines inside a C# block comment and a C# raw string literal
+    /// </summary>
+    private const string CodeBlockLinesInCSharpCommentAndRawStringSource = """"
+                                                                           @code {
+                                                                               /*
+                                                                               @code {
+                                                                               }
+                                                                               */
+                                                                               string s = """
+                                                                           @code {
+                                                                           """;
+                                                                           }
+                                                                           """";
+
+    /// <summary>
+    /// Razor source of the specification example of a Razor comment opener that starts a line inside a C# block comment
+    /// </summary>
+    private const string RazorCommentOpenerLineInCSharpCommentSource = """
+                                                                       @code {
+                                                                           /*
+                                                                           @* not a Razor comment
+                                                                           */
+                                                                       }
+                                                                       @code {
+                                                                       }
+                                                                       """;
+
     #endregion // Constants
 
     #region Tests
@@ -245,13 +273,15 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Characterizes code-block text in comments and strings: the text inside an HTML comment, a Razor comment, and
+    /// Verifying code-block text in comments and strings: the text inside an HTML comment, a Razor comment, and
     /// behind other characters in a C# string is not reported, while a line-starting <c>@code {</c> inside a C# block
     /// comment of a code block is reported like the real directive, because C# comments and literals of a code block
-    /// are read like the rest of the file. This test pins today's behavior without stating it as intended
+    /// are read like the rest of the file
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2109-001")]
+    [Requirement("RH2109-004")]
     public async Task VerifyCodeBlockLineInsideCSharpBlockCommentIsReportedWhileTextInMarkupCommentsIsNot()
     {
         const string razorSource = """
@@ -272,13 +302,13 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Characterizes code-block text in C# comments and literals of a code block: a line-starting <c>@code {</c> inside
+    /// Verifying code-block text in C# comments and literals of a code block: a line-starting <c>@code {</c> inside
     /// a C# block comment and inside a C# raw string literal is reported, while the text behind other characters in a
-    /// C# string literal is not, because C# comments and literals of a code block are read like the rest of the file.
-    /// This test pins today's behavior without stating it as intended
+    /// C# string literal is not, because C# comments and literals of a code block are read like the rest of the file
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2109-004")]
     public async Task VerifyCodeBlockLinesInCSharpCommentAndRawStringAreReported()
     {
         const string razorSource = """"
@@ -496,12 +526,12 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Characterizes a code-block line inside a multi-line C# documentation block comment within a code block: it is
-    /// reported, because C# comments and literals of a code block are read like the rest of the file. This test pins
-    /// today's behavior without stating it as intended
+    /// Verifying a code-block line inside a multi-line C# documentation block comment within a code block: it is
+    /// reported, because C# comments and literals of a code block are read like the rest of the file
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2109-004")]
     public async Task VerifyCodeBlockLineInsideDocumentationBlockCommentIsReported()
     {
         const string razorSource = """
@@ -520,12 +550,12 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Characterizes a code-block line inside a multi-line C# verbatim string with escaped quotes within a code block:
-    /// it is reported, because C# comments and literals of a code block are read like the rest of the file. This test
-    /// pins today's behavior without stating it as intended
+    /// Verifying a code-block line inside a multi-line C# verbatim string with escaped quotes within a code block:
+    /// it is reported, because C# comments and literals of a code block are read like the rest of the file
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2109-004")]
     public async Task VerifyCodeBlockLineInsideVerbatimStringIsReported()
     {
         const string razorSource = """
@@ -543,12 +573,12 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Characterizes a code-block line inside a multi-line C# interpolated verbatim string within a code block: it is
-    /// reported, because C# comments and literals of a code block are read like the rest of the file. This test pins
-    /// today's behavior without stating it as intended
+    /// Verifying a code-block line inside a multi-line C# interpolated verbatim string within a code block: it is
+    /// reported, because C# comments and literals of a code block are read like the rest of the file
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2109-004")]
     public async Task VerifyCodeBlockLineInsideInterpolatedVerbatimStringIsReported()
     {
         const string razorSource = """
@@ -567,12 +597,13 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Characterizes a code-block line inside a multi-line C# interpolated raw string, whose hole holds braces, within
+    /// Verifying a code-block line inside a multi-line C# interpolated raw string, whose hole holds braces, within
     /// a code block: it is reported like the directive after the block, because C# comments and literals of a code
-    /// block are read like the rest of the file. This test pins today's behavior without stating it as intended
+    /// block are read like the rest of the file
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2109-004")]
     public async Task VerifyCodeBlockLineInsideInterpolatedRawStringIsReported()
     {
         const string razorSource = """"
@@ -599,12 +630,13 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Characterizes a code-block line inside a C# block comment of a <c>@functions</c> block: it is reported like the
+    /// Verifying a code-block line inside a C# block comment of a <c>@functions</c> block: it is reported like the
     /// directive after the block, because C# comments and literals of a <c>@functions</c> block are read like the rest
-    /// of the file. This test pins today's behavior without stating it as intended
+    /// of the file
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2109-004")]
     public async Task VerifyCodeBlockLineInsideBlockCommentOfFunctionsBlockIsReported()
     {
         const string razorSource = """
@@ -624,13 +656,13 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Characterizes a code-block line inside a C# block comment that follows closing braces in a C# string, a
+    /// Verifying a code-block line inside a C# block comment that follows closing braces in a C# string, a
     /// character literal, and a line comment of the same code block: it is reported, because C# comments and literals
-    /// of a code block are read like the rest of the file. This test pins today's behavior without stating it as
-    /// intended
+    /// of a code block are read like the rest of the file
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2109-004")]
     public async Task VerifyCodeBlockLineInsideBlockCommentAfterClosingBracesInLiteralsIsReported()
     {
         const string razorSource = """
@@ -677,12 +709,13 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Characterizes a code-block line inside a C# block comment that follows nested braces of a code block: it is
+    /// Verifying a code-block line inside a C# block comment that follows nested braces of a code block: it is
     /// reported like the directives, because C# comments and literals of a code block are read like the rest of the
-    /// file. This test pins today's behavior without stating it as intended
+    /// file
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH2109-004")]
     public async Task VerifyCodeBlockLineInsideBlockCommentAfterNestedBracesIsReported()
     {
         const string razorSource = """
@@ -1218,6 +1251,310 @@ public class RH2109RazorCodeBlocksShouldNotBeUsedAnalyzerTests : AnalyzerTestsBa
                      test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
                      RazorCodeBlockSpan("Counter.razor", 1, 1),
                      RazorCodeBlockSpan("Counter.razor", 7, 1));
+    }
+
+    /// <summary>
+    /// Verifying the specification example of a line inside a multi-line C# comment or literal: a line-starting
+    /// <c>@code {</c> inside a C# block comment and inside a C# raw string literal of a code block is read like markup
+    /// and reported like the directive of the code block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-004")]
+    public async Task VerifySpecExampleCodeBlockLinesInsideCSharpCommentAndRawStringAreReported()
+    {
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", CodeBlockLinesInCSharpCommentAndRawStringSource)),
+                     RazorCodeBlockSpan("Counter.razor", 1, 1),
+                     RazorCodeBlockSpan("Counter.razor", 3, 5),
+                     RazorCodeBlockSpan("Counter.razor", 7, 1));
+    }
+
+    /// <summary>
+    /// Verifying the specification example of a line inside a multi-line C# comment or literal with CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-004")]
+    public async Task VerifySpecExampleCodeBlockLinesInsideCSharpCommentAndRawStringWithCarriageReturnLineFeedAreReported()
+    {
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", CodeBlockLinesInCSharpCommentAndRawStringSource.Replace("\n", "\r\n"))),
+                     RazorCodeBlockSpan("Counter.razor", 1, 1),
+                     RazorCodeBlockSpan("Counter.razor", 3, 5),
+                     RazorCodeBlockSpan("Counter.razor", 7, 1));
+    }
+
+    /// <summary>
+    /// Verifying the specification example of a Razor comment opener that starts a line inside a C# block comment: it
+    /// opens a Razor comment for the rule, and without a closing <c>*@</c> the comment runs to the end of the file, so the
+    /// real directive behind the code block is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-004")]
+    public async Task VerifySpecExampleRazorCommentOpenerLineInsideCSharpCommentHidesTheRestOfTheFile()
+    {
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", RazorCommentOpenerLineInCSharpCommentSource)),
+                     RazorCodeBlockSpan("Counter.razor", 1, 1));
+    }
+
+    /// <summary>
+    /// Verifying the specification example of a Razor comment opener that starts a line inside a C# block comment with
+    /// CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-004")]
+    public async Task VerifySpecExampleRazorCommentOpenerLineInsideCSharpCommentWithCarriageReturnLineFeedHidesTheRestOfTheFile()
+    {
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", RazorCommentOpenerLineInCSharpCommentSource.Replace("\n", "\r\n"))),
+                     RazorCodeBlockSpan("Counter.razor", 1, 1));
+    }
+
+    /// <summary>
+    /// Verifying the specification example of the closer pairing: a Razor comment opened by a line-starting <c>@*</c>
+    /// inside a C# block comment is not closed by a later HTML comment closer <c>--&gt;</c>, so the real directive behind it
+    /// is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-004")]
+    public async Task VerifySpecExampleRazorCommentOpenerLineInsideCSharpCommentIsNotClosedByHtmlCommentCloser()
+    {
+        const string razorSource = """
+                                   @code {
+                                       /*
+                                       @* x
+                                       */
+                                   }
+                                   <!-- -->
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 1, 1));
+    }
+
+    /// <summary>
+    /// Verifying that a Razor comment opened by a line-starting <c>@*</c> inside a C# block comment ends at the next
+    /// <c>*@</c>, so the real directive behind that closer is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-004")]
+    public async Task VerifyRazorCommentOpenerLineInsideCSharpCommentEndsAtRazorCommentCloser()
+    {
+        const string razorSource = """
+                                   @code {
+                                       /*
+                                       @* x
+                                       */
+                                   }
+                                   @* *@
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 1, 1),
+                     RazorCodeBlockSpan("Counter.razor", 7, 1));
+    }
+
+    /// <summary>
+    /// Verifying that an HTML comment opener that starts a line inside a C# block comment opens an HTML comment for the
+    /// rule, and without a closing <c>--&gt;</c> the comment runs to the end of the file, so the real directive behind the
+    /// code block is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-004")]
+    public async Task VerifyHtmlCommentOpenerLineInsideCSharpCommentHidesTheRestOfTheFile()
+    {
+        const string razorSource = """
+                                   @code {
+                                       /*
+                                       <!-- not an HTML comment
+                                       */
+                                   }
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 1, 1));
+    }
+
+    /// <summary>
+    /// Verifying that an HTML comment opened by a line-starting <c>&lt;!--</c> inside a C# block comment is not closed by a
+    /// later Razor comment closer <c>*@</c>, so the real directive behind it is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-004")]
+    public async Task VerifyHtmlCommentOpenerLineInsideCSharpCommentIsNotClosedByRazorCommentCloser()
+    {
+        const string razorSource = """
+                                   @code {
+                                       /*
+                                       <!-- x
+                                       */
+                                   }
+                                   @* *@
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 1, 1));
+    }
+
+    /// <summary>
+    /// Verifying that an HTML comment opened by a line-starting <c>&lt;!--</c> inside a C# block comment ends at the next
+    /// <c>--&gt;</c>, so the real directive behind that closer is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-004")]
+    public async Task VerifyHtmlCommentOpenerLineInsideCSharpCommentEndsAtHtmlCommentCloser()
+    {
+        const string razorSource = """
+                                   @code {
+                                       /*
+                                       <!-- x
+                                       */
+                                   }
+                                   <!-- -->
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 1, 1),
+                     RazorCodeBlockSpan("Counter.razor", 7, 1));
+    }
+
+    /// <summary>
+    /// Verifying that a Razor comment opener that starts a line inside a C# verbatim string literal opens a Razor comment
+    /// for the rule, so the real directive behind the code block is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-004")]
+    public async Task VerifyRazorCommentOpenerLineInsideVerbatimStringHidesTheRestOfTheFile()
+    {
+        const string razorSource = """
+                                   @code {
+                                       private string s = @"
+                                   @* not a Razor comment
+                                   ";
+                                   }
+                                   @code {
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 1, 1));
+    }
+
+    /// <summary>
+    /// Verifying that a line-starting <c>@code {</c> inside a C# block comment of a <c>@{ }</c> statement block is read like
+    /// markup and reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-004")]
+    public async Task VerifyCodeBlockLineInsideBlockCommentOfStatementBlockIsReported()
+    {
+        const string razorSource = """
+                                   @{
+                                       /*
+                                       @code {
+                                       */
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 3, 5));
+    }
+
+    /// <summary>
+    /// Verifying that a line-starting <c>@code {</c> inside a C# block comment of an <c>@if</c> block is read like markup and
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-004")]
+    public async Task VerifyCodeBlockLineInsideBlockCommentOfControlFlowBlockIsReported()
+    {
+        const string razorSource = """
+                                   @if (true)
+                                   {
+                                       /*
+                                       @code {
+                                       */
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 4, 5));
+    }
+
+    /// <summary>
+    /// Verifying that a line-starting <c>@code</c> inside a C# block comment whose opening brace stands on the next line is
+    /// read like markup and reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-004")]
+    public async Task VerifyCodeBlockLineWithBraceOnNextLineInsideBlockCommentIsReported()
+    {
+        const string razorSource = """
+                                   @code {
+                                       /*
+                                       @code
+                                       {
+                                       }
+                                       */
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 1, 1),
+                     RazorCodeBlockSpan("Counter.razor", 3, 5));
+    }
+
+    /// <summary>
+    /// Verifying that a <c>@code {</c> inside a single-line C# comment of a code block is not reported, because the
+    /// comment's opener stands before it on its line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2109-004")]
+    public async Task VerifyCodeBlockTextInsideSingleLineCommentIsNotReported()
+    {
+        const string razorSource = """
+                                   @code {
+                                       // @code {
+                                       /* @code { */
+                                   }
+                                   """;
+
+        await Verify(TestCode,
+                     test => test.TestState.AdditionalFiles.Add(("Counter.razor", razorSource)),
+                     RazorCodeBlockSpan("Counter.razor", 1, 1));
     }
 
     /// <summary>
