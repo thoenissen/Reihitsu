@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
@@ -51,30 +52,9 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzer : FluentChainAnalyzerBase
     }
 
     /// <summary>
-    /// Gets the column the line of a token starts in. A block comment in front of a link that starts a line is aligned
-    /// together with the link, so the line start is what is aligned to the anchor
-    /// </summary>
-    /// <param name="token">The token</param>
-    /// <returns>The column of the first character on the token's line that is not whitespace</returns>
-    private static int GetLineStartColumn(SyntaxToken token)
-    {
-        var text = token.SyntaxTree.GetText();
-        var line = text.Lines.GetLineFromPosition(token.SpanStart);
-        var position = line.Start;
-
-        while (position < token.SpanStart
-               && char.IsWhiteSpace(text[position]))
-        {
-            position++;
-        }
-
-        return position - line.Start;
-    }
-
-    /// <summary>
     /// Determines whether a link is misplaced in a wrapped chain: a link of the chain part after its first link that
     /// does not start a line, a link whose line does not start in the anchor column, or a link whose operator holds a line
-    /// break between its own tokens
+    /// break between its own tokens. A comment that starts a link's line is that line's first element (SHARED-COMMENT-011)
     /// </summary>
     /// <param name="chain">The chain</param>
     /// <param name="linkIndex">The index of the link</param>
@@ -91,7 +71,7 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzer : FluentChainAnalyzerBase
 
         if (link.StartsLine)
         {
-            return GetLineStartColumn(link.OperatorToken) != anchorColumn;
+            return CommentPositionUtilities.GetLineStartColumn(link.OperatorToken) != anchorColumn;
         }
 
         return chain.IsCallLess == false

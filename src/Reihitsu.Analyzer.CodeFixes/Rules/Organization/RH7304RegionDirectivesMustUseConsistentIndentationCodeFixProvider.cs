@@ -57,16 +57,17 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationCodeFixProvider :
     }
 
     /// <summary>
-    /// Determines the region pair of the directive and the indentation both directives receive. The fix is only
-    /// possible when the text in front of the region's first token on its line is whitespace (or a byte order mark): anything else, such
-    /// as a comment, would be copied in front of the directives and break them
+    /// Determines the region pair of the directive and the indentation both directives receive: the indentation of the
+    /// region's first element, its first token or the comment that starts that token's line. The fix is only possible
+    /// when that indentation is whitespace (or a byte order mark): anything else, such as code in front of the token on its
+    /// line, would be copied in front of the directives and break them
     /// </summary>
     /// <param name="syntaxRoot">Syntax root</param>
     /// <param name="sourceText">Source text</param>
     /// <param name="directiveTrivia">Reported directive trivia</param>
     /// <param name="regionTrivia">Region trivia of the pair</param>
     /// <param name="endRegionTrivia">Endregion trivia of the pair</param>
-    /// <param name="expectedIndentation">Indentation of the region's first token</param>
+    /// <param name="expectedIndentation">Indentation of the region's first element</param>
     /// <returns><see langword="true"/> if the directives can be given the indentation</returns>
     private static bool TryGetRegionIndentation(SyntaxNode syntaxRoot, SourceText sourceText, SyntaxTrivia directiveTrivia, out SyntaxTrivia regionTrivia, out SyntaxTrivia endRegionTrivia, out string expectedIndentation)
     {

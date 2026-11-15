@@ -48,7 +48,7 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer 
 
         foreach (var comment in chain.RootLastToken.TrailingTrivia.Concat(chain.FirstLink.OperatorToken.LeadingTrivia).Where(CommentPositionUtilities.IsOrdinaryComment))
         {
-            context.ReportDiagnostic(CreateDiagnostic(comment.GetLocation()));
+            context.ReportDiagnostic(CreateDiagnostic(CommentPositionUtilities.GetCommentLocation(comment)));
         }
     }
 

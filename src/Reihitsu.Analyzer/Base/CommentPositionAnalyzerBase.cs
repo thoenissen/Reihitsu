@@ -54,7 +54,7 @@ public abstract class CommentPositionAnalyzerBase : DiagnosticAnalyzerBase
                 && CommentPositionUtilities.TryGetSurroundingTokens(trivia, out var previousToken, out var nextToken)
                 && IsMisplaced(trivia, previousToken, nextToken))
             {
-                context.ReportDiagnostic(CreateDiagnostic(trivia.GetLocation()));
+                context.ReportDiagnostic(CreateDiagnostic(CommentPositionUtilities.GetCommentLocation(trivia)));
             }
         }
     }

@@ -59,26 +59,24 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer : Diagnosti
             return;
         }
 
-        var openParenLine = parameterList.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Line;
-        var closeParenLine = parameterList.CloseParenToken.GetLocation().GetLineSpan().StartLinePosition.Line;
-
-        if (openParenLine == closeParenLine)
-        {
-            return;
-        }
-
+        // The parameters alone decide whether the list is multi-line: they start on different lines, or one of them
+        // spans lines. A line break behind the opening or in front of the closing parenthesis does not (RH5109-001)
         var startLines = new HashSet<int>();
+        var isMultiLine = false;
+        var sharesLine = false;
 
         foreach (var parameter in parameterList.Parameters)
         {
-            var parameterStartLine = parameter.GetLocation().GetLineSpan().StartLinePosition.Line;
+            var parameterLineSpan = parameter.GetLocation().GetLineSpan();
 
-            if (startLines.Add(parameterStartLine) == false)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(parameterList.OpenParenToken.GetLocation()));
+            isMultiLine |= parameterLineSpan.StartLinePosition.Line != parameterLineSpan.EndLinePosition.Line;
+            sharesLine |= startLines.Add(parameterLineSpan.StartLinePosition.Line) == false;
+        }
 
-                return;
-            }
+        if ((isMultiLine || startLines.Count > 1)
+            && sharesLine)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(parameterList.OpenParenToken.GetLocation()));
         }
     }
 

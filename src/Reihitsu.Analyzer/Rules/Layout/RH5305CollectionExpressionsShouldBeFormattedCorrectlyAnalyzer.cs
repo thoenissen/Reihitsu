@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
@@ -56,8 +57,10 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer : Dia
             return;
         }
 
-        // Rule 2: In multi-line form, opening and closing brackets must be in the same column.
-        if (openBracketPosition.Character != closeBracketPosition.Character)
+        // Rule 2: In multi-line form, opening and closing brackets must be in the same column, unless a comment stands in
+        // front of the closing bracket on its line.
+        if (openBracketPosition.Character != closeBracketPosition.Character
+            && CommentPositionUtilities.TryGetLineStartComment(collectionExpression.CloseBracketToken, true, out _) == false)
         {
             context.ReportDiagnostic(CreateDiagnostic(collectionExpression.GetLocation()));
 
