@@ -30,6 +30,13 @@
 | D2 | Claim | Lane | bug-fix for all three | Each reports observed vs. expected against an unchanged shared requirement | Internal | ed5cd61 |
 | D3 | Spec author | Change doc needed for the eight rule-requirement rewrites? | No; accepted as clarifications | They remove text contradicting unchanged SHARED-FIX-006 or apply M1; triage on #1140 already called this a clarification | Behavior demanded by unchanged SHARED-FIX-006 / M1 | d1884a0 |
 | D4 | Spec author | Keep a rewritten requirement whose fix this run may not change? | Decide per rule after the implementer: any requirement whose fix stays as on main is reverted and its instance left on #1140 | Avoid spec/code contradiction in the PR | Spec text only | pending |
+| D5 | Skeptic | Arch finding: two owners of a fix target's leading trivia (FMT-PIPE-010/024 vs SHARED-FIX-006) | Change the structure in this run: `FormatNodeInDocumentAsync` keeps the target's leading trivia (as FMT-PIPE-018 does for the context entry point); FMT-PIPE-010/024 amended; escalation 9 if it exceeds ~100 production lines or a new type | One owner; code fixes are the entry point's only callers; class is common so refusing is no option | Output demanded by unchanged SHARED-FIX-006 and M1 | pending |
+| D6 | Skeptic | Arch finding: no entry point lays out only changed code whose first token moves (RH5110; RH5403 header/other branches; RH5404 header) | Narrow: these stay as on `main`; revert those sentences of RH5110-003, RH5403-003, RH5404-003 (keep leading-trivia/M1 parts); skeptic question 4 dropped; #1140 linked `Refs` | Needs a prediction of the indentation phase or a >100-line mechanism; issue allows "stays as on main" | Outputs stay as on `main` | pending |
+| D7 | Skeptic | "Leading trivia of the formatted node stays" in eight rule specs or once? | Once, in SHARED-FIX-006; rule specs keep `Uses`, removal of contradicting text, examples | One statement of a rule | Spec wording | pending |
+| D8 | Skeptic | Arch finding #1687: shared-line decision has two owners (`FormatMemberOnLinesOfItsOwnAsync`, private branch in `TargetAttributePlacementCodeFixProviderBase`) | Route the attribute fixes (RH5513/RH5517) and the measured failing fixes (expression-body base RH3203/RH3205/RH3207, RH5401, RH5408, RH5113, RH5404 nested type) through the existing helper; withhold only where it does not fit (rare) | One owner, existing helper, no new type | Output demanded by unchanged SHARED-FIX-007 | pending |
+| D9 | Skeptic | #1687 RH3208 statement case; RH5417 rarity premise | Drop both | SHARED-FIX-007 covers members only; RH5417 does not report two members on one line | Nothing changes | n/a |
+| D10 | Skeptic | RH5111 node choice; RH5113 semicolon only | In scope as narrow fixes | Cheap, local | Demanded by clarified RH5111-004/RH5113-003 + SHARED-FIX-006 | pending |
+| D11 | Skeptic | #1748 wider class (no-comment `if`, switch section, misindented comment) | In scope; covered by M1 and RH5403-003 | Same mechanism (D5) | Covered by M1 | pending |
 
 ## Follow-up candidates
 
@@ -37,5 +44,10 @@
 
 ## Worklist / next step
 
-- Open output questions (batch before test implementer): Q1 RH5112 chain in `if` header; Q2 RH5101 operator spacing inside list element; Q3 RH5206 switch expression in `if` header (all from 01-spec-author).
-- Next: spawn skeptic (02).
+- FU2 (02-skeptic): RH5303–RH5308, RH3201 scope instances unmeasured; stay on #1140 (no new issue; #1140 stays open via `Refs`).
+- FU3 (02-skeptic, D6): entry point that writes back only changed code whose first token moves to a new line (RH5110, RH5403/RH5404 header) — design question already recorded on #1140; extend #1140 rather than a new issue.
+
+## Worklist / next step
+
+- Asked maintainer (batch 1, before test implementer): Q1 RH5112 chain in `if` header (options A whole header line / B main / C chain only); Q2 RH5101 list element interior; Q3 RH5206 switch expr in `if` header; Q4 RH5403/RH5404 interior members rewritten by other rules. WAITING.
+- After answers: spec author (fresh) for D6 reverts, D7 consolidation, D5 FMT-PIPE-010/024 amendment, answers; then test implementer.
