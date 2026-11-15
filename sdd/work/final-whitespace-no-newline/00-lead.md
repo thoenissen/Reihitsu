@@ -9,7 +9,7 @@
 
 ## Maintainer answers
 
-None yet.
+- Earlier answer, not asked in this run: thoenissen/Reihitsu#923, comment 6232535812, Q3 — whitespace behind the last token is removed whether or not a final line break follows; both inputs give the same output. It covers every expected value of `EndOfFileWhitespaceTests`. No output question was asked in this run.
 
 ## Decisions taken
 
@@ -36,4 +36,6 @@ None yet.
 - Done: implementer `04-implementer.md` (tests pass; 970fe19, 4103b30).
 - Done: cleaner `05-cleaner.md` (clean, 0 warnings; 1578384).
 - Done: spec checker `06-spec-checker.md` (consistent; 3a6d91e). Main not ahead; Release build green. Output-question batch 2: nothing open.
-- Next: auditor `07-auditor.md` on 3a6d91e, main 6ab3d75.
+- Done: auditor `07-auditor.md` — pass with text findings; audited SHA 2a0087b.
+- Open worklist (text-only, proven with verify-text-only): (1) FMT-CLEAN-005 first sentence narrowed → spec author; (2) Maintainer answers recorded (done by lead); hint: `EndOfLineWhitespace` class summary → cleaner. Hint on U+FEFF literal in test skipped (changing literal spelling is not text-only; non-blocking).
+- Next: spec author + cleaner text fixes, then verify-text-only, validator, publish.
