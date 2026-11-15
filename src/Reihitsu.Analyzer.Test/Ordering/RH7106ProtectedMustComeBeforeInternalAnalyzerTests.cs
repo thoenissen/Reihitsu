@@ -666,6 +666,42 @@ public class RH7106ProtectedMustComeBeforeInternalAnalyzerTests : BatchCodeFixTe
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a conditional directive in front of the first modifier, the <c>#endif</c> of a conditionally
+    /// compiled member in front of the declaration, keeps the declaration neither from being reported nor from being
+    /// fixed, whether the symbol is defined or not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7106-001")]
+    [Requirement("RH7106-004")]
+    [Requirement("SHARED-MODORDER-002")]
+    public async Task ConditionalDirectiveInFrontOfTheFirstModifierDoesNotKeepTheDeclarationFromBeingReportedOrFixed()
+    {
+        const string source = """
+                              class C
+                              {
+                              #if DEBUG
+                                  void Log() { }
+                              #endif
+                                  internal {|RH7106:protected|} int A;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                   #if DEBUG
+                                       void Log() { }
+                                   #endif
+                                       protected internal int A;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+        await Verify(source, fixedSource, test => test.SolutionTransforms.Add(DefineDebug));
+    }
+
     #endregion // Tests
 
     #region Methods

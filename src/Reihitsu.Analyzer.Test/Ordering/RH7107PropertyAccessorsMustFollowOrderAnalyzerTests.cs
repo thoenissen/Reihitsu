@@ -1024,6 +1024,153 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a conditional directive pair with excluded code at the end of the crossed <c>set</c> accessor's
+    /// expression body, in front of its semicolon, does not keep the <c>get</c> accessor from being reported, and that
+    /// the fix moves <c>get</c> in front of it with the pair intact
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7107-001")]
+    [Requirement("RH7107-004")]
+    [Requirement("SHARED-ORDER-006")]
+    public async Task ExcludedCodeAtTheEndOfTheExpressionBodyOfTheSetAccessorDoesNotKeepTheGetAccessorFromBeingReported(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+
+                                  public int A
+                                  {
+                                      set => _a = value
+                              #if DEBUG
+                                             + 1
+                              #endif
+                                             ;
+                                      {|RH7107:get|} => _a;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _a;
+
+                                       public int A
+                                       {
+                                           get => _a;
+                                           set => _a = value
+                                   #if DEBUG
+                                                  + 1
+                                   #endif
+                                                  ;
+                                       }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that an active conditional directive pair whose <c>#endif</c> stands at the end of the crossed <c>set</c>
+    /// accessor's expression body, in front of its semicolon, does not keep the <c>get</c> accessor from being reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7107-001")]
+    [Requirement("RH7107-004")]
+    public async Task ConditionalDirectiveClosingAtTheEndOfTheExpressionBodyOfTheSetAccessorDoesNotKeepTheGetAccessorFromBeingReported()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+
+                                  public int A
+                                  {
+                                      set => _a = value
+                              #if !NEVER
+                                             + 1
+                              #endif
+                                             ;
+                                      {|RH7107:get|} => _a;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _a;
+
+                                       public int A
+                                       {
+                                           get => _a;
+                                           set => _a = value
+                                   #if !NEVER
+                                                  + 1
+                                   #endif
+                                                  ;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional directive pair with excluded code at the end of the moved <c>get</c> accessor's
+    /// expression body, in front of its semicolon, does not keep it from being reported, and that the pair travels with it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7107-001")]
+    [Requirement("RH7107-004")]
+    [Requirement("SHARED-ORDER-006")]
+    public async Task ExcludedCodeAtTheEndOfTheExpressionBodyOfTheGetAccessorDoesNotKeepItFromBeingReported()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a;
+
+                                  public int A
+                                  {
+                                      set => _a = value;
+                                      {|RH7107:get|} => _a
+                              #if DEBUG
+                                             + 1
+                              #endif
+                                             ;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _a;
+
+                                       public int A
+                                       {
+                                           get => _a
+                                   #if DEBUG
+                                                  + 1
+                                   #endif
+                                                  ;
+                                           set => _a = value;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
     #endregion // Tests
 
     #region Methods

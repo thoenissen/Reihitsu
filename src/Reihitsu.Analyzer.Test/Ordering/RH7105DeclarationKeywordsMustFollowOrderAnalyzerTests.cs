@@ -1331,6 +1331,42 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : BatchCodeFi
                      });
     }
 
+    /// <summary>
+    /// Verifies that a conditional directive in front of the first modifier, the <c>#endif</c> of a conditionally
+    /// compiled member in front of the declaration, keeps the declaration neither from being reported nor from being
+    /// fixed, whether the symbol is defined or not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-001")]
+    [Requirement("RH7105-004")]
+    [Requirement("SHARED-MODORDER-002")]
+    public async Task ConditionalDirectiveInFrontOfTheFirstModifierDoesNotKeepTheDeclarationFromBeingReportedOrFixed()
+    {
+        const string source = """
+                              class C
+                              {
+                              #if DEBUG
+                                  void Log() { }
+                              #endif
+                                  {|RH7105:static|} public int A;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                   #if DEBUG
+                                       void Log() { }
+                                   #endif
+                                       public static int A;
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+        await Verify(source, fixedSource, test => test.SolutionTransforms.Add(DefineDebug));
+    }
+
     #endregion // Tests
 
     #region Methods

@@ -696,6 +696,114 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a conditional directive pair with excluded code at the end of the crossed <c>remove</c> accessor's
+    /// expression body, in front of its semicolon, does not keep the <c>add</c> accessor from being reported, and that
+    /// the fix moves <c>add</c> in front of it with the pair intact
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH7108-001")]
+    [Requirement("RH7108-004")]
+    [Requirement("SHARED-ORDER-006")]
+    public async Task ExcludedCodeAtTheEndOfTheExpressionBodyOfTheRemoveAccessorDoesNotKeepTheAddAccessorFromBeingReported(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  private Action _handlers;
+
+                                  public event Action A
+                                  {
+                                      remove => _handlers -= value
+                              #if DEBUG
+                                                  ?? throw new InvalidOperationException()
+                              #endif
+                                                  ;
+                                      {|RH7108:add|} => _handlers += value;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+
+                                   class C
+                                   {
+                                       private Action _handlers;
+
+                                       public event Action A
+                                       {
+                                           add => _handlers += value;
+                                           remove => _handlers -= value
+                                   #if DEBUG
+                                                       ?? throw new InvalidOperationException()
+                                   #endif
+                                                       ;
+                                       }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional directive pair with excluded code at the end of the moved <c>add</c> accessor's
+    /// expression body, in front of its semicolon, does not keep it from being reported, and that the pair travels with it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7108-001")]
+    [Requirement("RH7108-004")]
+    [Requirement("SHARED-ORDER-006")]
+    public async Task ExcludedCodeAtTheEndOfTheExpressionBodyOfTheAddAccessorDoesNotKeepItFromBeingReported()
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  private Action _handlers;
+
+                                  public event Action A
+                                  {
+                                      remove => _handlers -= value;
+                                      {|RH7108:add|} => _handlers += value
+                              #if DEBUG
+                                                  ?? throw new InvalidOperationException()
+                              #endif
+                                                  ;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System;
+
+                                   class C
+                                   {
+                                       private Action _handlers;
+
+                                       public event Action A
+                                       {
+                                           add => _handlers += value
+                                   #if DEBUG
+                                                       ?? throw new InvalidOperationException()
+                                   #endif
+                                                       ;
+                                           remove => _handlers -= value;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
     #endregion // Tests
 
     #region Methods
