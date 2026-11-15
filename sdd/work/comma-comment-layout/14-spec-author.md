@@ -1,8 +1,8 @@
 Role: spec author
 Commit: 26eefea (statements derived from this head plus the built CLI of the branch, `src/Reihitsu.Cli/bin/Release/net11.0`, run on scratch fixtures; nothing built)
-Verdict: open question
+Verdict: spec written
 
-The prompt carried the lead's decisions 14–17 as the worklist; it carried no suspected cause or hoped-for verdict beyond them. Decisions 14, 15, and 17 are written. Decision 16 is not: its target output is not a fixed point of the formatter (Output questions, Q1), so the spec side waits for the maintainer.
+The prompt carried the lead's decisions 14–17 as the worklist; it carried no suspected cause or hoped-for verdict beyond them. Decisions 14, 15, and 17 are written. Decision 16's target output is not a fixed point of the formatter (Q1 below). The lead answered Q1 with A (decision 18, superseding 16), and that is written too.
 
 ## Changed requirements
 
@@ -18,13 +18,16 @@ The prompt carried the lead's decisions 14–17 as the worklist; it carried no s
   - *What* no longer lists the trailing-comma removal among the lost handling.
   - The `GetTriviaToPreserve` leading-trivia branch and `ContainsNonFormattingTrivia` moved from *Deleted* to *Checked and kept*. The entry gives the reason (a same-line documentation comment is the comma's leading trivia in `Parse`/`Diagnose`) and notes that the deletion rested on a false premise.
 - Change doc `sdd/changes/2026-11/rh5107-comment-behind-leading-comma.md`: the decision "The class is 'a comment behind the comma on its line'" no longer says the guard checks "the comma's trailing trivia". It now names both trivia (decision 15).
-- Not changed: FMT-BREAK-012 and FMT-BREAK-038's comment-moves-with-the-comma sentence (decision 16). See Q1.
+- FMT-BREAK-012 — A list is on one line or one element per line — clarified (decision 18). "A comment behind such a comma moves with it" covers every comment the parser lets trail the comma: `//`, `/* */`, and every comment in mode `None` (`Foo(1⏎, /** c */ 2)` → `Foo(1, /** c */⏎2)`). It does not cover a documentation comment in `Parse`/`Diagnose`. The documentation-comment phase places that comment first (FMT-PIPE-001, FMT-DOC-001), as for comma-last code: `Foo(1⏎, /** c */ 2)` → `Foo(1,⏎⏎/** c */ 2)` and `Foo(1⏎, /// c⏎2)` → `Foo(1,⏎⏎/// c⏎2)`, with the blank line from FMT-BLANK-012. FMT-PIPE-004 was added to `Uses`.
+- FMT-BREAK-038 — clarified the same way (decision 18): in mode `None`, `X = 3⏎, /** c */ Y = 4` → `X = 3, /** c */⏎Y = 4`; in `Parse`/`Diagnose` it → `X = 3,⏎⏎/** c */ Y = 4`. One `Why:` sentence was added: a comment kept behind the comma would be moved again on the next run (FMT-PIPE-004), so the comma-first form gives what the comma-last form gives.
+- Change doc `sdd/changes/2026-11/initializer-leading-comma.md`: *What* names the documentation-comment exception (decision 18).
 
 ## Examples for the tests
 
 - FMT-STRUCT-019 (new example), and through FMT-STRUCT-020 the same input in an array initializer and a collection initializer. Use `DocumentationMode.Parse`. The auditor's inputs in 13-auditor finding 1 are the rows: `int[] a = { 1, 2 /** two */, };` → `{ 1, 2 /** two */ }`, `new List<int> { 1 /** one */, }`, a multi-line `new[] { 1, 2 /** two */, }`, and `B /** doc B */, // after` → `B /** doc B */ // after`.
 - RH5107-004: methods `S` and `U` (no fix), and `V` (fix kept). Under `DocumentationMode.Diagnose`, the analyzer test harness's default, a `///` or `/** */` in a parameter list also raises CS1587 (XML comment not placed on a valid element). The test has to expect that compiler warning or parse with `Parse`.
-- FMT-BREAK-038: no new example, and no test changes for decision 17.
+- FMT-BREAK-012 and FMT-BREAK-038 (decision 18), with today's output as characterization. Each output was observed with the branch's built CLI in `Parse`, the CLI's documentation mode (`scratchpad/sa/n.cs`), and is stable on a second pass. The `None` rows (comment moves with the comma) come from 13-auditor's observation; I did not re-run them. No `src/` change is expected for these rows.
+- No test changes for decision 17.
 
 ## Output questions
 
@@ -104,7 +107,7 @@ Foo(1, /// c
 
 Why A: the formatter's comma-first output stays identical to its comma-last output, which is how FMT-BREAK-038 was built and audited. B is a change to documentation-comment placement that neither issue asks for. RH5107's fix is withheld for these inputs under either answer (decision 15), so the fix and the formatter cannot disagree.
 
-Recommended route: the lead asks Q1. On A, a spec author adds the sentence to FMT-BREAK-012 and FMT-BREAK-038 and the doc rows go to the tests as characterization of today's output; nothing in `src/` changes for decision 16. On B, the work leaves this run's issues and FMT-DOC-001 has to decide these positions; that is better filed as a follow-up than done here.
+**Answered: A (lead decision 18). Written into FMT-BREAK-012, FMT-BREAK-038, and `initializer-leading-comma.md`.** Original routing note: the lead asks Q1. On A, a spec author adds the sentence to FMT-BREAK-012 and FMT-BREAK-038 and the doc rows go to the tests as characterization of today's output; nothing in `src/` changes for decision 16. On B, the work leaves this run's issues and FMT-DOC-001 has to decide these positions; that is better filed as a follow-up than done here.
 
 ## Internal choices
 
