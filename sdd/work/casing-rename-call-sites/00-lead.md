@@ -20,9 +20,10 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name | Use the session's designated branch `claude/adoring-hawking-l4994s` instead of `claude/issue-1676-<slug>` | The session environment permits pushes only to that branch | Branch naming is internal | bb8fc78 |
-| 2 | Skeptic (01) | Take R2 (rename to an inherited member's name that silently rebinds member accesses; f06, f20, f22, f23, f26) into the run | Yes, withhold the fix for R2 | Same decision (does the rename change an existing reference's binding) and same method region as the issue's class; detection must cover it anyway | SHARED-FIX-003 (unchanged) allows only withholding | — |
+| 2 | Skeptic (01) | Take R2 (rename to an inherited member's name that silently rebinds member accesses; f06, f20, f22, f23, f26) into the run | Yes, withhold the fix for R2 | Same decision (does the rename change an existing reference's binding) and same method region as the issue's class; detection must cover it anyway | SHARED-FIX-003 (unchanged) allows only withholding | 4e56156 |
 | 3 | Skeptic (01) | Issue goals | Replace the stale `select`/`add` examples with reproducing members (f03, f04, …); widen "rewrites a call site" to "changes code other than the rename cascade's declarations and references"; keep the ambiguity-path test (f12); drop the SHARED-FIX-003/006 conflict framing | Examples are withheld on main by SHARED-CASING-011; class reaches type refs, fields, nameof, enum initializers | Decided by the output question's answer; agent-filed goals | — |
-| 4 | Skeptic (01) | Where to record the withheld class | Extend SHARED-CASING-009 (spec author clarification) | One requirement for "new name meets an existing binding" | Spec wording is internal | — |
+| 4 | Skeptic (01) | Where to record the withheld class | Extend SHARED-CASING-009 (spec author clarification) | One requirement for "new name meets an existing binding" | Spec wording is internal | 9e7419d |
+| 5 | Spec checker (06) | Finding 1: handover table row for f26 omits the SHARED-FIX-003 tag the test carries | No repair round; handovers are deleted before publishing and the test's tags are correct | The defect is only in a temporary handover | Handover text is internal | — |
 
 ## Follow-up candidates
 
@@ -36,4 +37,5 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 - Test implementer done: `03-test-implementer.md` (reproduced; 40 tests, 36 failing on 9fc76b7, commit b66f38a).
 - Implementer done: `04-implementer.md` (tests pass; +87/−2 in `CasingCodeFixProviderBase{T}.cs`, no new type; commit 4e56156).
 - Cleaner done: `05-cleaner.md` (clean, no changes; Release 0 warnings).
-- Next: spec checker.
+- Spec checker done: `06-spec-checker.md` (1 minor handover-only finding, decision 5).
+- Next: merge main if behind, build, auditor.
