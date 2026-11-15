@@ -19,6 +19,7 @@
 | 5 | Skeptic | Change-doc "before" outputs and Why section wrong | Route corrections to spec author (continued agent) | Skeptic 02, must-corrections | Change-doc text is internal | — |
 | 6 | Skeptic | Follow-up candidates: RH5102 reports `M(1, 2, /* a⏎b */ 3)` without fix; formatter drops space after `M( /* a⏎b */ 1, 2)` | Drop both | Only serve a rare input class (multi-line comment inside an argument list, which RH5038 reports) — lead.md, *Follow-ups* | Not taken in; nothing changes | — |
 | 7 | Skeptic | Declare "comment/directive between `(` and first element" unsupported? | Not an option: deletes no special case and would refuse common code | Skeptic 02 | No declaration | — |
+| 8 | Implementer | Architecture finding: RH5102 and RH5109 now carry the same multi-line-by-elements loop (one rule stated in two places) | Change the structure in this run: one shared helper used by both analyzers, no new type if an existing utility class fits; RH5109 behavior unchanged | README *Architecture findings*: the narrow fix itself added a copy; RH5109 is RH5102's parameter-list counterpart; a few lines | Pure refactor; RH5109 tests must stay green unchanged | — |
 | 1 | Claim | Branch name | Use `claude/pensive-davinci-jjfo8i` instead of `claude/issue-1755-<slug>` | The session environment only permits pushing to that branch | Branch names are internal | c59c687 |
 
 ## Follow-up candidates
@@ -31,4 +32,5 @@
 - Last step: skeptic (02, f8430c5): proceed; change-doc corrections routed to spec author.
 - Spec author amendment done (6c24569); change doc accepted. No output questions open.
 - Test implementer done (03; tests e863195, handover d12dd19): 28 failing runs, all RH5102-001 not-reported cases.
-- Next: implementer.
+- Implementer done (04; 37c9930): all RH5102 tests green; lane check confirmed behavior-change.
+- Next: implementer continued for decision 8 → cleaner.
