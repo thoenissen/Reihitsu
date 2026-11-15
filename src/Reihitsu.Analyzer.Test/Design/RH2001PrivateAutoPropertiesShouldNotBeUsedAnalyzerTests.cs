@@ -6476,6 +6476,42 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
         await Verify(testData, resultData);
     }
 
+    /// <summary>
+    /// Verifies that the fix is offered when the property is an element of a tuple that is a branch of a conditional
+    /// expression whose branches carry different names, so that the conditional's type has no name at that position
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedWhenThePropertyIsAnElementOfATupleThatIsABranchOfAConditionalExpressionWithDifferentlyNamedBranches()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    (int, int) Get(bool flag)
+                                    {
+                                        return flag ? (Value, 1) : (2, 3);
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      (int, int) Get(bool flag)
+                                      {
+                                          return flag ? (_value, 1) : (2, 3);
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
     #endregion // Tests
 
     #region Methods
