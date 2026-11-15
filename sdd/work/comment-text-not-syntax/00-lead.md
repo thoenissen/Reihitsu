@@ -36,7 +36,7 @@
 ## Follow-up candidates
 
 - RH2109: a Razor/HTML comment opened behind other text on its line (`<p>Counter</p><!--`) does not hide a `@code {` on the next line, so it is reported though SHARED-DIAG-003 makes it comment text; RH2109-001 does not record it. Carries an output question (spec author recommends: keep reported, record in RH2109-001). Source: 02-spec-author.md. **Dropped (decision 11).**
-- RH7203 (possibly other ordering fixes): in a block-scoped namespace whose first using has a comment above it (`// Header` or `/* Header */`), the fix writes the moved using at column 0 instead of the namespace indentation; pre-existing on main, LF and CRLF; the formatter writes column 4. Source: 05-test-implementer.md.
+- RH7203 (possibly other ordering fixes): in a block-scoped namespace whose first using has a comment above it (`// Header` or `/* Header */`), the fix writes the moved using at column 0 instead of the namespace indentation; pre-existing on main, LF and CRLF; the formatter writes column 4. Source: 05-test-implementer.md. **Filed as thoenissen/Reihitsu#1746** (12-issue-manager.md).
 
 ## Worklist / next step
 
