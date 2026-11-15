@@ -30,6 +30,7 @@ Batch 2 (after audit 09):
 | 2 | Skeptic | Issue goal "update the CLI help text" | Drop as a code task; only tests/specs follow | Help text is derived from the constant (02-skeptic) | The help line still changes via the constant and is asked as an output question | — |
 | 3 | Skeptic | Issue goal "update the two LanguageVersionResolver tests" | Widen to every test that uses `(LanguageVersion)1500` as above-maximum, incl. `ResolveClampsVersionsAboveTheMaximum` (FC-017) | 1500 is now CSharp15 | Tests are internal | — |
 | 4 | Skeptic | Issue goal "test infrastructure can compile a union" | Drop from this run; carry the facts to the first union sub-issue as a follow-up | Nothing in this issue compiles a union; Testing 1.1.4 knows only up to net10.0 | Test infrastructure is internal | — |
+| 6 | Repair 1 | Pin answer 5A in a test? | Yes, CLI end-to-end test, test implementer | A decided visible output should be locked by a test | Output already decided by answer 5A | — |
 | 5 | Skeptic | Change-doc wording ("valid C# 14 input formatted as before"; `closed` type names) and FMT-PIPE-008 `Why:` | Amend as the skeptic recommends (after the maintainer's answers) | The old wording is false for `union`/`closed` type names | Spec/change-doc wording is internal; the visible cases are asked | — |
 
 ## Follow-up candidates
@@ -38,6 +39,7 @@ Batch 2 (after audit 09):
 - Union test infrastructure facts (CS0518/CS0656 against net10.0 refs; clean against SDK net11.0 refs; Testing 1.1.4 only up to net10.0) — extend the first union sub-issue of #1716. Source: 02-skeptic.
 
 - Roslyn package version is repeated in 11 project files with nothing keeping them equal; consider central package management or an architecture test. Source: 09-auditor (hint).
+- Spacing of array initializers: CLI writes `new[]{1,2}` as `new[] {1, 2 }` (no space after `{`, one before `}`), also under `--lang-version 14`; check against the horizontal-spacing spec. Source: 10-spec-author.
 
 ## Worklist / next step
 
@@ -52,5 +54,7 @@ Batch 2 (after audit 09):
 - Done: 09-auditor (75e4cfd) on b0522fd: findings #1 (medium, undecided output: top-level statement starting with a local named `union`, e.g. `union.Add(4);`, now skipped under default C# 15) and #2 (low, comment text PlaygroundFormatterTests.cs:90 "only C# 14 parses" -> "C# 14 and later").
 - Decision: auditor's interim union layout hints are input for #1762–#1767 (already filed), not new follow-ups. Playground/trace now parse C# 15 (PLAY-005 already requires) -> change-doc mention, internal text.
 - Batch 2 answered: 5A.
-- Now: repair round 1 (spec author 10, cleaner 11).
+- Repair round 1: 10-spec-author (e3d0609, change doc adds answer 5 + Playground), 11-cleaner (f42e30d comment).
+- Decision 6: pin answer 5A with a CLI end-to-end test (test implementer 12) so the decided output is locked in.
+- Next: test implementer 12, then spec checker 13, auditor 14 (repair only), validator 15.
 - Next after answer: repair round 1 — spec author (change doc: top-level `union` statements per answer, Playground mention), cleaner (#2 comment), then spec checker, auditor (repair only), validator.
