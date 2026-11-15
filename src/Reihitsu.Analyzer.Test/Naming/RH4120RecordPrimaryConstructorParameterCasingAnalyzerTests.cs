@@ -443,6 +443,56 @@ public class RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests : BatchC
         await Verify(testCode, testCode);
     }
 
+    /// <summary>
+    /// Verifies that a positional record parameter keeps its diagnostic but gets no fix when the property the compiler declares for it would implement a member of an interface the record implements, because that interface member would return another value at run time
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheParametersPropertyWouldImplementAnInterfaceProperty()
+    {
+        const string testCode = """
+                                public interface INamed
+                                {
+                                    string Name => "default";
+                                }
+
+                                public record Person(string {|RH4120:name|}) : INamed;
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a positional record parameter is renamed when the interface its record implements has no member of the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixRenamesTheParameterWhenTheInterfaceHasNoMemberOfTheNewName()
+    {
+        const string testCode = """
+                                public interface INamed
+                                {
+                                    string Other => "default";
+                                }
+
+                                public record Person(string {|RH4120:name|}) : INamed;
+                                """;
+
+        const string fixedCode = """
+                                 public interface INamed
+                                 {
+                                     string Other => "default";
+                                 }
+
+                                 public record Person(string Name) : INamed;
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
