@@ -696,8 +696,9 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
     /// <summary>
     /// Applies a rename only when it is safe: no method name the compiler looks up implicitly, no namespace member
     /// collision, no name in excluded code or in a caller-argument expression attribute, no Roslyn conflict annotation,
-    /// no rewritten or rebound reference to a symbol outside the rename cascade, no changed native entry point, no
-    /// changed document that holds code another build configuration hides, no added compile error, and no change to the
+    /// no rewritten or rebound reference to a symbol outside the rename cascade, no reference of the cascade rewritten
+    /// beyond its name, no change of the interface members the renamed member implements, no changed native entry
+    /// point, no changed document that holds code another build configuration hides, no added compile error, and no change to the
     /// properties the compiler declares for positional record parameters
     /// </summary>
     /// <param name="solution">Solution containing the declaration</param>
@@ -709,8 +710,9 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
     /// <remarks>
     /// The checks that depend on what the rename reaches take it from <see cref="GetRenameCascadeAsync"/>: the native
     /// entry points of every cascade member, the caller-argument expression attributes of every parameter list that
-    /// declares a cascade parameter, and the excluded code of every document that can refer to one, each searched for
-    /// the new name and for the old names that the cascade before and after the rename gives. The compile
+    /// declares a cascade parameter, the changes the renamer makes, which may lie only on identifiers that carry an
+    /// old name, and the excluded code of every document that can refer to one, each searched for the new name and for
+    /// the old names that the cascade before and after the rename gives. The compile
     /// error and positional property checks inspect every document of every project the rename changes or that depends
     /// on one of them
     /// </remarks>
@@ -752,23 +754,25 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
             return null;
         }
 
+        var renamedCascade = await GetRenameCascadeAsync(renamedSolution, renamedDeclaration.Value.Symbol, cancellationToken).ConfigureAwait(false);
+        var oldNames = GetOldNames(prepared.Value.Cascade, renamedCascade);
+
         // The rename may change no binding of a reference to a symbol outside the cascade, whether the renamer rewrites
-        // that reference or leaves it as written (SHARED-CASING-009)
-        if (await RewritesOtherCodeAsync(solution, renamedSolution, prepared.Value.Cascade, cancellationToken).ConfigureAwait(false)
+        // that reference or leaves it as written, and no member that implements an interface member (SHARED-CASING-009)
+        if (await RewritesOtherCodeAsync(solution, renamedSolution, oldNames, cancellationToken).ConfigureAwait(false)
             || await CountReferenceLocationsAsync(renamedSolution, renamedDeclaration.Value.Symbol, cancellationToken).ConfigureAwait(false)
-               != await CountReferenceLocationsAsync(solution, prepared.Value.Symbol, cancellationToken).ConfigureAwait(false))
+               != await CountReferenceLocationsAsync(solution, prepared.Value.Symbol, cancellationToken).ConfigureAwait(false)
+            || CountImplementedInterfaceMembers(renamedDeclaration.Value.Symbol) != CountImplementedInterfaceMembers(prepared.Value.Symbol))
         {
             return null;
         }
-
-        var renamedCascade = await GetRenameCascadeAsync(renamedSolution, renamedDeclaration.Value.Symbol, cancellationToken).ConfigureAwait(false);
 
         if (GetNativeEntryPoints(prepared.Value.Cascade).SequenceEqual(GetNativeEntryPoints(renamedCascade), StringComparer.Ordinal) == false)
         {
             return null;
         }
 
-        var renamedNames = GetOldNames(prepared.Value.Cascade, renamedCascade).Add(identifier);
+        var renamedNames = oldNames.Add(identifier);
 
         if (HasCallerArgumentExpressionNaming(prepared.Value.Cascade, renamedNames, identifier, cancellationToken)
             || await ExcludedCodeUtilities.HasExcludedCodeOccurrenceAsync(solution, prepared.Value.Cascade, renamedNames, cancellationToken).ConfigureAwait(false))
@@ -1023,7 +1027,7 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
     /// </summary>
     /// <param name="originalSolution">Solution before the rename</param>
     /// <param name="renamedSolution">Solution after the rename</param>
-    /// <param name="cascade">Rename cascade before the rename</param>
+    /// <param name="oldNames">Old names of the rename, as <see cref="GetOldNames"/> gives them</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns><see langword="true"/> when a change reaches a token that is no reference of the cascade; otherwise, <see langword="false"/></returns>
     /// <remarks>
@@ -1031,17 +1035,15 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
     /// that reference, such as qualifying it, turning an extension call into a static call, or casting an argument,
     /// without reporting a conflict. Renaming the cascade only replaces, or qualifies, identifiers that carry an old
     /// name, so every change has to lie on such identifiers: a replaced span may only overlap them, and an insertion
-    /// has to touch one of them
+    /// has to touch one of them. A name the cascade still carries after the rename is no old name, so a reference to
+    /// another symbol spelled that way, such as a field spelled like the parameter of the other part of a partial
+    /// method, does not count as a reference of the cascade
     /// </remarks>
     private static async Task<bool> RewritesOtherCodeAsync(Solution originalSolution,
                                                            Solution renamedSolution,
-                                                           ImmutableArray<ISymbol> cascade,
+                                                           ImmutableHashSet<string> oldNames,
                                                            CancellationToken cancellationToken)
     {
-        var oldNames = cascade.Where(static symbol => symbol.CanBeReferencedByName)
-                              .Select(static symbol => symbol.Name)
-                              .ToImmutableHashSet(StringComparer.Ordinal);
-
         foreach (var documentId in renamedSolution.GetChanges(originalSolution)
                                                   .GetProjectChanges()
                                                   .SelectMany(static changes => changes.GetChangedDocuments()))
@@ -1091,6 +1093,28 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
                                 .Select(static location => (location.Document.Id, location.Location.SourceSpan))
                                 .Distinct()
                                 .Count();
+    }
+
+    /// <summary>
+    /// Counts the interface members that a symbol implements in its containing type
+    /// </summary>
+    /// <param name="symbol">Symbol</param>
+    /// <returns>The number of members of the containing type's interfaces whose implementation is the symbol</returns>
+    /// <remarks>
+    /// A rename to the name of an interface member that the containing type lists among its own base types makes the
+    /// renamed member implement it in place of the member that implements it today, such as an inherited one, so a
+    /// call through the interface reaches another member. Such a rename raises the count. When the type does not list
+    /// the interface itself, the compiler keeps the inherited implementation and the count stays the same
+    /// </remarks>
+    private static int CountImplementedInterfaceMembers(ISymbol symbol)
+    {
+        var containingType = symbol.ContainingType;
+
+        return containingType == null
+                   ? 0
+                   : containingType.AllInterfaces
+                                   .SelectMany(static interfaceType => interfaceType.GetMembers())
+                                   .Count(member => SymbolEqualityComparer.Default.Equals(containingType.FindImplementationForInterfaceMember(member), symbol));
     }
 
     /// <summary>
