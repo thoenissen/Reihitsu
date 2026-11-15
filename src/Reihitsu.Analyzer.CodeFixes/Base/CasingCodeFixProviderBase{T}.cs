@@ -696,8 +696,9 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
     /// <summary>
     /// Applies a rename only when it is safe: no method name the compiler looks up implicitly, no namespace member
     /// collision, no name in excluded code or in a caller-argument expression attribute, no Roslyn conflict annotation,
-    /// no changed native entry point, no changed document that holds code another build configuration hides, no added
-    /// compile error, and no change to the properties the compiler declares for positional record parameters
+    /// no rewritten or rebound reference to a symbol outside the rename cascade, no changed native entry point, no
+    /// changed document that holds code another build configuration hides, no added compile error, and no change to the
+    /// properties the compiler declares for positional record parameters
     /// </summary>
     /// <param name="solution">Solution containing the declaration</param>
     /// <param name="documentId">Declaration document</param>
@@ -747,6 +748,15 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
         var renamedDeclaration = await ResolveRenameDeclarationAsync(renamedSolution, documentId, annotation, cancellationToken).ConfigureAwait(false);
 
         if (renamedDeclaration == null)
+        {
+            return null;
+        }
+
+        // The rename may change no binding of a reference to a symbol outside the cascade, whether the renamer rewrites
+        // that reference or leaves it as written (SHARED-CASING-009)
+        if (await RewritesOtherCodeAsync(solution, renamedSolution, prepared.Value.Cascade, cancellationToken).ConfigureAwait(false)
+            || await CountReferenceLocationsAsync(renamedSolution, renamedDeclaration.Value.Symbol, cancellationToken).ConfigureAwait(false)
+               != await CountReferenceLocationsAsync(solution, prepared.Value.Symbol, cancellationToken).ConfigureAwait(false))
         {
             return null;
         }
@@ -1006,6 +1016,81 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
         return node == null || symbol == null
                    ? null
                    : (node, symbol);
+    }
+
+    /// <summary>
+    /// Determines whether a rename changed code other than the references of the rename cascade
+    /// </summary>
+    /// <param name="originalSolution">Solution before the rename</param>
+    /// <param name="renamedSolution">Solution after the rename</param>
+    /// <param name="cascade">Rename cascade before the rename</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> when a change reaches a token that is no reference of the cascade; otherwise, <see langword="false"/></returns>
+    /// <remarks>
+    /// The renamer keeps the binding of a reference to another symbol that the new name would capture by rewriting
+    /// that reference, such as qualifying it, turning an extension call into a static call, or casting an argument,
+    /// without reporting a conflict. Renaming the cascade only replaces, or qualifies, identifiers that carry an old
+    /// name, so every change has to lie on such identifiers: a replaced span may only overlap them, and an insertion
+    /// has to touch one of them
+    /// </remarks>
+    private static async Task<bool> RewritesOtherCodeAsync(Solution originalSolution,
+                                                           Solution renamedSolution,
+                                                           ImmutableArray<ISymbol> cascade,
+                                                           CancellationToken cancellationToken)
+    {
+        var oldNames = cascade.Where(static symbol => symbol.CanBeReferencedByName)
+                              .Select(static symbol => symbol.Name)
+                              .ToImmutableHashSet(StringComparer.Ordinal);
+
+        foreach (var documentId in renamedSolution.GetChanges(originalSolution)
+                                                  .GetProjectChanges()
+                                                  .SelectMany(static changes => changes.GetChangedDocuments()))
+        {
+            var originalTree = await originalSolution.GetDocument(documentId).GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var renamedTree = await renamedSolution.GetDocument(documentId).GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var originalRoot = await originalTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+
+            foreach (var span in renamedTree.GetChanges(originalTree).Select(static change => change.Span))
+            {
+                var searchSpan = TextSpan.FromBounds(Math.Max(0, span.Start - 1), Math.Min(originalRoot.FullSpan.End, span.End + 1));
+                var tokens = originalRoot.DescendantTokens(searchSpan, descendIntoTrivia: true)
+                                         .Where(token => span.IsEmpty
+                                                             ? token.Span.Start <= span.Start && span.Start <= token.Span.End
+                                                             : token.Span.OverlapsWith(span))
+                                         .ToList();
+                var cascadeReferenceCount = tokens.Count(token => token.IsKind(SyntaxKind.IdentifierToken) && oldNames.Contains(token.ValueText));
+
+                if (cascadeReferenceCount == 0
+                    || (span.IsEmpty == false && cascadeReferenceCount != tokens.Count))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Counts the source locations that refer to a symbol or to another symbol of its rename cascade
+    /// </summary>
+    /// <param name="solution">Solution</param>
+    /// <param name="symbol">Symbol</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The number of distinct reference locations</returns>
+    /// <remarks>
+    /// A reference to another symbol that the renamer leaves as written can bind to the renamed symbol afterwards, for
+    /// example a member access whose receiver has the renaming type when the renamed member now hides an inherited one.
+    /// Such a reference adds a location, so a rename that keeps every other binding keeps the count
+    /// </remarks>
+    private static async Task<int> CountReferenceLocationsAsync(Solution solution, ISymbol symbol, CancellationToken cancellationToken)
+    {
+        var referencedSymbols = await SymbolFinder.FindReferencesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+
+        return referencedSymbols.SelectMany(static referencedSymbol => referencedSymbol.Locations)
+                                .Select(static location => (location.Document.Id, location.Location.SourceSpan))
+                                .Distinct()
+                                .Count();
     }
 
     /// <summary>
