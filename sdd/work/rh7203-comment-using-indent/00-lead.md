@@ -36,4 +36,5 @@ None yet.
 - Test implementer done (03-test-implementer.md, a9b2d9b): reproduced; 17 formatter + RH7201–RH7207 code-fix tests failing as expected.
 - Implementer done (04-implementer.md, e360f52): fix in UsingLeadingTriviaBuilder + UsingDirectiveOrderingRewriter (+30/-2); all tests pass in Debug.
 - Cleaner done (05-cleaner.md, 500e3cc): clean, Release build 0 warnings.
-- Next: spec checker.
+- Spec checker done (06-spec-checker.md, da0fc6d): consistent, no findings.
+- Next: build, auditor.
