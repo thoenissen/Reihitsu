@@ -20,6 +20,7 @@ None yet.
 | 3 | Skeptic | Issue goal scope (agent-filed) | Widen to every failing member in `01-skeptic.md` (spaces/tab behind the last token, behind trailing block comments, comment-only last line; LF, CRLF, BOM) | Same mechanism; #923 Q3 covers all of them | #923 Q3 decides the output for every member | – |
 | 4 | Skeptic | Spec | Spawn spec author for a clarification: drop the end-of-file part of the `cleanup.md` non-goal and widen FMT-CLEAN-005 so it states the removal (keeps the issue's tag) | Bug-fix lane allows the spec author for a clarification; #923 Q1 precedent | Clarifies an output the maintainer already decided | – |
 | 5 | Skeptic | Detached roots (FMT-CLEAN-008) | Leave unchanged; change only the end of a file | No caller sees the difference | No caller reaches it | – |
+| 7 | Test impl. | Untagged `#endif···` characterization test locks main's behavior that #960 item 1 may change | Keep it: it guards this fix against overreach; the run for #960 item 1 flips it | Asserts main's unchanged output | b0d9c95 |
 | 6 | Skeptic | PR links | `Closes #1747`, `Refs #960` | #1747 is item 2 of #960 | Internal | – |
 
 ## Follow-up candidates
@@ -31,4 +32,5 @@ None yet.
 
 - Done: skeptic `01-skeptic.md` (proceed, no output questions).
 - Done: spec author `02-spec-author.md` (FMT-CLEAN-005 widened, commit 889d042; no output questions). Output-question batch 1: nothing open, no stop.
-- Next: test implementer `03-test-implementer.md`.
+- Done: test implementer `03-test-implementer.md` (reproduced; 16 failing, 8 guard tests passing; b0d9c95).
+- Next: implementer `04-implementer.md`.
