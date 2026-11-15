@@ -15,7 +15,7 @@
 
 ## Maintainer answers
 
-(none yet)
+- Q1 (#1289, RH2109, `@code {` starting a line inside a multi-line C# literal/comment): **A** — stays reported (unchanged output). The RH2109 spec records that such a line is read like markup, including the converse miss (`@*`/`<!--` line inside a C# extent hides a later real `@code {`); existing characterization tests become requirement-tagged tests of this result.
 
 ## Decisions taken
 
@@ -32,5 +32,6 @@
 ## Worklist / next step
 
 - Skeptic done (01-skeptic.md, d281c31): #966 proceed narrower; #1289 output question (A keep reported vs B not reported).
-- Waiting: maintainer answer to output question 1 (#1289), asked before the test implementer.
+- Maintainer answered Q1: A.
+- Next: spec author (SHARED-USING-009 clarification; RH2109-001 amendment per answer A).
 - Then: spec author (SHARED-USING-009 clarification; RH2109-001 amendment if A) → test implementer → implementer (#966) → cleaner → spec checker → auditor → validator.
