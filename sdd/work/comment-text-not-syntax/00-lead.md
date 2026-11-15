@@ -22,6 +22,8 @@
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name `claude/issues-966-1289-<slug>` vs. session branch | Use the session-designated branch `claude/determined-faraday-q5zic1` | The cloud session only permits pushes to its designated branch | Branch name is internal | 0c615d1 |
+| 2 | Skeptic | SHARED-USING-009: does "trivia of its directives" cover directives between a using's tokens? | Token-wise reading; route a one-sentence clarification to the spec author; keep the textual guard's protection for directives between tokens (skeptic matrix B stays not reordered/not reported) | Only that reading fits the requirement's Why; the node-wise reading would move `#pragma`/split `#if` pairs (safety rail) | Matrix B keeps today's output; matrix A's new reports/reorders are demanded by unchanged SHARED-USING-009 | — |
+| 3 | Skeptic | #966 goal "only `HasUnsafeTrivia` blocks" and case 2 | Adjust goal to "only real directives, wherever in the directives, block"; drop case 2 (fixed on main by #1735) | Prescribed solution rests on a false premise; case 2 already done | No output change beyond SHARED-USING-009 | — |
 
 ## Follow-up candidates
 
@@ -29,4 +31,6 @@
 
 ## Worklist / next step
 
-- Next: skeptic (premise + reachability for both issues).
+- Skeptic done (01-skeptic.md, d281c31): #966 proceed narrower; #1289 output question (A keep reported vs B not reported).
+- Waiting: maintainer answer to output question 1 (#1289), asked before the test implementer.
+- Then: spec author (SHARED-USING-009 clarification; RH2109-001 amendment if A) → test implementer → implementer (#966) → cleaner → spec checker → auditor → validator.
