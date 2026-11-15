@@ -15,6 +15,7 @@
 ## Maintainer answers
 
 - Q1 (Unicode escape in a using name; RH7201/RH7207/formatter): **A, generalized.** Every name is ordered and grouped by its technical (compiler-interpreted) value: `@` is dropped and Unicode escapes are decoded. `using \u0053ystem.IO;` is in the `System` group; RH7201 reports it in the input `Microsoft.Win32; \u0053ystem.IO; System`, and the formatter places it after `using System;` in the `System` group.
+- Q2 (`global::` in the sort key; RH7203/RH7206/formatter): **A.** A leading `global::` is ignored in the sort key too, so `global::System.IO` sorts as `System.IO`; `using System; using global::System.IO; using System.Collections;` formats to `System; System.Collections; global::System.IO`; RH7203 reports `System.Collections` after `global::System.IO` and its fix moves it first; RH7206 the same for `using static global::…`. Name it in the PR's Review notes.
 
 ## Decisions taken
 
@@ -26,6 +27,7 @@
 | 4 | Skeptic | #1267 goals: RH7204 change, SHARED-USING-005 mention, two non-name aliases in one section | RH7204 gets only a characterization test; SHARED-USING-005 dropped from scope; order between two non-name aliases stays as on `main` (not locked by new tests) | 02-skeptic: RH7204 already correct for the instance; SHARED-USING-004 does not decide two non-name aliases | Nothing changes for those outputs | |
 | 6 | Test impl. | When to fix the RH7201 spec-example markup gap | Batch it with the spec checker's findings instead of a separate spawn now | One-line example markup; the test already follows the requirement text | The requirement already demands the second report, and `main` reports it | |
 | 7 | Implementer | Pre-existing RH7203 test asserts compare-with-adjacent-only (1 diagnostic) | Test is wrong: mark `…CodeActions` and `…CodeFixes` too, expect 3; fresh test implementer (the earlier one is large) | Amended RH7203-001 aligns to SHARED-USING-007, which the maintainer's P18 clarification on #1266 decides (every earlier element of the group) | The extra reports are demanded by SHARED-USING-007 and the maintainer's P18 clarification; the fixed code is unchanged | |
+| 8 | Audit 1 | Auditor hint: `GetDirectivesOutOfOrderWithinTheirGroup` recomputes name values per pair | Not taken in this run | Non-blocking performance hint; using blocks are small; a compiled change would widen the repair | Internal only | |
 | 5 | Skeptic | SHARED-USING-004 wording "between its parts" | Spec author amends to cover `global ::` and type-argument trivia (wording "between its tokens" plus examples for `global :: System.IO` and a generic static type name) | Both are failing members of the #1105 class | Same outputs the agreement and FMT-PIPE-004 already demand | |
 
 ## Follow-up candidates
@@ -48,4 +50,4 @@
 - Spec checker (2102800, 08-spec-checker.md): one finding = the RH7201 example markup item. Repair round 1 (spec only).
 - Repair round 1 done: 041886c (09-spec-author), spec checker consistent (abe7ba8, 10-spec-checker). Main not ahead; Release build green.
 - Audit 1 (25baa47, 11-auditor.md) on 9bd5966 vs main 8a26419: one high finding — sort key now drops a leading `global::` (Core `GetSortKey` via `StripGlobalQualifier`), changing formatter order and RH7203/RH7206 reports even for plain `global::System.IO`; undecided visible output. #1266, #1267 no findings. Hint (non-blocking): pairwise comparison recomputes name values.
-- Output question 2 (`global::` in the sort key) asked — WAITING. After the answer: repair round 2 (implementer/test implementer/spec author as needed), cleaner, spec checker, auditor on the repair.
+- Q2 answered A: implementation stays. Repair round 2: spec author (state that the sort key drops `global::`, with plain-spelling example) then test implementer (plain-spelling tests for RH7203, RH7206, formatter), then cleaner, spec checker, auditor on the repair, validator.
