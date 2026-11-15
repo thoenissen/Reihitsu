@@ -790,6 +790,74 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : B
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies that a method whose constraint clause the fix moves, and which shares its line with a field in front of it,
+    /// starts on the next line in the column of that line, and that its constraint clause and its block are laid out from there
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixGivesAMethodThatSharesItsLineWithAFieldInFrontALineOfItsOwn(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _a; public void M<T>() {|RH5110:where|} T : class
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     private int _a;
+                                     public void M<T>()
+                                         where T : class
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a method whose constraint clause the fix moves, and which shares its line with a field behind it,
+    /// keeps its own line, and that the field behind it starts on the next line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixGivesAMethodThatSharesItsLineWithAFieldBehindItALineOfItsOwn(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    public void N<T>() {|RH5110:where|} T : class
+                                    {
+                                    } private int _c;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     public void N<T>()
+                                         where T : class
+                                     {
+                                     }
+                                     private int _c;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

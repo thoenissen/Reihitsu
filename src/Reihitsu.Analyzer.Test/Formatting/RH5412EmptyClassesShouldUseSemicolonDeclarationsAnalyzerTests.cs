@@ -650,6 +650,70 @@ public class RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzerTests : Bat
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifies that an empty class the fix gives a semicolon body, and which shares its line with a field in front of it,
+    /// starts on the next line in the column of that line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixGivesAClassThatSharesItsLineWithAFieldInFrontALineOfItsOwn(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _x; public class {|RH5412:A|} { }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     private int _x;
+                                     public class A;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that an empty class the fix gives a semicolon body, and which shares its line with a class behind it,
+    /// keeps its own line, and that the class behind it starts on the next line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixGivesAClassThatSharesItsLineWithAClassBehindItALineOfItsOwn(string endOfLine)
+    {
+        const string testData = """
+                                namespace N
+                                {
+                                    public class {|RH5412:A|} { } public class B
+                                    {
+                                        public int X;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 namespace N
+                                 {
+                                     public class A;
+                                     public class B
+                                     {
+                                         public int X;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region Methods

@@ -5290,6 +5290,66 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     }
 
     /// <summary>
+    /// Verifies that a property whose initializer the fix joins, and which shares its line with a field in front of it,
+    /// starts on the next line in the column of that line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixGivesAPropertyThatSharesItsLineWithAFieldInFrontALineOfItsOwn(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _a; {|RH5111:public int P { get; } =
+                                        1;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     private int _a;
+                                     public int P { get; } = 1;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a property whose initializer the fix joins, and which shares its line with a field behind it, keeps
+    /// its own line, and that the field behind it starts on the next line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixGivesAPropertyThatSharesItsLineWithAFieldBehindItALineOfItsOwn(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH5111:public int P { get; } =
+                                        1;|} private int _b;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     public int P { get; } = 1;
+                                     private int _b;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
     /// Verifies the one diagnostic marked in the source and the fix result under LF and under CRLF
     /// </summary>
     /// <param name="testData">The source with LF line endings</param>

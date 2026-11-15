@@ -3753,6 +3753,88 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies that a property the fix replaces by a field, and which shares its line with a field in front of it,
+    /// starts on the next line in the column of that line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixGivesAFieldThatSharesItsLineWithAFieldInFrontALineOfItsOwn(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _a; private int {|RH2001:Value|} { get; set; }
+
+                                    public int M()
+                                    {
+                                        Value = 1;
+                                        return _a + Value;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     private int _a;
+                                     private int _value;
+
+                                     public int M()
+                                     {
+                                         _value = 1;
+                                         return _a + _value;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a property the fix replaces by a field, and which shares its line with a field behind it, keeps
+    /// its own line, and that the field behind it starts on the next line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixGivesAFieldThatSharesItsLineWithAFieldBehindItALineOfItsOwn(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Value|} { get; set; } private int _b;
+
+                                    public int M()
+                                    {
+                                        Value = 1;
+                                        return Value + _b;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     private int _value;
+                                     private int _b;
+
+                                     public int M()
+                                     {
+                                         _value = 1;
+                                         return _value + _b;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region Methods

@@ -208,6 +208,70 @@ public class RH5413EmptyStructsShouldUseSemicolonDeclarationsAnalyzerTests : Bat
                      Diagnostics(RH5413EmptyStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5413MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that an empty struct the fix gives a semicolon body, and which shares its line with a field in front of it,
+    /// starts on the next line in the column of that line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixGivesAStructThatSharesItsLineWithAFieldInFrontALineOfItsOwn(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _x; public struct {|RH5413:A|} { }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     private int _x;
+                                     public struct A;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that an empty struct the fix gives a semicolon body, and which shares its line with a struct behind it,
+    /// keeps its own line, and that the struct behind it starts on the next line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixGivesAStructThatSharesItsLineWithAStructBehindItALineOfItsOwn(string endOfLine)
+    {
+        const string testData = """
+                                namespace N
+                                {
+                                    public struct {|RH5413:A|} { } public struct B
+                                    {
+                                        public int X;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 namespace N
+                                 {
+                                     public struct A;
+                                     public struct B
+                                     {
+                                         public int X;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region Methods
