@@ -33,5 +33,5 @@
 ## State
 
 - Last step: skeptic (01-skeptic.md, 71ae774).
-- Answer 1B received. Spec author runs for #1742 (clarification: record the limitation per answer 1) — no spec change for #1680.
+- Spec author done (02-spec-author.md, e966660). SHARED-DIAG-013 added.
 - Next: spec author -> test implementer (#1680 reproductions; #1742 characterization of the recorded limitation) -> implementer -> cleaner -> spec checker -> auditor -> validator.
