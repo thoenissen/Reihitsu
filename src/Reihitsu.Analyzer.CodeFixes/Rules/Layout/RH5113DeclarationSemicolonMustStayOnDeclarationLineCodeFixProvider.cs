@@ -88,10 +88,9 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineCodeFixProvider 
     }
 
     /// <summary>
-    /// Determines whether the formatter can safely collapse the stray semicolon. The fix is not offered
-    /// when a comment sits between the previous token and the semicolon, because joining the lines would
-    /// absorb the semicolon into the comment. Mirrors the per-token guard used by the formatter's
-    /// line-break rewriter so the fix is offered whenever the formatter would also collapse the join
+    /// Determines whether the stray semicolon can be moved behind the token in front of it. The fix is not offered when a
+    /// comment sits between the previous token and the semicolon, because removing the gap would absorb the semicolon into
+    /// the comment (SHARED-FIX-003)
     /// </summary>
     /// <param name="semicolonToken">Semicolon token</param>
     /// <returns><see langword="true"/> if the code fix can be applied safely; otherwise, <see langword="false"/></returns>
@@ -130,6 +129,10 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineCodeFixProvider 
     #region ReihitsuCodeFixProviderBase
 
     /// <inheritdoc/>
+    /// <remarks>
+    /// The fix moves only the semicolon and lays out nothing through the formatter (RH5113-003), but it is still withheld in a
+    /// document with a syntax error, as a decision of its own (RH5113-004)
+    /// </remarks>
     protected override bool FormatsThroughFormatter => true;
 
     /// <inheritdoc/>
@@ -154,6 +157,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineCodeFixProvider 
 
             var semicolonToken = GetSemicolonToken(declarationNode);
 
+            // A declaration that holds a shape the formatter refuses is not fixed either, although no formatter lays it out (RH5113-004)
             if (CanApplyCodeFix(semicolonToken) == false
                 || ReihitsuFormatter.FindUnsupportedSyntax(declarationNode) != null)
             {

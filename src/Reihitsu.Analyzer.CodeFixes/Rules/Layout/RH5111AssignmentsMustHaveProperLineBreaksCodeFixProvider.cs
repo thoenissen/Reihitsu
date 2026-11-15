@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.CodeFixes.Base;
+using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Core;
 using Reihitsu.Formatter;
@@ -27,7 +28,8 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : Reihitsu
     #region Methods
 
     /// <summary>
-    /// Applies the code fix
+    /// Applies the code fix. A property that shares its line with another member is first separated from it, so that both
+    /// stand on lines of their own (SHARED-FIX-007); then the property is formatted through the formatter
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>
@@ -48,6 +50,11 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : Reihitsu
         if (formattingNode == null)
         {
             return document;
+        }
+
+        if (formattingNode is PropertyDeclarationSyntax property)
+        {
+            return await BlankLineCodeFixUtilities.FormatMemberOnLinesOfItsOwnAsync(document, property, cancellationToken).ConfigureAwait(false);
         }
 
         var contextNode = GetFormattingContextNode(formattingNode);
