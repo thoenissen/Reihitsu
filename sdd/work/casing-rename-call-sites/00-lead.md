@@ -57,4 +57,5 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 - Test implementer (decision 10) done: `15-test-implementer.md` (e48cb14; 9 failing as intended).
 - Implementer (decision 10) done: `16-implementer.md` (11d3dd8, cd22e38; Naming 750 pass; analyzer 9598 pass; Release 0 warnings).
 - Cleaner (decision 10) done: `17-cleaner.md` (clean; Naming 750/750).
-- Next: spec checker → auditor (delta since df00d3b) → validator.
+- Spec checker (decision 10) done: `18-spec-checker.md` (consistent).
+- Next: auditor (delta since df00d3b) → validator.
