@@ -69,7 +69,8 @@
 - Done: skeptic 04 (ac7d832). Asked maintainer batch 2: Q6 escalation 9 — scope of M3/M5 write-back (A build / B one-line parts only / C defer to follow-up, recommended C); Q7 RH5303–RH5308 code around construct (A main / B only the construct, recommended). ANSWERED 1C, 2B (M6, M7).
 - Next: spec author (fresh) amendment for M6 (revert *Inside* bullet and its references; interior as main), M7, D15, D16 → 05-spec-author.md; then accept change doc; then test implementer.
 - Done: spec author 05 (2d1b537). Asked batch 3: Q8 change 7 (fix now offered where a refused shape stands elsewhere in the statement; rec A offer), Q9 RH5308 conditional in [assembly:]/[module:] attribute (rec A offer, retires RH5308-006). ANSWERED 1A, 2A (M8, M9).
-- Next: continue spec author 05 for M8/M9 + change doc Status Accepted → then test implementer (06).
+- Done: spec author 05 addendum (3948f75); change doc Accepted. Note: three RH5308 tests tagged RH5308-006 must be rewritten (test implementer).
+- Next: test implementer (06).
 - Pending internal after answers: SHARED-FIX-006 Leading-trivia exception for SHARED-FIX-007 shared line (accept skeptic rec); rewrite D6 bullet in change doc Alternatives; change-doc completeness items (04-skeptic Internal choices 3); pipeline.md code owners row; Fix All tests for nested constructs.
 - (old) Next: skeptic (fresh) on change doc + spec diff → 04-skeptic.md; then batch 2 output questions (change-doc visible changes not covered by M1–M5; spec author's open: argument spanning lines in RH5101/5102; tab-indented target) → then test implementer.
 - (old) After answers: spec author (fresh) for D6 reverts, D7 consolidation, D5 FMT-PIPE-010/024 amendment, answers; then test implementer.
