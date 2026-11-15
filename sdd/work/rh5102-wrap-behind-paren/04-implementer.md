@@ -38,3 +38,30 @@ _None._
 
 ## Follow-up candidates
 _None._
+
+## Amendment
+
+Lead decision 8: one shared helper states the check that a list is multi-line by its elements, and both rules call it.
+
+| File | What changed | Requirement |
+|---|---|---|
+| `src/Reihitsu.Core/SyntaxNodeUtilities.cs` | New `public static bool IsPartlyWrapped<TNode>(IEnumerable<TNode> elements) where TNode : SyntaxNode`, next to `AreAllSingleLine`. It returns true when the list is multi-line (two elements start on different lines, or one element spans lines) and two elements start on the same line. The private `CoversSingleLine` decides whether an element spans lines. This is the existing class, not a new type. | RH5102-001, RH5109-001 |
+| `src/Reihitsu.Analyzer/Rules/Layout/RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer.cs` | The loop is replaced by `SyntaxNodeUtilities.IsPartlyWrapped(argumentList.Arguments)`, and the unused `System.Collections.Generic` using is removed. | RH5102-001 |
+| `src/Reihitsu.Analyzer/Rules/Layout/RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.cs` | The same loop is replaced by `SyntaxNodeUtilities.IsPartlyWrapped(parameterList.Parameters)`, and the unused using is removed. The logic is the same as before; only where it lives changed. | RH5109-001 |
+
+- Commit: 5c8c36c.
+- Policy owners after the amendment: `rg -n "isMultiLine \|=|sharesLine|startLines" src --glob '!*Test*'` finds no copy outside `SyntaxNodeUtilities.IsPartlyWrapped`.
+- New public member: `SyntaxNodeUtilities.IsPartlyWrapped`. No new type.
+- Diff:
+  - Round delta (`git diff --shortstat HEAD~1 -- src`): 3 files changed, 37 insertions(+), 38 deletions(-).
+  - Total production diff against `origin/main`: 3 files changed, 38 insertions(+), 41 deletions(-).
+- Not added: a direct `Reihitsu.Core.Test` test for `IsPartlyWrapped`, because writing tests is not the implementer's job. Both rules' tests cover it. The lead can route a direct test to the test implementer if wanted.
+
+Tests run (Debug):
+- `scripts/test.sh --configuration Debug --project analyzer --filter "FullyQualifiedName~RH5102ArgumentsShouldBeOnSingleOrSeparateLines|FullyQualifiedName~RH5109ParametersMustBeOnSameLineOrSeparateLines"`: Passed: 121, Failed: 0.
+- `scripts/test.sh --configuration Debug --project core`: Passed: 682, Failed: 0.
+- `scripts/test.sh --configuration Debug --project architecture`: Passed: 117, Failed: 1. The failure is `UsesListsExactlyTheReferencedRequirements`, and it comes from the spec texts, not the code:
+  - `analyzer/RH5102.md` references SHARED-DIAG-010 but does not list it in its Uses row.
+  - `formatter/line-breaks.md` lists SHARED-DIAG-010 in Uses but no longer references it outside its non-goals.
+
+  The amended RH5102-001 Why and the reworded FMT-BREAK-012 Why cause it. It belongs to the spec author's files, so I left it.
