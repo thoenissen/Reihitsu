@@ -24,6 +24,9 @@
 | 7 | Spec author | Spec shape | Accept change doc `sdd/changes/2026-11/rh2001-rename-binding.md` and new RH2001-011 (only SHARED-CASING-009's binding paragraphs; `this.`-qualified inner-scope cases f01, f03, f04, s02, s05, t3, s10 stay offered, as on `main`) | Matches answer B without widening into interface-member or inner-scope refusals nobody was asked about; if a cheap check cannot keep the inner-scope cases offered, that is escalated, not decided in code | Keeps `main` output for every case outside answer B and SHARED-FIX-003 | 454da9a |
 | 8 | Implementer | 5 disputed tests (f09, s01, s12, f09 in another part, f07): on the test inputs `main`'s fix keeps every binding, contrary to 01-skeptic's table | Route to a fresh test implementer: confirm on `main` with `scripts/apply-fix.sh`; if an input of the same class that misbinds or rewrites exists, use it; otherwise turn the test into a characterization of `main`'s offered fix and report the spec/change-doc text to correct | Whether the fix is offered on these inputs is decided by unchanged SHARED-FIX-003 and answer B on the real output; a correct fix on `main` stays offered | Either outcome keeps `main`'s output or follows answer B | — |
 | 9 | Implementer | FC-015 extended: RH2001 gets its own binding comparison (~134 net lines, one file, no new type) | Accept under decision 3; follow-up already listed | Reuse of casing helpers falsely refused a correct case and missed a partial-document rebinding | Internal structure | 37e364a |
+| 10 | Test implementer (05) | Outcome of decision 8 | Accept 29d3add: withheld tests now use the misbinding shapes (lambda in a block body; delegate-typed property for the extension rewrite); the original inputs become offered-fix characterizations matching `main` | Measured on `main` 962d0c4 | Offered cases keep `main` output; withheld cases follow SHARED-FIX-003 / answer B | 29d3add |
+| 11 | Test implementer (05) | Untested block-body siblings (local declaration, assignment, constructor, explicitly typed lambda in a block, query range variable) | Add tests (continue the 05 agent once) | FC-016 sibling shapes; cheap | Withheld per SHARED-FIX-003 | — |
+| 12 | Test implementer (05) | Spec/change-doc text no longer matches the measured class | Route corrections to the spec author (continue once) | Text must match tests and `main` measurements | Spec wording is internal; outputs unchanged from decision 10 | — |
 
 ## Follow-up candidates
 
@@ -32,4 +35,4 @@
 ## Worklist / next step
 
 - Skeptic done (01-skeptic.md, commit 994a2e2).
-- Answer 1 = B. Spec author done (02, 454da9a). Test implementer done (03, f95f956): reproduced, 19 red. Implementer done (04, 37e364a): 5 disputed tests. Next: fresh test implementer (05) on the disputed tests, then implementer if needed, spec author for text corrections.
+- Answer 1 = B. Spec author done (02, 454da9a). Test implementer done (03, f95f956): reproduced, 19 red. Implementer done (04, 37e364a): 5 disputed tests. Test implementer 05 done (29d3add), 207/207 RH2001 green. Next: in parallel, spec author correction (06) and test implementer sibling tests (07); then cleaner.
