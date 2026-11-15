@@ -578,6 +578,43 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
         await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that each line of a run of <c>///</c> lines that documents nothing in front of the first call of a wrapped chain is reported on its own, from its <c>///</c> to the end of its text, the same whether or not documentation comments are parsed
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-003")]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5048-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyEveryLineOfTripleSlashRunBeforeFirstCallOfWrappedChainIsReportedOnItsOwnInEveryDocumentationMode(string endOfLine)
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal class TestClass
+                                {
+                                    void Method(int[] items)
+                                    {
+                                        var query = items
+                                            {|#0:/// only|}
+                                            {|#1:/// positive|}
+                                            .Where(value => value > 0)
+                                            .Select(value => value)
+                                            .ToList();
+                                        _ = query;
+                                    }
+                                }
+                                """;
+
+        var source = testData.ReplaceLineEndings(endOfLine);
+
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat, 2));
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat, 2));
+    }
+
     #endregion // Tests
 
     #region Methods

@@ -442,5 +442,99 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyFormatterTests
         await VerifyFormatter(testData);
     }
 
+    /// <summary>
+    /// Verifies that a element below a line of its own that holds two comments, the first of which starts the line outside the expected column is reported, and that the formatter moves the line's first comment into the expected column, so its output is clean and stable under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5303-002")]
+    public async Task VerifyElementBelowLineOfTwoMisplacedCommentsIsFixed()
+    {
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var values = new List<int>
+                                                  {
+                                          /* a */ /* b */
+                                                      {|#0:1|},
+                                                      2
+                                                  };
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var values = new List<int>
+                                                      {
+                                                          /* a */ /* b */
+                                                          1,
+                                                          2
+                                                      };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a element behind a further comment that starts on an earlier line behind a comment outside the expected column and ends on the element's line is reported, and that the formatter moves the line's first comment into the expected column, so its output is clean and stable under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5303-002")]
+    public async Task VerifyElementBehindFurtherCommentWhoseLineStartsOutsideExpectedColumnIsFixed()
+    {
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var values = new List<int>
+                                                  {
+                                                      1,
+                                          /* a */ /* b
+                                          */ {|#0:2|}
+                                                  };
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var values = new List<int>
+                                                      {
+                                                          1,
+                                                          /* a */ /* b
+                                              */ 2
+                                                      };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+    }
+
     #endregion // Tests
 }
