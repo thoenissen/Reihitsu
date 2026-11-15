@@ -47,5 +47,5 @@ Bug-fix lane: spec author (for the FMT-PIPE-010 clarification of #1695, and any 
 
 ## State
 
-- Last step finished: implementer 05 (60943ca); all tests pass.
-- Next: cleaner (06), spec checker (07).
+- Last step finished: cleaner 06 (clean), spec checker 07 (consistent, 6997d0f). Main 846aca4 not moved; Release build green.
+- Next: auditor (08) against main 846aca462c94c0d85bc19a1d5ad9d78605590c29.
