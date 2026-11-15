@@ -20,6 +20,9 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name | Use the session's designated branch `claude/adoring-hawking-l4994s` instead of `claude/issue-1676-<slug>` | The session environment permits pushes only to that branch | Branch naming is internal | bb8fc78 |
+| 2 | Skeptic (01) | Take R2 (rename to an inherited member's name that silently rebinds member accesses; f06, f20, f22, f23, f26) into the run | Yes, withhold the fix for R2 | Same decision (does the rename change an existing reference's binding) and same method region as the issue's class; detection must cover it anyway | SHARED-FIX-003 (unchanged) allows only withholding | — |
+| 3 | Skeptic (01) | Issue goals | Replace the stale `select`/`add` examples with reproducing members (f03, f04, …); widen "rewrites a call site" to "changes code other than the rename cascade's declarations and references"; keep the ambiguity-path test (f12); drop the SHARED-FIX-003/006 conflict framing | Examples are withheld on main by SHARED-CASING-011; class reaches type refs, fields, nameof, enum initializers | Decided by the output question's answer; agent-filed goals | — |
+| 4 | Skeptic (01) | Where to record the withheld class | Extend SHARED-CASING-009 (spec author clarification) | One requirement for "new name meets an existing binding" | Spec wording is internal | — |
 
 ## Follow-up candidates
 
@@ -27,4 +30,6 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 
 ## Worklist / next step
 
-- Next: spawn the skeptic (premise, reachability, failure class of the renamer's call-site rewrites).
+- Skeptic done: `01-skeptic.md` (verdict: output question; R1 reproduces with names outside SHARED-CASING-011; new R2).
+- Waiting: maintainer answer to output question 1 (RH4103 toList → Enumerable.ToList; A withhold vs B as main). Asked in chat.
+- Next after answer: spec author (clarification of SHARED-CASING-009) → test implementer.
