@@ -69,6 +69,9 @@ Behavior-change lane: spec author → skeptic → test implementer → implement
 
 ## State
 
+- Audit of repair round 3 (20-auditor, a3a086c): pass for all issues. **Audited SHA: c79f4bf.** Repair rounds used: 3 of 3.
+- Next: validator (21) and issue manager (22) in parallel; then note, delete sdd/work, trigger commit, PR.
+
 - Last step: spec author done (3b1b3d3); lane check confirmed behavior-change.
 - Open output questions (from 01-spec-author): OQ1 RH7304 fix for comment-led region line; OQ2 RH5111 comment/#pragma in wrapped gap; #1736 change-doc visible output changes (5 entries, entry 3 comment keeping first parameter off `(` line).
 - Skeptic done (829026e). Output-question batch 1 posted to maintainer (OQ1 RH7304 fix, OQ2 RH5111 gap, OQ3 RH5111 declarator directive-only gap, OQ4 #1736 entries 1/2/`)`-comment/5, OQ5 #1736 entry 3).
