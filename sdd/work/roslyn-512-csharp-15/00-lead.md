@@ -38,4 +38,5 @@ Batch 1 (before test implementer):
 
 - Done: 01-spec-author (change doc, commit 4cd929a), 02-skeptic (db5ecf9).
 - Batch 1 answered (1A 2A 3A+rename 4A).
-- Next: route answers + decision 5 amendments to spec author, then test implementer.
+- Done: 03-spec-author (b9ad11e); change doc Accepted by the lead.
+- Next: test implementer (04).
