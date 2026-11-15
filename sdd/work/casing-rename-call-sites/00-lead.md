@@ -44,4 +44,5 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 - Auditor 1 on 62b92c4 (base 6ab3d75): `07-auditor.md`, findings F1–F3 (decisions 6–8).
 - Repair round 1 worklist: spec author (F3 class in SHARED-CASING-009) → test implementer (c4, c6, c7, d1, a3, a1, a2) → implementer (F1, F2) → cleaner → spec checker → auditor (repair only) → validator.
 - Spec author round 1 done: `08-spec-author.md` (b58ee29).
-- Next: test implementer (repair round 1).
+- Test implementer round 1 done: `09-test-implementer.md` (c8650bb; 12 tests, 7 failing as intended). Decision 5 premise was a misreading; f26 row was already correct.
+- Next: implementer (repair round 1: F1 reuse GetOldNames, F2 interface-implementation refusal).
