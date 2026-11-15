@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Formatter;
@@ -51,8 +52,9 @@ public abstract class ExpressionBodyToBlockCodeFixProviderBase<TNode> : Reihitsu
     #region Methods
 
     /// <summary>
-    /// Applying code fix: the expression body is replaced with the block body the formatter produces, and the rest of the
-    /// node stays as written (SHARED-BODY-003)
+    /// Applying code fix. A member that shares its line with another member is first separated from it, so that both stand
+    /// on lines of their own (SHARED-FIX-007); then the expression body is replaced with the block body the formatter
+    /// produces, and the rest of the node stays as written (SHARED-BODY-003)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="node">Node that owns the reported expression body</param>
@@ -60,7 +62,9 @@ public abstract class ExpressionBodyToBlockCodeFixProviderBase<TNode> : Reihitsu
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     protected virtual Task<Document> ApplyCodeFixAsync(Document document, TNode node, CancellationToken cancellationToken)
     {
-        return ExpressionBodyCodeFixUtilities.ConvertBodyAsync(document, node, cancellationToken);
+        return node is MemberDeclarationSyntax member
+                   ? BlankLineCodeFixUtilities.FormatMemberOnLinesOfItsOwnAsync(document, member, ExpressionBodyCodeFixUtilities.ConvertBodyAsync, cancellationToken)
+                   : ExpressionBodyCodeFixUtilities.ConvertBodyAsync(document, node, cancellationToken);
     }
 
     /// <summary>

@@ -1558,6 +1558,41 @@ public class RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzerTests : 
     }
 
     /// <summary>
+    /// Verifies that no blank line is inserted above a comment that leads the method whose body the fix lays out, where
+    /// formatting the document would insert one
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixInsertsNoBlankLineAboveCommentThatLeadsTheMember(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int _a;
+                                    // c
+                                    void M() {|RH5417:{|} M(); }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int _a;
+                                     // c
+                                     void M()
+                                     {
+                                         M();
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
     /// Verifies the diagnostics marked in the source and the fix result under LF and under CRLF
     /// </summary>
     /// <param name="testCode">The source with markup and LF line endings</param>

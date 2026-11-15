@@ -33,9 +33,9 @@ internal sealed class BlankLinePhase : IFormattingPhase
                    new BlankLineTokenCleanupRewriter(context, cancellationToken),
                    new BlankLineTriviaBoundaryRewriter(context, editor, cancellationToken),
                    new BlankLineRegionDirectiveRewriter(context, editor, cancellationToken),
-                   new BlankLineStatementSpacingRewriter(context, editor, cancellationToken),
-                   new BlankLineBreakSpacingRewriter(context, editor, cancellationToken),
-                   new BlankLineCollapser(context, cancellationToken),
+                   new BlankLineStatementSpacingRewriter(editor, cancellationToken),
+                   new BlankLineBreakSpacingRewriter(editor, cancellationToken),
+                   new BlankLineCollapser(cancellationToken),
                ];
     }
 

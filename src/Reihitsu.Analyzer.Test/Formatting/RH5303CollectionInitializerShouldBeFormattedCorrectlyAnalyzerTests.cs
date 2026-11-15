@@ -2590,6 +2590,188 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
         await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies the spec example: the fix lays out the object creation from the column of new, which keeps its line and
+    /// column, while the misspaced declaration in front of it stays as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5303-005")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixLeavesTheCodeInFrontOfTheObjectCreationAsWritten(string endOfLine)
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var  x={|RH5303:new List<int> { 1+2,
+                                            3 }|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var  x=new List<int>
+                                                {
+                                                    1 + 2,
+                                                    3
+                                                };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a comment inside the variable declaration around the object creation, which the formatter refuses,
+    /// does not withhold the fix: the fix formats only the object creation, which holds no refused shape, and the
+    /// declaration stays as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5303-005")]
+    [Requirement("SHARED-FIX-010")]
+    public async Task VerifyFixIsOfferedWhenTheDeclarationAroundTheObjectCreationHoldsACommentTheFormatterRefuses(string endOfLine)
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var /* c */ x = {|RH5303:new List<int> { 1,
+                                            2 }|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var /* c */ x = new List<int>
+                                                         {
+                                                             1,
+                                                             2
+                                                         };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a reported object creation inside a reported object creation is laid out with the outer one, and
+    /// that Fix All corrects both in one application
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5303-005")]
+    [Requirement("SHARED-FIX-002")]
+    public async Task VerifyFixAllCorrectsAReportedObjectCreationInsideAReportedObjectCreationInOneApplication()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = {|RH5303:new List<List<int>> { {|RH5303:new List<int> { 1,
+                                            2 }|},
+                                            new List<int>() }|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var x = new List<List<int>>
+                                                 {
+                                                     new List<int>
+                                                     {
+                                                         1,
+                                                         2
+                                                     },
+                                                     new List<int>()
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, static config => config.NumberOfFixAllIterations = 1);
+    }
+
+    /// <summary>
+    /// Verifies that a comment inside a variable declaration elsewhere in the statement that holds the object creation,
+    /// which the formatter refuses, does not withhold the fix: the fix formats only the object creation, which holds no
+    /// refused shape, and the rest of the statement stays as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5303-005")]
+    [Requirement("SHARED-FIX-010")]
+    public async Task VerifyFixIsOfferedWhenTheStatementAroundTheObjectCreationHoldsACommentTheFormatterRefuses(string endOfLine)
+    {
+        const string testData = """
+                                using System;
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M(Action a, List<int> l)
+                                    {
+                                        M(() => { int /* c */ y = 1; }, {|RH5303:new List<int> { 1,
+                                            2 }|});
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     void M(Action a, List<int> l)
+                                     {
+                                         M(() => { int /* c */ y = 1; }, new List<int>
+                                                                         {
+                                                                             1,
+                                                                             2
+                                                                         });
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

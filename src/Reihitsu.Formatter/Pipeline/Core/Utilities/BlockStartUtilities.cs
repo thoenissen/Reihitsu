@@ -18,9 +18,8 @@ internal static class BlockStartUtilities
     /// token counts as first
     /// </summary>
     /// <param name="previousToken">
-    /// The facts about the token that precedes the token being evaluated, resolved through
-    /// <see cref="PrecedingTokenFacts.Resolve"/> so that the first token of a detached formatting root reads the facts
-    /// about its preceding token in the document
+    /// The facts about the token that precedes the token being evaluated; for the first token of a detached formatting root,
+    /// which has no preceding token in its tree, they say that no token precedes it
     /// </param>
     /// <returns><see langword="true"/> if the token is the first in its containing block or switch section</returns>
     public static bool IsFirstInBlock(PrecedingTokenFacts previousToken)

@@ -77,18 +77,18 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the spec example: the tabs in the leading whitespace of a statement target count as four columns each, so the
-    /// statement starts in column 8 and the wrapped argument aligns behind it, while the lines outside the target keep their
-    /// tabs
+    /// Verifies the spec example: the tabs in the leading whitespace of a statement target are kept and count as one column
+    /// each, so the statement starts in column 2 and the wrapped argument aligns under the first one with seven spaces, while
+    /// the lines outside the target keep their tabs
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
     [Requirement("FMT-PIPE-017")]
-    [Requirement("FMT-TAB-001")]
-    public async Task StatementTargetIndentedWithTabsCountsEachOfItsTabsAsFourColumns()
+    [Requirement("FMT-PIPE-018")]
+    public async Task StatementTargetIndentedWithTabsCountsEachOfItsTabsAsOneColumn()
     {
         const string input = "class C\n{\n\tvoid M()\n\t{\n\t\tCall(1,\n2);\n\t}\n}";
-        const string expected = "class C\n{\n\tvoid M()\n\t{\n        Call(1,\n             2);\n\t}\n}";
+        const string expected = "class C\n{\n\tvoid M()\n\t{\n\t\tCall(1,\n       2);\n\t}\n}";
 
         await AssertFormatsTarget(input, expected, SelectSingle<ExpressionStatementSyntax>);
     }
@@ -548,16 +548,17 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a statement target indented with tabs that holds a line break other than the document's line ending, which
-    /// the preparation phase rewrites before every other phase, still counts each of its tabs as four columns, so the statement
-    /// starts in column 8 and the wrapped argument aligns behind it
+    /// the preparation phase rewrites before every other phase, keeps its tabs and counts each of them as one column, so the
+    /// statement starts in column 2 and the wrapped argument aligns under the first one
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
     [TestMethod]
     [Requirement("FMT-PIPE-017")]
-    public async Task StatementTargetIndentedWithTabsHoldingAForeignLineBreakCountsEachOfItsTabsAsFourColumns()
+    [Requirement("FMT-PIPE-018")]
+    public async Task StatementTargetIndentedWithTabsHoldingAForeignLineBreakCountsEachOfItsTabsAsOneColumn()
     {
         const string input = "class C\n{\n\tvoid M()\n\t{\n\t\tCall(1,¶2);\n\t}\n}";
-        const string expected = "class C\n{\n\tvoid M()\n\t{\n        Call(1,\n             2);\n\t}\n}";
+        const string expected = "class C\n{\n\tvoid M()\n\t{\n\t\tCall(1,\n       2);\n\t}\n}";
 
         await AssertFormatsTargetWithForeignLineBreaks(input, expected, SelectSingle<ExpressionStatementSyntax>, null);
     }

@@ -1167,12 +1167,14 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     }
 
     /// <summary>
-    /// Verifies that the fix aligns a chain the same way formatting the statement does when the statement in front of the chain is not formatted
+    /// Verifies that the fix aligns the chain from the column its first token keeps, while the misspaced declaration in
+    /// front of the chain stays as written
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5201-005")]
     [Requirement("SHARED-CHAIN-009")]
+    [Requirement("SHARED-FIX-006")]
     public async Task VerifyFixAlignsChainBehindMisspacedDeclaration()
     {
         const string testData = """
@@ -1208,8 +1210,8 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                   {
                                       private static object Run(dynamic a, IEnumerable<Node> source, bool flag, dynamic d)
                                       {
-                                          var r = a.B()
-                                                   .C();
+                                          var r=a.B()
+                                                 .C();
 
                                           return r;
                                       }
@@ -1231,11 +1233,13 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
 
     /// <summary>
     /// Verifies that the fix aligns a chain inside an argument list whose opening parenthesis is followed by a space
+    /// from the column the chain's first token keeps, and leaves the space as written
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5201-005")]
     [Requirement("SHARED-CHAIN-009")]
+    [Requirement("SHARED-FIX-006")]
     public async Task VerifyFixAlignsChainBehindMisspacedArgumentList()
     {
         const string testData = """
@@ -1269,8 +1273,8 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                   {
                                       private static object Run(dynamic a, IEnumerable<Node> source, bool flag, dynamic d)
                                       {
-                                          return Use(a.B()
-                                                      .C());
+                                          return Use( a.B()
+                                                       .C());
                                       }
 
                                       private static object Use(object value)
@@ -1289,12 +1293,13 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     }
 
     /// <summary>
-    /// Verifies that the fix keeps the moved operator aligned with the chain when the chain sits in a conditional expression
+    /// Verifies that the fix moves the split operator of a chain inside a conditional expression, aligns it under the chain's anchor, and leaves the conditional around the chain as written
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5201-005")]
     [Requirement("SHARED-CHAIN-006")]
+    [Requirement("SHARED-CHAIN-009")]
     public async Task VerifyFixMovesBreakInsideOperatorOfChainInConditionalExpression()
     {
         const string testData = """
@@ -1330,10 +1335,8 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                   {
                                       private static object Run(dynamic a, IEnumerable<Node> source, bool flag, dynamic d)
                                       {
-                                          var r = flag
-                                                      ? a.B()
-                                                         ?.C()
-                                                      : d;
+                                          var r = flag ? a.B()
+                                                          ?.C() : d;
 
                                           return r;
                                       }
@@ -1354,12 +1357,13 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     }
 
     /// <summary>
-    /// Verifies that the fix aligns a chain inside a lambda argument of another wrapped chain the same way formatting the statement does
+    /// Verifies that the fix aligns a chain inside a lambda argument of another wrapped chain from the column its first token keeps, and leaves the outer chain as written
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5201-005")]
     [Requirement("SHARED-CHAIN-008")]
+    [Requirement("SHARED-CHAIN-009")]
     public async Task VerifyFixAlignsInnerChainInsideWrappedOuterChain()
     {
         const string testData = """
@@ -1395,9 +1399,10 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
                                   {
                                       private static object Run(dynamic a, IEnumerable<Node> source, bool flag, dynamic d)
                                       {
-                                          return source.Where(node => node.Children
-                                                                          .Any())
-                                                       .ToList();
+                                          return source
+                                              .Where(node => node.Children
+                                                                 .Any())
+                                              .ToList();
                                       }
 
                                       private static object Use(object value)

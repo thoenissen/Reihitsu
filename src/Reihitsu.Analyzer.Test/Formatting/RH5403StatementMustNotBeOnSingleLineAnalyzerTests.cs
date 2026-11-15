@@ -456,6 +456,368 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTes
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifies the spec example: no blank line is inserted above a comment that leads the statement whose block the
+    /// fix lays out, where formatting the document would insert one
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5403-003")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixInsertsNoBlankLineAboveCommentThatLeadsTheStatement(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a = 1;
+                                        // c
+                                        if (a > 0) {|RH5403:{|} a++; }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a = 1;
+                                         // c
+                                         if (a > 0)
+                                         {
+                                             a++;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above the statement whose block the fix lays out when it directly
+    /// follows another statement, where formatting the document would insert one
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixInsertsNoBlankLineAboveStatementBehindAnotherStatement(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a = 1;
+                                        if (a > 0) {|RH5403:{|} a++; }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a = 1;
+                                         if (a > 0)
+                                         {
+                                             a++;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above the statement whose block the fix lays out when it follows another
+    /// statement of a switch section, and that the statement behind it keeps its line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixInsertsNoBlankLineAboveStatementBehindAnotherStatementOfASwitchSection(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        switch (a)
+                                        {
+                                            case 1:
+                                                a = 2;
+                                                if (a > 0) {|RH5403:{|} a++; }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         switch (a)
+                                         {
+                                             case 1:
+                                                 a = 2;
+                                                 if (a > 0)
+                                                 {
+                                                     a++;
+                                                 }
+                                                 break;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a comment above the statement whose block the fix lays out keeps its column when it stands in
+    /// another column than the statement, and that the blank line above it stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixKeepsTheColumnOfACommentInAnotherColumnThanTheStatement(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a = 1;
+
+                                      // c
+                                        if (a > 0) {|RH5403:{|} a++; }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a = 1;
+
+                                       // c
+                                         if (a > 0)
+                                         {
+                                             a++;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional block directly above the statement whose block the fix lays out stays as written,
+    /// with no blank line inserted above or below it
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixKeepsADirectiveDirectlyAboveTheStatement(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a = 1;
+                                #if DEBUG
+                                        a = 2;
+                                #endif
+                                        if (a > 0) {|RH5403:{|} a++; }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a = 1;
+                                 #if DEBUG
+                                         a = 2;
+                                 #endif
+                                         if (a > 0)
+                                         {
+                                             a++;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the one blank line above a comment that leads the statement whose block the fix lays out stays one
+    /// blank line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixKeepsOneBlankLineAboveTheCommentThatLeadsTheStatement(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a = 1;
+
+                                        // c
+                                        if (a > 0) {|RH5403:{|} a++; }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a = 1;
+
+                                         // c
+                                         if (a > 0)
+                                         {
+                                             a++;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line between the opening brace of the method body and the statement whose block the fix
+    /// lays out stays, where formatting the document would remove it
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixKeepsTheBlankLineBetweenTheOpeningBraceAndTheStatement(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+
+                                        if (a > 0) {|RH5403:{|} a++; }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+
+                                         if (a > 0)
+                                         {
+                                             a++;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that two blank lines above the statement whose block the fix lays out stay, where formatting the
+    /// document would collapse them into one
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixKeepsTwoBlankLinesAboveTheStatement(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        a = 1;
+
+
+                                        if (a > 0) {|RH5403:{|} a++; }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         a = 1;
+
+
+                                         if (a > 0)
+                                         {
+                                             a++;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a statement indented with two tabs keeps the tabs in front of it and lays out the block
+    /// from column 2, each tab counted as one column
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixOfAStatementIndentedWithTabsKeepsTheTabsAndCountsEachAsOneColumn(string endOfLine)
+    {
+        const string testData = "class C\n{\n    void M(int a)\n    {\n\t\tif (a > 0) {|RH5403:{|} a++; }\n    }\n}";
+        const string fixedData = "class C\n{\n    void M(int a)\n    {\n\t\tif (a > 0)\n  {\n      a++;\n  }\n    }\n}";
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

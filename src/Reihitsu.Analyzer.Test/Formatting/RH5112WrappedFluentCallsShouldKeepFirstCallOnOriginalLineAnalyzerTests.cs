@@ -719,12 +719,14 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     }
 
     /// <summary>
-    /// Verifies that the fix aligns the remaining links the same way formatting the statement does when the statement in front of the chain is not formatted
+    /// Verifies the spec example: the fix joins the first call and aligns the remaining links from the column the
+    /// chain's first token keeps, while the misspaced declaration in front of the chain stays as written
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5112-003")]
     [Requirement("SHARED-CHAIN-009")]
+    [Requirement("SHARED-FIX-006")]
     public async Task VerifyFixJoinsFirstCallBehindMisspacedDeclaration()
     {
         const string testData = """
@@ -761,8 +763,8 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
                                   {
                                       private static object Run(dynamic a, IEnumerable<Node> source, bool flag, dynamic d)
                                       {
-                                          var r = a.B()
-                                                   .C();
+                                          var r=a.B()
+                                                 .C();
 
                                           return r;
                                       }
@@ -783,12 +785,15 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     }
 
     /// <summary>
-    /// Verifies that the fix aligns the remaining links of a chain in a conditional expression the same way formatting the statement does
+    /// Verifies that the fix of a chain in a branch of a conditional expression changes only the chain: the chain keeps
+    /// its first token in its line and column and aligns its remaining links from there, while the conditional around
+    /// it stays as written
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5112-003")]
     [Requirement("SHARED-CHAIN-009")]
+    [Requirement("SHARED-FIX-006")]
     public async Task VerifyFixJoinsFirstCallOfChainInConditionalExpression()
     {
         const string testData = """
@@ -825,10 +830,8 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
                                   {
                                       private static object Run(dynamic a, IEnumerable<Node> source, bool flag, dynamic d)
                                       {
-                                          var r = flag
-                                                      ? a.B()
-                                                         .C()
-                                                      : d;
+                                          var r = flag ? a.B()
+                                                          .C() : d;
 
                                           return r;
                                       }
@@ -1360,6 +1363,110 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
                               """;
 
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: the fix of a chain in the condition of an if statement joins only the chain, while
+    /// the rest of the condition and the body stay as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5112-003")]
+    [Requirement("SHARED-CHAIN-009")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixOfChainInIfConditionLeavesTheRestOfTheConditionAndTheBodyAsWritten(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M(int x, dynamic a)
+                                    {
+                                        if (x==1 && a
+                                            {|RH5112:.|}B())
+                                        {
+                                            int  y = 1;
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M(int x, dynamic a)
+                                     {
+                                         if (x==1 && a.B())
+                                         {
+                                             int  y = 1;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a chain that starts its line keeps the comment above it and inserts no blank line
+    /// between that comment and the statement in front of it
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-CHAIN-009")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixOfChainThatStartsItsLineInsertsNoBlankLineAboveTheCommentThatLeadsIt(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M(dynamic a)
+                                    {
+                                        int b = 0;
+                                        // c
+                                        a
+                                            {|RH5112:.|}B()
+                                            .C();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M(dynamic a)
+                                     {
+                                         int b = 0;
+                                         // c
+                                         a.B()
+                                          .C();
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a chain in a statement indented with two tabs keeps the tabs and aligns the remaining
+    /// link from the column the chain's first token keeps, each tab counted as one column
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-CHAIN-009")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixOfChainBehindTabsCountsEachTabAsOneColumn(string endOfLine)
+    {
+        const string testData = "class C\n{\n    object M(dynamic a)\n    {\n\t\tvar r = a\n            {|RH5112:.|}B()\n            .C();\n\n        return r;\n    }\n}";
+        const string fixedData = "class C\n{\n    object M(dynamic a)\n    {\n\t\tvar r = a.B()\n           .C();\n\n        return r;\n    }\n}";
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
     #endregion // Tests

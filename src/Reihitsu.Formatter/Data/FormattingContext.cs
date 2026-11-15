@@ -35,12 +35,6 @@ internal record FormattingContext
     /// The C# language version the source targets. It is resolved through <see cref="LanguageVersionResolver.Resolve(Microsoft.CodeAnalysis.CSharp.LanguageVersion)"/>,
     /// so <see cref="LanguageVersion.Default"/> stands for <see cref="LanguageVersionResolver.MaxSupportedLanguageVersion"/>
     /// </param>
-    /// <param name="rootPrecedingToken">
-    /// The facts about the token that precedes the formatting root in its document, or <see langword="default"/> when the caller supplies none
-    /// </param>
-    /// <param name="rootListPosition">
-    /// The position of the formatting root inside the statement or switch-section list of its document, or <see langword="default"/> when the caller supplies none
-    /// </param>
     /// <param name="rootFirstTokenColumn">
     /// The column of the formatting root's first token in its document, or <see langword="null"/> when the root is laid out at its depth alone
     /// </param>
@@ -64,8 +58,6 @@ internal record FormattingContext
                              bool preserveRootDocumentationBoundary = false,
                              ConfigurableStructuralTransforms disabledStructuralTransforms = ConfigurableStructuralTransforms.None,
                              LanguageVersion languageVersion = LanguageVersion.Default,
-                             PrecedingTokenFacts rootPrecedingToken = default,
-                             RootListPosition rootListPosition = default,
                              int? rootFirstTokenColumn = null,
                              FluentChainBoundary rootChainBoundary = default,
                              RootConstruct rootConstruct = RootConstruct.None,
@@ -78,8 +70,6 @@ internal record FormattingContext
         PreserveRootDocumentationBoundary = preserveRootDocumentationBoundary;
         DisabledStructuralTransforms = disabledStructuralTransforms;
         LanguageVersion = LanguageVersionResolver.Resolve(languageVersion);
-        RootPrecedingToken = rootPrecedingToken;
-        RootListPosition = rootListPosition;
         RootFirstTokenColumn = rootFirstTokenColumn;
         RootChainBoundary = rootChainBoundary;
         RootConstruct = rootConstruct;
@@ -120,25 +110,6 @@ internal record FormattingContext
     /// Version-dependent rules read it instead of a node's parse options, which an earlier rewrite can reset to the defaults
     /// </summary>
     public LanguageVersion LanguageVersion { get; }
-
-    /// <summary>
-    /// The facts about the token that precedes the formatting root in its document. A node-level root has no parent
-    /// (FMT-PIPE-023), so the root's first token does not reach this token through
-    /// <see cref="Microsoft.CodeAnalysis.SyntaxToken.GetPreviousToken"/>; the facts are captured before the pipeline runs, as
-    /// plain values (FMT-PIPE-024), for the blank-line decisions, the documentation phase, and the comment alignment. Only
-    /// <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> supplies them. Every other entry point leaves them at
-    /// <see langword="default"/>, which means no preceding token is known — not that the root starts its file
-    /// </summary>
-    public PrecedingTokenFacts RootPrecedingToken { get; }
-
-    /// <summary>
-    /// The position of the formatting root inside the statement or switch-section list of its document. The blank-line
-    /// decisions that compare a list element with its preceding sibling run in the visitor of the list's parent, which a
-    /// formatting run rooted at the element never visits; these facts let them decide the root's own leading gap. Only
-    /// <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> supplies them. Every other entry point leaves them at
-    /// <see langword="default"/>, which means the root has no known preceding sibling
-    /// </summary>
-    public RootListPosition RootListPosition { get; }
 
     /// <summary>
     /// The column of the formatting root's first token in its document (FMT-PIPE-017). The indentation phase lays out the

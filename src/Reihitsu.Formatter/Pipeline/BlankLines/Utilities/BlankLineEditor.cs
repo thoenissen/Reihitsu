@@ -47,9 +47,7 @@ internal sealed class BlankLineEditor
     /// <param name="token">The token whose leading-trivia prefix should be inspected</param>
     /// <param name="leadingTriviaEndExclusive">Exclusive upper bound in the leading-trivia list</param>
     /// <param name="previousToken">
-    /// The facts about the token that precedes <paramref name="token"/>, resolved through
-    /// <see cref="PrecedingTokenFacts.Resolve"/> so that a detached formatting root still counts the line break that ends
-    /// the preceding token's line
+    /// The facts about the token that precedes <paramref name="token"/>
     /// </param>
     /// <returns>The analysis of the trivia up to the specified leading-trivia index</returns>
     public static TokenGapAnalysis AnalyzeGapBeforeLeadingTriviaIndex(SyntaxToken token, int leadingTriviaEndExclusive, PrecedingTokenFacts previousToken)
@@ -163,15 +161,14 @@ internal sealed class BlankLineEditor
     }
 
     /// <summary>
-    /// Determines whether the full gap before the specified token already contains a blank line. The gap of the formatting
-    /// root's first token starts at the root's preceding token in its document, resolved through
-    /// <see cref="PrecedingTokenFacts.Resolve"/>, so that a detached root still counts the line break that ends that token's line
+    /// Determines whether the full gap before the specified token already contains a blank line. The formatting root's first
+    /// token has no preceding token in its tree, so its gap starts at the start of the root's text
     /// </summary>
     /// <param name="token">The token to inspect</param>
     /// <returns><see langword="true"/> if a blank line exists before the token; otherwise, <see langword="false"/></returns>
-    public bool HasBlankLineBeforeToken(SyntaxToken token)
+    public static bool HasBlankLineBeforeToken(SyntaxToken token)
     {
-        return AnalyzeGapBeforeLeadingTriviaIndex(token, token.LeadingTrivia.Count, ResolvePrecedingToken(token)).BlankLineCount > 0;
+        return AnalyzeGapBeforeLeadingTriviaIndex(token, token.LeadingTrivia.Count, PrecedingTokenFacts.From(token.GetPreviousToken())).BlankLineCount > 0;
     }
 
     /// <summary>
@@ -288,6 +285,16 @@ internal sealed class BlankLineEditor
     }
 
     /// <summary>
+    /// Combines the trailing trivia of the token preceding the specified token with its own leading trivia
+    /// </summary>
+    /// <param name="token">The token whose preceding trivia gap should be combined</param>
+    /// <returns>The combined trivia sequence, in source order</returns>
+    private static IEnumerable<SyntaxTrivia> CombinedLeadingTrivia(SyntaxToken token)
+    {
+        return PrecedingTokenFacts.From(token.GetPreviousToken()).TrailingTrivia.Concat(token.LeadingTrivia);
+    }
+
+    /// <summary>
     /// Ensures a blank line exists before the first token of the specified statement or switch section. No blank line is
     /// inserted when the gap already holds one or when the last trivia in front of the token, apart from whitespace and
     /// line breaks, is a directive — a whole conditional group ends with its <c>#endif</c> and so counts (FMT-BLANK-006).
@@ -314,27 +321,6 @@ internal sealed class BlankLineEditor
     }
 
     /// <summary>
-    /// Combines the trailing trivia of the token preceding the specified token with its own leading trivia
-    /// </summary>
-    /// <param name="token">The token whose preceding trivia gap should be combined</param>
-    /// <returns>The combined trivia sequence, in source order</returns>
-    private IEnumerable<SyntaxTrivia> CombinedLeadingTrivia(SyntaxToken token)
-    {
-        return ResolvePrecedingToken(token).TrailingTrivia.Concat(token.LeadingTrivia);
-    }
-
-    /// <summary>
-    /// Resolves the facts about the token that precedes the specified token, falling back to the formatting root's
-    /// preceding token in its document for the root's first token
-    /// </summary>
-    /// <param name="token">The token whose preceding token should be resolved</param>
-    /// <returns>The facts about the preceding token</returns>
-    private PrecedingTokenFacts ResolvePrecedingToken(SyntaxToken token)
-    {
-        return PrecedingTokenFacts.Resolve(token.GetPreviousToken(), _context);
-    }
-
-    /// <summary>
     /// Inserts a blank line into the leading trivia of the specified token at the given index. When the gap in front of the
     /// index does not end its line — the token stands on the line of the preceding token, or behind the last line of a
     /// multi-line comment there — the line break that ends that line is inserted together with the blank line
@@ -348,7 +334,7 @@ internal sealed class BlankLineEditor
         where TNode : SyntaxNode
     {
         var eol = SyntaxFactory.EndOfLine(_context.EndOfLine);
-        var previousToken = ResolvePrecedingToken(token);
+        var previousToken = PrecedingTokenFacts.From(token.GetPreviousToken());
         var lineBreakCount = previousToken.Exists
                                  ? AnalyzeGapBeforeLeadingTriviaIndex(token, token.LeadingTrivia.Count, previousToken).RequiredLineBreakCountForBlankLine
                                  : 1;

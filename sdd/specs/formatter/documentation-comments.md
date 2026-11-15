@@ -5,7 +5,7 @@
 | ID prefix | FMT-DOC |
 | Status | Active |
 | Code owners | `DocumentationCommentFormattingPhase`, `DocCommentElementNormalizer`, `DocumentationCommentUtilities` |
-| Uses | FMT-BLANK-012, FMT-CLEAN-009, FMT-INDENT-002, FMT-INDENT-006, FMT-INDENT-029, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-010, FMT-PIPE-032, SHARED-DOC-017 |
+| Uses | FMT-BLANK-012, FMT-CLEAN-009, FMT-INDENT-002, FMT-INDENT-006, FMT-INDENT-029, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-018, FMT-PIPE-032, SHARED-DOC-017 |
 
 This spec covers what the documentation-comment phase decides about documentation comments: moving a single-line (`///`) or delimited (`/** … */`) documentation comment written behind code onto a new line, and, for single-line comments only, the separator after each `///` exterior and the line layout of the XML elements inside the comment. It is the normalization of documentation-comment text that FMT-PIPE-002 allows. The code fixes of RH8305 and RH8307 lay out the one element they fix through `ReihitsuFormatter.FormatDocumentationElementInDocumentAsync`, which gives that element the text this phase gives it and changes nothing else (FMT-PIPE-032), so the element layout of FMT-DOC-008 to FMT-DOC-011 is also their output.
 
@@ -30,7 +30,7 @@ This requirement decides comments in front of a type or member declaration, enum
 
 For a delimited comment, it also does not decide one behind an earlier comment of the same token's leading trivia, one behind the colon of a switch label, or one behind an opening brace. A delimited comment that ends the brace's line stays where it is (FMT-INDENT-006). One with code behind it on the brace's line, as in `class C { /** d */ void M() { } }`, is not moved by this requirement; when the line breaks behind the brace, the comment goes onto the next line together with that code.
 
-Why: The compiler attaches a documentation comment to the declaration that follows it, so a comment behind `int A;` documents `B`, not `A`. Starting a new line in front of it makes the layout say what the compiler already does. Moving the comment is this phase's decision for both forms, so it is taken once, before any phase that places lines or blank lines sees the comment; the blank line above the moved comment is FMT-BLANK-012's doing, and the node-level exception for the removed whitespace is FMT-PIPE-010. A delimited comment does not end its line, so the code behind it stays where the author wrote it; its text is not rewritten (FMT-DOC-012).
+Why: The compiler attaches a documentation comment to the declaration that follows it, so a comment behind `int A;` documents `B`, not `A`. Starting a new line in front of it makes the layout say what the compiler already does. Moving the comment is this phase's decision for both forms, so it is taken once, before any phase that places lines or blank lines sees the comment; the blank line above the moved comment is FMT-BLANK-012's doing. A node-level entry point keeps a documentation comment that leads its target where it stands (FMT-PIPE-018). A delimited comment does not end its line, so the code behind it stays where the author wrote it; its text is not rewritten (FMT-DOC-012).
 
 Example:
 
