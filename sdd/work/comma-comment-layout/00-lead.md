@@ -32,6 +32,10 @@
 | 11 | Implementer | Spec gap: which reason wins when FMT-UNSUP-004 and -009 refuse the same comment at a non-declarator comma | Route to fresh spec author: state FMT-UNSUP-009 wins outside declarator commas (as implemented and tested) | One statement of the rule | Reason text was not asked; both reasons are already user-visible texts — choice follows the tested behavior and the declaration's answer | dd4f25b |
 | 12 | Implementer | Comma collapse moved to shared `LineBreakTriviaUtilities` with two consumers | Accepted | One owner of the policy | Internal | d3ae8ef |
 | 13 | Before auditor | origin/main moved (#1750, #1752) | Merged before the audit; ledger auto-merged | lead.md §6.1 | Internal | merge commit |
+| 14 | Audit 1, repair round 1 | Finding 1: trailing-comma removal drops a doc comment in the comma's leading trivia on the same line (Parse/Diagnose modes) | Restore the leading-trivia branch of `TrailingCommaRemovalUtilities.PreserveSeparatorTrivia`; move it to *Checked and kept*; correct FMT-UNSUP-009 `Why:`; tests per removing transform | PR-introduced safety-rail defect, kept guard serves input outside the shape | Restores main's output (FMT-PIPE-002) | pending |
+| 15 | Audit 1, repair round 1 | Finding 2a: RH5107 fix applied when a doc comment behind the comma sits in the next token's leading trivia | Withhold the fix for that input too (RH5107-004 applies regardless of which token carries the comment) | Rare class (RH5035); cheap trivia check | Withholding for a rare class is not in question | pending |
+| 16 | Audit 1, repair round 1 | Finding 2b: FMT-BREAK-038 (and pre-existing FMT-BREAK-012) leave a `/** */`/`///` written behind a moved comma with the next element | Bring the code to the unchanged requirement: a comment behind the comma on its line moves with it whichever token's trivia holds it; fixed in the shared collapse helper, so argument/parameter lists (FMT-BREAK-012, pre-existing on main) are fixed too as an adjacent fix. If it needs more than a cheap trivia check, refuse the class instead and report | Requirement already states the placement; same helper | An unchanged requirement demands the output | pending |
+| 17 | Audit 1 hints | Dead zero-width loop in `PrecheckPhase.EnumerateGapTrivia`; FMT-BREAK-038 line-count wording | Implementer removes the loop if proven unreachable; spec author aligns wording to text lines | Cleanup in touched code | No visible change | pending |
 | 4 | Spec author | New requirement IDs vs. extending existing ones | New requirements (FMT-BREAK-038, FMT-INDENT-033) | Keeps existing requirements stable | Wording/IDs internal | pending |
 
 ## Follow-up candidates
@@ -43,8 +47,8 @@
 
 ## Audited SHA
 
-(none yet)
+- Audit 1: d1741804bd97da6e977138d52b67f995bc997266 (base main 3b3639e) → findings (13-auditor).
 
 ## Open worklist / next step
 
-- Spec checker: consistent (11). Change docs Accepted (8615cd1). main merged, Release build green. Next: auditor (13).
+- Repair round 1 (of 3): spec author (14) → test implementer (15) → implementer (16) → cleaner → spec checker → auditor (repair only) → validator.
