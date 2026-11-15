@@ -41,6 +41,7 @@
 | 20 | Audit 2, repair round 2 | #3: no test for `B /** doc B */,⏎// note⏎}` (output now converges in one pass; main needs two) | Test implementer adds Parse/Diagnose rows per removing transform; spec author notes the one-pass convergence in the change doc | PR-introduced test gap; FMT-PIPE-004 decides the output | Output demanded by unchanged FMT-PIPE-004 | cffe561, 5b5a5f1 |
 | 21 | Audit 2, repair round 2 | #4: stale inline comment in RH5107 fix | Cleaner drops "or a comment" | Text only | None | 4431815 |
 | 22 | Repair round 2 | Spec checker and auditor sequential or parallel | Parallel (both read-only, on the same head 4431815) | Saves wall-clock; neither changes files | Internal | — |
+| 23 | Audit 3 hint | Add `[Requirement("FMT-BLANK-010")]` to the new rows | Not taken | An attribute is a compiled change after a passing audit (would re-run auditor and validator for traceability only); FMT-BLANK-010 is unchanged by this run | No visible change | — |
 | 4 | Spec author | New requirement IDs vs. extending existing ones | New requirements (FMT-BREAK-038, FMT-INDENT-033) | Keeps existing requirements stable | Wording/IDs internal | pending |
 
 ## Follow-up candidates
@@ -55,6 +56,7 @@
 
 - Audit 1: d1741804bd97da6e977138d52b67f995bc997266 (base main 3b3639e) → findings (13-auditor).
 - Audit 2 (repair round 1): 31dd2dd137cfbbbb236f54da09c018c3c487c0bd (base main 450f274) → findings #3 (medium, test gap), #4 (low, stale code comment) (21-auditor). Neither repeats audit 1's class.
+- Audit 3 (repair round 2): 443181526afc6e22fc67f726a269bae2675e8222 → **pass** (26-auditor).
 
 ## Open worklist / next step
 
