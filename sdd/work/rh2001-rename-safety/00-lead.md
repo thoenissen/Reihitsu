@@ -10,6 +10,7 @@
 ## Maintainer answers
 
 - Output question 1 (RH2001, derived field name already used by an inherited member, fix today rewrites the read to `base._value`): **B** — withhold the fix; the diagnostic stays. The same answer covers the rare rewrite variants (extension method `_value` → `Extensions._value(this)`, static import → `Holder._value`, enclosing-type member → `Outer._value`): withhold.
+- Question 2 (escalation 9, RH2001 with the property as an element of a tuple a `switch` matches on; `main` offers a correct fix): **A** — withhold the fix there and for the rest of decision 23's refused tuple class (tuple `switch` statement/expression, `is`/`==` with a tuple, interpolated tuple, nested tuple, tuple cast, tuple in a conditional or switch-expression arm); the fix stays offered for a deconstruction target and for a tuple whose own conversion drops the name.
 
 ## Decisions taken
 

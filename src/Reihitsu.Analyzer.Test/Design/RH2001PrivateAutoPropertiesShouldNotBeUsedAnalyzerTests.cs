@@ -6263,6 +6263,219 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
         await Verify(testData, resultData);
     }
 
+    /// <summary>
+    /// Verifies that no code fix is offered when the property is an element of a tuple a switch expression matches,
+    /// a tuple element with an inferred name whose fix this rule withholds
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenThePropertyIsAnElementOfATupleASwitchExpressionMatches()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get(int input)
+                                    {
+                                        return (Value, input) switch
+                                               {
+                                                   (1, 2) => 3,
+                                                   _ => 0
+                                               };
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when the property is an element of a tuple a switch statement matches,
+    /// a tuple element with an inferred name whose fix this rule withholds
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenThePropertyIsAnElementOfATupleASwitchStatementMatches()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get(int input)
+                                    {
+                                        switch (Value, input)
+                                        {
+                                            case (1, 2):
+                                                return 3;
+                                            default:
+                                                return 0;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when the property is an element of a tuple nested in another tuple, even when
+    /// the outer tuple is converted to a type without element names
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenThePropertyIsAnElementOfATupleNestedInAnotherTuple()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        ((int, int), int) pair = ((Value, 1), 2);
+
+                                        return pair.Item1.Item1;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when the property is an element of a tuple that is the operand of a cast,
+    /// even when the cast's type has no element names
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenThePropertyIsAnElementOfATupleThatIsTheOperandOfACast()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    object Get()
+                                    {
+                                        return ((int, int))(Value, 1);
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when the property is an element of a tuple that is a branch of a conditional
+    /// expression, even when the conditional is returned as a type without element names
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenThePropertyIsAnElementOfATupleThatIsABranchOfAConditionalExpression()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    (int, int) Get(bool flag)
+                                    {
+                                        return flag ? (Value, 1) : (Value, 2);
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when the property is an element of a tuple nested in a deconstruction target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedWhenThePropertyIsAnElementOfATupleNestedInADeconstructionTarget()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get(((int, int), int) source)
+                                    {
+                                        int other;
+                                        int x;
+
+                                        ((Value, other), x) = source;
+
+                                        return Value + other + x;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      int Get(((int, int), int) source)
+                                      {
+                                          int other;
+                                          int x;
+
+                                          ((_value, other), x) = source;
+
+                                          return _value + other + x;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when the property of a generic type is read through a reference typed as the
+    /// type's own construction
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedWhenThePropertyIsReadThroughTheOwnConstructionOfItsGenericType()
+    {
+        const string testData = """
+                                class Sample<T>
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get(Sample<T> other)
+                                    {
+                                        return other.Value + Value;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Sample<T>
+                                  {
+                                      private int _value;
+
+                                      int Get(Sample<T> other)
+                                      {
+                                          return other._value + _value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
     #endregion // Tests
 
     #region Methods
