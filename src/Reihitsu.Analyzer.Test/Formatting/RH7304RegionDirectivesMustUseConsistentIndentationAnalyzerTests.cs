@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -6,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -813,7 +815,7 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
     }
 
     /// <summary>
-    /// Verifies the spec example: the fix indents the directives of a region whose first line of code starts with a comment, on one line or across two, to the column where that comment starts, under LF and CRLF line endings, line endings included
+    /// Verifies the spec example: the fix indents the directives of a region whose first line of code starts with a comment, on one line or across two, to the column where that comment starts, and the action of one diagnostic changes only the reported directive and its pair, under LF and CRLF line endings, line endings included
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -857,8 +859,31 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
                                      #endregion // Lines
                                  }
                                  """;
+        const string singleActionData = """
+                                        class C
+                                        {
+                                            #region Fields
 
-        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+                                            /* c */ int _a;
+
+                                            #endregion // Fields
+
+                                          #region Lines
+
+                                            /* g
+                                             */ int _e;
+
+                                          #endregion // Lines
+                                        }
+                                        """;
+
+        var source = ConvertEndOfLine(testData, endOfLine);
+
+        await Verify(source, ConvertEndOfLine(fixedData, endOfLine));
+
+        TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
+
+        Assert.AreEqual(ConvertEndOfLine(singleActionData, endOfLine), await ApplyCodeFixAsync(plainSource));
     }
 
     /// <summary>
