@@ -71,4 +71,5 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 - Spec checker round 2 done: `24-spec-checker.md` (consistent).
 - Auditor on 27789ab: `25-auditor.md` — #1–#6 closed; F7 (architecture, decision 14), F8 (repair round 3, decision 15). Repair rounds used: 3 (last). A further block → narrowing.
 - Worklist: spec author (14, 15) → test implementer → implementer → cleaner → spec checker → auditor (delta since 27789ab) → validator.
-- Next: spec author.
+- Spec author (14, 15) done: `26-spec-author.md` (861e6b8). Accepted: explicit interface implementations of a method listed as not checked; properties/events checked regardless of kind.
+- Next: test implementer.
