@@ -2,7 +2,6 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
@@ -68,8 +67,7 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzer : DiagnosticAnalyz
 
         // A conditional directive in front of a modifier but the first lets another build configuration compile other
         // modifiers (RH7105-001, SHARED-DIAG-008); one behind the last modifier lies outside the judged span (SHARED-MODORDER-003)
-        if (modifiers.Count > 1
-            && SyntaxTriviaUtilities.ContainsConditionalCompilationBoundary(memberDeclaration, TextSpan.FromBounds(modifiers.First().SpanStart, modifiers.Last().SpanStart)))
+        if (OrderingDeclarationUtilities.HasConditionalDirectiveBetweenModifiers(memberDeclaration))
         {
             return;
         }

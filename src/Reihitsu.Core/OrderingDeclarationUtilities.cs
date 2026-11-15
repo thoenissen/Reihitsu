@@ -172,6 +172,29 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
+    /// Determines whether a conditional directive — <c>#if</c>, <c>#elif</c>, <c>#else</c>, or <c>#endif</c> — or code
+    /// that such a directive excludes lies in front of a modifier of the declaration but its first, so that another
+    /// build configuration compiles other modifiers in another order (SHARED-DIAG-008). Unlike
+    /// <see cref="HasModifiersSplitByConditionalDirective"/>, the gap behind the last modifier is not judged
+    /// (SHARED-MODORDER-003), and neither is the gap in front of the first modifier
+    /// </summary>
+    /// <param name="memberDeclaration">Declaration</param>
+    /// <returns><see langword="true"/> if a conditional directive stands between two modifiers</returns>
+    public static bool HasConditionalDirectiveBetweenModifiers(MemberDeclarationSyntax memberDeclaration)
+    {
+        var modifiers = DeclarationModifierUtilities.GetModifiers(memberDeclaration);
+
+        if (modifiers.Count < 2)
+        {
+            return false;
+        }
+
+        var span = TextSpan.FromBounds(modifiers.First().SpanStart, modifiers.Last().SpanStart);
+
+        return SyntaxTriviaUtilities.ContainsConditionalCompilationBoundary(memberDeclaration, span);
+    }
+
+    /// <summary>
     /// Gets the preferred diagnostic location for a declaration
     /// </summary>
     /// <param name="memberDeclaration">Declaration</param>
