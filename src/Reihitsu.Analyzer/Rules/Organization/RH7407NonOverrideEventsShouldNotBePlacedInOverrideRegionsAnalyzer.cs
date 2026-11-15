@@ -1,11 +1,8 @@
-﻿using System.Threading;
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
-using Reihitsu.Analyzer.Core;
 
 namespace Reihitsu.Analyzer.Rules.Organization;
 
@@ -39,31 +36,10 @@ public class RH7407NonOverrideEventsShouldNotBePlacedInOverrideRegionsAnalyzer :
     #region NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase
 
     /// <inheritdoc/>
-    protected override bool TryGetOverrideRegionName(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken, out string overrideRegionName)
+    protected override bool IsRelevantNonOverrideMember(MemberDeclarationSyntax memberDeclaration, ISymbol symbol)
     {
-        overrideRegionName = memberDeclaration switch
-                             {
-                                 EventDeclarationSyntax eventDeclaration => (semanticModel.GetDeclaredSymbol(eventDeclaration, cancellationToken) as IEventSymbol) is { OverriddenEvent: not null } eventSymbol
-                                                                                ? OverrideMemberUtilities.GetOriginalDeclaringTypeName(eventSymbol)
-                                                                                : string.Empty,
-                                 EventFieldDeclarationSyntax { Declaration.Variables.Count: > 0 } eventFieldDeclaration => (semanticModel.GetDeclaredSymbol(eventFieldDeclaration.Declaration.Variables[0], cancellationToken) as IEventSymbol) is { OverriddenEvent: not null } eventSymbol
-                                                                                                                               ? OverrideMemberUtilities.GetOriginalDeclaringTypeName(eventSymbol)
-                                                                                                                               : string.Empty,
-                                 _ => string.Empty
-                             };
-
-        return string.IsNullOrEmpty(overrideRegionName) == false;
-    }
-
-    /// <inheritdoc/>
-    protected override bool IsRelevantNonOverrideMember(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
-    {
-        return memberDeclaration switch
-               {
-                   EventDeclarationSyntax eventDeclaration => (semanticModel.GetDeclaredSymbol(eventDeclaration, cancellationToken) as IEventSymbol) is { OverriddenEvent: null },
-                   EventFieldDeclarationSyntax { Declaration.Variables.Count: > 0 } eventFieldDeclaration => (semanticModel.GetDeclaredSymbol(eventFieldDeclaration.Declaration.Variables[0], cancellationToken) as IEventSymbol) is { OverriddenEvent: null },
-                   _ => false
-               };
+        return memberDeclaration is EventDeclarationSyntax or EventFieldDeclarationSyntax
+               && symbol is IEventSymbol { OverriddenEvent: null };
     }
 
     #endregion // NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase

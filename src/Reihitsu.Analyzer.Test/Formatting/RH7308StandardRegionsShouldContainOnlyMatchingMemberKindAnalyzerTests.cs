@@ -702,6 +702,190 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies the specification example in which a member in a nested region is judged by the innermost region, not by
+    /// the top-level region around it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7308-001")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task MemberInANestedRegionIsJudgedByTheInnermostRegion()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Fields
+
+                                    private int _value;
+
+                                    #region Properties
+
+                                    public int Value => _value;
+
+                                    private int {|RH7308:_other|};
+
+                                    #endregion
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example in which a member in a nested region whose label is not recognized is not
+    /// checked, and the region around it does not judge it instead
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7308-001")]
+    [Requirement("RH7308-002")]
+    public async Task MemberInANestedRegionWithAnUnrecognizedLabelIsNotChecked()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Fields
+
+                                    private int _value;
+
+                                    #region Helpers
+
+                                    public int Value => _value;
+
+                                    #endregion
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a member in a nested region without a description is not checked, and the region around it does
+    /// not judge it instead
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7308-001")]
+    public async Task MemberInANestedRegionWithoutADescriptionIsNotChecked()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Fields
+
+                                    private int _value;
+
+                                    #region
+
+                                    public int Value => _value;
+
+                                    #endregion
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a member of the kind the top-level region names is reported when the nested region that encloses it
+    /// names another kind
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7308-001")]
+    public async Task MemberOfTheKindOfTheOuterRegionIsReportedInANestedRegionOfAnotherKind()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Properties
+
+                                    public int Value => 1;
+
+                                    #region Fields
+
+                                    public int {|RH7308:Other|} => 2;
+
+                                    #endregion
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a member in a region nested two levels deep is judged by the innermost of the three regions
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7308-001")]
+    public async Task MemberInARegionNestedTwoLevelsDeepIsJudgedByTheInnermostRegion()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Fields
+
+                                    #region Properties
+
+                                    #region Methods
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    public int {|RH7308:P|} => 1;
+
+                                    #endregion
+
+                                    #endregion
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a member behind a nested region, still inside the top-level region, is judged by the top-level region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7308-001")]
+    public async Task MemberBehindANestedRegionIsJudgedByTheTopLevelRegion()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Fields
+
+                                    #region Properties
+
+                                    public int Value => 1;
+
+                                    #endregion
+
+                                    private int _value;
+
+                                    public int {|RH7308:Other|} => 2;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region Methods

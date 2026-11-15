@@ -1,5 +1,7 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Organization;
@@ -544,25 +546,28 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Characterizes the current behavior for the same description in an <c>#if</c> and an <c>#else</c> branch: the region
-    /// of the second branch is reported. This test pins today's behavior; the decided behavior is stated by
-    /// SHARED-TYPEREGION-006, which does not compare the regions of different branches of one conditional directive, and
-    /// its change belongs to an existing follow-up
+    /// Verifies that the regions of an <c>#if</c> and an <c>#else</c> branch with the same description are not compared
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task SameDescriptionInIfAndElseBranchIsCurrentlyReported()
+    [Requirement("RH7311-001")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task SameDescriptionInIfAndElseBranchIsNotReported()
     {
         const string testData = """
                                 class C
                                 {
                                 #if DEBUG
                                     #region Fields
+
                                     int _a;
+
                                     #endregion
                                 #else
-                                    {|RH7311:#region Fields|}
+                                    #region Fields
+
                                     int _b;
+
                                     #endregion
                                 #endif
                                 }
@@ -571,9 +576,393 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that the regions of an <c>#if</c> and an <c>#else</c> branch with the same description are not compared
+    /// when the <c>#if</c> branch is the one the configuration compiles
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7311-001")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task SameDescriptionInIfAndElseBranchIsNotReportedWhenTheIfBranchIsCompiled()
+    {
+        const string testData = """
+                                class C
+                                {
+                                #if DEBUG
+                                    #region Fields
+
+                                    int _a;
+
+                                    #endregion
+                                #else
+                                    #region Fields
+
+                                    int _b;
+
+                                    #endregion
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(DefineDebug));
+    }
+
+    /// <summary>
+    /// Verifies that the regions of an <c>#if</c> and an <c>#elif</c> branch with the same description are not compared
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7311-001")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task SameDescriptionInIfAndElifBranchIsNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                #if DEBUG
+                                    #region Fields
+
+                                    int _a;
+
+                                    #endregion
+                                #elif TRACE
+                                    #region Fields
+
+                                    int _b;
+
+                                    #endregion
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example in which the regions of an <c>#if</c> and an <c>#else</c> branch, and a region
+    /// in a branch and one outside every branch, are not compared
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7311-001")]
+    public async Task RegionsInBranchesAndARegionOutsideEveryBranchAreNotCompared()
+    {
+        const string testData = """
+                                class C
+                                {
+                                #if DEBUG
+                                    #region Fields
+
+                                    int _a;
+
+                                    #endregion
+                                #else
+                                    #region Fields
+
+                                    int _b;
+
+                                    #endregion
+                                #endif
+
+                                    #region Fields
+
+                                    int _c;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that two regions outside every branch are still compared when a conditional directive with a region of
+    /// the same description stands between them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7311-001")]
+    public async Task RegionsOutsideEveryBranchAreComparedAcrossAConditionalDirective()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Fields
+
+                                    int _a;
+
+                                    #endregion
+
+                                #if DEBUG
+                                    #region Fields
+
+                                    int _b;
+
+                                    #endregion
+                                #endif
+
+                                    {|RH7311:#region Fields|}
+
+                                    int _c;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example in which the region of a nested enum is not compared with the regions of the
+    /// type that holds the enum
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7311-002")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task RegionOfANestedEnumIsNotComparedWithTheRegionsOfTheType()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Values
+
+                                    int _a;
+
+                                    #endregion
+
+                                    enum E
+                                    {
+                                        #region Values
+                                        A,
+                                        #endregion
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the region of a nested enum that stands in front of the regions of the type is not compared with them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7311-002")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task RegionOfANestedEnumInFrontOfTheRegionsOfTheTypeIsNotCompared()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    enum E
+                                    {
+                                        #region Values
+                                        A,
+                                        #endregion
+                                    }
+
+                                    #region Values
+
+                                    int _a;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that two regions with the same description inside a nested enum are not top-level regions of the type
+    /// that holds the enum
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7311-002")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task TwoRegionsWithTheSameDescriptionInsideANestedEnumAreNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    enum E
+                                    {
+                                        #region Values
+                                        A,
+                                        #endregion
+
+                                        #region Values
+                                        B,
+                                        #endregion
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the top-level regions of a type are still compared when a nested enum with a region of the same
+    /// description stands between them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7311-001")]
+    [Requirement("RH7311-002")]
+    public async Task TopLevelRegionsAreComparedAcrossANestedEnumWithARegion()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Values
+
+                                    int _a;
+
+                                    #endregion
+
+                                    enum E
+                                    {
+                                        #region Values
+                                        A,
+                                        #endregion
+                                    }
+
+                                    {|RH7311:#region Values|}
+
+                                    int _b;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example in which a conditional directive encloses the whole declaration, so its
+    /// regions lie in no branch and are compared
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7311-001")]
+    public async Task RegionsOfADeclarationThatAConditionalDirectiveEnclosesAreCompared()
+    {
+        const string testData = """
+                                #if !NEVER
+                                class C
+                                {
+                                    #region Methods
+
+                                    void A()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    {|RH7311:#region Methods|}
+
+                                    void B()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                #endif
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that two regions in one branch of a conditional directive that starts inside the declaration are not
+    /// compared, also when the branch is the one the configuration compiles
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7311-001")]
+    public async Task RegionsInABranchThatStartsInsideTheDeclarationAreNotCompared()
+    {
+        const string testData = """
+                                class C
+                                {
+                                #if !NEVER
+                                    #region Methods
+
+                                    void A()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    #region Methods
+
+                                    void B()
+                                    {
+                                    }
+
+                                    #endregion
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a region in a branch that starts inside the declaration is not compared, also when another
+    /// conditional directive encloses the whole declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7311-001")]
+    public async Task RegionInABranchInsideADeclarationThatAConditionalDirectiveEnclosesIsNotCompared()
+    {
+        const string testData = """
+                                #if !NEVER
+                                class C
+                                {
+                                    #region Methods
+
+                                    void A()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                #if !NEVER
+                                    #region Methods
+
+                                    void B()
+                                    {
+                                    }
+
+                                    #endregion
+                                #endif
+                                }
+                                #endif
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region Methods
+
+    /// <summary>
+    /// Defines the preprocessor symbol <c>DEBUG</c> for the test project
+    /// </summary>
+    /// <param name="solution">Solution</param>
+    /// <param name="projectId">Project ID</param>
+    /// <returns>Solution</returns>
+    private static Solution DefineDebug(Solution solution, ProjectId projectId)
+    {
+        return solution.GetProject(projectId)?.ParseOptions is CSharpParseOptions parseOptions
+                   ? solution.WithProjectParseOptions(projectId, parseOptions.WithPreprocessorSymbols("DEBUG"))
+                   : solution;
+    }
 
     /// <summary>
     /// Creates the expected diagnostic message for the given region description

@@ -122,6 +122,34 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
                                                  }
                                                  """;
 
+    /// <summary>
+    /// Specification example of regions in the <c>#if</c> and the <c>#else</c> branch of one conditional directive
+    /// </summary>
+    private const string RegionsInIfAndElseBranchSource = """
+                                                          using System;
+
+                                                          public class C : IDisposable
+                                                          {
+                                                              public void Dispose()
+                                                              {
+                                                              }
+
+                                                          #if DEBUG
+                                                              #region IDisposable
+
+                                                              private int _a;
+
+                                                              #endregion
+                                                          #else
+                                                              #region Fields
+
+                                                              private int _b;
+
+                                                              #endregion
+                                                          #endif
+                                                          }
+                                                          """;
+
     #endregion // Constants
 
     #region Tests
@@ -762,10 +790,12 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifies that regions are still reordered when the same conditional directive wraps both of them
+    /// Verifies that regions are still reordered when the same conditional directive, whose branch the configuration
+    /// compiles, wraps both of them
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7309-002")]
     [Requirement("RH7309-005")]
     public async Task VerifyCodeFixReordersRegionsWrappedByTheSameConditionalDirective()
     {
@@ -828,7 +858,7 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH7309RegionsShouldFollowCategoryOrderAnalyzer.DiagnosticId, CreateMessage("Methods")));
+        await Verify(testData, fixedData, test => test.SolutionTransforms.Add(DefineDebug), Diagnostics(RH7309RegionsShouldFollowCategoryOrderAnalyzer.DiagnosticId, CreateMessage("Methods")));
     }
 
     /// <summary>
@@ -4382,9 +4412,722 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
         Assert.AreEqual(expected, await ApplyCodeFixAsync(input));
     }
 
+    /// <summary>
+    /// Verifies the specification example in which the regions of the <c>#if</c> and the <c>#else</c> branch of one
+    /// conditional directive are not compared, where the <c>#else</c> branch is compiled
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-002")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task RegionsInTheIfAndElseBranchOfOneConditionalDirectiveAreNotCompared()
+    {
+        await Verify(RegionsInIfAndElseBranchSource);
+    }
+
+    /// <summary>
+    /// Verifies the specification example in which the regions of the <c>#if</c> and the <c>#else</c> branch of one
+    /// conditional directive are not compared, where the <c>#if</c> branch is compiled
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-002")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task RegionsInTheIfAndElseBranchOfOneConditionalDirectiveAreNotComparedWhereTheSymbolIsDefined()
+    {
+        await Verify(RegionsInIfAndElseBranchSource, test => test.SolutionTransforms.Add(DefineDebug));
+    }
+
+    /// <summary>
+    /// Verifies that the regions of the <c>#if</c> and the <c>#elif</c> branch of one conditional directive are not
+    /// compared, neither where the first branch is compiled nor where no branch is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-002")]
+    public async Task RegionsInTheIfAndElifBranchOfOneConditionalDirectiveAreNotCompared()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                #if DEBUG
+                                    #region IDisposable
+
+                                    private int _a;
+
+                                    #endregion
+                                #elif TRACE
+                                    #region Fields
+
+                                    private int _b;
+
+                                    #endregion
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData);
+        await Verify(testData, test => test.SolutionTransforms.Add(DefineDebug));
+    }
+
+    /// <summary>
+    /// Verifies the specification example in which a region in the compiled branch after a region outside every branch
+    /// is reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-002")]
+    [Requirement("RH7309-005")]
+    public async Task RegionInTheCompiledBranchAfterARegionOutsideEveryBranchIsReportedWithoutACodeFix()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                #if DEBUG
+                                    {|RH7309:#region Diagnostics|}
+
+                                    private int _calls;
+
+                                    #endregion
+                                #endif
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData, DocumentationMode.Parse, "DEBUG");
+    }
+
+    /// <summary>
+    /// Verifies the specification example in which a region in an excluded branch after a region outside every branch is
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-002")]
+    public async Task RegionInAnExcludedBranchAfterARegionOutsideEveryBranchIsNotReported()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                #if DEBUG
+                                    #region Diagnostics
+
+                                    private int _calls;
+
+                                    #endregion
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a region in an excluded branch does not count as an earlier region of a region outside every branch
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-002")]
+    public async Task RegionInAnExcludedBranchDoesNotCountAsAnEarlierRegion()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                #if DEBUG
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion
+                                #else
+                                    public void Dispose()
+                                    {
+                                    }
+                                #endif
+
+                                    #region Fields
+
+                                    private int _a;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a region in the compiled branch counts as an earlier region of a region outside every branch
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-002")]
+    public async Task RegionInTheCompiledBranchCountsAsAnEarlierRegion()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                #if DEBUG
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion
+                                #else
+                                    public void Dispose()
+                                    {
+                                    }
+                                #endif
+
+                                    {|RH7309:#region Fields|}
+
+                                    private int _a;
+
+                                    #endregion
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData, DocumentationMode.Parse, "DEBUG");
+    }
+
+    /// <summary>
+    /// Verifies the specification example in which a region in an excluded branch is a block whose conditional directive
+    /// lies outside it, so a later region is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-004")]
+    [Requirement("RH7309-005")]
+    public async Task NoCodeFixWhenARegionInAnExcludedBranchStandsInFrontOfTheReportedRegions()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                #if DEBUG
+                                    #region Diagnostics
+
+                                    private int _calls;
+
+                                    #endregion
+                                #endif
+
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    {|RH7309:#region Fields|}
+
+                                    private int _a;
+
+                                    #endregion
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the region of a nested enum belongs to the enum and is not compared with the regions of the type
+    /// that holds it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-002")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task RegionOfANestedEnumIsNotComparedWithTheRegionsOfTheType()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    private enum E
+                                    {
+                                        #region Fields
+                                        A,
+                                        #endregion
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that two regions inside a nested enum are not top-level regions of the type that holds the enum, so they
+    /// are neither reported nor reordered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-002")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task RegionsInsideANestedEnumAreNotReported()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    private enum E
+                                    {
+                                        #region IDisposable
+                                        A,
+                                        #endregion
+
+                                        #region Values
+                                        B,
+                                        #endregion
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix reorders the top-level region blocks of a type around a nested enum with a region of
+    /// its own, and leaves the enum and its region in place
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-002")]
+    [Requirement("RH7309-004")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task CodeFixReordersTheBlocksOfTheTypeAroundANestedEnumWithARegion()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    private enum E
+                                    {
+                                        #region Values
+                                        A,
+                                        #endregion
+                                    }
+
+                                    {|RH7309:#region Fields|}
+
+                                    private int _a;
+
+                                    #endregion
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 public class C : IDisposable
+                                 {
+                                     #region Fields
+
+                                     private int _a;
+
+                                     #endregion
+
+                                     private enum E
+                                     {
+                                         #region Values
+                                         A,
+                                         #endregion
+                                     }
+
+                                     #region IDisposable
+
+                                     public void Dispose()
+                                     {
+                                     }
+
+                                     #endregion
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix reorders the blocks of the type when the reported block starts with a nested class,
+    /// and leaves the nested class untouched
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-004")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task CodeFixReordersTheTypeWhenTheReportedBlockStartsWithANestedClass()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    {|RH7309:#region Fields|}
+
+                                    private class Other
+                                    {
+                                    }
+
+                                    private int _a;
+
+                                    #endregion
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 public class C : IDisposable
+                                 {
+                                     #region Fields
+
+                                     private class Other
+                                     {
+                                     }
+
+                                     private int _a;
+
+                                     #endregion
+
+                                     #region IDisposable
+
+                                     public void Dispose()
+                                     {
+                                     }
+
+                                     #endregion
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix reorders the blocks of the type when the reported block starts with a nested record
+    /// that carries an attribute list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-004")]
+    public async Task CodeFixReordersTheTypeWhenTheReportedBlockStartsWithAnAttributedNestedRecord()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    {|RH7309:#region Fields|}
+
+                                    [Serializable]
+                                    private record R(int A);
+
+                                    private int _a;
+
+                                    #endregion
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 public class C : IDisposable
+                                 {
+                                     #region Fields
+
+                                     [Serializable]
+                                     private record R(int A);
+
+                                     private int _a;
+
+                                     #endregion
+
+                                     #region IDisposable
+
+                                     public void Dispose()
+                                     {
+                                     }
+
+                                     #endregion
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix reorders the blocks of the type when the reported block starts with a nested class
+    /// whose own regions are in order, and leaves the regions of the nested class in place
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-004")]
+    [Requirement("SHARED-FIX-005")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task CodeFixReordersTheTypeWhenTheReportedBlockStartsWithANestedClassWhoseRegionsAreInOrder()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    {|RH7309:#region Fields|}
+
+                                    private class Other : IDisposable
+                                    {
+                                        #region Fields
+
+                                        private int _b;
+
+                                        #endregion
+
+                                        #region IDisposable
+
+                                        public void Dispose()
+                                        {
+                                        }
+
+                                        #endregion
+                                    }
+
+                                    private int _a;
+
+                                    #endregion
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 public class C : IDisposable
+                                 {
+                                     #region Fields
+
+                                     private class Other : IDisposable
+                                     {
+                                         #region Fields
+
+                                         private int _b;
+
+                                         #endregion
+
+                                         #region IDisposable
+
+                                         public void Dispose()
+                                         {
+                                         }
+
+                                         #endregion
+                                     }
+
+                                     private int _a;
+
+                                     #endregion
+
+                                     #region IDisposable
+
+                                     public void Dispose()
+                                     {
+                                     }
+
+                                     #endregion
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix for the diagnostic of the outer type reorders the blocks of the outer type only, when
+    /// the reported block starts with a nested class whose own regions are out of order
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-004")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task CodeFixForTheOuterTypeLeavesTheRegionsOfANestedClassAtTheStartOfTheReportedBlockInPlace()
+    {
+        const string testData = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    {|RH7309:#region Fields|}
+
+                                    private class Other : IDisposable
+                                    {
+                                        #region IDisposable
+
+                                        public void Dispose()
+                                        {
+                                        }
+
+                                        #endregion
+
+                                        {|RH7309:#region Fields|}
+
+                                        private int _b;
+
+                                        #endregion
+                                    }
+
+                                    private int _a;
+
+                                    #endregion
+                                }
+                                """;
+        const string expected = """
+                                using System;
+
+                                public class C : IDisposable
+                                {
+                                    #region Fields
+
+                                    private class Other : IDisposable
+                                    {
+                                        #region IDisposable
+
+                                        public void Dispose()
+                                        {
+                                        }
+
+                                        #endregion
+
+                                        #region Fields
+
+                                        private int _b;
+
+                                        #endregion
+                                    }
+
+                                    private int _a;
+
+                                    #endregion
+
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+
+        var source = RemoveMarkup(testData);
+        var fixedSource = await TryApplyCodeFixAtAsync(source,
+                                                       RH7309RegionsShouldFollowCategoryOrderAnalyzer.DiagnosticId,
+                                                       root => root.DescendantNodes(descendIntoTrivia: true)
+                                                                   .OfType<RegionDirectiveTriviaSyntax>()
+                                                                   .ElementAt(1)
+                                                                   .GetLocation());
+
+        Assert.AreEqual(expected, fixedSource);
+    }
+
     #endregion // Tests
 
     #region Methods
+
+    /// <summary>
+    /// Defines the preprocessor symbol <c>DEBUG</c> for the test project
+    /// </summary>
+    /// <param name="solution">Solution</param>
+    /// <param name="projectId">Project ID</param>
+    /// <returns>Solution</returns>
+    private static Solution DefineDebug(Solution solution, ProjectId projectId)
+    {
+        return solution.GetProject(projectId)?.ParseOptions is CSharpParseOptions parseOptions
+                   ? solution.WithProjectParseOptions(projectId, parseOptions.WithPreprocessorSymbols("DEBUG"))
+                   : solution;
+    }
 
     /// <summary>
     /// Writes the provided text with the given line break

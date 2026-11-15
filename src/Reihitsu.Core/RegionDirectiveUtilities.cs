@@ -5,7 +5,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Reihitsu.Core;
 
@@ -127,14 +126,42 @@ public static class RegionDirectiveUtilities
     /// <returns>Region pairs</returns>
     public static List<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> GetTopLevelRegions(TypeDeclarationSyntax typeDeclaration)
     {
-        var nestedTypeSpans = typeDeclaration.DescendantNodes()
-                                             .OfType<TypeDeclarationSyntax>()
-                                             .Select(nestedType => nestedType.Span)
-                                             .ToList();
+        return GetTypeRegions(typeDeclaration).Where(pair => pair.NestingDepth == 1)
+                                              .Select(pair => (pair.Region, pair.EndRegion))
+                                              .ToList();
+    }
 
-        return GetRegionPairsWithDepth(typeDeclaration, directiveTrivia => BelongsToType(typeDeclaration, nestedTypeSpans, directiveTrivia)).Where(pair => pair.NestingDepth == 1)
-                                                                                                                                            .Select(pair => (pair.Region, pair.EndRegion))
-                                                                                                                                            .ToList();
+    /// <summary>
+    /// Gets every region pair that belongs to the current type (<see cref="GetOwningTypeDeclaration"/>): its top-level
+    /// regions and the regions nested in them, each with its nesting depth, <c>1</c> for a top-level region
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration</param>
+    /// <returns>Region pairs with their nesting depth in closing-directive traversal order</returns>
+    public static List<(SyntaxTrivia Region, SyntaxTrivia EndRegion, int NestingDepth)> GetTypeRegions(TypeDeclarationSyntax typeDeclaration)
+    {
+        return GetRegionPairsWithDepth(typeDeclaration,
+                                       directiveTrivia => IsWithinElementBody(directiveTrivia) == false
+                                                          && GetOwningTypeDeclaration(directiveTrivia) == typeDeclaration);
+    }
+
+    /// <summary>
+    /// Gets the declaration a region directive belongs to: the innermost class, struct, interface, record, record struct,
+    /// or enum declaration whose span holds the directive
+    /// </summary>
+    /// <param name="directiveTrivia">Directive trivia</param>
+    /// <returns>The declaration, or <see langword="null"/> when no type declaration holds the directive</returns>
+    public static BaseTypeDeclarationSyntax GetOwningTypeDeclaration(SyntaxTrivia directiveTrivia)
+    {
+        for (var node = directiveTrivia.Token.Parent; node != null; node = node.Parent)
+        {
+            if (node is BaseTypeDeclarationSyntax typeDeclaration
+                && typeDeclaration.Span.Contains(directiveTrivia.SpanStart))
+            {
+                return typeDeclaration;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -149,17 +176,31 @@ public static class RegionDirectiveUtilities
     }
 
     /// <summary>
-    /// Tries to find the containing top-level region for the member declaration
+    /// Tries to find the region that judges a member by its description: the innermost region that encloses the member,
+    /// when the member lies in a top-level region
     /// </summary>
     /// <param name="memberDeclaration">Member declaration</param>
-    /// <param name="regions">Region pairs</param>
-    /// <param name="region">Containing region pair</param>
-    /// <returns><see langword="true"/> if a containing region was found</returns>
-    public static bool TryFindContainingRegion(MemberDeclarationSyntax memberDeclaration, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> regions, out (SyntaxTrivia Region, SyntaxTrivia EndRegion) region)
+    /// <param name="regions">Region pairs of the member's type with their nesting depth (<see cref="GetTypeRegions"/>)</param>
+    /// <param name="region">Innermost enclosing region pair</param>
+    /// <returns><see langword="true"/> if the member lies in a top-level region</returns>
+    public static bool TryFindInnermostContainingRegion(MemberDeclarationSyntax memberDeclaration, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion, int NestingDepth)> regions, out (SyntaxTrivia Region, SyntaxTrivia EndRegion) region)
     {
-        region = regions.FirstOrDefault(currentRegion => Contains(currentRegion, memberDeclaration));
+        region = default;
 
-        return region != default;
+        var containingRegions = regions.Where(currentRegion => Contains((currentRegion.Region, currentRegion.EndRegion), memberDeclaration))
+                                       .ToList();
+
+        if (containingRegions.Any(currentRegion => currentRegion.NestingDepth == 1) == false)
+        {
+            return false;
+        }
+
+        var innermostRegion = containingRegions.OrderByDescending(currentRegion => currentRegion.NestingDepth)
+                                               .First();
+
+        region = (innermostRegion.Region, innermostRegion.EndRegion);
+
+        return true;
     }
 
     /// <summary>
@@ -181,6 +222,43 @@ public static class RegionDirectiveUtilities
         }
 
         return -1;
+    }
+
+    /// <summary>
+    /// Determines whether a directive lies in a branch — <c>#if</c>, <c>#elif</c>, or <c>#else</c> — of a conditional
+    /// directive that starts inside the given node
+    /// </summary>
+    /// <param name="directiveTrivia">Directive trivia</param>
+    /// <param name="scope">Node whose conditional directives are considered</param>
+    /// <returns><see langword="true"/> if an open branch of a conditional directive inside the node encloses the directive</returns>
+    public static bool IsInConditionalBranch(SyntaxTrivia directiveTrivia, SyntaxNode scope)
+    {
+        if (directiveTrivia.GetStructure() is not DirectiveTriviaSyntax directive)
+        {
+            return false;
+        }
+
+        var closedConditionals = 0;
+
+        for (var previousDirective = directive.GetPreviousDirective(); previousDirective != null && previousDirective.SpanStart >= scope.SpanStart; previousDirective = previousDirective.GetPreviousDirective())
+        {
+            switch (previousDirective)
+            {
+                case EndIfDirectiveTriviaSyntax:
+                    closedConditionals++;
+                    break;
+
+                case IfDirectiveTriviaSyntax when closedConditionals > 0:
+                    closedConditionals--;
+                    break;
+
+                case IfDirectiveTriviaSyntax:
+                case ElifDirectiveTriviaSyntax or ElseDirectiveTriviaSyntax when closedConditionals == 0:
+                    return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -217,28 +295,6 @@ public static class RegionDirectiveUtilities
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// Determines whether the directive belongs to the current type declaration
-    /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
-    /// <param name="nestedTypeSpans">Spans of the type's nested type declarations</param>
-    /// <param name="directiveTrivia">Directive trivia</param>
-    /// <returns><see langword="true"/> if the directive belongs to the current type</returns>
-    private static bool BelongsToType(TypeDeclarationSyntax typeDeclaration, IReadOnlyList<TextSpan> nestedTypeSpans, SyntaxTrivia directiveTrivia)
-    {
-        if (IsWithinElementBody(directiveTrivia))
-        {
-            return false;
-        }
-
-        if (typeDeclaration.Span.Contains(directiveTrivia.SpanStart) == false)
-        {
-            return false;
-        }
-
-        return nestedTypeSpans.Any(nestedTypeSpan => nestedTypeSpan.Contains(directiveTrivia.SpanStart)) == false;
     }
 
     /// <summary>

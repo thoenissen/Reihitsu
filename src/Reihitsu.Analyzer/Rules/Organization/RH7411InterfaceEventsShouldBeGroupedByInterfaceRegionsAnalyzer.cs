@@ -1,4 +1,4 @@
-using System.Threading;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -39,20 +39,11 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzer : Me
     #region MembersShouldBeGroupedByRegionsAnalyzerBase
 
     /// <inheritdoc/>
-    protected override bool TryGetExpectedRegionName(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken, out string expectedRegionName)
+    protected override IReadOnlyList<string> GetExpectedRegionNames(MemberDeclarationSyntax memberDeclaration, ISymbol symbol)
     {
-        expectedRegionName = memberDeclaration switch
-                             {
-                                 EventDeclarationSyntax eventDeclaration => semanticModel.GetDeclaredSymbol(eventDeclaration, cancellationToken) is IEventSymbol eventSymbol
-                                                                                ? InterfaceImplementationUtilities.GetInterfaceRegionName(eventSymbol, semanticModel.Compilation, cancellationToken)
-                                                                                : string.Empty,
-                                 EventFieldDeclarationSyntax { Declaration.Variables.Count: > 0 } eventFieldDeclaration => semanticModel.GetDeclaredSymbol(eventFieldDeclaration.Declaration.Variables[0], cancellationToken) is IEventSymbol eventSymbol
-                                                                                                                               ? InterfaceImplementationUtilities.GetInterfaceRegionName(eventSymbol, semanticModel.Compilation, cancellationToken)
-                                                                                                                               : string.Empty,
-                                 _ => string.Empty
-                             };
-
-        return string.IsNullOrEmpty(expectedRegionName) == false;
+        return memberDeclaration is EventDeclarationSyntax or EventFieldDeclarationSyntax
+                   ? InterfaceImplementationUtilities.GetInterfaceRegionNames(symbol)
+                   : [];
     }
 
     #endregion // MembersShouldBeGroupedByRegionsAnalyzerBase

@@ -314,7 +314,8 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : ReihitsuCod
 
         foreach (var diagnostic in context.Diagnostics)
         {
-            if (root.FindTrivia(diagnostic.Location.SourceSpan.Start).Token.Parent?.FirstAncestorOrSelf<TypeDeclarationSyntax>() is not { } typeDeclaration)
+            // The region belongs to the declaration the analyzer judged it in (SHARED-TYPEREGION-006)
+            if (RegionDirectiveUtilities.GetOwningTypeDeclaration(root.FindTrivia(diagnostic.Location.SourceSpan.Start)) is not TypeDeclarationSyntax typeDeclaration)
             {
                 continue;
             }

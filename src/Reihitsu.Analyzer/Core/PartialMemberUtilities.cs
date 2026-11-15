@@ -1,9 +1,12 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Core;
 
@@ -55,17 +58,40 @@ internal static class PartialMemberUtilities
     }
 
     /// <summary>
+    /// Gets every symbol a member declaration declares, each with the location of its name: one per declarator for an
+    /// event field (SHARED-DIAG-006), and the one symbol of every other declaration
+    /// </summary>
+    /// <param name="memberDeclaration">Member declaration</param>
+    /// <param name="semanticModel">Semantic model of the declaration's tree</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The symbols with their locations; a declaration without a symbol yields nothing</returns>
+    internal static IEnumerable<(ISymbol Symbol, Location Location)> GetDeclaredSymbols(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        if (memberDeclaration is EventFieldDeclarationSyntax eventFieldDeclaration)
+        {
+            foreach (var variable in eventFieldDeclaration.Declaration.Variables)
+            {
+                if (semanticModel.GetDeclaredSymbol(variable, cancellationToken) is { } variableSymbol)
+                {
+                    yield return (variableSymbol, variable.Identifier.GetLocation());
+                }
+            }
+        }
+        else if (semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken) is { } symbol)
+        {
+            yield return (symbol, OrderingDeclarationUtilities.GetDiagnosticLocation(memberDeclaration));
+        }
+    }
+
+    /// <summary>
     /// Gets the symbol on which the analysis of a part judges the facts the compiler binds to the defining part of a
-    /// partial member only, such as the interface member the member implements. The defining part stands for the member;
-    /// when it is in generated code, no analysis reaches it, and the implementing part stands for the member in its place,
-    /// as in the order of SHARED-DIAG-012. So for an implementing part whose defining part is in generated code, the
-    /// defining part's symbol is returned, and every other symbol is returned as it is
+    /// partial member only, such as the interface member the member implements: the defining part's symbol for an
+    /// implementing part, and every other symbol as it is. Every part then reaches the same facts, and which part reports
+    /// is <see cref="GetReportedPart"/>'s choice
     /// </summary>
     /// <param name="symbol">Symbol of the analyzed part, or of a member that is not partial</param>
-    /// <param name="compilation">Compilation containing the part</param>
-    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The symbol on which the member's facts are judged</returns>
-    internal static ISymbol GetStandInSymbol(ISymbol symbol, Compilation compilation, CancellationToken cancellationToken)
+    internal static ISymbol GetDefiningPartSymbol(ISymbol symbol)
     {
         ISymbol definitionPart = symbol switch
                                  {
@@ -75,10 +101,7 @@ internal static class PartialMemberUtilities
                                      _ => null
                                  };
 
-        return definitionPart?.DeclaringSyntaxReferences.Length == 1
-               && IsGeneratedCode(definitionPart.DeclaringSyntaxReferences[0].SyntaxTree, compilation, cancellationToken)
-                   ? definitionPart
-                   : symbol;
+        return definitionPart ?? symbol;
     }
 
     /// <summary>
@@ -99,7 +122,7 @@ internal static class PartialMemberUtilities
     /// The choice is made from every part of the member, so the analysis of each part reaches the same choice, and only
     /// the analysis of the chosen part reports. The chosen part is never in generated code, so a caller whose analysis
     /// runs for every declaration of a kind outside generated code, and that judges the facts bound to the defining part on
-    /// <see cref="GetStandInSymbol"/>, reports the member exactly once. A caller whose analysis does not reach every part
+    /// <see cref="GetDefiningPartSymbol"/>, reports the member exactly once. A caller whose analysis does not reach every part
     /// decides from the containing type instead, with <see cref="TryGetParts"/> and <see cref="SelectReportedPart"/>
     /// </remarks>
     internal static MemberDeclarationSyntax GetReportedPart(MemberDeclarationSyntax declaration,

@@ -243,12 +243,14 @@ public class RH7406NonOverridePropertiesShouldNotBePlacedInOverrideRegionsAnalyz
     }
 
     /// <summary>
-    /// Characterizes a region that only an override method names: it is not an override region of properties, so a property
-    /// that overrides nothing in it is not reported. This test pins today's behavior without stating it as intended
+    /// Verifies that an override method makes the region named after its base type an override region, so a property
+    /// that overrides nothing in it is reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyOverrideOfOtherMemberKindDoesNotMakePropertyOverrideRegion()
+    [Requirement("RH7406-001")]
+    [Requirement("SHARED-REGGROUP-006")]
+    public async Task VerifyOverrideOfOtherMemberKindMakesPropertyOverrideRegion()
     {
         const string testData = """
                                 class B
@@ -266,7 +268,7 @@ public class RH7406NonOverridePropertiesShouldNotBePlacedInOverrideRegionsAnalyz
                                     {
                                     }
 
-                                    public int Q => 0;
+                                    public int {|RH7406:Q|} => 0;
 
                                     #endregion
                                 }

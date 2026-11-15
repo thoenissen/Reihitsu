@@ -1,11 +1,8 @@
-﻿using System.Threading;
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
-using Reihitsu.Analyzer.Core;
 
 namespace Reihitsu.Analyzer.Rules.Organization;
 
@@ -39,24 +36,10 @@ public class RH7405NonOverrideMethodsShouldNotBePlacedInOverrideRegionsAnalyzer 
     #region NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase
 
     /// <inheritdoc/>
-    protected override bool TryGetOverrideRegionName(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken, out string overrideRegionName)
+    protected override bool IsRelevantNonOverrideMember(MemberDeclarationSyntax memberDeclaration, ISymbol symbol)
     {
-        overrideRegionName = string.Empty;
-
-        if (memberDeclaration is MethodDeclarationSyntax methodDeclaration
-            && semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken) is IMethodSymbol { OverriddenMethod: not null } methodSymbol)
-        {
-            overrideRegionName = OverrideMemberUtilities.GetOriginalDeclaringTypeName(methodSymbol);
-        }
-
-        return string.IsNullOrEmpty(overrideRegionName) == false;
-    }
-
-    /// <inheritdoc/>
-    protected override bool IsRelevantNonOverrideMember(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
-    {
-        return memberDeclaration is MethodDeclarationSyntax methodDeclaration
-               && (semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken) as IMethodSymbol) is { OverriddenMethod: null };
+        return memberDeclaration is MethodDeclarationSyntax
+               && symbol is IMethodSymbol { OverriddenMethod: null };
     }
 
     #endregion // NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase

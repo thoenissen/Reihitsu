@@ -60,9 +60,11 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzer : Diagnosti
 
         var seenDescriptions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var region in regions)
+        foreach (var regionTrivia in regions.Select(region => region.Region))
         {
-            if (region.Region.GetStructure() is not RegionDirectiveTriviaSyntax regionDirective)
+            // A region in a branch of a conditional directive is compared with no other region (RH7311-001)
+            if (regionTrivia.GetStructure() is not RegionDirectiveTriviaSyntax regionDirective
+                || RegionDirectiveUtilities.IsInConditionalBranch(regionTrivia, typeDeclaration))
             {
                 continue;
             }
