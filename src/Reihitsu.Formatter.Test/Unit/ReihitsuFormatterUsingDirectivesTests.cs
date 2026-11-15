@@ -219,6 +219,830 @@ public class ReihitsuFormatterUsingDirectivesTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies the spec example: in a namespace with a body, a header with no blank line below it stays at the top, and the
+    /// original first directive that moves away from the top keeps the whitespace of its own line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-011")]
+    public async Task HeaderWithoutBlankLineChangesNoDirectiveIndentationInANamespaceWithABody()
+    {
+        const string input = """
+                             namespace N
+                             {
+                                 // Header
+                                 using System.Linq;
+                                 using System;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace N
+                                {
+                                    // Header
+                                    using System;
+                                    using System.Linq;
+
+                                    class C
+                                    {
+                                        int x;
+                                    }
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, SelectNamespace);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: in a namespace with a body, a header with a blank line below it stays at the top, and the
+    /// directive that takes the first position starts at the whitespace of the original first directive's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-011")]
+    public async Task HeaderWithBlankLineChangesNoDirectiveIndentationInANamespaceWithABody()
+    {
+        const string input = """
+                             namespace N
+                             {
+                                 // Header
+
+                                 using System.Linq;
+                                 using System;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace N
+                                {
+                                    // Header
+
+                                    using System;
+                                    using System.Linq;
+
+                                    class C
+                                    {
+                                        int x;
+                                    }
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, SelectNamespace);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: when a comment of its own leads the directive that takes the first position, that comment
+    /// starts at the whitespace of the original first directive's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-011")]
+    public async Task CommentLeadingTheNewFirstDirectiveStartsAtTheOriginalFirstDirectiveIndentation()
+    {
+        const string input = """
+                             namespace N
+                             {
+                                 // Header
+
+                                 using System.Linq;
+                                 // About System
+                                 using System;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace N
+                                {
+                                    // Header
+
+                                    // About System
+                                    using System;
+                                    using System.Linq;
+
+                                    class C
+                                    {
+                                        int x;
+                                    }
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, SelectNamespace);
+    }
+
+    /// <summary>
+    /// Verifies the spec statement: both blocks of the namespace examples without the header are organized with both
+    /// directives at the original first directive's indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-011")]
+    public async Task BlockWithoutHeaderKeepsItsIndentationInANamespaceWithABody()
+    {
+        const string input = """
+                             namespace N
+                             {
+                                 using System.Linq;
+                                 // About System
+                                 using System;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace N
+                                {
+                                    // About System
+                                    using System;
+                                    using System.Linq;
+
+                                    class C
+                                    {
+                                        int x;
+                                    }
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, SelectNamespace);
+    }
+
+    /// <summary>
+    /// Verifies the spec statement for a namespace indented with a tab: the tab stays in front of the header and both
+    /// directives, without a blank line below the header
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-011")]
+    public async Task TabIsKeptInFrontOfEveryDirectiveBelowAHeaderWithoutBlankLine()
+    {
+        const string input = """
+                             namespace N
+                             {
+                                 // Header
+                                 using System.Linq;
+                                 using System;
+
+                                 class C
+                                 {
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace N
+                                {
+                                    // Header
+                                    using System;
+                                    using System.Linq;
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        await AssertOrganizes(IndentWithTabs(input), IndentWithTabs(expected), SelectNamespace);
+    }
+
+    /// <summary>
+    /// Verifies the spec statement for a namespace indented with a tab: the tab stays in front of the header and both
+    /// directives, with a blank line below the header
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-011")]
+    public async Task TabIsKeptInFrontOfEveryDirectiveBelowAHeaderWithBlankLine()
+    {
+        const string input = """
+                             namespace N
+                             {
+                                 // Header
+
+                                 using System.Linq;
+                                 using System;
+
+                                 class C
+                                 {
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace N
+                                {
+                                    // Header
+
+                                    using System;
+                                    using System.Linq;
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        await AssertOrganizes(IndentWithTabs(input), IndentWithTabs(expected), SelectNamespace);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: in a file-scoped namespace whose directives are indented, a header changes no directive's
+    /// indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-011")]
+    public async Task HeaderChangesNoDirectiveIndentationInAnIndentedFileScopedNamespace()
+    {
+        const string input = """
+                             namespace N;
+
+                                 // Header
+                                 using System.Linq;
+                                 using System;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+
+        const string expected = """
+                                namespace N;
+
+                                    // Header
+                                    using System;
+                                    using System.Linq;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, root => root.DescendantNodes().OfType<FileScopedNamespaceDeclarationSyntax>().Single());
+    }
+
+    /// <summary>
+    /// Verifies the spec statement: in a compilation unit whose directives are indented, a header changes no directive's
+    /// indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-011")]
+    public async Task HeaderChangesNoDirectiveIndentationInAnIndentedCompilationUnit()
+    {
+        const string input = """
+                                 // Header
+                                 using System.Linq;
+                                 using System;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+
+        const string expected = """
+                                    // Header
+                                    using System;
+                                    using System.Linq;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, root => root);
+    }
+
+    /// <summary>
+    /// Verifies that a header in a namespace nested in another namespace with a body changes no directive's indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-011")]
+    public async Task HeaderChangesNoDirectiveIndentationInANestedNamespace()
+    {
+        const string input = """
+                             namespace A
+                             {
+                                 namespace B
+                                 {
+                                     // Header
+                                     using System.Linq;
+                                     using System;
+
+                                     class C
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                namespace A
+                                {
+                                    namespace B
+                                    {
+                                        // Header
+                                        using System;
+                                        using System.Linq;
+
+                                        class C
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, root => root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single(scope => scope.Name.ToString() == "B"));
+    }
+
+    /// <summary>
+    /// Verifies that a delimited header on a line of its own changes no directive's indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-011")]
+    public async Task DelimitedHeaderChangesNoDirectiveIndentation()
+    {
+        const string input = """
+                             namespace N
+                             {
+                                 /* Header */
+                                 using System.Linq;
+                                 using System;
+                             }
+                             """;
+
+        const string expected = """
+                                namespace N
+                                {
+                                    /* Header */
+                                    using System;
+                                    using System.Linq;
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, SelectNamespace);
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line delimited header keeps its own lines and changes no directive's indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-011")]
+    public async Task MultiLineDelimitedHeaderChangesNoDirectiveIndentation()
+    {
+        const string input = """
+                             namespace N
+                             {
+                                 /*
+                                  * Header
+                                  */
+                                 using System.Linq;
+                                 using System;
+                             }
+                             """;
+
+        const string expected = """
+                                namespace N
+                                {
+                                    /*
+                                     * Header
+                                     */
+                                    using System;
+                                    using System.Linq;
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, SelectNamespace);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line documentation comment as header changes no directive's indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-011")]
+    public async Task SingleLineDocumentationHeaderChangesNoDirectiveIndentation()
+    {
+        const string input = """
+                             namespace N
+                             {
+                                 /// Header
+                                 using System.Linq;
+                                 using System;
+                             }
+                             """;
+
+        const string expected = """
+                                namespace N
+                                {
+                                    /// Header
+                                    using System;
+                                    using System.Linq;
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, SelectNamespace);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment as header changes no directive's indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-011")]
+    public async Task DelimitedDocumentationHeaderChangesNoDirectiveIndentation()
+    {
+        const string input = """
+                             namespace N
+                             {
+                                 /** Header */
+                                 using System.Linq;
+                                 using System;
+                             }
+                             """;
+
+        const string expected = """
+                                namespace N
+                                {
+                                    /** Header */
+                                    using System;
+                                    using System.Linq;
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, SelectNamespace);
+    }
+
+    /// <summary>
+    /// Verifies that a header of two single-line comments changes no directive's indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-011")]
+    public async Task HeaderOfTwoCommentLinesChangesNoDirectiveIndentation()
+    {
+        const string input = """
+                             namespace N
+                             {
+                                 // Header
+                                 // More header
+                                 using System.Linq;
+                                 using System;
+                             }
+                             """;
+
+        const string expected = """
+                                namespace N
+                                {
+                                    // Header
+                                    // More header
+                                    using System;
+                                    using System.Linq;
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, SelectNamespace);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line between the namespace's opening brace and the header stays, and the header changes no
+    /// directive's indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-011")]
+    public async Task HeaderBelowABlankLineAfterTheBraceChangesNoDirectiveIndentation()
+    {
+        const string input = """
+                             namespace N
+                             {
+
+                                 // Header
+                                 using System.Linq;
+                                 using System;
+                             }
+                             """;
+
+        const string expected = """
+                                namespace N
+                                {
+
+                                    // Header
+                                    using System;
+                                    using System.Linq;
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, SelectNamespace);
+    }
+
+    /// <summary>
+    /// Verifies that the original first directive keeps the whitespace of its own line when it moves to the last position,
+    /// and the directive that keeps its middle position stays where it is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-011")]
+    public async Task OriginalFirstDirectiveMovedBehindAMiddleDirectiveKeepsItsIndentation()
+    {
+        const string input = """
+                             namespace N
+                             {
+                                 // Header
+                                 using System.Text;
+                                 using System.Linq;
+                                 using System;
+                             }
+                             """;
+
+        const string expected = """
+                                namespace N
+                                {
+                                    // Header
+                                    using System;
+                                    using System.Linq;
+                                    using System.Text;
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, SelectNamespace);
+    }
+
+    /// <summary>
+    /// Verifies that the original first directive keeps the whitespace of its own line when it moves into another group,
+    /// behind the group's blank line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-011")]
+    public async Task OriginalFirstDirectiveMovedIntoAnotherGroupKeepsItsIndentation()
+    {
+        const string input = """
+                             namespace N
+                             {
+                                 // Header
+                                 using Zeta.Alpha;
+                                 using System;
+                             }
+                             """;
+
+        const string expected = """
+                                namespace N
+                                {
+                                    // Header
+                                    using System;
+
+                                    using Zeta.Alpha;
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, SelectNamespace);
+    }
+
+    /// <summary>
+    /// Verifies that, with a blank line below the header, the comment that moves with the original first directive and that
+    /// directive keep the whitespace of their own lines, and the new first directive starts at the original first directive's
+    /// indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-011")]
+    public async Task CommentMovingWithTheOriginalFirstDirectiveKeepsItsIndentation()
+    {
+        const string input = """
+                             namespace N
+                             {
+                                 // Header
+
+                                 // About Linq
+                                 using System.Linq;
+                                 using System;
+                             }
+                             """;
+
+        const string expected = """
+                                namespace N
+                                {
+                                    // Header
+
+                                    using System;
+
+                                    // About Linq
+                                    using System.Linq;
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, SelectNamespace);
+    }
+
+    /// <summary>
+    /// Verifies that a comment on the line of the original first directive, which stays at the top (FMT-USING-009), leaves every
+    /// directive at the scope's indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-011")]
+    public async Task CommentOnTheOriginalFirstDirectivesLineChangesNoDirectiveIndentation()
+    {
+        const string input = """
+                             namespace N
+                             {
+                                 /* c */ using System.Linq;
+                                 using System;
+                             }
+                             """;
+
+        const string expected = """
+                                namespace N
+                                {
+                                    /* c */ using System;
+                                    using System.Linq;
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, SelectNamespace);
+    }
+
+    /// <summary>
+    /// Verifies that a comment leading the second directive, while the first directive keeps its position, changes no
+    /// directive's indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-011")]
+    public async Task CommentLeadingASecondDirectiveThatMovesChangesNoDirectiveIndentation()
+    {
+        const string input = """
+                             namespace N
+                             {
+                                 using System;
+                                 using System.Text;
+                                 // About Linq
+                                 using System.Linq;
+                             }
+                             """;
+
+        const string expected = """
+                                namespace N
+                                {
+                                    using System;
+                                    // About Linq
+                                    using System.Linq;
+                                    using System.Text;
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, SelectNamespace);
+    }
+
+    /// <summary>
+    /// Verifies that a header in a compilation unit whose directives stand in column 0 keeps every directive in column 0, with
+    /// and without a blank line below the header
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-011")]
+    public async Task HeaderKeepsEveryDirectiveInColumnZeroInACompilationUnit()
+    {
+        const string input = """
+                             // Header
+                             using System.Linq;
+                             using System;
+
+                             class C
+                             {
+                             }
+                             """;
+
+        const string expected = """
+                                // Header
+                                using System;
+                                using System.Linq;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, root => root);
+
+        const string inputWithBlankLine = """
+                                          // Header
+
+                                          using System.Linq;
+                                          using System;
+
+                                          class C
+                                          {
+                                          }
+                                          """;
+
+        const string expectedWithBlankLine = """
+                                             // Header
+
+                                             using System;
+                                             using System.Linq;
+
+                                             class C
+                                             {
+                                             }
+                                             """;
+
+        await AssertOrganizes(inputWithBlankLine, expectedWithBlankLine, root => root);
+    }
+
+    /// <summary>
+    /// Verifies that a header in a file-scoped namespace whose directives stand in column 0 keeps every directive in column 0
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-011")]
+    public async Task HeaderKeepsEveryDirectiveInColumnZeroInAFileScopedNamespace()
+    {
+        const string input = """
+                             namespace N;
+
+                             // Header
+
+                             using System.Linq;
+                             using System;
+
+                             class C
+                             {
+                             }
+                             """;
+
+        const string expected = """
+                                namespace N;
+
+                                // Header
+
+                                using System;
+                                using System.Linq;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await AssertOrganizes(input, expected, root => root.DescendantNodes().OfType<FileScopedNamespaceDeclarationSyntax>().Single());
+    }
+
+    /// <summary>
+    /// Selects the only namespace with a body in the document's root
+    /// </summary>
+    /// <param name="root">The document's root</param>
+    /// <returns>The namespace</returns>
+    private static SyntaxNode SelectNamespace(SyntaxNode root)
+    {
+        return root.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
+    }
+
+    /// <summary>
+    /// Replaces every four spaces of indentation at the start of a line with one tab
+    /// </summary>
+    /// <param name="text">Text indented with spaces</param>
+    /// <returns>The text indented with tabs</returns>
+    private static string IndentWithTabs(string text)
+    {
+        var lines = text.Replace("\r\n", "\n").Split('\n');
+
+        for (var index = 0; index < lines.Length; index++)
+        {
+            var line = lines[index];
+            var spaces = line.Length - line.TrimStart(' ').Length;
+
+            lines[index] = $"{new string('\t', spaces / 4)}{new string(' ', spaces % 4)}{line[spaces..]}";
+        }
+
+        return string.Join("\n", lines);
+    }
+
+    /// <summary>
     /// Organizes the using block of the selected scope through <see cref="ReihitsuFormatter.OrganizeUsingDirectivesInDocumentAsync"/>
     /// under LF and CRLF, and asserts the document's text, written with the document's line ending
     /// </summary>
