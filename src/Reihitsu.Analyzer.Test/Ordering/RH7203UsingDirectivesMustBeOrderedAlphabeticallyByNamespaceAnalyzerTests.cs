@@ -1024,6 +1024,492 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies the specification example: a line that starts with <c>#</c> inside a file header comment is comment text,
+    /// so the block is reported and the code fix reorders it with the header kept on top
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task HashLineInFileHeaderCommentDoesNotPreventReportAndFix(string endOfLine)
+    {
+        const string testCode = """
+                                /*
+                                # Header
+                                */
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 /*
+                                 # Header
+                                 */
+                                 using System;
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that an indented line that starts with <c>#</c> inside a comment between two directives does not prevent the
+    /// report, and that the comment moves with the directive it leads
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task HashLineInCommentBetweenDirectivesDoesNotPreventReportAndFix(string endOfLine)
+    {
+        const string testCode = """
+                                using System.Linq;
+                                /*
+                                    # Note
+                                */
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 /*
+                                     # Note
+                                 */
+                                 using System;
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a line that starts with <c>#</c> inside a comment that starts behind a directive's semicolon does not
+    /// prevent the report, and that the comment stays behind its directive
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task HashLineInTrailingCommentDoesNotPreventReportAndFix(string endOfLine)
+    {
+        const string testCode = """
+                                using System.Linq; /*
+                                # Note
+                                */
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using System.Linq; /*
+                                 # Note
+                                 */
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a line that starts with <c>#</c> inside a delimited documentation comment before the first directive
+    /// does not prevent the report and the fix
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task HashLineInDelimitedDocumentationCommentDoesNotPreventReportAndFix(string endOfLine)
+    {
+        const string testCode = """
+                                /**
+                                # Header
+                                */
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 /**
+                                 # Header
+                                 */
+                                 using System;
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a line that starts with <c>#</c> inside a comment between the tokens of a directive does not prevent the
+    /// report and the fix
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task HashLineInCommentBetweenTokensOfDirectiveDoesNotPreventReportAndFix(string endOfLine)
+    {
+        const string testCode = """
+                                using System.Linq;
+                                using /*
+                                # Note
+                                */ {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using /*
+                                 # Note
+                                 */ System;
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a line that starts with <c>#</c> inside a comment before the first directive of a block-scoped namespace
+    /// does not prevent the report
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task HashLineInCommentOfBlockNamespaceDoesNotPreventReport(string endOfLine)
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    /*
+                                    # Header
+                                    */
+                                    using System.Linq;
+                                    using {|RH7203:System|};
+
+                                    class C
+                                    {
+                                        int x;
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a line that starts with <c>#</c> inside a comment before the first directive of a file-scoped namespace
+    /// does not prevent the report and the fix
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task HashLineInCommentOfFileScopedNamespaceDoesNotPreventReportAndFix(string endOfLine)
+    {
+        const string testCode = """
+                                namespace N;
+
+                                /*
+                                # Header
+                                */
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N;
+
+                                 /*
+                                 # Header
+                                 */
+                                 using System;
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a commented-out conditional block of directives is comment text and does not prevent the report and the
+    /// fix
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CommentedOutConditionalDirectivesDoNotPreventReportAndFix(string endOfLine)
+    {
+        const string testCode = """
+                                /*
+                                #if DEBUG
+                                using System.Diagnostics;
+                                #endif
+                                */
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 /*
+                                 #if DEBUG
+                                 using System.Diagnostics;
+                                 #endif
+                                 */
+                                 using System;
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that every diagnostic of a block behind a file header comment with a line that starts with <c>#</c> is
+    /// reported and that one fix, applied one at a time or with Fix All, organizes the whole block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    public async Task HashLineInFileHeaderCommentDoesNotPreventFixAll()
+    {
+        const string testCode = """
+                                /*
+                                # Header
+                                */
+                                using System.Text;
+                                using {|RH7203:System.Linq|};
+                                using {|RH7203:System.Collections.Generic|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 /*
+                                 # Header
+                                 */
+                                 using System.Collections.Generic;
+                                 using System.Linq;
+                                 using System.Text;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a comment with a line that reads as <c>#else</c> in another build, started inside a conditional group that
+    /// closes behind the block of a namespace, does not prevent the report, while no code fix is offered in a document that
+    /// holds such a comment
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [Requirement("SHARED-FIX-012")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task HashLineReadAsDirectiveByAnotherBuildIsReportedWithoutFix(string endOfLine)
+    {
+        const string testCode = """
+                                #if !A
+                                namespace N
+                                {
+                                    /*
+                                #else
+                                namespace M
+                                {
+                                    // */
+                                    using System.Linq;
+                                    using {|RH7203:System|};
+                                #endif
+
+                                    class C
+                                    {
+                                        int x;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a <c>#pragma</c> directive between the tokens of a using directive makes the block
+    /// unsafe, so it is not reported
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task PragmaBetweenTokensOfDirectiveIsNotReported(string endOfLine)
+    {
+        const string testCode = """
+                                using System.Linq;
+                                using System
+                                #pragma warning disable CS0105
+                                .Text;
+                                using System;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an <c>#if</c> and its <c>#endif</c> between the tokens of one using directive make the block unsafe, so
+    /// it is not reported
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task ConditionalGroupBetweenTokensOfDirectiveIsNotReported(string endOfLine)
+    {
+        const string testCode = """
+                                using System.Linq;
+                                using System
+                                #if A
+                                .Text
+                                #endif
+                                ;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an <c>#if</c> between the tokens of one using directive and its <c>#endif</c> between the tokens of the
+    /// next make the block unsafe, so it is not reported
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task ConditionalGroupAcrossTokensOfTwoDirectivesIsNotReported(string endOfLine)
+    {
+        const string testCode = """
+                                using System
+                                #if !A
+                                .Text;
+                                using System.Collections
+                                #endif
+                                ;
+                                using System.Buffers;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
