@@ -106,3 +106,16 @@ Change 7 of the change doc (a fix offered where a refused shape stands elsewhere
   - `RH5303.md`–`RH5308.md`, `RH5403.md`, `RH5404.md`
   - this handover
 - `scripts/test.sh --project architecture --filter "FullyQualifiedName~Sdd|FullyQualifiedName~Rule"`: passed, 57/57, after SHARED-FIX-005 left RH5308's `Uses`.
+
+## Amendment for M8, M9 (head 13971d2)
+
+- RH5308-006 is retired (M9), and its heading stays. Its `Status: Retired` line gives the reason. RH5308-004 gains the `[assembly:]` example as the positive case, derived and not measured. This replaces Output question 1 and the follow-up candidate above.
+- Change doc:
+  - `Status: Accepted`, as the lead said.
+  - *What* states that RH5308-006 is retired.
+  - Change 7 is decided by M8 (A). Its "after" is still marked as derived, because it was not measured.
+  - New change 8 is the assembly-attribute conditional (M9). The old changes 8 and 9 are now 9 and 10, and the references to them are updated.
+  - *Decisions* maps 7 to M8 and 8 to M9.
+  - *Alternatives* gains "Keeping RH5308-006".
+- Tests: the new RH5308-004 assembly example, and the RH5308-005 example.
+- The architecture test for spec tags now fails, which is expected. Three tests in `src/Reihitsu.Analyzer.Test/Formatting/RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests.cs` (around lines 702, 720 and 739) are tagged with the retired RH5308-006. The test implementer must rewrite them to show the fix offered and tag them RH5308-004. I do not touch tests. Every other Sdd/Rule check passes, 56/57.

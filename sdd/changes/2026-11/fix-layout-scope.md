@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-PIPE-010, FMT-PIPE-012, FMT-PIPE-017, FMT-PIPE-018, FMT-PIPE-023, FMT-PIPE-024, FMT-DOC-001, SHARED-FIX-006, SHARED-CHAIN-008, SHARED-CHAIN-009, RH5110-003, RH5111-004, RH5113-003, RH5206-003, RH5303-005, RH5304-004, RH5305-004, RH5306-004, RH5307-004, RH5308-004, RH5308-005, RH5308-006, RH5401-003, RH5403-003, RH5404-003, RH5408-005 |
 | Depends on | [The context entry point's target keeps its first line, and its other lines follow it](context-target-first-line.md) |
@@ -12,7 +12,7 @@
 - **The leading trivia of a fix's target.** `FormatNodeInDocumentAsync` writes back its target's leading trivia as it stands in the document in every case, as `FormatNodeInDocumentWithContextAsync` already does (FMT-PIPE-018 now covers both, FMT-PIPE-010 states it for both). Until now it kept that trivia only for a target that does not start its line or is a direct child of the root, and otherwise wrote back what the phases decided: blank lines added or removed above the target or above a comment that leads it, a re-indented comment line, a rewritten documentation comment, a `/** */` documentation comment moved off the code in front of the target. FMT-PIPE-010 loses its exception for the whitespace in front of such a moved comment. FMT-PIPE-017 counts every character in front of the node's first token as one column, a tab included, because no entry point drops that whitespace any more. FMT-PIPE-024 no longer gives the preceding-token and list-position facts, which only decided the root's leading trivia; FMT-PIPE-012, FMT-PIPE-023, and FMT-DOC-001 follow, and `PrecedingTokenFacts` and `RootListPosition` leave the code owners of `pipeline.md`. SHARED-FIX-006 states once, as its *Leading trivia* bullet, that a fix's target's leading trivia is not part of what the fix formats, with one exception besides trivia the diagnostic is about: the line break SHARED-FIX-007 (*Shared line*) writes in front of a member that shares its line with a member in front of it. The rule specs reference the bullet instead of each stating it.
 - **The code around a chain.** SHARED-CHAIN-009 no longer falls back to writing back the formatted statement or member around a chain. A chain fix changes only the chain: its first token keeps its line and column, and its other lines are laid out from that column. SHARED-CHAIN-008 takes the chain's columns from that column.
 - **The code around a switch expression.** RH5206-003 no longer formats the innermost statement, initializer, or expression body around the switch expression: the fix changes only the switch expression, laid out from the column of its first token.
-- **The code around a list construct.** RH5303-005, RH5304-004, RH5305-004, RH5306-004, RH5307-004, and RH5308-004 no longer let the fix format the statement, initializer, expression body, argument, or member around the reported construct: the fix formats only the object creation, the assignment, the collection expression, the list pattern, the bracketed argument list, or the conditional expression, laid out from the column its first token keeps, and the code around it stays. Because the fix asks the formatter about exactly the node it formats (SHARED-FIX-010, unchanged), a shape the formatter refuses elsewhere in the statement no longer withholds it: RH5308-005 narrows to a refused shape inside the reported conditional. RH5308-006 keeps withholding the fix for a conditional outside any statement or member; only its reason is restated.
+- **The code around a list construct.** RH5303-005, RH5304-004, RH5305-004, RH5306-004, RH5307-004, and RH5308-004 no longer let the fix format the statement, initializer, expression body, argument, or member around the reported construct: the fix formats only the object creation, the assignment, the collection expression, the list pattern, the bracketed argument list, or the conditional expression, laid out from the column its first token keeps, and the code around it stays. Because the fix asks the formatter about exactly the node it formats (SHARED-FIX-010, unchanged), a shape the formatter refuses elsewhere in the statement no longer withholds it: RH5308-005 narrows to a refused shape inside the reported conditional. RH5308-006 is retired: the conditional needs no statement or member around it, so the fix is offered for a conditional in an `[assembly:]` or `[module:]` attribute argument as well.
 - **The scope of single fixes.** RH5111-004 formats the reported construct and no assignment around it; RH5113-003 moves only the semicolon. Both were aligned to SHARED-FIX-006 as clarifications before this doc and are listed here for their visible outputs.
 
 What stays:
@@ -28,7 +28,7 @@ SHARED-FIX-006 requires a fix to change only the code its diagnostic is about, a
 
 ## Visible output changes
 
-Every change is a code-fix result. The "before" outputs were measured on this branch at `04a85d6`, whose source equals `main`, with `scripts/apply-fix.sh` under LF and CRLF alike, except where marked as derived. In changes 2 and 8, what changed was measured; the exact lines of the "before" output are derived from the formatter spec.
+Every change is a code-fix result. The "before" outputs were measured on this branch at `04a85d6`, whose source equals `main`, with `scripts/apply-fix.sh` under LF and CRLF alike, except where marked as derived. In changes 2 and 9, what changed was measured; the exact lines of the "before" output are derived from the formatter spec.
 
 ### 1. RH5403 · Statement must not be on a single line — a comment above the statement
 
@@ -263,15 +263,38 @@ no fix offered
 ```
 
 ```csharp
-// after (derived)
+// after
         var x = (a
                      ? 1
                      : 2) + (b ? /* c */ 3 : 4);
 ```
 
-The comment behind the second `?` is a shape the formatter refuses (FMT-UNSUP-008). Before, the fix formatted the whole statement and was withheld; now it formats only the reported conditional, which does not hold the shape. The same holds for the RH5303 to RH5307 fixes where a shape the formatter refuses stands in the statement or initializer around the reported construct, such as a comment inside the variable declaration around it (FMT-UNSUP-004). A conditional outside any statement or member, in an `[assembly:]` or `[module:]` attribute argument, still gets no fix (RH5308-006).
+The comment behind the second `?` is a shape the formatter refuses (FMT-UNSUP-008). Before, the fix formatted the whole statement and was withheld; now it formats only the reported conditional, which does not hold the shape. The same holds for the RH5303 to RH5307 fixes where a shape the formatter refuses stands in the statement or initializer around the reported construct, such as a comment inside the variable declaration around it (FMT-UNSUP-004). The "after" output is derived from RH5308-004, not measured.
 
-### 8. RH5111 and RH5113 · the code around the reported construct
+### 8. RH5308 · a conditional in an `[assembly:]` or `[module:]` attribute argument
+
+```csharp
+// input
+[assembly: System.CLSCompliant(true ?
+    true :
+    false)]
+```
+
+```csharp
+// before
+no fix offered
+```
+
+```csharp
+// after
+[assembly: System.CLSCompliant(true
+                                   ? true
+                                   : false)]
+```
+
+The conditional stands in no statement and no member, which the fix needed while it formatted the statement or member around the conditional. The "after" output is derived from RH5308-004, not measured.
+
+### 9. RH5111 and RH5113 · the code around the reported construct
 
 ```csharp
 // input
@@ -297,7 +320,7 @@ The comment behind the second `?` is a shape the formatter refuses (FMT-UNSUP-00
     int  _a;
 ```
 
-### 9. A target indented with tabs
+### 10. A target indented with tabs
 
 Not shown as blocks because the input contains tabs: the RH5403 fix of `→→if (a > 0) { a++; }`, indented with two tabs. Before: the tabs counted four columns each and were replaced, `        if (a > 0)` with the block in column 8. After: the tabs stay, count one column each as SHARED-FIX-007 already states for the whitespace in front of the changed code, and the block is laid out from column 2: `→→if (a > 0)`, `  {`, `      a++;`, `  }`. The input violates RH5601.
 
@@ -305,12 +328,13 @@ Not shown as blocks because the input contains tabs: the RH5403 fix of `→→if
 
 ### Answers of the maintainer
 
-- **1, 2 (RH5403/RH5404 part), and the leading trivia of every fix** — answered on #1748 (2026-11-15): A, no blank line is inserted above a comment that leads the target; the leading trivia, blank lines included, stays as written. The other fixes of changes 1 and 2, change 3, and change 9 follow from SHARED-FIX-006 and SHARED-FIX-007, which this change does not alter.
+- **1, 2 (RH5403/RH5404 part), and the leading trivia of every fix** — answered on #1748 (2026-11-15): A, no blank line is inserted above a comment that leads the target; the leading trivia, blank lines included, stays as written. The other fixes of changes 1 and 2, change 3, and change 10 follow from SHARED-FIX-006 and SHARED-FIX-007, which this change does not alter.
 - **5** — answered in this run: C, only the chain is joined; the rest of the header and the body stay. It applies to every chain fix.
 - **4** — answered in this run: A, only the switch expression is laid out; the `if` body stays.
 - **6** — answered in this run: B, only the construct is laid out, from the column its first token keeps; the rest of the statement stays, and the inside of the construct is laid out as on `main`.
-- **7** — follows from change 6 and from SHARED-FIX-010, which this change does not alter: a fix asks the formatter about exactly the node it formats.
-- **8** — demanded by SHARED-FIX-006; the maintainer's triage on #1140 calls the RH5111 alignment a clarification.
+- **7** — answered in this run: A, the fix is offered; it formats only the reported construct, and SHARED-FIX-010, which this change does not alter, has it ask the formatter about exactly that node.
+- **8** — answered in this run: A, the fix is offered for a conditional in an `[assembly:]` or `[module:]` attribute argument; RH5308-006 is retired.
+- **9** — demanded by SHARED-FIX-006; the maintainer's triage on #1140 calls the RH5111 alignment a clarification.
 - **The code inside the reported construct** — answered in this run: C, not in this change. The maintainer also answered how the parts should look once that step exists: a list element keeps its spacing, and the members of a reported type body and the statements of a reported block keep their own shape, with no blank line inserted between them. Those answers, and the open question of where the later lines of a part that spans lines go, belong to the change that builds the step.
 
 ### One owner for the target's leading trivia
@@ -329,3 +353,4 @@ SHARED-FIX-006 (*Leading trivia*) names the line break SHARED-FIX-007 (*Shared l
 - **Keeping the SHARED-CHAIN-009 fallback** — rejected by the maintainer's answer to change 5.
 - **For RH5303 to RH5308, formatting the statement and keeping only the parts, or keeping `main`'s output** — rejected by the maintainer's answer to change 6.
 - **Keeping the wider RH5308-005 withholding** — rejected: the fix would have to ask the formatter about a node it does not format, which SHARED-FIX-010 forbids, to refuse an input it can rewrite.
+- **Keeping RH5308-006** — rejected by the maintainer's answer to change 8: once the fix formats only the conditional, the withholding protects nothing.
