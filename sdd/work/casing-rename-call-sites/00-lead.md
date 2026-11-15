@@ -43,4 +43,5 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 - Spec checker done: `06-spec-checker.md` (1 minor handover-only finding, decision 5).
 - Auditor 1 on 62b92c4 (base 6ab3d75): `07-auditor.md`, findings F1–F3 (decisions 6–8).
 - Repair round 1 worklist: spec author (F3 class in SHARED-CASING-009) → test implementer (c4, c6, c7, d1, a3, a1, a2) → implementer (F1, F2) → cleaner → spec checker → auditor (repair only) → validator.
-- Next: spec author (repair round 1).
+- Spec author round 1 done: `08-spec-author.md` (b58ee29).
+- Next: test implementer (repair round 1).
