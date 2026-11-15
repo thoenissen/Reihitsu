@@ -35,4 +35,5 @@ None yet.
 - Implementer (04, 8600a06): `GetHeaderSplitIndex` now uses `TokenGapAnalysis.OfTriviaRange(...).BlankLineCount`; +17/-5; all tests green in Debug.
 - Cleaner (05, 551ab86): clean, Release 0 warnings.
 - Spec checker (06, 21db4da): consistent, no findings.
-- Next: auditor.
+- Auditor (07, af0885a): pass, no findings. Audited SHA 7c095fe (main c6d199c).
+- Next: validator, then publish.
