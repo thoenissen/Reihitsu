@@ -46,6 +46,7 @@
 ## Follow-up candidates
 
 - Unify the rename-safety decision of `CasingCodeFixProviderBase<T>.RenameWithoutConflictAsync` and RH2001's own guards into one owner (01-skeptic, Architecture findings, FC-015; 10-auditor #1 shows RH4106 withholding an inferred-member projection the RH2001 check missed; 04-implementer adds: `RewritesOtherCodeAsync` falsely refuses `Value + _value + other` → `this._value + _value + other` through tree-diff misalignment).
+- `sdd/changes/2026-11/comma-behind-comment-unsupported.md` (~line 102) points into a deleted `sdd/work/comma-comment-layout/` folder (32-auditor, Hints); pre-existing on `main`, docs only.
 
 ## Worklist / next step
 
