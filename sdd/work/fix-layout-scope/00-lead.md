@@ -26,6 +26,8 @@
 | M4 | Q3 RH5206 switch expression in `if` header (#1140) | A — only the switch expression is laid out; the `if` body stays |
 | M6 | Q6 (escalation 9) scope of the M3/M5 write-back | C — not in this run: RH5101, RH5102, RH5303–RH5308, RH5403, RH5404, RH5417 keep `main`'s output inside the construct; M3/M5 (and the spanning-part question, recommended A: part moves as one piece) go into a follow-up that builds the write-back step |
 | M7 | Q7 RH5303–RH5308 code around the construct | B — only the construct is laid out, from the column its first token keeps; rest of the statement stays (interior follows M6: formatted as on main) |
+| M8 | Q8 change 7: refused shape elsewhere in the statement (RH5303–RH5308) | A — the fix is offered; it formats only the reported construct |
+| M9 | Q9 RH5308 conditional in `[assembly:]`/`[module:]` attribute argument | A — the fix is offered; RH5308-006 retired |
 | M5 | Q4 RH5404/RH5403 contents rewritten by other rules (#1140) | A — the declaration/statement is broken onto lines; members/statements inside keep their own shape (no expression-body-to-block conversion, no attribute split, no blank line inserted) |
 
 ## Decisions taken
@@ -66,7 +68,8 @@
 - Done: spec author 03 (8349028) — change doc `sdd/changes/2026-11/fix-layout-scope.md`; lane now behavior-change.
 - Done: skeptic 04 (ac7d832). Asked maintainer batch 2: Q6 escalation 9 — scope of M3/M5 write-back (A build / B one-line parts only / C defer to follow-up, recommended C); Q7 RH5303–RH5308 code around construct (A main / B only the construct, recommended). ANSWERED 1C, 2B (M6, M7).
 - Next: spec author (fresh) amendment for M6 (revert *Inside* bullet and its references; interior as main), M7, D15, D16 → 05-spec-author.md; then accept change doc; then test implementer.
-- Done: spec author 05 (2d1b537). Asked batch 3: Q8 change 7 (fix now offered where a refused shape stands elsewhere in the statement; rec A offer), Q9 RH5308 conditional in [assembly:]/[module:] attribute (rec A offer, retires RH5308-006). WAITING.
+- Done: spec author 05 (2d1b537). Asked batch 3: Q8 change 7 (fix now offered where a refused shape stands elsewhere in the statement; rec A offer), Q9 RH5308 conditional in [assembly:]/[module:] attribute (rec A offer, retires RH5308-006). ANSWERED 1A, 2A (M8, M9).
+- Next: continue spec author 05 for M8/M9 + change doc Status Accepted → then test implementer (06).
 - Pending internal after answers: SHARED-FIX-006 Leading-trivia exception for SHARED-FIX-007 shared line (accept skeptic rec); rewrite D6 bullet in change doc Alternatives; change-doc completeness items (04-skeptic Internal choices 3); pipeline.md code owners row; Fix All tests for nested constructs.
 - (old) Next: skeptic (fresh) on change doc + spec diff → 04-skeptic.md; then batch 2 output questions (change-doc visible changes not covered by M1–M5; spec author's open: argument spanning lines in RH5101/5102; tab-indented target) → then test implementer.
 - (old) After answers: spec author (fresh) for D6 reverts, D7 consolidation, D5 FMT-PIPE-010/024 amendment, answers; then test implementer.
