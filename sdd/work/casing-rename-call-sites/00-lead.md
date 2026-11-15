@@ -13,7 +13,7 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 
 ## Maintainer answers
 
-(none yet)
+- Output question 1 (RH4103, rename that would capture an existing reference to another symbol, e.g. `toList` → `values.ToList()` rewritten to `Enumerable.ToList(values)`): **A** — withhold the fix; the diagnostic stays. Applies to every casing rule. No casing fix may change code other than the rename cascade's declarations and references.
 
 ## Decisions taken
 
@@ -31,5 +31,5 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 ## Worklist / next step
 
 - Skeptic done: `01-skeptic.md` (verdict: output question; R1 reproduces with names outside SHARED-CASING-011; new R2).
-- Waiting: maintainer answer to output question 1 (RH4103 toList → Enumerable.ToList; A withhold vs B as main). Asked in chat.
+- Maintainer answered A.
 - Next after answer: spec author (clarification of SHARED-CASING-009) → test implementer.
