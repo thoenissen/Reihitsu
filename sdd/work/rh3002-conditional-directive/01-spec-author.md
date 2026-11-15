@@ -33,3 +33,11 @@ _None._ The maintainer already answered the run's output question (B).
 ## Follow-up candidates
 
 _None._ (The general reversal of SHARED-DIAG-008 is already #1759.)
+
+## Amendment
+
+Commit: 84407b9. After the skeptic's internal choice 1 (`02-skeptic.md`): RH2005-005 already reports a field with an excluded modifier in the span RH2005 judges, so "RH3002 is the one exception" was false.
+
+- SHARED-DIAG-008 — the added sentence now reads "RH3002-010 departs from this requirement for RH3002: it reports a parenthesized expression with a conditional directive, or code such a directive excludes, between its parentheses, and withholds the fix." It makes no uniqueness claim, says nothing about other rules, and grants no general permission.
+- RH3002-010 — "This is RH3002's exception to SHARED-DIAG-008" became "This departs from SHARED-DIAG-008", so it claims no uniqueness either ("RH3002's exception" could be read as "the exception").
+- RH2005-005, and possibly RH2001-007, are left to #1759, as the skeptic proposes; this run does not name them in the shared spec.
