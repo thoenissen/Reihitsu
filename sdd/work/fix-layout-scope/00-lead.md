@@ -90,7 +90,8 @@
 - Done: test implementer 08 (8d8e4fc).
 - Done: cleaner 09 (1da79ef, clean); spec checker 10 (afbc1a1, consistent); merged origin/main (8333c46, base 4838e9a); auditor 11 (31f19c0): findings #1 (high), #2 (medium).
 - Repair round 1 done; audit 17 (e3c088f) PASS. Audited SHA: 1552682 (handover e3c088f). Hint 4 (RH5113 `CanApplyCodeFix` summary wording: `/* */` comment would be deleted, not absorbed) routed to cleaner as comment-only fix, proof via verify-text-only --base 1552682.
-- Next: cleaner (18) comment fix → validator (19) → issue manager → note → publish.
+- Done: cleaner 18 (b72c206, text-only proof PASS vs 1552682); validator 19 (ea44b86) PASS: Analyzer 10008, Formatter 5196, Core 682, Cli 281, Architecture 118, Tooling 126, Playground 23.
+- Next: issue manager (20) with FU1–FU7 → note → publish.
 - (old) Repair round 1 worklist: spec author (D26 RH5113 decision text) → test implementer (tests for D25 members; RH5113 test summary/tag) → implementer (D25 routing; RH5113 comments) → cleaner → spec checker → auditor (repair only) → validator.
 - Pending internal after answers: SHARED-FIX-006 Leading-trivia exception for SHARED-FIX-007 shared line (accept skeptic rec); rewrite D6 bullet in change doc Alternatives; change-doc completeness items (04-skeptic Internal choices 3); pipeline.md code owners row; Fix All tests for nested constructs.
 - (old) Next: skeptic (fresh) on change doc + spec diff → 04-skeptic.md; then batch 2 output questions (change-doc visible changes not covered by M1–M5; spec author's open: argument spanning lines in RH5101/5102; tab-indented target) → then test implementer.
