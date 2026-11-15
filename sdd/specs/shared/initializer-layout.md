@@ -20,8 +20,8 @@ This spec covers what the rules that check the layout of object and collection i
 
 A rule that uses this requirement and checks the column at which a brace or an element of an initializer starts MUST check a token in front of which comments may stand as follows, with every comment in the token's leading trivia taken into account:
 
-- A comment that starts on an earlier line than the token MUST start at the expected column; in front of a closing brace, one level (four columns) deeper. This holds whether the comment ends above the token's line or on it.
-- A comment that starts the token's line — only whitespace stands in front of it on that line — MUST start at the expected column. Every further comment on the token's line in front of the token, whether behind that comment or behind the end of a comment that started on an earlier line, MUST NOT be checked: the comment that starts the line is the line's first element (SHARED-COMMENT-011).
+- A comment that starts an earlier line than the token's — only whitespace stands in front of it on that line — MUST start at the expected column; in front of a closing brace, one level (four columns) deeper. This holds whether the comment ends above the token's line or on it. A further comment that starts on an earlier line, behind a comment that starts that line or behind the end of a comment that started on a line above it, MUST NOT be checked, also when it ends on the token's line: the comment that starts its line is that line's first element (SHARED-COMMENT-011).
+- A comment that starts the token's line — only whitespace stands in front of it on that line — MUST start at the expected column. Every further comment on the token's line in front of the token, whether behind that comment or behind the end of a comment that started on an earlier line, MUST NOT be checked, for the same reason.
 - Every further line of a `///` comment MUST start its `///` at the same column as the comment's first line.
 - When a comment ends on the token's line, the token itself MUST NOT be checked: it may follow the comment anywhere on that line. Otherwise the token MUST start at the expected column.
 
@@ -110,6 +110,31 @@ class C
     }
 }
 ```
+
+Example — RH5301, with a further comment behind the comment that starts an earlier line: only the comment that starts that line is checked, also when the further comment ends on the member's line, so
+
+```csharp
+class C
+{
+    int P { get; set; }
+    int Q { get; set; }
+    int R { get; set; }
+
+    void M()
+    {
+        var c = new C
+                {
+                    /* a */ /* b */
+                    P = 1,
+                    /* c */ /* d
+            */ Q = 2,
+                    R = 3
+                };
+    }
+}
+```
+
+is not reported: `/* b */` and `/* d` are not checked, and `Q = 2` stands behind a comment that ends on its line.
 
 ### SHARED-INIT-002 — A wrapped complex element is laid out as a block
 

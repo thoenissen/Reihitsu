@@ -106,9 +106,9 @@ is not reported.
 
 A rule MUST report one diagnostic for each comment in a position it reports, located on that comment, whether the comment stands on a line of its own or shares a line with code. Two comments in the same gap MUST be reported separately. A comment in a position that several rules report MUST be reported by each of them, each rule deciding on its own.
 
-A diagnostic on a `///` or `/** */` comment (SHARED-COMMENT-001) MUST start at the comment's first `///` or `/**` and end at the end of the comment's text on its last line; it MUST NOT include the line break behind that text.
+Each line of a `///` comment that documents nothing (SHARED-COMMENT-001) is a comment of its own: a run of consecutive `///` lines in a position the rule reports MUST be reported with one diagnostic per line, whether or not documentation comments are parsed. A diagnostic on a `///` line MUST start at that line's `///` and end at the end of that line's text. A diagnostic on a `/** */` comment MUST start at its `/**` and end at the end of the comment's text on its last line, also when the comment spans several lines. Neither diagnostic includes the line break behind the text.
 
-Why: Each comment has to be moved on its own, and the author may want to move one and delete the other. A comment behind code on the same line is just as misplaced as one on its own line. A comment inside, say, an argument list that is itself inside a statement header splits both constructs. The `///` or `/**` is where the comment starts, and the line break behind a `///` comment belongs to the line, not to the comment's text.
+Why: Each comment has to be moved on its own, and the author may want to move one and delete the other. A comment behind code on the same line is just as misplaced as one on its own line. A comment inside, say, an argument list that is itself inside a statement header splits both constructs. A `///` line that documents nothing is an ordinary comment that ends with its line, like a `//` line, and the number of diagnostics must not change with the project setting that decides whether documentation comments are parsed. The `///` or `/**` is where the comment starts, and the line break behind a `///` comment belongs to the line, not to the comment's text.
 
 Example — RH5038:
 
@@ -162,6 +162,28 @@ class C
     }
 }
 ```
+
+Example — RH5038, which reports each line of a run of `///` lines that documents nothing on its own, and a `/** */` comment that spans two lines once:
+
+```csharp
+class C
+{
+    int M(params object[] values) => 0;
+
+    void N()
+    {
+        M(
+            {|RH5038:/// first|}
+            {|RH5038:/// second|}
+            1,
+            {|RH5038:/** third
+                fourth */|}
+            2);
+    }
+}
+```
+
+The diagnostics are the same whether or not documentation comments are parsed.
 
 ### SHARED-COMMENT-004 — A comment inside a region is reported
 
