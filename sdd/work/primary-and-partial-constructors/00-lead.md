@@ -25,6 +25,9 @@
 | 6 | Spec author | Change doc for SHARED-DIAG-013? | None; lane stays bug fix | Answer 1B keeps today's output; the requirement writes down existing behavior (clarification) | Output unchanged, decided by answer 1 | c06b123 |
 | 7 | Spec author | Wording of SHARED-DIAG-013 claims parts must write the same parameter names | Continued spec author once to verify against the compiler (CS8826 is a warning for partial methods) | Factual accuracy of the spec | Spec wording is internal | – |
 | 8 | Implementer | Guard added as a new type `StructuredTriviaAnalysisContextExtensions` (~120 lines with docs) | Continued implementer once: fold it into the existing `DocumentationModeAnalysisContextExtensions` class, renamed to cover both duties; no new type, so no escalation 9 | The guard is the narrow fix of decision 4, not a new mechanism; a new type would require escalation 9 | Internal structure only | – |
+| 9 | Audit 1 | Finding 1: RH3002/RH3005/RH3006 report `#if`/`#elif` condition expressions twice on primary-constructor types (same mechanism, unchanged analyzers) | Take in as adjacent fix in repair round 1: same mechanism and guard, a few lines, gets tests, brings output back to one diagnostic | Cheaper here than as a separate run; component the run already changes | One diagnostic per element is an unchanged requirement | – |
+| 10 | Audit 1 | Finding 2: guard edges (base-type argument list exemption, FullSpan of parameter list) untested | Repair: one RH7302 test per edge | PR-introduced coverage gap | Tests only | – |
+| 11 | Audit 1 | Hint: `IsRepeatedRun` summary incomplete | Route to the implementer with the repair | Comment only | Comment only | – |
 | 5 | Skeptic | #1742 output question 2 (RH8017/RH8018/RH8030/RH8101–RH8105/RH8108 on defining part) | Not asked: unchanged SHARED-DOC-001/005 leave partial elements outside these rules; keep today's output (not reported) | An unchanged spec decides it | Unchanged spec decides | – |
 
 ## Follow-up candidates
@@ -34,5 +37,5 @@
 ## State
 
 - Last step: skeptic (01-skeptic.md, 71ae774).
-- Cleaner (05, clean), spec checker (06, consistent, no findings) done. Next: auditor.
+- Audit 1 (07-auditor.md, audited 257eea7): #1680 findings 1–2, #1742 pass. Repair round 1 of 3: test implementer (08) -> implementer (09) -> cleaner -> spec checker -> auditor (repair only) -> validator.
 - Next: spec author -> test implementer (#1680 reproductions; #1742 characterization of the recorded limitation) -> implementer -> cleaner -> spec checker -> auditor -> validator.
