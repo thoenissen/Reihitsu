@@ -111,3 +111,14 @@ Risks: Q1 lane (if #1736 needs a change doc, run it alone in B2); soft overlap Q
 | B3 | R11 | bug fix (spec alignment) | `/squad #1756` | RH3002 keeps reporting (3B); spec text only; general reversal = #1759 vNext | merged #1769 |
 | B3 | R12 | bug fix | `/squad #1757` | RH2001 fix rename withholding like the casing fixes (unconfirmed) | PR #1770 merging |
 | B4 | R13 | behavior change | `/squad #1755` | RH5102 argument list wrapped only behind `(` (like #1736); after R7 (RH5102 fix) | next |
+
+## 1.3.0 (maintainer 2026-11-15: 1.2.1/1.2.2 are not released separately; next release is 1.3.0, only new feature C# 15, #1716)
+
+| Batch | Command | Area | Why / order |
+|---|---|---|---|
+| A | `/squad #1755` | RH5102 (rest of 1.2.2) | parallel with #1761: no shared files |
+| A | `/squad #1761` | Roslyn 5.12, C# 15 max version, test reference assemblies | blocks every other C# 15 issue |
+| B | `/squad #1762 #1763` | C# 15 formatter: unions, `with(...)` spacing (output questions) | after #1761 |
+| B | `/squad #1764 #1765` | RH7105 `closed`/`safe` rank, RH5011 labeled break/continue (bugs) | after #1761 |
+| B | `/squad #1766` | unions in naming/documentation rules (output question) | after #1761; rule set disjoint from #1767 |
+| C | `/squad #1767` | unions/`with(...)` in organization/design/layout rules | after #1755 (RH5102), #1764 (RH7105), #1762 (fixes format unions) |
