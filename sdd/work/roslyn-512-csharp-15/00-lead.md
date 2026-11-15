@@ -13,7 +13,11 @@ None beyond the issue text.
 
 ## Maintainer answers
 
-(none yet)
+Batch 1 (before test implementer):
+1. Default language version becomes C# 15 (help `latest selects 15.0`, `preview` warning names 15.0, `--lang-version 15`/`15.0` accepted): **A**, raise the maximum.
+2. Interim output of a one-line union (braces stay as the phases give them, e.g. `{ public override string ToString()` … `} }`): **A**, accepted until #1762.
+3. C# 14 code with a type named `union`/`closed` in positions C# 15 reads as keywords is skipped as syntax errors under the default; `--lang-version 14` restores the old result: **A**. Addition: if any existing test uses such a type name and breaks, fix that test by renaming the type.
+4. Analyzer package's minimum host compiler rises to Roslyn 5.12 (release-note item for 1.3.0): **A**.
 
 ## Decisions taken
 
@@ -33,5 +37,5 @@ None beyond the issue text.
 ## Worklist / next step
 
 - Done: 01-spec-author (change doc, commit 4cd929a), 02-skeptic (db5ecf9).
-- Now: output-question batch 1 asked to the maintainer; waiting.
+- Batch 1 answered (1A 2A 3A+rename 4A).
 - Next: route answers + decision 5 amendments to spec author, then test implementer.
