@@ -17,8 +17,8 @@ None yet.
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name: `lead.md` prescribes `claude/issue-1754-<slug>`, the session's environment mandates a designated branch | Use `claude/wonderful-brahmagupta-6qwj6v` | The session may push only to its designated branch | Branch name is internal | claim commit |
-| 2 | Skeptic | FC-015: `GetHeaderSplitIndex` keeps a private measure of "blank line" that drifted from SHARED-BLANK-001 | Fix by reusing the existing shared measure (Core `HasBlankLineAbove` / `SyntaxTriviaUtilities.EndsLine` or whatever the shared one is); no new private copy | The narrow fix would otherwise add another copy of the rule; reuse stays within the components the run touches | SHARED-BLANK-001 and FMT-USING-009/010 already decide the output | pending |
-| 3 | Skeptic | `///` comment above the first using (m10, m11; rare, CS1587) | In scope only as far as it falls out of the shared measure; no dedicated code. Test m10 as the skeptic lists | Covered for free by decision 2; rare classes get no special code | SHARED-BLANK-001 decides it | pending |
+| 2 | Skeptic | FC-015: `GetHeaderSplitIndex` keeps a private measure of "blank line" that drifted from SHARED-BLANK-001 | Fix by reusing the existing shared measure (Core `HasBlankLineAbove` / `SyntaxTriviaUtilities.EndsLine` or whatever the shared one is); no new private copy | The narrow fix would otherwise add another copy of the rule; reuse stays within the components the run touches | SHARED-BLANK-001 and FMT-USING-009/010 already decide the output | 8600a06 |
+| 3 | Skeptic | `///` comment above the first using (m10, m11; rare, CS1587) | In scope only as far as it falls out of the shared measure; no dedicated code. Test m10 as the skeptic lists | Covered for free by decision 2; rare classes get no special code | SHARED-BLANK-001 decides it | 8600a06 |
 | 4 | Skeptic | FMT-USING-009's restated definition reads narrower than SHARED-BLANK-001 | Trim to the citation of SHARED-BLANK-001 (spec author, continued once) | One statement of the rule | Spec wording | e5dfae2 |
 | 5 | Skeptic | Issue's "Required output" omits blank line above `// About Linq` | Drop it; follow FMT-USING-010 | Unchanged requirement demands the blank line | Demanded by FMT-USING-010 | — |
 
@@ -32,4 +32,5 @@ None yet.
 - Skeptic (02, 0910a41): proceed; class m01–m12 listed; no output question; no follow-ups.
 - Spec author amendment e5dfae2 (decision 4 done).
 - Test implementer (03, 23e8c89): reproduced on formatter and RH7203 fix, LF+CRLF; 13 failing tests, holders pass. Fix-path m09/m12 not asserted (whitespace of FMT-USING-010 blank line inside namespace undecided by example; existing behavior, not this issue).
-- Next: implementer.
+- Implementer (04, 8600a06): `GetHeaderSplitIndex` now uses `TokenGapAnalysis.OfTriviaRange(...).BlankLineCount`; +17/-5; all tests green in Debug.
+- Next: cleaner.
