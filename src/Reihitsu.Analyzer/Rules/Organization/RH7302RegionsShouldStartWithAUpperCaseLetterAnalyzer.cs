@@ -86,7 +86,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer : DiagnosticAn
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnStartRegion, SyntaxKind.RegionDirectiveTrivia);
+        context.RegisterStructuredTriviaAction(OnStartRegion, SyntaxKind.RegionDirectiveTrivia);
     }
 
     #endregion // DiagnosticAnalyzer

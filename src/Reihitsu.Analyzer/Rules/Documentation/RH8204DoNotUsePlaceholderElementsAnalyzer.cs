@@ -62,7 +62,7 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzer : DiagnosticAnalyzerBase
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnXmlElement, SyntaxKind.XmlElement, SyntaxKind.XmlEmptyElement);
+        context.RegisterStructuredTriviaActionWithDocumentationModeCheck(OnXmlElement, SyntaxKind.XmlElement, SyntaxKind.XmlEmptyElement);
     }
 
     #endregion // DiagnosticAnalyzer

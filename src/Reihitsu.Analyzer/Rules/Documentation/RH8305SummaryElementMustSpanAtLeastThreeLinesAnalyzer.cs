@@ -45,8 +45,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer : DiagnosticA
     /// <param name="context">Context</param>
     private void OnDocumentationCommentTrivia(SyntaxNodeAnalysisContext context)
     {
-        if (context.Node is not DocumentationCommentTriviaSyntax documentationComment
-            || DocumentationAnalysisUtilities.IsPrimaryConstructorRun(context))
+        if (context.Node is not DocumentationCommentTriviaSyntax documentationComment)
         {
             return;
         }
@@ -92,7 +91,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer : DiagnosticA
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.SingleLineDocumentationCommentTrivia);
+        context.RegisterStructuredTriviaActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.SingleLineDocumentationCommentTrivia);
     }
 
     #endregion // DiagnosticAnalyzer

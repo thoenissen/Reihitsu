@@ -72,8 +72,8 @@ public abstract class RegionDescriptionAnalyzerBase : DiagnosticAnalyzerBase
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnRegion, SyntaxKind.RegionDirectiveTrivia);
-        context.RegisterSyntaxNodeAction(OnEndRegion, SyntaxKind.EndRegionDirectiveTrivia);
+        context.RegisterStructuredTriviaAction(OnRegion, SyntaxKind.RegionDirectiveTrivia);
+        context.RegisterStructuredTriviaAction(OnEndRegion, SyntaxKind.EndRegionDirectiveTrivia);
     }
 
     #endregion // DiagnosticAnalyzer
