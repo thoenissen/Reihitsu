@@ -46,5 +46,6 @@
 - Spec author amendments done (04-spec-author.md, 79d44d2). Change doc set Accepted by lead. RH2109 tests tag RH2109-004.
 - Test implementer done (05-test-implementer.md, fc647e9): #966 guard tests fail as expected (Core, RH7201–RH7207, formatter); #1289 tests pass (no production change, answer A).
 - Spec author fixed Uses row (06-spec-author.md, 6a72638); architecture tests pass.
-- Next: implementer (#966 only).
+- Implementer done (07-implementer.md, 63130a3): UsingDirectiveOrderingSafety reads directive trivia (ContainsDirectives), regex removed; +6/-41; all tests pass (Debug).
+- Next: cleaner → spec checker → auditor.
 - Then: spec author (SHARED-USING-009 clarification; RH2109-001 amendment if A) → test implementer → implementer (#966) → cleaner → spec checker → auditor → validator.
