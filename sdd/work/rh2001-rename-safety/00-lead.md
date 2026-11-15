@@ -27,6 +27,8 @@
 | 10 | Test implementer (05) | Outcome of decision 8 | Accept 29d3add: withheld tests now use the misbinding shapes (lambda in a block body; delegate-typed property for the extension rewrite); the original inputs become offered-fix characterizations matching `main` | Measured on `main` 962d0c4 | Offered cases keep `main` output; withheld cases follow SHARED-FIX-003 / answer B | 29d3add |
 | 11 | Test implementer (05) | Untested block-body siblings (local declaration, assignment, constructor, explicitly typed lambda in a block, query range variable) | Add tests (continue the 05 agent once) | FC-016 sibling shapes; cheap | Withheld per SHARED-FIX-003 | — |
 | 12 | Test implementer (05) | Spec/change-doc text no longer matches the measured class | Route corrections to the spec author (continue once) | Text must match tests and `main` measurements | Spec wording is internal; outputs unchanged from decision 10 | — |
+| 13 | Spec checker | Finding 1 (change doc status Draft) | Spec author (continued) set `Accepted`; no spec-checker re-run | One-word status change the finding names exactly | Internal | 0e5e785 |
+| 14 | Before auditor | Merge `origin/main` 4838e9a | Merged (auto-merge in `requirement-ids.txt` only); Release build green, 0 warnings | Keep base current for the audit | Internal | eb15964 |
 
 ## Follow-up candidates
 
@@ -35,4 +37,4 @@
 ## Worklist / next step
 
 - Skeptic done (01-skeptic.md, commit 994a2e2).
-- Answer 1 = B. Spec author done (02, 454da9a). Test implementer done (03, f95f956): reproduced, 19 red. Implementer done (04, 37e364a): 5 disputed tests. Test implementer 05 done (29d3add), 207/207 RH2001 green. Spec author 06 (5b5d5c2) and test implementer 07 (2143b97, 213/213 green) done; 07's spec-text remark refers to pre-5b5d5c2 lines, already corrected. Next: cleaner (08), spec checker (09), auditor.
+- Answer 1 = B. Spec author done (02, 454da9a). Test implementer done (03, f95f956): reproduced, 19 red. Implementer done (04, 37e364a): 5 disputed tests. Test implementer 05 done (29d3add), 207/207 RH2001 green. Spec author 06 (5b5d5c2) and test implementer 07 (2143b97, 213/213 green) done; 07's spec-text remark refers to pre-5b5d5c2 lines, already corrected. Cleaner 08 clean; spec checker 09 one finding, repaired (0e5e785). Merged main (eb15964). Next: auditor (10) against main 4838e9a03f0736d9e4593286d0f251f3a92fb704.
