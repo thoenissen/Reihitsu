@@ -509,6 +509,248 @@ public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
         await Verify(testCode, fixedCode, Diagnostics(RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer.DiagnosticId, AnalyzerResources.RH7201MessageFormat, 2));
     }
 
+    /// <summary>
+    /// Verifies that a <c>System</c> directive with whitespace between the tokens of its name is reported after
+    /// another root, as the same name written without the whitespace is
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7201-001")]
+    public async Task SystemDirectiveWithWhitespaceInItsNameIsReported()
+    {
+        const string testCode = """
+                                using Microsoft.Win32;
+                                using {|RH7201:System . IO|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>System</c> directive written with a verbatim prefix is reported after another root
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7201-001")]
+    public async Task VerbatimSystemDirectiveIsReported()
+    {
+        const string testCode = """
+                                using Microsoft.Win32;
+                                using {|RH7201:@System.Text|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>System</c> directive with a comment between the tokens of its name is reported after another
+    /// root
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7201-001")]
+    public async Task SystemDirectiveWithCommentInItsNameIsReported()
+    {
+        const string testCode = """
+                                using Microsoft.Win32;
+                                using {|RH7201:System/* x */.Linq|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>System</c> directive with whitespace around the <c>::</c> of its <c>global::</c> qualifier is
+    /// reported after another root
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7201-001")]
+    public async Task GlobalQualifiedSystemDirectiveWithWhitespaceIsReported()
+    {
+        const string testCode = """
+                                using Microsoft.Win32;
+                                using {|RH7201:global :: System.Xml|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a verbatim prefix in front of the <c>System</c> segment of a <c>global::</c> qualified name does not
+    /// change the root
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7201-001")]
+    public async Task GlobalQualifiedVerbatimSystemDirectiveIsReported()
+    {
+        const string testCode = """
+                                using Microsoft.Win32;
+                                using {|RH7201:global::@System.IO|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a Unicode escape in the name is decoded, so the directive is a <c>System</c> directive and is
+    /// reported after another root, next to the <c>System</c> directive below it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7201-001")]
+    public async Task UnicodeEscapedSystemDirectiveIsReported()
+    {
+        const string testCode = """
+                                using Microsoft.Win32;
+                                using {|RH7201:\u0053ystem.IO|};
+                                using {|RH7201:System|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a verbatim <c>System</c> directive of the global section is reported after another root of that
+    /// section
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7201-001")]
+    [Requirement("SHARED-USING-002")]
+    public async Task VerbatimSystemDirectiveOfTheGlobalSectionIsReported()
+    {
+        const string testCode = """
+                                global using Microsoft.Win32;
+                                global using {|RH7201:@System.IO|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix places a verbatim <c>System</c> directive in the <c>System</c> group, after
+    /// <c>System</c>, and that the analyzer reports nothing on the result
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7201-001")]
+    [Requirement("RH7201-004")]
+    [Requirement("SHARED-USING-004")]
+    public async Task CodeFixPlacesVerbatimSystemDirectiveInTheSystemGroup()
+    {
+        const string testCode = """
+                                using Microsoft.Win32;
+                                using {|RH7201:@System.IO|};
+                                using {|RH7201:System|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using @System.IO;
+
+                                 using Microsoft.Win32;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the code fix of a verbatim <c>System</c> directive under CRLF line endings, line endings of the result
+    /// included
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7201-004")]
+    [Requirement("SHARED-USING-004")]
+    public async Task CodeFixPlacesVerbatimSystemDirectiveInTheSystemGroupWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                using Microsoft.Win32;
+                                using {|RH7201:@System.IO|};
+                                using {|RH7201:System|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using @System.IO;
+
+                                 using Microsoft.Win32;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, "\r\n");
+    }
+
+    /// <summary>
+    /// Verifies that the code fix of a <c>System</c> directive with whitespace between the tokens of its name produces a
+    /// block the analyzer no longer reports
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7201-004")]
+    public async Task CodeFixOfSystemDirectiveWithWhitespaceInItsNameConverges()
+    {
+        const string testCode = """
+                                using Microsoft.Win32;
+                                using {|RH7201:System . IO|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+
+        var fixedCode = await ApplyCodeFixAsync(RemoveMarkup(testCode)).ConfigureAwait(false);
+
+        await Verify(fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
