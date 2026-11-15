@@ -46,6 +46,7 @@ Behavior-change lane: spec author → skeptic → test implementer → implement
 | 7 | Skeptic | #1386 SHARED-COMMENT-001 list | Clarify: a doc comment followed by a later doc comment in the same leading trivia with an ordinary comment or directive between them documents nothing (compiler CS1587 rule); instance 4 then reports neither comment per unchanged RH5034-001; PR states the difference from the issue | Compiler verdict decides | Unchanged RH5034-001 demands it | |
 | 8 | Skeptic | #1387 RH5102/RH5109/RH5111 conditional-directive instances | Already unreported on main: characterization tests only; fix `TargetAttributeListShapeAnalyzerBase` for the 16 list-shape rules | Skeptic evidence | SHARED-DIAG-008 decides | |
 | 9 | Skeptic | #1736 issue claim "fix result not a fixed point" | Wrong; not repeated in PR; keep fix-stability test as regression | Skeptic ran the formatter | Internal | |
+| 10 | Spec amend | OQ1 home; RH7304 change doc visible list; shared specs naming rules without IDs | Accept: own change doc `rh7304-fix-for-comment-led-region-line.md` listing only the newly offered fix; shared specs name RH5111/RH5034 without IDs | Different cause, own doc; unreported formatter output follows from SHARED-COMMENT-011/SHARED-DIAG-010; avoids shared→rule `Uses` | Change-doc structure is internal; outputs answered (OQ1) | 07f77fa |
 
 ## Follow-up candidates
 
@@ -60,5 +61,5 @@ Behavior-change lane: spec author → skeptic → test implementer → implement
 - Last step: spec author done (3b1b3d3); lane check confirmed behavior-change.
 - Open output questions (from 01-spec-author): OQ1 RH7304 fix for comment-led region line; OQ2 RH5111 comment/#pragma in wrapped gap; #1736 change-doc visible output changes (5 entries, entry 3 comment keeping first parameter off `(` line).
 - Skeptic done (829026e). Output-question batch 1 posted to maintainer (OQ1 RH7304 fix, OQ2 RH5111 gap, OQ3 RH5111 declarator directive-only gap, OQ4 #1736 entries 1/2/`)`-comment/5, OQ5 #1736 entry 3).
-- Answers recorded. Next: fresh spec author for amendments (03), then test implementer.
+- Spec amendments done (07f77fa); both change docs Accepted. Next: test implementer (04).
 - (old) Next: on answers, spec author amends (SHARED-COMMENT-001 clarification, RH7304-001 multi-line, change doc per answers, RH5111-005 per OQ2/3), then test implementer.
