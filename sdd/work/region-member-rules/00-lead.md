@@ -34,6 +34,7 @@ None beyond the triage comments above, which are the maintainer's (account) re-t
 - Q1b (#1264, RH7309, region in one branch after a region outside every branch): **A** — maintainer, summarized: with the symbol defined it is reported without a fix; with it undefined nothing is reported (the analyzer judges the active configuration).
 - Q2 (#1334, RH7401–RH7412, partial member with only some parts in a matching region): **A** — reported once (implementing part in the example); for RH7405–RH7408 no part may lie in an override region.
 - Q3 (#1337, RH7105/RH7106, conditional directive between the last modifier and the type, also when it selects the type): **B** — stays reported, no fix (unchanged; SHARED-MODORDER-003 keeps its clause). Maintainer's reasoning, summarized: the analyzer judges the code as the currently active defines leave it; no fix is offered.
+- Q5 (#1339, RH7102/RH7109, inversion inside one region while the group's first field lies in another region): **A** — reported, fix moves the field in front of the earliest field of the group in its own region.
 - Q4 (#1337, RH5111, conditional directive inside the value): **A** — reported, no fix (unchanged).
 
 ## Decisions taken
@@ -86,5 +87,5 @@ Answered in full (see Maintainer answers).
 - Cleaner 1c90aa7 clean (Release build 0 warnings); spec checker b20a7a0 consistent, no findings.
 - Audit 1 at 5dde996 (base 8a26419): findings (#1337: #1 high, #2 medium; #1412: #3 medium) — 11-auditor.md. Audited SHA 5dde996.
 - Repair round 1 worklist: A1 (RH7107/RH7108 expression-bodied accessor `;` outside body → implementer + tests), A2 (RH7105/RH7106 duplicate inline span → one helper, implementer), A3 (directive in front of the first modifier: tests pin reported+fixed, test implementer). All PR-introduced.
-- Output question Q5 asked (auditor hint: RH7102/RH7109 fix now offered across-region case); waiting before routing repairs.
-- Next: answer Q5 → test implementer (12), implementer (13), cleaner, spec checker, auditor (repair only), validator.
+- Q5 answered A (already implemented; no change).
+- Next: test implementer (12), implementer (13), cleaner, spec checker, auditor (repair only), validator.
