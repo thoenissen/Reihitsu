@@ -40,7 +40,7 @@ g1 goes beyond the worklist. The auditor named it as the dependent member that a
 ## Not covered, and why
 
 - **g3 `(other.Value, 1)` with `Sample<int> other`.** This is the tuple twin of g1 and takes the same inferred-name arm. One generic-construction member of that arm is enough. The existing (e) covers the natural-type tuple.
-- **`foreach` deconstruction target.** `foreach ((Value, var x) in …)` does not compile, because a `foreach` deconstruction declares variables only. So no caller reaches the arm the auditor traced.
+- **`foreach` deconstruction target.** `foreach ((Value, var x) in …)` does not compile: a `foreach` loop must declare its iteration variables (CS8186). I took this from the compiler rule and did not run it. So no caller reaches the arm the auditor traced.
 - **Nested deconstruction targets, such as `((Value, a), b) = …`.** These are not on the worklist. If the implementer's narrowing handles nesting with a separate condition, then nesting is one more side of the guard, and a test for it is worth adding then (FC-003).
 - **The reserved tuple name `(Rest, 1)` (n6).** The auditor lists it as a hint, and decision 20 does not include it.
 - **CRLF variants.** This is a binding check with no layout involved. apply-fix gave identical LF and CRLF results for every fixture.
