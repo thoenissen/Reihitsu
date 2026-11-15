@@ -76,4 +76,5 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 - Implementer (14, 15) done: `28-implementer.md` (8847090; Naming 762 pass; analyzer 9610 pass). Production diff +155/−6, one file.
 - Cleaner round 3 done: `29-cleaner.md` (clean).
 - Spec checker round 3 done: `30-spec-checker.md` (consistent).
-- Next: auditor (delta since 27789ab) → validator.
+- Auditor on 067e3dc: `31-auditor.md` — PASS with text cleanup (#9: spec Why clause on operators). Audited SHA: 067e3dca95cc7d3904dd94e71ff7eefdb2c2a2b0.
+- Next: spec author (#9 wording) + cleaner (orphan XML-doc line in `RenameWithoutConflictAsync` summary) → verify-text-only --strict-docs vs audited SHA → validator → publish.
