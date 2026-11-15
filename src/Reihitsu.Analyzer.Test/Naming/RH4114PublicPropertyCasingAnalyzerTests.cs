@@ -731,13 +731,13 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
     }
 
     /// <summary>
-    /// Verifies that the fix renames a property whose new name hides an inherited property that implements an interface property when
-    /// the type does not list the interface among its own base types, because the inherited property keeps implementing it
+    /// Verifies that a property keeps its diagnostic but gets no fix when its new name is that of an interface property that its type
+    /// implements only through its base type, although the inherited property keeps implementing the interface property
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-CASING-009")]
-    public async Task FixRenamesAPropertyThatHidesAnInheritedInterfaceImplementationWhenTheTypeDoesNotListTheInterface()
+    public async Task NoFixIsOfferedWhenTheNewNameIsThatOfAnInterfacePropertyThatTheTypeImplementsThroughItsBaseType()
     {
         const string testCode = """
                                 public interface ISized
@@ -756,24 +756,41 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 public interface ISized
-                                 {
-                                     int Size { get; }
-                                 }
+        await Verify(testCode, testCode);
+    }
 
-                                 public class Base : ISized
-                                 {
-                                     public int Size => 1;
-                                 }
+    /// <summary>
+    /// Verifies that a property keeps its diagnostic but gets no fix when its type implements no interface, but a type derived from it
+    /// lists an interface whose property has the new name and is implemented today by a property of the property's base type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenATypeDerivedFromThePropertysTypeListsAnInterfaceWithAPropertyOfTheNewName()
+    {
+        const string testCode = """
+                                public interface ISized
+                                {
+                                    int Size { get; }
+                                }
 
-                                 public class Derived : Base
-                                 {
-                                     public int Size => 2;
-                                 }
-                                 """;
+                                public class Root
+                                {
+                                    public int Size => 1;
+                                }
 
-        await Verify(testCode, fixedCode);
+                                public class Base : Root
+                                {
+                                    public int {|RH4114:size|} => 2;
+                                }
+
+                                public class Derived : Base, ISized
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
     }
 
     #endregion // Tests

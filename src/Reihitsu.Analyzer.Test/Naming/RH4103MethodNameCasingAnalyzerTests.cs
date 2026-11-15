@@ -3677,13 +3677,13 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
     }
 
     /// <summary>
-    /// Verifies that the fix renames a method whose new name hides an inherited method that implements an interface method when the
-    /// type does not list the interface among its own base types, because the inherited method keeps implementing it
+    /// Verifies that a method keeps its diagnostic but gets no fix when its new name is that of an interface method that its type implements
+    /// only through its base type, although the inherited method keeps implementing the interface method
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-CASING-009")]
-    public async Task FixRenamesAMethodThatHidesAnInheritedInterfaceImplementationWhenTheTypeDoesNotListTheInterface()
+    public async Task NoFixIsOfferedWhenTheNewNameIsThatOfAnInterfaceMethodThatTheTypeImplementsThroughItsBaseType()
     {
         const string testCode = """
                                 public interface IWorker
@@ -3702,20 +3702,213 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
                                 }
                                 """;
 
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method keeps its diagnostic but gets no fix when its type implements no interface, but a type derived from it lists an
+    /// interface whose method has the new name and is implemented today by a method of the method's base type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenATypeDerivedFromTheMethodsTypeListsAnInterfaceWithAMethodOfTheNewName()
+    {
+        const string testCode = """
+                                public interface IProcessor
+                                {
+                                    int Process();
+                                }
+
+                                public class Root
+                                {
+                                    public int Process() => 1;
+                                }
+
+                                public class Base : Root
+                                {
+                                    public int {|RH4103:process|}() => 2;
+                                }
+
+                                public class Derived : Base, IProcessor
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method keeps its diagnostic but gets no fix when a type derived from its type lists an interface whose method has the
+    /// new name and a default implementation in the interface implements it today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenATypeDerivedFromTheMethodsTypeListsAnInterfaceWhoseMethodOfTheNewNameHasADefaultImplementation()
+    {
+        const string testCode = """
+                                public interface IProcessor
+                                {
+                                    int Process() => 1;
+                                }
+
+                                public class Base
+                                {
+                                    public int {|RH4103:process|}() => 2;
+                                }
+
+                                public class Derived : Base, IProcessor
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method keeps its diagnostic but gets no fix when its base type implements an interface whose method has the new
+    /// name and a type derived from the method's type lists that interface again
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenATypeDerivedFromTheMethodsTypeListsAgainAnInterfaceThatTheBaseTypeImplements()
+    {
+        const string testCode = """
+                                public interface IProcessor
+                                {
+                                    int Process();
+                                }
+
+                                public class Root : IProcessor
+                                {
+                                    public int Process() => 1;
+                                }
+
+                                public class Base : Root
+                                {
+                                    public int {|RH4103:process|}() => 2;
+                                }
+
+                                public class Derived : Base, IProcessor
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an interface method keeps its diagnostic but gets no fix when a type that implements its interface also implements
+    /// another interface with a method of the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenATypeImplementingTheMethodsInterfaceImplementsAnotherInterfaceWithAMethodOfTheNewName()
+    {
+        const string testCode = """
+                                public interface IFirst
+                                {
+                                    int Process();
+                                }
+
+                                public interface ISecond
+                                {
+                                    int {|RH4103:process|}();
+                                }
+
+                                public class Worker : IFirst, ISecond
+                                {
+                                    public int Process() => 1;
+
+                                    int ISecond.process() => 2;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an interface method keeps its diagnostic but gets no fix when an interface that inherits from its interface also
+    /// inherits from another interface with a method of the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenAnInterfaceInheritingFromTheMethodsInterfaceInheritsAnotherInterfaceWithAMethodOfTheNewName()
+    {
+        const string testCode = """
+                                public interface IFirst
+                                {
+                                    int Process();
+                                }
+
+                                public interface ISecond
+                                {
+                                    int {|RH4103:process|}();
+                                }
+
+                                public interface IBoth : IFirst, ISecond
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames a method to the name of an interface method when neither its type nor a type derived from it
+    /// implements that interface, and the interfaces its type implements have no member of the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixRenamesAMethodToTheNameOfAMethodOfAnInterfaceOutsideItsTypesHierarchy()
+    {
+        const string testCode = """
+                                public interface IProcessor
+                                {
+                                    int Process();
+                                }
+
+                                public class Worker : IProcessor
+                                {
+                                    public int Process() => 1;
+                                }
+
+                                public class Job : System.IDisposable
+                                {
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    public int {|RH4103:process|}() => 2;
+                                }
+                                """;
+
         const string fixedCode = """
-                                 public interface IWorker
+                                 public interface IProcessor
                                  {
-                                     int Work();
+                                     int Process();
                                  }
 
-                                 public class WorkerBase : IWorker
+                                 public class Worker : IProcessor
                                  {
-                                     public int Work() => 1;
+                                     public int Process() => 1;
                                  }
 
-                                 public class WorkerDerived : WorkerBase
+                                 public class Job : System.IDisposable
                                  {
-                                     public int Work() => 2;
+                                     public void Dispose()
+                                     {
+                                     }
+
+                                     public int Process() => 2;
                                  }
                                  """;
 

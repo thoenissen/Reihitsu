@@ -945,6 +945,42 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     }
 
     /// <summary>
+    /// Verifies that an event keeps its diagnostic but gets no fix when its type implements no interface, but a type derived from it
+    /// lists an interface whose event has the new name and is implemented today by an event of the event's base type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenATypeDerivedFromTheEventsTypeListsAnInterfaceWithAnEventOfTheNewName()
+    {
+        const string testCode = """
+                                using System;
+
+                                public interface INotifier
+                                {
+                                    event EventHandler Changed;
+                                }
+
+                                public class Root
+                                {
+                                    public event EventHandler Changed;
+                                }
+
+                                public class Base : Root
+                                {
+                                    public event EventHandler {|RH4102:changed|};
+                                }
+
+                                public class Derived : Base, INotifier
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
     /// Verifies the code fix on an event with accessors
     /// </summary>
     /// <param name="testCode">Test source</param>

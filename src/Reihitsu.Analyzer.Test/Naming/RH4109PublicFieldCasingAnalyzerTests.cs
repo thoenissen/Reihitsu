@@ -488,6 +488,52 @@ public class RH4109PublicFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH4109
     }
 
     /// <summary>
+    /// Verifies that the fix renames a field to the name of a method of an interface that a type derived from the field's type implements,
+    /// because a field cannot implement an interface member
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixRenamesAFieldToTheNameOfAMethodOfAnInterfaceThatADerivedTypeImplements()
+    {
+        const string testCode = """
+                                public interface IProcessor
+                                {
+                                    int Process();
+                                }
+
+                                public class Base
+                                {
+                                    public int {|RH4109:process|};
+                                }
+
+                                public class Derived : Base, IProcessor
+                                {
+                                    int IProcessor.Process() => 1;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public interface IProcessor
+                                 {
+                                     int Process();
+                                 }
+
+                                 public class Base
+                                 {
+                                     public int Process;
+                                 }
+
+                                 public class Derived : Base, IProcessor
+                                 {
+                                     int IProcessor.Process() => 1;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
     /// Asserts that the fix was withheld, or that it renamed the field and every reference in every project without a
     /// compile error that the solution did not have
     /// </summary>
