@@ -88,4 +88,5 @@ Answered in full (see Maintainer answers).
 - Audit 1 at 5dde996 (base 8a26419): findings (#1337: #1 high, #2 medium; #1412: #3 medium) — 11-auditor.md. Audited SHA 5dde996.
 - Repair round 1 worklist: A1 (RH7107/RH7108 expression-bodied accessor `;` outside body → implementer + tests), A2 (RH7105/RH7106 duplicate inline span → one helper, implementer), A3 (directive in front of the first modifier: tests pin reported+fixed, test implementer). All PR-introduced.
 - Q5 answered A (already implemented; no change).
+- Repair round 1: tests 7f6d88e, implementer e379bb3 (analyzer 9278/9278, core 652/652).
 - Next: test implementer (12), implementer (13), cleaner, spec checker, auditor (repair only), validator.
