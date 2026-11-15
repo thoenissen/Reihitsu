@@ -4,15 +4,15 @@
 |---|---|
 | Status | Draft |
 | Date | 2026-11 |
-| Affected requirements | RH2109-001, SHARED-DIAG-003 |
+| Affected requirements | RH2109-001, RH2109-004, SHARED-DIAG-003 |
 
 ## What
 
-- RH2109-001 states that RH2109 reads a `.razor` file as Razor markup and does not lex its C#. A line inside a multi-line C# comment or literal — `/* */`, `/** */`, verbatim, raw, interpolated verbatim, or interpolated raw string — is read like a line of markup in two directions:
+- The new requirement RH2109-004 states that RH2109 reads a `.razor` file as Razor markup and does not lex its C#. A line inside a multi-line C# comment or literal — `/* */`, `/** */`, verbatim, raw, interpolated verbatim, or interpolated raw string — is read like a line of markup in two directions:
   - a `@code` followed by `{` that starts such a line is reported like a directive;
-  - an `@*` or `<!--` that starts such a line opens a Razor or HTML comment for the rule, so a `@code` up to the next `*@` or `-->`, or up to the end of the file, is not reported, also when it is a real directive.
-- RH2109-001 previously required, through SHARED-DIAG-003, that such a `@code` is not reported. That requirement is replaced for this class by the two bullets above; every other case SHARED-DIAG-003 makes text stays unreported.
-- SHARED-DIAG-003 gains one sentence pointing to RH2109-001 for how RH2109 reads the C# of a Razor file.
+  - an `@*` or `<!--` that starts such a line opens a Razor or HTML comment for the rule, so a `@code` up to the `*@` that closes an `@*`, or the `-->` that closes an `<!--`, or up to the end of the file when that closer does not follow, is not reported, also when it is a real directive; a closer of the other kind does not end the comment.
+- RH2109-001 previously required, through SHARED-DIAG-003, that such a `@code` is not reported. For this class it now points to RH2109-004 instead; every other case SHARED-DIAG-003 makes text stays unreported.
+- SHARED-DIAG-003 gains one sentence stating that RH2109 is an exception to it for this class, as RH2109-004 states.
 
 ## Why
 
@@ -44,4 +44,5 @@ The maintainer chose to keep the diagnostic on a `@code {` that starts a line in
 
 - **Not reported (option B)** — rejected: it needs a scanner of Razor's C# extents and a C# lexer over text, machinery the repository does not grow for a rare input.
 - **Recording only the reported direction** — rejected: the converse miss comes from the same decision not to lex C#, and leaving it out would make it read as a defect.
-- **Changing SHARED-DIAG-003 to carve out the exception there** — rejected: the exception belongs to one rule; the shared requirement only points to it.
+- **Changing SHARED-DIAG-003 to carve out the exception there** — rejected: the exception belongs to one rule; the shared requirement only names it and points to RH2109-004.
+- **Recording the class inside RH2109-001** — rejected: its reason (the cost of lexing C# in Razor text) differs from RH2109-001's, so it is a requirement of its own.

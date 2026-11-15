@@ -567,7 +567,7 @@ Example — a directive between the tokens of a using directive makes the block 
 using System.Linq;
 using System
 #pragma warning disable CS0105
-    .Text;
+.Text;
 using System;
 
 class C
