@@ -53,4 +53,5 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 - Auditor round 1 on df00d3b (base 3b3639e): `13-auditor.md` — #1–#3 closed; F4 repeats F2 → architecture finding, decision 10 (does not use up a repair round; repair rounds used: 1).
 - Worklist: spec author (narrow SHARED-CASING-009 per decision 10) → test implementer (b1, b2, b4–b6; flip the not-re-listed controls) → implementer → cleaner → spec checker → auditor (delta since df00d3b) → validator.
 - Spec author (decision 10) done: `14-spec-author.md` (141b218). Accepted its choices: name match ignores member kind; interface as declaring type included; fields excluded.
-- Next: test implementer.
+- Test implementer (decision 10) done: `15-test-implementer.md` (e48cb14; 9 failing as intended).
+- Next: implementer.
