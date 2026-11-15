@@ -59,6 +59,7 @@ None beyond the triage comments above, which are the maintainer's (account) re-t
 | 17 | Implementer | `RegionDirectiveUtilities.TryFindContainingRegion` has no production caller left | Remove it and its Core test | Cleanup the run's change touches | Internal | 373d0ff, c939751 |
 | 18 | Implementer | 156 net production lines, no new type | Accept, no escalation 9 | Spread over seven issues and ~20 rules; per-issue changes are small; no new type | Internal | 69a1330 |
 | 19 | Audit 1 | Auditor hints: duplicate `TryGetContainingRegionName` wrappers (pre-existing), extra `GetDeclaredSymbol` calls | Not taken; no follow-up | Pre-existing duplication, cosmetic; perf negligible | Internal | n/a |
+| 20 | Audit 2 | Hint: RH2001 code fix has a private method of the same name `HasConditionalDirectiveBetweenModifiers` | Not taken | Different span, private, unchanged from main | Internal | n/a |
 | 12 | Skeptic | Follow-up candidates: RH7311 branch-vs-outside; formatter `=` continuation after empty `#if` | Dropped | RH7311 decided by its unchanged spec (no defect); formatter case rare and stable | n/a | n/a |
 
 ## Follow-up candidates
@@ -90,5 +91,6 @@ Answered in full (see Maintainer answers).
 - Q5 answered A (already implemented; no change).
 - Repair round 1: tests 7f6d88e, implementer e379bb3 (analyzer 9278/9278, core 652/652), cleaner 5b48d22, spec checker cd7ef23 consistent.
 - Repair audit attempt ddd601b: state mismatch (stale base; not a round). Merged origin/main 81eabeb (2f0a416), RH5102 test conflict resolved keeping both sides (59/59 RH5101/RH5102), cleaner b82556a clean.
-- Next: repair audit (19) with fresh main SHA, then validator, issue manager, publish.
+- Repair audit 19 (1090a95): pass at **audited SHA 3fcbebf**, base main 81eabeb. Findings #1–#3 closed; no new.
+- Next: validator (20), issue manager, note, publish.
 - Next: test implementer (12), implementer (13), cleaner, spec checker, auditor (repair only), validator.
