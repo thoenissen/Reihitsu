@@ -35,4 +35,5 @@ None yet.
 - Done: test implementer `03-test-implementer.md` (reproduced; 16 failing, 8 guard tests passing; b0d9c95).
 - Done: implementer `04-implementer.md` (tests pass; 970fe19, 4103b30).
 - Done: cleaner `05-cleaner.md` (clean, 0 warnings; 1578384).
-- Next: spec checker `06-spec-checker.md`.
+- Done: spec checker `06-spec-checker.md` (consistent; 3a6d91e). Main not ahead; Release build green. Output-question batch 2: nothing open.
+- Next: auditor `07-auditor.md` on 3a6d91e, main 6ab3d75.
