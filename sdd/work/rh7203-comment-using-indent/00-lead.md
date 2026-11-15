@@ -38,4 +38,5 @@
 - Cleaner done (05-cleaner.md, 500e3cc): clean, Release build 0 warnings.
 - Spec checker done (06-spec-checker.md, da0fc6d): consistent, no findings.
 - Auditor passed, no findings (07-auditor.md, e008d35). Audited SHA: 1c383897ec19d845dd9e0466845ac79546c60bde (base main 6ab3d75).
-- Next: validator, then issue manager (1 candidate), note, publish.
+- Issue manager done (09-issue-manager.md, 0dd98d8): follow-up thoenissen/Reihitsu#1754.
+- Next: validator result, note, publish.
