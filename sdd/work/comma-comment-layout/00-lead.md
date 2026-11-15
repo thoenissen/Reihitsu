@@ -53,4 +53,4 @@
 
 ## Open worklist / next step
 
-- Implementer round 1 done (df4eb34). Next: spec author (17: Uses row FMT-STRUCT-019; change doc Checked-and-kept entry names PreserveSeparatorTrivia) + cleaner (18) in parallel, then spec checker (19), auditor repair-only (20), validator.
+- Round 1: spec checker consistent (19). Next: auditor repair-only (20) on HEAD, then validator.
