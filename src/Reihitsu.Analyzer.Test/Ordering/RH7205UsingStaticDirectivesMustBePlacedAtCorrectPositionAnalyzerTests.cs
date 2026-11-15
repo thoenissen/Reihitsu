@@ -259,6 +259,60 @@ public class RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzerTes
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that a line that starts with <c>#</c> inside a comment before the first directive is comment text,
+    /// so the block is reported and fixed
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task HashLineInCommentDoesNotPreventReportAndFix(string endOfLine)
+    {
+        const string testCode = """
+                                /*
+                                # Header
+                                */
+                                using static {|RH7205:System.Math|};
+                                using Alpha;
+
+                                namespace Alpha
+                                {
+                                    public class Helper
+                                    {
+                                    }
+                                }
+
+                                public class TestClass
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 /*
+                                 # Header
+                                 */
+                                 using Alpha;
+
+                                 using static System.Math;
+
+                                 namespace Alpha
+                                 {
+                                     public class Helper
+                                     {
+                                     }
+                                 }
+
+                                 public class TestClass
+                                 {
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
