@@ -793,6 +793,75 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
         await Verify(testCode, testCode);
     }
 
+    /// <summary>
+    /// Verifies that a property keeps its diagnostic but gets no fix when another implementer of the interface property it implements is
+    /// declared in a type that implements an interface with a property of the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenAnotherImplementerOfTheSameInterfacePropertyImplementsAnInterfaceWithAPropertyOfTheNewName()
+    {
+        const string testCode = """
+                                public interface ISized
+                                {
+                                    int {|RH4114:size|} { get; }
+                                }
+
+                                public interface IOther
+                                {
+                                    int Size => 1;
+                                }
+
+                                public class A : ISized
+                                {
+                                    public int {|RH4114:size|} => 0;
+                                }
+
+                                public class B : ISized, IOther
+                                {
+                                    public int {|RH4114:size|} => 2;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an overriding property keeps its diagnostic but gets no fix when another type derived from the overridden
+    /// property's type implements an interface with a property of the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenATypeDerivedFromTheOverriddenPropertysTypeImplementsAnInterfaceWithAPropertyOfTheNewName()
+    {
+        const string testCode = """
+                                public interface IOther
+                                {
+                                    int Size => 1;
+                                }
+
+                                public class Base
+                                {
+                                    public virtual int {|RH4114:size|} => 2;
+                                }
+
+                                public class Derived : Base
+                                {
+                                    public override int {|RH4114:size|} => 3;
+                                }
+
+                                public class Sibling : Base, IOther
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

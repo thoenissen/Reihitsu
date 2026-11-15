@@ -3915,6 +3915,75 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that a method keeps its diagnostic but gets no fix when another implementer of the interface method it implements is
+    /// declared in a type that implements an interface with a method of the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenAnotherImplementerOfTheSameInterfaceMethodImplementsAnInterfaceWithAMethodOfTheNewName()
+    {
+        const string testCode = """
+                                public interface IProcessor
+                                {
+                                    int {|RH4103:process|}();
+                                }
+
+                                public interface IOther
+                                {
+                                    int Process() => 1;
+                                }
+
+                                public class A : IProcessor
+                                {
+                                    public int {|RH4103:process|}() => 0;
+                                }
+
+                                public class B : IProcessor, IOther
+                                {
+                                    public int {|RH4103:process|}() => 2;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an overriding method keeps its diagnostic but gets no fix when another type derived from the overridden method's
+    /// type implements an interface with a method of the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenATypeDerivedFromTheOverriddenMethodsTypeImplementsAnInterfaceWithAMethodOfTheNewName()
+    {
+        const string testCode = """
+                                public interface IOther
+                                {
+                                    int Process() => 1;
+                                }
+
+                                public class Base
+                                {
+                                    public virtual int {|RH4103:process|}() => 2;
+                                }
+
+                                public class Derived : Base
+                                {
+                                    public override int {|RH4103:process|}() => 3;
+                                }
+
+                                public class Sibling : Base, IOther
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -981,6 +981,48 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     }
 
     /// <summary>
+    /// Verifies that an event keeps its diagnostic but gets no fix when another implementer of the interface event it implements is
+    /// declared in a type that lists an interface with an event of the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenAnotherImplementerOfTheSameInterfaceEventImplementsAnInterfaceWithAnEventOfTheNewName()
+    {
+        const string testCode = """
+                                using System;
+
+                                public interface INotifier
+                                {
+                                    event EventHandler {|RH4102:changed|};
+                                }
+
+                                public interface IOther
+                                {
+                                    event EventHandler Changed;
+                                }
+
+                                public class A : INotifier
+                                {
+                                    public event EventHandler {|RH4102:changed|};
+                                }
+
+                                public class Root : IOther
+                                {
+                                    public event EventHandler Changed;
+                                }
+
+                                public class B : Root, INotifier, IOther
+                                {
+                                    public event EventHandler {|RH4102:changed|};
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
     /// Verifies the code fix on an event with accessors
     /// </summary>
     /// <param name="testCode">Test source</param>
