@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | RH5102-001 (changed); FMT-BREAK-012 (Why reworded, behavior unchanged) |
 | Depends on | [rh5109-parameters-on-one-line.md](rh5109-parameters-on-one-line.md) |

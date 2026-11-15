@@ -49,3 +49,7 @@ On the skeptic's must-corrections (`02-skeptic.md`, *Internal choices* 1) and `0
 ## Amendment 2
 
 On `00-lead.md` decision 9 (`UsesListsExactlyTheReferencedRequirements` failed): SHARED-DIAG-010 added to the `Uses` row of `sdd/specs/analyzer/RH5102.md`, which now cites it in RH5102-001's Why, and removed from the `Uses` row of `sdd/specs/formatter/line-breaks.md`, whose FMT-BREAK-012 Why no longer cites it. Metadata only, no wording changed. `scripts/test.sh --project architecture` passes.
+
+## Amendment 3
+
+On `06-spec-checker.md` check 1 and `00-lead.md` decision 3: `Status` of `sdd/changes/2026-11/rh5102-arguments-on-one-line.md` set from `Draft` to `Accepted`, in the form the other accepted change docs under `sdd/changes/2026-11/` use (`| Status | Accepted |`).
