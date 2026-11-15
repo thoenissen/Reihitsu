@@ -5,7 +5,7 @@
 | ID prefix | SHARED-USING |
 | Status | Active |
 | Code owners | `UsingDirectiveOrderingUtilities`, `UsingDirectiveOrderingSafety`, `UsingDirectiveOrderingGroup` |
-| Uses | SHARED-DIAG-002 |
+| Uses | SHARED-DIAG-002, SHARED-DIAG-003 |
 
 This spec covers the using-directive policy that the analyzer and the formatter must agree on: which using blocks may be reordered at all, how directives are grouped, the order of the groups, and the order within a group. The analyzer rules RH7201 (System directives first), RH7202 (alias directives last), RH7203 (alphabetical by namespace), RH7204 (aliases alphabetical by alias name), RH7205 (static directives between regular and alias directives), RH7206 (static directives alphabetical), and RH7207 (organized into groups) report against this policy; their code fixes and the formatter's FMT-USING phase produce it.
 
@@ -495,7 +495,7 @@ class C
 
 ### SHARED-USING-009 — Blocks with preprocessor directives are not reordered
 
-Analyzer and formatter MUST NOT reorder a using block — and the RH7201–RH7207 analyzers MUST NOT report on it, nor their code fixes be offered — when the block contains a preprocessor directive (`#if`, `#nullable`, `#pragma`, `#region`, …) anywhere in the leading or trailing trivia of its directives, including the leading trivia of its first directive. A preprocessor directive that follows the last using directive belongs to the next declaration and does not make the block unsafe.
+Analyzer and formatter MUST NOT reorder a using block — and the RH7201–RH7207 analyzers MUST NOT report on it, nor their code fixes be offered — when the block contains a preprocessor directive (`#if`, `#nullable`, `#pragma`, `#region`, …) anywhere in the trivia of its directives: in the leading trivia of its first directive, in the leading or trailing trivia of any of its directives, and between the tokens of a directive. A preprocessor directive that follows the last using directive belongs to the next declaration and does not make the block unsafe. Only a preprocessor directive makes the block unsafe: text inside a comment is the comment's text (SHARED-DIAG-003), so a line of a `/* */` or `/** */` comment that starts with `#` is not a directive and does not make the block unsafe.
 
 Why: Moving a using across a `#if` changes which directives are compiled, and moving it across `#nullable` or `#pragma` changes the context it is compiled in. Reporting an order the fix and the formatter are not allowed to produce would leave the user with a diagnostic they cannot resolve automatically, so the analyzers stay silent on exactly the blocks the formatter leaves alone.
 
@@ -554,6 +554,53 @@ class D
     int y;
 }
 #endif
+
+class C
+{
+    int x;
+}
+```
+
+Example — a directive between the tokens of a using directive makes the block unsafe as well, so
+
+```csharp
+using System.Linq;
+using System
+#pragma warning disable CS0105
+    .Text;
+using System;
+
+class C
+{
+    int x;
+}
+```
+
+is left unchanged and not reported.
+
+Example — a line that starts with `#` inside a comment is not a directive, so RH7203 reports
+
+```csharp
+/*
+# Header
+*/
+using System.Linq;
+using {|RH7203:System|};
+
+class C
+{
+    int x;
+}
+```
+
+and the code fix and the formatter reorder it to
+
+```csharp
+/*
+# Header
+*/
+using System;
+using System.Linq;
 
 class C
 {
