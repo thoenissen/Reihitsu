@@ -27,3 +27,8 @@
 ## Worklist / next step
 
 - Next: spawn spec author.
+
+## Log
+- 01-spec-author done (2272e74): two change docs; Q1 (wrapped case-type list), Q2 (empty union body), Q3 (accept class-like union layout incl. RH7101 fix offered), Q4 (`with(` spacing) open for batch 1.
+- Follow-up candidates: (a) attribute lists on unions not split — SHARED-ATTR-001 has no union target (01-spec-author); (b) argument list on the line after its name lands at the statement column (01-spec-author).
+- Next: skeptic.
