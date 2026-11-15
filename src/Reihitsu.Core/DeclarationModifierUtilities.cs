@@ -127,6 +127,30 @@ public static class DeclarationModifierUtilities
     }
 
     /// <summary>
+    /// Gets the declarations whose modifiers a syntax-node analysis of the given declaration judges: the declaration
+    /// itself, and for a type declaration also the defining parts of its partial constructors. The analyzer driver hands
+    /// no defining part of a partial constructor to a syntax-node action, so the type that holds it stands in; the
+    /// defining part itself is therefore never judged on its own, so that it is judged once
+    /// </summary>
+    /// <param name="memberDeclaration">Declaration a syntax-node action received</param>
+    /// <returns>The declarations to judge</returns>
+    public static IEnumerable<MemberDeclarationSyntax> GetDeclarationsJudgedWith(MemberDeclarationSyntax memberDeclaration)
+    {
+        if (IsDefiningPartOfPartialConstructor(memberDeclaration) == false)
+        {
+            yield return memberDeclaration;
+        }
+
+        if (memberDeclaration is TypeDeclarationSyntax typeDeclaration)
+        {
+            foreach (var member in typeDeclaration.Members.Where(IsDefiningPartOfPartialConstructor))
+            {
+                yield return member;
+            }
+        }
+    }
+
+    /// <summary>
     /// Gets the modifiers for the specified declaration
     /// </summary>
     /// <param name="memberDeclaration">Declaration</param>
@@ -311,6 +335,18 @@ public static class DeclarationModifierUtilities
     {
         return IsAccessibilityModifier(syntaxKind)
                || syntaxKind == SyntaxKind.FileKeyword;
+    }
+
+    /// <summary>
+    /// Determines whether a declaration is the defining part of a partial constructor: a constructor with the
+    /// <c>partial</c> modifier and no body
+    /// </summary>
+    /// <param name="memberDeclaration">Declaration</param>
+    /// <returns><see langword="true"/> if the declaration is such a defining part</returns>
+    private static bool IsDefiningPartOfPartialConstructor(MemberDeclarationSyntax memberDeclaration)
+    {
+        return memberDeclaration is ConstructorDeclarationSyntax { Body: null, ExpressionBody: null } constructorDeclaration
+               && constructorDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword);
     }
 
     #endregion // Methods

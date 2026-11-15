@@ -53,19 +53,9 @@ public class RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer : Diagnostic
     }
 
     /// <summary>
-    /// Determines whether an opening brace opens an interpolation hole. The line above it belongs to the literal's text, so
-    /// it is not reported (RH5025-006)
-    /// </summary>
-    /// <param name="token">The opening brace</param>
-    /// <returns><see langword="true"/> if the brace opens an interpolation hole</returns>
-    private static bool IsOpeningBraceOfInterpolation(SyntaxToken token)
-    {
-        return token.Parent is InterpolationSyntax interpolation
-               && interpolation.OpenBraceToken == token;
-    }
-
-    /// <summary>
-    /// Analyzes the syntax tree. A blank line below a region directive that requires it is not reported (RH5025-007)
+    /// Analyzes the syntax tree. An opening brace of an interpolation hole is not checked: the line above it belongs to
+    /// the literal's text (RH5025-006). A blank line below a region directive that requires it is not reported
+    /// (RH5025-007)
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
@@ -75,7 +65,7 @@ public class RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer : Diagnostic
         var openBraceLineIndices = FormattingTextAnalysisUtilities.GetLineIndicesBeginningWithToken(root,
                                                                                                     sourceText,
                                                                                                     static token => token.IsKind(SyntaxKind.OpenBraceToken)
-                                                                                                                    && IsOpeningBraceOfInterpolation(token) == false
+                                                                                                                    && FormattingTextAnalysisUtilities.IsInterpolationBrace(token) == false
                                                                                                                     && IsOpeningBraceOfBlockStatementAfterStatement(token) == false);
 
         foreach (var blankLine in FormattingTextAnalysisUtilities.EnumeratePrecedingBlankLines(sourceText, openBraceLineIndices))

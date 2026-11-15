@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Clarity;
 using Reihitsu.Formatter;
@@ -20,7 +21,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH3202ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider))]
-public class RH3202ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider : CodeFixProvider
+public class RH3202ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -55,8 +56,15 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider : CodeFi
         return DocumentOrderFixAllProvider.Create(new RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer());
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected override bool FormatsThroughFormatter => true;
+
+    /// <inheritdoc/>
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -82,5 +90,5 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider : CodeFi
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

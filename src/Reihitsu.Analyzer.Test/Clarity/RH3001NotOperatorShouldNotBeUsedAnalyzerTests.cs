@@ -1938,9 +1938,7 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
                                  }
                                  """;
 
-        // The inner operator sits inside the operand the outer rewrite replaces, so the two text changes overlap
-        // and the batch cannot apply them in one pass
-        await Verify(testCode, fixedCode, static test => test.NumberOfFixAllIterations = 2);
+        await Verify(testCode, fixedCode, static test => test.NumberOfFixAllIterations = 1);
     }
 
     /// <summary>
@@ -3059,12 +3057,10 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBa
                                  }
                                  """;
 
-        // The inner operator sits inside the operand the outer rewrite replaces, so the two text changes overlap
-        // and the batch cannot apply them in one pass
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH3001NotOperatorShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3001MessageFormat, 2),
-                                  static config => config.NumberOfFixAllIterations = 2);
+                                  static config => config.NumberOfFixAllIterations = 1);
     }
 
     #endregion // BatchCodeFixTestsBase

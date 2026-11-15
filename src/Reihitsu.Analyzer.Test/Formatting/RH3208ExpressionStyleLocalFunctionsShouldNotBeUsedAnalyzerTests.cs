@@ -365,7 +365,7 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
                             {
                                 // Fixing the outer function formats its whole body, which converts the inner function too
                                 test.NumberOfIncrementalIterations = 1;
-                                test.NumberOfFixAllIterations = -2;
+                                test.NumberOfFixAllIterations = 1;
                             },
                      Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat, 2));
     }
@@ -2779,6 +2779,30 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
                                   """;
 
         await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix, which lays out its result through the formatter, is not offered in a file with a syntax error,
+    /// while the diagnostic is still reported, and that it is offered once the syntax error is gone
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-011")]
+    public async Task NoFixIsOfferedInAFileWithASyntaxError()
+    {
+        const string source = """
+                              internal class RH3208
+                              {
+                                  public int Calculate(int value)
+                                  {
+                                      int Double(int x) => x * 2;
+                                      int Triple(int x) => x * 3;
+                                      return Double(value) + Triple(value);
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
     #endregion // Tests

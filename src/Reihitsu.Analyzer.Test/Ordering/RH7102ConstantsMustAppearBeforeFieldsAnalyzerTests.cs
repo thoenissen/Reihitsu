@@ -79,12 +79,13 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
     }
 
     /// <summary>
-    /// Verifying no code fix is offered when the move would separate a preprocessor directive from its partner,
-    /// with the region opening in the moved field's own leading trivia and closing after it
+    /// Verifies that a field outside every region and a constant in a region that follows it are not compared, so
+    /// nothing is reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task NoCodeFixWhenDirectivesAreInLeadingTrivia()
+    [Requirement("RH7102-003")]
+    public async Task FieldOutsideEveryRegionAndConstantInARegionAreNotCompared()
     {
         const string testCode = """
                                 public class TestClass
@@ -97,15 +98,7 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
                                 }
                                 """;
 
-        var actions = await GetCodeFixActionsAsync(testCode,
-                                                   RH7102ConstantsMustAppearBeforeFieldsAnalyzer.DiagnosticId,
-                                                   root => root.DescendantNodes()
-                                                               .OfType<VariableDeclaratorSyntax>()
-                                                               .Single(declarator => declarator.Identifier.ValueText == "MaxValue")
-                                                               .Identifier
-                                                               .GetLocation());
-
-        Assert.IsEmpty(actions);
+        await Verify(testCode);
     }
 
     /// <summary>
@@ -1299,6 +1292,151 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
         await VerifyNoCodeFixIsOffered(source);
     }
 
+    /// <summary>
+    /// Verifies the specification example in which a field outside every region and a constant in a region, and a
+    /// field and a constant in two top-level regions, are not compared
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7102-003")]
+    [Requirement("SHARED-ORDER-004")]
+    public async Task FieldAndConstantInDifferentRegionsAreNotCompared()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _field;
+
+                                    #region Constants
+
+                                    private const int Value = 1;
+
+                                    #endregion
+                                }
+
+                                class D
+                                {
+                                    #region Fields
+
+                                    private int _count;
+
+                                    #endregion
+
+                                    #region Constants
+
+                                    private const int Max = 1;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a constant outside every region is not compared with a field of its group in a region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7102-003")]
+    public async Task ConstantOutsideEveryRegionIsNotComparedWithAFieldInARegion()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Fields
+
+                                    private int _field;
+
+                                    #endregion
+
+                                    private const int Value = 1;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example in which the first field of the group lies in an earlier region, so the code
+    /// fix moves the constant in front of the field in its own region, which is not the first member of that region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7102-005")]
+    public async Task CodeFixTargetsTheFirstFieldOfTheGroupInTheConstantsOwnRegion()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region A
+
+                                    private int _a;
+
+                                    #endregion
+
+                                    #region B
+
+                                    public int B;
+                                    private int _b;
+                                    private const int {|RH7102:K|} = 1;
+
+                                    #endregion
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     #region A
+
+                                     private int _a;
+
+                                     #endregion
+
+                                     #region B
+
+                                     public int B;
+                                     private const int K = 1;
+                                     private int _b;
+
+                                     #endregion
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the diagnostic is reported without a code fix when the first field of the group in the constant's own
+    /// region is the first member of that region, because the region's opening line lies in the crossed span
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7102-006")]
+    [Requirement("SHARED-ORDER-004")]
+    public async Task NoCodeFixWhenTheFirstFieldOfTheGroupInTheOwnRegionIsTheFirstMemberOfThatRegion()
+    {
+        const string source = """
+                              class C
+                              {
+                                  #region A
+
+                                  private int _a;
+
+                                  #endregion
+
+                                  #region B
+
+                                  private int _b;
+                                  private const int {|RH7102:K|} = 1;
+
+                                  #endregion
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region Methods
@@ -1339,12 +1477,10 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
                                  }
                                  """;
 
-        // Both constants are moved in front of the same mutable field, so each fix rewrites the span from that
-        // field to its own declaration and the two text changes overlap. The batch keeps one of them per pass
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH7102ConstantsMustAppearBeforeFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7102MessageFormat, 2),
-                                  static config => config.NumberOfFixAllIterations = 2);
+                                  static config => config.NumberOfFixAllIterations = 1);
     }
 
     #endregion // BatchCodeFixTestsBase

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Formatter;
 
@@ -18,7 +19,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH5206SwitchExpressionBracesShouldBeAnchoredCodeFixProvider))]
-public class RH5206SwitchExpressionBracesShouldBeAnchoredCodeFixProvider : CodeFixProvider
+public class RH5206SwitchExpressionBracesShouldBeAnchoredCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -67,8 +68,15 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredCodeFixProvider : CodeF
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected override bool FormatsThroughFormatter => true;
+
+    /// <inheritdoc/>
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -90,5 +98,5 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredCodeFixProvider : CodeF
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Formatter;
 
@@ -18,7 +19,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixProvider))]
-public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixProvider : CodeFixProvider
+public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -62,8 +63,15 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixPro
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected override bool FormatsThroughFormatter => true;
+
+    /// <inheritdoc/>
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -88,5 +96,5 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixPro
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -27,6 +27,12 @@ public static class PlaygroundFormatter
         if (HasSyntaxErrors(syntaxTree))
         {
             return new PlaygroundFormatResult(source, false);
+        }
+
+        // The formatter leaves such input as written; it is named by the formatter's own definition (PLAY-009)
+        if (ReihitsuFormatter.HoldsHidingCarrier(syntaxTree))
+        {
+            return new PlaygroundFormatResult(source, false, HoldsHiddenCode: true);
         }
 
         var result = ReihitsuFormatter.FormatSyntaxTree(syntaxTree);

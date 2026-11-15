@@ -755,5 +755,97 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsFormatterTests : Fo
                               Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the analyzer and the formatter agree that a verbatim directive belongs to the <c>System</c> group
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-004")]
+    public async Task FormatterPlacesAVerbatimDirectiveInTheSystemGroup()
+    {
+        const string input = """
+                             using {|RH7207:Microsoft.Win32|};
+                             using @System.IO;
+                             using System;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+        const string fixedData = """
+                                 using System;
+                                 using @System.IO;
+
+                                 using Microsoft.Win32;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyFormatter(input, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the analyzer and the formatter agree that an alias of a predefined type forms the last group of its
+    /// section
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-004")]
+    public async Task FormatterPlacesAnAliasOfAPredefinedTypeInTheLastGroup()
+    {
+        const string input = """
+                             using {|RH7207:System|};
+
+                             using B = int;
+
+                             using A = System.Text;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+        const string fixedData = """
+                                 using System;
+
+                                 using A = System.Text;
+
+                                 using B = int;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyFormatter(input, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that a block that ends with an alias of a predefined type stays unchanged and unreported after formatting
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-004")]
+    public async Task FormatterKeepsAnAliasOfAPredefinedTypeInTheLastGroup()
+    {
+        const string input = """
+                             using A = System.Text;
+
+                             using B = int;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+
+        await VerifyFormatter(input);
+    }
+
     #endregion // Tests
 }

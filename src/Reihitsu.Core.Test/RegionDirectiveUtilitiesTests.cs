@@ -99,6 +99,44 @@ public class RegionDirectiveUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that the regions of a nested enum belong to the enum and are not top-level regions of the type that holds
+    /// it
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public void GetTopLevelRegionsExcludesTheRegionsOfANestedEnum()
+    {
+        var syntaxRoot = CoreSyntaxTestHelper.ParseCompilationUnit("""
+                                                                   internal class Sample
+                                                                   {
+                                                                       #region Values
+                                                                       private int _a;
+                                                                       #endregion // Values
+
+                                                                       private enum Kind
+                                                                       {
+                                                                           #region Values
+                                                                           A,
+                                                                           #endregion // Values
+
+                                                                           #region Others
+                                                                           B,
+                                                                           #endregion // Others
+                                                                       }
+                                                                   }
+                                                                   """);
+        var typeDeclaration = syntaxRoot.DescendantNodes()
+                                        .OfType<ClassDeclarationSyntax>()
+                                        .Single();
+
+        var regions = RegionDirectiveUtilities.GetTopLevelRegions(typeDeclaration);
+
+        Assert.HasCount(1, regions);
+        Assert.IsLessThan(typeDeclaration.Members[0].SpanStart, regions[0].Region.SpanStart);
+        Assert.AreEqual("Values", RegionDirectiveUtilities.GetRegionDescription((RegionDirectiveTriviaSyntax)regions[0].Region.GetStructure()));
+    }
+
+    /// <summary>
     /// Verifies that a matched inner pair is not promoted to a top-level pair when its outer opening is unmatched
     /// </summary>
     [TestMethod]
@@ -125,10 +163,10 @@ public class RegionDirectiveUtilitiesTests
     }
 
     /// <summary>
-    /// Verifies that members inside a top-level region are recognized correctly
+    /// Verifies that a member inside a top-level region is recognized as lying within a region
     /// </summary>
     [TestMethod]
-    public void RegionContainmentHelpersFindContainingTopLevelRegion()
+    public void IsWithinRegionRecognizesAMemberInsideATopLevelRegion()
     {
         var syntaxRoot = CoreSyntaxTestHelper.ParseCompilationUnit(RegionSource);
         var typeDeclaration = syntaxRoot.DescendantNodes()
@@ -137,11 +175,7 @@ public class RegionDirectiveUtilitiesTests
         var secondMethod = typeDeclaration.Members.OfType<MethodDeclarationSyntax>().Single(obj => obj.Identifier.ValueText == "Second");
         var regions = RegionDirectiveUtilities.GetTopLevelRegions(typeDeclaration);
 
-        var hasContainingRegion = RegionDirectiveUtilities.TryFindContainingRegion(secondMethod, regions, out var region);
-
-        Assert.IsTrue(hasContainingRegion);
         Assert.IsTrue(RegionDirectiveUtilities.IsWithinRegion(secondMethod, regions));
-        Assert.AreEqual("Outer", RegionDirectiveUtilities.GetRegionDescription((RegionDirectiveTriviaSyntax)region.Region.GetStructure()));
     }
 
     /// <summary>

@@ -89,42 +89,6 @@ public class DirectiveJoinTests
     }
 
     /// <summary>
-    /// Verifies that the ternary when-true branch is not collapsed across a directive after the question token
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-001")]
-    public void TernaryQuestionIsNotCollapsedAcrossDirective()
-    {
-        const string input = """
-                             var x = cond ?
-                             #if DEBUG
-                                 a
-                             #endif
-                                 : b;
-                             """;
-
-        AssertUnchanged(input);
-    }
-
-    /// <summary>
-    /// Verifies that the ternary when-false branch is not collapsed across a directive after the colon token
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-001")]
-    public void TernaryColonIsNotCollapsedAcrossDirective()
-    {
-        const string input = """
-                             var x = cond
-                                 ? a :
-                             #if DEBUG
-                                 b;
-                             #endif
-                             """;
-
-        AssertUnchanged(input);
-    }
-
-    /// <summary>
     /// Verifies that an assignment value is not collapsed across a directive after the operator
     /// </summary>
     [TestMethod]

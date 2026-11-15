@@ -24,7 +24,7 @@ public class RH7102ConstantsMustAppearBeforeFieldsCodeFixProvider : TypeMemberOr
     /// Constructor
     /// </summary>
     public RH7102ConstantsMustAppearBeforeFieldsCodeFixProvider()
-        : base(RH7102ConstantsMustAppearBeforeFieldsAnalyzer.DiagnosticId, CodeFixResources.RH7102Title)
+        : base(new RH7102ConstantsMustAppearBeforeFieldsAnalyzer(), RH7102ConstantsMustAppearBeforeFieldsAnalyzer.DiagnosticId, CodeFixResources.RH7102Title)
     {
     }
 
@@ -44,6 +44,8 @@ public class RH7102ConstantsMustAppearBeforeFieldsCodeFixProvider : TypeMemberOr
         }
 
         var accessibilityGroup = OrderingDeclarationUtilities.GetAccessibilityGroup(fieldDeclaration);
+        var regions = RegionDirectiveUtilities.GetTopLevelRegions(typeDeclaration);
+        var regionIndex = RegionDirectiveUtilities.GetContainingRegionIndex(fieldDeclaration, regions);
 
         foreach (var currentMember in typeDeclaration.Members)
         {
@@ -54,6 +56,7 @@ public class RH7102ConstantsMustAppearBeforeFieldsCodeFixProvider : TypeMemberOr
 
             if (currentMember is FieldDeclarationSyntax currentFieldDeclaration
                 && OrderingDeclarationUtilities.GetAccessibilityGroup(currentFieldDeclaration) == accessibilityGroup
+                && RegionDirectiveUtilities.GetContainingRegionIndex(currentFieldDeclaration, regions) == regionIndex
                 && currentFieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) == false)
             {
                 targetMember = currentFieldDeclaration;

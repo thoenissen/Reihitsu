@@ -850,6 +850,81 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
         await VerifyCodeFixMatchesFormatter(NormalizeToCarriageReturnLineFeed(testCode));
     }
 
+    /// <summary>
+    /// Verifies that the fix, which lays out its result through the formatter, is not offered in a file with a syntax error,
+    /// while the diagnostic is still reported, and that it is offered once the syntax error is gone
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-011")]
+    public async Task NoFixIsOfferedInAFileWithASyntaxError()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  private static string Outer(string a, string b) => a + b;
+
+                                  private static string Inner(string a, string b) => a + b;
+
+                                  private static string Use()
+                                  {
+                                      return Outer(
+                                          Inner(
+                                              "a",
+                                              "b"),
+                                          "c");
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
+    }
+
+    /// <summary>
+    /// Verifying that the fix of an argument list wrapped behind its opening parenthesis and in front of a comma joins the
+    /// first argument, moves the comma behind it, and puts every argument on its own line, under LF and CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5101-003")]
+    [Requirement("FMT-BREAK-012")]
+    public async Task FixMovesLeadingCommaOfListWrappedBehindOpeningParenthesis()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call(
+                                            {|RH5101:1|}
+                                            , 2, 3);
+                                    }
+
+                                    void Call(int a, int b, int c)
+                                    {
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  internal class TestClass
+                                  {
+                                      void Method()
+                                      {
+                                          Call(1,
+                                               2,
+                                               3);
+                                      }
+
+                                      void Call(int a, int b, int c)
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await VerifyCodeFixWithEndOfLine(testData, resultData, "\n");
+        await VerifyCodeFixWithEndOfLine(testData, resultData, "\r\n");
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

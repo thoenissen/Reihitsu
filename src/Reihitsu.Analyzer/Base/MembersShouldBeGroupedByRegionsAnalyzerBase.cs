@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Threading;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -13,7 +12,7 @@ using Reihitsu.Core;
 namespace Reihitsu.Analyzer.Base;
 
 /// <summary>
-/// Shared base for analyzers that require members to be grouped into a top-level region named after a related type
+/// Shared base for analyzers that require members to be grouped into a region named after a related type
 /// </summary>
 public abstract class MembersShouldBeGroupedByRegionsAnalyzerBase : DiagnosticAnalyzerBase
 {
@@ -35,31 +34,32 @@ public abstract class MembersShouldBeGroupedByRegionsAnalyzerBase : DiagnosticAn
     #region Methods
 
     /// <summary>
-    /// Tries to determine the expected region name for the member
+    /// Gets the names of the regions the member belongs in
     /// </summary>
     /// <param name="memberDeclaration">Member declaration</param>
-    /// <param name="semanticModel">Semantic model</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <param name="expectedRegionName">Expected region name</param>
-    /// <returns><see langword="true"/> if the member is in scope for the analyzer</returns>
-    protected abstract bool TryGetExpectedRegionName(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken, out string expectedRegionName);
+    /// <param name="symbol">Symbol the declaration declares; for a field-like event, the event of one of its declarators</param>
+    /// <returns>The names, any one of which a matching region may carry, or no name when the member is not in scope for the analyzer</returns>
+    protected abstract IReadOnlyList<string> GetExpectedRegionNames(MemberDeclarationSyntax memberDeclaration, ISymbol symbol);
 
     /// <summary>
-    /// Determines whether the member is inside a matching top-level region
+    /// Determines whether the region that judges the member — the innermost region that encloses it, when it lies in a
+    /// top-level region (SHARED-REGGROUP-001) — carries one of the expected names
     /// </summary>
     /// <param name="memberDeclaration">Member declaration</param>
-    /// <param name="expectedRegionName">Expected region name</param>
-    /// <param name="regions">Top-level regions</param>
+    /// <param name="expectedRegionNames">Expected region names</param>
+    /// <param name="regions">Regions of the member's type declaration with their nesting depth</param>
     /// <returns><see langword="true"/> if the member is organized correctly</returns>
-    private static bool HasMatchingRegion(MemberDeclarationSyntax memberDeclaration, string expectedRegionName, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> regions)
+    private static bool HasMatchingRegion(MemberDeclarationSyntax memberDeclaration, IReadOnlyList<string> expectedRegionNames, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion, int NestingDepth)> regions)
     {
-        if (RegionDirectiveUtilities.TryFindContainingRegion(memberDeclaration, regions, out var region) == false
+        if (RegionDirectiveUtilities.TryFindInnermostContainingRegion(memberDeclaration, regions, out var region) == false
             || region.Region.GetStructure() is not RegionDirectiveTriviaSyntax regionDirective)
         {
             return false;
         }
 
-        return RegionDirectiveUtilities.GetRegionDescription(regionDirective).Equals(expectedRegionName, StringComparison.Ordinal);
+        var regionName = RegionDirectiveUtilities.GetRegionDescription(regionDirective);
+
+        return expectedRegionNames.Any(expectedRegionName => regionName.Equals(expectedRegionName, StringComparison.Ordinal));
     }
 
     /// <summary>
@@ -73,29 +73,35 @@ public abstract class MembersShouldBeGroupedByRegionsAnalyzerBase : DiagnosticAn
             return;
         }
 
-        var regions = RegionDirectiveUtilities.GetTopLevelRegions(typeDeclaration);
+        var regions = RegionDirectiveUtilities.GetTypeRegions(typeDeclaration);
 
         foreach (var memberDeclaration in typeDeclaration.Members)
         {
-            if (TryGetExpectedRegionName(memberDeclaration, context.SemanticModel, context.CancellationToken, out var expectedRegionName) == false
-                || HasMatchingRegion(memberDeclaration, expectedRegionName, regions))
+            // Each declarator of a field-like event is judged on its own (SHARED-REGGROUP-005)
+            foreach (var (symbol, location) in PartialMemberUtilities.GetDeclaredSymbols(memberDeclaration, context.SemanticModel, context.CancellationToken))
             {
-                continue;
-            }
+                var expectedRegionNames = GetExpectedRegionNames(memberDeclaration, symbol);
 
-            // A partial member is one member and is reported once, on the first part outside a matching region (SHARED-DIAG-012)
-            if (memberDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword)
-                && PartialMemberUtilities.GetReportedPart(memberDeclaration,
-                                                          PartialMemberUtilities.GetDeclaredSymbol(memberDeclaration, context.SemanticModel, context.CancellationToken),
-                                                          part => part.Parent is not TypeDeclarationSyntax partTypeDeclaration
-                                                                  || HasMatchingRegion(part, expectedRegionName, RegionDirectiveUtilities.GetTopLevelRegions(partTypeDeclaration)) == false,
-                                                          context.SemanticModel.Compilation,
-                                                          context.CancellationToken) != memberDeclaration)
-            {
-                continue;
-            }
+                if (expectedRegionNames.Count == 0
+                    || HasMatchingRegion(memberDeclaration, expectedRegionNames, regions))
+                {
+                    continue;
+                }
 
-            context.ReportDiagnostic(CreateDiagnostic(OrderingDeclarationUtilities.GetDiagnosticLocation(memberDeclaration), expectedRegionName));
+                // A partial member is one member and is reported once, on the first part outside a matching region (SHARED-DIAG-012)
+                if (memberDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword)
+                    && PartialMemberUtilities.GetReportedPart(memberDeclaration,
+                                                              symbol,
+                                                              part => part.Parent is not TypeDeclarationSyntax partTypeDeclaration
+                                                                      || HasMatchingRegion(part, expectedRegionNames, RegionDirectiveUtilities.GetTypeRegions(partTypeDeclaration)) == false,
+                                                              context.SemanticModel.Compilation,
+                                                              context.CancellationToken) != memberDeclaration)
+                {
+                    continue;
+                }
+
+                context.ReportDiagnostic(CreateDiagnostic(location, expectedRegionNames[0]));
+            }
         }
     }
 

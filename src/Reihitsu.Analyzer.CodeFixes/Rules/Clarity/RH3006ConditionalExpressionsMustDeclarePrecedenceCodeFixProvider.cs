@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Clarity;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
@@ -18,7 +19,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH3006ConditionalExpressionsMustDeclarePrecedenceCodeFixProvider))]
-public class RH3006ConditionalExpressionsMustDeclarePrecedenceCodeFixProvider : CodeFixProvider
+public class RH3006ConditionalExpressionsMustDeclarePrecedenceCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -69,8 +70,12 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceCodeFixProvider : 
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -91,5 +96,5 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceCodeFixProvider : 
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

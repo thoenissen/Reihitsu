@@ -334,6 +334,41 @@ public class RH7408NonOverrideIndexersShouldNotBePlacedInOverrideRegionsAnalyzer
                      Diagnostics(RH7408NonOverrideIndexersShouldNotBePlacedInOverrideRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
     }
 
+    /// <summary>
+    /// Verifies that an override method makes the region named after its base type an override region, so a indexer
+    /// that overrides nothing in it is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7408-001")]
+    [Requirement("SHARED-REGGROUP-006")]
+    public async Task VerifyOverrideOfOtherMemberKindMakesIndexerOverrideRegion()
+    {
+        const string testData = """
+                                class B
+                                {
+                                    public virtual void M()
+                                    {
+                                    }
+                                }
+
+                                class C : B
+                                {
+                                    #region B
+
+                                    public override void M()
+                                    {
+                                    }
+
+                                    public int {|RH7408:this|}[int index] => 0;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region Methods

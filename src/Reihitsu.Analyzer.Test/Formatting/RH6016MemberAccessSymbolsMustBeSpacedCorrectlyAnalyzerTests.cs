@@ -21,6 +21,36 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Batch
     #region Tests
 
     /// <summary>
+    /// Verifies that one Fix All application corrects a conditional access with whitespace in front of and behind its question mark and in front of its dot
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-002")]
+    public async Task FixAllCorrectsAConditionalAccessWithSpacesOnBothSidesOfTheQuestionMarkInOnePass()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  void Method(string s)
+                                  {
+                                      _ = s {|RH6016:?|} {|RH6016:.|} Length;
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   internal class TestClass
+                                   {
+                                       void Method(string s)
+                                       {
+                                           _ = s?.Length;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, static test => test.NumberOfFixAllIterations = 1);
+    }
+
+    /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

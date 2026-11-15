@@ -1,4 +1,4 @@
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Formatter;
 
@@ -18,7 +19,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH5308ConditionalExpressionsShouldBeFormattedCorrectlyCodeFixProvider))]
-public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyCodeFixProvider : CodeFixProvider
+public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -72,8 +73,15 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyCodeFixProvid
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected override bool FormatsThroughFormatter => true;
+
+    /// <inheritdoc/>
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -83,9 +91,10 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyCodeFixProvid
             {
                 var operatorToken = root.FindToken(diagnostic.Location.SourceSpan.Start);
 
+                // A conditional outside any statement or member has no node to format (RH5308-006)
                 if (operatorToken.Parent is ConditionalExpressionSyntax conditional
-                    && (GetFormatTarget(conditional) is not { } target
-                        || ReihitsuFormatter.FindUnsupportedSyntax(target) == null))
+                    && GetFormatTarget(conditional) is { } target
+                    && ReihitsuFormatter.FindUnsupportedSyntax(target) == null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5308Title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, operatorToken, cancellationToken),
@@ -96,5 +105,5 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyCodeFixProvid
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

@@ -45,7 +45,7 @@ public static class CodeFixRunCommand
     {
         if (TryParseArguments(args, out var diagnosticId, out var directory, out var maximumIterations, out var showHelp, out var parseError) == false)
         {
-            await error.WriteLineAsync($"apply-fix: {parseError}").ConfigureAwait(false);
+            await error.WriteLineAsync($"apply-fix: {parseError}", cancellationToken).ConfigureAwait(false);
             PrintUsage(error);
 
             return ExitCodes.Error;
@@ -64,13 +64,13 @@ public static class CodeFixRunCommand
         }
         catch (OperationCanceledException)
         {
-            await error.WriteLineAsync("apply-fix: operation canceled.").ConfigureAwait(false);
+            await error.WriteLineAsync("apply-fix: operation canceled.", CancellationToken.None).ConfigureAwait(false);
 
             return ExitCodes.Error;
         }
         catch (Exception exception)
         {
-            await error.WriteLineAsync($"apply-fix: {exception.Message}").ConfigureAwait(false);
+            await error.WriteLineAsync($"apply-fix: {exception.Message}", CancellationToken.None).ConfigureAwait(false);
 
             return ExitCodes.Error;
         }
@@ -97,7 +97,7 @@ public static class CodeFixRunCommand
 
         if (Directory.Exists(fullDirectory) == false)
         {
-            await error.WriteLineAsync($"apply-fix: fixture directory not found: {directory}").ConfigureAwait(false);
+            await error.WriteLineAsync($"apply-fix: fixture directory not found: {directory}", cancellationToken).ConfigureAwait(false);
 
             return ExitCodes.Error;
         }
@@ -110,22 +110,22 @@ public static class CodeFixRunCommand
 
         if (fixtures.Count == 0)
         {
-            await error.WriteLineAsync($"apply-fix: no C# fixture found under {fullDirectory}").ConfigureAwait(false);
+            await error.WriteLineAsync($"apply-fix: no C# fixture found under {fullDirectory}", cancellationToken).ConfigureAwait(false);
 
             return ExitCodes.Error;
         }
 
         if (CodeFixTargetResolver.TryResolve(diagnosticId, out var target, out var resolveError) == false)
         {
-            await error.WriteLineAsync($"apply-fix: {resolveError}").ConfigureAwait(false);
+            await error.WriteLineAsync($"apply-fix: {resolveError}", cancellationToken).ConfigureAwait(false);
 
             return ExitCodes.Error;
         }
 
         var analyzerNames = string.Join(", ", target.Analyzers.Select(analyzer => analyzer.GetType().Name).OrderBy(name => name, StringComparer.Ordinal));
 
-        await output.WriteLineAsync($"{diagnosticId} -> {target.CodeFixProvider.GetType().Name} / {analyzerNames}").ConfigureAwait(false);
-        await output.WriteLineAsync().ConfigureAwait(false);
+        await output.WriteLineAsync($"{diagnosticId} -> {target.CodeFixProvider.GetType().Name} / {analyzerNames}", cancellationToken).ConfigureAwait(false);
+        await output.WriteLineAsync(cancellationToken).ConfigureAwait(false);
 
         var results = await RunFixturesAsync(fixtures, fullDirectory, target, maximumIterations, output, cancellationToken).ConfigureAwait(false);
 

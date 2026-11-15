@@ -46,5 +46,30 @@ public class RH5602CodeMustNotContainTrailingWhitespaceFormatterTests : Formatte
                               Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that whitespace behind a string literal at the end of its line is reported, and that the formatter
+    /// removes it and clears the diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5602-001")]
+    public async Task VerifyFormatterRemovesWhitespaceBehindAStringLiteral()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string s = "a";{|#0:··|}
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     string s = "a";
+                                 }
+                                 """;
+
+        await VerifyFormatter(ExpandWhitespaceMarkers(testData), fixedData, Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
+    }
+
     #endregion // Tests
 }

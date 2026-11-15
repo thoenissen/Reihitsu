@@ -1,4 +1,4 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -39,20 +39,11 @@ public class RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzer : Memb
     #region MembersShouldBeGroupedByRegionsAnalyzerBase
 
     /// <inheritdoc/>
-    protected override bool TryGetExpectedRegionName(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken, out string expectedRegionName)
+    protected override IReadOnlyList<string> GetExpectedRegionNames(MemberDeclarationSyntax memberDeclaration, ISymbol symbol)
     {
-        expectedRegionName = memberDeclaration switch
-                             {
-                                 EventDeclarationSyntax eventDeclaration => (semanticModel.GetDeclaredSymbol(eventDeclaration, cancellationToken) as IEventSymbol) is { OverriddenEvent: not null } eventSymbol
-                                                                                ? OverrideMemberUtilities.GetOriginalDeclaringTypeName(eventSymbol)
-                                                                                : string.Empty,
-                                 EventFieldDeclarationSyntax { Declaration.Variables.Count: > 0 } eventFieldDeclaration => (semanticModel.GetDeclaredSymbol(eventFieldDeclaration.Declaration.Variables[0], cancellationToken) as IEventSymbol) is { OverriddenEvent: not null } eventSymbol
-                                                                                                                               ? OverrideMemberUtilities.GetOriginalDeclaringTypeName(eventSymbol)
-                                                                                                                               : string.Empty,
-                                 _ => string.Empty
-                             };
-
-        return string.IsNullOrEmpty(expectedRegionName) == false;
+        return memberDeclaration is EventDeclarationSyntax or EventFieldDeclarationSyntax
+                   ? OverrideMemberUtilities.GetOverrideRegionNames(symbol)
+                   : [];
     }
 
     #endregion // MembersShouldBeGroupedByRegionsAnalyzerBase

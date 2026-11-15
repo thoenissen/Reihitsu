@@ -67,7 +67,7 @@ body:
     id: dotnet_version
     attributes:
       label: ".NET Version"
-      placeholder: "e.g. .NET 10"
+      placeholder: "e.g. .NET 11"
 
   - type: input
     id: ide

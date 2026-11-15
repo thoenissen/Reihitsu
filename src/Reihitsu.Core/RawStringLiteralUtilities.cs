@@ -1,5 +1,9 @@
 ﻿using System;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
+
 namespace Reihitsu.Core;
 
 /// <summary>
@@ -45,6 +49,38 @@ public static class RawStringLiteralUtilities
         }
 
         return length;
+    }
+
+    /// <summary>
+    /// Gets the number of columns by which the lines of a multi-line raw string literal after its first line have to
+    /// shift so that its closing marker starts in the column of its opening quotes: the column of the opening quotes
+    /// minus the width of the whitespace in front of the closing marker (<see cref="GetLeadingWhitespaceLength"/>). Both
+    /// are measured on the lines of <paramref name="sourceText"/>, so every line terminator C# recognizes ends a line,
+    /// whatever line breaks the document and the literal use. This is the one measure by which the RH5202 analyzer
+    /// decides whether a literal is aligned and its code fix decides how far to shift it. For an interpolated literal,
+    /// the opening quotes start behind its <c>$</c> characters
+    /// </summary>
+    /// <param name="sourceText">Text of the document that holds the literal</param>
+    /// <param name="literal">The raw string literal expression or interpolated raw string expression</param>
+    /// <returns>The shift in columns, positive to the right and negative to the left, or 0 when the literal stands on one line or is aligned</returns>
+    public static int GetClosingLineShift(SourceText sourceText, SyntaxNode literal)
+    {
+        var span = literal.Span;
+        var openingLine = sourceText.Lines.GetLineFromPosition(span.Start);
+        var closingLine = sourceText.Lines.GetLineFromPosition(span.End);
+
+        if (openingLine.LineNumber == closingLine.LineNumber)
+        {
+            return 0;
+        }
+
+        var quoteOffset = literal is InterpolatedStringExpressionSyntax interpolated
+                              ? GetQuoteOffset(interpolated.StringStartToken.Text)
+                              : 0;
+        var openingQuoteColumn = span.Start - openingLine.Start + quoteOffset;
+        var closingWhitespaceLength = GetLeadingWhitespaceLength(sourceText.ToString(closingLine.Span));
+
+        return openingQuoteColumn - closingWhitespaceLength;
     }
 
     /// <summary>

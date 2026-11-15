@@ -741,11 +741,11 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
 
         // Two multi-attribute lists sit back to back on one line of the same get accessor: each split changes only its
         // own list, so the second list's first attribute stays on the line on which the first list's last attribute now
-        // stands. Whether the batch fixer needs one pass or two for the two changes is not what this scenario asserts
+        // stands.
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5531MessageFormat, 2),
-                                  Configure: config => config.NumberOfFixAllIterations = -2);
+                                  Configure: config => config.NumberOfFixAllIterations = 1);
     }
 
     #endregion // BatchCodeFixTestsBase

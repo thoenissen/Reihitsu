@@ -3347,7 +3347,7 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat, 2),
-                                  test => test.NumberOfFixAllIterations = 2);
+                                  test => test.NumberOfFixAllIterations = 1);
     }
 
     #endregion // BatchCodeFixTestsBase

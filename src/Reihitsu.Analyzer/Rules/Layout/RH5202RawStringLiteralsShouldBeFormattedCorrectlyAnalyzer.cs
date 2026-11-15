@@ -57,7 +57,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer : Diagnos
             return;
         }
 
-        CheckRawStringAlignment(context, token.GetLocation(), token.Text);
+        CheckRawStringAlignment(context, literalExpression);
     }
 
     /// <summary>
@@ -71,70 +71,28 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer : Diagnos
             return;
         }
 
-        var startToken = interpolatedString.StringStartToken;
-
-        if (startToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken) == false)
+        if (interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken) == false)
         {
             return;
         }
 
-        var endToken = interpolatedString.StringEndToken;
-
-        if (endToken.SyntaxTree == null || startToken.SyntaxTree == null)
-        {
-            return;
-        }
-
-        var startLineSpan = startToken.SyntaxTree.GetLineSpan(startToken.Span, context.CancellationToken);
-        var endLineSpan = endToken.SyntaxTree.GetLineSpan(endToken.Span, context.CancellationToken);
-
-        if (startLineSpan.StartLinePosition.Line == endLineSpan.StartLinePosition.Line)
-        {
-            return;
-        }
-
-        var startText = startToken.Text;
-        var openingQuoteColumn = startLineSpan.StartLinePosition.Character
-                                 + RawStringLiteralUtilities.GetQuoteOffset(startText);
-        var endText = endToken.Text;
-        var lastNewlineIndex = endText.LastIndexOf('\n');
-        var closingLine = lastNewlineIndex >= 0
-                              ? endText.Substring(lastNewlineIndex + 1)
-                              : endText;
-        var closingQuoteColumn = RawStringLiteralUtilities.GetLeadingWhitespaceLength(closingLine);
-
-        if (openingQuoteColumn != closingQuoteColumn)
-        {
-            context.ReportDiagnostic(CreateDiagnostic(interpolatedString.GetLocation()));
-        }
+        CheckRawStringAlignment(context, interpolatedString);
     }
 
     /// <summary>
-    /// Checks the alignment of a raw string literal token
+    /// Checks the alignment of a multi-line raw string literal: it is reported when its closing marker does not start
+    /// in the column of its opening quotes, measured as the code fix measures it
+    /// (<see cref="RawStringLiteralUtilities.GetClosingLineShift"/>)
     /// </summary>
     /// <param name="context">Context</param>
-    /// <param name="location">The location for the diagnostic</param>
-    /// <param name="tokenText">The full text of the raw string literal token</param>
-    private void CheckRawStringAlignment(SyntaxNodeAnalysisContext context, Location location, string tokenText)
+    /// <param name="literal">The raw string literal expression or interpolated raw string expression</param>
+    private void CheckRawStringAlignment(SyntaxNodeAnalysisContext context, SyntaxNode literal)
     {
-        var lineSpan = location.GetLineSpan();
-        var startLine = lineSpan.StartLinePosition.Line;
-        var endLine = lineSpan.EndLinePosition.Line;
+        var sourceText = literal.SyntaxTree.GetText(context.CancellationToken);
 
-        if (startLine == endLine)
+        if (RawStringLiteralUtilities.GetClosingLineShift(sourceText, literal) != 0)
         {
-            return;
-        }
-
-        var openingQuoteColumn = lineSpan.StartLinePosition.Character;
-
-        var lines = tokenText.Split(["\r\n", "\n"], StringSplitOptions.None);
-        var lastLine = lines[lines.Length - 1];
-        var closingQuoteColumn = RawStringLiteralUtilities.GetLeadingWhitespaceLength(lastLine);
-
-        if (openingQuoteColumn != closingQuoteColumn)
-        {
-            context.ReportDiagnostic(CreateDiagnostic(location));
+            context.ReportDiagnostic(CreateDiagnostic(literal.GetLocation()));
         }
     }
 

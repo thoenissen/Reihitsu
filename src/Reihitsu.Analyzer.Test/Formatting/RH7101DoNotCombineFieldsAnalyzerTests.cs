@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
@@ -22,7 +23,61 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH7101DoNotCombineFieldsAnalyzer, RH7101DoNotCombineFieldsCodeFixProvider>
 {
+    #region Constants
+
+    /// <summary>
+    /// A document with a combined field declaration in front of a <c>/* */</c> comment that starts inside the <c>#if !X</c> group
+    /// and holds the line <c>#else</c>, so a build with <c>X</c> reads the lines behind it as the content of the verbatim string
+    /// <c>s</c>
+    /// </summary>
+    private const string CarrierDocumentSource = """
+                                                 internal class OtherClass
+                                                 {
+                                                     private int c, {|RH7101:d|};
+
+                                                     int M(int a)
+                                                     {
+                                                 #if !X
+                                                         /*
+                                                 #else
+                                                         var s = @"
+                                                         */
+                                                         a = 1; //";
+                                                 #endif
+                                                         return a;
+                                                     }
+                                                 }
+                                                 """;
+
+    #endregion // Constants
+
     #region Tests
+
+    /// <summary>
+    /// Verifies that the fix is withheld for a combined declaration in a type that holds a conditional with comments between its
+    /// operators and its branches: the fix formats the type, which the formatter refuses as unsupported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task NoFixIsOfferedInATypeThatHoldsACommentBehindAConditionalOperator()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _x, {|RH7101:_y|};
+
+                                  int M(bool a)
+                                  {
+                                      var x = a ? /* yes */ 1 : /* no */ 2;
+
+                                      return x;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
 
     /// <summary>
     /// Verifies that single field declarations do not produce diagnostics
@@ -3023,9 +3078,195 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
         await VerifyNoCodeFixIsOffered(source);
     }
 
+    /// <summary>
+    /// Verifies that a Fix All in the project, started from a document without a hiding carrier, splits the declaration in that
+    /// document and leaves a second document that holds one as it is, with its diagnostic still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-012")]
+    public async Task FixAllInTheProjectLeavesADocumentWithAHidingCarrierUnchanged()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  private int a, {|RH7101:b|};
+                              }
+                              """;
+        const string fixedSource = """
+                                   internal class TestClass
+                                   {
+                                       private int a;
+                                       private int b;
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", CarrierDocumentSource));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", CarrierDocumentSource));
+
+                         // The diagnostic in the carrier document stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                         test.NumberOfFixAllInDocumentIterations = 1;
+                         test.NumberOfFixAllInProjectIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a Fix All in the solution, started from a document without a hiding carrier, splits the declaration in that
+    /// document and leaves a document of another project that holds a hiding carrier as it is, with its diagnostic still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-012")]
+    public async Task FixAllInTheSolutionLeavesADocumentWithAHidingCarrierInAnotherProjectUnchanged()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  private int a, {|RH7101:b|};
+                              }
+                              """;
+        const string fixedSource = """
+                                   internal class TestClass
+                                   {
+                                       private int a;
+                                       private int b;
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         test.TestState.AdditionalProjects["Other"].Sources.Add(("/Other/Test1.cs", CarrierDocumentSource));
+                         test.FixedState.AdditionalProjects["Other"].Sources.Add(("/Other/Test1.cs", CarrierDocumentSource));
+
+                         // The diagnostic in the carrier document stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                         test.NumberOfIncrementalIterations = 1;
+                         test.NumberOfFixAllIterations = 1;
+                         test.NumberOfFixAllInDocumentIterations = 1;
+                         test.NumberOfFixAllInProjectIterations = 1;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a field declaration with a conditional directive around a declarator between its other declarators
+    /// is not reported, whether the symbol is defined or not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-001")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task FieldDeclarationWithAConditionalDeclaratorBetweenItsDeclaratorsIsNotReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int _a,
+                                #if DEBUG
+                                        _debug,
+                                #endif
+                                        _b;
+                                }
+                                """;
+
+        await Verify(testData);
+        await Verify(testData, test => test.SolutionTransforms.Add(DefineDebug));
+    }
+
+    /// <summary>
+    /// Verifies that a field declaration with an empty conditional directive pair between its declarators is not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-001")]
+    public async Task FieldDeclarationWithAnEmptyConditionalDirectivePairBetweenItsDeclaratorsIsNotReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int _a,
+                                #if DEBUG
+                                #endif
+                                        _b;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a field declaration with a conditional directive in the initializer of a declarator that is not
+    /// the last one is not reported, because the directive stands between its declarators
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-001")]
+    public async Task FieldDeclarationWithAConditionalDirectiveInTheInitializerOfANonLastDeclaratorIsNotReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int _a = 1
+                                #if DEBUG
+                                        + 1
+                                #endif
+                                        , _b;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a field declaration with a conditional directive in the initializer of its last declarator is
+    /// still reported, because the directive does not stand between its declarators
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-001")]
+    public async Task FieldDeclarationWithAConditionalDirectiveInTheInitializerOfItsLastDeclaratorIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int _a, {|RH7101:_b|} = 1
+                                #if DEBUG
+                                        + 1
+                                #endif
+                                        ;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region Methods
+
+    /// <summary>
+    /// Defines the preprocessor symbol <c>DEBUG</c> for the test project
+    /// </summary>
+    /// <param name="solution">Solution</param>
+    /// <param name="projectId">Project ID</param>
+    /// <returns>Solution</returns>
+    private static Solution DefineDebug(Solution solution, ProjectId projectId)
+    {
+        return solution.GetProject(projectId)?.ParseOptions is CSharpParseOptions parseOptions
+                   ? solution.WithProjectParseOptions(projectId, parseOptions.WithPreprocessorSymbols("DEBUG"))
+                   : solution;
+    }
 
     /// <summary>
     /// Applies the fix of the declaration whose declarator has the given name, under LF and under CRLF, and asserts the

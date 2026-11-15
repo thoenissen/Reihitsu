@@ -235,38 +235,27 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     }
 
     /// <summary>
-    /// Characterizes a readonly field in a region that follows a mutable field outside every region: it is reported, and
-    /// directive safety withholds the fix. This test pins today's behavior; the decided behavior is stated by
-    /// SHARED-ORDER-004, which compares a member in a top-level region only with members of that region, and its change
-    /// belongs to an existing follow-up
+    /// Verifies that a readonly interface field in a region that follows a mutable field outside every region is not
+    /// compared with it, so nothing is reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task MixedAccessibilityInterfaceViolationWithDirectivesHasNoCodeFix()
+    [Requirement("RH7109-003")]
+    [Requirement("SHARED-ORDER-004")]
+    public async Task ReadonlyInterfaceFieldInARegionAfterAMutableFieldOutsideEveryRegionIsNotReported()
     {
-        const string source = """
-                              public interface ITest
-                              {
-                                  static int Value;
+        const string testCode = """
+                                public interface ITest
+                                {
+                                    static int Value;
 
-                                  #region Readonly
-                                  public static readonly int ReadonlyValue;
-                                  #endregion
-                              }
-                              """;
-        var testCode = source.Replace("ReadonlyValue", "{|#0:ReadonlyValue|}");
+                                    #region Readonly
+                                    public static readonly int ReadonlyValue;
+                                    #endregion
+                                }
+                                """;
 
-        await Verify(testCode, Diagnostics(RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7109MessageFormat));
-
-        var actions = await GetCodeFixActionsAsync(source,
-                                                   RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer.DiagnosticId,
-                                                   root => root.DescendantNodes()
-                                                               .OfType<VariableDeclaratorSyntax>()
-                                                               .Single(declarator => declarator.Identifier.ValueText == "ReadonlyValue")
-                                                               .Identifier
-                                                               .GetLocation());
-
-        Assert.IsEmpty(actions);
+        await Verify(testCode);
     }
 
     /// <summary>
@@ -351,12 +340,13 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     }
 
     /// <summary>
-    /// Verifying no code fix is offered when the move would separate a preprocessor directive from its partner,
-    /// with the region opening in the moved field's own leading trivia and closing after it
+    /// Verifies that a field outside every region and a readonly field in a region that follows it are not compared, so
+    /// nothing is reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task NoCodeFixWhenDirectivesAreInLeadingTrivia()
+    [Requirement("RH7109-003")]
+    public async Task FieldOutsideEveryRegionAndReadonlyFieldInARegionAreNotCompared()
     {
         const string testCode = """
                                 public class TestClass
@@ -369,15 +359,7 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
                                 }
                                 """;
 
-        var actions = await GetCodeFixActionsAsync(testCode,
-                                                   RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer.DiagnosticId,
-                                                   root => root.DescendantNodes()
-                                                               .OfType<VariableDeclaratorSyntax>()
-                                                               .Single(declarator => declarator.Identifier.ValueText == "_readonlyValue")
-                                                               .Identifier
-                                                               .GetLocation());
-
-        Assert.IsEmpty(actions);
+        await Verify(testCode);
     }
 
     /// <summary>
@@ -6892,6 +6874,152 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
         Assert.AreEqual(fixedSource, await ApplyCodeFixAsync(source));
     }
 
+    /// <summary>
+    /// Verifies the specification example in which a field outside every region and a readonly field in a region, and a
+    /// field and a readonly field in two top-level regions, are not compared
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7109-003")]
+    [Requirement("SHARED-ORDER-004")]
+    public async Task FieldAndReadonlyFieldInDifferentRegionsAreNotCompared()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _count;
+
+                                    #region Identity
+
+                                    private readonly int _id;
+
+                                    #endregion
+                                }
+
+                                class D
+                                {
+                                    #region Fields
+
+                                    private int _count;
+
+                                    #endregion
+
+                                    #region Identity
+
+                                    private readonly int _id;
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a readonly field outside every region is not compared with a field of its group in a region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7109-003")]
+    public async Task ReadonlyFieldOutsideEveryRegionIsNotComparedWithAFieldInARegion()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Fields
+
+                                    private int _count;
+
+                                    #endregion
+
+                                    private readonly int _id;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example in which the first field of the group lies in an earlier region, so the code
+    /// fix moves the readonly field in front of the field in its own region, which is not the first member of that
+    /// region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7109-005")]
+    public async Task CodeFixTargetsTheFirstFieldOfTheGroupInTheReadonlyFieldsOwnRegion()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region A
+
+                                    private int _a;
+
+                                    #endregion
+
+                                    #region B
+
+                                    public int B;
+                                    private int _b;
+                                    private readonly int {|RH7109:_c|};
+
+                                    #endregion
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     #region A
+
+                                     private int _a;
+
+                                     #endregion
+
+                                     #region B
+
+                                     public int B;
+                                     private readonly int _c;
+                                     private int _b;
+
+                                     #endregion
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the diagnostic is reported without a code fix when the first field of the group in the readonly
+    /// field's own region is the first member of that region, because the region's opening line lies in the crossed span
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7109-006")]
+    [Requirement("SHARED-ORDER-004")]
+    public async Task NoCodeFixWhenTheFirstFieldOfTheGroupInTheOwnRegionIsTheFirstMemberOfThatRegion()
+    {
+        const string source = """
+                              class C
+                              {
+                                  #region A
+
+                                  private int _a;
+
+                                  #endregion
+
+                                  #region B
+
+                                  private int _b;
+                                  private readonly int {|RH7109:_c|};
+
+                                  #endregion
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region Methods
@@ -6932,13 +7060,12 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
                                  }
                                  """;
 
-        // Both readonly fields are moved in front of the same mutable field, so each fix rewrites the span from
-        // that field to its own declaration and the two text changes overlap. The mutable field carries no
+        // Both readonly fields are moved in front of the same mutable field. The mutable field carries no
         // initializer, so neither move changes initializer execution order and both fixes stay available
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7109MessageFormat, 2),
-                                  static config => config.NumberOfFixAllIterations = 2);
+                                  static config => config.NumberOfFixAllIterations = 1);
     }
 
     #endregion // BatchCodeFixTestsBase

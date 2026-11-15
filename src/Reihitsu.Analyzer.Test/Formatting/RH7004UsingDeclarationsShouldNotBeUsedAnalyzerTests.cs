@@ -3340,14 +3340,10 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : BatchCodeFixT
                                  }
                                  """;
 
-        // The first using declaration's fix wraps every following statement -- including the second using
-        // declaration itself -- into a new block, so its replacement span is a superset of the second
-        // declaration's own fix span. The batch fixer discards the second fix as conflicting in the first pass
-        // and needs another pass, once the first wrap has moved it into its new block, to convert it as well
         return new FixAllScenario(testCode,
                                   fixedCode,
                                   Diagnostics(RH7004UsingDeclarationsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH7004MessageFormat, 2),
-                                  Configure: config => config.NumberOfFixAllIterations = 2);
+                                  Configure: config => config.NumberOfFixAllIterations = 1);
     }
 
     #endregion // BatchCodeFixTestsBase

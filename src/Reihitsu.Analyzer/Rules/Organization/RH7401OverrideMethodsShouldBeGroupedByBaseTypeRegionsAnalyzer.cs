@@ -1,4 +1,4 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -39,17 +39,11 @@ public class RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzer : Mem
     #region MembersShouldBeGroupedByRegionsAnalyzerBase
 
     /// <inheritdoc/>
-    protected override bool TryGetExpectedRegionName(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken, out string expectedRegionName)
+    protected override IReadOnlyList<string> GetExpectedRegionNames(MemberDeclarationSyntax memberDeclaration, ISymbol symbol)
     {
-        expectedRegionName = string.Empty;
-
-        if (memberDeclaration is MethodDeclarationSyntax methodDeclaration
-            && semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken) is IMethodSymbol { OverriddenMethod: not null } methodSymbol)
-        {
-            expectedRegionName = OverrideMemberUtilities.GetOriginalDeclaringTypeName(methodSymbol);
-        }
-
-        return string.IsNullOrEmpty(expectedRegionName) == false;
+        return memberDeclaration is MethodDeclarationSyntax
+                   ? OverrideMemberUtilities.GetOverrideRegionNames(symbol)
+                   : [];
     }
 
     #endregion // MembersShouldBeGroupedByRegionsAnalyzerBase

@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Documentation;
 
@@ -16,7 +17,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagCodeFixProvider))]
-public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagCodeFixProvider : CodeFixProvider
+public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region CodeFixProvider
 
@@ -29,8 +30,12 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagCodeFixProv
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -50,5 +55,5 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagCodeFixProv
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

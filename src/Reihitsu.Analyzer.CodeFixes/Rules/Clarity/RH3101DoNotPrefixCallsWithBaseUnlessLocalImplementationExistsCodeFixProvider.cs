@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Clarity;
 using Reihitsu.Core;
@@ -21,7 +22,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsCodeFixProvider))]
-public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsCodeFixProvider : CodeFixProvider
+public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -143,8 +144,12 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsCodeFi
         return DocumentOrderFixAllProvider.Create(new RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer());
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
         var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
@@ -168,5 +173,5 @@ public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsCodeFi
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

@@ -134,6 +134,31 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     #region Tests
 
     /// <summary>
+    /// Verifies that the fix, which lays out its result through the formatter, is not offered in a file with a syntax error,
+    /// while the diagnostic is still reported, and that it is offered once the syntax error is gone
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-011")]
+    public async Task NoFixIsOfferedInAFileWithASyntaxError()
+    {
+        const string source = """
+                              using System.Linq;
+
+                              internal sealed class Example
+                              {
+                                  private static int[] Convert(int[] values)
+                                  {
+                                      return values.Where(value => value > 0)  .Select(value => value)  .OrderBy(value => value)
+                                                   .ToArray();
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
+    }
+
+    /// <summary>
     /// Verifying that misaligned method chains are detected and fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

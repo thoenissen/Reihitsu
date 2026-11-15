@@ -135,6 +135,146 @@ public class RH5603FileMustNotEndWithANewlineAnalyzerTests : BatchCodeFixTestsBa
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a line of whitespace only between the trailing line breaks belongs to them: the diagnostic covers
+    /// every line break after the last code character, and one application of the fix deletes all of them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5603-001")]
+    [Requirement("RH5603-003")]
+    [Requirement("RH5603-004")]
+    public async Task VerifyWhitespaceOnlyLineInTheTrailingLineBreaksIsPartOfTheDiagnosticAndIsDeleted()
+    {
+        const string testData = "class C\n{\n}{|#0:\n   \n|}";
+        const string fixedData = "class C\n{\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, AnalyzerResources.RH5603MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a line of whitespace only between trailing CRLF line breaks belongs to them and is deleted with them
+    /// in one application
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5603-001")]
+    [Requirement("RH5603-003")]
+    [Requirement("RH5603-004")]
+    public async Task VerifyWhitespaceOnlyLineInTheTrailingCarriageReturnLineFeedsIsPartOfTheDiagnosticAndIsDeleted()
+    {
+        const string testData = "class C\r\n{\r\n}{|#0:\r\n   \r\n|}";
+        const string fixedData = "class C\r\n{\r\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, AnalyzerResources.RH5603MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix deletes a trailing whitespace-only line in one application and returns exactly the expected
+    /// text, line endings included
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5603-004")]
+    public async Task VerifyOneApplicationOfTheFixDeletesTheWholeTail()
+    {
+        Assert.AreEqual("class C\n{\n}", await ApplyCodeFixAsync("class C\n{\n}\n   \n"));
+        Assert.AreEqual("class C\r\n{\r\n}", await ApplyCodeFixAsync("class C\r\n{\r\n}\r\n   \r\n"));
+    }
+
+    /// <summary>
+    /// Verifies that a line of whitespace only between trailing lone carriage returns belongs to them and is deleted with
+    /// them in one application
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyWhitespaceOnlyLineInTheTrailingCarriageReturnsIsPartOfTheDiagnosticAndIsDeleted()
+    {
+        const string testData = "class C\r{\r}{|#0:\r   \r|}";
+        const string fixedData = "class C\r{\r}";
+
+        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, AnalyzerResources.RH5603MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that several whitespace-only lines of spaces and tabs between the trailing line breaks all belong to them
+    /// and are deleted in one application
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5603-001")]
+    [Requirement("RH5603-003")]
+    [Requirement("RH5603-004")]
+    public async Task VerifySeveralWhitespaceOnlyLinesInTheTrailingLineBreaksArePartOfTheDiagnosticAndAreDeleted()
+    {
+        const string testData = "class C\n{\n}{|#0:\n  \n\t\n\n|}";
+        const string fixedData = "class C\n{\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, AnalyzerResources.RH5603MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that whitespace behind the last code character on its line is not part of the diagnostic and stays after
+    /// the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5603-001")]
+    [Requirement("RH5603-003")]
+    [Requirement("RH5603-004")]
+    public async Task VerifyWhitespaceBehindTheLastCharacterIsNotPartOfTheDiagnosticAndStays()
+    {
+        const string testData = "class C\n{\n}  {|#0:\n|}";
+        const string fixedData = "class C\n{\n}  ";
+
+        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, AnalyzerResources.RH5603MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that with whitespace behind the last code character and a whitespace-only line in the tail, the diagnostic
+    /// starts at the first line break behind that character and the fix keeps the whitespace on the last code line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5603-001")]
+    [Requirement("RH5603-003")]
+    [Requirement("RH5603-004")]
+    public async Task VerifyWhitespaceBehindTheLastCharacterStaysAndTheWhitespaceOnlyLineIsDeleted()
+    {
+        const string testData = "class C\n{\n}  {|#0:\n   \n|}";
+        const string fixedData = "class C\n{\n}  ";
+
+        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, AnalyzerResources.RH5603MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a whitespace-only line in the tail behind a final comment belongs to the trailing line breaks
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5603-001")]
+    [Requirement("RH5603-004")]
+    public async Task VerifyWhitespaceOnlyLineBehindAFinalCommentIsPartOfTheDiagnosticAndIsDeleted()
+    {
+        const string testData = "class C\n{\n}\n\n// end{|#0:\n   \n|}";
+        const string fixedData = "class C\n{\n}\n\n// end";
+
+        await Verify(testData, fixedData, Diagnostics(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, AnalyzerResources.RH5603MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a file whose last line holds whitespace only and ends without a line break is not reported; that
+    /// whitespace is RH5602's
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenTheLastLineHoldsWhitespaceOnlyWithoutALineBreak()
+    {
+        const string testData = "class C\n{\n}\n   ";
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

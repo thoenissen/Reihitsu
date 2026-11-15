@@ -38,7 +38,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
-    /// Analyzes a type declaration
+    /// Analyzes a type declaration or an extension block
     /// </summary>
     /// <param name="context">Context</param>
     private void OnDeclaration(SyntaxNodeAnalysisContext context)
@@ -65,7 +65,12 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBase
 
         if (openBraceLine == closeBraceLine)
         {
-            context.ReportDiagnostic(CreateDiagnostic(declaration.Identifier.GetLocation()));
+            // An extension block has no name, so its diagnostic is located on its 'extension' keyword.
+            var location = declaration is ExtensionBlockDeclarationSyntax extensionBlock
+                               ? extensionBlock.Keyword.GetLocation()
+                               : declaration.Identifier.GetLocation();
+
+            context.ReportDiagnostic(CreateDiagnostic(location));
         }
     }
 
@@ -83,7 +88,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBase
         // dropped, and RH5404's test class carries a canary over the declaration types themselves.
         //
         // SyntaxKind.UnionDeclaration is deliberately absent. Union declarations parse only under a preview
-        // language version and need runtime support types .NET 10 does not ship, and registering the kind would
+        // language version and need runtime support types .NET 11 does not ship, and registering the kind would
         // pull an experimental Roslyn API into the analyzer. They are left out until the feature is released.
         context.RegisterSyntaxNodeAction(OnDeclaration,
                                          SyntaxKind.ClassDeclaration,

@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -456,6 +456,31 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
                                  """;
 
         await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5113MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix, which lays out its result through the formatter, is not offered in a file with a syntax error,
+    /// while the diagnostic is still reported, and that it is offered once the syntax error is gone
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-011")]
+    public async Task NoFixIsOfferedInAFileWithASyntaxError()
+    {
+        const string source = """
+                              namespace TestNamespace
+                              {
+                                  internal class TestClass
+                                  {
+                                      private int _first
+                                          ;
+                                      private int _second
+                                          ;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
     #endregion // Tests

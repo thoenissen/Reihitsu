@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Formatter;
 
@@ -18,7 +19,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH5404ElementMustNotBeOnSingleLineCodeFixProvider))]
-public class RH5404ElementMustNotBeOnSingleLineCodeFixProvider : CodeFixProvider
+public class RH5404ElementMustNotBeOnSingleLineCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -47,8 +48,15 @@ public class RH5404ElementMustNotBeOnSingleLineCodeFixProvider : CodeFixProvider
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected override bool FormatsThroughFormatter => true;
+
+    /// <inheritdoc/>
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -56,7 +64,9 @@ public class RH5404ElementMustNotBeOnSingleLineCodeFixProvider : CodeFixProvider
         {
             foreach (var diagnostic in context.Diagnostics)
             {
+                // No fix is offered for an extension block: the formatter does not place its braces on their own lines.
                 if (root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.FirstAncestorOrSelf<BaseTypeDeclarationSyntax>() is { } declaration
+                    && declaration is not ExtensionBlockDeclarationSyntax
                     && ReihitsuFormatter.FindUnsupportedSyntax(declaration) == null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5404Title,
@@ -68,5 +78,5 @@ public class RH5404ElementMustNotBeOnSingleLineCodeFixProvider : CodeFixProvider
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

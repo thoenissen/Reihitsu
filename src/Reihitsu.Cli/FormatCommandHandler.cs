@@ -175,9 +175,9 @@ internal sealed class FormatCommandHandler
             return confirmationExitCode.Value;
         }
 
-        var (totalFiles, changedFiles, skippedSyntaxErrors, skippedEncoding, skippedGenerated, errorFiles, skippedUnsupported) = await ProcessFilesAsync(files, cancellationToken).ConfigureAwait(false);
+        var (totalFiles, changedFiles, skippedSyntaxErrors, skippedEncoding, skippedGenerated, errorFiles, skippedUnsupported, skippedHiddenCode) = await ProcessFilesAsync(files, cancellationToken).ConfigureAwait(false);
 
-        PrintSummary(totalFiles, changedFiles, skippedSyntaxErrors, skippedEncoding, skippedGenerated, errorFiles, skippedUnsupported);
+        PrintSummary(totalFiles, changedFiles, skippedSyntaxErrors, skippedEncoding, skippedGenerated, errorFiles, skippedUnsupported, skippedHiddenCode);
 
         // A file the formatter refuses is one the tool could not do its job on, unless the run reports it as a warning (CLI-017)
         if (errorFiles > 0
@@ -251,8 +251,8 @@ internal sealed class FormatCommandHandler
     /// <param name="files">Files to process</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The aggregate file-processing counters</returns>
-    private async Task<(int TotalFiles, int ChangedFiles, int SkippedSyntaxErrors, int SkippedEncoding, int SkippedGenerated, int ErrorFiles, int SkippedUnsupported)> ProcessFilesAsync(IReadOnlyList<string> files,
-                                                                                                                                                                                         CancellationToken cancellationToken)
+    private async Task<(int TotalFiles, int ChangedFiles, int SkippedSyntaxErrors, int SkippedEncoding, int SkippedGenerated, int ErrorFiles, int SkippedUnsupported, int SkippedHiddenCode)> ProcessFilesAsync(IReadOnlyList<string> files,
+                                                                                                                                                                                                                CancellationToken cancellationToken)
     {
         var totalFiles = 0;
         var changedFiles = 0;
@@ -261,6 +261,7 @@ internal sealed class FormatCommandHandler
         var skippedGenerated = 0;
         var errorFiles = 0;
         var skippedUnsupported = 0;
+        var skippedHiddenCode = 0;
 
         foreach (var filePath in files)
         {
@@ -285,9 +286,10 @@ internal sealed class FormatCommandHandler
             skippedGenerated += result.SkippedGeneratedCount;
             errorFiles += result.ErrorFileCount;
             skippedUnsupported += result.SkippedUnsupportedCount;
+            skippedHiddenCode += result.SkippedHiddenCodeCount;
         }
 
-        return (totalFiles, changedFiles, skippedSyntaxErrors, skippedEncoding, skippedGenerated, errorFiles, skippedUnsupported);
+        return (totalFiles, changedFiles, skippedSyntaxErrors, skippedEncoding, skippedGenerated, errorFiles, skippedUnsupported, skippedHiddenCode);
     }
 
     /// <summary>
@@ -322,6 +324,18 @@ internal sealed class FormatCommandHandler
                 }
 
                 return FileProcessResult.SkippedGenerated;
+            }
+
+            // The formatter leaves such a file as written; it is named as skipped, by the formatter's own definition, so that
+            // the user learns why a file that may need formatting was left alone (CLI-021)
+            if (_formatter.HoldsHidingCarrier(syntaxTree, cancellationToken))
+            {
+                if (_verbose)
+                {
+                    _console.WriteLine($"Skipped (code hidden in another build configuration): {filePath}");
+                }
+
+                return FileProcessResult.SkippedHiddenCode;
             }
 
             var formattingResult = _formatter.FormatSyntaxTree(syntaxTree, cancellationToken);
@@ -559,7 +573,8 @@ internal sealed class FormatCommandHandler
     /// <param name="skippedGenerated">The number of generated files that were skipped</param>
     /// <param name="errorFiles">The number of files that encountered errors during processing</param>
     /// <param name="skippedUnsupported">The number of files skipped because the formatter refuses them as unsupported</param>
-    private void PrintSummary(int totalFiles, int changedFiles, int skippedSyntaxErrors, int skippedEncoding, int skippedGenerated, int errorFiles, int skippedUnsupported)
+    /// <param name="skippedHiddenCode">The number of files skipped because they hold code that another build configuration hides</param>
+    private void PrintSummary(int totalFiles, int changedFiles, int skippedSyntaxErrors, int skippedEncoding, int skippedGenerated, int errorFiles, int skippedUnsupported, int skippedHiddenCode)
     {
         _console.WriteLine(string.Empty);
 
@@ -584,6 +599,11 @@ internal sealed class FormatCommandHandler
         if (skippedSyntaxErrors > 0)
         {
             _console.WriteLine($"Skipped {skippedSyntaxErrors} file(s) with syntax errors.");
+        }
+
+        if (skippedHiddenCode > 0)
+        {
+            _console.WriteLine($"Skipped {skippedHiddenCode} file(s) with code hidden in another build configuration.");
         }
 
         if (skippedUnsupported > 0)

@@ -19,6 +19,34 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : BatchCodeFixTestsB
     #region Tests
 
     /// <summary>
+    /// Verifies that one Fix All application removes a placeholder element and the placeholder element nested in it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-002")]
+    public async Task FixAllRemovesNestedPlaceholdersInOnePass()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>This method {|RH8204:<placeholder>does {|RH8204:<placeholder>work</placeholder>|}</placeholder>|}.</summary>
+                              internal class TestClass
+                              {
+                              }
+                              """;
+        const string fixedSource = """
+                                   namespace TestNamespace;
+
+                                   /// <summary>This method does work.</summary>
+                                   internal class TestClass
+                                   {
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, static test => test.NumberOfFixAllIterations = 1);
+    }
+
+    /// <summary>
     /// Verifies a diagnostic and code fix for a placeholder tag
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

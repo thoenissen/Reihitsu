@@ -1,4 +1,4 @@
-using System.Threading;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 
@@ -12,57 +12,56 @@ internal static class InterfaceImplementationUtilities
     #region Methods
 
     /// <summary>
-    /// Gets the interface region name for the given member. The compiler binds the implemented interface member to the
-    /// defining part of a partial member, so an implementing part names the interface only when it stands for the member
-    /// because its defining part is in generated code (<see cref="PartialMemberUtilities.GetStandInSymbol"/>)
+    /// Gets the names of the regions an interface implementation belongs in: the name of every interface whose member the
+    /// member implements (SHARED-REGGROUP-004). The compiler binds the implemented interface member to the defining part
+    /// of a partial member, so the interfaces of a part are those of its defining part
     /// </summary>
     /// <param name="memberSymbol">Member symbol, or the symbol of a part of a partial member</param>
-    /// <param name="compilation">Compilation containing the member</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Name of the implemented interface, or an empty string when the member is an override or does not implement an interface member</returns>
-    internal static string GetInterfaceRegionName(ISymbol memberSymbol, Compilation compilation, CancellationToken cancellationToken)
+    /// <returns>Names of the implemented interfaces, or no name when the member is an override or implements no interface member</returns>
+    internal static IReadOnlyList<string> GetInterfaceRegionNames(ISymbol memberSymbol)
     {
-        var member = PartialMemberUtilities.GetStandInSymbol(memberSymbol, compilation, cancellationToken);
+        var member = PartialMemberUtilities.GetDefiningPartSymbol(memberSymbol);
 
-        return member.IsOverride ? string.Empty : GetImplementedInterfaceName(member);
+        return member.IsOverride ? [] : GetImplementedInterfaceNames(member);
     }
 
     /// <summary>
-    /// Gets the name of the interface whose member is implemented by the given member
+    /// Gets the name of the first interface whose member is implemented by the given member
     /// </summary>
     /// <param name="memberSymbol">Member symbol</param>
     /// <returns>Name of the implemented interface, or an empty string when the member does not implement an interface member</returns>
     internal static string GetImplementedInterfaceName(ISymbol memberSymbol)
     {
+        return GetImplementedInterfaceNames(memberSymbol).FirstOrDefault() ?? string.Empty;
+    }
+
+    /// <summary>
+    /// Gets the names of the interfaces whose members are implemented by the given member: the interface its name is
+    /// qualified with for an explicit implementation, and every interface that declares a member it implements otherwise
+    /// </summary>
+    /// <param name="memberSymbol">Member symbol</param>
+    /// <returns>Names of the implemented interfaces in the order of the type's interfaces</returns>
+    private static IReadOnlyList<string> GetImplementedInterfaceNames(ISymbol memberSymbol)
+    {
         var explicitInterfaceName = GetExplicitInterfaceName(memberSymbol);
 
         if (string.IsNullOrEmpty(explicitInterfaceName) == false)
         {
-            return explicitInterfaceName;
+            return [explicitInterfaceName];
         }
 
         if (memberSymbol.ContainingType is not { } containingType)
         {
-            return string.Empty;
+            return [];
         }
 
-        foreach (var interfaceType in containingType.AllInterfaces)
-        {
-            foreach (var interfaceMember in interfaceType.GetMembers())
-            {
-                if (interfaceMember.Kind != memberSymbol.Kind)
-                {
-                    continue;
-                }
-
-                if (SymbolEqualityComparer.Default.Equals(containingType.FindImplementationForInterfaceMember(interfaceMember), memberSymbol))
-                {
-                    return interfaceType.Name;
-                }
-            }
-        }
-
-        return string.Empty;
+        return containingType.AllInterfaces
+                             .Where(interfaceType => interfaceType.GetMembers()
+                                                                  .Any(interfaceMember => interfaceMember.Kind == memberSymbol.Kind
+                                                                                          && SymbolEqualityComparer.Default.Equals(containingType.FindImplementationForInterfaceMember(interfaceMember), memberSymbol)))
+                             .Select(interfaceType => interfaceType.Name)
+                             .Distinct(StringComparer.Ordinal)
+                             .ToList();
     }
 
     /// <summary>

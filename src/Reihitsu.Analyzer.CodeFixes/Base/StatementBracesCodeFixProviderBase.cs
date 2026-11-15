@@ -20,7 +20,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// the body and changes nothing else (SHARED-BRACE-002): the header, the other body, and the body's own lines stay as
 /// written, and it is withheld where the body cannot be wrapped as written (SHARED-BRACE-003)
 /// </summary>
-public abstract class StatementBracesCodeFixProviderBase : CodeFixProvider
+public abstract class StatementBracesCodeFixProviderBase : ReihitsuCodeFixProviderBase
 {
     #region Fields
 
@@ -306,8 +306,12 @@ public abstract class StatementBracesCodeFixProviderBase : CodeFixProvider
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -332,5 +336,5 @@ public abstract class StatementBracesCodeFixProviderBase : CodeFixProvider
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

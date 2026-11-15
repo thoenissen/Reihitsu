@@ -23,6 +23,11 @@ internal sealed class PrecheckPhase : IFormattingPhase
     /// </summary>
     internal const string VariableDeclarationCommentReason = "a comment between a variable declaration's own tokens";
 
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text between a conditional operator and its branch (FMT-UNSUP-008)
+    /// </summary>
+    internal const string ConditionalOperatorCommentReason = "a comment or directive between a conditional operator and its branch";
+
     #endregion // Constants
 
     #region Methods
@@ -36,21 +41,78 @@ internal sealed class PrecheckPhase : IFormattingPhase
     internal static UnsupportedSyntax FindUnsupportedSyntax(SyntaxNode node)
     {
         SyntaxTrivia? firstComment = null;
+        SyntaxTrivia? firstOperatorTrivia = null;
 
-        foreach (var declaration in node.DescendantNodesAndSelf().OfType<VariableDeclarationSyntax>())
+        foreach (var descendant in node.DescendantNodesAndSelf())
         {
-            var comment = FindCommentInDeclaration(declaration, declaration == node);
-
-            if (comment != null
-                && (firstComment == null || comment.Value.FullSpan.Start < firstComment.Value.FullSpan.Start))
+            switch (descendant)
             {
-                firstComment = comment;
+                case VariableDeclarationSyntax declaration:
+                    {
+                        firstComment = SelectFirst(firstComment, FindCommentInDeclaration(declaration, declaration == node));
+                    }
+                    break;
+
+                case ConditionalExpressionSyntax conditional:
+                    {
+                        firstOperatorTrivia = SelectFirst(firstOperatorTrivia, FindTriviaBehindConditionalOperator(conditional));
+                    }
+                    break;
             }
         }
 
-        return firstComment == null
-                   ? null
-                   : new UnsupportedSyntax(VariableDeclarationCommentReason, Location.Create(node.SyntaxTree, firstComment.Value.FullSpan));
+        if (firstComment == null
+            && firstOperatorTrivia == null)
+        {
+            return null;
+        }
+
+        return firstOperatorTrivia == null
+               || (firstComment != null && firstComment.Value.FullSpan.Start < firstOperatorTrivia.Value.FullSpan.Start)
+                   ? new UnsupportedSyntax(VariableDeclarationCommentReason, Location.Create(node.SyntaxTree, firstComment.Value.FullSpan))
+                   : new UnsupportedSyntax(ConditionalOperatorCommentReason, Location.Create(node.SyntaxTree, firstOperatorTrivia.Value.FullSpan));
+    }
+
+    /// <summary>
+    /// Gets the one of two trivia that starts first in the text
+    /// </summary>
+    /// <param name="current">The trivia found so far, or <see langword="null"/></param>
+    /// <param name="candidate">The trivia found next, or <see langword="null"/></param>
+    /// <returns>The trivia that starts first, or <see langword="null"/> when there is none</returns>
+    private static SyntaxTrivia? SelectFirst(SyntaxTrivia? current, SyntaxTrivia? candidate)
+    {
+        return candidate != null
+               && (current == null || candidate.Value.FullSpan.Start < current.Value.FullSpan.Start)
+                   ? candidate
+                   : current;
+    }
+
+    /// <summary>
+    /// Finds the first comment, directive, or disabled text between an operator of a conditional expression and the branch behind
+    /// it: in the trailing trivia of the <c>?</c> or the <c>:</c>, or in the leading trivia of the branch's first token
+    /// (FMT-UNSUP-008)
+    /// </summary>
+    /// <param name="conditional">The conditional expression</param>
+    /// <returns>The first such trivia, or <see langword="null"/></returns>
+    private static SyntaxTrivia? FindTriviaBehindConditionalOperator(ConditionalExpressionSyntax conditional)
+    {
+        return FindFirstUnsupportedOperatorTrivia(conditional.QuestionToken.TrailingTrivia)
+                   ?? FindFirstUnsupportedOperatorTrivia(conditional.WhenTrue.GetFirstToken().LeadingTrivia)
+                   ?? FindFirstUnsupportedOperatorTrivia(conditional.ColonToken.TrailingTrivia)
+                   ?? FindFirstUnsupportedOperatorTrivia(conditional.WhenFalse.GetFirstToken().LeadingTrivia);
+    }
+
+    /// <summary>
+    /// Gets the first comment, directive, or disabled text of a trivia list
+    /// </summary>
+    /// <param name="trivia">The trivia list</param>
+    /// <returns>The first such trivia, or <see langword="null"/> when the list holds none</returns>
+    private static SyntaxTrivia? FindFirstUnsupportedOperatorTrivia(SyntaxTriviaList trivia)
+    {
+        var found = trivia.FirstOrDefault(static item => SyntaxTriviaUtilities.IsCommentTrivia(item)
+                                                         || SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(item));
+
+        return found == default ? null : found;
     }
 
     /// <summary>

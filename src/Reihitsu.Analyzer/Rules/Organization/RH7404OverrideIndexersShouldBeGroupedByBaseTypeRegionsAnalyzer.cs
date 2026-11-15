@@ -1,4 +1,4 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -39,17 +39,11 @@ public class RH7404OverrideIndexersShouldBeGroupedByBaseTypeRegionsAnalyzer : Me
     #region MembersShouldBeGroupedByRegionsAnalyzerBase
 
     /// <inheritdoc/>
-    protected override bool TryGetExpectedRegionName(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken, out string expectedRegionName)
+    protected override IReadOnlyList<string> GetExpectedRegionNames(MemberDeclarationSyntax memberDeclaration, ISymbol symbol)
     {
-        expectedRegionName = string.Empty;
-
-        if (memberDeclaration is IndexerDeclarationSyntax indexerDeclaration
-            && semanticModel.GetDeclaredSymbol(indexerDeclaration, cancellationToken) is IPropertySymbol { OverriddenProperty: not null } propertySymbol)
-        {
-            expectedRegionName = OverrideMemberUtilities.GetOriginalDeclaringTypeName(propertySymbol);
-        }
-
-        return string.IsNullOrEmpty(expectedRegionName) == false;
+        return memberDeclaration is IndexerDeclarationSyntax
+                   ? OverrideMemberUtilities.GetOverrideRegionNames(symbol)
+                   : [];
     }
 
     #endregion // MembersShouldBeGroupedByRegionsAnalyzerBase

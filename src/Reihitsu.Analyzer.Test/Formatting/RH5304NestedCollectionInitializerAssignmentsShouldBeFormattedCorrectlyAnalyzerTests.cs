@@ -1847,6 +1847,49 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
         await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the fix, which lays out its result through the formatter, is not offered in a file with a syntax error,
+    /// while the diagnostic is still reported, and that it is offered once the syntax error is gone
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-011")]
+    public async Task NoFixIsOfferedInAFileWithASyntaxError()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              internal class Data;
+
+                              internal class Example
+                              {
+                                  public Dictionary<string, Data> First { get; } = [];
+                                  public Dictionary<string, Data> Second { get; } = [];
+
+                                  private static void Method(Data firstValue, Data secondValue)
+                                  {
+                                      var value = new Example
+                                                  {
+                                                      First = {
+                                                                  {
+                                                                      "first",
+                                                                  firstValue
+                                                                  }
+                                                              },
+                                                      Second = {
+                                                                   {
+                                                                       "second",
+                                                                   secondValue
+                                                                   }
+                                                               }
+                                                  };
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

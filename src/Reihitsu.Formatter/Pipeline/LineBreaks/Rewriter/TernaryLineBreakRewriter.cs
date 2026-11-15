@@ -138,11 +138,6 @@ internal sealed class TernaryLineBreakRewriter : CSharpSyntaxRewriter
     {
         var conditionLastToken = node.Condition.GetLastToken();
 
-        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(questionToken, node.WhenTrue.GetFirstToken()))
-        {
-            return node;
-        }
-
         var newQuestionTrailing = LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(questionToken.TrailingTrivia));
         var newConditionTrailing = LineBreakTriviaUtilities.EndLineInFrontOf(conditionLastToken, questionToken, _context.EndOfLine);
         var newConditionLastToken = conditionLastToken.WithTrailingTrivia(newConditionTrailing);
@@ -180,11 +175,6 @@ internal sealed class TernaryLineBreakRewriter : CSharpSyntaxRewriter
 
         if (LineBreakTriviaUtilities.HasTrailingEndOfLine(colonToken))
         {
-            if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(colonToken, node.WhenFalse.GetFirstToken()))
-            {
-                return node;
-            }
-
             var whenTrueLastToken = node.WhenTrue.GetLastToken();
             var newColonTrailing = LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(colonToken.TrailingTrivia));
             var newWhenTrueTrailing = LineBreakTriviaUtilities.EndLineInFrontOf(whenTrueLastToken, colonToken, _context.EndOfLine);

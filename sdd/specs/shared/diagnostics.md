@@ -5,7 +5,7 @@
 | ID prefix | SHARED-DIAG |
 | Status | Active |
 | Code owners | `DiagnosticAnalyzerBase`, `PartialMemberUtilities` |
-| Uses | FMT-DOC-012, SHARED-FIX-003, SHARED-FIX-005, SHARED-JOIN-001, SHARED-TRAIL-002 |
+| Uses | FMT-DOC-012, FMT-UNSUP-001, FMT-UNSUP-008, RH5308-005, SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-010, SHARED-JOIN-001, SHARED-TRAIL-002 |
 
 This spec covers what holds for every analyzer rule, so a rule spec states only what the rule itself reports. It applies to every rule without being listed under `Uses`.
 
@@ -529,7 +529,7 @@ partial class D
 
 ### SHARED-DIAG-010 — A layout rule does not report a shape the formatter keeps
 
-A rule whose subject is the layout of code — its line breaks, blank lines, indentation, or spacing — and whose code fix lays the reported code out as the formatter lays it out MUST NOT report a shape that the formatter deliberately keeps as it is: a shape that a requirement of the formatter leaves unchanged, such as the text of a delimited documentation comment (FMT-DOC-012) or a gap that the formatter does not join because a comment or a directive sits in it. A shape that the formatter changes MUST be reported as the rule's own requirements state. SHARED-JOIN-001 is one instance of this requirement.
+A rule whose subject is the layout of code — its line breaks, blank lines, indentation, or spacing — and whose code fix lays the reported code out as the formatter lays it out MUST NOT report a shape that the formatter deliberately keeps as it is: a shape that a requirement of the formatter leaves unchanged, such as the text of a delimited documentation comment (FMT-DOC-012) or a gap that the formatter does not join because a comment or a directive sits in it. A shape that the formatter changes MUST be reported as the rule's own requirements state. SHARED-JOIN-001 is one instance of this requirement. A shape that the formatter refuses as unsupported (FMT-UNSUP-001) is not a shape it keeps: the formatter asks the user to rewrite it, so the rule reports it as its own requirements state, and its fix is withheld (SHARED-FIX-010).
 
 A rule whose subject is the order or the content of code is not covered: it reports what its own requirements state, also where the formatter keeps the code as it is. A rule without a code fix that lays out the reported code as the formatter does is not covered either.
 
@@ -561,6 +561,22 @@ public class C
 
     public static void {|RH7103:Create|}()
     {
+    }
+}
+```
+
+Example — RH5308 reports the conditional whose `?` a comment follows, although the formatter leaves the input unchanged: it refuses the shape as unsupported (FMT-UNSUP-008), so it does not keep it, and the fix is withheld (RH5308-005):
+
+```csharp
+class C
+{
+    int M(bool a)
+    {
+        var x = a {|RH5308:?|} // c
+            1
+            : 2;
+
+        return x;
     }
 }
 ```

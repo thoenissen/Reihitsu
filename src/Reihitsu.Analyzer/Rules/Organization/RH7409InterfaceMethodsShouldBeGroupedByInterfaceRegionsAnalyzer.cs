@@ -1,4 +1,4 @@
-using System.Threading;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -39,14 +39,11 @@ public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzer : M
     #region MembersShouldBeGroupedByRegionsAnalyzerBase
 
     /// <inheritdoc/>
-    protected override bool TryGetExpectedRegionName(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken, out string expectedRegionName)
+    protected override IReadOnlyList<string> GetExpectedRegionNames(MemberDeclarationSyntax memberDeclaration, ISymbol symbol)
     {
-        expectedRegionName = memberDeclaration is MethodDeclarationSyntax methodDeclaration
-                             && semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken) is IMethodSymbol methodSymbol
-                                 ? InterfaceImplementationUtilities.GetInterfaceRegionName(methodSymbol, semanticModel.Compilation, cancellationToken)
-                                 : string.Empty;
-
-        return string.IsNullOrEmpty(expectedRegionName) == false;
+        return memberDeclaration is MethodDeclarationSyntax
+                   ? InterfaceImplementationUtilities.GetInterfaceRegionNames(symbol)
+                   : [];
     }
 
     #endregion // MembersShouldBeGroupedByRegionsAnalyzerBase

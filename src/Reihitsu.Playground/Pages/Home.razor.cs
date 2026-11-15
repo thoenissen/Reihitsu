@@ -63,6 +63,10 @@ public partial class Home
         {
             _errorMessage = CreateUnsupportedMessage(result.Unsupported);
         }
+        else if (result.HoldsHiddenCode)
+        {
+            _errorMessage = "The input contains code hidden in another build configuration and was left unchanged.";
+        }
         else
         {
             _errorMessage = "The input contains syntax errors and was left unchanged.";

@@ -464,6 +464,33 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
+    /// Determines whether the leading trivia of a token holds a conditional-compilation directive (<c>#if</c>,
+    /// <c>#elif</c>, <c>#else</c>, <c>#endif</c>) or code such a directive excludes. Every directive and every run of
+    /// excluded code is leading trivia of the token behind it, so this decides the gap in front of the token
+    /// </summary>
+    /// <param name="token">Token whose leading trivia is read</param>
+    /// <returns><see langword="true"/> if the gap in front of the token holds a conditional directive or disabled text</returns>
+    public static bool LeadingTriviaContainsConditionalCompilationBoundary(SyntaxToken token)
+    {
+        return token.LeadingTrivia.Any(trivia => IsConditionalDirective(trivia) || trivia.IsKind(SyntaxKind.DisabledTextTrivia));
+    }
+
+    /// <summary>
+    /// Determines whether a gap of a parenthesized list — between the opening parenthesis, the elements, the separators,
+    /// and the closing parenthesis — holds a conditional-compilation directive or code such a directive excludes. The
+    /// inside of an element is no gap
+    /// </summary>
+    /// <param name="elementsWithSeparators">The list's elements with their separators</param>
+    /// <param name="closeToken">The token that closes the list</param>
+    /// <returns><see langword="true"/> if a gap of the list holds a conditional directive or disabled text</returns>
+    public static bool ContainsConditionalCompilationBoundaryInElementGaps(SyntaxNodeOrTokenList elementsWithSeparators, SyntaxToken closeToken)
+    {
+        return elementsWithSeparators.Select(element => element.IsToken ? element.AsToken() : element.AsNode().GetFirstToken())
+                                     .Append(closeToken)
+                                     .Any(LeadingTriviaContainsConditionalCompilationBoundary);
+    }
+
+    /// <summary>
     /// Determines whether inserting a pair of braces at the two positions would split a directive pair across a
     /// brace: one brace lands inside the code between a directive and its partner and the other outside it. A
     /// conditional directive pairs with the next directive of its <c>#if</c> group and a region directive with its

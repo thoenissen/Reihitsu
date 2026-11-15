@@ -406,6 +406,28 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
         await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
     }
 
+    /// <summary>
+    /// Verifies that the fix, which lays out its result through the formatter, is not offered in a file with a syntax error,
+    /// while the diagnostic is still reported, and that it is offered once the syntax error is gone
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-011")]
+    public async Task NoFixIsOfferedInAFileWithASyntaxError()
+    {
+        const string source = """
+                              internal class RH5401
+                              {
+                                  public int P1
+                                          => 1;
+                                  public int P2
+                                          => 2;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

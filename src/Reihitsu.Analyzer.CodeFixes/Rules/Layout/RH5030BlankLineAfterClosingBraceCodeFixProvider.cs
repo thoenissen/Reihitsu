@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Core;
@@ -20,7 +21,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH5030BlankLineAfterClosingBraceCodeFixProvider))]
-public class RH5030BlankLineAfterClosingBraceCodeFixProvider : CodeFixProvider
+public class RH5030BlankLineAfterClosingBraceCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -96,8 +97,12 @@ public class RH5030BlankLineAfterClosingBraceCodeFixProvider : CodeFixProvider
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -120,5 +125,5 @@ public class RH5030BlankLineAfterClosingBraceCodeFixProvider : CodeFixProvider
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

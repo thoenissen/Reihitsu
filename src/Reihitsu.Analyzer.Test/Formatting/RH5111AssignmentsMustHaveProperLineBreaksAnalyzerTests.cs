@@ -52,6 +52,33 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     #region Tests
 
     /// <summary>
+    /// Verifies that the fix, which lays out its result through the formatter, is not offered in a file with a syntax error,
+    /// while the diagnostic is still reported, and that it is offered once the syntax error is gone
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-011")]
+    public async Task NoFixIsOfferedInAFileWithASyntaxError()
+    {
+        const string source = """
+                              namespace TestNamespace
+                              {
+                                  class TestClass
+                                  {
+                                      public void TestMethod()
+                                      {
+                                          int first
+                                              = 1, second
+                                              = 2;
+                                      }
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
+    }
+
+    /// <summary>
     /// Verifying diagnostics for variable declaration with equals on new line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1439,34 +1466,86 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     }
 
     /// <summary>
-    /// Verifying that a declarator carrying a preprocessor directive in front of its equals sign is reported without
-    /// offering a code fix
+    /// Verifying that a declarator with an empty conditional directive pair between its name and its equals sign is not
+    /// reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5111-005")]
-    public async Task VerifyDeclaratorWithDirectiveIsReportedWithoutCodeFix()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyDeclaratorWithConditionalDirectiveInFrontOfItsEqualsSignIsNotReported()
     {
         const string testData = """
                                 internal class TestClass
                                 {
                                     public void TestMethod()
                                     {
-                                        var {|#0:value
+                                        var value
                                 #if !UNDEFINED_SYMBOL
                                 #endif
-                                            = 1|};
+                                            = 1;
                                     }
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+        await Verify(testData);
+    }
 
-        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0:", string.Empty).Replace("|}", string.Empty),
-                                                   RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId,
-                                                   root => root.DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().GetLocation());
+    /// <summary>
+    /// Verifying the specification example: a conditional directive between the target and its equals sign keeps the
+    /// declarator from being reported, while one inside the value withholds only the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-005")]
+    public async Task VerifyConditionalDirectiveInTheJudgedSpanKeepsTheDeclaratorFromBeingReportedButNotOneInsideTheValue()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var value
+                                #if DEBUG
+                                #endif
+                                            = 1;
+                                        var {|RH5111:other
+                                            = N(1,
+                                #if DEBUG
+                                #endif
+                                                2)|};
+                                    }
 
-        Assert.IsEmpty(actions);
+                                    int N(int a, int b) => a + b;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifying that a declarator with an empty conditional directive pair between its equals sign and its value is
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-005")]
+    public async Task VerifyDeclaratorWithConditionalDirectiveBehindItsEqualsSignIsNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var value =
+                                #if DEBUG
+                                #endif
+                                            1;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     /// <summary>

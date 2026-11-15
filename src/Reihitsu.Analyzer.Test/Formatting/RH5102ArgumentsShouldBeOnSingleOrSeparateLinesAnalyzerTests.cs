@@ -548,22 +548,24 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
     }
 
     /// <summary>
-    /// Verifying that a preprocessor directive between two arguments is reported and withholds the code fix
+    /// Verifying that an empty conditional directive pair between two arguments keeps the argument list from being
+    /// reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5102-004")]
-    public async Task VerifyDirectiveInsideArgumentListWithholdsTheCodeFix()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyConditionalDirectiveBetweenArgumentsKeepsTheListFromBeingReported()
     {
         const string testData = """
                                 internal class TestClass
                                 {
                                     void Method()
                                     {
-                                        Call{|#0:(1, 2,
+                                        Call(1, 2,
                                 #if DEBUG
                                 #endif
-                                             3)|};
+                                             3);
                                     }
 
                                     void Call(params int[] values)
@@ -572,16 +574,7 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5102MessageFormat));
-
-        var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0:", string.Empty).Replace("|}", string.Empty),
-                                                   RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer.DiagnosticId,
-                                                   root => root.DescendantNodes()
-                                                               .OfType<ArgumentListSyntax>()
-                                                               .First()
-                                                               .GetLocation());
-
-        Assert.IsEmpty(actions);
+        await Verify(testData);
     }
 
     /// <summary>
@@ -677,6 +670,273 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
 
         await VerifyCodeFixMatchesFormatter(testCode);
         await VerifyCodeFixMatchesFormatter(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
+    /// <summary>
+    /// Verifies that the fix, which lays out its result through the formatter, is not offered in a file with a syntax error,
+    /// while the diagnostic is still reported, and that it is offered once the syntax error is gone
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-011")]
+    public async Task NoFixIsOfferedInAFileWithASyntaxError()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  private static int Add(int x, int y, int z) => x + y + z;
+
+                                  private static int Inner(int x, int y, int z) => x + y + z;
+
+                                  private static int Use()
+                                  {
+                                      return Add(Inner(1, 2,
+                                                           3),
+                                                  5, 6);
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: a conditional directive in a gap between the arguments keeps the list from
+    /// being reported, a pragma there withholds only the fix, and a conditional directive inside an argument withholds
+    /// only the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-004")]
+    public async Task VerifyConditionalDirectiveInAGapKeepsTheListFromBeingReportedButNotOneInsideAnArgument()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(1, 2,
+                                #if DEBUG
+                                #endif
+                                          3);
+                                        M{|RH5102:(1, 2,
+                                #pragma warning disable CS0168
+                                          3)|};
+                                        Run{|RH5102:(1, 2,
+                                            () =>
+                                            {
+                                #if DEBUG
+                                                System.Console.WriteLine();
+                                #endif
+                                            })|};
+                                    }
+
+                                    int M(params int[] values) => 0;
+
+                                    void Run(int a, int b, System.Action action)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifying that a conditional directive with alternatives in front of the first argument keeps the argument list
+    /// from being reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-004")]
+    public async Task VerifyConditionalDirectiveWithAlternativesInFrontOfTheFirstArgumentKeepsTheListFromBeingReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(
+                                #if DEBUG
+                                          0,
+                                #else
+                                          1,
+                                #endif
+                                          2, 3,
+                                          4);
+                                    }
+
+                                    int M(params int[] values) => 0;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that the fix of an argument list wrapped only in front of a comma moves the comma behind the argument in
+    /// front of it and puts every argument on its own line, under LF and CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-003")]
+    [Requirement("FMT-BREAK-012")]
+    public async Task FixMovesLeadingCommaBehindPreviousArgument()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call{|RH5102:(1
+                                             , 2, 3)|};
+                                    }
+
+                                    void Call(int a, int b, int c)
+                                    {
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  internal class TestClass
+                                  {
+                                      void Method()
+                                      {
+                                          Call(1,
+                                               2,
+                                               3);
+                                      }
+
+                                      void Call(int a, int b, int c)
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await VerifyCodeFixWithEndOfLine(testData, resultData, "\n");
+        await VerifyCodeFixWithEndOfLine(testData, resultData, "\r\n");
+    }
+
+    /// <summary>
+    /// Verifying that the fix of an argument list wrapped behind its opening parenthesis and in front of a comma joins the
+    /// first argument, moves the comma behind it, and puts every argument on its own line, under LF and CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-003")]
+    [Requirement("FMT-BREAK-012")]
+    public async Task FixMovesLeadingCommaOfListWrappedBehindOpeningParenthesis()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call{|RH5102:(
+                                            1
+                                            , 2, 3)|};
+                                    }
+
+                                    void Call(int a, int b, int c)
+                                    {
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  internal class TestClass
+                                  {
+                                      void Method()
+                                      {
+                                          Call(1,
+                                               2,
+                                               3);
+                                      }
+
+                                      void Call(int a, int b, int c)
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await VerifyCodeFixWithEndOfLine(testData, resultData, "\n");
+        await VerifyCodeFixWithEndOfLine(testData, resultData, "\r\n");
+    }
+
+    /// <summary>
+    /// Verifying that two argument lists wrapped in front of a comma in one document are both fixed, one after the other
+    /// and all at once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-003")]
+    [Requirement("FMT-BREAK-012")]
+    public async Task FixMovesLeadingCommasOfSeveralArgumentListsInOneDocument()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call{|#0:(1
+                                             , 2, 3)|};
+                                        Call{|#1:(
+                                            1
+                                            , 2, 3)|};
+                                    }
+
+                                    void Call(int a, int b, int c)
+                                    {
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  internal class TestClass
+                                  {
+                                      void Method()
+                                      {
+                                          Call(1,
+                                               2,
+                                               3);
+                                          Call(1,
+                                               2,
+                                               3);
+                                      }
+
+                                      void Call(int a, int b, int c)
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5102MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifying that an argument list laid out with one argument per line and a comma a comment keeps at the start of its
+    /// line is not reported, as the formatter leaves it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    public async Task VerifyCommentHeldLeadingCommaWithOneArgumentPerLineIsNotReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call(1,
+                                             2 // keep
+                                             , 3);
+                                    }
+
+                                    void Call(int a, int b, int c)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     #endregion // Tests

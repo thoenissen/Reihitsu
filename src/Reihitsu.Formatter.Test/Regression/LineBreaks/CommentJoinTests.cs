@@ -89,38 +89,6 @@ public class CommentJoinTests
     }
 
     /// <summary>
-    /// Verifies that the ternary question token is not collapsed into a trailing comment
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-001")]
-    public void TernaryQuestionIsNotCollapsedIntoTrailingComment()
-    {
-        const string input = """
-                             var x = cond ? // note
-                                 a
-                                 : b;
-                             """;
-
-        AssertUnchanged(input);
-    }
-
-    /// <summary>
-    /// Verifies that the ternary colon token is not collapsed into a trailing comment
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-001")]
-    public void TernaryColonIsNotCollapsedIntoTrailingComment()
-    {
-        const string input = """
-                             var x = cond
-                                 ? a : // note
-                                 b;
-                             """;
-
-        AssertUnchanged(input);
-    }
-
-    /// <summary>
     /// Verifies that an assignment value is not collapsed into a trailing comment after the operator
     /// </summary>
     [TestMethod]

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Organization;
 using Reihitsu.Formatter;
 
@@ -19,7 +20,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH7101DoNotCombineFieldsCodeFixProvider))]
-public class RH7101DoNotCombineFieldsCodeFixProvider : CodeFixProvider
+public class RH7101DoNotCombineFieldsCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -122,11 +123,18 @@ public class RH7101DoNotCombineFieldsCodeFixProvider : CodeFixProvider
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider()
     {
-        return FixAllProvider.Create(ApplyFixAllAsync);
+        return CreateFixAllProvider(ApplyFixAllAsync);
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected override bool FormatsThroughFormatter => true;
+
+    /// <inheritdoc/>
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var syntaxRoot = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -147,5 +155,5 @@ public class RH7101DoNotCombineFieldsCodeFixProvider : CodeFixProvider
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

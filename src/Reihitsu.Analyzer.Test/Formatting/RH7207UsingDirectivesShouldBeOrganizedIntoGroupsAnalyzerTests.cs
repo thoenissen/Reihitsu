@@ -2441,6 +2441,353 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
         await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
     }
 
+    /// <summary>
+    /// Verifies that a blank line in front of a verbatim <c>System</c> directive is inside the <c>System</c> group and
+    /// is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    public async Task BlankLineInFrontOfAVerbatimSystemDirectiveIsReported()
+    {
+        const string testCode = """
+                                using {|RH7207:System|};
+
+                                using @System.IO;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line in front of a <c>System</c> directive with whitespace between the tokens of its name is
+    /// inside the <c>System</c> group and is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    public async Task BlankLineInFrontOfASystemDirectiveWithWhitespaceInItsNameIsReported()
+    {
+        const string testCode = """
+                                using {|RH7207:System|};
+
+                                using System . IO;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a directive whose name holds a Unicode escape belongs to the <c>System</c> group, so a block that
+    /// places it behind another root is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    public async Task UnicodeEscapedSystemDirectiveBehindAnotherRootIsReported()
+    {
+        const string testCode = """
+                                using {|RH7207:System|};
+
+                                using Microsoft.Win32;
+
+                                using \u0053ystem.IO;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a block whose names are grouped and ordered by their value is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-002")]
+    public async Task BlockGroupedAndOrderedByTheValueOfItsNamesIsNotReported()
+    {
+        const string testCode = """
+                                using System;
+                                using @System.IO;
+                                using System/* x */.Linq;
+                                using \u0053ystem.Text;
+                                using global :: System.Xml;
+
+                                using Microsoft.Win32;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an alias of a predefined type in front of an alias group of names is reported on the whole directive
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("RH7207-003")]
+    public async Task AliasOfAPredefinedTypeInFrontOfAnAliasGroupOfNamesIsReported()
+    {
+        const string testCode = """
+                                {|RH7207:using B = int;|}
+
+                                using A = System.Text;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an alias of a tuple type in front of an alias group of names is reported on the whole directive
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-001")]
+    [Requirement("RH7207-003")]
+    public async Task AliasOfATupleTypeInFrontOfAnAliasGroupOfNamesIsReported()
+    {
+        const string testCode = """
+                                {|RH7207:using P = (int X, int Y);|}
+
+                                using A = System.Text;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a block that ends with an alias of a predefined type as a group of its own is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-002")]
+    public async Task BlockEndingWithAnAliasOfAPredefinedTypeIsNotReported()
+    {
+        const string testCode = """
+                                using A = System.Text;
+
+                                using B = int;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a block that ends with an alias of a tuple type as a group of its own is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-002")]
+    public async Task BlockEndingWithAnAliasOfATupleTypeIsNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                using A = System.Text;
+
+                                using P = (int X, int Y);
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a global section that ends with an alias of a predefined type as a group of its own is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-002")]
+    [Requirement("SHARED-USING-002")]
+    public async Task GlobalSectionEndingWithAnAliasOfAPredefinedTypeIsNotReported()
+    {
+        const string testCode = """
+                                global using A = System.Text;
+
+                                global using B = int;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix moves an alias of a predefined type behind the alias groups of names
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-004")]
+    public async Task CodeFixMovesAnAliasOfAPredefinedTypeBehindTheAliasGroupsOfNames()
+    {
+        const string testCode = """
+                                {|RH7207:using B = int;|}
+
+                                using A = System.Text;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using A = System.Text;
+
+                                 using B = int;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the code fix that moves an alias of a predefined type behind the alias groups of names under CRLF line
+    /// endings, line endings of the result included
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-004")]
+    public async Task CodeFixMovesAnAliasOfAPredefinedTypeBehindTheAliasGroupsOfNamesWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                {|RH7207:using B = int;|}
+
+                                using A = System.Text;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using A = System.Text;
+
+                                 using B = int;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, "\r\n");
+    }
+
+    /// <summary>
+    /// Verifies that Fix All moves the alias of a predefined type behind the alias groups of names in every block of the
+    /// document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-004")]
+    public async Task FixAllMovesAliasesOfPredefinedTypesInEveryBlock()
+    {
+        const string testCode = """
+                                {|RH7207:using B = int;|}
+
+                                using A = System.Text;
+
+                                namespace N
+                                {
+                                    {|RH7207:using P = (int X, int Y);|}
+
+                                    using A = System.Text;
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using A = System.Text;
+
+                                 using B = int;
+
+                                 namespace N
+                                 {
+                                     using A = System.Text;
+
+                                     using P = (int X, int Y);
+
+                                     class C
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix removes the blank line in front of a verbatim <c>System</c> directive, which belongs
+    /// to the <c>System</c> group
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    [Requirement("SHARED-USING-004")]
+    public async Task CodeFixRemovesTheBlankLineInFrontOfAVerbatimSystemDirective()
+    {
+        const string testCode = """
+                                using {|RH7207:System|};
+
+                                using @System.IO;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using @System.IO;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

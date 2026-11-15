@@ -5,7 +5,7 @@
 | ID prefix | SHARED-JOIN |
 | Status | Active |
 | Code owners | `SyntaxTreeErrorVerdictCache` |
-| Uses | FMT-BREAK-001 |
+| Uses | FMT-BREAK-001, FMT-PIPE-005, SHARED-FIX-011 |
 
 This spec covers the rules that report a token or an element that belongs on the line of the token in front of it, such as an opening parenthesis below a declaration's name, a first argument below its opening parenthesis, or a semicolon below its declaration: when the gap in front of it keeps such a rule from reporting, and when a whole file is not analyzed. Each rule that uses this spec states which tokens it reports and names the requirements of this spec it follows.
 
@@ -63,7 +63,7 @@ class C
 
 A rule that uses this requirement MUST NOT report anything in a file that contains a syntax error, wherever the error is.
 
-Why: A syntax error can make the parser attach a token to the wrong construct or end a list at the wrong token, so a diagnostic there could point at code the author never wrote that way; the formatter leaves such a file untouched as well.
+Why: A syntax error can make the parser attach a token to the wrong construct or end a list at the wrong token, so a diagnostic there could point at code the author never wrote that way; the formatter leaves such a file untouched as well (FMT-PIPE-005), so the fix would not be offered (SHARED-FIX-011) — these rules go further and do not report, because their verdict itself depends on how the parser ended a list.
 
 Example — RH5105:
 

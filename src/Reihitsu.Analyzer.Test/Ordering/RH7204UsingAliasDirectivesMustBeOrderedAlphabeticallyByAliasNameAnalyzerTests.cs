@@ -291,6 +291,228 @@ public class RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAna
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that an alias is compared with an earlier alias of its group across an alias of another root
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7204-001")]
+    public async Task AliasIsComparedWithAnEarlierAliasOfItsGroupAcrossAnAliasOfAnotherRoot()
+    {
+        const string testCode = """
+                                using B = Microsoft.CodeAnalysis.SyntaxNode;
+                                using C2 = System.Text;
+                                using {|RH7204:A|} = Microsoft.CodeAnalysis.SyntaxToken;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix organizes a block whose alias is out of order with an earlier alias of its group
+    /// across an alias of another root, in one pass
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7204-001")]
+    [Requirement("RH7204-004")]
+    public async Task CodeFixOrganizesABlockOutOfOrderAcrossAnAliasOfAnotherRoot()
+    {
+        const string testCode = """
+                                using B = Microsoft.CodeAnalysis.SyntaxNode;
+                                using C2 = System.Text;
+                                using {|RH7204:A|} = Microsoft.CodeAnalysis.SyntaxToken;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using C2 = System.Text;
+
+                                 using A = Microsoft.CodeAnalysis.SyntaxToken;
+                                 using B = Microsoft.CodeAnalysis.SyntaxNode;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that an alias is compared with every earlier alias of its group, not only with the one directly above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7204-001")]
+    public async Task AliasIsComparedWithEveryEarlierAliasOfItsGroup()
+    {
+        const string testCode = """
+                                using C2 = System.Text;
+                                using {|RH7204:A|} = System.IO;
+                                using {|RH7204:B|} = System.Linq;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an alias is compared with an earlier alias of its group across an alias of a type that is not a name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7204-001")]
+    public async Task AliasIsComparedWithAnEarlierAliasOfItsGroupAcrossAnAliasOfATypeThatIsNotAName()
+    {
+        const string testCode = """
+                                using B = System.Text;
+                                using P = int;
+                                using {|RH7204:A|} = System.IO;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an alias of the global section is compared with an earlier alias of its group across an alias of
+    /// another root
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7204-001")]
+    [Requirement("SHARED-USING-002")]
+    public async Task GlobalAliasIsComparedWithAnEarlierAliasOfItsGroupAcrossAnAliasOfAnotherRoot()
+    {
+        const string testCode = """
+                                global using B = Microsoft.CodeAnalysis.SyntaxNode;
+                                global using C2 = System.Text;
+                                global using {|RH7204:A|} = Microsoft.CodeAnalysis.SyntaxToken;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that aliases of one group in order are not reported across an alias of another root
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7204-002")]
+    public async Task OrderedAliasesOfAGroupAreNotReportedAcrossAnAliasOfAnotherRoot()
+    {
+        const string testCode = """
+                                using A = Microsoft.CodeAnalysis.SyntaxToken;
+                                using C2 = System.Text;
+                                using B = Microsoft.CodeAnalysis.SyntaxNode;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifies that the group of an alias whose target holds whitespace between its tokens is taken from the target's
+    /// value
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7204-001")]
+    public async Task AliasWithWhitespaceInItsTargetIsGroupedByTheTargetsValue()
+    {
+        const string testCode = """
+                                using B = System.Text;
+                                using {|RH7204:A|} = System . IO;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the group of an alias whose target has a verbatim prefix is taken from the target's value
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7204-001")]
+    public async Task AliasWithVerbatimTargetIsGroupedByTheTargetsValue()
+    {
+        const string testCode = """
+                                using B = System.Text;
+                                using {|RH7204:A|} = @System.IO;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an alias of a predefined type forms a group of its own and is not compared with an alias of a name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7204-002")]
+    public async Task AliasOfAPredefinedTypeIsNotComparedWithAnAliasOfAName()
+    {
+        const string testCode = """
+                                using B = System.Text;
+                                using A = int;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an alias of a tuple type forms a group of its own and is not compared with an alias of a name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7204-002")]
+    public async Task AliasOfATupleTypeIsNotComparedWithAnAliasOfAName()
+    {
+        const string testCode = """
+                                using B = System.Text;
+                                using A = (int X, int Y);
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
@@ -318,8 +540,8 @@ public class RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAna
                                  }
                                  """;
 
-        // All three aliases target the same System root group, so each alias name is compared against its
-        // immediate predecessor and two of them are reported. Both fixes reorganize the same using list, so
+        // All three aliases target the same System root group, so each alias name is compared against every
+        // earlier one of the group and two of them are reported. Both fixes reorganize the same using list, so
         // their text changes cover the identical span and the surviving one already clears both
         return new FixAllScenario(testCode,
                                   fixedCode,

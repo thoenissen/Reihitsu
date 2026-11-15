@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Organization;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -20,7 +21,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksCodeFixProvider))]
-public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksCodeFixProvider : CodeFixProvider
+public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -180,8 +181,12 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksCodeF
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -203,5 +208,5 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksCodeF
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

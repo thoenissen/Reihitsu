@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Documentation;
 
@@ -18,7 +19,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH8308NoContentShouldAppearAfterClosingXmlTagsCodeFixProvider))]
-public class RH8308NoContentShouldAppearAfterClosingXmlTagsCodeFixProvider : CodeFixProvider
+public class RH8308NoContentShouldAppearAfterClosingXmlTagsCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -59,8 +60,12 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsCodeFixProvider : Cod
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         foreach (var diagnostic in context.Diagnostics)
         {
@@ -73,5 +78,5 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsCodeFixProvider : Cod
         return Task.CompletedTask;
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

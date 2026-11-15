@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Rename;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Design;
 using Reihitsu.Core;
@@ -23,7 +24,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Design;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider))]
-public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFixProvider
+public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -404,6 +405,30 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
     }
 
     /// <summary>
+    /// Checks whether a document the rename can change, besides the diagnostic's own, holds code that another build
+    /// configuration hides, so that the fix is not offered (SHARED-FIX-012)
+    /// </summary>
+    /// <param name="document">Document holding the property</param>
+    /// <param name="symbol">Property symbol</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> if such a document holds a hiding carrier</returns>
+    /// <remarks>
+    /// The property is private, so the rename reaches only the documents that declare a part of its containing type
+    /// </remarks>
+    private static async Task<bool> HasHidingCarrierInReferringDocumentAsync(Document document, IPropertySymbol symbol, CancellationToken cancellationToken)
+    {
+        foreach (var referringDocument in ExcludedCodeUtilities.GetReferringDocuments(document.Project.Solution, symbol))
+        {
+            if (await HoldsHidingCarrierAsync(referringDocument, cancellationToken).ConfigureAwait(false))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Checks whether the property only exposes a getter
     /// </summary>
     /// <param name="node">Property declaration</param>
@@ -426,8 +451,15 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected override bool FormatsThroughFormatter => true;
+
+    /// <inheritdoc/>
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -446,7 +478,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
                 && HasFieldNameCollision(semanticModel, node) == false
                 && semanticModel?.GetDeclaredSymbol(node, context.CancellationToken) is { } symbol
                 && HasValueSafeFieldType(symbol.Type)
-                && await HasExcludedCodeOccurrenceAsync(context.Document, symbol, node, context.CancellationToken).ConfigureAwait(false) == false)
+                && await HasExcludedCodeOccurrenceAsync(context.Document, symbol, node, context.CancellationToken).ConfigureAwait(false) == false
+                && await HasHidingCarrierInReferringDocumentAsync(context.Document, symbol, context.CancellationToken).ConfigureAwait(false) == false)
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH2001Title,
                                                           cancellationToken => ApplyCodeFixAsync(context.Document, node, cancellationToken),
@@ -456,5 +489,5 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

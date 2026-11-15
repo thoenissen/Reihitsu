@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Organization;
 using Reihitsu.Core;
@@ -24,7 +25,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH7309RegionsShouldFollowCategoryOrderCodeFixProvider))]
-public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProvider
+public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -293,8 +294,12 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -309,7 +314,8 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
 
         foreach (var diagnostic in context.Diagnostics)
         {
-            if (root.FindTrivia(diagnostic.Location.SourceSpan.Start).Token.Parent?.FirstAncestorOrSelf<TypeDeclarationSyntax>() is not { } typeDeclaration)
+            // The region belongs to the declaration the analyzer judged it in (SHARED-TYPEREGION-006)
+            if (RegionDirectiveUtilities.GetOwningTypeDeclaration(root.FindTrivia(diagnostic.Location.SourceSpan.Start)) is not TypeDeclarationSyntax typeDeclaration)
             {
                 continue;
             }
@@ -330,5 +336,5 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }

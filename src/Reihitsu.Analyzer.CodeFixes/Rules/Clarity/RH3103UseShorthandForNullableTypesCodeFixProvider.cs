@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Clarity;
 using Reihitsu.Core;
 
@@ -20,7 +21,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH3103UseShorthandForNullableTypesCodeFixProvider))]
-public class RH3103UseShorthandForNullableTypesCodeFixProvider : CodeFixProvider
+public class RH3103UseShorthandForNullableTypesCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
 
@@ -197,8 +198,12 @@ public class RH3103UseShorthandForNullableTypesCodeFixProvider : CodeFixProvider
         return WellKnownFixAllProviders.BatchFixer;
     }
 
+    #endregion // CodeFixProvider
+
+    #region ReihitsuCodeFixProviderBase
+
     /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -219,5 +224,5 @@ public class RH3103UseShorthandForNullableTypesCodeFixProvider : CodeFixProvider
         }
     }
 
-    #endregion // CodeFixProvider
+    #endregion // ReihitsuCodeFixProviderBase
 }
