@@ -9,8 +9,9 @@ namespace Reihitsu.Analyzer.Base;
 
 /// <summary>
 /// Analysis context extensions: registrations that run only when documentation mode is not
-/// <see cref="DocumentationMode.None"/>, and registrations on structured trivia kinds, such as documentation comments,
-/// their XML elements, and preprocessor directives, that run once per trivia node
+/// <see cref="DocumentationMode.None"/>, and registrations on syntax kinds that occur inside structured trivia, such as
+/// documentation comments, their XML elements, preprocessor directives, and the expressions of directive conditions, that
+/// run once per node
 /// </summary>
 internal static class AnalysisContextExtensions
 {
@@ -49,39 +50,44 @@ internal static class AnalysisContextExtensions
     }
 
     /// <summary>
-    /// Registers a syntax node action on structured trivia kinds that runs once per trivia node
+    /// Registers a syntax node action on syntax kinds that occur inside structured trivia, such as preprocessor directives
+    /// or the expressions of directive conditions, that runs once per node
     /// </summary>
     /// <param name="context">Analysis context</param>
     /// <param name="action">Action</param>
-    /// <param name="syntaxKinds">Structured trivia kinds</param>
+    /// <param name="syntaxKinds">Syntax kinds</param>
     internal static void RegisterStructuredTriviaAction(this AnalysisContext context, Action<SyntaxNodeAnalysisContext> action, params SyntaxKind[] syntaxKinds)
     {
         context.RegisterSyntaxNodeAction(WrapWithRepeatedRunCheck(action), syntaxKinds);
     }
 
     /// <summary>
-    /// Registers a syntax node action on structured trivia kinds that runs once per trivia node, and only when
-    /// documentation mode is not <see cref="DocumentationMode.None"/>
+    /// Registers a syntax node action on syntax kinds that occur inside structured trivia, such as documentation comments
+    /// and their XML elements, that runs once per node, and only when documentation mode is not
+    /// <see cref="DocumentationMode.None"/>
     /// </summary>
     /// <param name="context">Analysis context</param>
     /// <param name="action">Action</param>
-    /// <param name="syntaxKinds">Structured trivia kinds</param>
+    /// <param name="syntaxKinds">Syntax kinds</param>
     internal static void RegisterStructuredTriviaActionWithDocumentationModeCheck(this AnalysisContext context, Action<SyntaxNodeAnalysisContext> action, params SyntaxKind[] syntaxKinds)
     {
         context.RegisterSyntaxNodeActionWithDocumentationModeCheck(WrapWithRepeatedRunCheck(action), syntaxKinds);
     }
 
     /// <summary>
-    /// Determines whether a syntax node action runs a second time for the same trivia node. The compiler runs the actions
-    /// for the structured trivia of a type declaration with a parameter list once for the type and once for its primary
-    /// constructor, except for the trivia inside the parameter list and inside the argument list of the primary
-    /// constructor base type, which only the run for the primary constructor sees
+    /// Determines whether a syntax node action runs a second time for the same node inside structured trivia. The compiler
+    /// runs the actions for the structured trivia of a type declaration with a parameter list once for the type and once
+    /// for its primary constructor. Two groups of trivia are seen by one run only: the trivia inside the parameter list and
+    /// inside the argument list of the primary constructor base type by the run for the primary constructor, and the trivia
+    /// in front of the base type's name and inside or in front of attribute lists with the <c>method</c> target by the run
+    /// for the type. Only a run for the primary constructor is ever reported as repeated, so both groups keep their one run
     /// </summary>
     /// <param name="context">Syntax node analysis context</param>
     /// <returns><see langword="true"/> when the type's own run already saw the node</returns>
     private static bool IsRepeatedRun(SyntaxNodeAnalysisContext context)
     {
-        if (context.ContainingSymbol is not IMethodSymbol { MethodKind: MethodKind.Constructor } constructor)
+        if (context.Node.IsPartOfStructuredTrivia() == false
+            || context.ContainingSymbol is not IMethodSymbol { MethodKind: MethodKind.Constructor } constructor)
         {
             return false;
         }
@@ -135,7 +141,7 @@ internal static class AnalysisContextExtensions
     }
 
     /// <summary>
-    /// Wraps an action so it does not run a second time for the same trivia node
+    /// Wraps an action so it does not run a second time for the same node inside structured trivia
     /// </summary>
     /// <param name="action">Action</param>
     /// <returns>The wrapped action</returns>
