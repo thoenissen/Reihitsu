@@ -53,12 +53,19 @@
 | D17 | Test impl 06 | RH5308 nested stair: inner `?` column 28 (document formatting, RH5308-002) vs 30 (literal reading of RH5308-004) | Keep 28 | Unchanged RH5308-002 demands it; RH5308-004 is read consistently with it | Decided by an unchanged requirement | df2ea58 |
 | D18 | Test impl 06 | Comment between two members sharing a line (#1687) | Not pinned; rare class (two members on one line plus a comment) — fix may withhold | AGENTS.md *Code-fix coverage* | Rare class refusal | n/a |
 | D19 | Test impl 06 | Coverage via shared code for RH3004, RH5205, RH5301, RH5302, RH5413–RH5416, RH3206; dropped nested Fix All cases (RH5306, RH5304, direct RH5308 branch) | Accept | Same call site / not reachable per spec | Internal | df2ea58 |
+| D20 | Implementer 07 | Two RH5201 tests contradict changed SHARED-CHAIN-009 (`VerifyFixMovesBreakInsideOperatorOfChainInConditionalExpression`, `VerifyFixAlignsInnerChainInsideWrappedOuterChain`) | Test is wrong: route to test implementer to rewrite to chain-only output | Decided by M2 / change 5 | Covered by M2 | pending |
+| D21 | Implementer 07 | RH5206, RH5303–RH5308 switch to `DocumentOrderFixAllProvider` | Accept | One Fix All pass (SHARED-FIX-002) after narrowing | Required by unchanged SHARED-FIX-002 | a356c2e |
+| D22 | Implementer 07 | RH5113 keeps formatter-based withholding (syntax errors, refused shapes) though it now edits text only | Accept | Removing would be a visible change no answer covers | Keeps main | a356c2e |
+| D23 | Implementer 07 | Arch finding: break in front of a shared-line member has two owners (helper vs attribute base private branch; RH5511 tests pin the base) | Fix narrowly (helper only for break behind member); structural unification is a follow-up (FU5) | Unifying changes RH5511 outputs (visible), outside the run's issues | Keeps main for the before-break | a356c2e |
+| D24 | Implementer 07 | FC: `BatchFixer` on fixes that now separate shared-line members | Dropped | Only serves a rare class (two reported members on one line), unmeasured | n/a | n/a |
 
 ## Follow-up candidates
 
 - FU1 (01-spec-author): SHARED-FIX-007 *Shared line* read literally makes a gap-only fix (e.g. RH6024 on `int _a = 1+2; int _b;`) split two members on one line; recommend reading A, only the gaps change. Outside the run's issues; output question carried in the follow-up.
 
 - FU4 (M6): shared write-back step so parts inside a reported construct keep their own code (RH5101, RH5102, RH5303–RH5308, RH5403, RH5404, RH5417) — carries maintainer answers M3, M5 (=A) and the open spanning-part question (options from 04-skeptic Q1, recommended A). Related #1605, #1140 FU3.
+- FU5 (07-implementer, D23): one owner for the line break in front of a member that shares its line (`FormatMemberOnLinesOfItsOwnAsync` vs private branch in `TargetAttributePlacementCodeFixProviderBase`); they disagree on column (tab vs spaces) — e.g. `→private int _pad; [First] internal Example() { }`. Visible for RH5511/RH5513/RH5517: carries an output question.
+- FU6 (07-implementer): `PrecedingTokenFacts`/`TriviaFact` now only wrap a tree token; replace by direct reads (internal cleanup).
 
 ## Worklist / next step
 
@@ -74,7 +81,8 @@
 - Done: spec author 05 (2d1b537). Asked batch 3: Q8 change 7 (fix now offered where a refused shape stands elsewhere in the statement; rec A offer), Q9 RH5308 conditional in [assembly:]/[module:] attribute (rec A offer, retires RH5308-006). ANSWERED 1A, 2A (M8, M9).
 - Done: spec author 05 addendum (3948f75); change doc Accepted. Note: three RH5308 tests tagged RH5308-006 must be rewritten (test implementer).
 - Done: test implementer 06 (df2ea58): 74 formatter + 104 analyzer rows failing for the right reason; architecture green.
-- Next: implementer (07).
+- Done: implementer 07 (a356c2e): +281/−532, no new type; 2 disputed RH5201 tests.
+- Next: test implementer (fresh, 08) rewrites the two RH5201 tests (D20); then cleaner.
 - Pending internal after answers: SHARED-FIX-006 Leading-trivia exception for SHARED-FIX-007 shared line (accept skeptic rec); rewrite D6 bullet in change doc Alternatives; change-doc completeness items (04-skeptic Internal choices 3); pipeline.md code owners row; Fix All tests for nested constructs.
 - (old) Next: skeptic (fresh) on change doc + spec diff → 04-skeptic.md; then batch 2 output questions (change-doc visible changes not covered by M1–M5; spec author's open: argument spanning lines in RH5101/5102; tab-indented target) → then test implementer.
 - (old) After answers: spec author (fresh) for D6 reverts, D7 consolidation, D5 FMT-PIPE-010/024 amendment, answers; then test implementer.
