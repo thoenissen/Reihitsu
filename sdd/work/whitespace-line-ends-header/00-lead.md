@@ -33,4 +33,5 @@ None yet.
 - Spec author amendment e5dfae2 (decision 4 done).
 - Test implementer (03, 23e8c89): reproduced on formatter and RH7203 fix, LF+CRLF; 13 failing tests, holders pass. Fix-path m09/m12 not asserted (whitespace of FMT-USING-010 blank line inside namespace undecided by example; existing behavior, not this issue).
 - Implementer (04, 8600a06): `GetHeaderSplitIndex` now uses `TokenGapAnalysis.OfTriviaRange(...).BlankLineCount`; +17/-5; all tests green in Debug.
-- Next: cleaner.
+- Cleaner (05, 551ab86): clean, Release 0 warnings.
+- Next: spec checker.
