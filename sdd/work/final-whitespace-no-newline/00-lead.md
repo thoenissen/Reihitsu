@@ -33,4 +33,5 @@ None yet.
 - Done: skeptic `01-skeptic.md` (proceed, no output questions).
 - Done: spec author `02-spec-author.md` (FMT-CLEAN-005 widened, commit 889d042; no output questions). Output-question batch 1: nothing open, no stop.
 - Done: test implementer `03-test-implementer.md` (reproduced; 16 failing, 8 guard tests passing; b0d9c95).
-- Next: implementer `04-implementer.md`.
+- Done: implementer `04-implementer.md` (tests pass; 970fe19, 4103b30).
+- Next: cleaner `05-cleaner.md`.
