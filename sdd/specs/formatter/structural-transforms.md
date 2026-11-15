@@ -5,7 +5,7 @@
 | ID prefix | FMT-STRUCT |
 | Status | Active |
 | Code owners | `StructuralTransformPhase`, `ConfigurableStructuralTransforms`, `ControlFlowBraceTransform`, `ExpressionBodiedMethodTransform`, `ExpressionBodiedConstructorTransform`, `ExpressionBodiedOperatorTransform`, `ExpressionBodiedConversionTransform`, `ExpressionBodiedFinalizerTransform`, `ExpressionBodiedLocalFunctionTransform`, `ExpressionBodiedTransformUtilities`, `ExpressionBodyToBlockConverter`, `AccessorExpressionBodyTransform`, `GetOnlyMemberExpressionBodyTransform`, `EmptyTypeDeclarationSemicolonTransform`, `EnumTrailingCommaRemovalTransform`, `InitializerTrailingCommaRemovalTransform`, `TrailingCommaRemovalUtilities`, `FieldDeclarationSplitTransform`, `AttributeListSplitTransform`, `AttributeListMergeTransform`, `AttributeListShapeUtilities` |
-| Uses | FMT-BREAK-013, FMT-BREAK-014, FMT-BREAK-027, FMT-BREAK-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-PIPE-029, FMT-SPACE-003, FMT-SPACE-004, FMT-SPACE-008, FMT-SPACE-012, FMT-SPACE-017, FMT-UNSUP-004, SHARED-ATTR-013, SHARED-DOC-004 |
+| Uses | FMT-BREAK-013, FMT-BREAK-014, FMT-BREAK-027, FMT-BREAK-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-PIPE-029, FMT-SPACE-003, FMT-SPACE-004, FMT-SPACE-008, FMT-SPACE-012, FMT-SPACE-017, FMT-UNSUP-004, FMT-UNSUP-009, SHARED-ATTR-013, SHARED-DOC-004 |
 
 This spec covers the phase that rewrites syntax shape before any layout is decided, right after the tabs in whitespace are replaced (FMT-PIPE-001): braces for `if`/`else` bodies, block bodies for expression-bodied functions, expression bodies for simple accessors and get-only members, semicolon declarations for empty types, removal of trailing commas, one field per declaration, one attribute per list on declarations (FMT-STRUCT-028), and the merge of attribute lists that name one target (FMT-STRUCT-029). Every rewrite produces equivalent code (FMT-PIPE-003) and is refused for a construct whose comments, directives, or disabled text it could not carry over (FMT-PIPE-002). The RH7101 code fix splits a field by formatting it with its type as context (FMT-PIPE-029), so the field split, laid out by the phases after this one, is also that fix's output.
 
@@ -1333,7 +1333,7 @@ Example — a comment directly at the arrow (FMT-STRUCT-006) keeps the other com
 
 ### FMT-STRUCT-027 — A removed comma's comment on a line of its own stays there
 
-When the formatter removes a trailing comma under FMT-STRUCT-019 or FMT-STRUCT-020, a comment of that comma that stands on a line below the line the last element ends on — because the comma stood on a later line, or the comment led the comma on a line of its own — MUST stay on a line of its own and lead the closing brace. A comment of the comma on the line the last element ends on stays behind the last element, as FMT-STRUCT-019 states.
+When the formatter removes a trailing comma under FMT-STRUCT-019 or FMT-STRUCT-020, a comment behind that comma that stands on a line below the line the last element ends on, because the comma stood on a later line, MUST stay on a line of its own and lead the closing brace. A comment of the comma on the line the last element ends on stays behind the last element, as FMT-STRUCT-019 states. A comment, a directive, or disabled text between the last element and a comma on a later line is a shape the formatter refuses (FMT-UNSUP-009), so no comment leads the comma on a line of its own.
 
 Why: A line break already ends the last element's line, so a comment behind it starts a new line, and in the text that line belongs to the closing brace (FMT-PIPE-021). Joining it to the last element's line would move a comment between lines, and behind a `//` comment it is not possible at all. The closing brace's leading comment is then laid out like any other comment in front of a closing brace, in one pass, which is what a second pass gives today.
 
@@ -1341,16 +1341,16 @@ Example:
 
 ```csharp
 enum E { A,
-B // about B
+B
     , // comma
 }
 
 class C
 {
     int[] _a = new[] { 1,
-2 /* two */
-// before comma
-, };
+2
+, // comma
+};
 }
 ```
 
@@ -1358,7 +1358,7 @@ class C
 enum E
 {
     A,
-    B // about B
+    B
 
     // comma
 }
@@ -1366,9 +1366,9 @@ enum E
 class C
 {
     int[] _a = new[] { 1,
-                   2 /* two */
+                   2
 
-                   // before comma
+                   // comma
                };
 }
 ```

@@ -134,6 +134,10 @@ The fix is withheld when any comment stands behind the reported comma on the com
 
 thoenissen/Reihitsu#1737 asked that the fix's result and the formatter's output agree on the input. That goal is met by withholding: no fix result exists that disagrees with the formatter. The issue's "Required output" B (the formatter follows the fix) is not available, because it would make the formatter keep a placement that violates SHARED-FIX-003 when a fix writes it.
 
+### Not affected by the declaration of FMT-UNSUP-009
+
+The maintainer's escalation-10 answer (question 4 A, question 5 A) declares a comment, a directive, or disabled text in front of a comma on a later line unsupported, in this run ([its change doc](comma-behind-comment-unsupported.md)). That shape is the gap in front of the comma; this change concerns a comment behind it, which stays supported, so RH5107-004 and the formatter's placement it is measured against (FMT-BREAK-011, FMT-BREAK-012) are unchanged. RH5107's analyzer still does not report a comma that a comment keeps off its parameter's line (SHARED-JOIN-001): analyzers do not consult the precheck, and the fix is a text edit outside the formatter, which SHARED-FIX-010 does not withhold.
+
 ## Alternatives considered
 
 - **The fix follows the formatter: it moves the comment with the comma** — rejected: the fix is a hand-written text edit, not a formatter call, so it would need a second copy of FMT-BREAK-012's comment placement, distinguishing a `//` comment, a block comment ending the line, and a block comment followed by the next parameter, for an input class that is rare by definition. Making the fix delegate its layout to the formatter is a separate, structural change and a follow-up candidate.
