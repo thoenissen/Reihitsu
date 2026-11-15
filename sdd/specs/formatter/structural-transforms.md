@@ -879,7 +879,7 @@ is left unchanged.
 
 ### FMT-STRUCT-019 — Enums have no trailing comma
 
-The formatter MUST remove the comma after the last member of an enum and keep the comma's trivia, such as a trailing comment, on the last member. It MUST keep the comma when a conditional directive lies between it and the closing brace.
+The formatter MUST remove the comma after the last member of an enum and keep the comma's trivia, such as a trailing comment, on the last member. The comma's trivia is its leading and its trailing trivia: a comment written on the last member's line in front of the comma stays behind the last member whichever token's trivia carries it — the last member's trailing trivia, as for `/* c */` and for every comment in the documentation mode `None`, or the comma's leading trivia, as for a `/** */` comment in the documentation modes `Parse` and `Diagnose`, where the parser puts no documentation comment into trailing trivia. It MUST keep the comma when a conditional directive lies between it and the closing brace.
 
 Why: The analyzer rule RH5409 reports the trailing comma; without it, the last member reads as the end of the list. A conditional directive in that gap means a different member may be last in another configuration, where the comma is still needed.
 
@@ -926,6 +926,36 @@ enum Mode
 #if DEBUG
     B,
 #endif
+}
+```
+
+Example — in the documentation mode `Parse`, `/** largest */` is the comma's leading trivia and `/* largest */` the last member's trailing trivia; both stay behind the last member:
+
+```csharp
+enum Size
+{
+    Small,
+    Large /** largest */,
+}
+
+enum Mode
+{
+    A,
+    B /* last */,
+}
+```
+
+```csharp
+enum Size
+{
+    Small,
+    Large /** largest */
+}
+
+enum Mode
+{
+    A,
+    B /* last */
 }
 ```
 

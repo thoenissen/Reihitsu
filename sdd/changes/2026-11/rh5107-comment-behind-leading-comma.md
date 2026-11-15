@@ -128,7 +128,7 @@ The fix is withheld for the class; neither the fix's placement nor the formatter
 
 ### The class is "a comment behind the comma on its line"
 
-The fix is withheld when any comment stands behind the reported comma on the comma's line, also a block comment followed by the next parameter, for which SHARED-FIX-003 decides nothing. One class keeps the guard to one check of the comma's trailing trivia, and no fix result then differs from the formatter's placement. A comment that starts a later line keeps the fix, because its result is the formatter's output.
+The fix is withheld when any comment stands behind the reported comma on the comma's line, also a block comment followed by the next parameter, for which SHARED-FIX-003 decides nothing. One class keeps the guard to one check of the trivia behind the comma on its line, and no fix result then differs from the formatter's placement. That trivia is the comma's trailing trivia and, for a documentation comment (`/** c */`, `/// c`) in the documentation modes `Parse` and `Diagnose`, the leading trivia of the parameter behind the comma, because the parser puts no documentation comment into trailing trivia; the comment is written behind the comma either way, so both withhold the fix (added in repair round 1, after the audit found the fix applied to `int a⏎, /// c⏎int b`). A comment that starts a later line keeps the fix, because its result is the formatter's output.
 
 ### The issue's goal
 
