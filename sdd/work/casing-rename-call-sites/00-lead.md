@@ -66,4 +66,5 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 - Test implementer (decisions 12, 13) done: `21-test-implementer.md` (a5ffd78; 7 failing as intended).
 - Implementer (decisions 12, 13) done: `22-implementer.md` (a4fc274; Naming 757 pass; analyzer 9605 pass). Run's production diff +152/−6, one file, no new type (decision 11's reasoning holds; this round +27/−15 ignoring whitespace).
 - Cleaner round 2 done: `23-cleaner.md` (clean).
-- Next: spec checker → auditor (delta since 07b4f2f) → validator.
+- Spec checker round 2 done: `24-spec-checker.md` (consistent).
+- Next: auditor (delta since 07b4f2f) → validator.
