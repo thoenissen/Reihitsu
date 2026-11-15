@@ -697,7 +697,8 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
     /// Applies a rename only when it is safe: no method name the compiler looks up implicitly, no namespace member
     /// collision, no name in excluded code or in a caller-argument expression attribute, no Roslyn conflict annotation,
     /// no rewritten or rebound reference to a symbol outside the rename cascade, no reference of the cascade rewritten
-    /// beyond its name, no new name that a member of an interface in the type hierarchy of a cascade member has, no
+    /// beyond its name, no new name that a member of an interface in the type hierarchy of a cascade property, event, or
+    /// ordinary method has, no
     /// changed native entry point, no changed document that holds code another build configuration hides, no added
     /// compile error, and no change to the properties the compiler declares for positional record parameters
     /// </summary>
@@ -709,7 +710,7 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
     /// <returns>The renamed solution when it is safe; otherwise, <see langword="null"/></returns>
     /// <remarks>
     /// The checks that depend on what the rename reaches take it from <see cref="GetRenameCascadeAsync"/>: the interface
-    /// members in the type hierarchy of every cascade method, property, and event, the native entry points of every
+    /// members in the type hierarchy of every cascade property, event, and ordinary method, the native entry points of every
     /// cascade member, the caller-argument expression attributes of every parameter list that
     /// declares a cascade parameter, the changes the renamer makes, which may lie only on identifiers that carry an
     /// old name, and the excluded code of every document that can refer to one, each searched for the new name and for
@@ -734,8 +735,8 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
             return null;
         }
 
-        // A new name that a member of an interface in the type hierarchy of a cascade member has may change which member
-        // implements it, which a rename may not do (SHARED-CASING-009)
+        // A new name that a member of an interface in the type hierarchy of a cascade property, event, or ordinary method
+        // has may change which member implements it, which a rename may not do (SHARED-CASING-009)
         if (await HasInterfaceMemberOfNameInHierarchyAsync(solution, prepared.Value.Cascade, identifier, cancellationToken).ConfigureAwait(false))
         {
             return null;
@@ -1103,8 +1104,8 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
     }
 
     /// <summary>
-    /// Determines whether a member of an interface in the type hierarchy of a method, property, or event of the rename
-    /// cascade has the new name
+    /// Determines whether a member of an interface in the type hierarchy of a property, event, or ordinary method of the
+    /// rename cascade has the new name
     /// </summary>
     /// <param name="solution">Solution before the rename</param>
     /// <param name="cascade">Rename cascade before the rename</param>
@@ -1112,11 +1113,14 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns><see langword="true"/> when such an interface member has the new name; otherwise, <see langword="false"/></returns>
     /// <remarks>
-    /// For each method, property, and event of the cascade other than a local function, the hierarchy is its containing
-    /// type and every type of the solution derived from it; for an interface, every type that implements it and every
-    /// interface that inherits from it. Which member implements an interface member depends on all their interface
-    /// mappings, so the check refuses by name instead of comparing the mappings. A local function implements no
-    /// interface member, so it adds no hierarchy
+    /// Only the kinds that can implement an interface member by their name are checked: properties, events, and ordinary
+    /// methods. Every other symbol of the cascade — a constructor, finalizer, operator, accessor, explicit interface
+    /// implementation of a method, local function, field, parameter, type, or type parameter — adds no hierarchy, so a
+    /// type rename whose cascade holds its constructors is not refused, while a positional record parameter is refused
+    /// through the property in its cascade. For each checked member, the hierarchy is its containing type and every type
+    /// of the solution derived from it; for an interface, every type that implements it and every interface that
+    /// inherits from it. Which member implements an interface member depends on all their interface mappings, so the
+    /// check refuses by name instead of comparing the mappings
     /// </remarks>
     private static async Task<bool> HasInterfaceMemberOfNameInHierarchyAsync(Solution solution,
                                                                              ImmutableArray<ISymbol> cascade,
@@ -1125,8 +1129,7 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
     {
         foreach (var symbol in cascade)
         {
-            if (symbol.Kind is not (SymbolKind.Method or SymbolKind.Property or SymbolKind.Event)
-                || symbol is IMethodSymbol { MethodKind: MethodKind.LocalFunction }
+            if (symbol is not (IPropertySymbol or IEventSymbol or IMethodSymbol { MethodKind: MethodKind.Ordinary })
                 || symbol.ContainingType is not { } containingType)
             {
                 continue;
