@@ -13,7 +13,7 @@ This spec covers what the `UsingDirectiveOrderingPhase` decides on its own: how 
 
 - The canonical group order, the order within a group, and when a block is safe to reorder — SHARED-USING-001 to SHARED-USING-009.
 - The blank line the blank-line phase inserts before a comment where none stood, also before a comment that leads a using directive, and the blank lines between the using block and the code around it (FMT-BLANK).
-- The final indentation of each directive in document-level formatting (FMT-INDENT). This phase only places a split-off directive at the scope's indentation (SHARED-USING-010); in the formatter's output the indentation phase decides the column, and in the output of FMT-PIPE-030 that placement is final.
+- The final indentation of each directive in document-level formatting (FMT-INDENT). This phase only places a split-off directive at the scope's indentation (SHARED-USING-010) and keeps the indentation at the top of a reordered block (FMT-USING-011); in the formatter's output the indentation phase decides the column, and in the output of FMT-PIPE-030 that placement is final.
 - Adding, removing, or deduplicating using directives, and moving them into or out of a namespace.
 
 ## Requirements
@@ -605,3 +605,143 @@ class C
     int x;
 }
 ```
+
+### FMT-USING-011 — A header changes no directive's indentation
+
+In a block it reorders, the directive that takes the block's first position MUST start at the whitespace that stands at the start of the line on which the block's original first directive stands, kept as written, a tab included. When a comment leads that directive (FMT-USING-008), its first comment MUST start at that whitespace instead, and the lines below that comment keep their own. When the original first directive moves away from the top, it MUST keep the whitespace at the start of its own line, and every comment that moves with it (FMT-USING-009) the whitespace at the start of its own line. This holds:
+
+- whether or not comments stand above the original first directive — a header kept at the top (FMT-USING-009) changes no directive's indentation, and its own lines stay as written;
+- whether or not a blank line separates those comments from the directive, so on both sides of the split FMT-USING-009 makes;
+- in every scope the phase organizes — a compilation unit, a file-scoped namespace, and a namespace with a body, at any depth — also where the directives of a compilation unit or a file-scoped namespace are indented.
+
+A directive that shared its line with its predecessor is placed as SHARED-USING-010 states.
+
+Why: The comments above the first directive are a header or belong to one directive (FMT-USING-009); they say nothing about where the block is indented. The same block without them is organized with every directive at the original first directive's whitespace, and the comments must not change that. The RH7201–RH7207 code fixes take this phase's output as their final layout (FMT-PIPE-030), so a directive the phase leaves in column 0 stays there in the fix's result; in a namespace with a body that is not the column the formatter gives it (SHARED-FIX-007). The whitespace is kept as written, a tab included, as the fix keeps it in front of the same block without the comments; replacing a tab is the preparation phase's decision, not this phase's (SHARED-FIX-007, *Whitespace in front of the changed code*).
+
+Example — the output of `OrganizeUsingDirectivesInDocumentAsync` with the namespace as scope, as the RH7203 fix passes it; the header stays at the top, and both directives stand in column 4:
+
+```csharp
+namespace N
+{
+    // Header
+    using System.Linq;
+    using System;
+
+    class C
+    {
+        int x;
+    }
+}
+```
+
+```csharp
+namespace N
+{
+    // Header
+    using System;
+    using System.Linq;
+
+    class C
+    {
+        int x;
+    }
+}
+```
+
+and, on the other side of the split, with a blank line below the header, the directive that takes the first position stands in column 4 below the blank line:
+
+```csharp
+namespace N
+{
+    // Header
+
+    using System.Linq;
+    using System;
+
+    class C
+    {
+        int x;
+    }
+}
+```
+
+```csharp
+namespace N
+{
+    // Header
+
+    using System;
+    using System.Linq;
+
+    class C
+    {
+        int x;
+    }
+}
+```
+
+and when a comment of its own leads the directive that takes the first position, that comment stands in column 4:
+
+```csharp
+namespace N
+{
+    // Header
+
+    using System.Linq;
+    // About System
+    using System;
+
+    class C
+    {
+        int x;
+    }
+}
+```
+
+```csharp
+namespace N
+{
+    // Header
+
+    // About System
+    using System;
+    using System.Linq;
+
+    class C
+    {
+        int x;
+    }
+}
+```
+
+The same holds without the header: both blocks above without `// Header` are organized with both directives in column 4. When the namespace's lines are indented with a tab instead of four spaces, the tab stays in front of `// Header`, `using System;`, and `using System.Linq;`.
+
+In a file-scoped namespace, or a compilation unit, whose directives are indented, the directives keep that indentation as well:
+
+```csharp
+namespace N;
+
+    // Header
+    using System.Linq;
+    using System;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+namespace N;
+
+    // Header
+    using System;
+    using System.Linq;
+
+class C
+{
+    int x;
+}
+```
+
+Formatting the whole document then moves the comment and both directives to column 0 (FMT-INDENT); the code fixes do not.

@@ -356,5 +356,85 @@ public class UsingDirectiveRequirementTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that formatting the whole document places every directive of a reordered block in a namespace with a body
+    /// at the namespace's indentation when a header without a blank line stands above the original first directive
+    /// </summary>
+    [TestMethod]
+    public void ReorderedBlockBelowAHeaderWithoutBlankLineIsIndentedInANamespaceWithABody()
+    {
+        // Arrange
+        const string input = """
+                             namespace N
+                             {
+                                 // Header
+                                 using System.Linq;
+                                 using System;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                namespace N
+                                {
+                                    // Header
+                                    using System;
+                                    using System.Linq;
+
+                                    class C
+                                    {
+                                        int x;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that formatting the whole document places every directive of a reordered block in a namespace with a body
+    /// at the namespace's indentation when a blank line separates the header from the original first directive
+    /// </summary>
+    [TestMethod]
+    public void ReorderedBlockBelowAHeaderWithBlankLineIsIndentedInANamespaceWithABody()
+    {
+        // Arrange
+        const string input = """
+                             namespace N
+                             {
+                                 // Header
+
+                                 using System.Linq;
+                                 using System;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                namespace N
+                                {
+                                    // Header
+
+                                    using System;
+                                    using System.Linq;
+
+                                    class C
+                                    {
+                                        int x;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
