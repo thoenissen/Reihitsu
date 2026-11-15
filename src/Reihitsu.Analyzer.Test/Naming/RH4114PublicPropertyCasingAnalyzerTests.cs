@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Naming;
@@ -530,6 +531,332 @@ public class RH4114PublicPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<RH4
                                 }
 
                                 public record Shape(int count, [CallerArgumentExpression("count")] string Expression = null) : IShape;
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a property keeps its diagnostic but gets no fix when its new name would hide, inside its class, a type that a
+    /// member access there binds to today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideATypeUsedInTheClass()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    public static class Node
+                                    {
+                                        public static int Create() => 1;
+                                    }
+
+                                    public class Tree
+                                    {
+                                        public int {|RH4114:node|} { get; set; }
+
+                                        public int Build() => Node.Create();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a property keeps its diagnostic but gets no fix when its new name would hide an inherited property that a member
+    /// access on the derived type reads today, so that the unchanged access would read the renamed property
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAnInheritedPropertyReadOnTheDerivedType()
+    {
+        const string testCode = """
+                                public class Base
+                                {
+                                    public int Size { get; set; } = 1;
+                                }
+
+                                public class Derived : Base
+                                {
+                                    public int {|RH4114:size|} { get; set; } = 2;
+                                }
+
+                                public class User
+                                {
+                                    public int Use(Derived derived) => derived.Size;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a property is renamed when its new name hides an inherited property, but the only access of that property has
+    /// the base type as its receiver, so its binding does not change and it is left as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixRenamesAPropertyThatHidesAnInheritedPropertyReadOnlyOnTheBaseType()
+    {
+        const string testCode = """
+                                public class Base
+                                {
+                                    public int Size { get; set; } = 1;
+                                }
+
+                                public class Derived : Base
+                                {
+                                    public int {|RH4114:size|} { get; set; } = 2;
+                                }
+
+                                public class User
+                                {
+                                    public int Use(Base item) => item.Size;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Base
+                                 {
+                                     public int Size { get; set; } = 1;
+                                 }
+
+                                 public class Derived : Base
+                                 {
+                                     public int Size { get; set; } = 2;
+                                 }
+
+                                 public class User
+                                 {
+                                     public int Use(Base item) => item.Size;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All renames the property whose new name meets no existing binding and skips the property whose new name would
+    /// hide an inherited property read on the derived type, which keeps its diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixAllSkipsTheRenameThatWouldHideAnInheritedPropertyReadOnTheDerivedType()
+    {
+        const string testCode = """
+                                public class Base
+                                {
+                                    public int Size { get; set; } = 1;
+                                }
+
+                                public class Derived : Base
+                                {
+                                    public int {|RH4114:size|} { get; set; } = 2;
+
+                                    public int {|RH4114:weight|} { get; set; } = 3;
+                                }
+
+                                public class User
+                                {
+                                    public int Use(Derived derived) => derived.Size + derived.weight;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Base
+                                 {
+                                     public int Size { get; set; } = 1;
+                                 }
+
+                                 public class Derived : Base
+                                 {
+                                     public int {|RH4114:size|} { get; set; } = 2;
+
+                                     public int Weight { get; set; } = 3;
+                                 }
+
+                                 public class User
+                                 {
+                                     public int Use(Derived derived) => derived.Size + derived.Weight;
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static test =>
+                            {
+                                // The diagnostic that keeps no fix is marked in the expected source
+                                test.FixedState.MarkupHandling = MarkupMode.Allow;
+                                test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                                test.NumberOfFixAllIterations = 1;
+                            });
+    }
+
+    /// <summary>
+    /// Verifies that a property keeps its diagnostic but gets no fix when its new name would make it implement an interface property
+    /// that its type lists among its own base types and that an inherited property implements today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldChangeWhichPropertyImplementsAnInterfaceProperty()
+    {
+        const string testCode = """
+                                public interface ISized
+                                {
+                                    int Size { get; }
+                                }
+
+                                public class Base : ISized
+                                {
+                                    public int Size => 1;
+                                }
+
+                                public class Derived : Base, ISized
+                                {
+                                    public int {|RH4114:size|} => 2;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a property keeps its diagnostic but gets no fix when its new name is that of an interface property that its type
+    /// implements only through its base type, although the inherited property keeps implementing the interface property
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameIsThatOfAnInterfacePropertyThatTheTypeImplementsThroughItsBaseType()
+    {
+        const string testCode = """
+                                public interface ISized
+                                {
+                                    int Size { get; }
+                                }
+
+                                public class Base : ISized
+                                {
+                                    public int Size => 1;
+                                }
+
+                                public class Derived : Base
+                                {
+                                    public int {|RH4114:size|} => 2;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a property keeps its diagnostic but gets no fix when its type implements no interface, but a type derived from it
+    /// lists an interface whose property has the new name and is implemented today by a property of the property's base type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenATypeDerivedFromThePropertysTypeListsAnInterfaceWithAPropertyOfTheNewName()
+    {
+        const string testCode = """
+                                public interface ISized
+                                {
+                                    int Size { get; }
+                                }
+
+                                public class Root
+                                {
+                                    public int Size => 1;
+                                }
+
+                                public class Base : Root
+                                {
+                                    public int {|RH4114:size|} => 2;
+                                }
+
+                                public class Derived : Base, ISized
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a property keeps its diagnostic but gets no fix when another implementer of the interface property it implements is
+    /// declared in a type that implements an interface with a property of the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenAnotherImplementerOfTheSameInterfacePropertyImplementsAnInterfaceWithAPropertyOfTheNewName()
+    {
+        const string testCode = """
+                                public interface ISized
+                                {
+                                    int {|RH4114:size|} { get; }
+                                }
+
+                                public interface IOther
+                                {
+                                    int Size => 1;
+                                }
+
+                                public class A : ISized
+                                {
+                                    public int {|RH4114:size|} => 0;
+                                }
+
+                                public class B : ISized, IOther
+                                {
+                                    public int {|RH4114:size|} => 2;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an overriding property keeps its diagnostic but gets no fix when another type derived from the overridden
+    /// property's type implements an interface with a property of the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenATypeDerivedFromTheOverriddenPropertysTypeImplementsAnInterfaceWithAPropertyOfTheNewName()
+    {
+        const string testCode = """
+                                public interface IOther
+                                {
+                                    int Size => 1;
+                                }
+
+                                public class Base
+                                {
+                                    public virtual int {|RH4114:size|} => 2;
+                                }
+
+                                public class Derived : Base
+                                {
+                                    public override int {|RH4114:size|} => 3;
+                                }
+
+                                public class Sibling : Base, IOther
+                                {
+                                }
                                 """;
 
         await Verify(testCode, testCode);

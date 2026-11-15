@@ -210,6 +210,34 @@ public class RH4117DeconstructionVariableCasingAnalyzerTests : BatchCodeFixTests
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that a deconstruction variable keeps its diagnostic but gets no fix when its new name would hide a field that an
+    /// unqualified reference in the method binds to today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAFieldUsedUnqualified()
+    {
+        const string testCode = """
+                                public class Loader
+                                {
+                                    private int total;
+
+                                    public int Load()
+                                    {
+                                        var ({|RH4117:Total|}, retry) = (42, 2);
+
+                                        total = Total + retry;
+
+                                        return total;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

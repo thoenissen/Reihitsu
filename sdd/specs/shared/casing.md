@@ -547,7 +547,20 @@ The code fix MUST NOT be offered when renaming to the derived name would collide
 
 A type with the new name in the same namespace makes the rename fail to compile only when both types have the same number of type parameters, and, when either of them is file-local, only when both are declared in the same file; otherwise the fix is offered. A declaration that has the type's name is not a compile error in every type: an enum member may have the name of its enum, and a method of an interface the name of its interface, so neither collides with it, and the fix is offered. The diagnostic is still reported.
 
-Why: A collision cannot be resolved without knowing which of the two names the author meant, so it is left to the author. The renamer renames every symbol of the rename cascade (SHARED-CASING-007), in whichever type and document it is declared, but a member declared in a referenced assembly keeps its name, so a compile error can appear in a type that does not contain the renamed declaration. Types with a different number of type parameters, and a file-local type and a type of another file, can share a name, so renaming to it is safe.
+The code fix MUST NOT be offered either when the rename would change which symbol an existing reference binds to, where that reference refers to a symbol outside the rename cascade (SHARED-CASING-007), in whichever document of the solution it stands. This holds in both of the ways such a binding can change:
+
+- **Rewritten.** The renamer rewrites the reference so that it keeps its binding, without reporting a conflict: it qualifies a name with `this.`, `base.`, a type, or a namespace, turns an extension-method call into a static call, or casts an argument. The reference may be a simple name, a member access, a type name, a `nameof` operand, an invocation whose overload or extension method the new name would win, or an enum member's initializer.
+- **Left as written.** The renamer leaves the reference's text unchanged, and the reference then binds to the renamed symbol: for example a member access whose receiver has the renaming type, or a type derived from it, where the rename makes the renamed member hide a member of a base type that the access called before. The compiler reports at most a warning.
+
+A reference to a symbol of the rename cascade is renamed with it and is not such a reference. Which symbol a reference refers to decides this, not how it is spelled: a reference to a field `value` refers to a symbol outside the cascade even where the other part of a partial method spells its parameter, which the cascade renames, `value`; and so does a reference to a type `TItem` where the other part of a partial method spells its type parameter `TItem`, which the renamer leaves as it is (SHARED-CASING-007). A reference to another symbol whose binding the rename leaves unchanged, such as a call of an extension method in a namespace that the renamed method's namespace does not import, does not withhold the fix.
+
+The code fix MUST NOT be offered either when the renamer would rewrite a reference to a symbol of the rename cascade beyond renaming it and qualifying its name: for example when it turns a call of the renamed extension method into a static call, or casts an argument of a call of the renamed method, so that the call keeps binding to the renamed symbol. A reference that the renamer renames, or renames and qualifies with `this.`, `base.`, a type, or a namespace, does not withhold the fix.
+
+The code fix MUST NOT be offered either when a method, property, or event of the rename cascade (SHARED-CASING-007) would get the name that a member of an interface already has, where that interface is implemented by the type that declares that cascade member or by a type in the solution that derives from it — when that type is an interface, also by a type that implements it or an interface that inherits from it. This holds for every method, property, and event that the rename cascade renames, not only for the reported one: for example also for a member of another type that implements the same interface member, for the member of a base type that the reported member overrides, and for the interface member that the reported member implements. A type implements every interface it lists among its base types and every interface it inherits through a base type or a base interface. This holds whether or not a member of the cascade would implement that interface member after the rename, whatever implements the interface member today — an inherited member, a default implementation in the interface, or a member of a base type that lists the interface again — and whether or not a reference names it. It does not hold when no member of these interfaces has the new name for any method, property, or event of the cascade, such as when no type that declares a member of the cascade implements the interface or has a type derived from it that does, or when the interfaces those types implement have no member of the new name. The members of the cascade this paragraph checks are those that can implement an interface member by their name: its properties, its events, and its ordinary methods, that is, methods declared with a name of their own. Every other symbol of the cascade is not checked: a constructor, static constructor, finalizer, operator, conversion operator, accessor, explicit interface implementation of a method, or local function, and a field, parameter, local variable, type, or type parameter. So a renamed class, struct, record, or record struct is not withheld by this paragraph, although its rename cascade holds its constructors; and a renamed local function is not withheld, whatever interfaces the type that encloses it implements. A renamed symbol that is not checked itself is still withheld when its rename cascade holds a property, event, or ordinary method that this paragraph withholds: for example a positional parameter of a record, whose rename cascade holds the property the compiler declares for it.
+
+So the fix changes no code other than the declarations of the rename cascade, the names of its references, and the qualifiers in front of those names. The diagnostic is still reported.
+
+Why: A collision cannot be resolved without knowing which of the two names the author meant, so it is left to the author. The renamer renames every symbol of the rename cascade (SHARED-CASING-007), in whichever type and document it is declared, but a member declared in a referenced assembly keeps its name, so a compile error can appear in a type that does not contain the renamed declaration. Types with a different number of type parameters, and a file-local type and a type of another file, can share a name, so renaming to it is safe. A rename whose new name meets an existing binding is the same collision even when it compiles: a reference that the renamer rewrites is an edit of code the diagnostic does not name, and a reference that the renamer leaves as written calls another member at run time (SHARED-FIX-003). A call of a renamed member whose shape the renamer changes, into a static call or with a cast argument, is likewise an edit beyond the rename that the diagnostic asks for. A member that starts to implement an interface member makes a call through the interface reach another member at run time, although no reference in source changes its binding (SHARED-FIX-003). Whether a rename does that depends on the interface mapping of every type that inherits a member of the rename cascade, in any project of the solution, and on default implementations and interfaces that a derived type lists again; telling a rename that changes one of these mappings from one that does not would mean comparing all of them before and after the rename. The cascade renames members of other types too — implementers of the same interface member, the overridden member of a base type, the interface member itself — so their hierarchies count like that of the reported member, as for every other check of the rename. A wrongly cased member whose corrected name is the name of an interface member in the hierarchy of a type that declares a member of its rename cascade is rare, so the fix is withheld for every such name, also where no mapping would change. Only a property, an event, or an ordinary method can start to implement an interface member by its name. A constructor, finalizer, or local function belongs to no interface mapping, and an operator or conversion operator implements an interface operator by its operator token or its conversion types, which a rename does not change; an accessor implements an interface accessor only through its property or event, which the cascade holds and the check covers; and an explicit interface implementation names the interface member it implements, which the cascade holds too, so the hierarchy of that interface member, which holds the implementing type, is checked anyway. Checking only the kinds that can implement an interface member keeps the check independent of which other symbols the renamer cascades to: the rename of a type, whose cascade holds its constructors, keeps its fix, and so does that of a local function. A positional record parameter is renamed together with its property, and that property can start to implement an interface member, so the parameter's fix is withheld like the property's. A reference is matched to the cascade by what it refers to, because a name of the cascade can also be the name of another symbol in the same scope. Either way the author decides which name to give up. A wrongly cased declaration whose corrected spelling is exactly a name already bound at a reference in its scope, or that of a member of an interface implemented in the hierarchy of a type that declares a member of its rename cascade, is uncommon, and a diagnostic without a fix is a supported end state.
 
 Example — RH4106:
 
@@ -661,6 +674,383 @@ public class Leaf : Middle
 ```
 
 Where RH4103 reports `Leaf.process`, no code fix is offered: renaming it would rename `Middle.process` with it, and `Middle` would then fail to compile, because `MetaBase.process` keeps its name and `Middle.Process` overrides nothing. The same holds for a property or an event that overrides or implements a member declared in a referenced assembly through a type declared in source. When `MetaBase` is declared in source, the rename renames all three methods together, and the fix is offered.
+
+Example — RH4103, a rename that would win an extension-method call:
+
+```csharp
+using System.Collections.Generic;
+using System.Linq;
+
+namespace N
+{
+    public static class Extensions
+    {
+        public static List<int> {|RH4103:toList|}(this IEnumerable<int> source) => new List<int>();
+    }
+
+    public class User
+    {
+        public List<int> Get(int[] values) => values.ToList();
+    }
+}
+```
+
+is reported, and no code fix is offered: `values.ToList()` calls `Enumerable.ToList` today, and the renamer would rewrite it to `Enumerable.ToList(values)` so that it keeps calling it. The same holds for an instance method `first()` of a type that implements `IEnumerable<int>`, next to a call `bag.First()`.
+
+When `User` is declared in another namespace, `M`, that does not import `N`:
+
+```csharp
+namespace M
+{
+    public class User
+    {
+        public List<int> Get(int[] values) => values.ToList();
+    }
+}
+```
+
+the call keeps binding to `Enumerable.ToList` after the rename, and the fix is offered: it renames `toList` to `ToList` and leaves the call as written.
+
+Example — RH4103, a rename that would win overload resolution:
+
+```csharp
+public class Box
+{
+    public void {|RH4103:write|}(int value)
+    {
+    }
+
+    public void Write(object value)
+    {
+    }
+
+    public void Use(Box box) => box.Write(1);
+}
+```
+
+is reported, and no code fix is offered: `box.Write(1)` calls `Write(object)` today, and the renamer would rewrite it to `box.Write((object)1)`.
+
+Example — RH4105, a parameter that would hide a field:
+
+```csharp
+public class Person
+{
+    private string name;
+
+    public void Rename(string {|RH4105:Name|})
+    {
+        name = Name.Trim();
+    }
+}
+```
+
+is reported, and no code fix is offered: `name` refers to the field today, and the renamer would rewrite it to `this.name`. The same holds for a local variable (RH4115), for a static field that the renamer would qualify with its type, and for a type that the renamer would qualify with its namespace, such as a class `order` (RH4002) whose namespace already uses a class `Order` imported from another namespace.
+
+Example — RH4103, a rename that would hide an inherited member:
+
+```csharp
+public class Base
+{
+    public int Process() => 1;
+}
+
+public class Derived : Base
+{
+    public int {|RH4103:process|}() => 2;
+}
+
+public class User
+{
+    public int Use(Derived derived) => derived.Process();
+}
+```
+
+is reported, and no code fix is offered: `derived.Process()` calls `Base.Process` and returns `1` today. After the rename the renamer leaves it as written, and it would call `Derived.Process` and return `2`. The same holds for a property (RH4114) or a field (RH4109) that the rename would make hide a member of a base type.
+
+Example — RH4105, a reference to another symbol spelled like a name of the cascade:
+
+```csharp
+public partial class Counter
+{
+    private static int value;
+
+    public partial int Get(int value);
+
+    public partial int Get(int {|RH4105:Value|})
+    {
+        var total = Value;
+        total += 2;
+        return total + value;
+    }
+}
+```
+
+is reported, and no code fix is offered: the rename gives the parameter the name `value`, and the renamer would rewrite the field reference `value` to `Counter.value`. That the other part already spells its parameter `value` does not make the field reference one of the cascade. The same holds for an instance field, which the renamer would rewrite to `this.value`, and for `nameof(value)`, which it would rewrite to `nameof(Counter.value)`. It holds as well for RH4121, with a class `N.TItem` and a partial method `Count<TItem>()` whose other part declares `Count<{|RH4121:item|}>()` and calls `TItem.Size()`: the renamer would rewrite the call to `N.TItem.Size()`.
+
+Example — RH4103, a call of the renamed extension method that the renamer would turn into a static call:
+
+```csharp
+using System.Collections.Generic;
+
+namespace N
+{
+    public static class Extensions
+    {
+        public static List<int> {|RH4103:toList|}(this IEnumerable<int> source) => new List<int>();
+    }
+
+    namespace Inner
+    {
+        using System.Linq;
+
+        public class User
+        {
+            public List<int> Get(int[] values) => values.toList();
+        }
+    }
+}
+```
+
+is reported, and no code fix is offered: after the rename, `values.ToList()` would call `Enumerable.ToList`, and the renamer would rewrite the call to `Extensions.ToList(values)` so that it keeps calling the renamed method.
+
+Example — RH4103, a call of the renamed method that the renamer would give a cast argument:
+
+```csharp
+public class Box
+{
+    public void {|RH4103:write|}(object value)
+    {
+    }
+
+    public void Write(int value)
+    {
+    }
+
+    public void Use(Box box) => box.write(1);
+}
+```
+
+is reported, and no code fix is offered: after the rename, `box.Write(1)` would call `Write(int)`, and the renamer would rewrite the call to `box.Write((object)1)`. A reference of the cascade that the renamer only qualifies, such as a class `order` (RH4002) referenced as `order` in a type that declares a nested class `Order`, which the renamer rewrites to `N.Order`, does not withhold the fix.
+
+Example — RH4103, a rename that would change which method implements an interface method:
+
+```csharp
+public interface IProcessor
+{
+    int Process();
+}
+
+public class Base : IProcessor
+{
+    public int Process() => 1;
+}
+
+public class Derived : Base, IProcessor
+{
+    public int {|RH4103:process|}() => 2;
+}
+```
+
+is reported, and no code fix is offered: `((IProcessor)new Derived()).Process()` calls `Base.Process` and returns `1` today. `Derived` lists `IProcessor` among its own base types, so after the rename `Derived.Process` would implement `IProcessor.Process`, and the call would return `2`. The same holds for a property (RH4114) or an event (RH4102) whose new name is that of an interface property or event. No code fix is offered either when `Derived` is declared as `class Derived : Base`: `Base.Process` would keep implementing `IProcessor.Process`, but `Derived` still implements `IProcessor` through `Base`, and `IProcessor` has a member named `Process`.
+
+Example — RH4103, a type derived from the renamed method's type that lists the interface:
+
+```csharp
+public interface IProcessor
+{
+    int Process();
+}
+
+public class Root
+{
+    public int Process() => 1;
+}
+
+public class Base : Root
+{
+    public int {|RH4103:process|}() => 2;
+}
+
+public class Derived : Base, IProcessor
+{
+}
+```
+
+is reported, and no code fix is offered: `Base` implements no interface, but `Derived` derives from it and implements `IProcessor`, which has a member named `Process`. `((IProcessor)new Derived()).Process()` calls `Root.Process` and returns `1` today, and would call `Base.Process` and return `2` after the rename. The same holds without `Root`, when `IProcessor` declares `int Process() => 1;` as a default implementation and `Base` derives from nothing; when `Root` itself implements `IProcessor` and `Derived` lists it again; and for a property (RH4114) or an event (RH4102) in the same shape.
+
+Example — RH4103, a type outside the hierarchy of every type that implements the interface:
+
+```csharp
+public interface IProcessor
+{
+    int Process();
+}
+
+public class Worker : IProcessor
+{
+    public int Process() => 1;
+}
+
+public class Job : System.IDisposable
+{
+    public void Dispose()
+    {
+    }
+
+    public int {|RH4103:process|}() => 2;
+}
+```
+
+```csharp
+public interface IProcessor
+{
+    int Process();
+}
+
+public class Worker : IProcessor
+{
+    public int Process() => 1;
+}
+
+public class Job : System.IDisposable
+{
+    public void Dispose()
+    {
+    }
+
+    public int Process() => 2;
+}
+```
+
+`Job` neither implements `IProcessor` nor has a type derived from it that does, and `IDisposable`, which it implements, has no member named `Process`.
+
+Example — RH4103, another implementer of the same interface method, whose type implements an interface with a member of the new name:
+
+```csharp
+public interface IProcessor
+{
+    int {|RH4103:process|}();
+}
+
+public interface IOther
+{
+    int Process() => 1;
+}
+
+public class A : IProcessor
+{
+    public int {|RH4103:process|}() => 0;
+}
+
+public class B : IProcessor, IOther
+{
+    public int {|RH4103:process|}() => 2;
+}
+```
+
+is reported, and no code fix is offered for any of the three methods. `A` implements no interface with a member named `Process`, but the rename cascade of `A.process` holds `IProcessor.process` and `B.process`, and `B` implements `IOther`. `((IOther)new B()).Process()` calls the default implementation and returns `1` today, and would call `B.Process` and return `2` after the rename. The same holds for a property (RH4114) or an event (RH4102) in the same shape.
+
+Example — RH4103, the overridden method of a base type, which another derived type of the base implements an interface for:
+
+```csharp
+public interface IOther
+{
+    int Process() => 1;
+}
+
+public class Base
+{
+    public virtual int {|RH4103:process|}() => 2;
+}
+
+public class Derived : Base
+{
+    public override int {|RH4103:process|}() => 3;
+}
+
+public class Sibling : Base, IOther
+{
+}
+```
+
+is reported, and no code fix is offered for either method. `Derived` implements no interface, but the rename cascade of `Derived.process` holds `Base.process`, and `Sibling` derives from `Base` and implements `IOther`. `((IOther)new Sibling()).Process()` returns `1` today and would call `Base.Process` and return `2` after the rename. The same holds for a property (RH4114) or an event (RH4102) in the same shape.
+
+Example — RH4104, a local function in a type that implements an interface with a member of the new name:
+
+```csharp
+public interface IProcessor
+{
+    int Process() => 1;
+}
+
+public class Worker : IProcessor
+{
+    public int Run()
+    {
+        return process();
+
+        int {|RH4104:process|}() => 2;
+    }
+}
+```
+
+```csharp
+public interface IProcessor
+{
+    int Process() => 1;
+}
+
+public class Worker : IProcessor
+{
+    public int Run()
+    {
+        return Process();
+
+        int Process() => 2;
+    }
+}
+```
+
+A local function cannot implement `IProcessor.Process`, so the rename changes no interface mapping, and the fix is offered. The same holds for a local function `dispose` in a type that implements `System.IDisposable`.
+
+Example — RH4002, a type whose new name is that of a member of an interface it implements:
+
+```csharp
+public interface IHasProcessor
+{
+    int Processor => 1;
+}
+
+public class {|RH4002:processor|} : IHasProcessor
+{
+}
+```
+
+```csharp
+public interface IHasProcessor
+{
+    int Processor => 1;
+}
+
+public class Processor : IHasProcessor
+{
+}
+```
+
+The rename cascade of `processor` holds its implicit constructor, but a constructor cannot implement `IHasProcessor.Processor`, and a type is not an interface member, so the fix is offered. The same holds when a type derived from `processor` lists `IHasProcessor` instead, and for a struct (RH4003), a record (RH4010), or a record struct (RH4011) in the same shape.
+
+Example — RH4120, a positional record parameter whose property would implement an interface property:
+
+```csharp
+public interface INamed
+{
+    string Name => "default";
+}
+
+public record Person(string {|RH4120:name|}) : INamed;
+```
+
+is reported, and no code fix is offered. The rename cascade of the parameter `name` holds the property the compiler declares for it, and `Person` implements `INamed`, which has a member named `Name`. `((INamed)new Person("x")).Name` returns `"default"` today, and would return `"x"` after the rename, because the declared property `Name` would implement `INamed.Name`. The fix is offered when `INamed` has no member named `Name`.
 
 ### SHARED-CASING-010 — Fix All skips names that would collide with each other
 
@@ -876,7 +1266,7 @@ The argument may be a string literal, a `nameof` expression, or any other consta
 
 The diagnostic is still reported.
 
-Why: The attribute names a parameter by the value of its argument. The renamer changes that value only where the argument is a `nameof` that refers to a renamed parameter. The exemption relies on the scope C# 11 gives a `nameof` inside an attribute of a parameter list, where an unqualified name refers to the parameter of that name in the list. For an earlier language version the exemption is not taken: the check does not decide what the operand refers to there, and it refuses the fix from the document's language version alone, a conservative refusal that costs only a fix for code compiled before C# 11. Every other argument keeps its value through the rename: a string, a constant, and a `nameof` of another symbol, qualified or not, even where the renamer qualifies it to keep its binding. When the value is the old name, the rename leaves the attribute naming no parameter; when it is the new name, the rename makes the attribute name the renamed parameter. Either way, the parameter that carries the attribute receives another value at run time (SHARED-FIX-003), and the compiler only warns. The check compares constant values with the cascade's names and looks only at the shape of a `nameof` argument, never at what it binds to; so an extension block, whose members' attributes can name the receiver from another parameter list, is refused for every such argument, `nameof` included. Such inputs are rare, and a rare class is refused with a cheap check (`AGENTS.md`, *Special cases do not grow the source*).
+Why: The attribute names a parameter by the value of its argument. The renamer changes that value only where the argument is a `nameof` that refers to a renamed parameter. The exemption relies on the scope C# 11 gives a `nameof` inside an attribute of a parameter list, where an unqualified name refers to the parameter of that name in the list. For an earlier language version the exemption is not taken: the check does not decide what the operand refers to there, and it refuses the fix from the document's language version alone, a conservative refusal that costs only a fix for code compiled before C# 11. Every other argument keeps its value through the rename: a string, a constant, and a `nameof` of another symbol, qualified or not; a rename for which the renamer would qualify such an operand to keep its binding is withheld by SHARED-CASING-009 in any case. When the value is the old name, the rename leaves the attribute naming no parameter; when it is the new name, the rename makes the attribute name the renamed parameter. Either way, the parameter that carries the attribute receives another value at run time (SHARED-FIX-003), and the compiler only warns. The check compares constant values with the cascade's names and looks only at the shape of a `nameof` argument, never at what it binds to; so an extension block, whose members' attributes can name the receiver from another parameter list, is refused for every such argument, `nameof` included. Such inputs are rare, and a rare class is refused with a cheap check (`AGENTS.md`, *Special cases do not grow the source*).
 
 Example — RH4105:
 

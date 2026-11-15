@@ -477,6 +477,118 @@ public class RH4104LocalFunctionNameCasingAnalyzerTests : BatchCodeFixTestsBase<
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that a local function keeps its diagnostic but gets no fix when its new name would hide a method of the class that a
+    /// call in the same method binds to today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAMethodOfTheClass()
+    {
+        const string testCode = """
+                                public class Worker
+                                {
+                                    public int Helper() => 1;
+
+                                    public int Run()
+                                    {
+                                        int {|RH4104:helper|}() => 2;
+
+                                        return helper() + Helper();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames a local function to the name of a method of an interface that its enclosing type implements, because a
+    /// local function cannot implement an interface method
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixRenamesALocalFunctionToTheNameOfAMethodOfAnInterfaceThatTheEnclosingTypeImplements()
+    {
+        const string testCode = """
+                                public interface IProcessor
+                                {
+                                    int Process() => 1;
+                                }
+
+                                public class Worker : IProcessor
+                                {
+                                    public int Run()
+                                    {
+                                        return process();
+
+                                        int {|RH4104:process|}() => 2;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public interface IProcessor
+                                 {
+                                     int Process() => 1;
+                                 }
+
+                                 public class Worker : IProcessor
+                                 {
+                                     public int Run()
+                                     {
+                                         return Process();
+
+                                         int Process() => 2;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames a local function inside an explicit implementation of <see cref="System.IDisposable.Dispose"/> to
+    /// <c>Dispose</c>, because a local function cannot implement an interface method
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixRenamesALocalFunctionToTheNameOfTheDisposeMethodInATypeThatImplementsIDisposable()
+    {
+        const string testCode = """
+                                public class Worker : System.IDisposable
+                                {
+                                    void System.IDisposable.Dispose()
+                                    {
+                                        dispose();
+
+                                        void {|RH4104:dispose|}()
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Worker : System.IDisposable
+                                 {
+                                     void System.IDisposable.Dispose()
+                                     {
+                                         Dispose();
+
+                                         void Dispose()
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
