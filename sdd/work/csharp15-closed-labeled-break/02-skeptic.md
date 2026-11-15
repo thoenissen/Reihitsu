@@ -190,9 +190,10 @@ Why A: it changes only the output that does not compile today, and fixes no posi
 One rule is stated in four places that drift apart:
 - RH7105-001's order list says "every other modifier last".
 - Its `Why:` says `ref` and `partial` come last because the grammar requires it.
+- The shipped rule page (`documentation/rules/RH7105.md:12`) says `ref` comes after every other modifier and `partial` is last.
 - The remark on `GetRh7105Rank` says the default rank is correct only while no unranked modifier can combine with `ref`/`partial`.
 
-`closed` and `safe` are the inputs where the three disagree. Answer A makes the order list say what the `Why:` and the remark say. Answer B keeps the default rank behind `ref`/`partial`, so the next unranked modifier repeats this issue. This is within the run's issue.
+`closed` and `safe` are the inputs where the order list disagrees with the other three. Answer A makes the order list say what the `Why:`, the remark, and the rule page say. Answer B keeps the default rank behind `ref`/`partial`, so the next unranked modifier repeats this issue. This is within the run's issue.
 
 ### Follow-up candidates
 
