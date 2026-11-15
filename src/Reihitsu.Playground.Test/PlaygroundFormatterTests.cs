@@ -87,8 +87,8 @@ public class PlaygroundFormatterTests
     }
 
     /// <summary>
-    /// Verifies that the input is parsed with the default language version, C# 14: an extension block, which only C# 14
-    /// parses without an error, is formatted, and the version-dependent transforms of C# 6 (expression-bodied property) and
+    /// Verifies that the input is parsed with the default language version, C# 15: an extension block, which only C# 14
+    /// and later parse without an error, is formatted, and the version-dependent transforms of C# 6 (expression-bodied property) and
     /// C# 12 (empty type body) apply
     /// </summary>
     [TestMethod]
