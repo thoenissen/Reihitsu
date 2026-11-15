@@ -31,4 +31,5 @@ None yet.
 - Done: claim, draft PR #1768, `scripts/prepare.sh` green; spec author (01, commit 487f1ec): FMT-USING-009 clarified by citing SHARED-BLANK-001, no output questions; issue's "Required output" contradicts FMT-USING-010 (blank line above `// About Linq` stays).
 - Skeptic (02, 0910a41): proceed; class m01–m12 listed; no output question; no follow-ups.
 - Spec author amendment e5dfae2 (decision 4 done).
-- Next: test implementer.
+- Test implementer (03, 23e8c89): reproduced on formatter and RH7203 fix, LF+CRLF; 13 failing tests, holders pass. Fix-path m09/m12 not asserted (whitespace of FMT-USING-010 blank line inside namespace undecided by example; existing behavior, not this issue).
+- Next: implementer.
