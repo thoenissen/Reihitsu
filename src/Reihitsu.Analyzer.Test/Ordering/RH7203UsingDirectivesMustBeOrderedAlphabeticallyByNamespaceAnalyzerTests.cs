@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -6,6 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Analyzer.CodeFixes.Rules.Organization;
 using Reihitsu.Analyzer.Rules.Organization;
 using Reihitsu.Analyzer.Test.Base;
+using Reihitsu.Analyzer.Test.Verifiers;
 
 namespace Reihitsu.Analyzer.Test.Ordering;
 
@@ -2075,6 +2077,358 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
                                  """;
 
         await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the reported input: a line of four spaces below the header ends it, so the code fix keeps the header, with
+    /// the spaces as written, at the top and moves the comment below it with its directive, a blank line above the comment.
+    /// In this and the following fixtures, <c>·</c> stands for a space and <c>→</c> for a tab
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-009")]
+    [Requirement("FMT-USING-010")]
+    [Requirement("FMT-USING-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CodeFixTakesLineOfSpacesAsEndOfHeader(string endOfLine)
+    {
+        const string testCode = """
+                                // Header
+                                ····
+                                // About Linq
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 // Header
+                                 ····
+                                 using System;
+
+                                 // About Linq
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(ReplacePlaceholders(testCode), ReplacePlaceholders(fixedCode), endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix takes a line that holds only a tab as the end of the header and keeps the tab as written
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-009")]
+    [Requirement("FMT-USING-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CodeFixTakesLineOfTabAsEndOfHeader(string endOfLine)
+    {
+        const string testCode = """
+                                // Header
+                                →
+                                // About Linq
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 // Header
+                                 →
+                                 using System;
+
+                                 // About Linq
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(ReplacePlaceholders(testCode), ReplacePlaceholders(fixedCode), endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix takes a line of spaces below an empty line as the last blank line of the header and keeps
+    /// both lines at the top
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-009")]
+    [Requirement("FMT-USING-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CodeFixKeepsLineOfSpacesBelowEmptyLineInTheHeader(string endOfLine)
+    {
+        const string testCode = """
+                                // Header
+
+                                ····
+                                // About Linq
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 // Header
+
+                                 ····
+                                 using System;
+
+                                 // About Linq
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(ReplacePlaceholders(testCode), ReplacePlaceholders(fixedCode), endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix takes an empty line below a line of spaces as the end of the header, the side of the
+    /// boundary that already holds
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-009")]
+    [Requirement("FMT-USING-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CodeFixTakesEmptyLineBelowLineOfSpacesAsEndOfHeader(string endOfLine)
+    {
+        const string testCode = """
+                                // Header
+                                ····
+
+                                // About Linq
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 // Header
+                                 ····
+
+                                 using System;
+
+                                 // About Linq
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(ReplacePlaceholders(testCode), ReplacePlaceholders(fixedCode), endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix keeps a header comment above a line of spaces at the top when an empty line separates it
+    /// from an earlier header comment
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-009")]
+    [Requirement("FMT-USING-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CodeFixKeepsHeaderCommentAboveLineOfSpacesAtTheTop(string endOfLine)
+    {
+        const string testCode = """
+                                // A
+
+                                // B
+                                ····
+                                // About Linq
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 // A
+
+                                 // B
+                                 ····
+                                 using System;
+
+                                 // About Linq
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(ReplacePlaceholders(testCode), ReplacePlaceholders(fixedCode), endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix keeps a header ending in a line of spaces, with no comment below it, at the top
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-009")]
+    [Requirement("FMT-USING-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CodeFixKeepsHeaderEndingInLineOfSpacesAtTheTop(string endOfLine)
+    {
+        const string testCode = """
+                                // Header
+                                ····
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 // Header
+                                 ····
+                                 using System;
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(ReplacePlaceholders(testCode), ReplacePlaceholders(fixedCode), endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix takes the empty line below a single-line documentation comment, parsed as documentation,
+    /// as the end of the header
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-009")]
+    [Requirement("FMT-USING-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CodeFixTakesEmptyLineBelowDocumentationCommentAsEndOfHeader(string endOfLine)
+    {
+        await VerifyDocumentationCommentHeaderFix(endOfLine, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that the code fix takes the empty line below a single-line documentation comment as the end of the header
+    /// also when the comment is not parsed as documentation
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-USING-009")]
+    [Requirement("FMT-USING-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CodeFixTakesEmptyLineBelowUnparsedDocumentationCommentAsEndOfHeader(string endOfLine)
+    {
+        await VerifyDocumentationCommentHeaderFix(endOfLine, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies the code fix for a single-line documentation comment, an empty line, and a comment above the original first
+    /// directive, in the documentation mode the configuration sets
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <param name="onConfigure">Sets the documentation mode of the test project</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyDocumentationCommentHeaderFix(string endOfLine, Action<CSharpCodeFixVerifierTest<RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer, RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceCodeFixProvider>> onConfigure)
+    {
+        const string testCode = """
+                                /// Doc
+
+                                // About Linq
+                                using System.Linq;
+                                using {|RH7203:System|};
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 /// Doc
+
+                                 using System;
+
+                                 // About Linq
+                                 using System.Linq;
+
+                                 class C
+                                 {
+                                     int x;
+                                 }
+                                 """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine),
+                     ConvertEndOfLine(fixedCode, endOfLine),
+                     test =>
+                     {
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                         onConfigure(test);
+                     });
+    }
+
+    /// <summary>
+    /// Replaces the visible placeholders of a fixture with the whitespace they stand for: <c>·</c> with a space and
+    /// <c>→</c> with a tab, so a line that holds only whitespace stays visible in the source of the test
+    /// </summary>
+    /// <param name="text">Fixture text with placeholders</param>
+    /// <returns>The fixture text with whitespace</returns>
+    private static string ReplacePlaceholders(string text)
+    {
+        return text.Replace('·', ' ')
+                   .Replace('→', '\t');
     }
 
     #endregion // Tests
