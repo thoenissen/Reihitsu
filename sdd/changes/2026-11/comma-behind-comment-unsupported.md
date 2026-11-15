@@ -117,6 +117,8 @@ A comma behind a multi-line comment whose text spans a line break (`Foo(1 /* a�
 
 A comment in front of a comma between two declarators of a variable declaration is refused by FMT-UNSUP-004 already. FMT-UNSUP-001 gives the reason of the shape that starts first in the text, and here both start at the same comment; the reason stays FMT-UNSUP-004's, which is what such a declaration reports today. A directive or disabled text in that gap, which FMT-UNSUP-004 does not cover, is refused under FMT-UNSUP-009.
 
+Only a comma between two declarators keeps FMT-UNSUP-004's reason. Every other comma in a declaration's span — in its type, such as a tuple type (`(int A // c⏎, int B) t = default;`) or a function pointer type (`delegate*<int // c⏎, void> _f;`), or in an attribute argument list — is refused with FMT-UNSUP-009's reason where a comment in front of it holds both shapes. Those commas separate the elements of a list like any other, and FMT-UNSUP-009's reason names what the user has to move; the declarator comma is the one place where FMT-UNSUP-004 already gave a reason before this change. Alternative rejected: FMT-UNSUP-004's reason for every comma in a declaration's span, which ties the message to where the list stands rather than to the comma.
+
 ## Special cases
 
 ### Deleted
