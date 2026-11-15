@@ -552,9 +552,15 @@ The code fix MUST NOT be offered either when the rename would change which symbo
 - **Rewritten.** The renamer rewrites the reference so that it keeps its binding, without reporting a conflict: it qualifies a name with `this.`, `base.`, a type, or a namespace, turns an extension-method call into a static call, or casts an argument. The reference may be a simple name, a member access, a type name, a `nameof` operand, an invocation whose overload or extension method the new name would win, or an enum member's initializer.
 - **Left as written.** The renamer leaves the reference's text unchanged, and the reference then binds to the renamed symbol: for example a member access whose receiver has the renaming type, or a type derived from it, where the rename makes the renamed member hide a member of a base type that the access called before. The compiler reports at most a warning.
 
-A reference to a symbol of the rename cascade is renamed with it and is not such a reference. A reference to another symbol whose binding the rename leaves unchanged, such as a call of an extension method in a namespace that the renamed method's namespace does not import, does not withhold the fix. So the fix changes no code other than the declarations and references of the rename cascade. The diagnostic is still reported.
+A reference to a symbol of the rename cascade is renamed with it and is not such a reference. Which symbol a reference refers to decides this, not how it is spelled: a reference to a field `value` refers to a symbol outside the cascade even where the other part of a partial method spells its parameter, which the cascade renames, `value`; and so does a reference to a type `TItem` where the other part of a partial method spells its type parameter `TItem`, which the renamer leaves as it is (SHARED-CASING-007). A reference to another symbol whose binding the rename leaves unchanged, such as a call of an extension method in a namespace that the renamed method's namespace does not import, does not withhold the fix.
 
-Why: A collision cannot be resolved without knowing which of the two names the author meant, so it is left to the author. The renamer renames every symbol of the rename cascade (SHARED-CASING-007), in whichever type and document it is declared, but a member declared in a referenced assembly keeps its name, so a compile error can appear in a type that does not contain the renamed declaration. Types with a different number of type parameters, and a file-local type and a type of another file, can share a name, so renaming to it is safe. A rename whose new name meets an existing binding is the same collision even when it compiles: a reference that the renamer rewrites is an edit of code the diagnostic does not name, and a reference that the renamer leaves as written calls another member at run time (SHARED-FIX-003). Either way the author decides which name to give up. A wrongly cased declaration whose corrected spelling is exactly a name already bound at a reference in its scope is uncommon, and a diagnostic without a fix is a supported end state.
+The code fix MUST NOT be offered either when the renamer would rewrite a reference to a symbol of the rename cascade beyond renaming it and qualifying its name: for example when it turns a call of the renamed extension method into a static call, or casts an argument of a call of the renamed method, so that the call keeps binding to the renamed symbol. A reference that the renamer renames, or renames and qualifies with `this.`, `base.`, a type, or a namespace, does not withhold the fix.
+
+The code fix MUST NOT be offered either when the rename would change which member implements a member of an interface: when the renamed method, property, or event would implicitly implement, after the rename, an interface member that its type lists among its own base types and that another member, such as an inherited one, implements today. No reference has to name the interface member for this to hold. When the type does not list the interface itself, the member that implements it today keeps implementing it, and this does not withhold the fix.
+
+So the fix changes no code other than the declarations of the rename cascade, the names of its references, and the qualifiers in front of those names. The diagnostic is still reported.
+
+Why: A collision cannot be resolved without knowing which of the two names the author meant, so it is left to the author. The renamer renames every symbol of the rename cascade (SHARED-CASING-007), in whichever type and document it is declared, but a member declared in a referenced assembly keeps its name, so a compile error can appear in a type that does not contain the renamed declaration. Types with a different number of type parameters, and a file-local type and a type of another file, can share a name, so renaming to it is safe. A rename whose new name meets an existing binding is the same collision even when it compiles: a reference that the renamer rewrites is an edit of code the diagnostic does not name, and a reference that the renamer leaves as written calls another member at run time (SHARED-FIX-003). A call of a renamed member whose shape the renamer changes, into a static call or with a cast argument, is likewise an edit beyond the rename that the diagnostic asks for. A member that starts to implement an interface member makes a call through the interface reach another member at run time, although no reference in source changes its binding (SHARED-FIX-003). A reference is matched to the cascade by what it refers to, because a name of the cascade can also be the name of another symbol in the same scope. Either way the author decides which name to give up. A wrongly cased declaration whose corrected spelling is exactly a name already bound at a reference in its scope, or that of an interface member its type re-implements, is uncommon, and a diagnostic without a fix is a supported end state.
 
 Example — RH4106:
 
@@ -760,6 +766,92 @@ public class User
 ```
 
 is reported, and no code fix is offered: `derived.Process()` calls `Base.Process` and returns `1` today. After the rename the renamer leaves it as written, and it would call `Derived.Process` and return `2`. The same holds for a property (RH4114) or a field (RH4109) that the rename would make hide a member of a base type.
+
+Example — RH4105, a reference to another symbol spelled like a name of the cascade:
+
+```csharp
+public partial class Counter
+{
+    private static int value;
+
+    public partial int Get(int value);
+
+    public partial int Get(int {|RH4105:Value|})
+    {
+        var total = Value;
+        total += 2;
+        return total + value;
+    }
+}
+```
+
+is reported, and no code fix is offered: the rename gives the parameter the name `value`, and the renamer would rewrite the field reference `value` to `Counter.value`. That the other part already spells its parameter `value` does not make the field reference one of the cascade. The same holds for an instance field, which the renamer would rewrite to `this.value`, and for `nameof(value)`, which it would rewrite to `nameof(Counter.value)`. It holds as well for RH4121, with a class `N.TItem` and a partial method `Count<TItem>()` whose other part declares `Count<{|RH4121:item|}>()` and calls `TItem.Size()`: the renamer would rewrite the call to `N.TItem.Size()`.
+
+Example — RH4103, a call of the renamed extension method that the renamer would turn into a static call:
+
+```csharp
+using System.Collections.Generic;
+
+namespace N
+{
+    public static class Extensions
+    {
+        public static List<int> {|RH4103:toList|}(this IEnumerable<int> source) => new List<int>();
+    }
+
+    namespace Inner
+    {
+        using System.Linq;
+
+        public class User
+        {
+            public List<int> Get(int[] values) => values.toList();
+        }
+    }
+}
+```
+
+is reported, and no code fix is offered: after the rename, `values.ToList()` would call `Enumerable.ToList`, and the renamer would rewrite the call to `Extensions.ToList(values)` so that it keeps calling the renamed method.
+
+Example — RH4103, a call of the renamed method that the renamer would give a cast argument:
+
+```csharp
+public class Box
+{
+    public void {|RH4103:write|}(object value)
+    {
+    }
+
+    public void Write(int value)
+    {
+    }
+
+    public void Use(Box box) => box.write(1);
+}
+```
+
+is reported, and no code fix is offered: after the rename, `box.Write(1)` would call `Write(int)`, and the renamer would rewrite the call to `box.Write((object)1)`. A reference of the cascade that the renamer only qualifies, such as a class `order` (RH4002) referenced as `order` in a type that declares a nested class `Order`, which the renamer rewrites to `N.Order`, does not withhold the fix.
+
+Example — RH4103, a rename that would change which method implements an interface method:
+
+```csharp
+public interface IProcessor
+{
+    int Process();
+}
+
+public class Base : IProcessor
+{
+    public int Process() => 1;
+}
+
+public class Derived : Base, IProcessor
+{
+    public int {|RH4103:process|}() => 2;
+}
+```
+
+is reported, and no code fix is offered: `((IProcessor)new Derived()).Process()` calls `Base.Process` and returns `1` today. `Derived` lists `IProcessor` among its own base types, so after the rename `Derived.Process` would implement `IProcessor.Process`, and the call would return `2`. The same holds for a property (RH4114) or an event that would implement an interface property or event this way. When `Derived` is declared as `class Derived : Base` instead, `Base.Process` keeps implementing `IProcessor.Process` for it, and the fix is offered, as long as no reference such as `derived.Process()` would bind to the renamed method.
 
 ### SHARED-CASING-010 — Fix All skips names that would collide with each other
 
