@@ -826,6 +826,7 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
     /// Verifies that a comma left alone on its line after a line comment is aligned with the parameters
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-012")]
     public void CommaAloneOnItsLineStaysAligned()
     {
         // Arrange
@@ -851,6 +852,7 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
     /// parameter
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-012")]
     public void CommaAfterDirectiveHeldFirstParameterStaysAligned()
     {
         // Arrange
@@ -907,10 +909,11 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a leading comma of an indexer parameter list is aligned with the list's first parameter, not with
-    /// the parameter that shares the previous line
+    /// Verifies that a comment-held leading comma of an indexer parameter list is aligned with the list's first
+    /// parameter, after the parameters that shared the previous line are split onto their own lines
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-012")]
     public void IndexerLeadingCommaAfterSharedLineIsAlignedWithTheFirstParameter()
     {
         // Arrange
@@ -923,9 +926,19 @@ public class ParameterContinuationLineAlignmentTests : FormatterTestsBase
                                                    , int third] => first;
                              }
                              """;
+        const string expected = """
+                                namespace Demo;
+
+                                internal class Example
+                                {
+                                    internal int this[int first,
+                                                      int second // keep
+                                                      , int third] => first;
+                                }
+                                """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
