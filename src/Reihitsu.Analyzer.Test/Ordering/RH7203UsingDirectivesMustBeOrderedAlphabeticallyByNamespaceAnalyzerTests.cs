@@ -1510,6 +1510,573 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
         await Verify(ConvertEndOfLine(testCode, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies that the fix keeps the indentation of a namespace with a body when a header without a blank line stands above the
+    /// first directive and that directive moves away from the top
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("FMT-USING-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CodeFixKeepsNamespaceIndentationBelowAHeaderWithoutBlankLine(string endOfLine)
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    // Header
+                                    using System.Linq;
+                                    using {|RH7203:System|};
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     // Header
+                                     using System;
+                                     using System.Linq;
+
+                                     class C
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the indentation of a namespace with a body when a blank line separates the header from the
+    /// first directive and that directive moves away from the top
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("FMT-USING-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CodeFixKeepsNamespaceIndentationBelowAHeaderWithBlankLine(string endOfLine)
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    // Header
+
+                                    using System.Linq;
+                                    using {|RH7203:System|};
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     // Header
+
+                                     using System;
+                                     using System.Linq;
+
+                                     class C
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix places the comment that leads the new first directive at the indentation of a namespace with a body
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("FMT-USING-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CodeFixKeepsNamespaceIndentationOfTheCommentLeadingTheNewFirstDirective(string endOfLine)
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    // Header
+
+                                    using System.Linq;
+                                    // About System
+                                    using {|RH7203:System|};
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     // Header
+
+                                     // About System
+                                     using System;
+                                     using System.Linq;
+
+                                     class C
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the indentation of a namespace with a body when a comment that moves with the original first
+    /// directive stands below the header's blank line
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("FMT-USING-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CodeFixKeepsNamespaceIndentationOfACommentMovingWithTheOriginalFirstDirective(string endOfLine)
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    // Header
+
+                                    // About Linq
+                                    using System.Linq;
+                                    using {|RH7203:System|};
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     // Header
+
+                                     using System;
+
+                                     // About Linq
+                                     using System.Linq;
+
+                                     class C
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the indentation of a namespace with a body below a delimited header
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("FMT-USING-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CodeFixKeepsNamespaceIndentationBelowADelimitedHeader(string endOfLine)
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    /* Header */
+                                    using System.Linq;
+                                    using {|RH7203:System|};
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     /* Header */
+                                     using System;
+                                     using System.Linq;
+
+                                     class C
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the indentation of a namespace with a body below a documentation comment header
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("FMT-USING-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CodeFixKeepsNamespaceIndentationBelowADocumentationHeader(string endOfLine)
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    /// Header
+                                    using System.Linq;
+                                    using {|RH7203:System|};
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     /// Header
+                                     using System;
+                                     using System.Linq;
+
+                                     class C
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the indentation of a namespace with a body when the original first directive moves behind a
+    /// directive that keeps its middle position
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("FMT-USING-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CodeFixKeepsNamespaceIndentationWhenTheOriginalFirstDirectiveMovesToTheEnd(string endOfLine)
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    // Header
+                                    using System.Text;
+                                    using {|RH7203:System.Linq|};
+                                    using {|RH7203:System|};
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     // Header
+                                     using System;
+                                     using System.Linq;
+                                     using System.Text;
+
+                                     class C
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the indentation of a namespace nested in another namespace with a body below a header
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("FMT-USING-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CodeFixKeepsNestedNamespaceIndentationBelowAHeader(string endOfLine)
+    {
+        const string testCode = """
+                                namespace A
+                                {
+                                    namespace B
+                                    {
+                                        // Header
+                                        using System.Linq;
+                                        using {|RH7203:System|};
+
+                                        class C
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace A
+                                 {
+                                     namespace B
+                                     {
+                                         // Header
+                                         using System;
+                                         using System.Linq;
+
+                                         class C
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the tab that indents a namespace with a body in front of every directive below a header
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("FMT-USING-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CodeFixKeepsTabIndentationBelowAHeader(string endOfLine)
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    // Header
+                                    using System.Linq;
+                                    using {|RH7203:System|};
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     // Header
+                                     using System;
+                                     using System.Linq;
+
+                                     class C
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode.Replace("    ", "\t"), fixedCode.Replace("    ", "\t"), endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the indentation of indented directives in a file-scoped namespace below a header
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("FMT-USING-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CodeFixKeepsIndentationOfIndentedFileScopedNamespaceDirectivesBelowAHeader(string endOfLine)
+    {
+        const string testCode = """
+                                namespace N;
+
+                                    // Header
+                                    using System.Linq;
+                                    using {|RH7203:System|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N;
+
+                                     // Header
+                                     using System;
+                                     using System.Linq;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the indentation of indented directives in a compilation unit below a header
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("FMT-USING-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CodeFixKeepsIndentationOfIndentedCompilationUnitDirectivesBelowAHeader(string endOfLine)
+    {
+        const string testCode = """
+                                    // Header
+                                    using System.Linq;
+                                    using {|RH7203:System|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                     // Header
+                                     using System;
+                                     using System.Linq;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the indentation of a namespace with a body when no comment stands above the block
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("FMT-USING-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CodeFixKeepsNamespaceIndentationWithoutHeader(string endOfLine)
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    using System.Linq;
+                                    using {|RH7203:System|};
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     using System;
+                                     using System.Linq;
+
+                                     class C
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All organizes the blocks of two namespaces with a body, each below a header, at the namespaces' indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-004")]
+    [Requirement("FMT-USING-011")]
+    public async Task FixAllKeepsNamespaceIndentationOfTwoBlocksBelowHeaders()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    // Header
+                                    using System.Linq;
+                                    using {|RH7203:System|};
+
+                                    class C
+                                    {
+                                    }
+                                }
+
+                                namespace M
+                                {
+                                    // Header
+
+                                    using System.Text;
+                                    using {|RH7203:System.Collections|};
+
+                                    class D
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     // Header
+                                     using System;
+                                     using System.Linq;
+
+                                     class C
+                                     {
+                                     }
+                                 }
+
+                                 namespace M
+                                 {
+                                     // Header
+
+                                     using System.Collections;
+                                     using System.Text;
+
+                                     class D
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

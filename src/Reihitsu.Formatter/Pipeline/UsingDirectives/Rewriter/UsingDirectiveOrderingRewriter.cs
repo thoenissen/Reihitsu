@@ -104,6 +104,14 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
             {
                 firstLeadingTriviaPrefix = firstLeadingTriviaPrefix.AddRange(header);
 
+                // A header that ends its line leaves the directive taking the first position on a line of its
+                // own, which starts at the whitespace of the original first directive's line (FMT-USING-011);
+                // that whitespace stays in the remainder for the directive moving away from the top
+                if (SyntaxTriviaUtilities.EndsLine(header.Last()))
+                {
+                    firstLeadingTriviaPrefix = firstLeadingTriviaPrefix.AddRange(scopeIndentation);
+                }
+
                 var detachedFirst = originalFirst.WithLeadingTrivia(remainder);
 
                 if (directivesStartingTheirLine.Contains(originalFirst))
