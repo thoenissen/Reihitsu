@@ -50,6 +50,9 @@ Behavior-change lane: spec author → skeptic → test implementer → implement
 | 11 | Tests | RH5305/RH5306 misplaced comment before the closing bracket (decision 5) | Not reported, as tested: the rules' own comment exemptions (RH5305-001, RH5306-001) still apply under SHARED-COMMENT-011 | Unchanged specs decide | Unchanged requirements decide the output | 3ab1917 |
 | 12 | Tests | 11 attribute rules without their own conditional-directive test | Add one conditional-directive test per remaining rule (fresh test implementer, small round) | Role file does not accept base-class coverage as proof; cheap | Tests only | |
 | 13 | Tests | #1386 diagnostic span | Accept: from `///`/`/**` to the end of the text, without the line break (SHARED-COMMENT-003, consistent with RH5204-005) | Consistent reading | SHARED-COMMENT-003 decides (located on the comment) | 3ab1917 |
+| 14 | Impl | Decision-4 size | Structural part ~70 lines of helpers on `CommentPositionUtilities`, −19 in RH5201, no new type: below escalation 9 | Within limit | Internal | 2e647ba |
+| 15 | Impl | RH5204 not moved onto the shared helper | Accept: RH5204 measures line indentation from text; its comment-tail logic answers SHARED-COMMENT-012, a different question | Not a copy of the same decision | Internal | 2e647ba |
+| 16 | Impl | Disputed tests: RH5204 formatter test span; RH7304 single-action assertion over two regions | Both tests are wrong: RH5204-005 (span starts at `/**`) and RH7304-004 (one action fixes only the reported pair) decide. Route to a fresh test implementer | Unchanged/amended requirements decide | Location decided by RH5204-005; RH7304 Fix All output matches spec example | |
 
 ## Follow-up candidates
 
@@ -65,5 +68,5 @@ Behavior-change lane: spec author → skeptic → test implementer → implement
 - Last step: spec author done (3b1b3d3); lane check confirmed behavior-change.
 - Open output questions (from 01-spec-author): OQ1 RH7304 fix for comment-led region line; OQ2 RH5111 comment/#pragma in wrapped gap; #1736 change-doc visible output changes (5 entries, entry 3 comment keeping first parameter off `(` line).
 - Skeptic done (829026e). Output-question batch 1 posted to maintainer (OQ1 RH7304 fix, OQ2 RH5111 gap, OQ3 RH5111 declarator directive-only gap, OQ4 #1736 entries 1/2/`)`-comment/5, OQ5 #1736 entry 3).
-- Spec amendments done (07f77fa); both change docs Accepted. Test implementer done (3ab1917, 479e502): 119 red cases, all new/rewritten. Test round 05 done (67f49f7, 3669fb5): 22 new red cases. Next: implementer (06).
+- Spec amendments done (07f77fa); both change docs Accepted. Test implementer done (3ab1917, 479e502): 119 red cases, all new/rewritten. Test round 05 done (67f49f7, 3669fb5): 22 new red cases. Implementer done (2e647ba, 49813ba): all green except 2 disputed tests. Next: test implementer repairs the 2 tests (07), then cleaner (08).
 - (old) Next: on answers, spec author amends (SHARED-COMMENT-001 clarification, RH7304-001 multi-line, change doc per answers, RH5111-005 per OQ2/3), then test implementer.
