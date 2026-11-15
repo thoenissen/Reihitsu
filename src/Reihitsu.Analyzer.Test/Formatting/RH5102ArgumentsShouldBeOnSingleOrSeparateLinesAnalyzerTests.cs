@@ -939,6 +939,39 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies the input of the conditional directive report: an argument list with a conditional directive whose excluded code holds an argument is not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-004")]
+    [Requirement("SHARED-DIAG-008")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyConditionalDirectiveExcludingAnArgumentKeepsTheListFromBeingReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N(int a, int b, int c, int d)
+                                    {
+                                        M(a, b,
+                                #if DEBUG
+                                          c,
+                                #endif
+                                          d);
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

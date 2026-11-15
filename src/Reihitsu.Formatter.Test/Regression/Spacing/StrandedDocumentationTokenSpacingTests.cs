@@ -116,38 +116,6 @@ public class StrandedDocumentationTokenSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an argument separator below a stray documentation comment is aligned with the first argument, as
-    /// it is below a single-line comment
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-INDENT-002")]
-    public void CommaBelowStrayDocumentationCommentIsAlignedWithFirstArgument()
-    {
-        const string input = """
-                             public class C
-                             {
-                                 public void M()
-                                 {
-                                     System.Math.Max(1 /// stray
-                                         , 2);
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                public class C
-                                {
-                                    public void M()
-                                    {
-                                        System.Math.Max(1 /// stray
-                                                        , 2);
-                                    }
-                                }
-                                """;
-
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
     /// Verifies that a closing parenthesis below a stray documentation comment is aligned with the first argument, as it
     /// is below a single-line comment
     /// </summary>

@@ -5,7 +5,7 @@
 | ID prefix | FMT-INDENT |
 | Status | Active |
 | Code owners | `IndentationPhase`, `LayoutComputer`, `LayoutModel`, `TokenLayout`, `IndentationRewriter`, `ListElementAligner`, `SyntaxIndentationUtilities`, `ArgumentAlignmentContributor`, `AngleBracketListAlignmentContributor`, `AnonymousObjectContributor`, `BaseTypeListContributor`, `BinaryExpressionContributor`, `CaseWhenClauseContributor`, `CollectionExpressionContributor`, `CommentIndentationContributor`, `ConditionalExpressionContributor`, `ConstructorInitializerContributor`, `GenericConstraintContributor`, `LambdaAlignmentContributor`, `ListPatternContributor`, `MethodChainAlignmentContributor`, `ObjectInitializerContributor`, `ParenthesizedPatternContributor`, `PatternAnchor`, `RecursivePatternContributor`, `SwitchExpressionContributor` |
-| Uses | FMT-BREAK-002, FMT-BREAK-006, FMT-BREAK-014, FMT-BREAK-037, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-014, FMT-PIPE-015, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-007, FMT-DOC-003, FMT-DOC-012, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SWITCH-001 |
+| Uses | FMT-BREAK-002, FMT-BREAK-006, FMT-BREAK-014, FMT-BREAK-037, FMT-BREAK-038, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-004, FMT-PIPE-014, FMT-PIPE-015, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-007, FMT-DOC-003, FMT-DOC-012, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SWITCH-001, FMT-UNSUP-009 |
 
 This spec covers the indentation phase: the column at which every line that starts with a token begins — block indentation by scope depth, the alignment of wrapped constructs to an anchor token, and the re-indentation of comments and directives that start a line. Line breaks are already decided when this phase runs (FMT-PIPE-001); it only changes the whitespace in front of the first token or trivia of a line. The same phase moves the lines of multi-line raw string literals as FMT-RAW specifies, so the column it gives a line is final (FMT-PIPE-015).
 
@@ -17,6 +17,7 @@ This spec covers the indentation phase: the column at which every line that star
 - How the content lines and the closing marker of a multi-line raw string literal, and the lines inside its interpolation holes that no alignment inside the hole places, are moved — FMT-RAW, which specifies that part of this phase.
 - The text of documentation comments other than the column of their `///` markers — FMT-DOC.
 - The column of a continuation line that no requirement below owns — for example the right operand of a wrapped binary expression, the expression after `=>` or `=` that stays on its own line, or the content of a parenthesized pattern that is not a property pattern. Such lines currently take the block column of the enclosing statement or declaration; indenting them one level deeper is a decided behavior change, tracked in thoenissen/Reihitsu#953.
+- The column of a comma that starts a line between the arms of a switch expression, in a positional pattern, or in a base list. In initializers, collection expressions, list patterns, and property patterns no line starts with a comma: FMT-BREAK-038 moves every such comma behind the element in front of it.
 - Configuration. The indentation unit is fixed; no option or `.editorconfig` setting is read.
 
 ## Requirements
@@ -1985,9 +1986,9 @@ is left unchanged.
 
 This requirement applies to every `where` clause, whichever declaration owns it — a type, a method, a local function, a delegate, or an extension block.
 
-When the constraints of a `where` clause span several lines, the formatter MUST indent every constraint and every comma between two constraints that starts a line to the column of the clause's first constraint, the constraint directly behind the colon. When the first constraint itself starts a line, because a comment, a directive, or disabled text behind the colon keeps FMT-BREAK-037 from joining it onto the colon's line, the formatter MUST indent the constraints and commas that start a line to the column behind the colon and one space — the column the first constraint has when it stands behind the colon. When the colon starts a line, because a comment, a directive, or disabled text behind the type parameter keeps FMT-BREAK-037 from joining it, the formatter MUST indent the colon one level deeper than the clause's `where` keyword, and the constraints follow from the colon's column as stated above.
+When the constraints of a `where` clause span several lines, the formatter MUST indent every constraint that starts a line to the column of the clause's first constraint, the constraint directly behind the colon. When the first constraint itself starts a line, because a comment, a directive, or disabled text behind the colon keeps FMT-BREAK-037 from joining it onto the colon's line, the formatter MUST indent the constraints that start a line to the column behind the colon and one space — the column the first constraint has when it stands behind the colon. When the colon starts a line, because a comment, a directive, or disabled text behind the type parameter keeps FMT-BREAK-037 from joining it, the formatter MUST indent the colon one level deeper than the clause's `where` keyword, and the constraints follow from the colon's column as stated above.
 
-This requirement places only the lines that start with the colon, with a constraint, or with a comma between two constraints. A line inside a constraint that starts at a token other than the constraint's first token is placed by the requirement of the construct it belongs to, measured from where the constraint stands after this requirement (FMT-INDENT-030); FMT-INDENT-015 aligns a later type argument.
+This requirement places only the lines that start with the colon or with a constraint. No line of a wrapped clause starts with a comma: FMT-BREAK-037 ends the line of the constraint in front of every comma, and the formatter refuses a comma that a comment, a directive, or disabled text keeps off that line (FMT-UNSUP-009). A line inside a constraint that starts at a token other than the constraint's first token is placed by the requirement of the construct it belongs to, measured from where the constraint stands after this requirement (FMT-INDENT-030); FMT-INDENT-015 aligns a later type argument.
 
 Why: Aligning with the first constraint shows that the constraints belong to one clause, as base types align to the first base type (FMT-INDENT-016); the block column of the declaration's scope would put them left of their own `where` keyword. Taking the first constraint's column also when a comment or a directive pushes it onto the next line keeps the column independent of it, as an argument list whose first argument a comment pushes down aligns to the column after its opening parenthesis (FMT-INDENT-012). A colon that has to start a line belongs to the clause's header, which FMT-INDENT-017 indents one level from its owner; one level deeper than `where` keeps it apart from the next `where` clause.
 
@@ -2045,7 +2046,7 @@ static class E
 }
 ```
 
-Example — a constraint and a comma that a comment or a directive pushes onto the next line take the first constraint's column, and a colon that a comment pushes onto the next line is indented one level deeper than `where`:
+Example — a constraint that a comment or a directive pushes onto the next line takes the first constraint's column, and a colon that a comment pushes onto the next line is indented one level deeper than `where`:
 
 ```csharp
 class C
@@ -2063,12 +2064,6 @@ class C
         class,
 #endif
         new()
-    {
-    }
-
-    void O<T>()
-        where T : class // c
-    , new()
     {
     }
 
@@ -2100,12 +2095,6 @@ class C
     {
     }
 
-    void O<T>()
-        where T : class // c
-                  , new()
-    {
-    }
-
     void P<T>()
         where T // c
             : class,
@@ -2114,3 +2103,7 @@ class C
     }
 }
 ```
+
+### FMT-INDENT-033 — A comma that starts a line in an initializer, a collection expression, or a pattern takes its elements' column
+
+Status: Retired in the change that added it — a line that starts with a comma in these constructs is left only where a comment, a directive, or disabled text keeps the comma off the line of the element in front of it, and the formatter refuses that shape (FMT-UNSUP-009); every other such comma moves behind its element (FMT-BREAK-038), so no line is left for a column.

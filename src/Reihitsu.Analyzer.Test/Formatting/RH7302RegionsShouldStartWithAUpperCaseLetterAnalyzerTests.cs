@@ -621,6 +621,243 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
         await Verify(testData, fixedData);
     }
 
+    /// <summary>
+    /// Verifies that a lower-case region in front of the closing brace of a class with a primary constructor is reported
+    /// once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7302-001")]
+    [Requirement("RH7302-003")]
+    public async Task VerifyLowercaseRegionInFrontOfClosingBraceOfClassWithPrimaryConstructorIsReportedOnce()
+    {
+        const string testData = """
+                                public class Service(int value)
+                                {
+                                    #region Properties
+                                    public int Value => value;
+                                    #endregion // Properties
+
+                                    {|#0:#region lower|}
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix capitalizes a lower-case region in front of the closing brace of a class with a primary
+    /// constructor in one application
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7302-001")]
+    [Requirement("RH7302-003")]
+    public async Task VerifyLowercaseRegionInFrontOfClosingBraceOfClassWithPrimaryConstructorIsFixed()
+    {
+        const string testData = """
+                                public class Service(int value)
+                                {
+                                    #region Properties
+                                    public int Value => value;
+                                    #endregion // Properties
+
+                                    {|#0:#region lower|}
+                                    #endregion // lower
+                                }
+                                """;
+        const string fixedData = """
+                                 public class Service(int value)
+                                 {
+                                     #region Properties
+                                     public int Value => value;
+                                     #endregion // Properties
+
+                                     #region Lower
+                                     #endregion // Lower
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a lower-case region in front of a struct with a primary constructor is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7302-001")]
+    [Requirement("RH7302-003")]
+    public async Task VerifyLowercaseRegionInFrontOfStructWithPrimaryConstructorIsReportedOnce()
+    {
+        const string testData = """
+                                {|#0:#region lower region|}
+                                public struct S(int a)
+                                {
+                                    public int A => a;
+                                }
+                                #endregion
+                                """;
+
+        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a lower-case region in front of a positional record is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7302-001")]
+    [Requirement("RH7302-003")]
+    public async Task VerifyLowercaseRegionInFrontOfPositionalRecordIsReportedOnce()
+    {
+        const string testData = """
+                                {|#0:#region lower region|}
+                                public record R(int A);
+                                #endregion
+                                """;
+
+        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a lower-case region between the attribute list and the modifiers of a class with a primary
+    /// constructor is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7302-001")]
+    [Requirement("RH7302-003")]
+    public async Task VerifyLowercaseRegionAfterAttributeListOfClassWithPrimaryConstructorIsReportedOnce()
+    {
+        const string testData = """
+                                [System.Obsolete]
+                                {|#0:#region lower|}
+                                #endregion
+                                public class Service(int value)
+                                {
+                                    public int Value => value;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a lower-case region in front of a positional record nested in a class is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7302-001")]
+    [Requirement("RH7302-003")]
+    public async Task VerifyLowercaseRegionInFrontOfNestedPositionalRecordIsReportedOnce()
+    {
+        const string testData = """
+                                public class Outer
+                                {
+                                    {|#0:#region lower|}
+                                    public sealed record Inner(int A);
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a lower-case region inside the parameter list of a positional record is still reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7302-001")]
+    [Requirement("RH7302-003")]
+    public async Task VerifyLowercaseRegionInsideParameterListOfPositionalRecordIsReportedOnce()
+    {
+        const string testData = """
+                                public record R(
+                                    {|#0:#region lower|}
+                                    int A
+                                    #endregion
+                                    );
+                                """;
+
+        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a lower-case region in front of the defining part of a partial constructor
+    /// is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-013")]
+    public async Task VerifyLowercaseRegionInFrontOfDefiningPartOfPartialConstructorIsNotReported()
+    {
+        const string testData = """
+                                public partial class C
+                                {
+                                    #region lower
+                                    public partial C(int value);
+                                    #endregion
+
+                                    public partial C(int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a lower-case region in front of the argument list of the base type of a class with a primary
+    /// constructor is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7302-001")]
+    [Requirement("RH7302-003")]
+    public async Task VerifyLowercaseRegionInFrontOfBaseTypeArgumentListOfClassWithPrimaryConstructorIsReportedOnce()
+    {
+        const string testData = """
+                                public class Base(int value)
+                                {
+                                    public int Value => value;
+                                }
+
+                                public class Derived(int value) : Base
+                                    {|#0:#region lower|}
+                                    #endregion
+                                    (value);
+                                """;
+
+        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a lower-case region in front of the parameter list of a class with a primary constructor is
+    /// reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7302-001")]
+    [Requirement("RH7302-003")]
+    public async Task VerifyLowercaseRegionInFrontOfParameterListOfClassWithPrimaryConstructorIsReportedOnce()
+    {
+        const string testData = """
+                                public class Service
+                                    {|#0:#region lower|}
+                                    #endregion
+                                    (int value)
+                                {
+                                    public int Value => value;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

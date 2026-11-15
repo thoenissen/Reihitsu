@@ -1338,6 +1338,203 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
                      });
     }
 
+    /// <summary>
+    /// Verifies that a constant on the left of a comparison in an <c>#if</c> condition in front of the closing brace
+    /// of a class with a primary constructor is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3005-001")]
+    [Requirement("RH3005-003")]
+    public async Task ConstantOnLeftInIfConditionInFrontOfClosingBraceOfClassWithPrimaryConstructorIsReportedOnce()
+    {
+        const string testData = """
+                                public class Service(int value)
+                                {
+                                    public int Value => value;
+                                #if true {|#0:==|} A
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, "Use readable conditions."));
+    }
+
+    /// <summary>
+    /// Verifies that a constant on the left of a comparison in an <c>#if</c> condition in front of a class with a
+    /// primary constructor is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3005-001")]
+    [Requirement("RH3005-003")]
+    public async Task ConstantOnLeftInIfConditionInFrontOfClassWithPrimaryConstructorIsReportedOnce()
+    {
+        const string testData = """
+                                #if true {|#0:==|} A
+                                #endif
+                                public class Service(int value)
+                                {
+                                    public int Value => value;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, "Use readable conditions."));
+    }
+
+    /// <summary>
+    /// Verifies the fix of a comparison on the line after <c>return</c>, with a comment in front of it, keeps the line break in
+    /// front of it, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">The line ending of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("RH3005-004")]
+    public async Task FixOfCommentedComparisonOnTheNextLineKeepsTheLineBreakInFrontOfIt(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(int a, bool b)
+                                    {
+                                        return
+                                            /* x */ 0 {|RH3005:<|} a;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(int a, bool b)
+                                     {
+                                         return
+                                             /* x */ a > 0;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the fix of a comparison behind a line that holds only a comment keeps the line break behind <c>return</c> and the
+    /// one behind the comment, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">The line ending of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("RH3005-004")]
+    public async Task FixOfComparisonBehindACommentLineKeepsBothLineBreaksInFrontOfIt(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(int a, bool b)
+                                    {
+                                        return
+                                            // c
+                                            0 {|RH3005:<|} a;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(int a, bool b)
+                                     {
+                                         return
+                                             // c
+                                             a > 0;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the fix of a comparison on the line after <c>&amp;&amp;</c>, with a comment in front of it, keeps the line break in
+    /// front of it, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">The line ending of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("RH3005-004")]
+    public async Task FixOfCommentedComparisonBehindALogicalOperatorKeepsTheLineBreakInFrontOfIt(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(int a, bool b)
+                                    {
+                                        return b &&
+                                            /* x */ 0 {|RH3005:<|} a;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(int a, bool b)
+                                     {
+                                         return b &&
+                                             /* x */ a > 0;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the fix of a comparison followed by a comment and a line break keeps the line break behind it, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">The line ending of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    [Requirement("RH3005-004")]
+    public async Task FixOfComparisonFollowedByACommentAndALineBreakKeepsTheLineBreakBehindIt(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(int a, bool b)
+                                    {
+                                        return 0 {|RH3005:<|} a /* x */ &&
+                                            b;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool M(int a, bool b)
+                                     {
+                                         return a > 0 /* x */ &&
+                                             b;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
     #endregion // Tests
 
     #region Methods

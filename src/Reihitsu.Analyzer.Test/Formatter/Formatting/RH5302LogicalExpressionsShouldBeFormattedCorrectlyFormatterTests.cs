@@ -88,5 +88,28 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyFormatterTests : 
                               ExpectedDiagnostic(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 6, 19, 6, 21, AnalyzerResources.RH5302MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that an operator behind a comment that starts its line in the operator column is not reported and stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5302-002")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyOperatorBehindLeadingCommentInOperatorColumnIsNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    bool M(bool a, bool b)
+                                    {
+                                        return a
+                                               /* and */ && b;
+                                    }
+                                }
+                                """;
+
+        await VerifyFormatter(testData);
+    }
+
     #endregion // Tests
 }

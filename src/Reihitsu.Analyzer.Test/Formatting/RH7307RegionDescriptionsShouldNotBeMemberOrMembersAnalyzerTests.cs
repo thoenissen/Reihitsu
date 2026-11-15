@@ -229,5 +229,45 @@ public class RH7307RegionDescriptionsShouldNotBeMemberOrMembersAnalyzerTests : A
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that an end-region description equal to Members in front of the closing brace of a class with a primary
+    /// constructor is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7307-001")]
+    [Requirement("SHARED-REGDESC-002")]
+    public async Task VerifyEndRegionInFrontOfClosingBraceOfClassWithPrimaryConstructorIsReportedOnce()
+    {
+        const string testData = """
+                                public class Other(int value)
+                                {
+                                    #region Properties
+                                    public int Value => value;
+                                    {|#0:#endregion // Members|}
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7307RegionDescriptionsShouldNotBeMemberOrMembersAnalyzer.DiagnosticId, AnalyzerResources.RH7307MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a region description equal to Members in front of a positional record is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7307-001")]
+    [Requirement("SHARED-REGDESC-002")]
+    public async Task VerifyRegionInFrontOfPositionalRecordIsReportedOnce()
+    {
+        const string testData = """
+                                {|#0:#region Members|}
+                                public record R(int A);
+                                #endregion // Records
+                                """;
+
+        await Verify(testData, Diagnostics(RH7307RegionDescriptionsShouldNotBeMemberOrMembersAnalyzer.DiagnosticId, AnalyzerResources.RH7307MessageFormat));
+    }
+
     #endregion // Tests
 }

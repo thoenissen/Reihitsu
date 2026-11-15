@@ -11,7 +11,8 @@ using Reihitsu.Formatter.Pipeline.LineBreaks.Utilities;
 namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 
 /// <summary>
-/// Applies line-break rules for initializer and object creation expressions
+/// Applies line-break rules for initializer and object creation expressions, collection expressions, and list and property
+/// patterns, including the move of a comma that starts a line behind the element in front of it (FMT-BREAK-038)
 /// </summary>
 internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
 {
@@ -204,6 +205,8 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
             return null;
         }
 
+        node = LineBreakTriviaUtilities.CollapseSeparatorsToPreviousElementLine(node, static initializer => initializer.Expressions, _context.EndOfLine);
+
         if (node.IsKind(SyntaxKind.ArrayInitializerExpression))
         {
             return node;
@@ -332,6 +335,8 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
             return null;
         }
 
+        node = LineBreakTriviaUtilities.CollapseSeparatorsToPreviousElementLine(node, static creation => creation.Initializers, _context.EndOfLine);
+
         if (node.Initializers.Count > 1)
         {
             node = EnsureElementsOnSeparateLines(node, static creation => creation.Initializers);
@@ -355,6 +360,8 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
         {
             return null;
         }
+
+        node = LineBreakTriviaUtilities.CollapseSeparatorsToPreviousElementLine(node, static collection => collection.Elements, _context.EndOfLine);
 
         var isMultiLineCollection = LineBreakTriviaUtilities.SpansMultipleLines(node.OpenBracketToken, node.CloseBracketToken);
 
@@ -385,6 +392,8 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
         {
             return null;
         }
+
+        node = LineBreakTriviaUtilities.CollapseSeparatorsToPreviousElementLine(node, static pattern => pattern.Patterns, _context.EndOfLine);
 
         var isMultiLinePattern = LineBreakTriviaUtilities.SpansMultipleLines(node.OpenBracketToken, node.CloseBracketToken);
 
@@ -427,6 +436,9 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
         {
             return node;
         }
+
+        propertyClause = LineBreakTriviaUtilities.CollapseSeparatorsToPreviousElementLine(propertyClause, static clause => clause.Subpatterns, _context.EndOfLine);
+        node = node.WithPropertyPatternClause(propertyClause);
 
         if (LineBreakTriviaUtilities.SpansMultipleLines(propertyClause.OpenBraceToken, propertyClause.CloseBraceToken) == false)
         {

@@ -5,7 +5,7 @@
 | ID prefix | SHARED-DIAG |
 | Status | Active |
 | Code owners | `DiagnosticAnalyzerBase`, `PartialMemberUtilities` |
-| Uses | FMT-DOC-012, FMT-UNSUP-001, FMT-UNSUP-008, RH5308-005, SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-010, SHARED-JOIN-001, SHARED-TRAIL-002 |
+| Uses | FMT-DOC-012, FMT-UNSUP-001, FMT-UNSUP-008, RH2109-004, RH5308-005, SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-010, SHARED-JOIN-001, SHARED-TRAIL-002 |
 
 This spec covers what holds for every analyzer rule, so a rule spec states only what the rule itself reports. It applies to every rule without being listed under `Uses`.
 
@@ -101,7 +101,7 @@ An analyzer rule MUST treat the text of a literal and the text of a comment as c
 
 What the text of a literal protects is its value. How the literal spells that value — an escape sequence such as `\t` or the `{{` of an interpolated string, or the indentation of a raw string's lines that the compiler removes — is the literal's own syntax.
 
-This requirement restricts only rules that check code. A rule whose subject is the text of a comment or of a directive, such as RH3201, RH7301, or a documentation rule (RH8###), checks that text as its subject. A rule whose subject is a literal, such as RH5202, checks how the literal spells its value.
+This requirement restricts only rules that check code. A rule whose subject is the text of a comment or of a directive, such as RH3201, RH7301, or a documentation rule (RH8###), checks that text as its subject. A rule whose subject is a literal, such as RH5202, checks how the literal spells its value. RH2109 is an exception to this requirement for a line inside a multi-line C# comment or literal of a Razor file: it reads such a line like markup, as RH2109-004 states.
 
 Why: The text of a literal is the program's data, and the text of a comment is the author's prose — in a Razor file as much as in C#, where `@@` writes a plain `@` and an `@` inside a word, such as an e-mail address, is part of the word; their characters — spaces, tabs, empty lines, commas, braces — carry a meaning that a rule about code cannot judge. How a literal spells its value belongs to the literal's own syntax: the value stays the same however it is spelled, so a rule about literals may judge the spelling. Everything else is code the compiler reads as tokens. Exempting it because a literal is next to it, or because it is written inside an interpolated string, would leave ordinary code unchecked only for where it stands.
 
@@ -529,11 +529,11 @@ partial class D
 
 ### SHARED-DIAG-010 — A layout rule does not report a shape the formatter keeps
 
-A rule whose subject is the layout of code — its line breaks, blank lines, indentation, or spacing — and whose code fix lays the reported code out as the formatter lays it out MUST NOT report a shape that the formatter deliberately keeps as it is: a shape that a requirement of the formatter leaves unchanged, such as the text of a delimited documentation comment (FMT-DOC-012) or a gap that the formatter does not join because a comment or a directive sits in it. A shape that the formatter changes MUST be reported as the rule's own requirements state. SHARED-JOIN-001 is one instance of this requirement. A shape that the formatter refuses as unsupported (FMT-UNSUP-001) is not a shape it keeps: the formatter asks the user to rewrite it, so the rule reports it as its own requirements state, and its fix is withheld (SHARED-FIX-010).
+A rule whose subject is the layout of code — its line breaks, blank lines, indentation, or spacing — and whose code fix lays the reported code out as the formatter lays it out MUST NOT report a shape that the formatter deliberately keeps as it is: a shape that a requirement of the formatter leaves unchanged, such as the text of a delimited documentation comment (FMT-DOC-012) or a gap that the formatter does not join because a comment or a directive sits in it. A shape that the formatter changes MUST be reported as the rule's own requirements state. SHARED-JOIN-001 is one instance of this requirement. RH5111 is an exception: a comment, or a `#region`, `#endregion`, or `#pragma` directive, between the target and the `=` or between the `=` and the value keeps the construct reported, although the formatter keeps that gap, as RH5111's spec states. A shape that the formatter refuses as unsupported (FMT-UNSUP-001) is not a shape it keeps: the formatter asks the user to rewrite it, so the rule reports it as its own requirements state, and its fix is withheld (SHARED-FIX-010).
 
 A rule whose subject is the order or the content of code is not covered: it reports what its own requirements state, also where the formatter keeps the code as it is. A rule without a code fix that lays out the reported code as the formatter does is not covered either.
 
-Why: The fix of such a rule produces what the formatter produces, so for a shape the formatter keeps it changes nothing and is not offered (SHARED-FIX-005). The diagnostic would stay for good, asking for a layout that the formatter, which owns the layout, has decided against. The formatter may do more than the rules; a layout rule that asks for more than the formatter is the reverse disagreement, and the formatter's decision stands. The order of members and the content of comments are not the formatter's decision — it keeps them because it does not judge them, not because they are right — so a rule about them reports what it judges.
+Why: The fix of such a rule produces what the formatter produces, so for a shape the formatter keeps it changes nothing and is not offered (SHARED-FIX-005). The diagnostic would stay for good, asking for a layout that the formatter, which owns the layout, has decided against. The formatter may do more than the rules; a layout rule that asks for more than the formatter is the reverse disagreement, and the formatter's decision stands. The order of members and the content of comments are not the formatter's decision — it keeps them because it does not judge them, not because they are right — so a rule about them reports what it judges. A comment or a directive around the `=` of an assignment is syntax the maintainer wants removed rather than kept, and the formatter is not meant to rewrite it, so RH5111 keeps asking the author to move it.
 
 Example — RH8307 reports the half-wrapped element of the `///` comment, which the formatter lays out again, and not the same element in the delimited comment, which the formatter keeps:
 
@@ -696,5 +696,74 @@ public partial class C
 
     /// {|RH8306:<summary>Gets the value.</summary>|}
     public partial int P => 0;
+}
+```
+
+### SHARED-DIAG-013 — The defining part of a partial constructor is judged through its implementing part
+
+The compiler hands a rule the elements of a partial constructor's implementing part one by one, but none of its defining part — the part without a body: neither the declaration, nor its attribute lists, parameter list, parameters, parameter types, and default values, nor the documentation comment and the directives in front of it. A rule that judges such elements one at a time, as the compiler hands them to it, MUST NOT report a diagnostic in the defining part of a partial constructor or in the documentation comment and directives in front of it:
+
+- A diagnostic on what both parts write alike MUST be reported once, on the implementing part. This holds for what the compiler requires both parts to write the same, such as a parameter's type, and for what the parts may write differently but write the same, such as a parameter name that both parts spell alike.
+- A violation that only the defining part writes is not reported, such as its own documentation comment, a `#region` in front of it, or a parameter name that differs from the implementing part's; the compiler allows a different name and only warns about it.
+
+A rule that reaches the defining part another way is not covered by this requirement and judges that part as its own spec says: a rule that reports the constructor once from its symbol or its containing type places that diagnostic as SHARED-DIAG-012 says, a rule that judges the modifiers each part writes, such as RH7105 and RH7106, judges the defining part's modifiers, and a rule that judges the text of a whole file, line by line or token by token, judges the defining part like any other text. The parts of a partial method, property, indexer, or event are not covered either: the compiler hands each of their parts to a rule.
+
+Why: The compiler's analyzer host never hands the defining part of a partial constructor to a rule that judges elements one at a time, so such a rule cannot see it. Reaching it from the containing type would have to be added to each of these rules on its own, for a construct that is new and rare. Where both parts write the same, the diagnostic on the implementing part already names what has to change, and reporting the second part would repeat the finding; only a violation written in the defining part alone goes unreported.
+
+Example — RH4122 reports the parameter `a` once, on the implementing part, although the defining part declares the same name:
+
+```csharp
+public partial class C
+{
+    public partial C(int a);
+
+    public partial C(int {|RH4122:a|})
+    {
+    }
+}
+```
+
+Example — the defining part names the parameter `a`, the implementing part names it `value`, so RH4122 does not report the constructor:
+
+```csharp
+public partial class C
+{
+    public partial C(int a);
+
+    public partial C(int value)
+    {
+    }
+}
+```
+
+is not reported by RH4122.
+
+Example — RH7302 judges each `#region` as the compiler hands it, and the `#region` in front of the defining part is not handed to it:
+
+```csharp
+public partial class C
+{
+    #region lower
+    public partial C(int value);
+    #endregion
+
+    public partial C(int value)
+    {
+    }
+}
+```
+
+is not reported by RH7302.
+
+Example — RH2004 reports the constructor once from its containing type, and neither part states an accessibility, so the defining part carries the diagnostic (SHARED-DIAG-012):
+
+```csharp
+public partial class C
+{
+    partial {|RH2004:C|}(int value);
+
+    partial C(int value)
+    {
+    }
 }
 ```

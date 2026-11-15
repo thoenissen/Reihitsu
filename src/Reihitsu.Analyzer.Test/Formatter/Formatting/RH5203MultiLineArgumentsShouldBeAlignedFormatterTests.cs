@@ -56,26 +56,30 @@ public class RH5203MultiLineArgumentsShouldBeAlignedFormatterTests : FormatterTe
     }
 
     /// <summary>
-    /// Verifies that the formatter's layout for a leading comma kept by a comment is stable and not reported
+    /// Verifies that an argument behind a comment that starts its line in the alignment column is not reported and stays as written
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyLeadingCommaLayoutIsStableAndNotReported()
+    [Requirement("RH5203-001")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyArgumentBehindLeadingCommentInAlignmentColumnIsNotReported()
     {
-        const string source = """
-                              using System;
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(1,
+                                          /* two */ 2);
+                                    }
 
-                              internal class Example
-                              {
-                                  internal void Method()
-                                  {
-                                      Console.WriteLine("first" // keep
-                                                        , "second");
-                                  }
-                              }
-                              """;
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
 
-        await VerifyFormatter(source);
+        await VerifyFormatter(testData);
     }
 
     #endregion // Tests

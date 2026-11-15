@@ -355,5 +355,55 @@ public class RH5049CommentsMustNotBePlacedAfterBinaryOperatorAnalyzerTests : Ana
         await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5049CommentsMustNotBePlacedAfterBinaryOperatorAnalyzer.DiagnosticId, AnalyzerResources.RH5049MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a <c>///</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5049-001")]
+    public async Task VerifyTripleSlashCommentAfterLogicalOperatorIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private static bool Method(bool a, bool b)
+                                    {
+                                        return a &&
+                                            {|#0:/// why b|}
+                                            b;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5049CommentsMustNotBePlacedAfterBinaryOperatorAnalyzer.DiagnosticId, AnalyzerResources.RH5049MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5049CommentsMustNotBePlacedAfterBinaryOperatorAnalyzer.DiagnosticId, AnalyzerResources.RH5049MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>/** */</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5049-001")]
+    public async Task VerifyDelimitedDocumentationStyleCommentAfterLogicalOperatorIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private static bool Method(bool a, bool b)
+                                    {
+                                        return a &&
+                                            {|#0:/** why b */|}
+                                            b;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5049CommentsMustNotBePlacedAfterBinaryOperatorAnalyzer.DiagnosticId, AnalyzerResources.RH5049MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5049CommentsMustNotBePlacedAfterBinaryOperatorAnalyzer.DiagnosticId, AnalyzerResources.RH5049MessageFormat));
+    }
+
     #endregion // Tests
 }

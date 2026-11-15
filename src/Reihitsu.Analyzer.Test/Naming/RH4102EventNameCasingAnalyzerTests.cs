@@ -883,6 +883,146 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
     }
 
     /// <summary>
+    /// Verifies that an event of a nested class keeps its diagnostic but gets no fix when its new name would hide, inside the nested
+    /// class, the static method of the outer class that a call there binds to today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAnOuterMethodInANestedClass()
+    {
+        const string testCode = """
+                                using System;
+
+                                public class Outer
+                                {
+                                    public static void Changed()
+                                    {
+                                    }
+
+                                    public class Inner
+                                    {
+                                        public event EventHandler {|RH4102:changed|};
+
+                                        public void Use() => Changed();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an event keeps its diagnostic but gets no fix when its new name would make it implement an interface event that
+    /// its type lists among its own base types and that an inherited event implements today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldChangeWhichEventImplementsAnInterfaceEvent()
+    {
+        const string testCode = """
+                                using System;
+
+                                public interface INotifier
+                                {
+                                    event EventHandler Changed;
+                                }
+
+                                public class Base : INotifier
+                                {
+                                    public event EventHandler Changed;
+                                }
+
+                                public class Derived : Base, INotifier
+                                {
+                                    public event EventHandler {|RH4102:changed|};
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an event keeps its diagnostic but gets no fix when its type implements no interface, but a type derived from it
+    /// lists an interface whose event has the new name and is implemented today by an event of the event's base type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenATypeDerivedFromTheEventsTypeListsAnInterfaceWithAnEventOfTheNewName()
+    {
+        const string testCode = """
+                                using System;
+
+                                public interface INotifier
+                                {
+                                    event EventHandler Changed;
+                                }
+
+                                public class Root
+                                {
+                                    public event EventHandler Changed;
+                                }
+
+                                public class Base : Root
+                                {
+                                    public event EventHandler {|RH4102:changed|};
+                                }
+
+                                public class Derived : Base, INotifier
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an event keeps its diagnostic but gets no fix when another implementer of the interface event it implements is
+    /// declared in a type that lists an interface with an event of the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenAnotherImplementerOfTheSameInterfaceEventImplementsAnInterfaceWithAnEventOfTheNewName()
+    {
+        const string testCode = """
+                                using System;
+
+                                public interface INotifier
+                                {
+                                    event EventHandler {|RH4102:changed|};
+                                }
+
+                                public interface IOther
+                                {
+                                    event EventHandler Changed;
+                                }
+
+                                public class A : INotifier
+                                {
+                                    public event EventHandler {|RH4102:changed|};
+                                }
+
+                                public class Root : IOther
+                                {
+                                    public event EventHandler Changed;
+                                }
+
+                                public class B : Root, INotifier, IOther
+                                {
+                                    public event EventHandler {|RH4102:changed|};
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
     /// Verifies the code fix on an event with accessors
     /// </summary>
     /// <param name="testCode">Test source</param>

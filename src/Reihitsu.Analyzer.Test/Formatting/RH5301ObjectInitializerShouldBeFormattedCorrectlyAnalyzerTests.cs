@@ -1035,6 +1035,382 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : Ba
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifies that the fix of an object initializer whose comma starts a line moves the comma behind the member in front of it,
+    /// as whole-document formatting does, and places the member behind it at the members' column
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5301-004")]
+    [Requirement("FMT-BREAK-038")]
+    public async Task VerifyFixMovesACommaThatStartsALineBehindTheMember(string endOfLine)
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              internal class C
+                              {
+                                  internal void M()
+                                  {
+                                      var d = new D { X = 3
+                                          , Y = 4 };
+                                  }
+                              }
+
+                              internal class D
+                              {
+                                  public int X { get; set; }
+
+                                  public int Y { get; set; }
+
+                                  public List<int> Items { get; } = new List<int>();
+                              }
+                              """;
+        const string expected = """
+                                using System.Collections.Generic;
+
+                                internal class C
+                                {
+                                    internal void M()
+                                    {
+                                        var d = new D
+                                                {
+                                                    X = 3,
+                                                    Y = 4
+                                                };
+                                    }
+                                }
+
+                                internal class D
+                                {
+                                    public int X { get; set; }
+
+                                    public int Y { get; set; }
+
+                                    public List<int> Items { get; } = new List<int>();
+                                }
+                                """;
+
+        var input = ConvertEndOfLine(source, endOfLine);
+        var fixedSource = await ApplyCodeFixAsync(input);
+
+        Assert.AreEqual(ConvertEndOfLine(expected, endOfLine), fixedSource);
+        Assert.AreEqual(Format(input), fixedSource, "The code fix must lay out the code as the formatter lays it out.");
+    }
+
+    /// <summary>
+    /// Verifies that the fix of an object initializer whose trailing comma starts a line moves the comma behind the last member,
+    /// as whole-document formatting does
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5301-004")]
+    [Requirement("FMT-BREAK-038")]
+    public async Task VerifyFixMovesATrailingCommaThatStartsALineBehindTheLastMember(string endOfLine)
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              internal class C
+                              {
+                                  internal void M()
+                                  {
+                                      var d = new D { X = 3
+                                          , };
+                                  }
+                              }
+
+                              internal class D
+                              {
+                                  public int X { get; set; }
+
+                                  public int Y { get; set; }
+
+                                  public List<int> Items { get; } = new List<int>();
+                              }
+                              """;
+        const string expected = """
+                                using System.Collections.Generic;
+
+                                internal class C
+                                {
+                                    internal void M()
+                                    {
+                                        var d = new D
+                                                {
+                                                    X = 3,
+                                                };
+                                    }
+                                }
+
+                                internal class D
+                                {
+                                    public int X { get; set; }
+
+                                    public int Y { get; set; }
+
+                                    public List<int> Items { get; } = new List<int>();
+                                }
+                                """;
+
+        var input = ConvertEndOfLine(source, endOfLine);
+        var fixedSource = await ApplyCodeFixAsync(input);
+
+        Assert.AreEqual(ConvertEndOfLine(expected, endOfLine), fixedSource);
+        Assert.AreEqual(Format(input), fixedSource, "The code fix must lay out the code as the formatter lays it out.");
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld for an object initializer whose comma a comment keeps off the line of the member in
+    /// front of it, which the formatter refuses as unsupported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-009")]
+    public async Task VerifyNoCodeFixWhenACommentHoldsACommaAtTheStartOfItsLine()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              internal class C
+                              {
+                                  internal void M()
+                                  {
+                                      var e = new D { X = 3 // k
+                                          , Y = 4 };
+                                  }
+                              }
+
+                              internal class D
+                              {
+                                  public int X { get; set; }
+
+                                  public int Y { get; set; }
+
+                                  public List<int> Items { get; } = new List<int>();
+                              }
+                              """;
+
+        Assert.IsNull(await TryApplyCodeFixAsync(source), "No code fix may be offered for an initializer the formatter refuses.");
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a member behind two comments, the first of which starts its line outside the member column, is reported on the member, and the code fix is withheld or lays the line out in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5301-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyMemberBehindTwoMisplacedLeadingCommentsIsReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P { get; set; }
+
+                                    void M()
+                                    {
+                                        var c = new C
+                                                {
+                                            /* a */ /* b */ {|RH5301:P = 1|}
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int P { get; set; }
+
+                                     void M()
+                                     {
+                                         var c = new C
+                                                 {
+                                                     /* a */ /* b */ P = 1
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a member behind a line of its own that holds two comments, the first of which starts the line in the expected column, is not reported: the further comment is not checked
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5301-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyMemberBelowLineOfTwoCommentsInExpectedColumnIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P { get; set; }
+                                    int Q { get; set; }
+
+                                    void M()
+                                    {
+                                        var c = new C
+                                                {
+                                                    /* a */ /* b */
+                                                    P = 1,
+                                                    Q = 2
+                                                };
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a member behind a further comment that starts on an earlier line behind a comment in the expected column and ends on the member's line is not reported: neither the further comment nor the member is checked
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5301-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyMemberBehindFurtherCommentEndingOnItsLineIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P { get; set; }
+                                    int Q { get; set; }
+
+                                    void M()
+                                    {
+                                        var c = new C
+                                                {
+                                                    P = 1,
+                                                    /* a */ /* b
+                                            */ Q = 2
+                                                };
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a member below a line of its own that holds two comments, the first of which starts the line outside the expected column, is reported, and that the code fix is withheld or lays the line out in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5301-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyMemberBelowLineOfTwoCommentsOutsideExpectedColumnIsReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P { get; set; }
+                                    int Q { get; set; }
+
+                                    void M()
+                                    {
+                                        var c = new C
+                                                {
+                                            /* a */ /* b */
+                                                    {|RH5301:P = 1|},
+                                                    Q = 2
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int P { get; set; }
+                                     int Q { get; set; }
+
+                                     void M()
+                                     {
+                                         var c = new C
+                                                 {
+                                                     /* a */ /* b */
+                                                     P = 1,
+                                                     Q = 2
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a member behind a further comment that starts on an earlier line behind a comment outside the expected column and ends on the member's line is reported, and that the code fix is withheld or lays the line out in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5301-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyMemberBehindFurtherCommentWhoseLineStartsOutsideExpectedColumnIsReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P { get; set; }
+                                    int Q { get; set; }
+
+                                    void M()
+                                    {
+                                        var c = new C
+                                                {
+                                                    P = 1,
+                                            /* a */ /* b
+                                            */ {|RH5301:Q = 2|}
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int P { get; set; }
+                                     int Q { get; set; }
+
+                                     void M()
+                                     {
+                                         var c = new C
+                                                 {
+                                                     P = 1,
+                                                     /* a */ /* b
+                                             */ Q = 2
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -752,6 +752,45 @@ public class RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests : 
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode).Replace("LF\r\n", "\n", System.StringComparison.Ordinal), actual);
     }
 
+    /// <summary>
+    /// Verifies that an element on the line of the previous element in the documentation comment of a positional record
+    /// is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8304-001")]
+    [Requirement("RH8304-003")]
+    public async Task VerifyElementOnLineOfPreviousElementOfPositionalRecordIsReportedOnce()
+    {
+        const string testData = """
+                                /// <summary>Customer.</summary>{|#0:<remarks>x</remarks>|}
+                                public record R(int A);
+                                """;
+
+        await Verify(testData, Diagnostics(RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8304MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an element on the line of the previous element in the documentation comment of a class with a
+    /// primary constructor is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8304-001")]
+    [Requirement("RH8304-003")]
+    public async Task VerifyElementOnLineOfPreviousElementOfClassWithPrimaryConstructorIsReportedOnce()
+    {
+        const string testData = """
+                                /// <summary>Service.</summary>{|#0:<remarks>x</remarks>|}
+                                public class Service(int value)
+                                {
+                                    public int Value => value;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8304MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

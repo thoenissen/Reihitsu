@@ -90,13 +90,13 @@ public class RH3005UseReadableConditionsAnalyzer : DiagnosticAnalyzerBase
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnBinaryExpression,
-                                         SyntaxKind.EqualsExpression,
-                                         SyntaxKind.NotEqualsExpression,
-                                         SyntaxKind.LessThanExpression,
-                                         SyntaxKind.GreaterThanExpression,
-                                         SyntaxKind.LessThanOrEqualExpression,
-                                         SyntaxKind.GreaterThanOrEqualExpression);
+        context.RegisterStructuredTriviaAction(OnBinaryExpression,
+                                               SyntaxKind.EqualsExpression,
+                                               SyntaxKind.NotEqualsExpression,
+                                               SyntaxKind.LessThanExpression,
+                                               SyntaxKind.GreaterThanExpression,
+                                               SyntaxKind.LessThanOrEqualExpression,
+                                               SyntaxKind.GreaterThanOrEqualExpression);
     }
 
     #endregion // DiagnosticAnalyzer

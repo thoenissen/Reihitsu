@@ -362,5 +362,49 @@ public class RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzerTests
         await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzer.DiagnosticId, AnalyzerResources.RH5040MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a <c>///</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5040-001")]
+    public async Task VerifyTripleSlashCommentBeforePropertyArrowIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public int Value
+                                        {|#0:/// computed|}
+                                        => 42;
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzer.DiagnosticId, AnalyzerResources.RH5040MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzer.DiagnosticId, AnalyzerResources.RH5040MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>/** */</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5040-001")]
+    public async Task VerifyDelimitedDocumentationStyleCommentBeforePropertyArrowIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public int Value
+                                        {|#0:/** computed */|}
+                                        => 42;
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzer.DiagnosticId, AnalyzerResources.RH5040MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5040CommentsMustNotBePlacedAroundExpressionBodyArrowAnalyzer.DiagnosticId, AnalyzerResources.RH5040MessageFormat));
+    }
+
     #endregion // Tests
 }

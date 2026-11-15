@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
@@ -105,7 +106,7 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer : Diagno
             if (operatorLine > leftEndLine)
             {
                 var leftStartCharacter = leftLineSpan.StartLinePosition.Character;
-                var operatorCharacter = operatorLineSpan.StartLinePosition.Character;
+                var operatorCharacter = CommentPositionUtilities.GetLineStartColumn(binaryExpression.OperatorToken);
 
                 if (operatorCharacter != leftStartCharacter)
                 {

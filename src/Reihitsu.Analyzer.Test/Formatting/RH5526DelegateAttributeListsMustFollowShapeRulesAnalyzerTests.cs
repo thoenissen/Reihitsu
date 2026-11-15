@@ -256,6 +256,70 @@ public class RH5526DelegateAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
         await VerifyNoCodeFixIsOffered(testData);
     }
 
+    /// <summary>
+    /// Verifies that the attribute list of a delegate with a conditional directive between its attributes is not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-019")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoDiagnosticWhenConditionalDirectiveIsBetweenTheAttributes(string endOfLine)
+    {
+        const string testData = """
+                                [A,
+                                #if DEBUG
+                                 B,
+                                #endif
+                                 C1]
+                                delegate void D();
+
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                sealed class C1 : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the attribute list of a delegate with a region directive pair between its attributes is still reported without offering a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5526-004")]
+    [Requirement("SHARED-ATTR-019")]
+    public async Task VerifyDiagnosticWithoutCodeFixWhenRegionDirectiveIsBetweenTheAttributes()
+    {
+        const string testData = """
+                                {|RH5526:[A,
+                                #region Attributes
+                                 B
+                                #endregion
+                                 ]|}
+                                delegate void D();
+
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                sealed class C1 : System.Attribute
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

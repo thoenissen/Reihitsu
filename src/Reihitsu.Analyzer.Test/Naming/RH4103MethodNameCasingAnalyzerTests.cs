@@ -2786,6 +2786,1204 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that an extension method keeps its diagnostic but gets no fix when its new name would win the call of an extension
+    /// method of another class in the same namespace, which the renamer would rewrite into a static call
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldWinAnExtensionMethodCall()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                namespace N
+                                {
+                                    public static class Extensions
+                                    {
+                                        public static List<int> {|RH4103:toList|}(this IEnumerable<int> source) => new List<int>();
+                                    }
+
+                                    public class User
+                                    {
+                                        public List<int> Get(int[] values) => values.ToList();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an extension method is renamed, and the call of the other extension method is left as written, when the call
+    /// stands in a namespace that does not import the renamed method's namespace, so its binding does not change
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixRenamesAnExtensionMethodWhenTheCallOfAnotherNamespaceKeepsItsBinding()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                namespace N
+                                {
+                                    public static class Extensions
+                                    {
+                                        public static List<int> {|RH4103:toList|}(this IEnumerable<int> source) => new List<int>();
+                                    }
+                                }
+
+                                namespace M
+                                {
+                                    public class User
+                                    {
+                                        public List<int> Get(int[] values) => values.ToList();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Collections.Generic;
+                                 using System.Linq;
+
+                                 namespace N
+                                 {
+                                     public static class Extensions
+                                     {
+                                         public static List<int> ToList(this IEnumerable<int> source) => new List<int>();
+                                     }
+                                 }
+
+                                 namespace M
+                                 {
+                                     public class User
+                                     {
+                                         public List<int> Get(int[] values) => values.ToList();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that an extension method keeps its diagnostic but gets no fix when its new name would win, from an enclosing namespace,
+    /// the call of an extension method that a nested namespace makes
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldWinAnExtensionMethodCallOfANestedNamespace()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                namespace N
+                                {
+                                    public static class Extensions
+                                    {
+                                        public static int {|RH4103:count|}(this IEnumerable<int> source) => 0;
+                                    }
+
+                                    namespace Inner
+                                    {
+                                        public class User
+                                        {
+                                            public int Get(int[] values) => values.Count();
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an instance method keeps its diagnostic but gets no fix when its new name would win over the extension method
+    /// that a call on its type makes today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldWinOverAnExtensionMethodCalledOnTheType()
+    {
+        const string testCode = """
+                                using System.Collections;
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                public class Bag : IEnumerable<int>
+                                {
+                                    public int {|RH4103:first|}() => 0;
+
+                                    public IEnumerator<int> GetEnumerator()
+                                    {
+                                        yield return 1;
+                                    }
+
+                                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                                }
+
+                                public class User
+                                {
+                                    public int Get(Bag bag) => bag.First();
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an extension method keeps its diagnostic but gets no fix when its new name would make the call of an extension
+    /// method with the same signature in another class ambiguous
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldMakeAnExtensionMethodCallAmbiguous()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                namespace N
+                                {
+                                    public static class A
+                                    {
+                                        public static void Shuffle(this List<int> values)
+                                        {
+                                        }
+                                    }
+
+                                    public static class B
+                                    {
+                                        public static void {|RH4103:shuffle|}(this List<int> values)
+                                        {
+                                        }
+                                    }
+
+                                    public class User
+                                    {
+                                        public void Use(List<int> values) => values.Shuffle();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method keeps its diagnostic but gets no fix when its new name would win the overload resolution of a call
+    /// that binds to another overload today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldWinOverloadResolution()
+    {
+        const string testCode = """
+                                public class Box
+                                {
+                                    public void {|RH4103:write|}(int value)
+                                    {
+                                    }
+
+                                    public void Write(object value)
+                                    {
+                                    }
+
+                                    public void Use(Box box) => box.Write(1);
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a generic method keeps its diagnostic but gets no fix when its new name would win the overload resolution of a
+    /// call that binds to a non-generic overload today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameOfAGenericMethodWouldWinOverloadResolution()
+    {
+        const string testCode = """
+                                public class Box
+                                {
+                                    public string {|RH4103:format|}<T>(T value) => "generic";
+
+                                    public string Format(object value) => "object";
+
+                                    public string Use(Box box) => box.Format(1);
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method of a nested class keeps its diagnostic but gets no fix when its new name would hide, inside the nested
+    /// class, the static method of the outer class that a call there binds to today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAnOuterMethodInANestedClass()
+    {
+        const string testCode = """
+                                public class Outer
+                                {
+                                    public static void Log(string text)
+                                    {
+                                    }
+
+                                    public class Inner
+                                    {
+                                        public void {|RH4103:log|}(string text)
+                                        {
+                                        }
+
+                                        public void Use() => Log("x");
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method keeps its diagnostic but gets no fix when its new name would win over a method that a <c>using static</c>
+    /// directive imports and a call binds to today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldWinOverAMethodOfAUsingStaticImport()
+    {
+        const string testCode = """
+                                using static System.Math;
+
+                                public class Calculator
+                                {
+                                    public int {|RH4103:max|}(int left, int right) => left;
+
+                                    public int Use() => Max(1, 2);
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method keeps its diagnostic but gets no fix when its new name would hide, inside its class, a type that a member
+    /// access there binds to today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideATypeUsedInTheClass()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    public enum Color
+                                    {
+                                        Red,
+                                        Blue,
+                                    }
+
+                                    public class Painter
+                                    {
+                                        public int {|RH4103:color|}() => 0;
+
+                                        public Color Use() => Color.Red;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method keeps its diagnostic but gets no fix when its new name would hide an inherited method that an
+    /// unqualified call in the same class binds to today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAnInheritedMethodCalledInTheClass()
+    {
+        const string testCode = """
+                                public class Base
+                                {
+                                    public int Process() => 1;
+                                }
+
+                                public class Derived : Base
+                                {
+                                    public int {|RH4103:process|}() => 2;
+
+                                    public int Use() => Process();
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method keeps its diagnostic but gets no fix when its new name would hide an inherited method that a member
+    /// access on the derived type in another class calls today, so that the unchanged call would call the renamed method
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAnInheritedMethodCalledOnTheDerivedType()
+    {
+        const string testCode = """
+                                public class Base
+                                {
+                                    public int Process() => 1;
+                                }
+
+                                public class Derived : Base
+                                {
+                                    public int {|RH4103:process|}() => 2;
+                                }
+
+                                public class User
+                                {
+                                    public int Use(Derived derived) => derived.Process();
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method keeps its diagnostic but gets no fix when its new name would hide an inherited virtual method that a
+    /// member access on the derived type calls today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAnInheritedVirtualMethodCalledOnTheDerivedType()
+    {
+        const string testCode = """
+                                public class Base
+                                {
+                                    public virtual int Process() => 1;
+                                }
+
+                                public class Derived : Base
+                                {
+                                    public int {|RH4103:process|}() => 2;
+                                }
+
+                                public class User
+                                {
+                                    public int Use(Derived derived) => derived.Process();
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a static method keeps its diagnostic but gets no fix when its new name would hide an inherited static method that
+    /// a call qualified with the derived type calls today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAnInheritedStaticMethodCalledThroughTheDerivedType()
+    {
+        const string testCode = """
+                                public class Base
+                                {
+                                    public static int Create() => 1;
+                                }
+
+                                public class Derived : Base
+                                {
+                                    public static int {|RH4103:create|}() => 2;
+                                }
+
+                                public class User
+                                {
+                                    public int Use() => Derived.Create();
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method is renamed when its new name hides an inherited method, but the only call of that method has the base
+    /// type as its receiver, so its binding does not change and it is left as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixRenamesAMethodThatHidesAnInheritedMethodCalledOnlyOnTheBaseType()
+    {
+        const string testCode = """
+                                public class Base
+                                {
+                                    public int Process() => 1;
+                                }
+
+                                public class Derived : Base
+                                {
+                                    public int {|RH4103:process|}() => 2;
+                                }
+
+                                public class User
+                                {
+                                    public int Use(Base item) => item.Process();
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Base
+                                 {
+                                     public int Process() => 1;
+                                 }
+
+                                 public class Derived : Base
+                                 {
+                                     public int Process() => 2;
+                                 }
+
+                                 public class User
+                                 {
+                                     public int Use(Base item) => item.Process();
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that an extension method keeps its diagnostic but gets no fix when its new name would win the call of an extension
+    /// method that stands in another document of the same project
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldWinAnExtensionMethodCallOfAnotherDocument()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                namespace N
+                                {
+                                    public static class Extensions
+                                    {
+                                        public static List<int> {|RH4103:toList|}(this IEnumerable<int> source) => new List<int>();
+                                    }
+                                }
+                                """;
+
+        const string userCode = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                namespace N
+                                {
+                                    public class User
+                                    {
+                                        public List<int> Get(int[] values) => values.ToList();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode,
+                     testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", userCode));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", userCode));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that an extension method keeps its diagnostic but gets no fix when its new name would win the call of an extension
+    /// method that stands in a dependent project
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldWinAnExtensionMethodCallOfADependentProject()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                namespace N
+                                {
+                                    public static class Extensions
+                                    {
+                                        public static List<int> {|RH4103:toList|}(this IEnumerable<int> source) => new List<int>();
+                                    }
+                                }
+                                """;
+
+        const string userCode = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                namespace N.Consumer
+                                {
+                                    public class User
+                                    {
+                                        public List<int> Get(int[] values) => values.ToList();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode,
+                     testCode,
+                     test =>
+                     {
+                         test.TestState.AdditionalProjects["Consumer"].Sources.Add(("/Consumer/User.cs", userCode));
+                         test.TestState.AdditionalProjects["Consumer"].AdditionalProjectReferences.Add("TestProject");
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that a method keeps its diagnostic but gets no fix when its new name would hide an inherited method that a member
+    /// access on the derived type in a dependent project calls today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAnInheritedMethodCalledInADependentProject()
+    {
+        const string testCode = """
+                                public class Base
+                                {
+                                    public int Process() => 1;
+                                }
+
+                                public class Derived : Base
+                                {
+                                    public int {|RH4103:process|}() => 2;
+                                }
+                                """;
+
+        const string userCode = """
+                                public class User
+                                {
+                                    public int Use(Derived derived) => derived.Process();
+                                }
+                                """;
+
+        await Verify(testCode,
+                     testCode,
+                     test =>
+                     {
+                         test.TestState.AdditionalProjects["Consumer"].Sources.Add(("/Consumer/User.cs", userCode));
+                         test.TestState.AdditionalProjects["Consumer"].AdditionalProjectReferences.Add("TestProject");
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that Fix All renames the method whose new name meets no existing binding and skips the extension method whose new name
+    /// would win the call of another extension method, which keeps its diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixAllSkipsTheRenameThatWouldWinAnExtensionMethodCall()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                namespace N
+                                {
+                                    public static class Extensions
+                                    {
+                                        public static List<int> {|RH4103:toList|}(this IEnumerable<int> source) => new List<int>();
+
+                                        public static int {|RH4103:computeTotal|}(this IEnumerable<int> source) => 0;
+                                    }
+
+                                    public class User
+                                    {
+                                        public List<int> Get(int[] values) => values.ToList();
+
+                                        public int Sum(int[] values) => values.computeTotal();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Collections.Generic;
+                                 using System.Linq;
+
+                                 namespace N
+                                 {
+                                     public static class Extensions
+                                     {
+                                         public static List<int> {|RH4103:toList|}(this IEnumerable<int> source) => new List<int>();
+
+                                         public static int ComputeTotal(this IEnumerable<int> source) => 0;
+                                     }
+
+                                     public class User
+                                     {
+                                         public List<int> Get(int[] values) => values.ToList();
+
+                                         public int Sum(int[] values) => values.ComputeTotal();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static test =>
+                            {
+                                // The diagnostic that keeps no fix is marked in the expected source
+                                test.FixedState.MarkupHandling = MarkupMode.Allow;
+                                test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                                test.NumberOfFixAllIterations = 1;
+                            });
+    }
+
+    /// <summary>
+    /// Verifies that Fix All renames the method whose new name meets no existing binding and skips the method whose new name would
+    /// overload-resolve a call that binds to another method today, which keeps its diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixAllSkipsTheRenameThatWouldWinOverloadResolution()
+    {
+        const string testCode = """
+                                public class Box
+                                {
+                                    public void {|RH4103:write|}(int value)
+                                    {
+                                    }
+
+                                    public void Write(object value)
+                                    {
+                                    }
+
+                                    public void {|RH4103:flush_all|}()
+                                    {
+                                    }
+
+                                    public void Use(Box box)
+                                    {
+                                        box.Write(1);
+                                        box.flush_all();
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Box
+                                 {
+                                     public void {|RH4103:write|}(int value)
+                                     {
+                                     }
+
+                                     public void Write(object value)
+                                     {
+                                     }
+
+                                     public void FlushAll()
+                                     {
+                                     }
+
+                                     public void Use(Box box)
+                                     {
+                                         box.Write(1);
+                                         box.FlushAll();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static test =>
+                            {
+                                // The diagnostic that keeps no fix is marked in the expected source
+                                test.FixedState.MarkupHandling = MarkupMode.Allow;
+                                test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                                test.NumberOfFixAllIterations = 1;
+                            });
+    }
+
+    /// <summary>
+    /// Verifies that Fix All renames the method whose new name meets no existing binding and skips the method whose new name would
+    /// hide an inherited method that a call on the derived type calls today, which keeps its diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task FixAllSkipsTheRenameThatWouldHideAnInheritedMethodCalledOnTheDerivedType()
+    {
+        const string testCode = """
+                                public class Base
+                                {
+                                    public int Process() => 1;
+                                }
+
+                                public class Derived : Base
+                                {
+                                    public int {|RH4103:process|}() => 2;
+
+                                    public int {|RH4103:compute_total|}() => 3;
+                                }
+
+                                public class User
+                                {
+                                    public int Use(Derived derived) => derived.Process() + derived.compute_total();
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Base
+                                 {
+                                     public int Process() => 1;
+                                 }
+
+                                 public class Derived : Base
+                                 {
+                                     public int {|RH4103:process|}() => 2;
+
+                                     public int ComputeTotal() => 3;
+                                 }
+
+                                 public class User
+                                 {
+                                     public int Use(Derived derived) => derived.Process() + derived.ComputeTotal();
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static test =>
+                            {
+                                // The diagnostic that keeps no fix is marked in the expected source
+                                test.FixedState.MarkupHandling = MarkupMode.Allow;
+                                test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                                test.NumberOfFixAllIterations = 1;
+                            });
+    }
+
+    /// <summary>
+    /// Verifies that an extension method keeps its diagnostic but gets no fix when the renamer would turn a call of it into a static
+    /// call, so that the call keeps binding to the renamed method instead of an imported extension method of the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheRenamerWouldTurnACallOfTheRenamedExtensionMethodIntoAStaticCall()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                namespace N
+                                {
+                                    public static class Extensions
+                                    {
+                                        public static List<int> {|RH4103:toList|}(this IEnumerable<int> source) => new List<int>();
+                                    }
+
+                                    namespace Inner
+                                    {
+                                        using System.Linq;
+
+                                        public class User
+                                        {
+                                            public List<int> Get(int[] values) => values.toList();
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method keeps its diagnostic but gets no fix when the renamer would cast an argument of a call of it, so that
+    /// the call keeps binding to the renamed method instead of an overload of the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheRenamerWouldCastAnArgumentOfACallOfTheRenamedMethod()
+    {
+        const string testCode = """
+                                public class Box
+                                {
+                                    public void {|RH4103:write|}(object value)
+                                    {
+                                    }
+
+                                    public void Write(int value)
+                                    {
+                                    }
+
+                                    public void Use(Box box) => box.write(1);
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method keeps its diagnostic but gets no fix when its new name would make it implement an interface method that
+    /// its type lists among its own base types and that an inherited method implements today, although no reference names the
+    /// interface method
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldChangeWhichMethodImplementsAnInterfaceMethod()
+    {
+        const string testCode = """
+                                public interface IProcessor
+                                {
+                                    int Process();
+                                }
+
+                                public class Base : IProcessor
+                                {
+                                    public int Process() => 1;
+                                }
+
+                                public class Derived : Base, IProcessor
+                                {
+                                    public int {|RH4103:process|}() => 2;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method keeps its diagnostic but gets no fix when its new name is that of an interface method that its type implements
+    /// only through its base type, although the inherited method keeps implementing the interface method
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameIsThatOfAnInterfaceMethodThatTheTypeImplementsThroughItsBaseType()
+    {
+        const string testCode = """
+                                public interface IWorker
+                                {
+                                    int Work();
+                                }
+
+                                public class WorkerBase : IWorker
+                                {
+                                    public int Work() => 1;
+                                }
+
+                                public class WorkerDerived : WorkerBase
+                                {
+                                    public int {|RH4103:work|}() => 2;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method keeps its diagnostic but gets no fix when its type implements no interface, but a type derived from it lists an
+    /// interface whose method has the new name and is implemented today by a method of the method's base type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenATypeDerivedFromTheMethodsTypeListsAnInterfaceWithAMethodOfTheNewName()
+    {
+        const string testCode = """
+                                public interface IProcessor
+                                {
+                                    int Process();
+                                }
+
+                                public class Root
+                                {
+                                    public int Process() => 1;
+                                }
+
+                                public class Base : Root
+                                {
+                                    public int {|RH4103:process|}() => 2;
+                                }
+
+                                public class Derived : Base, IProcessor
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method keeps its diagnostic but gets no fix when a type derived from its type lists an interface whose method has the
+    /// new name and a default implementation in the interface implements it today
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenATypeDerivedFromTheMethodsTypeListsAnInterfaceWhoseMethodOfTheNewNameHasADefaultImplementation()
+    {
+        const string testCode = """
+                                public interface IProcessor
+                                {
+                                    int Process() => 1;
+                                }
+
+                                public class Base
+                                {
+                                    public int {|RH4103:process|}() => 2;
+                                }
+
+                                public class Derived : Base, IProcessor
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method keeps its diagnostic but gets no fix when its base type implements an interface whose method has the new
+    /// name and a type derived from the method's type lists that interface again
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenATypeDerivedFromTheMethodsTypeListsAgainAnInterfaceThatTheBaseTypeImplements()
+    {
+        const string testCode = """
+                                public interface IProcessor
+                                {
+                                    int Process();
+                                }
+
+                                public class Root : IProcessor
+                                {
+                                    public int Process() => 1;
+                                }
+
+                                public class Base : Root
+                                {
+                                    public int {|RH4103:process|}() => 2;
+                                }
+
+                                public class Derived : Base, IProcessor
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an interface method keeps its diagnostic but gets no fix when a type that implements its interface also implements
+    /// another interface with a method of the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenATypeImplementingTheMethodsInterfaceImplementsAnotherInterfaceWithAMethodOfTheNewName()
+    {
+        const string testCode = """
+                                public interface IFirst
+                                {
+                                    int Process();
+                                }
+
+                                public interface ISecond
+                                {
+                                    int {|RH4103:process|}();
+                                }
+
+                                public class Worker : IFirst, ISecond
+                                {
+                                    public int Process() => 1;
+
+                                    int ISecond.process() => 2;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an interface method keeps its diagnostic but gets no fix when an interface that inherits from its interface also
+    /// inherits from another interface with a method of the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenAnInterfaceInheritingFromTheMethodsInterfaceInheritsAnotherInterfaceWithAMethodOfTheNewName()
+    {
+        const string testCode = """
+                                public interface IFirst
+                                {
+                                    int Process();
+                                }
+
+                                public interface ISecond
+                                {
+                                    int {|RH4103:process|}();
+                                }
+
+                                public interface IBoth : IFirst, ISecond
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames a method to the name of an interface method when neither its type nor a type derived from it
+    /// implements that interface, and the interfaces its type implements have no member of the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixRenamesAMethodToTheNameOfAMethodOfAnInterfaceOutsideItsTypesHierarchy()
+    {
+        const string testCode = """
+                                public interface IProcessor
+                                {
+                                    int Process();
+                                }
+
+                                public class Worker : IProcessor
+                                {
+                                    public int Process() => 1;
+                                }
+
+                                public class Job : System.IDisposable
+                                {
+                                    public void Dispose()
+                                    {
+                                    }
+
+                                    public int {|RH4103:process|}() => 2;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public interface IProcessor
+                                 {
+                                     int Process();
+                                 }
+
+                                 public class Worker : IProcessor
+                                 {
+                                     public int Process() => 1;
+                                 }
+
+                                 public class Job : System.IDisposable
+                                 {
+                                     public void Dispose()
+                                     {
+                                     }
+
+                                     public int Process() => 2;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method keeps its diagnostic but gets no fix when another implementer of the interface method it implements is
+    /// declared in a type that implements an interface with a method of the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenAnotherImplementerOfTheSameInterfaceMethodImplementsAnInterfaceWithAMethodOfTheNewName()
+    {
+        const string testCode = """
+                                public interface IProcessor
+                                {
+                                    int {|RH4103:process|}();
+                                }
+
+                                public interface IOther
+                                {
+                                    int Process() => 1;
+                                }
+
+                                public class A : IProcessor
+                                {
+                                    public int {|RH4103:process|}() => 0;
+                                }
+
+                                public class B : IProcessor, IOther
+                                {
+                                    public int {|RH4103:process|}() => 2;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that an overriding method keeps its diagnostic but gets no fix when another type derived from the overridden method's
+    /// type implements an interface with a method of the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenATypeDerivedFromTheOverriddenMethodsTypeImplementsAnInterfaceWithAMethodOfTheNewName()
+    {
+        const string testCode = """
+                                public interface IOther
+                                {
+                                    int Process() => 1;
+                                }
+
+                                public class Base
+                                {
+                                    public virtual int {|RH4103:process|}() => 2;
+                                }
+
+                                public class Derived : Base
+                                {
+                                    public override int {|RH4103:process|}() => 3;
+                                }
+
+                                public class Sibling : Base, IOther
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

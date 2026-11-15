@@ -780,6 +780,44 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
         await VerifyNoCodeFixIsOffered(source, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
     }
 
+    /// <summary>
+    /// Verifies that a conditional operator behind a comment that starts its line outside the operator column is reported, although the operator behind the comment reaches that column, and that the code fix is withheld or lays the line out in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5308-002")]
+    [Requirement("SHARED-COMMENT-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyOperatorBehindMisplacedLeadingCommentIsReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int M(bool a)
+                                    {
+                                        return a
+                                           /* t */ {|RH5308:?|} 1
+                                                   : 2;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int M(bool a)
+                                     {
+                                         return a
+                                                    /* t */ ? 1
+                                                    : 2;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -13,6 +13,7 @@ using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Data;
 using Reihitsu.Analyzer.Rules.Documentation;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
 
@@ -48,14 +49,21 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
             return document;
         }
 
-        expectedHeader = CopyrightHeaderTemplateResolver.NormalizeLineEndings(expectedHeader, sourceText);
-
         var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+
+        // The header is written in the line ending the formatter detects for the file, as every other fix writes its line
+        // breaks (RH8402-005, SHARED-FIX-008)
+        var endOfLine = syntaxTree == null
+                            ? Environment.NewLine
+                            : LineEndingUtilities.DetectEndOfLine(await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false));
+
+        expectedHeader = CopyrightHeaderTemplateResolver.NormalizeLineEndings(expectedHeader, endOfLine);
+
         var syntaxRoot = syntaxTree == null
                              ? null
                              : DocumentationAnalysisUtilities.GetRootWithParsedDocumentation(syntaxTree, cancellationToken);
         var replaceSpan = GetLeadingHeaderSpan(sourceText, syntaxRoot, EndsWithLineBreak(expectedHeader));
-        var replacementText = EnsureHeaderIsSeparatedFromCode(expectedHeader, sourceText, replaceSpan.End);
+        var replacementText = EnsureHeaderIsSeparatedFromCode(expectedHeader, endOfLine, sourceText, replaceSpan.End);
 
         return document.WithText(sourceText.WithChanges(new TextChange(replaceSpan, replacementText)));
     }
@@ -64,10 +72,11 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
     /// Ensure header is separated from code
     /// </summary>
     /// <param name="header">Header</param>
+    /// <param name="endOfLine">The line ending the header is written in</param>
     /// <param name="sourceText">Source text</param>
     /// <param name="contentStart">Content start position</param>
     /// <returns>Replacement text</returns>
-    private static string EnsureHeaderIsSeparatedFromCode(string header, SourceText sourceText, int contentStart)
+    private static string EnsureHeaderIsSeparatedFromCode(string header, string endOfLine, SourceText sourceText, int contentStart)
     {
         if (contentStart >= sourceText.Length
             || EndsWithLineBreak(header))
@@ -83,7 +92,7 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
             return header;
         }
 
-        return header + GetPreferredLineEnding(sourceText);
+        return header + endOfLine;
     }
 
     /// <summary>
@@ -95,26 +104,6 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
     {
         return header.EndsWith("\n", StringComparison.Ordinal)
                || header.EndsWith("\r", StringComparison.Ordinal);
-    }
-
-    /// <summary>
-    /// Get preferred line ending
-    /// </summary>
-    /// <param name="sourceText">Source text</param>
-    /// <returns>Line ending</returns>
-    private static string GetPreferredLineEnding(SourceText sourceText)
-    {
-        if (sourceText.Lines.Count > 1)
-        {
-            var firstLine = sourceText.Lines[0];
-            var lineBreakLength = firstLine.SpanIncludingLineBreak.Length - firstLine.Span.Length;
-
-            return lineBreakLength > 0
-                       ? sourceText.GetSubText(new TextSpan(firstLine.End, lineBreakLength)).ToString()
-                       : "\n";
-        }
-
-        return "\n";
     }
 
     /// <summary>

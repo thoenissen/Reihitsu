@@ -751,6 +751,100 @@ public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
         await Verify(fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that a line that starts with <c>#</c> inside a comment before the first directive is comment text,
+    /// so the block is reported and fixed
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task HashLineInCommentDoesNotPreventReportAndFix(string endOfLine)
+    {
+        const string testCode = """
+                                /*
+                                # Header
+                                */
+                                using Alpha;
+                                using {|RH7201:System.Linq|};
+
+                                namespace Alpha
+                                {
+                                    public class Helper
+                                    {
+                                    }
+                                }
+
+                                public class TestClass
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 /*
+                                 # Header
+                                 */
+                                 using System.Linq;
+
+                                 using Alpha;
+
+                                 namespace Alpha
+                                 {
+                                     public class Helper
+                                     {
+                                     }
+                                 }
+
+                                 public class TestClass
+                                 {
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the indentation of a namespace with a body when a header without a blank line stands above
+    /// the first directive and that directive moves away from the top
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7201-004")]
+    [Requirement("FMT-USING-011")]
+    public async Task CodeFixKeepsNamespaceIndentationBelowAHeader()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    // Header
+                                    using Zeta.Alpha;
+                                    using {|RH7201:System|};
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     // Header
+                                     using System;
+
+                                     using Zeta.Alpha;
+
+                                     class C
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

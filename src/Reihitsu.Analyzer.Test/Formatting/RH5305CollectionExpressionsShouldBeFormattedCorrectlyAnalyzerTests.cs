@@ -390,6 +390,32 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzerTests 
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifies that a collection expression whose closing bracket stands behind a comment on the bracket's line is not reported, also when that comment starts its line outside the column of the opening bracket, because the rule exempts a closing bracket with a comment in front of it
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5305-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyClosingBracketBehindMisplacedLeadingCommentIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int[] b = [
+                                                      1
+                                        /* end */ ];
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

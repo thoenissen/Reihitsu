@@ -1037,6 +1037,47 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a summary in a documentation comment inside the parameter list of an ordinary method is reported
+    /// once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-003")]
+    public async Task VerifySummaryInsideParameterListOfMethodIsReportedOnce()
+    {
+        const string testData = """
+                                public class C
+                                {
+                                    public void M(
+                                        /// {|#0:<summary>A.</summary>|}
+                                        int a)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a summary in a documentation comment inside the parameter list of a positional record is reported
+    /// once, like the same comment in the parameter list of a method
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8305-003")]
+    public async Task VerifySummaryInsideParameterListOfPositionalRecordIsReportedOnce()
+    {
+        const string testData = """
+                                public record R(
+                                    /// {|#0:<summary>A.</summary>|}
+                                    int A);
+                                """;
+
+        await Verify(testData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

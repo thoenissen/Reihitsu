@@ -4861,6 +4861,117 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     }
 
     /// <summary>
+    /// Verifies that in a CRLF document the fix writes the LF behind the last member of an enum, which it joins, as CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-010")]
+    [Requirement("SHARED-FIX-008")]
+    public async Task FixWritesTheDetectedLineEndingBehindTheLastEnumMemberInAMixedDocument()
+    {
+        const string testData = "enum E\r\n{\r\n    A = 1,\r\n    B =\r\n    2\n}\r\n";
+        const string resultData = "enum E\r\n{\r\n    A = 1,\r\n    B = 2\r\n}\r\n";
+
+        Assert.AreEqual(resultData, await ApplyCodeFixAsync(testData));
+    }
+
+    /// <summary>
+    /// Verifies that the fix removes the whitespace behind the last member of an enum, which it joins, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">The line ending of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-PIPE-010")]
+    public async Task FixRemovesWhitespaceBehindTheLastEnumMember(string endOfLine)
+    {
+        const string testData = "enum E\n{\n    A = 1,\n    {|RH5111:B =\n    2|}   \n}\n";
+        const string resultData = "enum E\n{\n    A = 1,\n    B = 2\n}\n";
+
+        await VerifyCodeFixWithEndOfLine(testData, resultData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a comment or a <c>#pragma</c> directive in each wrapped gap around the equals sign of an enum member, a property, a declarator, or an assignment keeps the report, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-005")]
+    [Requirement("SHARED-DIAG-010")]
+    public async Task VerifyCommentOrPragmaInEveryWrappedGapKeepsTheReportWithoutCodeFix()
+    {
+        const string testData = """
+                                enum E
+                                {
+                                    {|RH5111:A // c
+                                        = 1|},
+                                }
+
+                                class C
+                                {
+                                    {|RH5111:int Q { get; set; } // c
+                                        = 5;|}
+
+                                    void M()
+                                    {
+                                        var {|RH5111:y // c
+                                            = 1|};
+                                        int z;
+                                        {|RH5111:z = /* c */
+                                            2|};
+                                        {|RH5111:z
+                                #pragma warning disable CS0168
+                                            = 3|};
+                                    }
+
+                                    void N()
+                                    {
+                                        int /* t */ {|RH5111:x
+                                #pragma warning disable CS0168
+                                            = 1|};
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a region directive pair in the wrapped gap in front of the equals sign of an assignment, a comment on a line of its own behind the equals sign, and a comment behind a parameter in front of its wrapped default value keep the report, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-005")]
+    [Requirement("SHARED-DIAG-010")]
+    public async Task VerifyRegionDirectiveOrCommentInTheWrappedGapKeepsTheReportWithoutCodeFix()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int z;
+                                        {|RH5111:z
+                                #region Value
+                                #endregion
+                                            = 3|};
+                                        {|RH5111:z =
+                                            // c
+                                            4|};
+                                    }
+
+                                    void N({|RH5111:int a // c
+                                               = 1|})
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
     /// Verifies the one diagnostic marked in the source and the fix result under LF and under CRLF
     /// </summary>
     /// <param name="testData">The source with LF line endings</param>

@@ -298,6 +298,39 @@ public class RH4003StructNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4003S
         await Verify(testCode, testCode);
     }
 
+    /// <summary>
+    /// Verifies that a struct is renamed to the name of a member of an interface it implements, because its rename cascade holds only its constructor besides the struct, and a constructor cannot implement an interface member
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixRenamesAStructToTheNameOfAMemberOfAnInterfaceItImplements()
+    {
+        const string testCode = """
+                                public interface IHasProcessor
+                                {
+                                    int Processor => 1;
+                                }
+
+                                public struct {|RH4003:processor|} : IHasProcessor
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public interface IHasProcessor
+                                 {
+                                     int Processor => 1;
+                                 }
+
+                                 public struct Processor : IHasProcessor
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

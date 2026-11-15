@@ -135,7 +135,7 @@ public class RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer : Diagn
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.SingleLineDocumentationCommentTrivia);
+        context.RegisterStructuredTriviaActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.SingleLineDocumentationCommentTrivia);
     }
 
     #endregion // DiagnosticAnalyzer

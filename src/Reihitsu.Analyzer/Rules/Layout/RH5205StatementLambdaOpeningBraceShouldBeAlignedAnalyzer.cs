@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
@@ -93,7 +94,7 @@ public class RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer : Diagnost
 
         var expectedColumn = anchorToken.GetLocation().GetLineSpan().StartLinePosition.Character;
 
-        if (openBraceLineSpan.StartLinePosition.Character != expectedColumn)
+        if (CommentPositionUtilities.GetLineStartColumn(openBraceToken) != expectedColumn)
         {
             context.ReportDiagnostic(CreateDiagnostic(openBraceToken.GetLocation()));
         }

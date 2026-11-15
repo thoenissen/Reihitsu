@@ -5,7 +5,7 @@
 | ID prefix | FMT-BREAK |
 | Status | Active |
 | Code owners | `LineBreakPhase`, `LineBreakBlockRewriter`, `LineBreakInitializerRewriter`, `LineBreakContainedBlockRewriter`, `LineBreakAssignmentRewriter`, `DeclarationSemicolonLineBreakRewriter`, `ListElementInteriorJoinRewriter`, `ListElementInteriorUtilities`, `LineBreakListRewriter`, `PropertyLayoutLineBreakRewriter`, `GenericConstraintLineBreakRewriter`, `DeclarationBraceLineBreakRewriter`, `MemberLineStartRewriter`, `AttributeTargetFormattingRewriter`, `AttributeTargetFormattingShared`, `BinaryOperatorLineBreakRewriter`, `ChainLineBreakRewriter`, `TernaryLineBreakRewriter`, `SwitchCaseWhenLineBreakRewriter`, `BracePlacer`, `TokenGapNormalizer`, `AccessorListLayout`, `LineBreakDetection`, `LineBreakTriviaUtilities` |
-| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-010, FMT-PIPE-014, FMT-PIPE-021, FMT-PIPE-025, FMT-PIPE-026, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, FMT-UNSUP-008, SHARED-ATTR-014, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-DIAG-010, SHARED-STMT-001 |
+| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-010, FMT-PIPE-014, FMT-PIPE-021, FMT-PIPE-025, FMT-PIPE-026, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, FMT-UNSUP-008, FMT-UNSUP-009, SHARED-ATTR-014, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-DIAG-010, SHARED-STMT-001 |
 
 This spec covers `LineBreakPhase`, the phase of the pipeline that decides where lines break (its position in the phase order is FMT-PIPE-001): brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, the lines that switch sections, their labels, and their first statements start, and `case … when` guards. The phase adds and removes line breaks and keeps the blank lines it finds (FMT-BREAK-030), and it changes tokens only where it shapes an accessor's attribute lists (FMT-BREAK-032). The columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
 
@@ -555,7 +555,7 @@ class C
 
 ### FMT-BREAK-011 — Parameter lists hug their declaration
 
-A comma between parameters MUST stay at the end of the previous parameter's line, except a comma that a comment, a directive, or disabled text keeps off that line (FMT-BREAK-001, FMT-BREAK-012), and the closing parenthesis MUST stay on the line of the last parameter. This holds for every parameter list — methods, constructors, operators, delegates, local functions, records, primary constructors, anonymous methods, parenthesized lambdas, and indexers, whose bracketed parameter list (`this[int a, int b]`) has its brackets in place of the parentheses (FMT-PIPE-014). The opening parenthesis MUST stay on the declaration line for every one of these parameter lists except a parenthesized lambda's; the opening bracket of an indexer's parameter list stays on the line of `this`.
+A comma between parameters MUST stay at the end of the previous parameter's line, and the closing parenthesis MUST stay on the line of the last parameter. This holds for every parameter list — methods, constructors, operators, delegates, local functions, records, primary constructors, anonymous methods, parenthesized lambdas, and indexers, whose bracketed parameter list (`this[int a, int b]`) has its brackets in place of the parentheses (FMT-PIPE-014). The opening parenthesis MUST stay on the declaration line for every one of these parameter lists except a parenthesized lambda's; the opening bracket of an indexer's parameter list stays on the line of `this`.
 
 The opening parenthesis of a parenthesized lambda is the lambda's first token unless a modifier or a return type stands in front of it, and this requirement does not move it: the requirement that owns the gap in front of the lambda decides it — inside a list element FMT-BREAK-015 joins it, as the first element of a list FMT-BREAK-012 does, and as an assignment's value FMT-BREAK-016 does — and where no requirement joins that gap, the phase leaves its line break and its blank lines as written (FMT-BREAK-030). A line break that another requirement inserts in front of the lambda — in front of an element of an initializer (FMT-BREAK-021) or of a collection expression (FMT-BREAK-022), or of a list element (FMT-BREAK-012) — stays, as in front of any other expression.
 
@@ -712,11 +712,11 @@ An argument list, a parameter list — the bracketed parameter list of an indexe
 - A list whose elements all start on one line, none of them spanning lines, is **single-line**, also when a line break stands behind its opening parenthesis or bracket. Its elements MUST stay on that line, and its first element MUST join the line of the opening parenthesis or bracket. A line break in front of the closing parenthesis of an argument list stays (Non-goals); the closing parenthesis or bracket of a parameter list is FMT-BREAK-011's.
 - A first element that a comment, a preprocessor directive, or disabled text keeps off the line of the opening parenthesis or bracket — one of them stands between the opening delimiter and the element's first token, and a line break separates the two — cannot join that line (FMT-BREAK-001). It MUST stay at the start of its own line, and the list is then **multi-line**, also when all its elements start on that one line: every element MUST start its own line, and the first element stays where it is. Whether a line break separates them is decided as SHARED-BLANK-008 counts line breaks: in `Foo( /* a⏎ b */ 1, 2)` the line break is inside the text of the comment, the first element is on the opening line, and the list stays single-line; in `Foo( // c⏎1, 2)` and `Foo(⏎/* c */⏎1, 2)` the first element is held, and the list becomes one element per line. A line break behind the opening delimiter with no comment, directive, or disabled text in the gap (`Foo(⏎1, 2)`) holds nothing, and the list is joined.
 
-In a multi-line argument list and a multi-line attribute argument list, every comma MUST end the line of the element in front of it, as in a parameter list (FMT-BREAK-011): a comma that starts a line moves behind the element in front of it, and the element behind it starts its own line. A comment behind such a comma, on the comma's line, MUST move with the comma and stay behind it, as in a parameter list: `Foo(1⏎, /* c */ 2, 3)` becomes `Foo(1, /* c */⏎2,⏎3)`, and a `//` comment behind the comma keeps ending the line.
+In a multi-line argument list and a multi-line attribute argument list, every comma MUST end the line of the element in front of it, as in a parameter list (FMT-BREAK-011): a comma that starts a line moves behind the element in front of it, and the element behind it starts its own line. A comment behind such a comma, on the comma's line, MUST move with the comma and stay behind it, as in a parameter list: `Foo(1⏎, /* c */ 2, 3)` becomes `Foo(1, /* c */⏎2,⏎3)`, and a `//` comment behind the comma keeps ending the line. This covers every comment the parser lets trail the comma: each `//` and `/* */` comment, and every comment in the documentation mode `None`, where `Foo(1⏎, /** c */ 2)` becomes `Foo(1, /** c */⏎2)`. A documentation comment (`/** */`, `///`) behind the comma in the documentation modes `Parse` and `Diagnose` is not covered: it is a documentation comment written behind code, which the documentation-comment phase places before the comma moves (FMT-PIPE-001; FMT-DOC-001 states that phase's relocation, and does not yet decide this position). It goes onto a line of its own in front of the element behind the comma, as it does for the same code written comma-last (`Foo(1, /** c */ 2,⏎3)`): `Foo(1⏎, /** c */ 2)` becomes `Foo(1,⏎⏎/** c */ 2)`, with the blank line in front of the comment that FMT-BLANK-012 gives a relocated documentation comment, and `Foo(1⏎, /// c⏎2)` becomes `Foo(1,⏎⏎/// c⏎2)`.
 
-A comma MUST NOT be moved across a comment, a preprocessor directive, or disabled text (FMT-BREAK-001). A comma that one of them keeps off the line of the element in front of it — the comment, directive, or disabled text stands between the element's last token and the comma, and a line break separates the two — MUST stay at the start of the line of the element behind it, in every list this requirement covers; every other comma and element of the list MUST be laid out as the paragraphs above say. When such a held comma stands alone on its line — the element behind it starts on a later line — the line break behind the comma MUST be left as written too: the comma stays alone on its line and the element behind it keeps its own line, as `P` shows below; it is not joined to `, int b`. A held comma with the element behind it on its own line, as in `N` below, keeps that element there. Whether a line break separates them is decided as SHARED-BLANK-008 counts line breaks: a line break inside the text of a multi-line comment does not count, so in `Foo(1 /* a⏎ b */, 2,⏎3)` the comma is on the line of `1` and keeps nothing, and a comment in front of a comma on the element's own line keeps nothing either.
+No comment, directive, or disabled text stands between an element and a comma on a later line: the formatter refuses an input that holds one there (FMT-UNSUP-009), so every comma that starts a line can move behind the element in front of it. A comment in front of a comma on the element's own line, such as `/* one */` in `Foo(1 /* one */, 2,⏎3)`, stays where it is.
 
-Why: A partly wrapped list hides elements at the end of a line. Whether a list is wrapped is a question about its elements: a line break only behind the opening parenthesis puts every element on one line, so the list reads as a one-line list and is joined like one. A first element that a comment or a directive holds off the opening line already stands on a line of its own; joining it would cross the comment or the directive (FMT-BREAK-001), and keeping the others behind it on that line would leave a list RH5102 reports and whose fix it withholds (SHARED-DIAG-010), so the list is laid out as a multi-line list around the held element. Such a list is rare: RH5035 and RH5038 report a comment inside a parameter or argument list. Keeping the first element on the opening line lets the remaining elements align under it (FMT-INDENT). A comma at the end of a line shows that the list continues, as it does in a parameter list (FMT-BREAK-011). A comment behind a comma stays behind it, as in a parameter list and in a constraint clause (FMT-BREAK-037), so it goes where the comma goes. Moving a comma across a comment or a directive would change what the comment is about or move code across the directive (FMT-BREAK-001), so only that gap is left as written and the rest of the list is laid out as any other, as the commas of a constraint clause are (FMT-BREAK-037); such commas are rare — RH5035 and RH5038 report a comment inside a parameter or argument list. RH5101, RH5102, and RH5109 report partly wrapped lists.
+Why: A partly wrapped list hides elements at the end of a line. Whether a list is wrapped is a question about its elements: a line break only behind the opening parenthesis puts every element on one line, so the list reads as a one-line list and is joined like one. A first element that a comment or a directive holds off the opening line already stands on a line of its own; joining it would cross the comment or the directive (FMT-BREAK-001), and keeping the others behind it on that line would leave a list RH5102 reports and whose fix it withholds (SHARED-DIAG-010), so the list is laid out as a multi-line list around the held element. Such a list is rare: RH5035 and RH5038 report a comment inside a parameter or argument list. Keeping the first element on the opening line lets the remaining elements align under it (FMT-INDENT). A comma at the end of a line shows that the list continues, as it does in a parameter list (FMT-BREAK-011). A comment behind a comma stays behind it, as in a parameter list and in a constraint clause (FMT-BREAK-037), so it goes where the comma goes. A comma that a comment or a directive kept off the element's line could not move without crossing it (FMT-BREAK-001); the formatter refuses that shape instead of laying the list out around it (FMT-UNSUP-009). RH5101, RH5102, and RH5109 report partly wrapped lists.
 
 Example:
 
@@ -810,33 +810,13 @@ class C
 }
 ```
 
-Example — a comma that a comment or a directive keeps off the line of the element in front of it stays at the start of its line, alone on it when it was written alone, and the rest of the list is laid out around it; a comment behind a comma that moves goes with the comma; a block comment in front of a comma on the element's own line keeps nothing. The `#if X` list is shown as parsed in a build that defines `X`: there `, 3` is code, and its comma is the one the directive holds. In a build that does not define `X`, `, 3` is disabled text in front of `)`, the list holds only `1` and `2`, which start on one line, so it is single-line and stays as written:
+Example — a comment behind a comma that moves goes with the comma, and a block comment in front of a comma on the element's own line keeps nothing:
 
 ```csharp
 class C
 {
-    void N(int a
-           , int b // keep
-           , int c)
-    {
-    }
-
-    void P(int a // keep
-           ,
-           int b)
-    {
-    }
-
     void M()
     {
-        Foo(1, 2
-            , 3 // keep
-            , 4);
-        Foo(1, 2
-#if X
-            , 3
-#endif
-            );
         Foo(1
             , /* c */ 2, 3);
         Foo(1
@@ -851,30 +831,8 @@ class C
 ```csharp
 class C
 {
-    void N(int a,
-           int b // keep
-           , int c)
-    {
-    }
-
-    void P(int a // keep
-           ,
-           int b)
-    {
-    }
-
     void M()
     {
-        Foo(1,
-            2,
-            3 // keep
-            , 4);
-        Foo(1,
-            2
-#if X
-            , 3
-#endif
-            );
         Foo(1, /* c */
             2,
             3);
@@ -1309,9 +1267,9 @@ class C
 
 ### FMT-BREAK-021 — Object initializers are always laid out over several lines
 
-The initializer of an object creation (`new Foo { … }`, `new() { … }`), a collection initializer, an anonymous object creation, and the initializer of a `with` expression MUST put the opening brace, every element, and the closing brace on their own lines, also when the author wrote it on one line. A collection initializer assigned to a member inside an object initializer (`Items = { … }`) keeps its opening brace on the `=` line. Array initializers (`new int[] { 1, 2 }`, `int[] f = { 1, 2 }`) keep the author's layout.
+The initializer of an object creation (`new Foo { … }`, `new() { … }`), a collection initializer, an anonymous object creation, and the initializer of a `with` expression MUST put the opening brace, every element, and the closing brace on their own lines, also when the author wrote it on one line. A collection initializer assigned to a member inside an object initializer (`Items = { … }`) keeps its opening brace on the `=` line. Array initializers (`new int[] { 1, 2 }`, `int[] f = { 1, 2 }`) keep the author's layout, apart from a comma that starts a line, which FMT-BREAK-038 moves. The commas of every initializer this requirement names are FMT-BREAK-038's.
 
-Why: An initializer sets several independent values; one per line makes each visible and gives each its own diff line. A `with` initializer sets values the same way. Array initializers are often long lists of literal data, for which one element per line would explode the file. RH5301 and RH5303 report the same shapes, apart from the `with` initializer, which no rule reports.
+Why: An initializer sets several independent values; one per line makes each visible and gives each its own diff line. A `with` initializer sets values the same way. Array initializers are often long lists of literal data, for which one element per line would explode the file. Moving a comma that starts a line keeps the number of lines: only the side of the comma the line break stands on changes, so the array keeps its author's line count (FMT-BREAK-038). RH5301 and RH5303 report the same shapes, apart from the `with` initializer, which no rule reports.
 
 Example:
 
@@ -1387,7 +1345,7 @@ class C
 
 ### FMT-BREAK-022 — Wrapped collection expressions and patterns get one element per line
 
-A collection expression, a list pattern, a property pattern clause, a parenthesized pattern, and a complex element initializer (`{ 1, 2 }` inside a dictionary initializer) written on one line MUST stay on one line. When one of them spans several lines, every element MUST start its own line, the first element MUST start the line after the opening delimiter, and the closing delimiter MUST start its own line. The opening brace of a wrapped property pattern MUST start its own line, except in a pattern introduced directly by a `case` label, where it stays on the label's line.
+A collection expression, a list pattern, a property pattern clause, a parenthesized pattern, and a complex element initializer (`{ 1, 2 }` inside a dictionary initializer) written on one line MUST stay on one line. When one of them spans several lines, every element MUST start its own line, the first element MUST start the line after the opening delimiter, and the closing delimiter MUST start its own line. The opening brace of a wrapped property pattern MUST start its own line, except in a pattern introduced directly by a `case` label, where it stays on the label's line. A comma that starts a line in one of them is FMT-BREAK-038's.
 
 Why: These constructs are expressions inside an expression; on one line they read as a value. Once wrapped, the same one-element-per-line rule as for initializers applies. The `case` exception keeps the pattern from being mistaken for the section body. RH5305 and RH5306 report the same shapes.
 
@@ -2374,13 +2332,13 @@ class C
 
 This requirement applies to every `where` clause, whichever declaration owns it — a type, a method, a local function, a delegate, or an extension block.
 
-In this requirement, a line break is one that SHARED-BLANK-008 counts: an end-of-line trivia, or the line break that ends a single-line comment, a `///` comment, or a directive. A line break inside the text of a multi-line comment (`/* … */`) is not one: two tokens that only such a comment puts on different lines of the text are not separated by a line break, for the joins, for whether the clause is wrapped, and for whether a constraint, a comma, or the colon starts a line.
+In this requirement, a line break is one that SHARED-BLANK-008 counts: an end-of-line trivia, or the line break that ends a single-line comment, a `///` comment, or a directive. A line break inside the text of a multi-line comment (`/* … */`) is not one: two tokens that only such a comment puts on different lines of the text are not separated by a line break, for the joins, for whether the clause is wrapped, and for whether a constraint or the colon starts a line. A comma behind such a comment on a later line of the text is refused (FMT-UNSUP-009).
 
 The phase MUST first join the line breaks inside a clause that structure nothing: a line break between the clause's type parameter and its colon MUST be joined, so that the colon stands on the type parameter's line, and a line break between two tokens of one constraint MUST be joined — in a qualified or alias-qualified name, in front of the `<` of a type argument list, in `new()`, `class?`, or `allows ref struct`. The gaps of a type argument list, from its `<` to its `>`, are not this requirement's: FMT-BREAK-014 and FMT-BREAK-015 join them. A line break that those requirements, and the requirements of a type argument's own construct, keep — for example one inside a tuple type argument wrapped over two lines (`IEquatable<(int,⏎ string)>`) — stays, and the constraint then spans two lines.
 
 The clause MUST then be judged as these joins leave it. It is wrapped when a line break separates its colon from its first constraint, when a line break separates its colon from its type parameter because a comment, a directive, or disabled text keeps the join from happening, or when a line break separates two tokens of its constraints, from the first token of the first constraint to the last token of the last one — in front of or behind a comma between two constraints, or inside one constraint where the joins leave it. A wrapped clause MUST become one constraint per line: its first constraint MUST move onto the line of the colon, every later constraint MUST start a line — a line break MUST separate it from the token in front of it — that no other constraint of the clause shares, and every comma between two constraints MUST stand at the end of the line of the constraint in front of it. Where a multi-line comment stands behind a comma, the later constraint behind the comment's closing line does not start a line, and the line break goes behind the comment, which stays behind the comma (FMT-BREAK-001). In a clause that is not wrapped, this requirement changes nothing beyond the joins of the first step, also where multi-line comments put its colon or its constraints on different lines of the text.
 
-A join MUST NOT cross a comment, a directive, or disabled text (FMT-BREAK-001). Where one stands in a gap, the line break stays: a colon kept off the type parameter's line starts its own line and wraps the clause, a first constraint kept off the colon's line starts its own line, a comma kept off the previous line stays at the start of the line of the constraint behind it, and a line break inside a constraint that one keeps wraps the clause. The phase keeps the blank lines of every gap it does not join (FMT-BREAK-030).
+A join MUST NOT cross a comment, a directive, or disabled text (FMT-BREAK-001). Where one stands in a gap, the line break stays: a colon kept off the type parameter's line starts its own line and wraps the clause, a first constraint kept off the colon's line starts its own line, and a line break inside a constraint that one keeps wraps the clause. A comment, a directive, or disabled text between a constraint and a comma on a later line is a shape the formatter refuses (FMT-UNSUP-009), so no comma is kept off the previous line. The phase keeps the blank lines of every gap it does not join (FMT-BREAK-030).
 
 Why: A partly wrapped clause hides constraints at the end of a line, as a partly wrapped list hides elements (FMT-BREAK-012). With the first constraint on the colon's line and the commas at the end of the line, as in a parameter list (FMT-BREAK-011), the later constraints have a constraint to align under (FMT-INDENT-032). A wrap between the type parameter and the colon, or inside one constraint, splits one part of the clause over two lines without structuring anything, as FMT-BREAK-015 reasons for wraps inside a list element, and the clause is judged after those joins as a list is. A constraint that a comment or a directive keeps over several lines breaks the clause's one-line shape as a multi-line element breaks a list's (FMT-BREAK-013). A colon that one keeps on its own line already takes the clause off the line of its `where` keyword, so its constraints follow the one-per-line layout of every other wrapped clause instead of a shape of their own. Whether a clause is wrapped, and whether a part of it starts a line, is decided on the same line-start facts as every other list (SHARED-BLANK-008): a line break inside a multi-line comment is part of the comment's text and does not wrap a parameter list either (FMT-BREAK-012; `void N(int a, /* x⏎ y */ int b, int c)` stays on one line), and in a wrapped list a parameter behind such a comment's closing line gets a line of its own behind the comment, as a constraint does here. RH5110 reports only the position of the `where` keyword, so this layout is a formatter-only decision.
 
@@ -2575,7 +2533,7 @@ class C
 }
 ```
 
-Example — comments and directives block a join but not a split: a comment behind the type parameter keeps the colon on the next line, a comment or a directive behind the colon keeps the first constraint on the next line, a comment or a directive in front of a comma keeps the comma at the start of the line, and a comment behind a comma stays behind it:
+Example — comments and directives block a join but not a split: a comment behind the type parameter keeps the colon on the next line, a comment or a directive behind the colon keeps the first constraint on the next line, and a comment behind a comma stays behind it:
 
 ```csharp
 using System;
@@ -2602,20 +2560,6 @@ class C
             class,
 #endif
             new()
-    {
-    }
-
-    void P<T>()
-        where T : class // c
-            , new()
-    {
-    }
-
-    void Q<T>()
-        where T : IDisposable
-#if !X
-            , allows ref struct
-#endif
     {
     }
 
@@ -2655,20 +2599,6 @@ class C
     {
     }
 
-    void P<T>()
-        where T : class // c
-                  , new()
-    {
-    }
-
-    void Q<T>()
-        where T : IDisposable
-#if !X
-                  , allows ref struct
-#endif
-    {
-    }
-
     void R<T>()
         where T : class, /* c */
                   new(),
@@ -2678,7 +2608,7 @@ class C
 }
 ```
 
-Example — a line break inside a multi-line comment wraps nothing: the comment's closing line does not put the colon (`M`), the first constraint (`N`), a comma (`O`), or a later constraint (`P`) on a line of its own, so these clauses stay as written. In `S`, the line break in front of `IDisposable` wraps the clause; `new()` behind the comment's closing line does not start a line, so a line break goes behind the comment, which stays behind its comma:
+Example — a line break inside a multi-line comment wraps nothing: the comment's closing line does not put the colon (`M`), the first constraint (`N`), or a later constraint (`P`) on a line of its own, so these clauses stay as written. In `S`, the line break in front of `IDisposable` wraps the clause; `new()` behind the comment's closing line does not start a line, so a line break goes behind the comment, which stays behind its comma:
 
 ```csharp
 using System;
@@ -2694,12 +2624,6 @@ class C
     void N<T>()
         where T : /* a
             b */ class, new()
-    {
-    }
-
-    void O<T>()
-        where T : class /* a
-            b */, new()
     {
     }
 
@@ -2735,12 +2659,6 @@ class C
     {
     }
 
-    void O<T>()
-        where T : class /* a
-            b */, new()
-    {
-    }
-
     void P<T>()
         where T : class, /* a
             b */ new(), IDisposable
@@ -2753,6 +2671,121 @@ class C
                   new(),
                   IDisposable
     {
+    }
+}
+```
+
+### FMT-BREAK-038 — A comma that starts a line in an initializer, a collection expression, or a pattern ends the element's line
+
+This requirement covers the commas of an object, collection, anonymous-object, or `with` initializer and of a collection initializer assigned to a member (FMT-BREAK-021), of an array initializer (`new int[] { … }`, `new[] { … }`, `int[] a = { … }`, `stackalloc int[] { … }`), and of a collection expression, a list pattern, a property pattern clause, and a complex element initializer (FMT-BREAK-022) — the commas between two elements and a trailing comma behind the last element. A comma **starts a line** when it stands on a later line of the text than the line on which the token in front of it ends: every line break in the text between the two counts, as FMT-UNSUP-009 counts them. `X = 3⏎, Y = 4` starts a line; `X = 3, Y = 4` and `X = 3,⏎Y = 4` do not. No comment, directive, or disabled text stands in that gap: the formatter refuses an input that holds one there (FMT-UNSUP-009), so no line break inside the text of a comment is ever counted, and the count is the one SHARED-BLANK-008 gives as well.
+
+A comma that starts a line MUST move to the end of the line of the token in front of it, and the line break that stood in front of it then stands behind it: the element behind the comma starts its own line, also in an array initializer, whose other line breaks stay as written (FMT-BREAK-021). A comma alone on its line leaves no line behind. A comment behind such a comma, on the comma's line, MUST move with the comma and stay behind it, as in an argument list (FMT-BREAK-012): a block comment followed by an element puts the line break behind the comment, and a `//` comment keeps ending the line. As in an argument list, this covers every comment the parser lets trail the comma — each `//` and `/* */` comment, and every comment in the documentation mode `None` (`X = 3⏎, /** c */ Y = 4` becomes `X = 3, /** c */⏎Y = 4`) — and not a documentation comment in the documentation modes `Parse` and `Diagnose`, which the documentation-comment phase places first (FMT-PIPE-001, FMT-DOC-001), as for the same code written comma-last: there `X = 3⏎, /** c */ Y = 4` becomes `X = 3,⏎⏎/** c */ Y = 4`, the comment in front of the element on a line of its own. A comma that does not start a line is not changed by this requirement.
+
+Why: A comma at the end of a line shows that the list continues, as it does in a parameter, argument, or attribute argument list (FMT-BREAK-011, FMT-BREAK-012), and an element behind it then starts its line like every other element of the construct. A comma left alone between two element lines belongs to neither. In an array initializer the move keeps the number of lines and only changes which side of the comma the line break stands on, so the array keeps its author's line count (FMT-BREAK-021). A comment behind a comma goes where the comma goes, as in every other list. A documentation comment behind a comma is the exception in the modes that parse documentation: the documentation-comment phase runs first and moves it onto a line of its own, and keeping it behind the comma would only last until the next run, which moves it again (FMT-PIPE-004); so the comma-first form gives what the comma-last form gives. A comma that a comment or a directive kept off the element's line could not move without crossing it (FMT-BREAK-001); the formatter refuses that shape (FMT-UNSUP-009) rather than giving such a comma a line and a column of its own. Comma-first code is a style people write and no rule reports it in most of these constructs, so it gets a decided layout; only a comma that a comment or a directive holds is refused.
+
+Example — a comma that starts a line ends the line of the element in front of it, a comment behind it goes with it, and a comma alone on its line leaves no line behind:
+
+```csharp
+class C
+{
+    void M(object o, P p)
+    {
+        var a = new D(1, 2) { X = 3
+            , };
+        var b = new D { X = 3
+            , /* c */ Y = 4
+            , // d
+            Z = 5 };
+        int[] d = [1
+            , 2];
+        var h = new { A = 1
+            , B = 2 };
+        var q = p with { X = 1
+            , Y = 2 };
+        var r = o is P { X: 1
+            , Y: 2 };
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(object o, P p)
+    {
+        var a = new D(1, 2)
+                {
+                    X = 3,
+                };
+        var b = new D
+                {
+                    X = 3, /* c */
+                    Y = 4, // d
+                    Z = 5
+                };
+        int[] d = [
+                      1,
+                      2
+                  ];
+        var h = new
+                {
+                    A = 1,
+                    B = 2
+                };
+        var q = p with
+                  {
+                      X = 1,
+                      Y = 2
+                  };
+        var r = o is P
+                  {
+                      X: 1,
+                      Y: 2
+                  };
+    }
+}
+```
+
+Example — in an array initializer the comma moves and the element behind it starts the next line; the array's other line breaks stay as written:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var e = new int[]
+        {
+            1
+            , 2
+        };
+        var f = new int[]
+        {
+            1, 2
+            , 3, 4
+        };
+        int[] y = { 1
+            , 2 };
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var e = new int[]
+                {
+                    1,
+                    2
+                };
+        var f = new int[]
+                {
+                    1, 2,
+                    3, 4
+                };
+        int[] y = { 1,
+                      2 };
     }
 }
 ```

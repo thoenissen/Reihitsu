@@ -141,5 +141,57 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredFormatterTests : Format
                               Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, AnalyzerResources.RH5206MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a switch expression arm behind a comment that starts its line in the arm column is not reported and stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5206-001")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyArmBehindLeadingCommentInArmColumnIsNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string M(int status)
+                                    {
+                                        return status switch
+                                               {
+                                                   /* idle */ 0 => "Idle",
+                                                   _ => "Other"
+                                               };
+                                    }
+                                }
+                                """;
+
+        await VerifyFormatter(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a switch expression opening brace behind a comment that starts its line in the column of the governing expression is not reported and stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5206-001")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyOpeningBraceBehindLeadingCommentInAnchorColumnIsNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string M(int status)
+                                    {
+                                        return status switch
+                                               /* map */ {
+                                                   0 => "Idle",
+                                                   _ => "Other"
+                                               };
+                                    }
+                                }
+                                """;
+
+        await VerifyFormatter(testData);
+    }
+
     #endregion // Tests
 }

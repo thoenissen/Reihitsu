@@ -794,6 +794,49 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
         await Verify(testData, fixedData);
     }
 
+    /// <summary>
+    /// Verifies that an empty region in front of the closing brace of a class with a primary constructor is reported
+    /// once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7310-001")]
+    [Requirement("RH7310-003")]
+    public async Task VerifyEmptyRegionInFrontOfClosingBraceOfClassWithPrimaryConstructorIsReportedOnce()
+    {
+        const string testData = """
+                                public class Service(int value)
+                                {
+                                    #region Properties
+                                    public int Value => value;
+                                    #endregion // Properties
+
+                                    {|#0:#region Empty|}
+                                    #endregion // Empty
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH7310MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an empty region in front of a positional record is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7310-001")]
+    [Requirement("RH7310-003")]
+    public async Task VerifyEmptyRegionInFrontOfPositionalRecordIsReportedOnce()
+    {
+        const string testData = """
+                                {|#0:#region Empty|}
+                                #endregion // Empty
+                                public record R(int A);
+                                """;
+
+        await Verify(testData, Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH7310MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

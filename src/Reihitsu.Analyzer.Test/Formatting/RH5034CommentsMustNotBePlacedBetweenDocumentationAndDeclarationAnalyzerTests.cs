@@ -450,5 +450,107 @@ public class RH5034CommentsMustNotBePlacedBetweenDocumentationAndDeclarationAnal
         await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
     }
 
+    /// <summary>
+    /// Verifies the spec example: a documentation comment that a later documentation comment detaches across an ordinary comment documents nothing, so neither it nor the ordinary comment in front of the later documentation comment is reported, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5034-001")]
+    public async Task VerifyNoDiagnosticForCommentBetweenDetachedAndLaterDocumentationComment()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// a
+                                    // note
+                                    /// b
+                                    void N()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment that a later documentation comment detaches across a delimited comment documents nothing, so the delimited comment in front of the later documentation comment is not reported, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5034-001")]
+    public async Task VerifyNoDiagnosticForDelimitedCommentBetweenDetachedAndLaterDocumentationComment()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// a
+                                    /* note */
+                                    /// b
+                                    void N()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment that a later documentation comment detaches across a preprocessor directive documents nothing, so an ordinary comment between the directive and the later documentation comment is not reported, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5034-001")]
+    public async Task VerifyNoDiagnosticForCommentBehindDirectiveBetweenDetachedAndLaterDocumentationComment()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// a
+                                #pragma warning disable CS0168
+                                    // note
+                                    /// b
+                                    void N()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that a blank line alone between two documentation comments does not detach the earlier one, so a comment between the later documentation comment and the declaration is still reported, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5034-001")]
+    public async Task VerifyCommentBehindDocumentationCommentsSeparatedByBlankLineIsReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// a
+
+                                    /// b
+                                    {|#0:// note|}
+                                    void N()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5034CommentsMustNotBePlacedBetweenDocumentationAndDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5034MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5034CommentsMustNotBePlacedBetweenDocumentationAndDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5034MessageFormat));
+    }
+
     #endregion // Tests
 }

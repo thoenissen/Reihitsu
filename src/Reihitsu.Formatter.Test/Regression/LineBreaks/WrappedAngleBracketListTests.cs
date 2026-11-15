@@ -907,35 +907,5 @@ public class WrappedAngleBracketListTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
-    /// <summary>
-    /// Verifies that a refused join (interior comment) with leading, misaligned commas aligns every
-    /// separator to the first type argument's column — not only element first-tokens and the closing
-    /// bracket, which is what a contributor covering only those would miss
-    /// </summary>
-    [TestMethod]
-    public void RefusedJoinWithLeadingCommaAlignsSeparatorsToFirstArgumentColumn()
-    {
-        // Arrange
-        const string input = """
-                             public class Sample
-                             {
-                                 private Base<T1 // note
-                             , T2
-                             , T3> Field => null;
-                             }
-                             """;
-        const string expected = """
-                                public class Sample
-                                {
-                                    private Base<T1 // note
-                                                 , T2
-                                                 , T3> Field => null;
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
     #endregion // Methods
 }

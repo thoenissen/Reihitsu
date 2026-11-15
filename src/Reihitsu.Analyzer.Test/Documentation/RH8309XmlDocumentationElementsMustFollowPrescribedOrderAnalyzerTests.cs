@@ -1905,6 +1905,52 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
         await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that an element out of order in the documentation comment of a positional record is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-001")]
+    [Requirement("RH8309-003")]
+    public async Task VerifyElementOutOfOrderOfPositionalRecordIsReportedOnce()
+    {
+        const string testData = """
+                                /// <summary>
+                                /// Customer.
+                                /// </summary>
+                                /// <remarks>x</remarks>
+                                /// {|#0:<param name="A">a</param>|}
+                                public record R(int A);
+                                """;
+
+        await Verify(testData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an element out of order in the documentation comment of a class with a primary constructor is
+    /// reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8309-001")]
+    [Requirement("RH8309-003")]
+    public async Task VerifyElementOutOfOrderOfClassWithPrimaryConstructorIsReportedOnce()
+    {
+        const string testData = """
+                                /// <summary>
+                                /// Service.
+                                /// </summary>
+                                /// <remarks>x</remarks>
+                                /// {|#0:<param name="value">Value</param>|}
+                                public class Service(int value)
+                                {
+                                    public int Value => value;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

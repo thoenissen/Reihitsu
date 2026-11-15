@@ -4,7 +4,7 @@
 |---|---|
 | ID prefix | SHARED-DOC |
 | Status | Active |
-| Code owners | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `DocumentationModeAnalysisContextExtensions`, `DocumentationCommentCodeFixUtilities` |
+| Code owners | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `AnalysisContextExtensions`, `DocumentationCommentCodeFixUtilities` |
 | Uses | FMT-DOC-013, SHARED-FIX-003, SHARED-FIX-006, SHARED-ORDER-002, SHARED-ORDER-006, SHARED-ORDER-009 |
 
 This spec covers the rules that require one kind of element to be documented. It defines which declarations such a rule checks, the private and non-private groups that split each kind between two rules, the declarations it exempts, and when a declaration counts as documented. It also defines what every documentation rule relies on: which documentation comments belong to a declaration, when a summary has text, when the parameters and type parameters of an element count as documented, and in which documentation modes documentation rules run. For the rules that check the descriptions of parameters, type parameters, and return values, it defines when such a description has text, how the descriptions are paired with the parameters, and when a description lacks a name. For the code fixes that remove, unwrap, or reorder documentation elements, it defines when an element has an end tag of its own and withholds them for one that has none; for the code fixes that remove an element, it defines which lines go with it. Each rule that uses this spec states which element kind it checks, which group, and where its diagnostic is located.

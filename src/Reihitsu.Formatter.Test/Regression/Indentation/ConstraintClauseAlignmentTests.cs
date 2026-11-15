@@ -5,8 +5,8 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.Indentation;
 
 /// <summary>
-/// Tests for the columns of the lines of a wrapped generic constraint clause that start with the colon, a constraint, or a
-/// comma between two constraints, for every owner of a clause and in every enclosing scope
+/// Tests for the columns of the lines of a wrapped generic constraint clause that start with the colon or a constraint, for
+/// every owner of a clause and in every enclosing scope
 /// </summary>
 [TestClass]
 public class ConstraintClauseAlignmentTests : FormatterTestsBase
@@ -76,9 +76,9 @@ public class ConstraintClauseAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the spec example: a constraint and a comma that a comment or a directive pushes onto the next line take
-    /// the first constraint's column, and a colon that a comment pushes onto the next line is indented one level deeper
-    /// than <c>where</c>
+    /// Verifies the spec example: a constraint that a comment or a directive pushes onto the next line takes the first
+    /// constraint's column, and a colon that a comment pushes onto the next line is indented one level deeper than
+    /// <c>where</c>
     /// </summary>
     [TestMethod]
     [Requirement("FMT-INDENT-032")]
@@ -100,12 +100,6 @@ public class ConstraintClauseAlignmentTests : FormatterTestsBase
                                      class,
                              #endif
                                      new()
-                                 {
-                                 }
-
-                                 void O<T>()
-                                     where T : class // c
-                                 , new()
                                  {
                                  }
 
@@ -133,12 +127,6 @@ public class ConstraintClauseAlignmentTests : FormatterTestsBase
                                                   class,
                                 #endif
                                                   new()
-                                    {
-                                    }
-
-                                    void O<T>()
-                                        where T : class // c
-                                                  , new()
                                     {
                                     }
 

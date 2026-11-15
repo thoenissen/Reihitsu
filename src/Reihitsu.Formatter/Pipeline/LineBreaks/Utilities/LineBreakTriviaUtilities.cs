@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -141,6 +142,60 @@ internal static class LineBreakTriviaUtilities
 
                                       return newToken;
                                   });
+    }
+
+    /// <summary>
+    /// Moves every comma of a separated list that starts a line behind the token in front of it, a trailing comma behind
+    /// the last element included: in a parameter list — parenthesized, or an indexer's bracketed one — an argument list,
+    /// and an attribute argument list (FMT-BREAK-011, FMT-BREAK-012), and in initializers, collection expressions, and
+    /// patterns (FMT-BREAK-038). The gap in front of such a comma holds only whitespace and line breaks, because the
+    /// precheck refuses a comment, a directive, or disabled text there (FMT-UNSUP-009). When the moved comma does not
+    /// already end its line and the token behind it does not start one, only the whitespace at the end of the comma's
+    /// trailing trivia is replaced by the line break, so a comment behind the comma moves with it; whitespace before or
+    /// between block comments that stay after the comma is kept as written
+    /// </summary>
+    /// <typeparam name="TNode">The list node type</typeparam>
+    /// <typeparam name="TElement">The type of the elements in the list</typeparam>
+    /// <param name="node">The list node</param>
+    /// <param name="getElements">Reads the current elements from the (possibly already updated) node</param>
+    /// <param name="endOfLine">The end-of-line sequence to keep after a moved separator</param>
+    /// <returns>The updated list</returns>
+    public static TNode CollapseSeparatorsToPreviousElementLine<TNode, TElement>(TNode node,
+                                                                                 Func<TNode, SeparatedSyntaxList<TElement>> getElements,
+                                                                                 string endOfLine)
+        where TNode : SyntaxNode
+        where TElement : SyntaxNode
+    {
+        for (var separatorIndex = 0; separatorIndex < getElements(node).SeparatorCount; separatorIndex++)
+        {
+            var elements = getElements(node);
+            var previousToken = elements[separatorIndex].GetLastToken();
+            var separator = elements.GetSeparator(separatorIndex);
+            var nextToken = separatorIndex + 1 < elements.Count
+                                ? elements[separatorIndex + 1].GetFirstToken()
+                                : separator.GetNextToken();
+
+            if (TokenGapUtilities.HasLineBreakBetween(previousToken, separator) == false)
+            {
+                continue;
+            }
+
+            var newPreviousToken = previousToken.WithTrailingTrivia(CreateJoinedTrailingTrivia(previousToken, separator));
+            var newSeparator = RemoveLeadingEndOfLineAndWhitespace(separator);
+
+            if (HasTrailingEndOfLine(newSeparator) == false
+                && (nextToken == default || HasLeadingEndOfLine(nextToken) == false))
+            {
+                newSeparator = newSeparator.WithTrailingTrivia(AppendEndOfLine(RemoveTrailingWhitespace(newSeparator.TrailingTrivia), endOfLine));
+            }
+
+            node = node.ReplaceTokens([previousToken, separator],
+                                      (original, _) => original == previousToken
+                                                           ? newPreviousToken
+                                                           : newSeparator);
+        }
+
+        return node;
     }
 
     /// <summary>

@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
 
@@ -75,7 +76,7 @@ public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzer : DiagnosticAnalyze
                 continue;
             }
 
-            if (argumentLineSpan.StartLinePosition.Character != expectedColumn)
+            if (CommentPositionUtilities.GetLineStartColumn(argument.GetFirstToken()) != expectedColumn)
             {
                 context.ReportDiagnostic(CreateDiagnostic(argument.GetLocation()));
             }

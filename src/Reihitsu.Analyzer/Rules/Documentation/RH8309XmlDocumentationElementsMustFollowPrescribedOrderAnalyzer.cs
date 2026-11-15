@@ -88,7 +88,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer : D
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.SingleLineDocumentationCommentTrivia);
+        context.RegisterStructuredTriviaActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.SingleLineDocumentationCommentTrivia);
     }
 
     #endregion // DiagnosticAnalyzer

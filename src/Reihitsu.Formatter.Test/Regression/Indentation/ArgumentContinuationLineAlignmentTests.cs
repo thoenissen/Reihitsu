@@ -15,11 +15,11 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies that a leading comma of a tuple expression kept on its own line by a line comment is aligned with the
-    /// tuple's first element
+    /// Verifies that a leading comma of a tuple expression, which no requirement moves behind the element in front of it, stays
+    /// aligned with the tuple's first element
     /// </summary>
     [TestMethod]
-    public void TupleLeadingCommaAfterLineCommentStaysAligned()
+    public void TupleLeadingCommaStaysAligned()
     {
         // Arrange
         const string input = """
@@ -29,7 +29,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
                              {
                                  internal void M()
                                  {
-                                     var pair = (1 // keep
+                                     var pair = (1
                                                  , 2);
                                  }
                              }
@@ -54,7 +54,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
                              {
                                  internal void M()
                                  {
-                                     var pair = (1 // keep
+                                     var pair = (1
                                      , 2);
                                  }
                              }
@@ -67,7 +67,7 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
                                 {
                                     internal void M()
                                     {
-                                        var pair = (1 // keep
+                                        var pair = (1
                                                     , 2);
                                     }
                                 }
@@ -107,203 +107,6 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
                                     {
                                         var pair = (- // keep
                                                     1, 2);
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a leading comma of an argument list kept on its own line by a line comment is aligned with the arguments
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-INDENT-012")]
-    public void ArgumentLeadingCommaAfterLineCommentIsAlignedWithTheArguments()
-    {
-        // Arrange
-        const string input = """
-                             namespace Demo;
-
-                             internal class Example
-                             {
-                                 internal void M()
-                                 {
-                                     N(1 // keep
-                                     , 2);
-                                 }
-                             }
-                             """;
-
-        const string expected = """
-                                namespace Demo;
-
-                                internal class Example
-                                {
-                                    internal void M()
-                                    {
-                                        N(1 // keep
-                                          , 2);
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a leading comma of an argument list kept on its own line by a block comment is aligned with the arguments
-    /// </summary>
-    [TestMethod]
-    public void ArgumentLeadingCommaAfterBlockCommentIsAlignedWithTheArguments()
-    {
-        // Arrange
-        const string input = """
-                             namespace Demo;
-
-                             internal class Example
-                             {
-                                 internal void M()
-                                 {
-                                     N(1 /* keep */
-                                     , 2);
-                                 }
-                             }
-                             """;
-
-        const string expected = """
-                                namespace Demo;
-
-                                internal class Example
-                                {
-                                    internal void M()
-                                    {
-                                        N(1 /* keep */
-                                          , 2);
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a leading comma following a pragma directive is aligned with the arguments while the directive keeps its line
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-INDENT-009")]
-    public void ArgumentLeadingCommaAfterPragmaDirectiveIsAlignedWithTheArguments()
-    {
-        // Arrange
-        const string input = """
-                             namespace Demo;
-
-                             internal class Example
-                             {
-                                 internal void M()
-                                 {
-                                     N(1
-                                     #pragma warning disable CS0168
-                                     , 2);
-                                 }
-                             }
-                             """;
-
-        const string expected = """
-                                namespace Demo;
-
-                                internal class Example
-                                {
-                                    internal void M()
-                                    {
-                                        N(1
-                                #pragma warning disable CS0168
-                                          , 2);
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a leading comma of an object creation's argument list is aligned with that list's arguments
-    /// </summary>
-    [TestMethod]
-    public void ArgumentLeadingCommaOfObjectCreationIsAlignedWithTheArguments()
-    {
-        // Arrange
-        const string input = """
-                             namespace Demo;
-
-                             internal class Example
-                             {
-                                 internal void M()
-                                 {
-                                     var value = new Example(1 // keep
-                                     , 2);
-                                 }
-                             }
-                             """;
-
-        const string expected = """
-                                namespace Demo;
-
-                                internal class Example
-                                {
-                                    internal void M()
-                                    {
-                                        var value = new Example(1 // keep
-                                                                , 2);
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a leading comma of a constructor initializer's argument list is aligned with that list's arguments
-    /// </summary>
-    [TestMethod]
-    public void ArgumentLeadingCommaOfConstructorInitializerIsAlignedWithTheArguments()
-    {
-        // Arrange
-        const string input = """
-                             namespace Demo;
-
-                             internal class Example
-                             {
-                                 internal Example()
-                                     : this(1 // keep
-                                 , 2)
-                                 {
-                                 }
-
-                                 internal Example(int first, int second)
-                                 {
-                                 }
-                             }
-                             """;
-
-        const string expected = """
-                                namespace Demo;
-
-                                internal class Example
-                                {
-                                    internal Example()
-                                        : this(1 // keep
-                                               , 2)
-                                    {
-                                    }
-
-                                    internal Example(int first, int second)
-                                    {
                                     }
                                 }
                                 """;
@@ -415,44 +218,6 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a leading comma of an element access argument list is aligned with the column after the opening bracket
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-INDENT-012")]
-    public void ElementAccessLeadingCommaIsAlignedWithTheArguments()
-    {
-        // Arrange
-        const string input = """
-                             namespace Demo;
-
-                             internal class Example
-                             {
-                                 internal void M()
-                                 {
-                                     var value = values[0 // keep
-                                     , 1];
-                                 }
-                             }
-                             """;
-
-        const string expected = """
-                                namespace Demo;
-
-                                internal class Example
-                                {
-                                    internal void M()
-                                    {
-                                        var value = values[0 // keep
-                                                           , 1];
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
     /// Verifies that a held line inside an element access argument is aligned with the argument's first token
     /// </summary>
     [TestMethod]
@@ -482,87 +247,6 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
                                     {
                                         var value = values[^ // keep
                                                            1];
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a leading comma of a member attribute's argument list is aligned with the attribute arguments
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-INDENT-012")]
-    public void MemberAttributeLeadingCommaIsAlignedWithTheArguments()
-    {
-        // Arrange
-        const string input = """
-                             using System;
-
-                             namespace Demo;
-
-                             internal class Example
-                             {
-                                 [Obsolete("a" // keep
-                                 , false)]
-                                 internal void M()
-                                 {
-                                 }
-                             }
-                             """;
-
-        const string expected = """
-                                using System;
-
-                                namespace Demo;
-
-                                internal class Example
-                                {
-                                    [Obsolete("a" // keep
-                                              , false)]
-                                    internal void M()
-                                    {
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a leading comma of a parameter attribute's argument list is aligned with that attribute's arguments rather than the parameter
-    /// </summary>
-    [TestMethod]
-    public void ParameterAttributeLeadingCommaIsAlignedWithTheArguments()
-    {
-        // Arrange
-        const string input = """
-                             using System;
-
-                             namespace Demo;
-
-                             internal class Example
-                             {
-                                 internal void M([Obsolete("a" // keep
-                                 , false)] int value)
-                                 {
-                                 }
-                             }
-                             """;
-
-        const string expected = """
-                                using System;
-
-                                namespace Demo;
-
-                                internal class Example
-                                {
-                                    internal void M([Obsolete("a" // keep
-                                                              , false)] int value)
-                                    {
                                     }
                                 }
                                 """;
@@ -677,72 +361,6 @@ public class ArgumentContinuationLineAlignmentTests : FormatterTestsBase
                                 {
                                     private System.Collections.Generic.List<System. // keep
                                                                             Int32> Values => null;
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a leading comma of a type argument list keeps its existing alignment with the first type argument
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-INDENT-015")]
-    public void TypeArgumentLeadingCommaStaysAlignedWithTheFirstTypeArgument()
-    {
-        // Arrange
-        const string input = """
-                             namespace Demo;
-
-                             internal class Example
-                             {
-                                 private System.Collections.Generic.Dictionary<int // keep
-                                                                               , string> Values => null;
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that a leading comma of a multi-line dictionary key is aligned with the key body
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-INDENT-014")]
-    public void DictionaryKeyLeadingCommaIsAlignedWithTheKeyBody()
-    {
-        // Arrange
-        const string input = """
-                             namespace Demo;
-
-                             internal class Example
-                             {
-                                 internal void M()
-                                 {
-                                     var grid = new Grid
-                                                {
-                                                    [1 // keep
-                                     , 2] = 3,
-                                                };
-                                 }
-                             }
-                             """;
-
-        const string expected = """
-                                namespace Demo;
-
-                                internal class Example
-                                {
-                                    internal void M()
-                                    {
-                                        var grid = new Grid
-                                                   {
-                                                       [1 // keep
-                                                           , 2] = 3,
-                                                   };
-                                    }
                                 }
                                 """;
 

@@ -2788,6 +2788,100 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Bat
         await Verify(testCode, fixedCode);
     }
 
+    /// <summary>
+    /// Verifies that a line that starts with <c>#</c> inside a comment between two groups is comment text,
+    /// so the block is reported and fixed
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-USING-009")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task HashLineInCommentDoesNotPreventReportAndFix(string endOfLine)
+    {
+        const string testCode = """
+                                using {|RH7207:System|};
+                                /*
+                                # Alpha helpers
+                                */
+                                using Alpha;
+
+                                namespace Alpha
+                                {
+                                    public class Helper
+                                    {
+                                    }
+                                }
+
+                                public class TestClass
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 /*
+                                 # Alpha helpers
+                                 */
+                                 using Alpha;
+
+                                 namespace Alpha
+                                 {
+                                     public class Helper
+                                     {
+                                     }
+                                 }
+
+                                 public class TestClass
+                                 {
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix keeps the indentation of a namespace with a body when a header without a blank line stands above
+    /// the first directive and that directive moves away from the top
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7207-004")]
+    [Requirement("FMT-USING-011")]
+    public async Task CodeFixKeepsNamespaceIndentationBelowAHeader()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    // Header
+                                    using {|RH7207:Zeta.Alpha|};
+                                    using System;
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     // Header
+                                     using System;
+
+                                     using Zeta.Alpha;
+
+                                     class C
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
