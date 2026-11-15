@@ -26,7 +26,7 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 
 ## Follow-up candidates
 
-(none yet)
+- RH2001 code fix (`RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider.cs:100`) also calls `Renamer.RenameSymbolAsync`; unchecked whether it rewrites or rebinds references to other symbols (SHARED-FIX-003/006). Source: `04-implementer.md`.
 
 ## Worklist / next step
 
@@ -34,4 +34,5 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 - Maintainer answered A.
 - Spec author done: `02-spec-author.md` (SHARED-CASING-009 extended, 5 examples; SHARED-CASING-012 Why adjusted).
 - Test implementer done: `03-test-implementer.md` (reproduced; 40 tests, 36 failing on 9fc76b7, commit b66f38a).
-- Next: implementer.
+- Implementer done: `04-implementer.md` (tests pass; +87/−2 in `CasingCodeFixProviderBase{T}.cs`, no new type; commit 4e56156).
+- Next: cleaner.
