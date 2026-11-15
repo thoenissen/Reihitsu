@@ -5,7 +5,7 @@
 | ID prefix | FMT-PIPE |
 | Status | Active |
 | Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `PreparationPhase`, `FormattingContext`, `PrecedingTokenFacts`, `RootListPosition`, `RootConstruct`, `RootConstructExtensions`, `TriviaFact`, `FluentChainBoundary`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities`, `BlockWrapTriviaUtilities` |
-| Uses | CLI-021, PLAY-009, RH3208-003, RH7101-005, RH7101-006, RH7201-004, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-COMMENT-012, SHARED-DIAG-001, SHARED-DOC-004, SHARED-FIX-001, SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-006, SHARED-FIX-007, SHARED-FIX-010, SHARED-FIX-011, SHARED-FIX-012, SHARED-USING-009, SHARED-USING-010, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BLANK-018, FMT-BREAK-001, FMT-BREAK-006, FMT-BREAK-007, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-BREAK-033, FMT-BREAK-036, FMT-CLEAN-001, FMT-CLEAN-005, FMT-CLEAN-007, FMT-CLEAN-008, FMT-DOC-001, FMT-DOC-003, FMT-DOC-005, FMT-DOC-008, FMT-DOC-009, FMT-DOC-010, FMT-DOC-011, FMT-DOC-012, FMT-DOC-013, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-018, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-028, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-023, FMT-STRUCT-026, FMT-STRUCT-030, FMT-SWITCH-003, FMT-SWITCH-008, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, FMT-USING-003, FMT-USING-010 |
+| Uses | CLI-021, PLAY-009, RH3208-003, RH7101-005, RH7101-006, RH7201-004, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-COMMENT-012, SHARED-DIAG-001, SHARED-DOC-004, SHARED-FIX-001, SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-006, SHARED-FIX-007, SHARED-FIX-008, SHARED-FIX-010, SHARED-FIX-011, SHARED-FIX-012, SHARED-USING-009, SHARED-USING-010, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BLANK-018, FMT-BREAK-001, FMT-BREAK-006, FMT-BREAK-007, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-BREAK-033, FMT-BREAK-036, FMT-CLEAN-001, FMT-CLEAN-005, FMT-CLEAN-007, FMT-CLEAN-008, FMT-DOC-001, FMT-DOC-003, FMT-DOC-005, FMT-DOC-008, FMT-DOC-009, FMT-DOC-010, FMT-DOC-011, FMT-DOC-012, FMT-DOC-013, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-018, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-028, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-023, FMT-STRUCT-026, FMT-STRUCT-030, FMT-SWITCH-003, FMT-SWITCH-008, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, FMT-USING-003, FMT-USING-010 |
 
 This spec covers what holds for the formatter as a whole: the public entry points, the fixed phase order, and the invariants every phase must keep. What an individual phase decides is specified in that phase's own spec.
 
@@ -376,9 +376,9 @@ Why: The CLI, the analyzer code fixes, and the Playground share one engine. Keep
 
 ### FMT-PIPE-010 — Node-level entry points format only their target
 
-`FormatNodeInDocumentAsync` and `FormatNodeInDocumentWithContextAsync` MUST rewrite only the target node and keep the rest of the document as it is. There are two exceptions. The first is the whitespace that ended the line before a documentation comment the target moves onto its own line, which MUST be removed as document-level formatting removes it. The second is the whitespace between a target of `FormatNodeInDocumentWithContextAsync` that the split makes several fields of and another member on its line, which FMT-PIPE-029 replaces by a line break. `FormatNodeInDocumentAsync` MUST keep the target's leading trivia when the target does not start its line or is a direct child of the root; `FormatNodeInDocumentWithContextAsync` MUST keep it in every case (FMT-PIPE-018). Both MUST keep the target's trailing trivia, apart from the whitespace FMT-PIPE-029 replaces behind the target. `FormatNodeInDocumentAsync` MUST write each comment in it once: when formatting the target leaves such a comment behind a token inside the result — the target's original last token, behind which the formatting inserted tokens, such as the closing brace of the block FMT-STRUCT-001 wraps around a body — the comment stays there and MUST NOT be written again behind the result's last token, and the code behind the target keeps its line. No caller passes `FormatNodeInDocumentWithContextAsync` a target whose last token formatting leaves inside the result, so this requirement does not decide that case for it. Both format the target, or the context that holds it, as a root of its own (FMT-PIPE-023), and what the phases know of the document around that root is the facts FMT-PIPE-024 lists.
+`FormatNodeInDocumentAsync` and `FormatNodeInDocumentWithContextAsync` MUST rewrite only the target node and keep the rest of the document as it is. There are two exceptions. The first is the whitespace that ended the line before a documentation comment the target moves onto its own line, which MUST be removed as document-level formatting removes it. The second is the whitespace between a target of `FormatNodeInDocumentWithContextAsync` that the split makes several fields of and another member on its line, which FMT-PIPE-029 replaces by a line break. `FormatNodeInDocumentAsync` MUST keep the target's leading trivia when the target does not start its line or is a direct child of the root; `FormatNodeInDocumentWithContextAsync` MUST keep it in every case (FMT-PIPE-018). Both MUST keep the target's trailing trivia, apart from the whitespace FMT-PIPE-029 replaces behind the target. When that trivia ends in a line break, both MUST write that line break as the line ending FMT-PIPE-007 detects for the document, whatever line break the document has there: a lone `\r`, a `\n` in a document whose detected line ending is `\r\n`, or a `\r\n` in one whose detected line ending is `\n` (SHARED-FIX-008); and both MUST remove the whitespace directly in front of that line break, as document-level formatting removes it (FMT-CLEAN-001), whether it stands behind the result's last token or behind a `/* */` comment in the trivia, and whether or not formatting changed the target's last line. Whitespace in front of a comment, and whitespace inside the text of a `//` comment, stay; so does a line break inside the text of a comment (FMT-PIPE-002). A trailing trivia that does not end in a line break, because code follows the target on its line, is kept as it stands. `FormatNodeInDocumentAsync` MUST write each comment in it once: when formatting the target leaves such a comment behind a token inside the result — the target's original last token, behind which the formatting inserted tokens, such as the closing brace of the block FMT-STRUCT-001 wraps around a body — the comment stays there and MUST NOT be written again behind the result's last token, and the code behind the target keeps its line. No caller passes `FormatNodeInDocumentWithContextAsync` a target whose last token formatting leaves inside the result, so this requirement does not decide that case for it. Both format the target, or the context that holds it, as a root of its own (FMT-PIPE-023), and what the phases know of the document around that root is the facts FMT-PIPE-024 lists.
 
-Why: These entry points serve code fixes, which change only the code their diagnostic is about (SHARED-FIX-006). Reformatting the surrounding document would turn a one-line fix into an unrelated diff. Keeping the trailing trivia means keeping the author's text behind the target, not copying it: a comment written twice changes that text (SHARED-FIX-003), and formatting the whole document writes it once.
+Why: These entry points serve code fixes, which change only the code their diagnostic is about (SHARED-FIX-006). Reformatting the surrounding document would turn a one-line fix into an unrelated diff. Keeping the trailing trivia means keeping the author's text behind the target, not copying it: a comment written twice changes that text (SHARED-FIX-003), and formatting the whole document writes it once. The line break that ends the trailing trivia ends the target's last line, which the code fix changes, so it gets the line ending the phases write into every other line of the target, as SHARED-FIX-008 requires for a fix's span and its trailing trivia; written back as the document has it, a foreign line break would leave the changed code with two line endings. The whitespace in front of that line break ends the same line: the formatter removes it from every line it formats, so a fix that writes it back leaves a line of the changed code that formatting the result changes again (SHARED-FIX-007), and the end of the target's last line reads the same whether a fix or document-level formatting produced it.
 
 Example — `FormatNodeInDocumentAsync` with the property `P` as target:
 
@@ -433,6 +433,59 @@ class C
 ```
 
 The comment stays behind `M(a, b);` and is not repeated behind the closing brace; `b++;` stays on the line below the target.
+
+Example — `FormatNodeInDocumentAsync` with the property `P` as target, in a document whose line breaks are `\r\n` except the one behind `P`, which is `\n` (`␍` marks a `\r`; the line breaks themselves are only for display). FMT-PIPE-007 detects `\r\n`:
+
+```csharp
+class C␍
+{␍
+    int P { get { return 1; } }
+    int Q { get { return 2; } }␍
+}␍
+```
+
+```csharp
+class C␍
+{␍
+    int P␍
+    {␍
+        get␍
+        {␍
+            return 1;␍
+        }␍
+    }␍
+    int Q { get { return 2; } }␍
+}␍
+```
+
+The line break behind `P`'s closing brace is written back as `\r\n`. In a document whose line breaks are all a lone `\r`, FMT-PIPE-007 detects `\n`: every line break of the formatted `P`, the one behind its closing brace included, is `\n`, and the lines outside `P` keep their lone `\r`.
+
+Example — not shown as blocks because the difference is trailing whitespace: `FormatNodeInDocumentAsync` with the method `GetValue` as target, whose expression body FMT-STRUCT converts to a block, in
+
+```csharp
+class C
+{
+    private int _value;
+
+    public int GetValue() => _value; /* c */
+}
+```
+
+when the line of `GetValue` ends in three spaces behind `/* c */`. The result is
+
+```csharp
+class C
+{
+    private int _value;
+
+    public int GetValue()
+    {
+        return _value;
+    } /* c */
+}
+```
+
+without the three spaces: the space in front of `/* c */` stays, the spaces behind it go. The same holds without the comment, where the spaces stood behind `;`, and for a target whose last token formatting keeps as the result's last token, such as a property `int P { get { return 1; } }` followed by spaces: the spaces behind its closing brace go. With `// c` instead of `/* c */`, spaces behind `// c` are part of the comment's text and stay.
 
 ### FMT-PIPE-011 — Node-level entry points keep accessor shapes
 

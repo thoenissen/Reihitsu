@@ -1583,6 +1583,109 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     }
 
     /// <summary>
+    /// Verifies that the fix does not write the whitespace that stood behind the expression body behind the closing brace of the
+    /// block, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">The line ending of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-PIPE-010")]
+    public async Task FixRemovesWhitespaceBehindTheConvertedMethod(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _value;
+
+                                    public int GetValue() {|RH3202:=> _value|};···
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private int _value;
+
+                                      public int GetValue()
+                                      {
+                                          return _value;
+                                      }
+                                  }
+                                  """;
+
+        await VerifyCodeFixWithEndOfLine(testData.Replace('·', ' '), resultData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the change doc's example: the fix removes the whitespace behind a delimited comment behind the converted method
+    /// and keeps the space in front of the comment, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">The line ending of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-PIPE-010")]
+    public async Task FixRemovesWhitespaceBehindADelimitedCommentBehindTheConvertedMethod(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _value;
+
+                                    public int GetValue() {|RH3202:=> _value|}; /* c */···
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private int _value;
+
+                                      public int GetValue()
+                                      {
+                                          return _value;
+                                      } /* c */
+                                  }
+                                  """;
+
+        await VerifyCodeFixWithEndOfLine(testData.Replace('·', ' '), resultData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that in a CRLF document the fix writes the LF behind the converted method as CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-010")]
+    [Requirement("SHARED-FIX-008")]
+    public async Task FixWritesTheDetectedLineEndingBehindTheConvertedMethodInAMixedDocument()
+    {
+        const string testData = "class C\r\n{\r\n    public int GetValue() => 1;\n    public int GetOther()\r\n    {\r\n        return 2;\r\n    }\r\n}\r\n";
+        const string resultData = "class C\r\n{\r\n    public int GetValue()\r\n    {\r\n        return 1;\r\n    }\r\n    public int GetOther()\r\n    {\r\n        return 2;\r\n    }\r\n}\r\n";
+
+        Assert.AreEqual(resultData, await ApplyCodeFixAsync(testData));
+    }
+
+    /// <summary>
+    /// Verifies that in a document whose line breaks are all a lone carriage return, the fix writes every line break of the
+    /// converted method, the one behind its closing brace included, as LF, and the lines outside it keep their carriage return
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-010")]
+    [Requirement("SHARED-FIX-008")]
+    public async Task FixWritesTheDetectedLineEndingBehindTheConvertedMethodInALoneCarriageReturnDocument()
+    {
+        const string testData = "class C\r{\r    public int GetValue() => 1;\r    public int GetOther()\r    {\r        return 2;\r    }\r}\r";
+        const string resultData = "class C\r{\r    public int GetValue()\n    {\n        return 1;\n    }\n    public int GetOther()\r    {\r        return 2;\r    }\r}\r";
+
+        Assert.AreEqual(resultData, await ApplyCodeFixAsync(testData));
+    }
+
+    /// <summary>
     /// Verifies the diagnostics marked in the source and the fix result under LF and under CRLF
     /// </summary>
     /// <param name="testCode">The source with markup and LF line endings</param>

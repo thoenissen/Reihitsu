@@ -4861,6 +4861,38 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     }
 
     /// <summary>
+    /// Verifies that in a CRLF document the fix writes the LF behind the last member of an enum, which it joins, as CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-010")]
+    [Requirement("SHARED-FIX-008")]
+    public async Task FixWritesTheDetectedLineEndingBehindTheLastEnumMemberInAMixedDocument()
+    {
+        const string testData = "enum E\r\n{\r\n    A = 1,\r\n    B =\r\n    2\n}\r\n";
+        const string resultData = "enum E\r\n{\r\n    A = 1,\r\n    B = 2\r\n}\r\n";
+
+        Assert.AreEqual(resultData, await ApplyCodeFixAsync(testData));
+    }
+
+    /// <summary>
+    /// Verifies that the fix removes the whitespace behind the last member of an enum, which it joins, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">The line ending of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-PIPE-010")]
+    public async Task FixRemovesWhitespaceBehindTheLastEnumMember(string endOfLine)
+    {
+        const string testData = "enum E\n{\n    A = 1,\n    {|RH5111:B =\n    2|}   \n}\n";
+        const string resultData = "enum E\n{\n    A = 1,\n    B = 2\n}\n";
+
+        await VerifyCodeFixWithEndOfLine(testData, resultData, endOfLine);
+    }
+
+    /// <summary>
     /// Verifies the one diagnostic marked in the source and the fix result under LF and under CRLF
     /// </summary>
     /// <param name="testData">The source with LF line endings</param>
