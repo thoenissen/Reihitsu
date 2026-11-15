@@ -24,6 +24,8 @@
 | M2 | Q1 RH5112 chain in `if` header (#1140) | C — only the chain is joined; rest of the header (`x==1`) and the body stay as written. Applies to the SHARED-CHAIN-009 fallback (RH5112, RH5201) |
 | M3 | Q2 RH5101 spacing inside a list element (#1140) | A — only the list's line breaks change; element interiors (`1+2`) stay. Same for RH5102 and the other list-layout rules (RH5303–RH5308, RH5417-003 interior where the spec author found the same sentence) |
 | M4 | Q3 RH5206 switch expression in `if` header (#1140) | A — only the switch expression is laid out; the `if` body stays |
+| M6 | Q6 (escalation 9) scope of the M3/M5 write-back | C — not in this run: RH5101, RH5102, RH5303–RH5308, RH5403, RH5404, RH5417 keep `main`'s output inside the construct; M3/M5 (and the spanning-part question, recommended A: part moves as one piece) go into a follow-up that builds the write-back step |
+| M7 | Q7 RH5303–RH5308 code around the construct | B — only the construct is laid out, from the column its first token keeps; rest of the statement stays (interior follows M6: formatted as on main) |
 | M5 | Q4 RH5404/RH5403 contents rewritten by other rules (#1140) | A — the declaration/statement is broken onto lines; members/statements inside keep their own shape (no expression-body-to-block conversion, no attribute split, no blank line inserted) |
 
 ## Decisions taken
@@ -43,10 +45,15 @@
 | D11 | Skeptic | #1748 wider class (no-comment `if`, switch section, misindented comment) | In scope; covered by M1 and RH5403-003 | Same mechanism (D5) | Covered by M1 | pending |
 | D12 | Spec author 03 | Change doc required for D5/M2/M4 (changes FMT-PIPE-010/017/018/024, SHARED-CHAIN-009, RH5206-003) | Accept; widen lane bug-fix → behavior-change (lane check confirmed); run the skeptic on the change doc and spec diff before the test implementer | `sdd/README.md` requires a change doc for changed requirements with new behavior | Visible changes of the change doc go to the maintainer (batch 2) | 8349028 |
 | D13 | Spec author 03 | Remove the preceding-token and list-position facts of FMT-PIPE-024 | Accept | No consumer remains once leading trivia is kept | Internal | 8349028 |
+| D14 | Batch 2 | RH5303–RH5308 narrowing (M7) joins the run | Accept as scope growth | Maintainer chose B; cheap node-choice change like M4 | Decided by M7 | pending |
+| D15 | Skeptic 04 | SHARED-FIX-006 *Leading trivia* vs SHARED-FIX-007 *Shared line* wording | Add explicit exception for the shared-line break | Two requirements must not disagree on their face | Spec wording | pending |
+| D16 | Skeptic 04 | Change-doc completeness (RH2001, RH3004/RH5205/RH5301/RH5302 targets, blank lines behind `{`/two blank lines stay), D6 rejection rewrite, pipeline.md code owners row, nested-construct Fix All | Accept all; Fix All tests for nested constructs required where the run changes the fix | Demanded by unchanged requirements / M1 | Internal or already decided | pending |
 
 ## Follow-up candidates
 
 - FU1 (01-spec-author): SHARED-FIX-007 *Shared line* read literally makes a gap-only fix (e.g. RH6024 on `int _a = 1+2; int _b;`) split two members on one line; recommend reading A, only the gaps change. Outside the run's issues; output question carried in the follow-up.
+
+- FU4 (M6): shared write-back step so parts inside a reported construct keep their own code (RH5101, RH5102, RH5303–RH5308, RH5403, RH5404, RH5417) — carries maintainer answers M3, M5 (=A) and the open spanning-part question (options from 04-skeptic Q1, recommended A). Related #1605, #1140 FU3.
 
 ## Worklist / next step
 
@@ -57,7 +64,8 @@
 
 - Asked maintainer (batch 1, before test implementer): Q1 RH5112 chain in `if` header (options A whole header line / B main / C chain only); Q2 RH5101 list element interior; Q3 RH5206 switch expr in `if` header; Q4 RH5403/RH5404 interior members rewritten by other rules. ANSWERED 1C, 2A, 3A, 4A (M2–M5).
 - Done: spec author 03 (8349028) — change doc `sdd/changes/2026-11/fix-layout-scope.md`; lane now behavior-change.
-- Done: skeptic 04 (ac7d832). Asked maintainer batch 2: Q6 escalation 9 — scope of M3/M5 write-back (A build / B one-line parts only / C defer to follow-up, recommended C); Q7 RH5303–RH5308 code around construct (A main / B only the construct, recommended). WAITING.
+- Done: skeptic 04 (ac7d832). Asked maintainer batch 2: Q6 escalation 9 — scope of M3/M5 write-back (A build / B one-line parts only / C defer to follow-up, recommended C); Q7 RH5303–RH5308 code around construct (A main / B only the construct, recommended). ANSWERED 1C, 2B (M6, M7).
+- Next: spec author (fresh) amendment for M6 (revert *Inside* bullet and its references; interior as main), M7, D15, D16 → 05-spec-author.md; then accept change doc; then test implementer.
 - Pending internal after answers: SHARED-FIX-006 Leading-trivia exception for SHARED-FIX-007 shared line (accept skeptic rec); rewrite D6 bullet in change doc Alternatives; change-doc completeness items (04-skeptic Internal choices 3); pipeline.md code owners row; Fix All tests for nested constructs.
 - (old) Next: skeptic (fresh) on change doc + spec diff → 04-skeptic.md; then batch 2 output questions (change-doc visible changes not covered by M1–M5; spec author's open: argument spanning lines in RH5101/5102; tab-indented target) → then test implementer.
 - (old) After answers: spec author (fresh) for D6 reverts, D7 consolidation, D5 FMT-PIPE-010/024 amendment, answers; then test implementer.
