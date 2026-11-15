@@ -11,7 +11,7 @@
 
 ## Maintainer answers
 
-(none yet)
+- Batch 1 asked (before test implementer): Q1 = #1738 layout (A recommended), Q2 = escalation 10 declare comma-after-line-break unsupported (B = do not declare, recommended). Awaiting answer.
 
 ## Decisions taken
 
@@ -20,11 +20,17 @@
 | 1 | Claim | Branch name | Use the session's designated branch | Harness restricts pushes to it | Internal | claim commit |
 | 2 | Spec author | One change doc per issue or one shared | One per issue | Causes differ (fix vs. formatter layout) | Doc structure is internal | 81bfa87 |
 | 3 | Spec author | #1738 scope: object initializers only or the whole FMT-BREAK-021/022 family | Whole family, pending skeptic | Same mechanism; one class, not instances | The family's outputs are asked as output questions | 81bfa87 |
+| 5 | Skeptic | #1737: fix follows formatter (A), formatter follows fix (B), or withhold | Withhold RH5107's fix when the reported comma's trailing trivia holds a comment; T (comment only on the next line) keeps its fix. Spec RH5107 records the withheld class; change doc reworded accordingly. Issue goal reworded to "no fix result disagrees with the formatter"; still `Closes #1737` | Class is rare by definition (RH5035 reports every comment in a parameter list); B would ship a SHARED-FIX-003 violation for Q/R; A copies FMT-BREAK-012 into a hand-written text edit (architecture finding → refuse first) | Withholding a fix for a rare class is not in question (README, What reaches the maintainer) | pending |
+| 6 | Skeptic | #1737 architecture finding (fix and line-break phase own comma placement) | Refuse the class (decision 5); structural change (fix delegates to formatter) as follow-up | README, Architecture findings: refuse first | Internal | — |
+| 7 | Skeptic | #1738 question shape | Use the skeptic's single reworded question (spec author's Q2 option A conflicted with RH5301/5303/5304; Q3 folded in) | Avoids a permanent diagnostic (FC-013) | Asked as output question | — |
 | 4 | Spec author | New requirement IDs vs. extending existing ones | New requirements (FMT-BREAK-038, FMT-INDENT-033) | Keeps existing requirements stable | Wording/IDs internal | pending |
 
 ## Follow-up candidates
 
-(none yet)
+- RH5107 fix delegates its layout to the formatter instead of a hand-written text edit (02-skeptic, #1737 Follow-up candidates).
+- Comma that starts a line between switch-expression arms falls to the statement column — carries an output question (02-skeptic, #1738).
+- Comma that starts a line in a positional pattern — same (02-skeptic, #1738).
+- Comma that starts a line in a base list — same (02-skeptic, #1738).
 
 ## Audited SHA
 
@@ -32,4 +38,4 @@
 
 ## Open worklist / next step
 
-- Spec author done (01, open questions Q1–Q3, two Draft change docs). Next: skeptic (02), then ask Q1–Q3 (+ any skeptic questions) before the test implementer.
+- Waiting for maintainer on batch 1. Then: spec author (fresh) writes spec diffs + amends both change docs per decisions 5/7 and the answers; then test implementer.
