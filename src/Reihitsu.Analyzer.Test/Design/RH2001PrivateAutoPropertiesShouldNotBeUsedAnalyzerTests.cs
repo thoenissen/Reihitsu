@@ -3721,6 +3721,38 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifies that the fix, which replaces the property by a field, keeps the one-line documentation comment above it
+    /// and inserts no blank line between the field in front of it and that comment
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixKeepsTheOneLineDocumentationCommentAndInsertsNoBlankLine(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _a;
+                                    /// <summary>The value.</summary>
+                                    private int {|RH2001:Value|} { get; set; }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     private int _a;
+                                     /// <summary>The value.</summary>
+                                     private int _value;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region Methods

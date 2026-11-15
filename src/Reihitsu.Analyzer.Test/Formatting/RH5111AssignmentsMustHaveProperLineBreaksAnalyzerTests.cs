@@ -4972,6 +4972,324 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     }
 
     /// <summary>
+    /// Verifies the spec example: the fix of a declarator in the body of an assigned lambda joins only the declarator,
+    /// while the assignment and the other statement of the lambda stay as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5111-004")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixOfDeclaratorInAssignedLambdaLeavesTheAssignmentAsWritten(string endOfLine)
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action a;
+                                        a = () => { var {|RH5111:x
+                                            = 1|}; int  y = x; };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action a;
+                                         a = () => { var x = 1; int  y = x; };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: the one-line documentation comment above the property whose initializer the fix joins
+    /// stays as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5111-004")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixKeepsTheOneLineDocumentationCommentAboveTheProperty(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>P</summary>
+                                    {|RH5111:int P { get; set; }
+                                        = 5;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>P</summary>
+                                     int P { get; set; } = 5;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a default value of a local function parameter in the body of an assigned lambda joins
+    /// only the parameter, while the assignment, the local function, and the other statement of the lambda stay as
+    /// written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5111-004")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixOfParameterDefaultInAssignedLambdaLeavesTheAssignmentAsWritten(string endOfLine)
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action a;
+                                        a = () => { int L({|RH5111:int p
+                                            = 1|}) => p; int  y = L(); };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action a;
+                                         a = () => { int L(int p = 1) => p; int  y = L(); };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a declarator in the body of an assigned anonymous method joins only the declarator,
+    /// while the assignment and the other statement stay as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5111-004")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixOfDeclaratorInAssignedAnonymousMethodLeavesTheAssignmentAsWritten(string endOfLine)
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Action a;
+                                        a = delegate { var {|RH5111:x
+                                            = 1|}; int  y = x; };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Action a;
+                                         a = delegate { var x = 1; int  y = x; };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a declarator in the body of a lambda assigned to a member in an object initializer
+    /// joins only the declarator, while the member assignment and the other statement stay as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5111-004")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixOfDeclaratorInLambdaOfObjectInitializerLeavesTheMemberAssignmentAsWritten(string endOfLine)
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    Action X { get; set; }
+
+                                    void M()
+                                    {
+                                        var c = new C { X = () => { var {|RH5111:x
+                                            = 1|}; int  y = x; } };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     Action X { get; set; }
+
+                                     void M()
+                                     {
+                                         var c = new C { X = () => { var x = 1; int  y = x; } };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of an assignment in the body of an assigned lambda joins only that assignment, while the
+    /// outer assignment and the other statement stay as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5111-004")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixOfAssignmentInAssignedLambdaJoinsOnlyTheInnerAssignment(string endOfLine)
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    void M(int b)
+                                    {
+                                        Action a;
+                                        a = () => { {|RH5111:b
+                                            = 1|}; int  y = 2; };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M(int b)
+                                     {
+                                         Action a;
+                                         a = () => { b = 1; int  y = 2; };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a declarator in the body of a lambda that initializes a field joins only the
+    /// declarator, while the other statement of the lambda stays as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5111-004")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixOfDeclaratorInLambdaOfFieldInitializerLeavesTheLambdaAsWritten(string endOfLine)
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    Action _a = () => { var {|RH5111:x
+                                        = 1|}; int  y = x; };
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     Action _a = () => { var x = 1; int  y = x; };
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above a comment that leads the assignment statement whose value the fix
+    /// joins, where formatting the document would insert one
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixInsertsNoBlankLineAboveCommentThatLeadsTheAssignment(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int b = 0;
+                                        // c
+                                        {|RH5111:b
+                                            = 1|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         int b = 0;
+                                         // c
+                                         b = 1;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
     /// Verifies the one diagnostic marked in the source and the fix result under LF and under CRLF
     /// </summary>
     /// <param name="testData">The source with LF line endings</param>

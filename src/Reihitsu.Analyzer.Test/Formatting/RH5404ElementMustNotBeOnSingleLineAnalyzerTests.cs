@@ -777,6 +777,114 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifies the spec example: no blank line is inserted above a comment that leads the declaration whose body the
+    /// fix lays out, where formatting the document would insert one
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5404-003")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixInsertsNoBlankLineAboveCommentThatLeadsTheDeclaration(string endOfLine)
+    {
+        const string testData = """
+                                namespace N
+                                {
+                                    class A
+                                    {
+                                        int _y;
+                                    }
+                                    // c
+                                    class {|RH5404:B|} { int _x; }
+                                }
+                                """;
+        const string fixedData = """
+                                 namespace N
+                                 {
+                                     class A
+                                     {
+                                         int _y;
+                                     }
+                                     // c
+                                     class B
+                                     {
+                                         int _x;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a one-line documentation comment above the declaration whose body the fix lays out stays on one
+    /// line, where formatting the document would spread it over three lines
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixKeepsAOneLineDocumentationCommentAboveTheDeclaration(string endOfLine)
+    {
+        const string testData = """
+                                namespace N
+                                {
+                                    /// <summary>B</summary>
+                                    class {|RH5404:B|} { int _x; }
+                                }
+                                """;
+        const string fixedData = """
+                                 namespace N
+                                 {
+                                     /// <summary>B</summary>
+                                     class B
+                                     {
+                                         int _x;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a nested type whose body the fix lays out, and which shares its line with a member in front of it
+    /// and a member behind it, starts on a line of its own, and that the member behind it starts on the next line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixGivesANestedTypeThatSharesItsLineWithOtherMembersALineOfItsOwn(string endOfLine)
+    {
+        const string testData = """
+                                class A
+                                {
+                                    int _a; class {|RH5404:B|} { int _x; } int _b;
+                                }
+                                """;
+        const string fixedData = """
+                                 class A
+                                 {
+                                     int _a;
+                                     class B
+                                     {
+                                         int _x;
+                                     }
+                                     int _b;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

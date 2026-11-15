@@ -241,13 +241,15 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
     }
 
     /// <summary>
-    /// Verifying that two sibling conditionals in the same statement are each detected and fixed
+    /// Verifying that two sibling conditionals in the same statement are each detected and fixed, each laid out from the
+    /// column its condition keeps, while the argument list around them stays as written
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5308-002")]
     [Requirement("RH5308-003")]
     [Requirement("RH5308-004")]
+    [Requirement("SHARED-FIX-006")]
     public async Task VerifySiblingConditionalsInOneStatementAreDetectedAndFixed()
     {
         const string testData = """
@@ -273,10 +275,9 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
                                       {
                                           return Combine(a
                                                              ? "1"
-                                                             : "2",
-                                                         b
-                                                             ? "3"
-                                                             : "4");
+                                                             : "2", b
+                                                                        ? "3"
+                                                                        : "4");
                                       }
 
                                       string Combine(string x, string y) => x + y;
@@ -492,13 +493,15 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
 
     /// <summary>
     /// Verifies that a refused comment between the type and the name of the declaration that holds the conditional
-    /// expression withholds the fix: the fix formats that statement, which the formatter refuses, although the
-    /// conditional expression holds no refused shape
+    /// expression does not withhold the fix: the fix formats only the conditional, which holds no refused shape, and the
+    /// declaration around it stays as written
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5308-004")]
+    [Requirement("RH5308-005")]
     [Requirement("SHARED-FIX-010")]
-    public async Task NoFixIsOfferedWhenTheStatementHoldsACommentTheFormatterRefuses()
+    public async Task FixIsOfferedWhenTheStatementHoldsACommentTheFormatterRefusesOutsideTheConditional()
     {
         const string source = """
                               internal class C
@@ -512,8 +515,22 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
                                   }
                               }
                               """;
+        const string fixedSource = """
+                                   internal class C
+                                   {
+                                       private string M(bool condition)
+                                       {
+                                           string /* c */ value = condition
+                                                                      ? "1"
+                                                                      : "2";
 
-        await VerifyNoCodeFixIsOffered(source);
+                                           return value;
+                                       }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, "\n");
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, "\r\n");
     }
 
     /// <summary>
@@ -626,13 +643,14 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
     }
 
     /// <summary>
-    /// Verifies that a reported conditional without a comment withholds its fix when the statement the fix formats holds another
-    /// conditional with a comment behind its operator
+    /// Verifies that a reported conditional without a comment gets its fix when the statement holds another conditional with a
+    /// comment behind its operator, outside the reported conditional: the fix formats only the reported conditional
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5308-004")]
     [Requirement("RH5308-005")]
-    public async Task NoFixIsOfferedWhenTheStatementHoldsAnotherConditionalWithACommentBehindItsOperator()
+    public async Task FixIsOfferedWhenTheStatementHoldsAnotherConditionalWithACommentBehindItsOperator()
     {
         const string source = """
                               class C
@@ -646,8 +664,22 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
                                   int N(int x, int y) => x + y;
                               }
                               """;
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       int M(bool a)
+                                       {
+                                           return N(a
+                                                        ? 1
+                                                        : 2, a ? /* c */ 3 : 4);
+                                       }
 
-        await VerifyNoCodeFixIsOffered(source);
+                                       int N(int x, int y) => x + y;
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, "\n");
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, "\r\n");
     }
 
     /// <summary>
@@ -695,48 +727,57 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
 
     /// <summary>
     /// Verifies the specification example: a conditional in an argument of an <c>[assembly:]</c> attribute stands in no statement
-    /// and no member, so it is reported and no code fix is offered
+    /// and no member; it is reported, and the fix lays it out from the column its condition keeps
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5308-006")]
-    [Requirement("SHARED-FIX-005")]
-    public async Task SpecExampleNoFixIsOfferedForAConditionalInAnAssemblyAttribute()
+    [Requirement("RH5308-004")]
+    public async Task SpecExampleFixIsOfferedForAConditionalInAnAssemblyAttribute()
     {
         const string source = """
                               [assembly: System.CLSCompliant(true {|RH5308:?|}
                                   true :
                                   false)]
                               """;
+        const string fixedSource = """
+                                   [assembly: System.CLSCompliant(true
+                                                                      ? true
+                                                                      : false)]
+                                   """;
 
-        await VerifyNoCodeFixIsOffered(source);
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, "\n");
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, "\r\n");
     }
 
     /// <summary>
-    /// Verifies that a conditional in an argument of a <c>[module:]</c> attribute is reported and no code fix is offered
+    /// Verifies that a conditional in an argument of a <c>[module:]</c> attribute is reported, and the fix lays it out from the
+    /// column its condition keeps
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5308-006")]
-    [Requirement("SHARED-FIX-005")]
-    public async Task NoFixIsOfferedForAConditionalInAModuleAttribute()
+    [Requirement("RH5308-004")]
+    public async Task FixIsOfferedForAConditionalInAModuleAttribute()
     {
         const string source = """
                               [module: System.CLSCompliant(true {|RH5308:?|}
                                   true :
                                   false)]
                               """;
+        const string fixedSource = """
+                                   [module: System.CLSCompliant(true
+                                                                    ? true
+                                                                    : false)]
+                                   """;
 
-        await VerifyNoCodeFixIsOffered(source);
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, "\n");
     }
 
     /// <summary>
-    /// Verifies that a conditional in an argument of an attribute on a type stands in a member declaration, so the fix is still
-    /// offered
+    /// Verifies that the fix is offered for a conditional in an argument of an attribute on a type
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("RH5308-006")]
+    [Requirement("RH5308-004")]
     public async Task FixIsOfferedForAConditionalInAnAttributeOnAType()
     {
         const string source = """
@@ -816,6 +857,166 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
                                  """;
 
         await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the spec example: the fix lays out the conditional from the column its condition keeps, while the
+    /// misspaced declaration in front of it stays as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5308-004")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixLeavesTheCodeInFrontOfTheConditionalAsWritten(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int M(bool a, int b)
+                                    {
+                                        var  r=a {|RH5308:?|} b+1
+                                            : 2;
+
+                                        return r;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int M(bool a, int b)
+                                     {
+                                         var  r=a
+                                                    ? b + 1
+                                                    : 2;
+
+                                         return r;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a conditional with a comment behind its question mark elsewhere in the statement,
+    /// outside the reported conditional, does not withhold the fix, which lays out only the reported conditional
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5308-004")]
+    [Requirement("RH5308-005")]
+    public async Task SpecExampleConditionalWithACommentElsewhereInTheStatementDoesNotWithholdTheFix(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int M(bool a, bool b)
+                                    {
+                                        var x = (a {|RH5308:?|}
+                                            1 : 2) + (b ? /* c */ 3 : 4);
+
+                                        return x;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int M(bool a, bool b)
+                                     {
+                                         var x = (a
+                                                      ? 1
+                                                      : 2) + (b ? /* c */ 3 : 4);
+
+                                         return x;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld for a conditional that holds, in a branch, a conditional with a comment behind
+    /// its question mark, which the formatter refuses as part of the reported conditional
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5308-005")]
+    public async Task NoFixIsOfferedWhenTheConditionalHoldsAConditionalWithACommentBehindItsOperatorInABranch()
+    {
+        const string source = """
+                              class C
+                              {
+                                  int M(bool a, bool b)
+                                  {
+                                      var x = a {|RH5308:?|}
+                                          (b ? /* c */ 3 : 4) : 2;
+
+                                      return x;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a reported conditional in an argument inside a branch of a reported conditional is laid out with
+    /// the outer one, and that Fix All corrects both in one application
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5308-004")]
+    [Requirement("SHARED-FIX-002")]
+    public async Task VerifyFixAllCorrectsAReportedConditionalInsideABranchOfAReportedConditionalInOneApplication()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int M(bool a, bool b)
+                                    {
+                                        var x = a {|RH5308:?|} N(b {|RH5308:?|} 1
+                                            : 2) : 3;
+
+                                        return x;
+                                    }
+
+                                    int N(int v)
+                                    {
+                                        return v;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int M(bool a, bool b)
+                                     {
+                                         var x = a
+                                                     ? N(b
+                                                             ? 1
+                                                             : 2)
+                                                     : 3;
+
+                                         return x;
+                                     }
+
+                                     int N(int v)
+                                     {
+                                         return v;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, static config => config.NumberOfFixAllIterations = 1);
     }
 
     #endregion // Tests

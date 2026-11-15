@@ -223,11 +223,13 @@ public class RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzerTests : Bat
     }
 
     /// <summary>
-    /// Verifying that the fix inserts the blank line above a comment that directly follows a file-scoped namespace
+    /// Verifying that the fix inserts no blank line above a comment that directly follows a file-scoped namespace, because
+    /// the leading trivia of the class the fix formats stays as written
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyBlankLineAboveCommentOfFixedClassInFileScopedNamespaceIsInserted()
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyNoBlankLineIsInsertedAboveCommentOfFixedClassInFileScopedNamespace()
     {
         const string testData = """
                                 namespace Sample;
@@ -238,7 +240,6 @@ public class RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzerTests : Bat
                                 """;
         const string fixedData = """
                                  namespace Sample;
-
                                  // Describes the class
                                  internal class Example;
                                  """;

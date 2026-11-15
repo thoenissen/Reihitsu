@@ -441,6 +441,151 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : BatchCo
         await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies the spec example: no blank line is inserted in front of the statement that holds the switch expression
+    /// the fix lays out, where formatting the document would insert one
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5206-003")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixInsertsNoBlankLineInFrontOfTheStatementThatHoldsTheSwitchExpression(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string M(int status)
+                                    {
+                                        status++;
+                                        return {|RH5206:status switch
+                                            {
+                                              0 => "Idle",
+                                                _ => "Other"
+                                            }|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     string M(int status)
+                                     {
+                                         status++;
+                                         return status switch
+                                                {
+                                                    0 => "Idle",
+                                                    _ => "Other"
+                                                };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: the fix of a switch expression in the condition of an if statement lays out only the
+    /// switch expression, from the column of its first token, while the body of the if statement stays as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5206-003")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixOfSwitchExpressionInIfConditionLeavesTheBodyAsWritten(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    bool Check(string s) => true;
+
+                                    void M(int status)
+                                    {
+                                        if (Check({|RH5206:status switch
+                                            {
+                                              0 => "Idle",
+                                                _ => "Other"
+                                            }|}))
+                                        {
+                                            int  y = 1;
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     bool Check(string s) => true;
+
+                                     void M(int status)
+                                     {
+                                         if (Check(status switch
+                                                   {
+                                                       0 => "Idle",
+                                                       _ => "Other"
+                                                   }))
+                                         {
+                                             int  y = 1;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix lays out the switch expression from the column its first token keeps, while the misspaced
+    /// declaration in front of it stays as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5206-003")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixLeavesTheCodeInFrontOfTheSwitchExpressionAsWritten(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string M(int status)
+                                    {
+                                        var  r={|RH5206:status switch
+                                            {
+                                              0 => "Idle",
+                                                _ => "Other"
+                                            }|};
+
+                                        return r;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     string M(int status)
+                                     {
+                                         var  r=status switch
+                                                {
+                                                    0 => "Idle",
+                                                    _ => "Other"
+                                                };
+
+                                         return r;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

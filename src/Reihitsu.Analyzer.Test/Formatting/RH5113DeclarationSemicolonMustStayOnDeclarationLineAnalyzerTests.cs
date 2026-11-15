@@ -483,6 +483,100 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifies the spec example: the fix moves only the semicolon behind the declaration, while the one-line
+    /// documentation comment and the spacing of the declaration stay as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5113-003")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixMovesOnlyTheSemicolonAndKeepsTheDocumentationComment(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    /// <summary>A</summary>
+                                    int  _a
+                                        {|RH5113:;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>A</summary>
+                                     int  _a;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a declaration whose semicolon the fix moves, and which shares its line with a member in front of
+    /// it, starts on the next line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixGivesADeclarationThatSharesItsLineWithAMemberInFrontALineOfItsOwn(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int _b; int _a
+                                        {|RH5113:;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int _b;
+                                     int _a;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above a comment that leads the declaration whose semicolon the fix moves
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixInsertsNoBlankLineAboveCommentThatLeadsTheDeclaration(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int _b;
+                                    // c
+                                    int _a
+                                        {|RH5113:;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int _b;
+                                     // c
+                                     int _a;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
