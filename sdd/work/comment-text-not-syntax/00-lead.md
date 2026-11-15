@@ -25,6 +25,11 @@
 | 2 | Skeptic | SHARED-USING-009: does "trivia of its directives" cover directives between a using's tokens? | Token-wise reading; route a one-sentence clarification to the spec author; keep the textual guard's protection for directives between tokens (skeptic matrix B stays not reordered/not reported) | Only that reading fits the requirement's Why; the node-wise reading would move `#pragma`/split `#if` pairs (safety rail) | Matrix B keeps today's output; matrix A's new reports/reorders are demanded by unchanged SHARED-USING-009 | — |
 | 3 | Skeptic | #966 goal "only `HasUnsafeTrivia` blocks" and case 2 | Adjust goal to "only real directives, wherever in the directives, block"; drop case 2 (fixed on main by #1735) | Prescribed solution rests on a false premise; case 2 already done | No output change beyond SHARED-USING-009 | — |
 | 4 | Spec author | Change doc for RH2109-001 (requirement flips from not-reported to reported; output unchanged) puts the diff in behavior-change | Accept the change doc's necessity; widen the lane bug fix → behavior change; run the added skeptic pass on the spec diff before the test implementer | Lane check demands it; spec author's reasoning holds (changed requirement) | Output unchanged per maintainer answer A; lane is internal | f824e7c |
+| 5 | Skeptic (spec) | SHARED-USING-009 B1 example claims "unchanged" but formatter re-indents `.Text;` | Amend example: write `.Text;` at column 0 | Keeps example exactly true; recommended by skeptic | Formatter output unchanged vs main; only the example text changes | — |
+| 6 | Skeptic (spec) | RH2109 "up to the next `*@` or `-->`" ambiguous | Reword: each opener pairs with its own closer (`@*`→`*@`, `<!--`→`-->`), in RH2109 spec and change doc | Matches today's code, covered by answer A | Records today's output | — |
+| 7 | Skeptic (spec) | Split the markup-reading paragraphs into their own requirement | Yes: new RH2109-004, RH2109-001 points to it; tests tag RH2109-004 | Different reason → different requirement (sdd/README.md) | Spec structure is internal | — |
+| 8 | Skeptic (spec) | SHARED-DIAG-003 sentence wording | State plainly that RH2109 departs from SHARED-DIAG-003 for this class | Clearer exception record | Spec wording internal | — |
+| 9 | Skeptic (spec) | Continue spec author for the amendments | Continue (small correction, small agent, first correction this stage) | Continue table | Process | — |
 
 ## Follow-up candidates
 
@@ -35,5 +40,6 @@
 - Skeptic done (01-skeptic.md, d281c31): #966 proceed narrower; #1289 output question (A keep reported vs B not reported).
 - Maintainer answered Q1: A.
 - Spec author done (02-spec-author.md, f824e7c): SHARED-USING-009 clarified (no change doc); RH2109-001 amended + change doc `sdd/changes/2026-11/rh2109-csharp-lines-read-as-markup.md` (Draft; visible output: none).
-- Next: fresh skeptic on the spec diff (behavior-change lane), then accept change doc, then test implementer.
+- Skeptic on spec diff done (03-skeptic.md, 40dd17c): proceed with amendments (decisions 5-8); test members A9, closer-pairing input, converse with `@*` and `<!--`, issue shape, CRLF.
+- Next: spec author amendments → accept change doc → test implementer.
 - Then: spec author (SHARED-USING-009 clarification; RH2109-001 amendment if A) → test implementer → implementer (#966) → cleaner → spec checker → auditor → validator.
