@@ -730,10 +730,9 @@ A code fix MUST change only the code its diagnostic is about; the layout of the 
 - **Blank lines.** A fix MUST NOT insert a blank line before the node it changes, and MUST NOT change the blank lines between that node and its neighbours, unless those blank lines are the code its diagnostic is about. The blank line that a fix leaves by removing a directive line is handled as SHARED-FIX-007 states.
 - **Shared line.** A member that shares its line with the member a fix changes, after the fix, is handled as SHARED-FIX-007 states.
 - **Formatting.** A fix MUST format only the node it replaces, with the whitespace of the lines it edits. It MUST NOT format the member, the statement, or the type that contains that node.
-- **Leading trivia.** The leading trivia of the node a fix formats is not part of what the fix formats, and MUST stay as it stands in the document: the blank lines, comments, and directives above the node in their columns, a documentation comment above it or written behind the code in front of it, and the whitespace in front of its first token. This holds also where formatting the document would insert or remove a blank line there, move or re-indent a comment, or rewrite a documentation comment, such as a one-line `<summary>` spread over three lines. Where the diagnostic is about that trivia, as the RH5002 diagnostic is about a missing blank line, the fix changes it as its rule states.
-- **Inside the reported construct.** A fix whose diagnostic is about the line breaks between the parts of a construct — the elements of a list, the arms of a conditional expression, the statements of a block, the members of a type — MUST change only where each part and each delimiter of the construct starts, and the whitespace in front of it. Each part MUST keep its own code: the tokens and the spacing between them, also where formatting the document would change that spacing, and its shape, also where formatting the document would convert an expression body to a block or put an attribute list on a line of its own. The fix MUST NOT insert a blank line between two parts. What the fix's rule itself names inside a part, such as the line breaks of a wrapped complex element of a collection initializer, which the RH5303 fix lays out, is laid out as that rule states.
+- **Leading trivia.** The leading trivia of the node a fix formats is not part of what the fix formats, and MUST stay as it stands in the document: the blank lines, comments, and directives above the node in their columns, a documentation comment above it or written behind the code in front of it, and the whitespace in front of its first token. This holds also where formatting the document would insert or remove a blank line there, move or re-indent a comment, or rewrite a documentation comment, such as a one-line `<summary>` spread over three lines. Where the diagnostic is about that trivia, as the RH5002 diagnostic is about a missing blank line, the fix changes it as its rule states. The one other exception is the line break that SHARED-FIX-007 (*Shared line*) writes in front of a member that shares its line with a member in front of it: the member then starts a line of its own as SHARED-FIX-007 states, and the rest of its leading trivia stays.
 
-Why: The user applies a fix to correct one finding. A change to code the diagnostic does not name is a second edit nobody asked for: it hides the correction in an unrelated diff, can undo a layout the author chose, and makes a decision that belongs to the rule or the formatter that owns that layout. The blank lines between a node and its neighbours are such a layout, and formatting the member, statement, or type around the node reaches all of the code around it. The trivia above a node belongs to the space between the node and its neighbours, not to the node, so formatting the node does not reach it. The parts of a construct whose line breaks a rule reports are code the diagnostic does not name either: the spacing inside them and their shape belong to the rules that report those, and that offer their own fixes.
+Why: The user applies a fix to correct one finding. A change to code the diagnostic does not name is a second edit nobody asked for: it hides the correction in an unrelated diff, can undo a layout the author chose, and makes a decision that belongs to the rule or the formatter that owns that layout. The blank lines between a node and its neighbours are such a layout, and formatting the member, statement, or type around the node reaches all of the code around it. The trivia above a node belongs to the space between the node and its neighbours, not to the node, so formatting the node does not reach it.
 
 Example — the RH6024 fix:
 
@@ -881,61 +880,6 @@ class C
 ```
 
 On the other side, where the diagnostic is about the trivia, the fix changes it: the RH5002 fix under SHARED-FIX-001 inserts the blank line in front of `if`.
-
-Example — inside the reported construct, for RH5101:
-
-```csharp
-class C
-{
-    void N()
-    {
-        M(
-            {|RH5101:1+2|},
-            3);
-    }
-
-    void M(int a, int b)
-    {
-    }
-}
-```
-
-```csharp
-class C
-{
-    void N()
-    {
-        M(1+2,
-          3);
-    }
-
-    void M(int a, int b)
-    {
-    }
-}
-```
-
-The first argument moves onto the line of `(` and the second is aligned under it; `1+2` keeps its spacing, although formatting the document would write `1 + 2`. For RH5404, whose fix lays out the body of a type, the members keep their shape:
-
-```csharp
-class C
-{
-    class {|RH5404:B|} { int M() => 1; [System.Obsolete] int _x; }
-}
-```
-
-```csharp
-class C
-{
-    class B
-    {
-        int M() => 1;
-        [System.Obsolete] int _x;
-    }
-}
-```
-
-Formatting the document would also convert `M` to a block body, put `[System.Obsolete]` on a line of its own, and insert a blank line between the two members.
 
 ### SHARED-FIX-007 — The changed code is laid out as the formatter lays it out
 
