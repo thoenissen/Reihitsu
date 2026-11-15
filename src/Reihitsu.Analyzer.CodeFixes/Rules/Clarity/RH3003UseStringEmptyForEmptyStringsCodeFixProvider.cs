@@ -39,7 +39,15 @@ public class RH3003UseStringEmptyForEmptyStringsCodeFixProvider : ReihitsuCodeFi
             return document;
         }
 
-        var replacementExpression = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword)), SyntaxFactory.IdentifierName(nameof(string.Empty))).WithTriviaFrom(literalExpression);
+        // Every token of the replacement carries explicit trivia: elastic trivia would let the code-action clean-up re-format
+        // the gap in front of the literal and rewrite its line breaks in the host's line ending (SHARED-FIX-006, RH3003-004)
+        var stringKeyword = SyntaxFactory.Token(literalExpression.GetLeadingTrivia(), SyntaxKind.StringKeyword, SyntaxFactory.TriviaList());
+        var dotToken = SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.DotToken, SyntaxFactory.TriviaList());
+        var emptyIdentifier = SyntaxFactory.Identifier(SyntaxFactory.TriviaList(), nameof(string.Empty), literalExpression.GetTrailingTrivia());
+        var replacementExpression = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression,
+                                                                         SyntaxFactory.PredefinedType(stringKeyword),
+                                                                         dotToken,
+                                                                         SyntaxFactory.IdentifierName(emptyIdentifier));
         var updatedRoot = root.ReplaceNode(literalExpression, replacementExpression);
 
         return document.WithSyntaxRoot(updatedRoot);

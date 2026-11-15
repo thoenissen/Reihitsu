@@ -70,7 +70,8 @@ internal static class CopyrightHeaderTemplateResolver
     }
 
     /// <summary>
-    /// Normalizes header line endings for a source file
+    /// Normalizes header line endings to the first line break of a source file, or to <c>\n</c> when the file has none, which
+    /// is the line ending the analyzer compares the header in
     /// </summary>
     /// <param name="header">Header text</param>
     /// <param name="sourceText">Source text</param>
@@ -99,9 +100,25 @@ internal static class CopyrightHeaderTemplateResolver
             }
         }
 
+        return NormalizeLineEndings(header, preferredLineEnding);
+    }
+
+    /// <summary>
+    /// Writes every line break of a header as the given line ending
+    /// </summary>
+    /// <param name="header">Header text</param>
+    /// <param name="lineEnding">Line ending</param>
+    /// <returns>Header with normalized line endings</returns>
+    public static string NormalizeLineEndings(string header, string lineEnding)
+    {
+        if (string.IsNullOrEmpty(header))
+        {
+            return string.Empty;
+        }
+
         return header.Replace("\r\n", "\n")
                      .Replace('\r', '\n')
-                     .Replace("\n", preferredLineEnding);
+                     .Replace("\n", lineEnding);
     }
 
     #endregion // Methods

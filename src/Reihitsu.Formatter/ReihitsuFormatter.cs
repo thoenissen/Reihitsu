@@ -188,7 +188,9 @@ public static class ReihitsuFormatter
     /// its line are decided from those facts as the document stands; the preceding sibling is not formatted, so a decision that
     /// document-level formatting would base on a rewritten sibling can differ.
     /// The one write outside the target is the whitespace that separated the preceding token from a documentation comment the
-    /// target moves onto its own line: it would otherwise end that line, so it is removed as document-level formatting removes it
+    /// target moves onto its own line: it would otherwise end that line, so it is removed as document-level formatting removes it.
+    /// The target's trailing trivia is kept, but the line break that ends it is written in the detected line ending and the
+    /// whitespace in front of that line break is removed, as on every other line of the target (FMT-PIPE-010)
     /// </remarks>
     public static async Task<FormattingResult<Document>> FormatNodeInDocumentAsync(Document document, SyntaxNode targetNode, CancellationToken cancellationToken = default)
     {
@@ -252,7 +254,7 @@ public static class ReihitsuFormatter
             return new FormattingResult<Document>(document.WithSyntaxRoot(formattedTarget), null);
         }
 
-        formattedTarget = WriteBackTrailingTrivia(formattedTarget, targetNode.GetLastToken(), lastTokenAnnotation);
+        formattedTarget = WriteBackTrailingTrivia(formattedTarget, targetNode.GetLastToken(), lastTokenAnnotation, endOfLine);
 
         var trimmedTrailingTrivia = EndOfLineWhitespace.StripBeforeFollowingLineBreak(precedingToken.TrailingTrivia, formattedTarget.GetFirstToken().LeadingTrivia);
 
@@ -294,7 +296,9 @@ public static class ReihitsuFormatter
     /// as the formatter lays them out from that column, so a line aligned to an anchor on the target's first line stays
     /// on that anchor (FMT-PIPE-017, FMT-PIPE-018). A target that the structural phase splits into several fields is
     /// replaced by all of them, laid out as the phases lay them out, and no field shares a line with another member
-    /// (FMT-PIPE-029). The generated-code marker is not checked (FMT-PIPE-006). When the target is the context node,
+    /// (FMT-PIPE-029). The target's trailing trivia is kept, but the line break that ends it is written in the detected
+    /// line ending and the whitespace in front of that line break is removed, as on every other line of the target
+    /// (FMT-PIPE-010). The generated-code marker is not checked (FMT-PIPE-006). When the target is the context node,
     /// formatting is delegated to
     /// <see cref="FormatNodeInDocumentAsync(Document, SyntaxNode, CancellationToken)"/>, including its removal of the
     /// separator whitespace in front of the target
@@ -372,7 +376,9 @@ public static class ReihitsuFormatter
 
         var originalLastToken = targetNode.GetLastToken();
         var formattedLastToken = formattedTarget.GetLastToken();
-        formattedTarget = formattedTarget.ReplaceToken(formattedLastToken, formattedLastToken.WithTrailingTrivia(originalLastToken.TrailingTrivia));
+        var trailingTrivia = EndTargetLineAsFormatted(originalLastToken.TrailingTrivia, ReihitsuFormatterHelpers.DetectEndOfLine(root));
+
+        formattedTarget = formattedTarget.ReplaceToken(formattedLastToken, formattedLastToken.WithTrailingTrivia(trailingTrivia));
 
         return new FormattingResult<Document>(document.WithSyntaxRoot(root.ReplaceNode(targetNode, formattedTarget)), null);
     }
@@ -535,13 +541,15 @@ public static class ReihitsuFormatter
     /// is written once: when the phases leave the target's original last token inside the result, behind which they inserted
     /// tokens such as the closing brace of a block wrapped around a body (FMT-STRUCT-001), the comments that token still
     /// carries stay where they are, and only the rest of the trivia, the line break that keeps the code behind the target on
-    /// its line among it, is written behind the result's last token. The mark on the original last token is removed
+    /// its line among it, is written behind the result's last token, with the line that trivia ends ended as the phases end
+    /// every other line of the target. The mark on the original last token is removed
     /// </summary>
     /// <param name="formattedTarget">The formatted target</param>
     /// <param name="originalLastToken">The target's last token as it stands in the document</param>
     /// <param name="lastTokenAnnotation">The annotation that marks the original last token in <paramref name="formattedTarget"/></param>
+    /// <param name="endOfLine">The line ending detected for the document</param>
     /// <returns>The formatted target with the trailing trivia written back</returns>
-    private static SyntaxNode WriteBackTrailingTrivia(SyntaxNode formattedTarget, SyntaxToken originalLastToken, SyntaxAnnotation lastTokenAnnotation)
+    private static SyntaxNode WriteBackTrailingTrivia(SyntaxNode formattedTarget, SyntaxToken originalLastToken, SyntaxAnnotation lastTokenAnnotation, string endOfLine)
     {
         var formattedLastToken = formattedTarget.GetLastToken();
         var markedTokens = formattedTarget.GetAnnotatedTokens(lastTokenAnnotation).ToList();
@@ -554,6 +562,8 @@ public static class ReihitsuFormatter
             trailingTrivia = RemoveLeadingComments(trailingTrivia, keptCommentCount);
         }
 
+        trailingTrivia = EndTargetLineAsFormatted(trailingTrivia, endOfLine);
+
         return formattedTarget.ReplaceTokens(markedTokens.Append(formattedLastToken).Distinct(),
                                              (original, rewritten) =>
                                              {
@@ -563,6 +573,34 @@ public static class ReihitsuFormatter
                                                             ? unmarkedToken.WithTrailingTrivia(trailingTrivia)
                                                             : unmarkedToken;
                                              });
+    }
+
+    /// <summary>
+    /// Ends the target's last line, when its trailing trivia ends in a line break, as the phases end every other line of the
+    /// target: the line break is written in the line ending detected for the document, and the whitespace directly in front of
+    /// it is removed, behind the last token or behind a delimited comment alike (FMT-PIPE-010, SHARED-FIX-008). Whitespace in
+    /// front of a comment and the text of a comment stay; a trailing trivia without a line break, because code follows the
+    /// target on its line, is returned as it stands
+    /// </summary>
+    /// <param name="trailingTrivia">The trailing trivia written back behind the target</param>
+    /// <param name="endOfLine">The line ending detected for the document</param>
+    /// <returns>The trailing trivia with the target's last line ended as formatted</returns>
+    private static SyntaxTriviaList EndTargetLineAsFormatted(SyntaxTriviaList trailingTrivia, string endOfLine)
+    {
+        if (trailingTrivia.Count == 0
+            || trailingTrivia[trailingTrivia.Count - 1].IsKind(SyntaxKind.EndOfLineTrivia) == false)
+        {
+            return trailingTrivia;
+        }
+
+        var lineBreak = trailingTrivia[trailingTrivia.Count - 1];
+
+        if (lineBreak.ToFullString() != endOfLine)
+        {
+            lineBreak = SyntaxFactory.EndOfLine(endOfLine);
+        }
+
+        return TriviaListUtilities.RemoveTrailingWhitespace(trailingTrivia.RemoveAt(trailingTrivia.Count - 1)).Add(lineBreak);
     }
 
     /// <summary>
@@ -676,7 +714,8 @@ public static class ReihitsuFormatter
     /// </returns>
     /// <remarks>
     /// The first field keeps the target's leading trivia, and its first token the line and column the target's first token
-    /// has in the document (FMT-PIPE-017, FMT-PIPE-018); the last keeps the target's trailing trivia (FMT-PIPE-010); every
+    /// has in the document (FMT-PIPE-017, FMT-PIPE-018); the last keeps the target's trailing trivia, with the line it ends
+    /// ended as the phases end every other line (FMT-PIPE-010); every
     /// other line of the fields is the phases' layout. When another member of the type shares the target's first or last line,
     /// which is read from the context as the phases lay it out and asked only where nothing in the gap starts a line in the
     /// document, the whitespace in that gap is replaced by one line break and the indentation the phases give a later field,
@@ -783,7 +822,7 @@ public static class ReihitsuFormatter
             {
                 var trailingTrivia = sharesLineWithFollowingMember
                                          ? TriviaListUtilities.RemoveTrailingWhitespace(originalLastToken.TrailingTrivia).Add(lineBreak)
-                                         : originalLastToken.TrailingTrivia;
+                                         : EndTargetLineAsFormatted(originalLastToken.TrailingTrivia, lineBreak.ToFullString());
                 var lastToken = field.GetLastToken();
 
                 field = field.ReplaceToken(lastToken, lastToken.WithTrailingTrivia(trailingTrivia));
