@@ -45,3 +45,7 @@ On the skeptic's must-corrections (`02-skeptic.md`, *Internal choices* 1) and `0
 - RH5102-001's *Why* gains the skeptic's optional clause: reporting a line break in front of `)` left a fix that changes nothing (SHARED-DIAG-010). Taken because it names the defect the change removes.
 - Not taken: nothing else. Skeptic *Internal choices* 3 (keep the P11 wording for entry 4) and 4 (line counting unstated) agree with the spec as written.
 - For the tests: the skeptic's *Breaking inputs* matrix supersedes my *Examples for the tests* where it is wider (`M(⏎1, 2⏎)`, `M( /* a⏎b */ 1, 2)`, a non-invocation parent, CRLF, the spanning-argument variants behind `(⏎`).
+
+## Amendment 2
+
+On `00-lead.md` decision 9 (`UsesListsExactlyTheReferencedRequirements` failed): SHARED-DIAG-010 added to the `Uses` row of `sdd/specs/analyzer/RH5102.md`, which now cites it in RH5102-001's Why, and removed from the `Uses` row of `sdd/specs/formatter/line-breaks.md`, whose FMT-BREAK-012 Why no longer cites it. Metadata only, no wording changed. `scripts/test.sh --project architecture` passes.
