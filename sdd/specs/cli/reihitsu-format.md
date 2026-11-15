@@ -80,12 +80,14 @@ reihitsu-format --check --lang-version preview src/B.cs
 ```
 
 ```text
-Warning: C# language version 'preview' is newer than the newest supported version 14.0; formatting for 14.0.
+Warning: C# language version 'preview' is newer than the newest supported version 15.0; formatting for 15.0.
 
 0 of 1 file(s) need formatting.
 ```
 
 exit code 0.
+
+With `--lang-version 15` (or `15.0`), the same file is parsed as C# 15 and no warning is written. A file that declares a union, such as `public union Pet(Cat, Dog);`, has no syntax error under C# 15 and is formatted; under `--lang-version 14` it has syntax errors and is skipped (FMT-PIPE-005).
 
 ### CLI-005 — Every given path must exist
 
