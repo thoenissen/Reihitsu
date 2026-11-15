@@ -35,6 +35,7 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 | 13 | Auditor (19) | F6 (PR-introduced): local functions lose their fix under the interface-name check (l1, l2) | Repair: exclude local functions from the check; the spec names them as excluded; RH4104 test asserting the fix for l2 (and l1) | A local function cannot implement an interface member; restores `main`'s output | Restores main's output | a4fc274 |
 | 14 | Auditor (25) | F7 (PR-introduced, repeats F6 → architecture): the kind filter is a deny-list, so constructors in a type's cascade withhold type renames (t1, t2, t4, t5, t7) | Replace the deny-list by an allow-list: only ordinary methods, properties and events are checked; RH4002 test asserting the fix (t1) and one more type kind | Structural cause is the deny-list; allow-list ends the class; restores main's output for type renames | Restores main's output | 8847090 |
 | 15 | Auditor (25) | F8: positional record parameter (RH4120) is withheld through its compiler-declared property, contradicting the spec's "a renamed parameter is not withheld" | Keep the withholding (SHARED-FIX-003; run-time change shown); spec states that a positional record parameter counts through its property; RH4120 no-fix test. Repair round 3 (last) | Unchanged SHARED-FIX-003 demands it; rare class | Withholding for a rare class under an unchanged requirement | 8847090 |
+| 16 | Auditor (31) | Hints: orphan XML-doc line in `RenameWithoutConflictAsync` summary; paragraph opening of SHARED-CASING-009 | Not acted on | Hints, not findings; consistent as written; no repair worth a further cleaner spawn | Internal text | — |
 ## Follow-up candidates
 
 - RH2001 code fix (`RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider.cs:100`) also calls `Renamer.RenameSymbolAsync`; unchecked whether it rewrites or rebinds references to other symbols (SHARED-FIX-003/006). Source: `04-implementer.md`.
@@ -77,4 +78,5 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 - Cleaner round 3 done: `29-cleaner.md` (clean).
 - Spec checker round 3 done: `30-spec-checker.md` (consistent).
 - Auditor on 067e3dc: `31-auditor.md` — PASS with text cleanup (#9: spec Why clause on operators). Audited SHA: 067e3dca95cc7d3904dd94e71ff7eefdb2c2a2b0.
-- Next: spec author (#9 wording) + cleaner (orphan XML-doc line in `RenameWithoutConflictAsync` summary) → verify-text-only --strict-docs vs audited SHA → validator → publish.
+- Spec author (#9) done: `32-spec-author.md` (db9c72a).
+- Next: verify-text-only --strict-docs vs audited SHA → validator → publish.
