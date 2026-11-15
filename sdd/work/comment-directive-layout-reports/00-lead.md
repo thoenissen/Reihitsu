@@ -47,6 +47,9 @@ Behavior-change lane: spec author → skeptic → test implementer → implement
 | 8 | Skeptic | #1387 RH5102/RH5109/RH5111 conditional-directive instances | Already unreported on main: characterization tests only; fix `TargetAttributeListShapeAnalyzerBase` for the 16 list-shape rules | Skeptic evidence | SHARED-DIAG-008 decides | |
 | 9 | Skeptic | #1736 issue claim "fix result not a fixed point" | Wrong; not repeated in PR; keep fix-stability test as regression | Skeptic ran the formatter | Internal | |
 | 10 | Spec amend | OQ1 home; RH7304 change doc visible list; shared specs naming rules without IDs | Accept: own change doc `rh7304-fix-for-comment-led-region-line.md` listing only the newly offered fix; shared specs name RH5111/RH5034 without IDs | Different cause, own doc; unreported formatter output follows from SHARED-COMMENT-011/SHARED-DIAG-010; avoids shared→rule `Uses` | Change-doc structure is internal; outputs answered (OQ1) | 07f77fa |
+| 11 | Tests | RH5305/RH5306 misplaced comment before the closing bracket (decision 5) | Not reported, as tested: the rules' own comment exemptions (RH5305-001, RH5306-001) still apply under SHARED-COMMENT-011 | Unchanged specs decide | Unchanged requirements decide the output | 3ab1917 |
+| 12 | Tests | 11 attribute rules without their own conditional-directive test | Add one conditional-directive test per remaining rule (fresh test implementer, small round) | Role file does not accept base-class coverage as proof; cheap | Tests only | |
+| 13 | Tests | #1386 diagnostic span | Accept: from `///`/`/**` to the end of the text, without the line break (SHARED-COMMENT-003, consistent with RH5204-005) | Consistent reading | SHARED-COMMENT-003 decides (located on the comment) | 3ab1917 |
 
 ## Follow-up candidates
 
@@ -54,6 +57,7 @@ Behavior-change lane: spec author → skeptic → test implementer → implement
 - F2 (01-spec-author): RH3002-009 keeps a conditional directive inside the parentheses reported, against SHARED-DIAG-008.
 - F3 (01-spec-author): dropped — absorbed into #1594 (decision 6).
 - F4 (02-skeptic): no rule reports a parenthesized lambda / anonymous method parameter list wrapped only behind `(` after #1736; formatter joins it (P11: new rule or RH5108 gap).
+- F6 (04-test-implementer): RH5204 does not check a misindented member line that starts with a predefined type and has no modifier (`  bool Value { get; }`), nor a comment above it; RH5204-006's own example uses that shape.
 - F5 (02-skeptic): formatter writes a blank line between `=` and an own-line comment (`y =⏎// c⏎2;` → blank line inserted); may already be tracked (FMT-BLANK-011 issue listed on #912) — issue manager dedupes.
 
 ## State
@@ -61,5 +65,5 @@ Behavior-change lane: spec author → skeptic → test implementer → implement
 - Last step: spec author done (3b1b3d3); lane check confirmed behavior-change.
 - Open output questions (from 01-spec-author): OQ1 RH7304 fix for comment-led region line; OQ2 RH5111 comment/#pragma in wrapped gap; #1736 change-doc visible output changes (5 entries, entry 3 comment keeping first parameter off `(` line).
 - Skeptic done (829026e). Output-question batch 1 posted to maintainer (OQ1 RH7304 fix, OQ2 RH5111 gap, OQ3 RH5111 declarator directive-only gap, OQ4 #1736 entries 1/2/`)`-comment/5, OQ5 #1736 entry 3).
-- Spec amendments done (07f77fa); both change docs Accepted. Next: test implementer (04).
+- Spec amendments done (07f77fa); both change docs Accepted. Test implementer done (3ab1917, 479e502): 119 red cases, all new/rewritten. Next: fresh test implementer for 11 attribute rules (05), then implementer (06).
 - (old) Next: on answers, spec author amends (SHARED-COMMENT-001 clarification, RH7304-001 multi-line, change doc per answers, RH5111-005 per OQ2/3), then test implementer.
