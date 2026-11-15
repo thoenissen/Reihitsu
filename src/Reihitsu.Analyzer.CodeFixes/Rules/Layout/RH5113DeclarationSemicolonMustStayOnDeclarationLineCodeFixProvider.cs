@@ -90,7 +90,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineCodeFixProvider 
     /// <summary>
     /// Determines whether the stray semicolon can be moved behind the token in front of it. The fix is not offered when a
     /// comment sits between the previous token and the semicolon, because removing the gap would absorb the semicolon into
-    /// the comment (SHARED-FIX-003)
+    /// a line comment or delete a delimited comment (SHARED-FIX-003)
     /// </summary>
     /// <param name="semicolonToken">Semicolon token</param>
     /// <returns><see langword="true"/> if the code fix can be applied safely; otherwise, <see langword="false"/></returns>
