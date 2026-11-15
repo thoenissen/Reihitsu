@@ -5,7 +5,7 @@
 | ID prefix | SHARED-DIAG |
 | Status | Active |
 | Code owners | `DiagnosticAnalyzerBase`, `PartialMemberUtilities` |
-| Uses | FMT-DOC-012, FMT-UNSUP-001, FMT-UNSUP-008, RH2109-004, RH5308-005, SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-010, SHARED-JOIN-001, SHARED-TRAIL-002 |
+| Uses | FMT-DOC-012, FMT-UNSUP-001, FMT-UNSUP-008, RH2109-004, RH3002-010, RH5308-005, SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-010, SHARED-JOIN-001, SHARED-TRAIL-002 |
 
 This spec covers what holds for every analyzer rule, so a rule spec states only what the rule itself reports. It applies to every rule without being listed under `Uses`.
 
