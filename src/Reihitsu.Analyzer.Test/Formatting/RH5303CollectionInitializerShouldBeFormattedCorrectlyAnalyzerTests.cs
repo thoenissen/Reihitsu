@@ -2283,6 +2283,107 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifies that the fix of a collection initializer whose comma starts a line moves the comma behind the element in front of
+    /// it, as whole-document formatting does, and places the element behind it at the elements' column
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5303-005")]
+    [Requirement("FMT-BREAK-038")]
+    public async Task VerifyFixMovesACommaThatStartsALineBehindTheElement(string endOfLine)
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              internal class C
+                              {
+                                  internal void M()
+                                  {
+                                      var l = new List<int> { 1
+                                          , 2 };
+                                  }
+                              }
+
+                              internal class D
+                              {
+                                  public int X { get; set; }
+
+                                  public int Y { get; set; }
+
+                                  public List<int> Items { get; } = new List<int>();
+                              }
+                              """;
+        const string expected = """
+                                using System.Collections.Generic;
+
+                                internal class C
+                                {
+                                    internal void M()
+                                    {
+                                        var l = new List<int>
+                                                {
+                                                    1,
+                                                    2
+                                                };
+                                    }
+                                }
+
+                                internal class D
+                                {
+                                    public int X { get; set; }
+
+                                    public int Y { get; set; }
+
+                                    public List<int> Items { get; } = new List<int>();
+                                }
+                                """;
+
+        var input = ConvertEndOfLine(source, endOfLine);
+        var fixedSource = await ApplyCodeFixAsync(input);
+
+        Assert.AreEqual(ConvertEndOfLine(expected, endOfLine), fixedSource);
+        Assert.AreEqual(Format(input), fixedSource, "The code fix must lay out the code as the formatter lays it out.");
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld for a collection initializer whose comma a comment keeps off the line of the element in
+    /// front of it, which the formatter refuses as unsupported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-009")]
+    public async Task VerifyNoCodeFixWhenACommentHoldsACommaAtTheStartOfItsLine()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              internal class C
+                              {
+                                  internal void M()
+                                  {
+                                      var l = new List<int> { 1 // k
+                                          , 2 };
+                                  }
+                              }
+
+                              internal class D
+                              {
+                                  public int X { get; set; }
+
+                                  public int Y { get; set; }
+
+                                  public List<int> Items { get; } = new List<int>();
+                              }
+                              """;
+
+        Assert.IsNull(await TryApplyCodeFixAsync(source), "No code fix may be offered for an initializer the formatter refuses.");
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

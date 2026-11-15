@@ -28,6 +28,11 @@ public abstract class FormatterTestsBase
     /// </summary>
     protected const string ConditionalOperatorCommentReason = "a comment or directive between a conditional operator and its branch";
 
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive between a list element and the comma behind it (FMT-UNSUP-009)
+    /// </summary>
+    protected const string ListSeparatorCommentReason = "a comment or directive between a list element and the comma behind it";
+
     #endregion // Constants
 
     #region Fields

@@ -1890,6 +1890,77 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifies that the fix of a nested collection initializer whose comma starts a line moves the comma behind the element in
+    /// front of it, as whole-document formatting does, and places the element behind it at the elements' column
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5304-004")]
+    [Requirement("FMT-BREAK-038")]
+    public async Task VerifyFixMovesACommaThatStartsALineBehindTheElement(string endOfLine)
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              internal class C
+                              {
+                                  internal void M()
+                                  {
+                                      var n = new D
+                                              {
+                                                  Items = { 1
+                                                  , 2 }
+                                              };
+                                  }
+                              }
+
+                              internal class D
+                              {
+                                  public int X { get; set; }
+
+                                  public int Y { get; set; }
+
+                                  public List<int> Items { get; } = new List<int>();
+                              }
+                              """;
+        const string expected = """
+                                using System.Collections.Generic;
+
+                                internal class C
+                                {
+                                    internal void M()
+                                    {
+                                        var n = new D
+                                                {
+                                                    Items = {
+                                                                1,
+                                                                2
+                                                            }
+                                                };
+                                    }
+                                }
+
+                                internal class D
+                                {
+                                    public int X { get; set; }
+
+                                    public int Y { get; set; }
+
+                                    public List<int> Items { get; } = new List<int>();
+                                }
+                                """;
+
+        var input = ConvertEndOfLine(source, endOfLine);
+        var fixedSource = await ApplyCodeFixAsync(input);
+
+        Assert.AreEqual(ConvertEndOfLine(expected, endOfLine), fixedSource);
+        Assert.AreEqual(Format(input), fixedSource, "The code fix must lay out the code as the formatter lays it out.");
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -494,40 +494,6 @@ public class StrandedDocumentationLineStartTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a leading comma on the line behind a documentation comment written behind an argument gets the
-    /// column it gets behind a single-line comment
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-INDENT-002")]
-    public void LeadingCommaBehindStrayDocumentationCommentIsAlignedAsBehindSingleLineComment()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 int M(int a, int b)
-                                 {
-                                     return System.Math.Max(a /// x
-                                         , b);
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    int M(int a, int b)
-                                    {
-                                        return System.Math.Max(a /// x
-                                                               , b);
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
     /// Verifies that a wrapped <c>+</c> on the line behind a documentation comment written behind the left operand gets
     /// the column it gets behind a single-line comment
     /// </summary>

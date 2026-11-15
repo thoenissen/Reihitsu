@@ -899,49 +899,6 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an own-line comment and a separator behind an omitted type argument take the block column, and that
-    /// no line is left holding only whitespace
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-INDENT-015")]
-    public void OwnLineCommentAndSeparatorBehindOmittedTypeArgumentTakeBlockColumn()
-    {
-        // Arrange
-        const string input = """
-                             using System;
-                             using System.Collections.Generic;
-
-                             class C
-                             {
-                                 void M()
-                                 {
-                                     var type = typeof(Dictionary<
-                             // c
-                             ,>);
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                using System;
-                                using System.Collections.Generic;
-
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var type = typeof(Dictionary<
-
-                                        // c
-                                        ,>);
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
     /// Verifies that the closing bracket of an array rank specifier behind an omitted array size takes the block column,
     /// as it does behind an array size with text
     /// </summary>
@@ -1175,42 +1132,6 @@ public class ZeroWidthTokenLineStartTests : FormatterTestsBase
                                 """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies the reported example of an omitted type argument behind a comment: the line that starts with the separator
-    /// of the omitted type arguments takes the block column
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-INDENT-015")]
-    public void OmittedTypeArgumentBehindCommentTakesBlockColumn()
-    {
-        const string input = """
-                             using System.Collections.Generic;
-
-                             class C
-                             {
-                                 void M()
-                                 {
-                                     var type = typeof(Dictionary< // omitted
-                                             ,>);
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                using System.Collections.Generic;
-
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var type = typeof(Dictionary< // omitted
-                                        ,>);
-                                    }
-                                }
-                                """;
-
         AssertRuleResult(input, expected);
     }
 
