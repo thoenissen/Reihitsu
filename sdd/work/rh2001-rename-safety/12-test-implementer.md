@@ -1,5 +1,5 @@
 Role: test implementer
-Commit: 68612fc (tests written on top of b223706, the spec author's repair commit)
+Commit: 4f66948 (on top of b223706, the spec author's repair commit)
 Verdict: tests written
 
 Repair round 1, for auditor findings #1–#3 (`10-auditor.md`; `00-lead.md` decisions 15–17). The prompt carried no intended fix, suspected cause, or hoped-for verdict.
