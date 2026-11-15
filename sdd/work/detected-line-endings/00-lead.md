@@ -33,9 +33,9 @@ Bug-fix lane: spec author (for the FMT-PIPE-010 clarification of #1695, and any 
 
 ## Follow-up candidates
 
-(none yet)
+- FMT-PIPE-018 writes back the target's leading trivia with its original line endings; SHARED-FIX-008's span names trailing trivia only (e.g. RH5111 fix, LF blank line above target in a CRLF document). Source: 01-spec-author.md.
 
 ## State
 
-- Last step finished: claim, prepare.
-- Next: spec author.
+- Last step finished: spec author (01, commit ec7c0c6). Open output questions: Q1 (#1695 trailing whitespace, rec. A), Q2 (#1696 RH8402 ending, rec. B -> change doc + lane widening).
+- Next: skeptic, then output-question batch before the test implementer.
