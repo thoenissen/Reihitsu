@@ -150,7 +150,7 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
         foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            RegisterRelocation(root, trivia, sourceText, context, owningRelocations, previousTokenRelocationCounts);
+            RegisterRelocation(root, trivia, sourceText, owningRelocations, previousTokenRelocationCounts);
         }
 
         var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
@@ -189,7 +189,6 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// <param name="root">Root node</param>
     /// <param name="trivia">Trivia candidate</param>
     /// <param name="sourceText">Source text</param>
-    /// <param name="context">The formatting context</param>
     /// <param name="owningRelocations">Relocations that split the owning token's leading trivia</param>
     /// <param name="previousTokenRelocationCounts">
     /// Line breaks to append to previous tokens, each of which first loses the whitespace that ends its trailing trivia;
@@ -198,19 +197,17 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     private static void RegisterRelocation(SyntaxNode root,
                                            SyntaxTrivia trivia,
                                            SourceText sourceText,
-                                           FormattingContext context,
                                            IDictionary<SyntaxToken, List<SyntaxTrivia>> owningRelocations,
                                            Dictionary<SyntaxToken, int> previousTokenRelocationCounts)
     {
         if (SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia) == false
-            || (DocumentationCommentUtilities.IsWrittenBehindSource(trivia, sourceText) == false
-                && IsWrittenBehindRootPrecedingToken(root, trivia, sourceText, context) == false))
+            || DocumentationCommentUtilities.IsWrittenBehindSource(trivia, sourceText) == false)
         {
             return;
         }
 
         if (trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia)
-            && IsMovableDelimitedDocumentation(trivia, context) == false)
+            && IsMovableDelimitedDocumentation(trivia) == false)
         {
             return;
         }
@@ -267,9 +264,8 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// (<see cref="TriviaListUtilities.IndexOfFirstComment"/>, <see cref="BlockStartUtilities.IsFirstInBlock(PrecedingTokenFacts)"/>)
     /// </summary>
     /// <param name="trivia">Delimited documentation trivia written behind code</param>
-    /// <param name="context">The formatting context</param>
     /// <returns><see langword="true"/> if the comment starts a new line; otherwise, <see langword="false"/></returns>
-    private static bool IsMovableDelimitedDocumentation(SyntaxTrivia trivia, FormattingContext context)
+    private static bool IsMovableDelimitedDocumentation(SyntaxTrivia trivia)
     {
         var owningToken = trivia.Token;
         var commentIndex = TriviaListUtilities.IndexOfFirstComment(owningToken.LeadingTrivia);
@@ -280,28 +276,9 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
             return false;
         }
 
-        var previousTokenFacts = PrecedingTokenFacts.Resolve(owningToken.GetPreviousToken(), context);
+        var previousTokenFacts = PrecedingTokenFacts.From(owningToken.GetPreviousToken());
 
         return BlockStartUtilities.IsFirstInBlock(previousTokenFacts) == false;
-    }
-
-    /// <summary>
-    /// Determines whether a documentation comment on the first line of a detached formatting root is written behind the
-    /// token that precedes the root in its document. A node-level root has no parent (FMT-PIPE-023), so the root's text
-    /// starts with the comment and the token in front of it is not part of the tree; the facts captured for that
-    /// token (<see cref="FormattingContext.RootPrecedingToken"/>) say whether it shares the comment's line
-    /// </summary>
-    /// <param name="root">Root node</param>
-    /// <param name="trivia">Documentation trivia</param>
-    /// <param name="sourceText">Source text of the root</param>
-    /// <param name="context">The formatting context</param>
-    /// <returns><see langword="true"/> if the comment stands behind the root's preceding token on that token's line; otherwise, <see langword="false"/></returns>
-    private static bool IsWrittenBehindRootPrecedingToken(SyntaxNode root, SyntaxTrivia trivia, SourceText sourceText, FormattingContext context)
-    {
-        return context.RootPrecedingToken.Exists
-               && context.RootPrecedingToken.EndsLine == false
-               && GetPreviousPresentToken(trivia.Token).RawKind == 0
-               && sourceText.Lines.GetLineFromPosition(trivia.FullSpan.Start).LineNumber == sourceText.Lines.GetLineFromPosition(root.FullSpan.Start).LineNumber;
     }
 
     /// <summary>

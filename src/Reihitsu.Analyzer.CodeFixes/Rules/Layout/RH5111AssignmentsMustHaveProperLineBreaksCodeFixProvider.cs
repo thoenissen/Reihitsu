@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -77,17 +78,20 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : Reihitsu
     }
 
     /// <summary>
-    /// Gets the narrowest formatting node that can still fix the assignment
+    /// Gets the narrowest formatting node that can still fix the assignment: the innermost assignment, variable declarator,
+    /// property, parameter, or enum member around the diagnostic node, so that no construct that contains the reported one,
+    /// such as an assignment whose value holds it, is formatted (RH5111-004, SHARED-FIX-006)
     /// </summary>
     /// <param name="diagnosticNode">Diagnostic node</param>
     /// <returns>Formatting node</returns>
     private static SyntaxNode GetFormattingNode(SyntaxNode diagnosticNode)
     {
-        return diagnosticNode.FirstAncestorOrSelf<AssignmentExpressionSyntax>()
-                   ?? (SyntaxNode)diagnosticNode.FirstAncestorOrSelf<VariableDeclaratorSyntax>()
-                   ?? diagnosticNode.FirstAncestorOrSelf<PropertyDeclarationSyntax>()
-                   ?? (SyntaxNode)diagnosticNode.FirstAncestorOrSelf<ParameterSyntax>()
-                   ?? diagnosticNode.FirstAncestorOrSelf<EnumMemberDeclarationSyntax>();
+        return diagnosticNode.AncestorsAndSelf()
+                             .FirstOrDefault(static node => node is AssignmentExpressionSyntax
+                                                                 or VariableDeclaratorSyntax
+                                                                 or PropertyDeclarationSyntax
+                                                                 or ParameterSyntax
+                                                                 or EnumMemberDeclarationSyntax);
     }
 
     /// <summary>

@@ -68,7 +68,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     /// with the code in front of it
     /// </summary>
     /// <param name="token">The token to inspect</param>
-    /// <param name="previousTokenFacts">The facts about the token that precedes <paramref name="token"/>, resolved through <see cref="PrecedingTokenFacts.Resolve"/></param>
+    /// <param name="previousTokenFacts">The facts about the token that precedes <paramref name="token"/>, captured through <see cref="PrecedingTokenFacts.From"/></param>
     /// <returns><see langword="true"/> if the boundary must not be enforced for the token</returns>
     /// <remarks>
     /// Whether a documentation comment written behind code starts a new line is decided by the documentation-comment
@@ -187,7 +187,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     /// Ensures exactly one blank line exists before the first comment in the specified token's leading trivia
     /// </summary>
     /// <param name="token">The token whose leading trivia should be checked</param>
-    /// <param name="previousTokenFacts">The facts about the token that precedes <paramref name="token"/>, resolved through <see cref="PrecedingTokenFacts.Resolve"/></param>
+    /// <param name="previousTokenFacts">The facts about the token that precedes <paramref name="token"/>, captured through <see cref="PrecedingTokenFacts.From"/></param>
     /// <returns>The token with a single blank line before the first comment</returns>
     /// <remarks>
     /// No blank line is inserted when the comment is immediately preceded by a preprocessor directive,
@@ -283,7 +283,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
         token = base.VisitToken(token);
 
         var previousToken = token.GetPreviousToken();
-        var previousTokenFacts = PrecedingTokenFacts.Resolve(previousToken, _context);
+        var previousTokenFacts = PrecedingTokenFacts.From(previousToken);
         var isFirstInBlock = BlockStartUtilities.IsFirstInBlock(previousTokenFacts);
 
         if (HasCommentInLeadingTrivia(token)

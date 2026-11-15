@@ -25,8 +25,9 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedCodeFixProvider : R
     #region Methods
 
     /// <summary>
-    /// Applies the code fix: the expression body is replaced with the block body the formatter produces, and the rest of
-    /// the constructor, its initializer included, stays as written (SHARED-BODY-003)
+    /// Applies the code fix. A constructor that shares its line with another member is first separated from it, so that both
+    /// stand on lines of their own (SHARED-FIX-007); then the expression body is replaced with the block body the formatter
+    /// produces, and the rest of the constructor, its initializer included, stays as written (SHARED-BODY-003)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="constructorDeclaration">Constructor declaration</param>
@@ -34,7 +35,10 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedCodeFixProvider : R
     /// <returns>The updated document</returns>
     private static Task<Document> ApplyCodeFixAsync(Document document, ConstructorDeclarationSyntax constructorDeclaration, CancellationToken cancellationToken)
     {
-        return ExpressionBodyCodeFixUtilities.ConvertBodyAsync(document, constructorDeclaration, cancellationToken);
+        return BlankLineCodeFixUtilities.FormatMemberOnLinesOfItsOwnAsync(document,
+                                                                          constructorDeclaration,
+                                                                          ExpressionBodyCodeFixUtilities.ConvertBodyAsync,
+                                                                          cancellationToken);
     }
 
     #endregion // Methods

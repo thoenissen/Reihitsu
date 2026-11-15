@@ -1,4 +1,4 @@
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,8 +8,10 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.CodeFixes.Base;
+using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Core;
 using Reihitsu.Formatter;
@@ -26,15 +28,33 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineCodeFixProvider 
     #region Methods
 
     /// <summary>
-    /// Applies the code fix by delegating layout to the formatter
+    /// Applies the code fix. A declaration that shares its line with another member is first separated from it, so that both
+    /// stand on lines of their own (SHARED-FIX-007); then the semicolon is moved directly behind the end of the declaration,
+    /// and the rest of the declaration stays as written (RH5113-003)
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="declarationNode">Declaration node containing the stray semicolon</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The updated document</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, SyntaxNode declarationNode, CancellationToken cancellationToken)
+    private static Task<Document> ApplyCodeFixAsync(Document document, MemberDeclarationSyntax declarationNode, CancellationToken cancellationToken)
     {
-        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, declarationNode, cancellationToken).ConfigureAwait(false)).Output;
+        return BlankLineCodeFixUtilities.FormatMemberOnLinesOfItsOwnAsync(document, declarationNode, MoveSemicolonAsync, cancellationToken);
+    }
+
+    /// <summary>
+    /// Moves the declaration's semicolon directly behind the token in front of it, as the formatter joins it (FMT-BREAK-009).
+    /// The gap holds nothing but whitespace and line breaks, which the fix registers only for (SHARED-JOIN-001)
+    /// </summary>
+    /// <param name="document">Document</param>
+    /// <param name="declarationNode">Declaration node containing the stray semicolon, which belongs to <paramref name="document"/></param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The updated document</returns>
+    private static async Task<Document> MoveSemicolonAsync(Document document, SyntaxNode declarationNode, CancellationToken cancellationToken)
+    {
+        var semicolonToken = GetSemicolonToken(declarationNode);
+        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+        return document.WithText(sourceText.Replace(TextSpan.FromBounds(semicolonToken.GetPreviousToken().Span.End, semicolonToken.SpanStart), string.Empty));
     }
 
     /// <summary>
@@ -42,10 +62,10 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineCodeFixProvider 
     /// </summary>
     /// <param name="diagnosticNode">Diagnostic node</param>
     /// <returns>Declaration node, or <see langword="null"/> when no supported declaration is found</returns>
-    private static SyntaxNode GetDeclarationNode(SyntaxNode diagnosticNode)
+    private static MemberDeclarationSyntax GetDeclarationNode(SyntaxNode diagnosticNode)
     {
         return ((diagnosticNode.FirstAncestorOrSelf<FieldDeclarationSyntax>()
-                     ?? (SyntaxNode)diagnosticNode.FirstAncestorOrSelf<EventFieldDeclarationSyntax>())
+                     ?? (MemberDeclarationSyntax)diagnosticNode.FirstAncestorOrSelf<EventFieldDeclarationSyntax>())
                     ?? diagnosticNode.FirstAncestorOrSelf<DelegateDeclarationSyntax>())
                    ?? diagnosticNode.FirstAncestorOrSelf<PropertyDeclarationSyntax>();
     }

@@ -18,11 +18,6 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
     #region Fields
 
     /// <summary>
-    /// Formatting context of the current blank-line subphase
-    /// </summary>
-    private readonly FormattingContext _context;
-
-    /// <summary>
     /// Cancellation token of the current blank-line subphase
     /// </summary>
     private readonly CancellationToken _cancellationToken;
@@ -34,11 +29,9 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public BlankLineCollapser(FormattingContext context, CancellationToken cancellationToken)
+    public BlankLineCollapser(CancellationToken cancellationToken)
     {
-        _context = context;
         _cancellationToken = cancellationToken;
     }
 
@@ -139,10 +132,10 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
 
     /// <inheritdoc/>
     /// <remarks>
-    /// Whether the first trivia line continues the preceding token's line is read from the facts resolved through
-    /// <see cref="PrecedingTokenFacts.Resolve"/>. A node-level formatting root has no parent (FMT-PIPE-023), so its first
-    /// token has no previous token in its tree, and reading the live previous token there would treat the line break that
-    /// ends the preceding token's line as a blank line and collapse a blank line the boundary rewriters just inserted
+    /// Whether the first trivia line continues the preceding token's line is read from the facts captured through
+    /// <see cref="PrecedingTokenFacts.From"/>. A node-level formatting root has no parent (FMT-PIPE-023), so its first token
+    /// has no previous token in its tree, and its leading trivia starts at the start of the root's text; the node-level entry
+    /// points write that trivia back as it stands in the document (FMT-PIPE-018)
     /// </remarks>
     public override SyntaxToken VisitToken(SyntaxToken token)
     {
@@ -157,7 +150,7 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
             return token;
         }
 
-        var previousTokenFacts = PrecedingTokenFacts.Resolve(token.GetPreviousToken(), _context);
+        var previousTokenFacts = PrecedingTokenFacts.From(token.GetPreviousToken());
         var firstLineHasContent = previousTokenFacts.Exists
                                   && TokenGapAnalysis.OfTriviaRange(previousTokenFacts.TrailingTrivia,
                                                                     0,

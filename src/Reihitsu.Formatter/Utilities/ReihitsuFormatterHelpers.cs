@@ -9,7 +9,6 @@ using Reihitsu.Core;
 using Reihitsu.Formatter.Data.Enumerations;
 using Reihitsu.Formatter.Pipeline.Core.Utilities;
 using Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
-using Reihitsu.Formatter.Pipeline.TabReplacement;
 
 namespace Reihitsu.Formatter.Utilities;
 
@@ -163,35 +162,21 @@ internal static class ReihitsuFormatterHelpers
 
     /// <summary>
     /// Computes the column of a node-level formatting root's first token in its document (FMT-PIPE-017): the number of
-    /// characters in front of it on its line, each one column, except that a byte order mark at the start of the text
-    /// counts as zero columns. When the entry point does not keep the token's own leading trivia, that trivia is measured
-    /// as the preparation phase writes it, through <see cref="TabReplacementPhase.ReplaceWhitespaceTabs"/>, so a tab in its
-    /// whitespace counts with the width that phase gives it (FMT-PIPE-019). A tab in front of the token that the entry
-    /// point keeps, or that stands inside a comment, counts as one column
+    /// characters in front of it on its line, each one column, a tab included, except that a byte order mark at the start of
+    /// the text counts as zero columns. The node-level entry points keep everything in front of that token as it stands
+    /// (FMT-PIPE-018), so no character is measured as a phase would rewrite it
     /// </summary>
     /// <param name="token">The first token of the formatting root. Must belong to a syntax tree</param>
-    /// <param name="countsOwnWhitespaceTabsAsReplaced">Whether the entry point writes back the token's leading trivia as the phases rewrite it</param>
     /// <returns>The zero-based column of the token in its document</returns>
-    internal static int ComputeDocumentColumn(SyntaxToken token, bool countsOwnWhitespaceTabsAsReplaced)
+    internal static int ComputeDocumentColumn(SyntaxToken token)
     {
         var text = token.SyntaxTree.GetText();
         var lineStart = text.Lines.GetLineFromPosition(token.SpanStart).Start;
-        var leadingTriviaStart = token.FullSpan.Start;
-        var leadingTrivia = countsOwnWhitespaceTabsAsReplaced
-                                ? TabReplacementPhase.ReplaceWhitespaceTabs(token.LeadingTrivia)
-                                : token.LeadingTrivia;
+        var column = token.SpanStart - lineStart;
 
-        // The token's line, from its start to the token, as the phases receive it: the text in front of the token's
-        // leading trivia as it stands, followed by that trivia. The trivia may itself hold the line's start
-        var prefixStart = Math.Min(lineStart, leadingTriviaStart);
-        var prefix = SourceText.From(text.ToString(TextSpan.FromBounds(prefixStart, leadingTriviaStart)) + leadingTrivia.ToFullString());
-        var tokenLine = prefix.Lines[prefix.Lines.Count - 1];
-        var column = tokenLine.Span.Length;
-
-        if (prefixStart == 0
-            && tokenLine.Start == 0
+        if (lineStart == 0
             && column > 0
-            && prefix[0] == '\uFEFF')
+            && text[0] == '\uFEFF')
         {
             column--;
         }
