@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
 
@@ -39,7 +40,8 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer : Diagno
     #region Methods
 
     /// <summary>
-    /// Gets the indentation text used by the first code token inside a region pair
+    /// Gets the indentation text used by the first element inside a region pair: its first token, or the comment that
+    /// starts that token's line (RH7304-001)
     /// </summary>
     /// <param name="syntaxRoot">Syntax root</param>
     /// <param name="sourceText">Source text</param>
@@ -66,7 +68,12 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer : Diagno
             return null;
         }
 
-        return GetIndentation(sourceText, firstTokenInRegion.SpanStart);
+        // A comment that starts the line of the region's first token is that line's first element (SHARED-COMMENT-011),
+        // also when it starts on an earlier line and ends in front of the token (RH7304-001)
+        return GetIndentation(sourceText,
+                              CommentPositionUtilities.TryGetLineStartComment(firstTokenInRegion, true, out var lineStartComment)
+                                  ? lineStartComment.FullSpan.Start
+                                  : firstTokenInRegion.SpanStart);
     }
 
     /// <summary>

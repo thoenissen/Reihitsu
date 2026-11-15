@@ -718,6 +718,40 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : B
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifies that a constraint clause behind a comment that starts its line outside the constraint column is reported, although the <c>where</c> keyword behind the comment reaches the constraint column, and that the code fix is withheld or lays the line out in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-001")]
+    [Requirement("SHARED-COMMENT-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyConstraintBehindMisplacedLeadingCommentIsReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N<T>()
+                                /* c */ {|RH5110:where|} T : class
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void N<T>()
+                                         /* c */ where T : class
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -81,47 +81,58 @@ internal static class InitializerLayoutAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether a token or its formatter-controlled leading comment starts at the expected column
+    /// Determines whether a token's line starts at the expected column (SHARED-INIT-001). Every comment in the token's
+    /// leading trivia that starts an earlier line - only whitespace in front of it on that line - starts at the expected
+    /// column, one level deeper in front of a closing brace, with the further lines of a <c>///</c> comment aligned to
+    /// it; a further comment behind it on that line, or behind the tail of a comment from a line above, is not checked,
+    /// also when it ends on the token's line. On the token's line, the comment that starts
+    /// the line is its first element and starts at the expected column (SHARED-COMMENT-011); a further comment behind it
+    /// is not checked, and neither is the token behind a comment that ends on its line. Otherwise the token starts at the
+    /// expected column
     /// </summary>
     /// <param name="token">Token whose line anchor should be checked</param>
     /// <param name="expectedColumn">Required line-anchor column</param>
     /// <returns><see langword="true"/> when the line anchor matches the expected column</returns>
     public static bool IsAlignedAt(SyntaxToken token, int expectedColumn)
     {
-        var tokenPosition = token.GetLocation().GetLineSpan().StartLinePosition;
-        var commentSharesTokenLine = false;
+        var tokenLine = SyntaxTokenPositionUtilities.GetLine(token);
+        var earlierLineColumn = token.IsKind(SyntaxKind.CloseBraceToken)
+                                    ? expectedColumn + SyntaxIndentationUtilities.IndentSize
+                                    : expectedColumn;
 
-        foreach (var trivia in token.LeadingTrivia.Where(SyntaxTriviaUtilities.IsCommentTrivia))
+        var leadingTrivia = token.LeadingTrivia;
+
+        for (var triviaIndex = 0; triviaIndex < leadingTrivia.Count; triviaIndex++)
         {
-            var commentSpan = trivia.SyntaxTree.GetLineSpan(trivia.FullSpan);
-            var commentStartsOnTokenLine = commentSpan.StartLinePosition.Line == tokenPosition.Line;
-            var expectedCommentColumn = expectedColumn;
+            var trivia = leadingTrivia[triviaIndex];
 
-            if (commentStartsOnTokenLine == false && token.IsKind(SyntaxKind.CloseBraceToken))
+            if (SyntaxTriviaUtilities.IsCommentTrivia(trivia) == false
+                || TokenGapAnalysis.StartsLineAtLeadingTriviaIndex(token, triviaIndex) == false)
             {
-                expectedCommentColumn += SyntaxIndentationUtilities.IndentSize;
+                continue;
             }
 
-            if (commentSpan.StartLinePosition.Character != expectedCommentColumn)
+            var commentStart = CommentPositionUtilities.GetStartPosition(trivia);
+
+            if (commentStart.Line != tokenLine
+                && (commentStart.Character != earlierLineColumn
+                    || DocumentationCommentUtilities.AreContinuationExteriorMarkersAligned(trivia, earlierLineColumn) == false))
             {
                 return false;
-            }
-
-            if (DocumentationCommentUtilities.AreContinuationExteriorMarkersAligned(trivia, expectedCommentColumn) == false)
-            {
-                return false;
-            }
-
-            if (commentSpan.EndLinePosition.Line == tokenPosition.Line
-                && commentSpan.EndLinePosition.Character > 0)
-            {
-                commentSharesTokenLine = true;
             }
         }
 
-        // The formatter controls the indentation before a leading comment but preserves the token's
-        // raw position after a comment that ends on the same line.
-        return commentSharesTokenLine || tokenPosition.Character == expectedColumn;
+        // The formatter controls the indentation of the comment that starts the line but preserves the token's raw
+        // position behind a comment that ends on its line
+        if (CommentPositionUtilities.TryGetLineStartComment(token, true, out var lineStartComment))
+        {
+            var commentStart = CommentPositionUtilities.GetStartPosition(lineStartComment);
+
+            return commentStart.Line != tokenLine
+                   || commentStart.Character == expectedColumn;
+        }
+
+        return SyntaxTokenPositionUtilities.GetColumn(token) == expectedColumn;
     }
 
     #endregion // Methods

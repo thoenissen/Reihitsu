@@ -140,5 +140,29 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyFormatterTests
                               Diagnostics(RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5305MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a collection expression whose closing bracket stands behind a comment that starts its line in the column of the opening bracket is not reported and stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5305-001")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyClosingBracketBehindLeadingCommentInBracketColumnIsNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int[] b = [
+                                                      1
+                                                  /* end */ ];
+                                    }
+                                }
+                                """;
+
+        await VerifyFormatter(testData);
+    }
+
     #endregion // Tests
 }

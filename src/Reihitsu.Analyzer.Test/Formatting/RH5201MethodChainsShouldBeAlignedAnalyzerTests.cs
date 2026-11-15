@@ -2608,6 +2608,61 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : BatchCodeFixTestsB
     }
 
     /// <summary>
+    /// Verifies that a link whose line starts with the end of a comment that spans several lines is reported when the line's
+    /// first character that is not whitespace is outside the anchor's column, although the link's operator stands in that
+    /// column, and that the fix breaks the line in front of the link in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyLinkInAnchorColumnBehindMisalignedCommentTailIsReported(string endOfLine)
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal object Run(dynamic a)
+                                    {
+                                        var r = a.B()
+                                                 .C()
+
+                                                 /* x
+                                        */       {|#0:.|}D();
+
+                                        return r;
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  internal class Example
+                                  {
+                                      internal object Run(dynamic a)
+                                      {
+                                          var r = a.B()
+                                                   .C()
+
+                                                   /* x
+                                          */
+                                                   .D();
+
+                                          return r;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine),
+                     ConvertEndOfLine(resultData, endOfLine),
+                     static config =>
+                            {
+                                config.NumberOfIncrementalIterations = 1;
+                                config.NumberOfFixAllIterations = 1;
+                            },
+                     Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
     /// Formats the given source text through the shared formatting pipeline with LF line endings,
     /// the same engine <c>reihitsu-format</c> uses, without going through the CLI
     /// </summary>

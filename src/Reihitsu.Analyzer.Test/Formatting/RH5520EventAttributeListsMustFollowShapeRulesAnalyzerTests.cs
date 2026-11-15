@@ -328,6 +328,76 @@ public class RH5520EventAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that the attribute list of an event with a conditional directive between its attributes is not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-019")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoDiagnosticWhenConditionalDirectiveIsBetweenTheAttributes(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    [A,
+                                    #if DEBUG
+                                     B,
+                                    #endif
+                                     C1]
+                                    event System.Action E;
+                                }
+
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                sealed class C1 : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the attribute list of an event with a region directive pair between its attributes is still reported without offering a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5520-004")]
+    [Requirement("SHARED-ATTR-019")]
+    public async Task VerifyDiagnosticWithoutCodeFixWhenRegionDirectiveIsBetweenTheAttributes()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH5520:[A,
+                                    #region Attributes
+                                     B
+                                    #endregion
+                                     ]|}
+                                    event System.Action E;
+                                }
+
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                sealed class C1 : System.Attribute
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

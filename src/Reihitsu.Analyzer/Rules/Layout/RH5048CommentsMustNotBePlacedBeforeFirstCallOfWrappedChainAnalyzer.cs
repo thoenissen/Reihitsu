@@ -46,9 +46,11 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer 
             return;
         }
 
-        foreach (var comment in chain.RootLastToken.TrailingTrivia.Concat(chain.FirstLink.OperatorToken.LeadingTrivia).Where(CommentPositionUtilities.IsOrdinaryComment))
+        foreach (var location in chain.RootLastToken.TrailingTrivia.Concat(chain.FirstLink.OperatorToken.LeadingTrivia)
+                                                                   .Where(CommentPositionUtilities.IsOrdinaryComment)
+                                                                   .SelectMany(CommentPositionUtilities.GetCommentLocations))
         {
-            context.ReportDiagnostic(CreateDiagnostic(comment.GetLocation()));
+            context.ReportDiagnostic(CreateDiagnostic(location));
         }
     }
 

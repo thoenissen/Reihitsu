@@ -522,5 +522,109 @@ public class RH5033CommentsMustNotBePlacedBetweenAttributesAndDeclarationAnalyze
         await Verify(testData, Diagnostics(RH5033CommentsMustNotBePlacedBetweenAttributesAndDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5033MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a <c>///</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5033-001")]
+    public async Task VerifyTripleSlashCommentBetweenAttributeAndMethodIsReported()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    [Obsolete]
+                                    {|#0:/// note|}
+                                    public void Method()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5033CommentsMustNotBePlacedBetweenAttributesAndDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5033MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5033CommentsMustNotBePlacedBetweenAttributesAndDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5033MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>/** */</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5033-001")]
+    public async Task VerifyDelimitedDocumentationStyleCommentBetweenAttributeAndMethodIsReported()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    [Obsolete]
+                                    {|#0:/** note */|}
+                                    public void Method()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5033CommentsMustNotBePlacedBetweenAttributesAndDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5033MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5033CommentsMustNotBePlacedBetweenAttributesAndDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5033MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>///</c> summary between an attribute list and the method it would document documents nothing and is reported like an ordinary comment, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5033-001")]
+    public async Task VerifyTripleSlashSummaryBetweenAttributeAndMethodIsReported()
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    [Obsolete]
+                                    {|#0:/// <summary>M</summary>|}
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5033CommentsMustNotBePlacedBetweenAttributesAndDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5033MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5033CommentsMustNotBePlacedBetweenAttributesAndDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5033MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>/** */</c> summary between an attribute list and the method it would document documents nothing and is reported like an ordinary comment, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5033-001")]
+    public async Task VerifyDelimitedDocumentationStyleSummaryBetweenAttributeAndMethodIsReported()
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    [Obsolete]
+                                    {|#0:/** <summary>M</summary> */|}
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5033CommentsMustNotBePlacedBetweenAttributesAndDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5033MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5033CommentsMustNotBePlacedBetweenAttributesAndDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5033MessageFormat));
+    }
+
     #endregion // Tests
 }

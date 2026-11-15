@@ -45,6 +45,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelFormatterTests : For
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-005")]
     public async Task VerifyFormatterFixesDelimitedDocumentationCommentOnOwnLine()
     {
         const string input = """
@@ -64,7 +65,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelFormatterTests : For
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, 3, 4, 3, 11, AnalyzerResources.RH5204MessageFormat));
+                              ExpectedDiagnostic(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, 3, 1, 3, 11, AnalyzerResources.RH5204MessageFormat));
     }
 
     /// <summary>

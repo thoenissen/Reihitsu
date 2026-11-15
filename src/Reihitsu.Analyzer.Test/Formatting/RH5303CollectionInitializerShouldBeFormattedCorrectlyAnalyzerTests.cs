@@ -2384,6 +2384,212 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
         Assert.IsNull(await TryApplyCodeFixAsync(source), "No code fix may be offered for an initializer the formatter refuses.");
     }
 
+    /// <summary>
+    /// Verifies that an element behind two comments, the first of which starts its line outside the element column, is reported on the element, also where the element reaches the element column, and that the code fix is withheld or lays the line out in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5303-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyElementBehindTwoMisplacedLeadingCommentsIsReported(string endOfLine)
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var values = new List<int>
+                                                     {
+                                                 /* a */ /* b */ {|RH5303:1|},
+                                                         2
+                                                     };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var values = new List<int>
+                                                      {
+                                                          /* a */ /* b */ 1,
+                                                          2
+                                                      };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a element behind a line of its own that holds two comments, the first of which starts the line in the expected column, is not reported: the further comment is not checked
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5303-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyElementBelowLineOfTwoCommentsInExpectedColumnIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var values = new List<int>
+                                                     {
+                                                         /* a */ /* b */
+                                                         1,
+                                                         2
+                                                     };
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a element behind a further comment that starts on an earlier line behind a comment in the expected column and ends on the element's line is not reported: neither the further comment nor the element is checked
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5303-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyElementBehindFurtherCommentEndingOnItsLineIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var values = new List<int>
+                                                     {
+                                                         1,
+                                                         /* a */ /* b
+                                             */ 2
+                                                     };
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a element below a line of its own that holds two comments, the first of which starts the line outside the expected column, is reported, and that the code fix is withheld or lays the line out in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5303-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyElementBelowLineOfTwoCommentsOutsideExpectedColumnIsReported(string endOfLine)
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var values = new List<int>
+                                                     {
+                                             /* a */ /* b */
+                                                         {|RH5303:1|},
+                                                         2
+                                                     };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var values = new List<int>
+                                                      {
+                                                          /* a */ /* b */
+                                                          1,
+                                                          2
+                                                      };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a element behind a further comment that starts on an earlier line behind a comment outside the expected column and ends on the element's line is reported, and that the code fix is withheld or lays the line out in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5303-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyElementBehindFurtherCommentWhoseLineStartsOutsideExpectedColumnIsReported(string endOfLine)
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var values = new List<int>
+                                                     {
+                                                         1,
+                                             /* a */ /* b
+                                             */ {|RH5303:2|}
+                                                     };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var values = new List<int>
+                                                      {
+                                                          1,
+                                                          /* a */ /* b
+                                              */ 2
+                                                      };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

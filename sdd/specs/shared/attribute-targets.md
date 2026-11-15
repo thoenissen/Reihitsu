@@ -5,7 +5,7 @@
 | ID prefix | SHARED-ATTR |
 | Status | Active |
 | Code owners | `AttributeTargetRuleAnalyzerBase`, `TargetAttributePlacementAnalyzerBase`, `TargetAttributePlacementCodeFixProviderBase`, `TargetAttributeListShapeAnalyzerBase`, `TargetAttributeListShapeCodeFixProviderBase`, `AttributeTargetUtilities`, `AttributeListMergeSeparators` |
-| Uses | FMT-BREAK-001, FMT-BREAK-024, FMT-BREAK-027, FMT-BREAK-032, FMT-INDENT-028, FMT-STRUCT-028, FMT-STRUCT-029, SHARED-FIX-006, SHARED-FIX-008 |
+| Uses | FMT-BREAK-001, FMT-BREAK-024, FMT-BREAK-027, FMT-BREAK-032, FMT-INDENT-028, FMT-STRUCT-028, FMT-STRUCT-029, SHARED-DIAG-008, SHARED-FIX-006, SHARED-FIX-008 |
 
 This spec covers the rules that check attribute lists by the target the attributes apply to: how the target of an attribute list is resolved, how a placement rule decides whether a list is placed on its own line or on the line of what follows it, how a list-shape rule decides whether a list holds one attribute or the lists of one target are merged, where the diagnostic is, and what the placement and list-shape fixes produce. Each rule that uses this spec names its target, the declarations that carry it, its placement or its list shape, and any exception of its own. The formatter's counterparts are FMT-BREAK-027 for the placement, and FMT-STRUCT-028, FMT-STRUCT-029, and FMT-BREAK-032 for the list shape.
 
@@ -781,11 +781,13 @@ record R([property: A, B] [D]
          int Id);
 ```
 
-### SHARED-ATTR-019 — The split fix is withheld for a list with a comment or directive inside
+### SHARED-ATTR-019 — A conditional directive between the attributes keeps the list unreported; a comment or directive inside withholds the split fix
 
-The code fix of a rule that requires one attribute per list MUST NOT be offered when a comment or a preprocessor directive lies inside the reported list, between its opening and its closing bracket. A comment in front of the list or after it does not withhold it (SHARED-ATTR-017). The diagnostic is still reported.
+The span a rule that requires one attribute per list judges is the list's shape: the gaps between its opening bracket, its target specifier, its attributes, the commas between them, and its closing bracket. A list with an `#if`, `#elif`, `#else`, or `#endif` directive, or code such a directive excludes, in one of those gaps MUST NOT be reported (SHARED-DIAG-008). A conditional directive inside an attribute, such as in its argument list, lies outside that span and MUST NOT keep the list from being reported.
 
-Why: The split rewrites the separators between the attributes, so a comment inside the list would have to be moved to one of the new lists, and a directive inside it would end up off its own line; only the author can tell where it belongs.
+The code fix of such a rule MUST NOT be offered when a comment or a preprocessor directive lies inside the reported list, between its opening and its closing bracket — a `#region`, `#endregion`, or `#pragma` directive in one of the gaps above, and a directive of any kind inside an attribute, included. A comment in front of the list or after it does not withhold it (SHARED-ATTR-017). The diagnostic is still reported.
+
+Why: Behind a conditional directive between the attributes, another build compiles another list, so the verdict on the list the analyzer sees can be wrong for the others. The split rewrites the separators between the attributes, so a comment inside the list would have to be moved to one of the new lists, and a directive inside it would end up off its own line; only the author can tell where it belongs.
 
 Example — RH5506:
 
@@ -796,21 +798,44 @@ class C
 }
 
 {|RH5506:[A,
-#if DEBUG
-#endif
+#pragma warning disable CS0618
  B]|}
 class E
 {
 }
+
+{|RH5506:[A(1
+#if DEBUG
+ + 1
+#endif
+ ), B]|}
+class F
+{
+}
 ```
 
-is reported, and no code fix is offered.
+is reported, and no code fix is offered. A conditional directive between the attributes keeps the list from being reported:
 
-### SHARED-ATTR-020 — The merge fix is withheld for a comment or directive around the group
+```csharp
+[A,
+#if DEBUG
+ B,
+#endif
+ C]
+class C
+{
+}
+```
 
-The code fix of a rule that requires one list per target MUST NOT be offered when a comment, a preprocessor directive, or disabled text lies between the opening bracket of the first list it would merge and the first token after the last of them, or when a directive lies directly in front of the first of them. A comment in front of the first list or after the token that follows the last list does not withhold it. The diagnostic is still reported.
+is not reported.
 
-Why: The merge rewrites the whole stretch from the first to the last list and joins the token after it, so a comment there would be dropped or moved and a directive would end up off its own line, which does not compile. A directive in front of the first list belongs to the line the merge rewrites as well.
+### SHARED-ATTR-020 — A conditional directive between the lists keeps them unreported; a comment or directive around the group withholds the merge fix
+
+The span a rule that requires one list per target judges for a reported list is the stretch from the opening bracket of the first list of its target to the closing bracket of the reported list, with the lists between them. A reported list with an `#if`, `#elif`, `#else`, or `#endif` directive, or code such a directive excludes, in that stretch MUST NOT be reported (SHARED-DIAG-008). A conditional directive in front of the first list, or between the reported list and the token after it, lies outside that span and MUST NOT keep the list from being reported.
+
+The code fix of such a rule MUST NOT be offered when a comment, a preprocessor directive, or disabled text lies between the opening bracket of the first list it would merge and the first token after the last of them, or when a directive lies directly in front of the first of them. A comment in front of the first list or after the token that follows the last list does not withhold it. The diagnostic is still reported.
+
+Why: Behind a conditional directive between the lists of one target, another build compiles another set of lists, so the verdict on the lists the analyzer sees can be wrong for the others. The merge rewrites the whole stretch from the first to the last list and joins the token after it, so a comment there would be dropped or moved and a directive would end up off its own line, which does not compile. A directive in front of the first list belongs to the line the merge rewrites as well.
 
 Example — RH5524:
 
@@ -843,7 +868,22 @@ class C
 record R([property: A] [B /* c */] {|RH5524:[property: D]|} int Id);
 ```
 
-is reported, and no code fix is offered.
+is reported, and no code fix is offered. A conditional directive between the lists of one target keeps the later list from being reported:
+
+```csharp
+class C
+{
+    void M([A]
+#if DEBUG
+           [B]
+#endif
+           [D] int a)
+    {
+    }
+}
+```
+
+is not reported.
 
 Example — RH5524:
 

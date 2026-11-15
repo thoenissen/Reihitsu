@@ -1,6 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
@@ -35,42 +33,12 @@ public class RH5034CommentsMustNotBePlacedBetweenDocumentationAndDeclarationAnal
 
     #endregion // Constructor
 
-    #region Methods
-
-    /// <summary>
-    /// Gets the documentable member declaration that starts with the given token
-    /// </summary>
-    /// <param name="token">Token</param>
-    /// <returns>The member declaration, or <see langword="null"/> if the token does not start one</returns>
-    private static MemberDeclarationSyntax GetDeclarationStartingWith(SyntaxToken token)
-    {
-        for (var node = token.Parent; node != null; node = node.Parent)
-        {
-            if (node.GetFirstToken() != token)
-            {
-                return null;
-            }
-
-            if (node is MemberDeclarationSyntax declaration)
-            {
-                return declaration is BaseNamespaceDeclarationSyntax or GlobalStatementSyntax or IncompleteMemberSyntax
-                           ? null
-                           : declaration;
-            }
-        }
-
-        return null;
-    }
-
-    #endregion // Methods
-
     #region CommentPositionAnalyzerBase
 
     /// <inheritdoc/>
     protected override bool IsMisplaced(SyntaxTrivia comment, SyntaxToken previousToken, SyntaxToken nextToken)
     {
-        if (comment.Token != nextToken
-            || GetDeclarationStartingWith(nextToken) == null)
+        if (comment.Token != nextToken)
         {
             return false;
         }
@@ -80,7 +48,7 @@ public class RH5034CommentsMustNotBePlacedBetweenDocumentationAndDeclarationAnal
 
         for (var triviaIndex = 0; triviaIndex < commentIndex; triviaIndex++)
         {
-            if (CommentPositionUtilities.IsDocumentationComment(leadingTrivia[triviaIndex]))
+            if (CommentPositionUtilities.IsDocumentingComment(leadingTrivia[triviaIndex]))
             {
                 return true;
             }
