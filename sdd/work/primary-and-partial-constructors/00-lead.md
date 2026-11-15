@@ -24,6 +24,7 @@
 | 4 | Skeptic | #1680 architecture finding: private guard copies in RH8305/RH8307, missing in eight analyzers; guard drops constructor-run-only nodes | Fix narrowly with one shared cheap guard used by every trivia-kind registration (RH8305/RH8307 copies replaced); it must keep nodes only the constructor run sees (reported once) | One statement of the rule; a cheap syntactic check | Unchanged one-diagnostic requirements decide the output | – |
 | 6 | Spec author | Change doc for SHARED-DIAG-013? | None; lane stays bug fix | Answer 1B keeps today's output; the requirement writes down existing behavior (clarification) | Output unchanged, decided by answer 1 | c06b123 |
 | 7 | Spec author | Wording of SHARED-DIAG-013 claims parts must write the same parameter names | Continued spec author once to verify against the compiler (CS8826 is a warning for partial methods) | Factual accuracy of the spec | Spec wording is internal | – |
+| 8 | Implementer | Guard added as a new type `StructuredTriviaAnalysisContextExtensions` (~120 lines with docs) | Continued implementer once: fold it into the existing `DocumentationModeAnalysisContextExtensions` class, renamed to cover both duties; no new type, so no escalation 9 | The guard is the narrow fix of decision 4, not a new mechanism; a new type would require escalation 9 | Internal structure only | – |
 | 5 | Skeptic | #1742 output question 2 (RH8017/RH8018/RH8030/RH8101–RH8105/RH8108 on defining part) | Not asked: unchanged SHARED-DOC-001/005 leave partial elements outside these rules; keep today's output (not reported) | An unchanged spec decides it | Unchanged spec decides | – |
 
 ## Follow-up candidates
@@ -33,5 +34,5 @@
 ## State
 
 - Last step: skeptic (01-skeptic.md, 71ae774).
-- Test implementer done (03-test-implementer.md, a3cffd5): #1680 reproduced (25 failing), #1742 5 characterization tests pass. Next: implementer.
+- Implementer done (04-implementer.md, 5e6cbda/fccabfb), correction pending (decision 8). Earlier: test implementer done (03-test-implementer.md, a3cffd5): #1680 reproduced (25 failing), #1742 5 characterization tests pass. Next: implementer.
 - Next: spec author -> test implementer (#1680 reproductions; #1742 characterization of the recorded limitation) -> implementer -> cleaner -> spec checker -> auditor -> validator.
