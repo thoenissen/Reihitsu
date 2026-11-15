@@ -41,4 +41,5 @@ Batch 1 (before test implementer):
 - Done: 03-spec-author (b9ad11e); change doc Accepted by the lead.
 - Done: 04-test-implementer (tests 6b7fb49, handover b353d60).
 - Done: 05-implementer (b5bea19, handover 3b9120d).
-- Next: spec author 06 (CLI README line 35 says latest selects 14.0), then cleaner 07 (incl. stale doc comment PlaygroundFormatterTests.cs:90).
+- Done: 06-spec-author (README fd5f2ed).
+- Next: cleaner 07 (incl. stale doc comment PlaygroundFormatterTests.cs:90).
