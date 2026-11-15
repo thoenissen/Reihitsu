@@ -1,27 +1,29 @@
-# RH5107's fix and the formatter place a comment behind a leading comma alike
+# RH5107's fix is withheld for a comment behind a leading comma
 
 | | |
 |---|---|
 | Status | Draft |
 | Date | 2026-11 |
-| Affected requirements | Option A: RH5107-003 (changed). Option B: FMT-BREAK-011 (changed), FMT-BREAK-012 (changed). Decided by the maintainer's answer below. |
+| Affected requirements | RH5107-003 (changed: points to RH5107-004), RH5107-004 (added) |
 
 ## What
 
 A comma that starts a line in a parameter list, with a comment behind it on its line, is moved behind the parameter in front of it both by RH5107's code fix and by the formatter, but the two put the comment in different places:
 
 - the formatter moves the comment with the comma and keeps it behind the comma (FMT-BREAK-011, and FMT-BREAK-012, which states the placement for argument and attribute argument lists "as in a parameter list");
-- RH5107's fix leaves the comment where it was and only replaces the indentation, the comma, and the whitespace behind it with spaces up to the first parameter's column (RH5107-003).
+- RH5107's fix moves only the comma and leaves the comment where it was (RH5107-003).
 
-Each result is stable under the other component: formatting the fix's result changes nothing, so SHARED-FIX-007 holds for the fix today. The change makes the fix and the formatter produce the same result from the same input, by changing one of them.
+The change withholds RH5107's fix for that input: when a comment stands behind the reported comma on the comma's line, the diagnostic is still reported and no fix is offered (RH5107-004). A comment that starts the line behind the comma's line keeps the fix, whose result the formatter already writes for the same input. The formatter does not change.
 
 ## Why
 
-A user who applies RH5107's fix gets a different file than a user who runs the formatter on the same code, and neither result is ever converted into the other, so a code base formatted both ways keeps both placements. A comment behind a comma is placed behind the comma in every other list the formatter lays out — argument lists, attribute argument lists, and constraint clauses (FMT-BREAK-012, FMT-BREAK-037).
+For a comment that ends the comma's line (`, // c`, `, /* c */`), the fix's result moves the comment away from the code it stands with: the comment stands behind the comma, and the fix moves the comma and leaves the comment on a line of its own. That violates SHARED-FIX-003. Formatting that result does not give the formatter's output either: the formatter inserts a blank line above the comment that is now on its own line (FMT-BLANK-011), so fix-then-format and format-only end in two different files. For a block comment between the comma and the next parameter (`, /* c */ int b`), SHARED-FIX-003 decides nothing, but the fix and the formatter still keep two placements of one comment.
+
+The class is rare: every such input holds a comment inside a parameter list, which RH5035 reports (RH5035-001), and `AGENTS.md` (*Code-fix coverage*) treats an input that violates another Reihitsu rule as rare by definition. For a rare class, withholding the fix is preferred over writing the formatter's comment placement a second time into the fix's own text edit (*Special cases do not grow the source*). A diagnostic without a fix is a supported end state.
 
 ## Visible output changes
 
-Input (each case is one parameter list; the fix is offered on every one of them today, because no comment stands between the parameter in front of the comma and the comma):
+Input:
 
 ```csharp
 class C
@@ -39,28 +41,6 @@ class C
 
     void R(int a
            , /* c */
-           int b)
-    {
-    }
-}
-```
-
-Before — formatter (`main`):
-
-```csharp
-class C
-{
-    void P(int a, /* c */
-           int b)
-    {
-    }
-
-    void Q(int a, // c
-           int b)
-    {
-    }
-
-    void R(int a, /* c */
            int b)
     {
     }
@@ -91,17 +71,71 @@ class C
 }
 ```
 
-After, option A — the fix changes to the formatter's output above; the formatter is unchanged.
+After: the three commas are still reported, and no code fix is offered.
 
-After, option B — the formatter changes to the fix's output above, for parameter lists; RH5107's fix is unchanged. Argument and attribute argument lists keep FMT-BREAK-012's placement unless the answer extends B to them.
+The formatter's output does not change; on `main` and after the change it is:
+
+```csharp
+class C
+{
+    void P(int a, /* c */
+           int b)
+    {
+    }
+
+    void Q(int a, // c
+           int b)
+    {
+    }
+
+    void R(int a, /* c */
+           int b)
+    {
+    }
+}
+```
+
+Unchanged — a comment that starts the line behind the comma's line keeps the fix, and its result equals the formatter's output:
+
+```csharp
+class C
+{
+    void T(int a
+           ,
+           /* c */ int b)
+    {
+    }
+}
+```
+
+```csharp
+class C
+{
+    void T(int a,
+           /* c */ int b)
+    {
+    }
+}
+```
+
+The rule page does not change: `documentation/rules/general-notes.md` already covers a diagnostic without a code fix.
 
 ## Decisions
 
-### Which component changes
+### Withhold the fix instead of changing either component
 
-Pending: the maintainer's answer to the output question of this run. Recommended: A.
+The fix is withheld for the class; neither the fix's placement nor the formatter's changes. Withholding a fix for a rare class is the rule's own decision and puts no output in question (`squad/README.md`, *What reaches the maintainer*), so the output question drafted for this issue — fix follows the formatter, or formatter follows the fix — was not asked.
+
+### The class is "a comment behind the comma on its line"
+
+The fix is withheld when any comment stands behind the reported comma on the comma's line, also a block comment followed by the next parameter, for which SHARED-FIX-003 decides nothing. One class keeps the guard to one check of the comma's trailing trivia, and no fix result then differs from the formatter's placement. A comment that starts a later line keeps the fix, because its result is the formatter's output.
+
+### The issue's goal
+
+thoenissen/Reihitsu#1737 asked that the fix's result and the formatter's output agree on the input. That goal is met by withholding: no fix result exists that disagrees with the formatter. The issue's "Required output" B (the formatter follows the fix) is not available, because it would make the formatter keep a placement that violates SHARED-FIX-003 when a fix writes it.
 
 ## Alternatives considered
 
-- **Withhold RH5107's fix where a comment stands behind the comma** — rejected: the formatter already moves such a comment safely, the shape is reachable through the fix today, and a withheld fix would still leave the formatter's and a hand edit's placements to differ; it is no answer to which placement is the rule's.
-- **Leave both as they are** — rejected: two stable results for one input is the disagreement the change removes.
+- **The fix follows the formatter: it moves the comment with the comma** — rejected: the fix is a hand-written text edit, not a formatter call, so it would need a second copy of FMT-BREAK-012's comment placement, distinguishing a `//` comment, a block comment ending the line, and a block comment followed by the next parameter, for an input class that is rare by definition. Making the fix delegate its layout to the formatter is a separate, structural change and a follow-up candidate.
+- **The formatter follows the fix** — rejected: the fix's result for a comment that ends the comma's line violates SHARED-FIX-003, and FMT-BREAK-012 derives the argument-list placement from the parameter list's, so parameter lists alone would become the exception.
+- **Leave both as they are** — rejected: the fix keeps a result that violates SHARED-FIX-003, and formatting that result gives a third output.

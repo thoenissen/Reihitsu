@@ -5,7 +5,7 @@
 | ID prefix | FMT-BREAK |
 | Status | Active |
 | Code owners | `LineBreakPhase`, `LineBreakBlockRewriter`, `LineBreakInitializerRewriter`, `LineBreakContainedBlockRewriter`, `LineBreakAssignmentRewriter`, `DeclarationSemicolonLineBreakRewriter`, `ListElementInteriorJoinRewriter`, `ListElementInteriorUtilities`, `LineBreakListRewriter`, `PropertyLayoutLineBreakRewriter`, `GenericConstraintLineBreakRewriter`, `DeclarationBraceLineBreakRewriter`, `MemberLineStartRewriter`, `AttributeTargetFormattingRewriter`, `AttributeTargetFormattingShared`, `BinaryOperatorLineBreakRewriter`, `ChainLineBreakRewriter`, `TernaryLineBreakRewriter`, `SwitchCaseWhenLineBreakRewriter`, `BracePlacer`, `TokenGapNormalizer`, `AccessorListLayout`, `LineBreakDetection`, `LineBreakTriviaUtilities` |
-| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-010, FMT-PIPE-014, FMT-PIPE-021, FMT-PIPE-025, FMT-PIPE-026, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, FMT-UNSUP-008, SHARED-ATTR-014, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-DIAG-010, SHARED-STMT-001 |
+| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-032, FMT-INDENT-033, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-010, FMT-PIPE-014, FMT-PIPE-021, FMT-PIPE-025, FMT-PIPE-026, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, FMT-UNSUP-008, SHARED-ATTR-014, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-DIAG-010, SHARED-STMT-001 |
 
 This spec covers `LineBreakPhase`, the phase of the pipeline that decides where lines break (its position in the phase order is FMT-PIPE-001): brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, the lines that switch sections, their labels, and their first statements start, and `case … when` guards. The phase adds and removes line breaks and keeps the blank lines it finds (FMT-BREAK-030), and it changes tokens only where it shapes an accessor's attribute lists (FMT-BREAK-032). The columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
 
@@ -1309,9 +1309,9 @@ class C
 
 ### FMT-BREAK-021 — Object initializers are always laid out over several lines
 
-The initializer of an object creation (`new Foo { … }`, `new() { … }`), a collection initializer, an anonymous object creation, and the initializer of a `with` expression MUST put the opening brace, every element, and the closing brace on their own lines, also when the author wrote it on one line. A collection initializer assigned to a member inside an object initializer (`Items = { … }`) keeps its opening brace on the `=` line. Array initializers (`new int[] { 1, 2 }`, `int[] f = { 1, 2 }`) keep the author's layout.
+The initializer of an object creation (`new Foo { … }`, `new() { … }`), a collection initializer, an anonymous object creation, and the initializer of a `with` expression MUST put the opening brace, every element, and the closing brace on their own lines, also when the author wrote it on one line. A collection initializer assigned to a member inside an object initializer (`Items = { … }`) keeps its opening brace on the `=` line. Array initializers (`new int[] { 1, 2 }`, `int[] f = { 1, 2 }`) keep the author's layout, apart from a comma that starts a line, which FMT-BREAK-038 moves. The commas of every initializer this requirement names are FMT-BREAK-038's.
 
-Why: An initializer sets several independent values; one per line makes each visible and gives each its own diff line. A `with` initializer sets values the same way. Array initializers are often long lists of literal data, for which one element per line would explode the file. RH5301 and RH5303 report the same shapes, apart from the `with` initializer, which no rule reports.
+Why: An initializer sets several independent values; one per line makes each visible and gives each its own diff line. A `with` initializer sets values the same way. Array initializers are often long lists of literal data, for which one element per line would explode the file. Moving a comma that starts a line keeps the number of lines: only the side of the comma the line break stands on changes, so the array keeps its author's line count (FMT-BREAK-038). RH5301 and RH5303 report the same shapes, apart from the `with` initializer, which no rule reports.
 
 Example:
 
@@ -1387,7 +1387,7 @@ class C
 
 ### FMT-BREAK-022 — Wrapped collection expressions and patterns get one element per line
 
-A collection expression, a list pattern, a property pattern clause, a parenthesized pattern, and a complex element initializer (`{ 1, 2 }` inside a dictionary initializer) written on one line MUST stay on one line. When one of them spans several lines, every element MUST start its own line, the first element MUST start the line after the opening delimiter, and the closing delimiter MUST start its own line. The opening brace of a wrapped property pattern MUST start its own line, except in a pattern introduced directly by a `case` label, where it stays on the label's line.
+A collection expression, a list pattern, a property pattern clause, a parenthesized pattern, and a complex element initializer (`{ 1, 2 }` inside a dictionary initializer) written on one line MUST stay on one line. When one of them spans several lines, every element MUST start its own line, the first element MUST start the line after the opening delimiter, and the closing delimiter MUST start its own line. The opening brace of a wrapped property pattern MUST start its own line, except in a pattern introduced directly by a `case` label, where it stays on the label's line. A comma that starts a line in one of them is FMT-BREAK-038's.
 
 Why: These constructs are expressions inside an expression; on one line they read as a value. Once wrapped, the same one-element-per-line rule as for initializers applies. The `case` exception keeps the pattern from being mistaken for the section body. RH5305 and RH5306 report the same shapes.
 
@@ -2753,6 +2753,183 @@ class C
                   new(),
                   IDisposable
     {
+    }
+}
+```
+
+### FMT-BREAK-038 — A comma that starts a line in an initializer, a collection expression, or a pattern ends the element's line
+
+This requirement covers the commas of an object, collection, anonymous-object, or `with` initializer and of a collection initializer assigned to a member (FMT-BREAK-021), of an array initializer (`new int[] { … }`, `new[] { … }`, `int[] a = { … }`, `stackalloc int[] { … }`), and of a collection expression, a list pattern, a property pattern clause, and a complex element initializer (FMT-BREAK-022) — the commas between two elements and a trailing comma behind the last element. A comma **starts a line** when a line break separates it from the token in front of it, counted as SHARED-BLANK-008 counts line breaks; a line break inside the text of a multi-line comment does not count.
+
+A comma that starts a line MUST move to the end of the line of the token in front of it, unless it is held (below), and the line break that stood in front of it then stands behind it: the element behind the comma starts its own line, also in an array initializer, whose other line breaks stay as written (FMT-BREAK-021). A comma alone on its line leaves no line behind. A comment behind such a comma, on the comma's line, MUST move with the comma and stay behind it, as in an argument list (FMT-BREAK-012): a block comment followed by an element puts the line break behind the comment, and a `//` comment keeps ending the line. A comma that does not start a line is not changed by this requirement.
+
+A comma MUST NOT be moved across a comment, a preprocessor directive, or disabled text (FMT-BREAK-001). A comma that one of them keeps off the line of the element in front of it — it stands between the element's last token and the comma, and a line break separates the two — is **held**: it MUST stay at the start of its line. In a construct of FMT-BREAK-021 or FMT-BREAK-022, whose every element starts its own line, the element behind a held comma starts the next line, so the held comma stands alone on its line; a comment behind it on its line stays behind it. In an array initializer, which keeps its layout, an element written behind a held comma on its line stays there. The column of a held comma's line is FMT-INDENT-033's.
+
+Why: A comma at the end of a line shows that the list continues, as it does in a parameter, argument, or attribute argument list (FMT-BREAK-011, FMT-BREAK-012), and an element behind it then starts its line like every other element of the construct. A comma left alone between two element lines belongs to neither. In an array initializer the move keeps the number of lines and only changes which side of the comma the line break stands on, so the array keeps its author's line count (FMT-BREAK-021). A comment behind a comma goes where the comma goes, as in every other list. Moving a comma across a comment or a directive would change what the comment is about or move code across the directive (FMT-BREAK-001), so a held comma stays; behind it, the element of an object or collection initializer starts its own line, because an element behind a comma on one line would start off the elements' column, which RH5301 and RH5303 report and whose fixes would write the same line back. Comma-first code is a style people write and no rule reports it in most of these constructs, so it gets a decided layout rather than a refusal.
+
+Example — a comma that starts a line ends the line of the element in front of it, a comment behind it goes with it, and a comma alone on its line leaves no line behind:
+
+```csharp
+class C
+{
+    void M(object o, P p)
+    {
+        var a = new D(1, 2) { X = 3
+            , };
+        var b = new D { X = 3
+            , /* c */ Y = 4
+            , // d
+            Z = 5 };
+        int[] d = [1
+            , 2];
+        var h = new { A = 1
+            , B = 2 };
+        var q = p with { X = 1
+            , Y = 2 };
+        var r = o is P { X: 1
+            , Y: 2 };
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(object o, P p)
+    {
+        var a = new D(1, 2)
+                {
+                    X = 3,
+                };
+        var b = new D
+                {
+                    X = 3, /* c */
+                    Y = 4, // d
+                    Z = 5
+                };
+        int[] d = [
+                      1,
+                      2
+                  ];
+        var h = new
+                {
+                    A = 1,
+                    B = 2
+                };
+        var q = p with
+                  {
+                      X = 1,
+                      Y = 2
+                  };
+        var r = o is P
+                  {
+                      X: 1,
+                      Y: 2
+                  };
+    }
+}
+```
+
+Example — in an array initializer the comma moves and the element behind it starts the next line; the array's other line breaks stay as written:
+
+```csharp
+class C
+{
+    void M()
+    {
+        var e = new int[]
+        {
+            1
+            , 2
+        };
+        var f = new int[]
+        {
+            1, 2
+            , 3, 4
+        };
+        int[] y = { 1
+            , 2 };
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M()
+    {
+        var e = new int[]
+                {
+                    1,
+                    2
+                };
+        var f = new int[]
+                {
+                    1, 2,
+                    3, 4
+                };
+        int[] y = { 1,
+                      2 };
+    }
+}
+```
+
+Example — a comma that a comment keeps off the element's line stays at the start of its line: alone on it where every element starts its own line, and with the element behind it in an array initializer:
+
+```csharp
+class C
+{
+    void M(object o)
+    {
+        var c = new D
+        {
+            X = 3 // k
+            , Y = 4
+        };
+        int[] d = [1 // k
+            , 2];
+        var r = o is P { X: 1 // k
+            , Y: 2 };
+        var g = new int[]
+        {
+            1 // k
+            , 2
+        };
+        int[] x = { 1 // k
+            , 2 };
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(object o)
+    {
+        var c = new D
+                {
+                    X = 3 // k
+                    ,
+                    Y = 4
+                };
+        int[] d = [
+                      1 // k
+                      ,
+                      2
+                  ];
+        var r = o is P
+                  {
+                      X: 1 // k
+                      ,
+                      Y: 2
+                  };
+        var g = new int[]
+                {
+                    1 // k
+                    , 2
+                };
+        int[] x = { 1 // k
+                      , 2 };
     }
 }
 ```
