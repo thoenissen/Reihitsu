@@ -50,6 +50,9 @@
 | D14 | Batch 2 | RH5303–RH5308 narrowing (M7) joins the run | Accept as scope growth | Maintainer chose B; cheap node-choice change like M4 | Decided by M7 | pending |
 | D15 | Skeptic 04 | SHARED-FIX-006 *Leading trivia* vs SHARED-FIX-007 *Shared line* wording | Add explicit exception for the shared-line break | Two requirements must not disagree on their face | Spec wording | pending |
 | D16 | Skeptic 04 | Change-doc completeness (RH2001, RH3004/RH5205/RH5301/RH5302 targets, blank lines behind `{`/two blank lines stay), D6 rejection rewrite, pipeline.md code owners row, nested-construct Fix All | Accept all; Fix All tests for nested constructs required where the run changes the fix | Demanded by unchanged requirements / M1 | Internal or already decided | pending |
+| D17 | Test impl 06 | RH5308 nested stair: inner `?` column 28 (document formatting, RH5308-002) vs 30 (literal reading of RH5308-004) | Keep 28 | Unchanged RH5308-002 demands it; RH5308-004 is read consistently with it | Decided by an unchanged requirement | df2ea58 |
+| D18 | Test impl 06 | Comment between two members sharing a line (#1687) | Not pinned; rare class (two members on one line plus a comment) — fix may withhold | AGENTS.md *Code-fix coverage* | Rare class refusal | n/a |
+| D19 | Test impl 06 | Coverage via shared code for RH3004, RH5205, RH5301, RH5302, RH5413–RH5416, RH3206; dropped nested Fix All cases (RH5306, RH5304, direct RH5308 branch) | Accept | Same call site / not reachable per spec | Internal | df2ea58 |
 
 ## Follow-up candidates
 
@@ -70,7 +73,8 @@
 - Next: spec author (fresh) amendment for M6 (revert *Inside* bullet and its references; interior as main), M7, D15, D16 → 05-spec-author.md; then accept change doc; then test implementer.
 - Done: spec author 05 (2d1b537). Asked batch 3: Q8 change 7 (fix now offered where a refused shape stands elsewhere in the statement; rec A offer), Q9 RH5308 conditional in [assembly:]/[module:] attribute (rec A offer, retires RH5308-006). ANSWERED 1A, 2A (M8, M9).
 - Done: spec author 05 addendum (3948f75); change doc Accepted. Note: three RH5308 tests tagged RH5308-006 must be rewritten (test implementer).
-- Next: test implementer (06).
+- Done: test implementer 06 (df2ea58): 74 formatter + 104 analyzer rows failing for the right reason; architecture green.
+- Next: implementer (07).
 - Pending internal after answers: SHARED-FIX-006 Leading-trivia exception for SHARED-FIX-007 shared line (accept skeptic rec); rewrite D6 bullet in change doc Alternatives; change-doc completeness items (04-skeptic Internal choices 3); pipeline.md code owners row; Fix All tests for nested constructs.
 - (old) Next: skeptic (fresh) on change doc + spec diff → 04-skeptic.md; then batch 2 output questions (change-doc visible changes not covered by M1–M5; spec author's open: argument spanning lines in RH5101/5102; tab-indented target) → then test implementer.
 - (old) After answers: spec author (fresh) for D6 reverts, D7 consolidation, D5 FMT-PIPE-010/024 amendment, answers; then test implementer.
