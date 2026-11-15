@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.CodeFixes.Base;
+using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Core;
 using Reihitsu.Formatter;
@@ -26,7 +28,8 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : Reihitsu
     #region Methods
 
     /// <summary>
-    /// Applies the code fix
+    /// Applies the code fix. A property that shares its line with another member is first separated from it, so that both
+    /// stand on lines of their own (SHARED-FIX-007); then the property is formatted through the formatter
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>
@@ -47,6 +50,11 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : Reihitsu
         if (formattingNode == null)
         {
             return document;
+        }
+
+        if (formattingNode is PropertyDeclarationSyntax property)
+        {
+            return await BlankLineCodeFixUtilities.FormatMemberOnLinesOfItsOwnAsync(document, property, cancellationToken).ConfigureAwait(false);
         }
 
         var contextNode = GetFormattingContextNode(formattingNode);
@@ -77,17 +85,20 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : Reihitsu
     }
 
     /// <summary>
-    /// Gets the narrowest formatting node that can still fix the assignment
+    /// Gets the narrowest formatting node that can still fix the assignment: the innermost assignment, variable declarator,
+    /// property, parameter, or enum member around the diagnostic node, so that no construct that contains the reported one,
+    /// such as an assignment whose value holds it, is formatted (RH5111-004, SHARED-FIX-006)
     /// </summary>
     /// <param name="diagnosticNode">Diagnostic node</param>
     /// <returns>Formatting node</returns>
     private static SyntaxNode GetFormattingNode(SyntaxNode diagnosticNode)
     {
-        return diagnosticNode.FirstAncestorOrSelf<AssignmentExpressionSyntax>()
-                   ?? (SyntaxNode)diagnosticNode.FirstAncestorOrSelf<VariableDeclaratorSyntax>()
-                   ?? diagnosticNode.FirstAncestorOrSelf<PropertyDeclarationSyntax>()
-                   ?? (SyntaxNode)diagnosticNode.FirstAncestorOrSelf<ParameterSyntax>()
-                   ?? diagnosticNode.FirstAncestorOrSelf<EnumMemberDeclarationSyntax>();
+        return diagnosticNode.AncestorsAndSelf()
+                             .FirstOrDefault(static node => node is AssignmentExpressionSyntax
+                                                                 or VariableDeclaratorSyntax
+                                                                 or PropertyDeclarationSyntax
+                                                                 or ParameterSyntax
+                                                                 or EnumMemberDeclarationSyntax);
     }
 
     /// <summary>

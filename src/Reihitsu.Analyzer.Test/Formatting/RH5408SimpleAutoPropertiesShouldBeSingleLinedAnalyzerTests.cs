@@ -1222,11 +1222,13 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     }
 
     /// <summary>
-    /// Verifying that the documentation comment of a property carrying a trailing initializer comment survives the
-    /// collapse
+    /// Verifying that the one-line documentation comment of a property carrying a trailing initializer comment stays as
+    /// written when the property is collapsed, because the leading trivia of the formatted property is not part of what the
+    /// fix formats
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-FIX-006")]
     public async Task VerifyDocumentedPropertyWithTrailingInitializerCommentIsDetectedAndFixed()
     {
         const string testData = """
@@ -1243,9 +1245,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
         const string fixedData = """
                                  internal class RH5408
                                  {
-                                     /// <summary>
-                                     /// The value.
-                                     /// </summary>
+                                     /// <summary>The value.</summary>
                                      public int Value { get; set; } = 1 /* note */;
                                  }
                                  """;
@@ -1256,12 +1256,13 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
     }
 
     /// <summary>
-    /// Verifying that the documentation comment of a property without a trailing initializer comment is expanded the
-    /// same way. This control pins the expansion as pre-existing behavior of the documentation phase rather than a
-    /// side effect of the guard narrowing that scopes the semicolon-gap exemption
+    /// Verifying the spec example: the one-line documentation comment of a property without a trailing initializer comment
+    /// stays on one line when the property is collapsed, where formatting the document would spread it over three lines
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5408-005")]
+    [Requirement("SHARED-FIX-006")]
     public async Task VerifyDocumentedPropertyWithoutTrailingInitializerCommentIsDetectedAndFixed()
     {
         const string testData = """
@@ -1278,9 +1279,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
         const string fixedData = """
                                  internal class RH5408
                                  {
-                                     /// <summary>
-                                     /// The value.
-                                     /// </summary>
+                                     /// <summary>The value.</summary>
                                      public int Value { get; set; } = 1;
                                  }
                                  """;
@@ -2090,6 +2089,39 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : BatchC
                               """;
 
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
+    }
+
+    /// <summary>
+    /// Verifies that a property the fix puts on one line, which shares its line with a member in front of it, starts on
+    /// the next line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixGivesAPropertyThatSharesItsLineWithAMemberInFrontALineOfItsOwn(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int _b; {|RH5408:public int A
+                                    {
+                                        get;
+                                        set;
+                                    }|}
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int _b;
+                                     public int A { get; set; }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
     #endregion // Tests

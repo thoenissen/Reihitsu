@@ -416,6 +416,85 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzerTests 
         await Verify(ConvertEndOfLine(testData, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies that the fix lays out the collection expression from the column its opening bracket keeps, while the
+    /// misspaced declaration in front of it stays as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5305-004")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixLeavesTheCodeInFrontOfTheCollectionExpressionAsWritten(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int[]  a={|RH5305:[1, // one
+                                                   2]|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         int[]  a=[
+                                                      1, // one
+                                                      2
+                                                  ];
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a reported collection expression that is an element of a reported collection expression is laid
+    /// out with the outer one, and that Fix All corrects both in one application
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5305-004")]
+    [Requirement("SHARED-FIX-002")]
+    public async Task VerifyFixAllCorrectsAReportedCollectionExpressionInsideAReportedCollectionExpressionInOneApplication()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int[][] a = {|RH5305:[{|RH5305:[1,
+                                            2]|},
+                                            [3]]|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         int[][] a = [
+                                                         [
+                                                             1,
+                                                             2
+                                                         ],
+                                                         [3]
+                                                     ];
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, static config => config.NumberOfFixAllIterations = 1);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

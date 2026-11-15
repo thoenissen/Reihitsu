@@ -643,16 +643,17 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
 
     /// <summary>
     /// Verifies that the fix of a method indented with tabs keeps the tabs in front of the signature, which it does not
-    /// replace, and lays out the new block from the column the tabs stand for, four columns each
+    /// replace, and lays out the new block from the column of the method's first token, each tab counted as one column
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-FIX-006")]
+    [Requirement("SHARED-FIX-007")]
     [Requirement("SHARED-BODY-003")]
     public async Task VerifyFixKeepsTheTabsInFrontOfTheSignatureOfAMethodIndentedWithTabs()
     {
         const string testData = "namespace N\n{\n\tclass C\n\t{\n\t\tint Get() {|#0:=> 1|};\n\t}\n}";
-        const string fixedData = "namespace N\n{\n\tclass C\n\t{\n\t\tint Get()\n        {\n            return 1;\n        }\n\t}\n}";
+        const string fixedData = "namespace N\n{\n\tclass C\n\t{\n\t\tint Get()\n  {\n      return 1;\n  }\n\t}\n}";
 
         await Verify(testData,
                      fixedData,
@@ -660,8 +661,9 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     }
 
     /// <summary>
-    /// Verifies that the fix of a method indented with tabs keeps the tabs in front of the signature and moves the content
-    /// line and the closing marker of a raw string under its opening quotes
+    /// Verifies that the fix of a method indented with tabs keeps the tabs in front of the signature, lays out the new block
+    /// from the column of the method's first token, each tab counted as one column, and moves the content line and the closing
+    /// marker of a raw string under its opening quotes
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -670,7 +672,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     public async Task VerifyFixMovesRawStringOfMethodIndentedWithTabsUnderTheOpeningQuotes()
     {
         const string testData = "namespace N\n{\n\tclass C\n\t{\n\t\tstring Get() {|#0:=> \"\"\"\n                a\n                \"\"\"|};\n\t}\n}";
-        const string fixedData = "namespace N\n{\n\tclass C\n\t{\n\t\tstring Get()\n        {\n            return \"\"\"\n                   a\n                   \"\"\";\n        }\n\t}\n}";
+        const string fixedData = "namespace N\n{\n\tclass C\n\t{\n\t\tstring Get()\n  {\n      return \"\"\"\n             a\n             \"\"\";\n  }\n\t}\n}";
 
         await Verify(testData,
                      fixedData,

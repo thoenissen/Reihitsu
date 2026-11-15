@@ -5,7 +5,7 @@
 | ID prefix | SHARED-CHAIN |
 | Status | Active |
 | Code owners | `FluentChain`, `FluentChainLink`, `FluentChainAttachedPart`, `FluentChainUtilities`, `FluentChainAnalyzerBase`, `FluentChainCodeFixHelper` |
-| Uses | FMT-PIPE-002, SHARED-BLANK-008, SHARED-COMMENT-012 |
+| Uses | FMT-PIPE-002, FMT-PIPE-017, SHARED-BLANK-008, SHARED-COMMENT-012, SHARED-FIX-006, SHARED-FIX-007 |
 
 This spec covers the layout of member-access chains (`items.Where(…).Select(…)`) that the analyzer and the formatter must agree on: what a chain is, when it counts as wrapped, which links must start a line, and the column wrapped links align to. The analyzer rules RH5112, RH5201, and RH5048 report against this policy, and the code fixes of RH5112 and RH5201 lay a chain out by it; the formatter's line-break phase (FMT-BREAK) and indentation phase (FMT-INDENT) produce it.
 
@@ -287,7 +287,7 @@ class C
 
 ### SHARED-CHAIN-008 — A chain fix gives the chain its formatted layout
 
-A code fix that lays out a chain MUST give the whole chain — every link, not only the reported one — the line breaks and columns that formatting the document gives it, and MUST NOT split a link operator.
+A code fix that lays out a chain MUST give the whole chain — every link, not only the reported one — the line breaks that formatting the document gives it, and the columns the formatter gives it from the column its first token keeps (SHARED-CHAIN-009), and MUST NOT split a link operator.
 
 Why: One diagnostic of a chain is usually one of several, and fixing one link at a time could leave the chain in a layout the formatter would change again. Taking the layout the formatter gives the whole chain, instead of a layout of its own, clears every diagnostic the chain had in one application.
 
@@ -320,11 +320,11 @@ class C
 }
 ```
 
-### SHARED-CHAIN-009 — A chain fix formats more than the chain only when the chain's layout depends on it
+### SHARED-CHAIN-009 — A chain fix changes only the chain
 
-A code fix that lays out a chain MUST change only the chain when the chain alone, formatted in the unchanged code around it, gets the same text and starts in the same column as it does when the innermost statement or member declaration that contains the chain and starts a line is formatted. When it does not — for example because formatting changes the spacing of a declaration in front of the chain — the fix MUST write back that formatted statement or member declaration instead.
+A code fix that lays out a chain MUST change only the chain. The chain's first token MUST keep its line and its column in the document, and the chain's other lines MUST be laid out as the formatter lays them out from that column (FMT-PIPE-017). The code in front of the chain on its line, the rest of the statement or member declaration that contains the chain, and the code behind the chain MUST stay as written (SHARED-FIX-006), also where formatting the document would change them — such as the spacing of a declaration in front of the chain, which would move the chain's first token, or the body of an `if` statement whose condition holds the chain. When formatting the result later moves the chain's first token and the lines aligned to it, that move is not a difference SHARED-FIX-007 counts.
 
-Why: The columns of a wrapped chain depend on where the chain starts, and the formatter computes them for the code in front of the chain as it will be after formatting. Writing back only the chain keeps the rest of the statement as written; the formatted statement is needed only when the chain alone would get other columns than formatting gives it.
+Why: The diagnostic is about the chain, so the code around it is the author's layout, which the formatter and the layout rules correct on their own. The columns of a wrapped chain depend on where the chain starts; laying the chain out from the column its first token has in the document keeps its links aligned to that token wherever the code in front of it stands, so the chain alone is laid out as the formatter lays it out there, with no second layout of the code around it.
 
 Example — the RH5201 fix leaves the code behind the chain as written:
 
@@ -354,7 +354,7 @@ class C
 }
 ```
 
-The RH5112 fix formats the declaration in front of the chain as well:
+Example — the RH5112 fix leaves the declaration in front of the chain as written, and aligns the later link under the first one from the column the chain's first token keeps:
 
 ```csharp
 class C
@@ -375,10 +375,43 @@ class C
 {
     object M(dynamic a)
     {
-        var r = a.B()
-                 .C();
+        var r=a.B()
+               .C();
 
         return r;
     }
 }
 ```
+
+Formatting the document would also write `var r = a`, and the chain with it two columns further right.
+
+Example — the RH5112 fix of a chain in the condition of an `if` statement leaves the rest of the condition and the body as written:
+
+```csharp
+class C
+{
+    void M(int x, dynamic a)
+    {
+        if (x==1 && a
+            {|RH5112:.|}B())
+        {
+            int  y = 1;
+        }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int x, dynamic a)
+    {
+        if (x==1 && a.B())
+        {
+            int  y = 1;
+        }
+    }
+}
+```
+
+Formatting the document would also write `x == 1` and `int y = 1;`.

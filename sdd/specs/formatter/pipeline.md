@@ -4,8 +4,8 @@
 |---|---|
 | ID prefix | FMT-PIPE |
 | Status | Active |
-| Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `PreparationPhase`, `FormattingContext`, `PrecedingTokenFacts`, `RootListPosition`, `RootConstruct`, `RootConstructExtensions`, `TriviaFact`, `FluentChainBoundary`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities`, `BlockWrapTriviaUtilities` |
-| Uses | CLI-021, PLAY-009, RH3208-003, RH7101-005, RH7101-006, RH7201-004, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-COMMENT-012, SHARED-DIAG-001, SHARED-DOC-004, SHARED-FIX-001, SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-006, SHARED-FIX-007, SHARED-FIX-008, SHARED-FIX-010, SHARED-FIX-011, SHARED-FIX-012, SHARED-USING-009, SHARED-USING-010, FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014, FMT-BLANK-018, FMT-BREAK-001, FMT-BREAK-006, FMT-BREAK-007, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-BREAK-033, FMT-BREAK-036, FMT-CLEAN-001, FMT-CLEAN-005, FMT-CLEAN-007, FMT-CLEAN-008, FMT-DOC-001, FMT-DOC-003, FMT-DOC-005, FMT-DOC-008, FMT-DOC-009, FMT-DOC-010, FMT-DOC-011, FMT-DOC-012, FMT-DOC-013, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-018, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-028, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-023, FMT-STRUCT-026, FMT-STRUCT-030, FMT-SWITCH-003, FMT-SWITCH-008, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, FMT-USING-003, FMT-USING-010 |
+| Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `PreparationPhase`, `FormattingContext`, `RootConstruct`, `RootConstructExtensions`, `TriviaFact`, `FluentChainBoundary`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities`, `BlockWrapTriviaUtilities` |
+| Uses | CLI-021, PLAY-009, RH3208-003, RH7101-005, RH7101-006, RH7201-004, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-COMMENT-012, SHARED-DIAG-001, SHARED-DOC-004, SHARED-FIX-001, SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-006, SHARED-FIX-007, SHARED-FIX-008, SHARED-FIX-010, SHARED-FIX-011, SHARED-FIX-012, SHARED-USING-009, SHARED-USING-010, FMT-BLANK-001, FMT-BLANK-011, FMT-BLANK-012, FMT-BLANK-013, FMT-BLANK-014, FMT-BLANK-018, FMT-BREAK-001, FMT-BREAK-006, FMT-BREAK-007, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-BREAK-033, FMT-BREAK-036, FMT-CLEAN-001, FMT-CLEAN-005, FMT-CLEAN-007, FMT-CLEAN-008, FMT-DOC-001, FMT-DOC-003, FMT-DOC-005, FMT-DOC-008, FMT-DOC-009, FMT-DOC-010, FMT-DOC-011, FMT-DOC-012, FMT-DOC-013, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-018, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-028, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-023, FMT-STRUCT-026, FMT-STRUCT-030, FMT-SWITCH-003, FMT-SWITCH-008, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, FMT-USING-003, FMT-USING-010 |
 
 This spec covers what holds for the formatter as a whole: the public entry points, the fixed phase order, and the invariants every phase must keep. What an individual phase decides is specified in that phase's own spec.
 
@@ -376,9 +376,9 @@ Why: The CLI, the analyzer code fixes, and the Playground share one engine. Keep
 
 ### FMT-PIPE-010 — Node-level entry points format only their target
 
-`FormatNodeInDocumentAsync` and `FormatNodeInDocumentWithContextAsync` MUST rewrite only the target node and keep the rest of the document as it is. There are two exceptions. The first is the whitespace that ended the line before a documentation comment the target moves onto its own line, which MUST be removed as document-level formatting removes it. The second is the whitespace between a target of `FormatNodeInDocumentWithContextAsync` that the split makes several fields of and another member on its line, which FMT-PIPE-029 replaces by a line break. `FormatNodeInDocumentAsync` MUST keep the target's leading trivia when the target does not start its line or is a direct child of the root; `FormatNodeInDocumentWithContextAsync` MUST keep it in every case (FMT-PIPE-018). Both MUST keep the target's trailing trivia, apart from the whitespace FMT-PIPE-029 replaces behind the target. When that trivia ends in a line break, both MUST write that line break as the line ending FMT-PIPE-007 detects for the document, whatever line break the document has there: a lone `\r`, a `\n` in a document whose detected line ending is `\r\n`, or a `\r\n` in one whose detected line ending is `\n` (SHARED-FIX-008); and both MUST remove the whitespace directly in front of that line break, as document-level formatting removes it (FMT-CLEAN-001), whether it stands behind the result's last token or behind a `/* */` comment in the trivia, and whether or not formatting changed the target's last line. Whitespace in front of a comment, and whitespace inside the text of a `//` comment, stay; so does a line break inside the text of a comment (FMT-PIPE-002). A trailing trivia that does not end in a line break, because code follows the target on its line, is kept as it stands. `FormatNodeInDocumentAsync` MUST write each comment in it once: when formatting the target leaves such a comment behind a token inside the result — the target's original last token, behind which the formatting inserted tokens, such as the closing brace of the block FMT-STRUCT-001 wraps around a body — the comment stays there and MUST NOT be written again behind the result's last token, and the code behind the target keeps its line. No caller passes `FormatNodeInDocumentWithContextAsync` a target whose last token formatting leaves inside the result, so this requirement does not decide that case for it. Both format the target, or the context that holds it, as a root of its own (FMT-PIPE-023), and what the phases know of the document around that root is the facts FMT-PIPE-024 lists.
+`FormatNodeInDocumentAsync` and `FormatNodeInDocumentWithContextAsync` MUST rewrite only the target node and keep the rest of the document as it is. The one exception is the whitespace between a target of `FormatNodeInDocumentWithContextAsync` that the split makes several fields of and another member on its line, which FMT-PIPE-029 replaces by a line break. Both MUST keep the target's leading trivia in every case, whether or not the target starts its line (FMT-PIPE-018). Both MUST keep the target's trailing trivia, apart from the whitespace FMT-PIPE-029 replaces behind the target. When that trivia ends in a line break, both MUST write that line break as the line ending FMT-PIPE-007 detects for the document, whatever line break the document has there: a lone `\r`, a `\n` in a document whose detected line ending is `\r\n`, or a `\r\n` in one whose detected line ending is `\n` (SHARED-FIX-008); and both MUST remove the whitespace directly in front of that line break, as document-level formatting removes it (FMT-CLEAN-001), whether it stands behind the result's last token or behind a `/* */` comment in the trivia, and whether or not formatting changed the target's last line. Whitespace in front of a comment, and whitespace inside the text of a `//` comment, stay; so does a line break inside the text of a comment (FMT-PIPE-002). A trailing trivia that does not end in a line break, because code follows the target on its line, is kept as it stands. `FormatNodeInDocumentAsync` MUST write each comment in it once: when formatting the target leaves such a comment behind a token inside the result — the target's original last token, behind which the formatting inserted tokens, such as the closing brace of the block FMT-STRUCT-001 wraps around a body — the comment stays there and MUST NOT be written again behind the result's last token, and the code behind the target keeps its line. No caller passes `FormatNodeInDocumentWithContextAsync` a target whose last token formatting leaves inside the result, so this requirement does not decide that case for it. Both format the target, or the context that holds it, as a root of its own (FMT-PIPE-023), and what the phases know of the document around that root is the facts FMT-PIPE-024 lists.
 
-Why: These entry points serve code fixes, which change only the code their diagnostic is about (SHARED-FIX-006). Reformatting the surrounding document would turn a one-line fix into an unrelated diff. Keeping the trailing trivia means keeping the author's text behind the target, not copying it: a comment written twice changes that text (SHARED-FIX-003), and formatting the whole document writes it once. The line break that ends the trailing trivia ends the target's last line, which the code fix changes, so it gets the line ending the phases write into every other line of the target, as SHARED-FIX-008 requires for a fix's span and its trailing trivia; written back as the document has it, a foreign line break would leave the changed code with two line endings. The whitespace in front of that line break ends the same line: the formatter removes it from every line it formats, so a fix that writes it back leaves a line of the changed code that formatting the result changes again (SHARED-FIX-007), and the end of the target's last line reads the same whether a fix or document-level formatting produced it.
+Why: These entry points serve code fixes, which change only the code their diagnostic is about (SHARED-FIX-006). Reformatting the surrounding document would turn a one-line fix into an unrelated diff. The target's leading trivia — the blank lines, comments, and documentation comments above it — is not part of what a fix formats (SHARED-FIX-006), and the code fixes are these entry points' only callers, so the entry points keep it rather than leave each fix to restore it. Keeping the trailing trivia means keeping the author's text behind the target, not copying it: a comment written twice changes that text (SHARED-FIX-003), and formatting the whole document writes it once. The line break that ends the trailing trivia ends the target's last line, which the code fix changes, so it gets the line ending the phases write into every other line of the target, as SHARED-FIX-008 requires for a fix's span and its trailing trivia; written back as the document has it, a foreign line break would leave the changed code with two line endings. The whitespace in front of that line break ends the same line: the formatter removes it from every line it formats, so a fix that writes it back leaves a line of the changed code that formatting the result changes again (SHARED-FIX-007), and the end of the target's last line reads the same whether a fix or document-level formatting produced it.
 
 Example — `FormatNodeInDocumentAsync` with the property `P` as target:
 
@@ -497,7 +497,7 @@ Why: A code fix that reformats the member it changed must not also change the me
 
 `FormatNode` MUST format the node it is given without checking for syntax errors or the generated-code marker. It MUST lay out the node at the depth its `indentLevel` argument gives when that is zero or greater, and otherwise at the depth the indentation phase gives the node's first token at its position in its tree: one level per enclosing scope (FMT-INDENT-002, FMT-INDENT-003) and one per unbraced embedded statement that the node is or lies in (FMT-INDENT-004), so an `else if` adds none. An object or collection initializer or an anonymous object that the node lies in MUST NOT add a level. A node without a parent has depth 0.
 
-`FormatNode` MUST NOT read the code in front of the node or behind it: it supplies no preceding token and no list position (FMT-PIPE-024), so a node that is part of a tree gets the result that the same node without a parent gets at the same depth.
+`FormatNode` MUST NOT read the code in front of the node or behind it, so a node that is part of a tree gets the result that the same node without a parent gets at the same depth.
 
 Why: `FormatNode` receives freshly generated or detached subtrees that have no file header and whose tree diagnostics say nothing about the file they will be inserted into. The caller is responsible for passing a node that is safe to format, and it inserts the result where it decides, so the code around the node in the tree it came from says nothing about the result's surroundings. The depth is the indentation phase's own, so a node that the indentation phase places by its depth lands in the column document-level formatting gives it; a second depth rule would disagree with it. A node that the indentation phase aligns to an anchor outside the node instead — a member of an initializer (FMT-INDENT-022 to FMT-INDENT-024), a statement in a lambda block passed as an argument, an arm of a switch expression — lands where its depth puts it, not where the anchor would: no depth expresses the anchor's column, and `FormatNode` does not read the code around the node.
 
@@ -685,12 +685,9 @@ Status: Retired — the tab rule is now an invariant of the preparation phase; F
 
 `FormatNodeInDocumentAsync` and `FormatNodeInDocumentWithContextAsync` MUST NOT change the column of a line after the last phase: every line they write back MUST end in the column the indentation phase gives it (FMT-PIPE-015), apart from the leading trivia they keep (FMT-PIPE-010, FMT-PIPE-018). The indentation phase MUST lay out the node they format — the target, or the context node — with the columns it gives that node at its depth, shifted by the node's offset: the column of the node's first token in the document, less the column the phase gives that token at the node's depth. The first token therefore stays in its column, a line placed by the depth keeps its place relative to the first token, and a line aligned to an anchor follows the anchor where the phase puts it. This holds for every line written back, also for a line that starts inside a comment that began on an earlier line, for the lines aligned to an anchor on such a line (FMT-INDENT-030), and for the content, hole, and closing lines of a multi-line raw string literal (FMT-RAW-001, FMT-RAW-007). When the first token stands behind the last line of a multi-line comment, the phase does not place its line (FMT-INDENT-007), the token keeps its column, and the offset is zero.
 
-The column of the first token in the document is the number of characters in front of it on its line, each one column, with two exceptions:
+The column of the first token in the document is the number of characters in front of it on its line, each one column, a tab included: both entry points keep the target's leading trivia in every case (FMT-PIPE-018), so every character in front of the node's first token is kept as it stands. A byte order mark at the start of the text counts as zero columns, as in the layout the phases compute; the raw-string move still counts it as FMT-RAW-005 states.
 
-- A tab in whitespace that belongs to the node and that the entry point does not keep — the leading whitespace of a target of `FormatNodeInDocumentAsync` that starts its line and whose leading trivia FMT-PIPE-010 does not keep — counts with the width the preparation phase gives it (FMT-PIPE-019). `FormatNodeInDocumentWithContextAsync` keeps its target's leading trivia in every case (FMT-PIPE-018), so for it every character in front of the context's first token counts as one column.
-- A byte order mark at the start of the text counts as zero columns, as in the layout the phases compute; the raw-string move still counts it as FMT-RAW-005 states.
-
-So a tab in the whitespace in front of a node that does not start its line, which belongs to the code in front of the node and is kept, counts as one column, and so does a tab inside a comment or a literal, which is kept (FMT-TAB-003). The leading trivia that FMT-PIPE-010 and FMT-PIPE-018 keep is written back as it stands and is outside this requirement, and so are the lines of the context node outside the target, which `FormatNodeInDocumentWithContextAsync` does not write back.
+So a tab in the whitespace in front of the node, whether the node starts its line or not, counts as one column, and so does a tab inside a comment or a literal, which is kept (FMT-TAB-003). The leading trivia that FMT-PIPE-018 keeps is written back as it stands and is outside this requirement, and so are the lines of the context node outside the target, which `FormatNodeInDocumentWithContextAsync` does not write back.
 
 The target of `FormatNodeInDocumentWithContextAsync` MUST keep its first token on the line and in the column it has in the document, also where the phases' layout of the context would put that token on another line or in another column, and every other line of the target MUST end in the column the indentation phase gives it when it lays the target out as if that token stood in that column: a line aligned to an anchor follows the anchor where it ends up (FMT-INDENT-030), and a line the indentation phase places by the depth stays where the context's depth places it (FMT-INDENT-002). The entry point writes back only the target and keeps everything in front of it as it stands (FMT-PIPE-010, FMT-PIPE-018), so the column of the target's first token in the document is the number of characters in front of it on its line, each one column, a tab included; a byte order mark at the start of the text counts as zero columns. The indentation phase takes that column, and the target's first token in the root, from the target-position fact (FMT-PIPE-024). Where the phases' layout leaves the target's first token in the root, and what they write in front of it on its line there, is not written back and decides no column of the result: the result's first line is the document's text in front of the target followed by the target's first line, and every other line of the target is laid out from the column the fact gives.
 
@@ -1050,15 +1047,15 @@ Example — with the `EqualsValueClauseSyntax` `= """ …` of `        var s = "
 
 Example — in a class whose members are indented with two spaces, the RH3202 fix converts `  int Get() => 1;` and formats the method: the first token keeps column 2, and the lines placed by the depth keep their place relative to it, so the result is `  int Get()`, `  {`, `      return 1;`. The same fix on `  string S() => """` / `      a` / `      """;` gives `      return """` with the opening quotes in column 13, and the content line and the closing marker in column 13 under them.
 
-Example — not shown as input blocks because the inputs contain tabs: the statement `Call(1,` / `2);` is indented with two tabs, as is the method around it, and is the target. The tabs belong to the target's leading whitespace, so its first token counts as column 8, and the output is `        Call(1,` / `             2);`, with eight and thirteen spaces, while the lines of the method outside the target keep their tabs. In `→→var d = new List<int>` with its braces out of place and the `EqualsValueClauseSyntax` as target, the two tabs stand in front of the target and are kept, so they count as one column each: `new` stands in column 10, and the braces are written with ten spaces in front of them.
+Example — not shown as input blocks because the inputs contain tabs: the statement `Call(1,` / `2);` is indented with two tabs, as is the method around it, and is the target. The tabs belong to the target's leading trivia, which the entry point keeps (FMT-PIPE-018), so they count as one column each and `Call` stands in column 2: the output is `→→Call(1,` / `       2);`, the first line with its two tabs and the second with seven spaces, and the lines of the method outside the target keep their tabs. In `→→var d = new List<int>` with its braces out of place and the `EqualsValueClauseSyntax` as target, the two tabs stand in front of the target and are kept, so they count as one column each: `new` stands in column 10, and the braces are written with ten spaces in front of them.
 
-### FMT-PIPE-018 — The context entry point writes back its target's leading trivia as in the document
+### FMT-PIPE-018 — The node-in-document entry points write back their target's leading trivia as in the document
 
-`FormatNodeInDocumentWithContextAsync` MUST write back the target's leading trivia as it stands in the document, in every case: its blank lines, its comments and directives in their columns, and the whitespace in front of the target's first token. The blank-line requirements (FMT-BLANK-011, FMT-BLANK-013, FMT-BLANK-014) and the columns the indentation phase gives those lines do not change it. The one exception is a target that FMT-PIPE-029 moves off the line of another member in front of it: its leading trivia is written back as it stands, but the line break written in front of it puts what starts the new line where the context's depth places a member, not in the column the target's first token has in the document. This requirement does not decide the leading trivia of a target of `FormatNodeInDocumentAsync`, which FMT-PIPE-010 states.
+`FormatNodeInDocumentAsync` and `FormatNodeInDocumentWithContextAsync` MUST write back the target's leading trivia as it stands in the document, in every case, whether or not the target starts its line: its blank lines, its comments and directives in their columns, a documentation comment in its text and its columns, also one written behind the code in front of the target, and the whitespace in front of the target's first token. The blank-line requirements (FMT-BLANK-001, FMT-BLANK-011, FMT-BLANK-012, FMT-BLANK-013, FMT-BLANK-014), the documentation-comment requirements (FMT-DOC), and the columns the indentation phase gives those lines do not change it. The one exception is a target of `FormatNodeInDocumentWithContextAsync` that FMT-PIPE-029 moves off the line of another member in front of it: its leading trivia is written back as it stands, but the line break written in front of it puts what starts the new line where the context's depth places a member, not in the column the target's first token has in the document.
 
-Writing that trivia back MUST NOT move a line of the target that the indentation phase lays out: the trivia written back puts the target's first token on its line and in its column in the document (in the exception above, in the column the line break gives it), and the indentation phase lays out the target's other lines from that column, which the target-position fact gives it (FMT-PIPE-017, FMT-PIPE-024), not from the column the token has in the root. What the phases do in the root with that trivia and with the code in front of the target — a blank line they add or remove in it, a comment or a directive they move, a line break they add or remove in front of the target's first token, the spacing they write there, or a move of the line that token stands on — is not written back and decides no line or column of the result. For a target that does not start its line, what stands in front of it on that line is outside the target and stays as in the document (FMT-PIPE-010). The write-back also restores the tabs and line endings the preparation phase rewrites in every root (FMT-PIPE-019).
+Writing that trivia back MUST NOT move a line of the target that the indentation phase lays out: the trivia written back puts the target's first token on its line and in its column in the document (in the exception above, in the column the line break gives it), and the indentation phase lays out the target's other lines from that column, which the first-token column gives it for a target of `FormatNodeInDocumentAsync` and the target-position fact for a target of `FormatNodeInDocumentWithContextAsync` (FMT-PIPE-017, FMT-PIPE-024), not from the column the token has in the root. What the phases do in the root with that trivia and with the code in front of the target — a blank line they add or remove in it, a comment or a directive they move, a line break they add or remove in front of the target's first token, the spacing they write there, or a move of the line that token stands on — is not written back and decides no line or column of the result. For a target that does not start its line, what stands in front of it on that line is outside the target and stays as in the document (FMT-PIPE-010). The write-back also restores the tabs and line endings the preparation phase rewrites in every root (FMT-PIPE-019).
 
-Why: The entry point serves code fixes whose target starts a later line of the context, such as the RH5111 fix of an enum member, a parameter, or a declarator. A fix must not change the blank lines between the code it changes and its neighbours (SHARED-FIX-006), and keeping the trivia as it stands keeps them. The phases lay out the whole context and may decide that trivia differently, but the entry point discards their decision; a line of the target laid out from the place the discarded decision gave the first token — the lines aligned to that token — would stand off it. Laying those lines out from the column the written-back trivia gives the first token makes the write-back agree with the layout, whatever the phases did with the trivia in the root, so no phase needs to leave the trivia alone for it; and the preparation phase can replace tabs and line endings in the whole root before any other phase reads it while a tab-indented file keeps its tabs in front of the target.
+Why: The entry points serve code fixes alone: `FormatNodeInDocumentAsync` the fixes that format the node they change, and `FormatNodeInDocumentWithContextAsync` those whose target starts a later line of the context, such as the RH5111 fix of an enum member, a parameter, or a declarator. A fix must not change the blank lines between the code it changes and its neighbours, nor the comments and documentation comments above it (SHARED-FIX-006), and keeping the trivia as it stands keeps them; one owner keeps it for every fix, so no fix restores it on its own. The phases lay out the whole context and may decide that trivia differently, but the entry point discards their decision; a line of the target laid out from the place the discarded decision gave the first token — the lines aligned to that token — would stand off it. Laying those lines out from the column the written-back trivia gives the first token makes the write-back agree with the layout, whatever the phases did with the trivia in the root, so no phase needs to leave the trivia alone for it; and the preparation phase can replace tabs and line endings in the whole root before any other phase reads it while a tab-indented file keeps its tabs in front of the target.
 
 Example — the RH5111 fix of the enum member `B` with the enum as context; the two blank lines above it stay, where document-level formatting would collapse them to one, and `B` keeps its column:
 
@@ -1103,6 +1100,61 @@ enum E
   B = 2
 }
 ```
+
+Example — `FormatNodeInDocumentAsync` with the `if` statement as target, which the RH5403 fix formats; no blank line is added above `// c`, where document-level formatting would add one (FMT-BLANK-011), and the same holds without the comment, where document-level formatting would add one above the `if` (FMT-BLANK-001):
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        a = 1;
+        // c
+        if (a > 0) { a++; }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        a = 1;
+        // c
+        if (a > 0)
+        {
+            a++;
+        }
+    }
+}
+```
+
+Example — `FormatNodeInDocumentAsync` with the property `Value` as target; the one-line documentation comment stays on its line, where document-level formatting would spread it over three lines, and the blank line between `{` and the comment stays, where document-level formatting would remove it:
+
+```csharp
+class C
+{
+
+    /// <summary>The value.</summary>
+    public int Value
+    {
+        get;
+        set;
+    } = 1;
+}
+```
+
+```csharp
+class C
+{
+
+    /// <summary>The value.</summary>
+    public int Value { get; set; } = 1;
+}
+```
+
+On the other side, a documentation comment written behind the code in front of the target, as in `int _a; /** Doc */` followed by the target, a property `int P` written over several lines, on the next line, stays behind `int _a;`: the entry point writes the target's leading trivia back as it stands, so it neither moves the comment onto a line of its own (FMT-DOC-001) nor removes the whitespace in front of it.
 
 ### FMT-PIPE-019 — After the preparation phase, no phase sees or writes a tab in whitespace or a foreign line ending
 
@@ -1291,7 +1343,7 @@ class C
 }
 ```
 
-returns `        Call(1, 2);`, without a line break in front of it, and returns the same when the statement holds a tab after the comma instead of the space. `FormatNodeInDocumentAsync` with the same statement as target keeps the blank line above it in both cases, as it decides that blank line from the facts about the code in front of the target (FMT-PIPE-024), and returns the document as it is, the tab replaced by one space.
+returns `        Call(1, 2);`, without a line break in front of it, and returns the same when the statement holds a tab after the comma instead of the space. `FormatNodeInDocumentAsync` with the same statement as target keeps the blank line above it in both cases, as it writes the target's leading trivia back as it stands (FMT-PIPE-018), and returns the document as it is, the tab replaced by one space.
 
 Example — `FormatNodeInDocumentAsync` with the `if` of the `else if` as target keeps `// note` behind its condition, with and without a tab in the target's condition:
 
@@ -1337,8 +1389,6 @@ The node-level entry points MUST give the phases the facts in the table below ab
 | First-token column | The column of the root's first token in the document (FMT-PIPE-017), or none when the root is the document's root | none | the target | the context |
 | Target position | For the target of a context: the column of the target's first token in the document as FMT-PIPE-017 counts it, and the target marked in the root by an annotation on its first token (FMT-PIPE-022) | none | none | the target |
 | Documentation boundary | Whether the root is something other than a compilation unit; when it is, one line break in front of a single-line documentation comment that leads the root is kept while the root's leading blank lines are removed | yes | yes | yes |
-| Preceding token | The kind of the token in front of the root in the document, whether it is the colon of a switch label, and the kind and text of each of its trailing trivia, in order; none when no token stands in front of the root | none | the target | none |
-| List position | The kind of the statement in front of the root in its block or switch section and the kind of that statement's last token, whether the switch section in front of the root ends in a `break` statement, and whether the root is a `break` statement that ends its switch section | none | the target, when it starts its line | none |
 | Chain continuation | Whether the root's parent continues the root's member-access chain (SHARED-CHAIN-001), so that the root is not the outermost node of its chain | none | the target | none |
 | One-line property | Whether the root is an accessor or an accessor list of a property, indexer, or event declaration that stands on one line apart from its attribute lists; it counts only while the root itself holds no line break, in its text or its leading trivia | none | the target | none |
 | List element | Whether the root is, or lies inside, an element of an argument, attribute-argument, parameter, type-parameter, function-pointer-parameter, tuple, attribute, or type-argument list, with no construct between the root and that element that lays out the lines inside it: a brace scope, an initializer, an anonymous object, a switch expression, a collection expression, a recursive, list, or parenthesized pattern, an accessor list, an interpolation hole, or a query body | none | the target | none |
@@ -1346,21 +1396,32 @@ The node-level entry points MUST give the phases the facts in the table below ab
 | Case-label pattern | Whether a `case` label introduces the root as its pattern, directly or through `and`, `or`, and `not` patterns | none | the target | none |
 | Assigned collection initializer | Whether the root is a collection initializer on the right of an assignment | none | the target | none |
 
-`FormatNodeInDocumentAsync` gives a list position only to a target that starts its line and is a statement directly inside a block or a switch section, or a switch section. A block statement gets one like any other statement.
-
 These decisions MUST read the facts instead of the neighbour or the ancestor they would read if the root were part of the document:
 
-- the blank-line phase decides the root's leading blank lines from the preceding token — its kind, and whether it ends its line — the list position, and the documentation boundary;
-- the documentation phase decides from the preceding token whether a documentation comment that leads the root is written behind code;
+- the blank-line phase decides the root's leading blank lines from the documentation boundary, as if no token stood in front of the root;
+- the documentation phase decides a documentation comment that leads the root as one that no code stands in front of;
 - the rule of SHARED-CHAIN-001 that only the outermost node of a chain is laid out as a chain decides, for every node of the root, whether that node is the outermost node of its chain; where the rule would read whether the root's parent continues the root's chain, it reads the chain-continuation fact instead. No caller passes `FormatNodeInDocumentAsync` an assignment that is the part of a conditional access behind its `?`, the one root for which the rule would read further above the root, so this requirement does not decide that case. The line-break phase lays out, and the indentation phase aligns, a chain only at the node the rule names;
 - the line-break phase, from the other construct facts, keeps the attribute lists of an accessor of a one-line property on the property's line while the root holds no line break, joins the interior wraps of a root inside a list element, may collapse the arguments of an element access onto one line, keeps the opening brace of a recursive pattern a `case` label introduces on the label's line, and keeps the opening brace of an assigned collection initializer on the assignment's line;
-- the indentation phase lays out the root from the depth and the first-token column, lays out the lines of the target the target position marks as if that target's first token stood in that fact's column, and aligns the comments that lead the root from the preceding token. The target position is read by the indentation phase alone: where the earlier phases leave the target's first token in the root, and what they write in front of it or in its leading trivia there, is not written back and decides no column of the result (FMT-PIPE-017, FMT-PIPE-018).
+- the indentation phase lays out the root from the depth and the first-token column, lays out the lines of the target the target position marks as if that target's first token stood in that fact's column, and aligns the comments that lead the root as if no token stood in front of the root. The target position is read by the indentation phase alone: where the earlier phases leave the target's first token in the root, and what they write in front of it or in its leading trivia there, is not written back and decides no column of the result (FMT-PIPE-017, FMT-PIPE-018).
+
+No fact describes the code in front of the root: the node-in-document entry points write back the target's leading trivia as it stands in the document (FMT-PIPE-018), so what the phases decide for the root's leading trivia is not written back, and the caller of `FormatNode` decides what stands in front of the node (FMT-PIPE-012).
 
 What follows the root's last token MUST be decided as at the end of a file: the node-in-document entry points write back the target's trailing trivia from the document (FMT-PIPE-010), and the caller of `FormatNode` decides what follows the node.
 
-Why: A fact that holds a node or trivia of the document carries positions in a tree the root no longer belongs to, and a rule that forbids reading them cannot be enforced. The values in the table are what the phases use: whether the token in front ends its line, whether a comment trails it, where a line starts behind it, the kinds the blank-line rules compare, and, for the construct the root stands in, the one answer each line-break decision takes from the root's ancestors. A decision that got no fact would decide as if the root were a construct of its own: a statement target behind `var a = 1;` would be decided as the first statement of a block and get no blank line in front of it (example below). The entry points differ because their results do: `FormatNodeInDocumentAsync` writes its target back into the document and decides the target's blank lines, documentation, and layout from it, `FormatNodeInDocumentWithContextAsync` writes back its target's leading trivia as it stands in the document (FMT-PIPE-018) and has the indentation phase lay out the target's other lines from the column that trivia leaves its first token in (FMT-PIPE-017), and the caller of `FormatNode` decides what stands around the node (FMT-PIPE-012).
+Why: A fact that holds a node or trivia of the document carries positions in a tree the root no longer belongs to, and a rule that forbids reading them cannot be enforced. The values in the table are what the phases use: where the root stands, and, for the construct the root stands in, the one answer each line-break decision takes from the root's ancestors. A decision that got no fact would decide as if the root were a construct of its own: a target inside an argument would get its interior wraps kept rather than joined. A fact about the code in front of the root would decide nothing that reaches the result: the node-in-document entry points have the indentation phase lay out the target's other lines from the column the written-back trivia leaves its first token in (FMT-PIPE-017), and the caller of `FormatNode` decides what stands around the node (FMT-PIPE-012).
 
-Example — `FormatNodeInDocumentAsync` with the statement `Call(1, 2);` as target, behind `var a = 1;` without a blank line: the list position says that a local declaration stands in front of the statement, so the blank line that FMT-BLANK requires there is inserted, as document-level formatting inserts it:
+Example — `FormatNodeInDocumentAsync` with the statement `Call(1,  2);` as target, behind `var a = 1;` without a blank line: the target's leading trivia is written back as it stands, so no blank line is inserted, where document-level formatting inserts one (FMT-BLANK-001):
+
+```csharp
+class C
+{
+    void M()
+    {
+        var a = 1;
+        Call(1,  2);
+    }
+}
+```
 
 ```csharp
 class C
@@ -1373,19 +1434,7 @@ class C
 }
 ```
 
-```csharp
-class C
-{
-    void M()
-    {
-        var a = 1;
-
-        Call(1, 2);
-    }
-}
-```
-
-`FormatNode` with the same statement returns `        Call(1, 2);`: it supplies no list position, and its caller decides what stands in front of the node.
+`FormatNode` with the same statement returns `        Call(1, 2);`: its caller decides what stands in front of the node.
 
 ### FMT-PIPE-025 — No phase decides a line break or a blank line from a later phase's
 

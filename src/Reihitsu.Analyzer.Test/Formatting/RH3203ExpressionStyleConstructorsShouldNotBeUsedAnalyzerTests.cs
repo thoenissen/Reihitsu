@@ -577,6 +577,74 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Bat
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifies that a constructor whose expression body the fix converts, and which shares its line with a field
+    /// behind it, keeps its own line, and that the field behind it starts on the next line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixGivesAConstructorThatSharesItsLineWithAFieldBehindItALineOfItsOwn(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _v;
+
+                                    public C(int v) {|RH3203:=> _v = v|}; int _b;
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     private int _v;
+
+                                     public C(int v)
+                                     {
+                                         _v = v;
+                                     }
+                                     int _b;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that a constructor whose expression body the fix converts, and which shares its line with a field in
+    /// front of it, starts on the next line in the column of that line, and that its block is laid out from there
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixGivesAConstructorThatSharesItsLineWithAFieldInFrontALineOfItsOwn(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int _a; public C(int v) {|RH3203:=> _a = v|};
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int _a;
+                                     public C(int v)
+                                     {
+                                         _a = v;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

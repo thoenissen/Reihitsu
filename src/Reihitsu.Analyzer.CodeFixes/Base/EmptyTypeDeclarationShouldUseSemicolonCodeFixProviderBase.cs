@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Core;
 using Reihitsu.Formatter;
 
@@ -45,15 +46,16 @@ public abstract class EmptyTypeDeclarationShouldUseSemicolonCodeFixProviderBase 
     #region Methods
 
     /// <summary>
-    /// Applies the code fix
+    /// Applies the code fix. A type declaration that shares its line with another member is first separated from it, so that
+    /// both stand on lines of their own (SHARED-FIX-007); then the declaration is formatted through the formatter
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The updated document</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, TypeDeclarationSyntax typeDeclaration, CancellationToken cancellationToken)
+    private static Task<Document> ApplyCodeFixAsync(Document document, TypeDeclarationSyntax typeDeclaration, CancellationToken cancellationToken)
     {
-        return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, typeDeclaration, cancellationToken).ConfigureAwait(false)).Output;
+        return BlankLineCodeFixUtilities.FormatMemberOnLinesOfItsOwnAsync(document, typeDeclaration, cancellationToken);
     }
 
     /// <summary>

@@ -37,7 +37,8 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineCodeFixProvider :
     }
 
     /// <summary>
-    /// Applies the code fix
+    /// Applies the code fix. A member that shares its line with another member is first separated from it, so that both stand
+    /// on lines of their own (SHARED-FIX-007); then the declaration is formatted through the formatter
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>
@@ -52,11 +53,12 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineCodeFixProvider :
             return document;
         }
 
-        var declaration = FindDeclaration(root, diagnosticSpan);
-
-        return declaration == null
-                   ? document
-                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, declaration, cancellationToken).ConfigureAwait(false)).Output;
+        return FindDeclaration(root, diagnosticSpan) switch
+               {
+                   null => document,
+                   MemberDeclarationSyntax member => await BlankLineCodeFixUtilities.FormatMemberOnLinesOfItsOwnAsync(document, member, cancellationToken).ConfigureAwait(false),
+                   var declaration => (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, declaration, cancellationToken).ConfigureAwait(false)).Output
+               };
     }
 
     #endregion // Methods

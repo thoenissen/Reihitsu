@@ -730,8 +730,9 @@ A code fix MUST change only the code its diagnostic is about; the layout of the 
 - **Blank lines.** A fix MUST NOT insert a blank line before the node it changes, and MUST NOT change the blank lines between that node and its neighbours, unless those blank lines are the code its diagnostic is about. The blank line that a fix leaves by removing a directive line is handled as SHARED-FIX-007 states.
 - **Shared line.** A member that shares its line with the member a fix changes, after the fix, is handled as SHARED-FIX-007 states.
 - **Formatting.** A fix MUST format only the node it replaces, with the whitespace of the lines it edits. It MUST NOT format the member, the statement, or the type that contains that node.
+- **Leading trivia.** The leading trivia of the node a fix formats is not part of what the fix formats, and MUST stay as it stands in the document: the blank lines, comments, and directives above the node in their columns, a documentation comment above it or written behind the code in front of it, and the whitespace in front of its first token. This holds also where formatting the document would insert or remove a blank line there, move or re-indent a comment, or rewrite a documentation comment, such as a one-line `<summary>` spread over three lines. Where the diagnostic is about that trivia, as the RH5002 diagnostic is about a missing blank line, the fix changes it as its rule states. The one other exception is the line break that SHARED-FIX-007 (*Shared line*) writes in front of a member that shares its line with a member in front of it: the member then starts a line of its own as SHARED-FIX-007 states, and the rest of its leading trivia stays.
 
-Why: The user applies a fix to correct one finding. A change to code the diagnostic does not name is a second edit nobody asked for: it hides the correction in an unrelated diff, can undo a layout the author chose, and makes a decision that belongs to the rule or the formatter that owns that layout. The blank lines between a node and its neighbours are such a layout, and formatting the member, statement, or type around the node reaches all of the code around it.
+Why: The user applies a fix to correct one finding. A change to code the diagnostic does not name is a second edit nobody asked for: it hides the correction in an unrelated diff, can undo a layout the author chose, and makes a decision that belongs to the rule or the formatter that owns that layout. The blank lines between a node and its neighbours are such a layout, and formatting the member, statement, or type around the node reaches all of the code around it. The trivia above a node belongs to the space between the node and its neighbours, not to the node, so formatting the node does not reach it.
 
 Example — the RH6024 fix:
 
@@ -826,6 +827,59 @@ class C
 ```
 
 The fix replaces the expression body and its semicolon with a block, indented from the line it edits. The documentation comment, the attribute on the constructor's line, and the spacing of the signature stay as they were. The layout example under SHARED-FIX-003 shows the same for the blank lines above a converted method.
+
+Example — leading trivia, for RH5403, whose fix formats the `if` statement:
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        a = 1;
+        // c
+        if (a > 0) {|RH5403:{|} a++; }
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int a)
+    {
+        a = 1;
+        // c
+        if (a > 0)
+        {
+            a++;
+        }
+    }
+}
+```
+
+No blank line is inserted above `// c`, although formatting the document would insert one. The same holds without the comment: no blank line is inserted above the `if`. For RH5408, whose fix formats the property, a documentation comment above it stays on one line:
+
+```csharp
+class C
+{
+    /// <summary>The value.</summary>
+    {|RH5408:public int Value
+    {
+        get;
+        set;
+    } = 1;|}
+}
+```
+
+```csharp
+class C
+{
+    /// <summary>The value.</summary>
+    public int Value { get; set; } = 1;
+}
+```
+
+On the other side, where the diagnostic is about the trivia, the fix changes it: the RH5002 fix under SHARED-FIX-001 inserts the blank line in front of `if`.
 
 ### SHARED-FIX-007 — The changed code is laid out as the formatter lays it out
 

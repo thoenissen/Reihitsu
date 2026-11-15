@@ -275,6 +275,44 @@ public class RH5517FieldAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
         await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed(testCode));
     }
 
+    /// <summary>
+    /// Verifies that a field whose attribute the fix puts on its own line, and which shares its line with a field
+    /// behind it, keeps its own line, and that the field behind it starts on the next line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task VerifyFixGivesAFieldThatSharesItsLineWithAFieldBehindItALineOfItsOwn(string endOfLine)
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    {|RH5517:[First]|} internal int value; int _b;
+                                }
+
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     [First]
+                                     internal int value;
+                                     int _b;
+                                 }
+
+                                 sealed class FirstAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

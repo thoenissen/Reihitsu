@@ -11,11 +11,11 @@ namespace Reihitsu.Formatter.Data;
 
 /// <summary>
 /// The facts about the token that precedes another token, which the blank-line decisions, the documentation phase, and the
-/// comment alignment of the indentation phase read. They are plain values (FMT-PIPE-024): the token's kind, whether it is
-/// the colon of a switch label, and the kind and text of each of its trailing trivia. A node-level formatting root has no
-/// parent (FMT-PIPE-023), so its first token reaches no preceding token through <see cref="SyntaxToken.GetPreviousToken"/>;
-/// for that token the facts come from <see cref="FormattingContext.RootPrecedingToken"/>, which the entry point captures
-/// from the document before the pipeline runs
+/// comment alignment of the indentation phase read: the token's kind, whether it is the colon of a switch label, and the
+/// kind and text of each of its trailing trivia. A node-level formatting root has no parent (FMT-PIPE-023), so its first
+/// token reaches no preceding token through <see cref="SyntaxToken.GetPreviousToken"/>, and its facts say that no token
+/// precedes it: the node-level entry points write back the root's leading trivia as it stands in the document, so no fact
+/// about the code in front of the root is captured (FMT-PIPE-018, FMT-PIPE-024)
 /// </summary>
 internal readonly struct PrecedingTokenFacts
 {
@@ -123,21 +123,6 @@ internal readonly struct PrecedingTokenFacts
                                        trailingTriviaFacts,
                                        trailingTrivia.Any(SyntaxTriviaUtilities.EndsLine),
                                        trailingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia));
-    }
-
-    /// <summary>
-    /// Resolves the facts about the token that precedes a visited token. Only the first token of the visited root has no
-    /// previous token in its tree; for that token the facts come from <see cref="FormattingContext.RootPrecedingToken"/>,
-    /// which holds the facts about the root's preceding token in its document when the caller supplied them
-    /// </summary>
-    /// <param name="previousToken">The result of <see cref="SyntaxToken.GetPreviousToken"/> on the visited token</param>
-    /// <param name="context">The formatting context</param>
-    /// <returns>The facts about the preceding token</returns>
-    public static PrecedingTokenFacts Resolve(SyntaxToken previousToken, FormattingContext context)
-    {
-        return previousToken.IsKind(SyntaxKind.None)
-                   ? context.RootPrecedingToken
-                   : From(previousToken);
     }
 
     #endregion // Methods

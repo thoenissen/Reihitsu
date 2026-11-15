@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.CodeFixes.Base;
+using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Formatter;
 
@@ -36,23 +37,15 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredCodeFixProvider : Reihi
     }
 
     /// <summary>
-    /// Try to get the formatting scope that should be formatted
+    /// Gets the node the fix formats: the reported switch expression, whose first token keeps its line and column, so the
+    /// code around it stays as written (RH5206-003, SHARED-FIX-006)
     /// </summary>
     /// <param name="root">Root</param>
     /// <param name="diagnostic">Diagnostic</param>
-    /// <returns>The formatting scope</returns>
+    /// <returns>The switch expression, or <see langword="null"/> when there is none</returns>
     private static SyntaxNode TryGetFormatTarget(SyntaxNode root, Diagnostic diagnostic)
     {
-        var switchExpression = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.AncestorsAndSelf().OfType<SwitchExpressionSyntax>().FirstOrDefault();
-
-        if (switchExpression == null)
-        {
-            return null;
-        }
-
-        return switchExpression.AncestorsAndSelf()
-                               .FirstOrDefault(node => node is StatementSyntax or EqualsValueClauseSyntax or ArrowExpressionClauseSyntax)
-                   ?? switchExpression;
+        return root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.AncestorsAndSelf().OfType<SwitchExpressionSyntax>().FirstOrDefault();
     }
 
     #endregion // Methods
@@ -65,7 +58,9 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredCodeFixProvider : Reihi
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider()
     {
-        return WellKnownFixAllProviders.BatchFixer;
+        // The fix changes only the reported construct and lays it out from the column its first token has, so two constructs
+        // on one line are fixed one after another, each from the column the fix in front of it left (SHARED-FIX-002)
+        return DocumentOrderFixAllProvider.Create(new RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer());
     }
 
     #endregion // CodeFixProvider

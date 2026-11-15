@@ -563,11 +563,11 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
 
         // Read before the base visit: a token it rewrites is detached and no longer knows its position in the text or its parent
         var startsText = token.FullSpan.Start == 0;
-        var removesBlankLinesDirectlyBefore = BraceBlankLinePolicy.RemovesBlankLinesDirectlyBefore(token, _context);
+        var removesBlankLinesDirectlyBefore = BraceBlankLinePolicy.RemovesBlankLinesDirectlyBefore(token);
 
         token = base.VisitToken(token);
 
-        var previousToken = PrecedingTokenFacts.Resolve(token.GetPreviousToken(), _context);
+        var previousToken = PrecedingTokenFacts.From(token.GetPreviousToken());
 
         if (previousToken.Exists == false)
         {

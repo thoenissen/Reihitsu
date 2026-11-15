@@ -149,7 +149,7 @@ public class BlankLineCollapserTests
         var expected = updatedRoot.ToFullString();
 
         // Act
-        var actual = new BlankLineCollapser(new FormattingContext(endOfLine.ToFullString()), TestContext.CancellationToken).Visit(updatedRoot).ToFullString();
+        var actual = new BlankLineCollapser(TestContext.CancellationToken).Visit(updatedRoot).ToFullString();
 
         // Assert
         Assert.AreEqual(expected, actual);
@@ -191,7 +191,7 @@ public class BlankLineCollapserTests
         var expected = updatedRoot.ToFullString();
 
         // Act
-        var actual = new BlankLineCollapser(new FormattingContext(endOfLine.ToFullString()), TestContext.CancellationToken).Visit(updatedRoot).ToFullString();
+        var actual = new BlankLineCollapser(TestContext.CancellationToken).Visit(updatedRoot).ToFullString();
 
         // Assert
         Assert.AreEqual(expected, actual);
@@ -565,7 +565,7 @@ public class BlankLineCollapserTests
             cts.Cancel();
 
             // Act & Assert
-            Assert.ThrowsExactly<OperationCanceledException>(() => new BlankLineCollapser(new FormattingContext(Environment.NewLine), cts.Token).Visit(tree.GetRoot(TestContext.CancellationToken)));
+            Assert.ThrowsExactly<OperationCanceledException>(() => new BlankLineCollapser(cts.Token).Visit(tree.GetRoot(TestContext.CancellationToken)));
         }
     }
 
@@ -577,7 +577,7 @@ public class BlankLineCollapserTests
     private static string ApplyCollapser(string source)
     {
         var tree = CSharpSyntaxTree.ParseText(source);
-        var collapser = new BlankLineCollapser(new FormattingContext(Environment.NewLine), CancellationToken.None);
+        var collapser = new BlankLineCollapser(CancellationToken.None);
         var result = collapser.Visit(tree.GetRoot());
 
         return result.ToFullString();
