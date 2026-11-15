@@ -39,4 +39,5 @@
 - Done: auditor `07-auditor.md` — pass with text findings; audited SHA 2a0087b.
 - Open worklist (text-only, proven with verify-text-only): (1) FMT-CLEAN-005 first sentence narrowed → spec author; (2) Maintainer answers recorded (done by lead); hint: `EndOfLineWhitespace` class summary → cleaner. Hint on U+FEFF literal in test skipped (changing literal spelling is not text-only; non-blocking).
 - Done: spec author `08` (06d9b38b), cleaner `09` (c1b0ff56); verify-text-only --strict-docs vs 2a0087be: PASS, no second audit.
-- Next: validator `10-validator.md`, then publish (issue manager for 2 follow-ups).
+- Done: validator `10-validator.md` (all green on c46b7fbd).
+- Next: issue manager `11-issue-manager.md` for the 2 follow-up candidates, then note, delete sdd/work, trigger commit, PR.
