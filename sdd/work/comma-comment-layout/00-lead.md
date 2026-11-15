@@ -11,7 +11,8 @@
 
 ## Maintainer answers
 
-- Batch 1 asked (before test implementer): Q1 = #1738 layout (A recommended), Q2 = escalation 10 declare comma-after-line-break unsupported (B = do not declare, recommended). Awaiting answer.
+- Batch 1, Q1 (#1738, comma that starts a line inside initializer / collection expression / pattern): **A**, with one change — in an array initializer (case `e`, `new int[] { 1⏎, 2 }`) the comma also moves behind the previous element (`1,` ⏎ `2`), as in the other constructs. A comma held off the previous line by a `//` comment (case `c`) stays alone on its line at the elements' column, element on the next line, as in A.
+- Batch 1, Q2 (escalation 10, declare "comma separated from the previous token by a line break" unsupported): **not declared (B)**; the comma keeps moving up behind the previous element as today.
 
 ## Decisions taken
 
@@ -38,4 +39,4 @@
 
 ## Open worklist / next step
 
-- Waiting for maintainer on batch 1. Then: spec author (fresh) writes spec diffs + amends both change docs per decisions 5/7 and the answers; then test implementer.
+- Next: fresh spec author (03) — amend #1737 change doc + RH5107 spec for decision 5 (withheld class); write #1738 change doc Decisions + spec diff per Q1 answer (including array initializers moving the comma; FMT-BREAK-021's array-layout `Why:` must be reconciled); ledger IDs. Then test implementer.
