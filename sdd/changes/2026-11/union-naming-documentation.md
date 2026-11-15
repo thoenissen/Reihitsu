@@ -123,7 +123,14 @@ public union Result<TValue, {|RH8108:TError|}>(TValue, TError);
 **5. RH8203 — `<inheritdoc/>` on a union without a base list is reported.**
 
 ```csharp
-// input, with a documented interface IShape
+// input
+/// <summary>
+/// Contract
+/// </summary>
+public interface IShape
+{
+}
+
 /// <inheritdoc/>
 public union Shape(int, string);
 
@@ -137,6 +144,13 @@ public union Named(int, string) : IShape;
 
 ```csharp
 // after: RH8203 on the first <inheritdoc/>; the union with a base list is not reported
+/// <summary>
+/// Contract
+/// </summary>
+public interface IShape
+{
+}
+
 /// {|RH8203:<inheritdoc/>|}
 public union Shape(int, string);
 

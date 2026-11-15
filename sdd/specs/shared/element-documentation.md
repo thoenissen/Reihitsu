@@ -51,9 +51,9 @@ Example — RH8020, in the body of a union:
 
 ```csharp
 /// <summary>
-/// Value
+/// Holder
 /// </summary>
-public union Value(int, string)
+public union Holder(int, string)
 {
     public int {|RH8020:Count|}() => 0;
 }
@@ -75,7 +75,7 @@ The accessibility of the containing declarations MUST NOT change the group.
 
 This requirement covers every declaration except a static constructor declared in an interface and a partial type declared in several parts.
 
-Why: The split separates what other code can use from the implementation details of one type, so a project can require documentation for the first and decide separately about the second. A `private protected` element is visible to derived types, so other code builds on it. Without a modifier, C# makes an element declared in a class, struct, record, union, or extension block private, and one declared in a namespace or an interface internal or public; a partial type declared in several parts is the exception, because it takes the accessibility that any of its parts declares. A static constructor of a class, struct, or record, which takes no access modifier, is private. The group is decided from the declaration as written, so a nested element keeps its rule when its container's accessibility changes.
+Why: The split separates what other code can use from the implementation details of one type, so a project can require documentation for the first and decide separately about the second. A `private protected` element is visible to derived types, so other code builds on it. Without a modifier, C# makes an element declared in a class, struct, record, union, or extension block private, and one declared in a namespace or an interface internal or public; a partial type declared in several parts is the exception, because it takes the accessibility that any of its parts declares. A static constructor of a class, struct, record, or union, which takes no access modifier, is private. The group is decided from the declaration as written, so a nested element keeps its rule when its container's accessibility changes.
 
 Example — RH8001, which checks the non-private group:
 
@@ -181,9 +181,9 @@ Example — RH8021 and RH8036, which check the private group, in the body of a u
 
 ```csharp
 /// <summary>
-/// Value
+/// Holder
 /// </summary>
-public union Value(int, string)
+public union Holder(int, string)
 {
     int {|RH8021:Implicit|}() => 0;
 
