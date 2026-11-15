@@ -33,4 +33,5 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 - Skeptic done: `01-skeptic.md` (verdict: output question; R1 reproduces with names outside SHARED-CASING-011; new R2).
 - Maintainer answered A.
 - Spec author done: `02-spec-author.md` (SHARED-CASING-009 extended, 5 examples; SHARED-CASING-012 Why adjusted).
-- Next: test implementer.
+- Test implementer done: `03-test-implementer.md` (reproduced; 40 tests, 36 failing on 9fc76b7, commit b66f38a).
+- Next: implementer.
