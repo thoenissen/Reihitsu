@@ -447,6 +447,146 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
     }
 
     /// <summary>
+    /// Verifies the specification example for documentation comments: a <c>/** */</c> comment followed by the parameter and a
+    /// <c>///</c> comment that ends the comma's line each keep the diagnostic and withhold the fix, in every documentation mode
+    /// </summary>
+    /// <param name="documentationMode">The documentation mode the source is parsed with</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5107-004")]
+    [DataRow(DocumentationMode.Parse, DisplayName = "Parse")]
+    [DataRow(DocumentationMode.Diagnose, DisplayName = "Diagnose")]
+    [DataRow(DocumentationMode.None, DisplayName = "None")]
+    public async Task VerifySpecificationExampleDocumentationCommentsBehindTheCommaWithholdTheFix(DocumentationMode documentationMode)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void S(int a
+                                           {|RH5107:,|} /** c */ int b)
+                                    {
+                                    }
+
+                                    void U(int a
+                                           {|RH5107:,|} /// c
+                                           int b)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData, documentationMode);
+    }
+
+    /// <summary>
+    /// Verifies that each documentation-comment shape behind the comma on its line withholds the fix on its own, in every
+    /// documentation mode: a <c>/** */</c> comment followed by the parameter, a <c>/** */</c> comment that ends the line, and a
+    /// <c>///</c> comment
+    /// </summary>
+    /// <param name="commaLine">The line that starts with the reported comma, without its indentation</param>
+    /// <param name="documentationMode">The documentation mode the source is parsed with</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5107-004")]
+    [DataRow("{|RH5107:,|} /** c */ int b)", DocumentationMode.Parse, DisplayName = "Delimited, followed by the parameter, Parse")]
+    [DataRow("{|RH5107:,|} /** c */ int b)", DocumentationMode.Diagnose, DisplayName = "Delimited, followed by the parameter, Diagnose")]
+    [DataRow("{|RH5107:,|} /** c */ int b)", DocumentationMode.None, DisplayName = "Delimited, followed by the parameter, None")]
+    [DataRow("{|RH5107:,|} /** c */\n           int b)", DocumentationMode.Parse, DisplayName = "Delimited, ending the line, Parse")]
+    [DataRow("{|RH5107:,|} /** c */\n           int b)", DocumentationMode.Diagnose, DisplayName = "Delimited, ending the line, Diagnose")]
+    [DataRow("{|RH5107:,|} /** c */\n           int b)", DocumentationMode.None, DisplayName = "Delimited, ending the line, None")]
+    [DataRow("{|RH5107:,|} /// c\n           int b)", DocumentationMode.Parse, DisplayName = "Single-line, Parse")]
+    [DataRow("{|RH5107:,|} /// c\n           int b)", DocumentationMode.Diagnose, DisplayName = "Single-line, Diagnose")]
+    [DataRow("{|RH5107:,|} /// c\n           int b)", DocumentationMode.None, DisplayName = "Single-line, None")]
+    public async Task VerifyNoCodeFixForEachDocumentationCommentBehindTheComma(string commaLine, DocumentationMode documentationMode)
+    {
+        await VerifyNoCodeFixIsOffered($"class C\n{{\n    void M(int a\n           {commaLine}\n    {{\n    }}\n}}", documentationMode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld for a documentation comment behind the comma in a document with carriage-return/line-feed
+    /// line endings, in the documentation mode <c>Parse</c>
+    /// </summary>
+    /// <param name="commaLine">The line that starts with the reported comma, without its indentation</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5107-004")]
+    [DataRow("{|RH5107:,|} /** c */ int b)", DisplayName = "Delimited")]
+    [DataRow("{|RH5107:,|} /// c\n           int b)", DisplayName = "Single-line")]
+    public async Task VerifyNoCodeFixForDocumentationCommentBehindTheCommaWithCarriageReturnLineFeeds(string commaLine)
+    {
+        await VerifyNoCodeFixIsOffered(NormalizeToCarriageReturnLineFeed($"class C\n{{\n    void M(int a\n           {commaLine}\n    {{\n    }}\n}}"), DocumentationMode.Parse);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of the other side for documentation comments: a <c>/** */</c> comment that starts the
+    /// line behind the comma's line keeps the fix, which removes the comma's line and leaves the comment and the parameter as
+    /// they are
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5107-004")]
+    [Requirement("RH5107-003")]
+    public async Task VerifyDocumentationCommentOnTheLineBehindTheCommaKeepsTheFix()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void V(int a
+                                           {|#0:,|}
+                                           /** c */ int b)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void V(int a,
+                                            /** c */ int b)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>///</c> comment that starts the line behind the comma's line keeps the fix, which removes the comma's
+    /// line and leaves the comment and the parameter as they are
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5107-004")]
+    [Requirement("RH5107-003")]
+    public async Task VerifySingleLineDocumentationCommentOnTheLineBehindTheCommaKeepsTheFix()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void V(int a
+                                           {|#0:,|}
+                                           /// c
+                                           int b)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void V(int a,
+                                            /// c
+                                            int b)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies the specification example of the other side: a comment that starts the line behind the comma's line keeps the
     /// fix, which removes the comma's line and leaves the comment and the parameter as they are
     /// </summary>
