@@ -26,7 +26,7 @@
 
 ## Follow-up candidates
 
-None yet.
+1. (07-auditor, hint 1; pre-existing on `main`) In the using phase's header split (FMT-USING-009), a line holding only whitespace is not treated as the blank line that ends the header (`UsingLeadingTriviaBuilder.GetHeaderSplitIndex` needs two consecutive line breaks), so a comment below such a line stays at the top instead of moving with its directive. Reached through the RH7201–RH7207 code fixes (`scripts/apply-fix.sh RH7203`). Input: `// Header` / a line of spaces / `// About Linq` / `using System.Linq;` / `using System;`.
 
 ## Worklist / state
 
@@ -37,4 +37,5 @@ None yet.
 - Implementer done (04-implementer.md, e360f52): fix in UsingLeadingTriviaBuilder + UsingDirectiveOrderingRewriter (+30/-2); all tests pass in Debug.
 - Cleaner done (05-cleaner.md, 500e3cc): clean, Release build 0 warnings.
 - Spec checker done (06-spec-checker.md, da0fc6d): consistent, no findings.
-- Next: build, auditor.
+- Auditor passed, no findings (07-auditor.md, e008d35). Audited SHA: 1c383897ec19d845dd9e0466845ac79546c60bde (base main 6ab3d75).
+- Next: validator, then issue manager (1 candidate), note, publish.
