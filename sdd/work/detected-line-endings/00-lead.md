@@ -38,6 +38,7 @@ Bug-fix lane: spec author (for the FMT-PIPE-010 clarification of #1695, and any 
 | 6 | Skeptic | #1721 premise | Do not change; link `Refs #1721`; PR states the observed output (`\n` outside, lone `\r` inside literal) is what FMT-PIPE-007/FMT-EOL-004 specify and that `ReihitsuFormatterLineEndingIndependenceTests.KeptLineBreaksInsideLiteralsCommentsAndDisabledTextAreTheSameInTheCopy` already pins it; skip remaining roles for it except spec checker and validator | Specified behavior, agent-filed, nothing visible in question | Output unchanged | – |
 | 7 | Skeptic | #1707 RH3005 part does not reproduce | Narrow #1707 to RH3003; RH3005 gets characterization tests as the issue's own Done-when prescribes; keep `Closes #1707` (RH3003 reproduces) | Issue anticipated it; no escalation 4 since the issue's bug reproduces | RH3005 output unchanged | – |
 | 8 | Answers | Lane after Q2=B | Widen to behavior change; one change doc for RH8402 (RH8402-002 fix part, RH8402-005); Q1=B recorded as a FMT-PIPE-010 clarification (SHARED-FIX-007/008 span), mentioned in the change doc's visible output changes too if the spec author finds it changes a requirement | RH8402-005 changes an unchanged requirement's output | Maintainer answered both | – |
+| 9 | Tests | Non-last enum member `B =\r\n2,\n`: the `\n` belongs to the separator comma, not the target | Out of FMT-PIPE-010's scope; not tested, no follow-up | The separator's trivia is outside the fix's span (SHARED-FIX-006 keeps it) | Output unchanged | 3082127 |
 
 ## Follow-up candidates
 
@@ -46,5 +47,5 @@ Bug-fix lane: spec author (for the FMT-PIPE-010 clarification of #1695, and any 
 
 ## State
 
-- Last step finished: spec author 03 (0c3d3d9); change doc accepted by the lead; lane check behavior-change confirmed.
-- Next: test implementer (04).
+- Last step finished: test implementer 04 (3082127); #1695, #1696, RH3003 reproduced; RH3005 characterization.
+- Next: implementer (05).
