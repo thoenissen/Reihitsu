@@ -51,3 +51,4 @@
 - Repair round 1 done: 041886c (09-spec-author), spec checker consistent (abe7ba8, 10-spec-checker). Main not ahead; Release build green.
 - Audit 1 (25baa47, 11-auditor.md) on 9bd5966 vs main 8a26419: one high finding — sort key now drops a leading `global::` (Core `GetSortKey` via `StripGlobalQualifier`), changing formatter order and RH7203/RH7206 reports even for plain `global::System.IO`; undecided visible output. #1266, #1267 no findings. Hint (non-blocking): pairwise comparison recomputes name values.
 - Repair round 2: spec b4be5bb (12-spec-author), tests bb7f2ba (13-test-implementer), cleaner clean (8a24111, 14-cleaner), spec checker consistent (30c385f, 15-spec-checker). Next: auditor on the repair (running), then validator.
+- Merged origin/main 81eabeb (925f598, no overlap). Audit 2 PASS (d0caa19, 16-auditor) — audited SHA 925f598 (handover commit d0caa19 adds only sdd/work). Next: validator (running), then issue manager, note, publish.
