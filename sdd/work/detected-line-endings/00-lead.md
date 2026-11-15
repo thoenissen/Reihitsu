@@ -49,5 +49,5 @@ Bug-fix lane: spec author (for the FMT-PIPE-010 clarification of #1695, and any 
 
 ## State
 
-- Audited SHA: dff2aa91b8092aae06c248a1cf6916106541510a (main 846aca4). Audit 1: #1707 finding (RH3003 glued tokens); others pass.
-- Repair round 1 of 3: test implementer (09) -> implementer (10) -> cleaner (11) -> spec checker (12) -> auditor on repair (13).
+- Audited SHA (final): d8de284e3dec0f1f50efceba719c3ea7d0d2963e (repair round 1 audit 13 passed, handover 3123a2d). Repair rounds used: 1.
+- Next: validator (14) and issue manager (15) with the two follow-up candidates; then note, delete sdd/work, trigger commit, PR.
