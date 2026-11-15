@@ -346,7 +346,7 @@ class C
 
 ### FMT-USING-009 — The header above the first directive stays at the top
 
-When the reorder moves the block's original first directive away from the top, the comments in its leading trivia up to and including the last blank line among them MUST stay at the top of the block, and only the comments after that blank line MUST move with the directive. When no blank line separates the comments from the directive, all of them MUST stay at the top. A blank line is a line that holds nothing but whitespace before its line break (SHARED-BLANK-001): an empty line and a line that holds only spaces or tabs both end the header, in every line ending; a line that holds a comment does not.
+When the reorder moves the block's original first directive away from the top, the comments in its leading trivia up to and including the last blank line among them MUST stay at the top of the block, and only the comments after that blank line MUST move with the directive. When no blank line separates the comments from the directive, all of them MUST stay at the top. What counts as a blank line is SHARED-BLANK-001.
 
 Why: The comments above the first using of a file are most often a file header — a copyright banner or a description of the file — and do not belong to whichever using happens to be first. A blank line is the only signal that separates a header from a comment written for the directive; without it, keeping the comment in place is the conservative choice.
 

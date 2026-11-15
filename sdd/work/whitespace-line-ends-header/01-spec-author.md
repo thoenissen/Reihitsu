@@ -67,3 +67,10 @@ _None._ The clarified FMT-USING-009, together with the unchanged SHARED-BLANK-00
 ## Follow-up candidates
 
 _None._
+
+## Amendment (lead decision 4)
+
+Commit: 869c854
+
+- FMT-USING-009: the sentence restating the definition of a blank line is replaced by the citation alone, "What counts as a blank line is SHARED-BLANK-001.", so the rule is stated once and the line below a `///` comment is covered as SHARED-BLANK-001 states. The whitespace-only example and the `Uses` entries (SHARED-BLANK-001, FMT-CLEAN-001) are kept.
+- `scripts/test.sh --project architecture --filter "FullyQualifiedName~Sdd"` rerun after the change: passed, 51/51.
