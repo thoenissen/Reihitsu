@@ -2283,6 +2283,52 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifies that an element behind two comments, the first of which starts its line outside the element column, is reported on the element, also where the element reaches the element column, and that the code fix is withheld or lays the line out in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5303-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyElementBehindTwoMisplacedLeadingCommentsIsReported(string endOfLine)
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var values = new List<int>
+                                                     {
+                                                 /* a */ /* b */ {|RH5303:1|},
+                                                         2
+                                                     };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var values = new List<int>
+                                                      {
+                                                          /* a */ /* b */ 1,
+                                                          2
+                                                      };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

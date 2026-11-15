@@ -177,5 +177,91 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyFormatterTests : F
                               Diagnostics(RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5301MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the spec example: a member behind two comments, the first of which starts its line in the member column, is not reported and stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5301-002")]
+    public async Task VerifyMemberBehindTwoLeadingCommentsInMemberColumnIsNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P { get; set; }
+                                    int Q { get; set; }
+
+                                    void M()
+                                    {
+                                        var c = new C
+                                                {
+                                                    /* a */ /* b */ P = 1,
+                                                    Q = 2
+                                                };
+                                    }
+                                }
+                                """;
+
+        await VerifyFormatter(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a closing brace behind two comments, the first of which starts its line in the column of <c>new</c>, is not reported and stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5301-001")]
+    public async Task VerifyClosingBraceBehindTwoLeadingCommentsInBraceColumnIsNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P { get; set; }
+
+                                    void M()
+                                    {
+                                        var c = new C
+                                                {
+                                                    P = 1
+                                                /* a */ /* b */ };
+                                    }
+                                }
+                                """;
+
+        await VerifyFormatter(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a member behind the end of a comment that started on an earlier line in the member column, followed by a further comment, is not reported and stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5301-002")]
+    public async Task VerifyMemberBehindCommentTailAndFurtherCommentIsNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P { get; set; }
+                                    int Q { get; set; }
+
+                                    void M()
+                                    {
+                                        var c = new C
+                                                {
+                                                    /* a
+                                                     */ /* b */ P = 1,
+                                                    Q = 2
+                                                };
+                                    }
+                                }
+                                """;
+
+        await VerifyFormatter(testData);
+    }
+
     #endregion // Tests
 }

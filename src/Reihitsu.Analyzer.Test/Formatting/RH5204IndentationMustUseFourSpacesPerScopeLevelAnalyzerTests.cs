@@ -375,12 +375,13 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-005")]
     public async Task VerifyDelimitedDocumentationCommentOnOwnLineBelowOpeningBraceIsDetectedAndFixed()
     {
         const string testData = """
                                 internal class Example
                                 {
-                                /**{|#0: Doc */|}
+                                {|#0:/** Doc */|}
                                     internal bool Value { get; }
                                 }
                                 """;
@@ -402,12 +403,13 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-005")]
     public async Task VerifyDelimitedDocumentationCommentOnOwnLineIsDetectedAndFixedWithCarriageReturnLineFeed()
     {
         const string testData = """
                                 internal class Example
                                 {
-                                /**{|#0: Doc */|}
+                                {|#0:/** Doc */|}
                                     internal bool Value { get; }
                                 }
                                 """;
@@ -430,12 +432,13 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-005")]
     public async Task VerifyOverIndentedDelimitedDocumentationCommentIsDetectedAndFixed()
     {
         const string testData = """
                                 internal class Example
                                 {
-                                            /**{|#0: Doc */|}
+                                            {|#0:/** Doc */|}
                                     internal bool Value { get; }
                                 }
                                 """;
@@ -458,13 +461,14 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-005")]
     public async Task VerifySingleLineDocumentationCommentOnOwnLineIsDetectedAndFixed()
     {
         const string testData = """
                                 internal class Example
                                 {
-                                ///{|#0: Doc
-                                |}    internal bool Value { get; }
+                                {|#0:/// Doc|}
+                                    internal bool Value { get; }
                                 }
                                 """;
         const string fixedData = """
@@ -486,15 +490,16 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-005")]
     public async Task VerifyMultiLineSingleLineDocumentationCommentIsDetectedAndFixed()
     {
         const string testData = """
                                 internal class Example
                                 {
-                                ///{|#0: <summary>
+                                {|#0:/// <summary>
                                 /// Gets a value.
-                                /// </summary>
-                                |}    internal bool Value { get; }
+                                /// </summary>|}
+                                    internal bool Value { get; }
                                 }
                                 """;
         const string fixedData = """
@@ -517,6 +522,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-005")]
     public async Task VerifyDelimitedDocumentationCommentBeforeStatementIsDetectedAndFixed()
     {
         const string testData = """
@@ -524,7 +530,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                 {
                                     internal bool Method()
                                     {
-                                    /**{|#0: Doc */|}
+                                    {|#0:/** Doc */|}
                                         return true;
                                     }
                                 }
@@ -551,12 +557,13 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-005")]
     public async Task VerifyDocumentationCommentCodeFixDoesNotFormatIndependentMethod()
     {
         const string testData = """
                                 internal class Example
                                 {
-                                /**{|#0: Doc */|}
+                                {|#0:/** Doc */|}
                                     internal bool First()
                                     {
                                         return true;
@@ -594,16 +601,17 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5204-005")]
     public async Task VerifyMixedMisindentedCommentKindsAreDetectedAndFixed()
     {
         const string testData = """
                                 internal class Example
                                 {
-                                /**{|#0: First */|}
+                                {|#0:/** First */|}
                                     internal bool First { get; }
 
-                                ///{|#1: Second
-                                |}    internal bool Second { get; }
+                                {|#1:/// Second|}
+                                    internal bool Second { get; }
 
                                 {|#2:/* Third */|}
                                     internal bool Third { get; }
@@ -2494,6 +2502,122 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Batc
                                  """;
 
         await VerifyUnderBothLineEndings(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: the diagnostic on an indented single-line documentation comment starts at its <c>///</c> and ends at the end of its text, without the line break, and the fix indents the comment, under LF and CRLF line endings, line endings included
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-005")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyDocumentationCommentDiagnosticStartsAtExteriorAndExcludesLineBreak(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                      {|RH5204:/// <summary>M</summary>|}
+                                    public void M()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>M</summary>
+                                     public void M()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the diagnostic on an indented single-line documentation comment covers the same span when documentation comments are not parsed: from <c>///</c> to the end of its text, without the line break
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-005")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyDocumentationCommentDiagnosticSpanIsTheSameWithoutDocumentationParsing(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                      {|RH5204:/// <summary>M</summary>|}
+                                    public void M()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine), test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that the diagnostic on a misindented run of <c>///</c> lines, whose later line is indented differently, starts at the first <c>///</c> and ends at the end of the last line's text, and that the fix gives every line of the run the first line's indentation, under LF and CRLF line endings, line endings included
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-005")]
+    [Requirement("RH5204-006")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyMultiLineDocumentationCommentDiagnosticEndsAtLastLineText(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                  {|RH5204:/// <summary>
+                                        /// Gets a value.
+                                  /// </summary>|}
+                                    internal bool Value { get; }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     /// <summary>
+                                     /// Gets a value.
+                                     /// </summary>
+                                     internal bool Value { get; }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the diagnostic on a misindented delimited documentation comment that spans several lines starts at its <c>/**</c> and ends behind its <c>*/</c>, without the line break, whether or not documentation comments are parsed
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5204-005")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyMultiLineDelimitedDocumentationCommentDiagnosticStartsAtOpeningDelimiter(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                  {|RH5204:/** <summary>
+                                   * Gets a value.
+                                   * </summary> */|}
+                                    internal bool Value { get; }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine), test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject));
+        await Verify(ConvertEndOfLine(testData, endOfLine), test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
     }
 
     /// <summary>

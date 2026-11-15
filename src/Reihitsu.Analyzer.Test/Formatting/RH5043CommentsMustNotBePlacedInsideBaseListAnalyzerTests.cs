@@ -248,5 +248,65 @@ public class RH5043CommentsMustNotBePlacedInsideBaseListAnalyzerTests : Analyzer
         await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5043CommentsMustNotBePlacedInsideBaseListAnalyzer.DiagnosticId, AnalyzerResources.RH5043MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a <c>///</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5043-001")]
+    public async Task VerifyTripleSlashCommentAfterBaseListColonIsReported()
+    {
+        const string testData = """
+                                public class Repository :
+                                    {|#0:/// storage|}
+                                    Base,
+                                    IRepository
+                                {
+                                }
+
+                                public class Base
+                                {
+                                }
+
+                                public interface IRepository
+                                {
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5043CommentsMustNotBePlacedInsideBaseListAnalyzer.DiagnosticId, AnalyzerResources.RH5043MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5043CommentsMustNotBePlacedInsideBaseListAnalyzer.DiagnosticId, AnalyzerResources.RH5043MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>/** */</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5043-001")]
+    public async Task VerifyDelimitedDocumentationStyleCommentAfterBaseListColonIsReported()
+    {
+        const string testData = """
+                                public class Repository :
+                                    {|#0:/** storage */|}
+                                    Base,
+                                    IRepository
+                                {
+                                }
+
+                                public class Base
+                                {
+                                }
+
+                                public interface IRepository
+                                {
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5043CommentsMustNotBePlacedInsideBaseListAnalyzer.DiagnosticId, AnalyzerResources.RH5043MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5043CommentsMustNotBePlacedInsideBaseListAnalyzer.DiagnosticId, AnalyzerResources.RH5043MessageFormat));
+    }
+
     #endregion // Tests
 }

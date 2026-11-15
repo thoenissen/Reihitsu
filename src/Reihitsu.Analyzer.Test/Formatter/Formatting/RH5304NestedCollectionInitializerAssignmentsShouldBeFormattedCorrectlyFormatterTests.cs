@@ -488,5 +488,37 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
                               Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that an element of a nested collection initializer behind two comments, the first of which starts its line in the element column, is not reported and stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5304-002")]
+    public async Task VerifyElementBehindTwoLeadingCommentsInElementColumnIsNotReported()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    List<int> L { get; } = new List<int>();
+
+                                    void M()
+                                    {
+                                        var c = new C
+                                                {
+                                                    L = {
+                                                            /* a */ /* b */ 1,
+                                                            2
+                                                        }
+                                                };
+                                    }
+                                }
+                                """;
+
+        await VerifyFormatter(testData);
+    }
+
     #endregion // Tests
 }

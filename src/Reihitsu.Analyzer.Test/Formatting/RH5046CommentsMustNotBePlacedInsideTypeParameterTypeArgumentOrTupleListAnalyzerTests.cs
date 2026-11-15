@@ -211,5 +211,67 @@ public class RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTuple
         await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, AnalyzerResources.RH5046MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a <c>///</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5046-001")]
+    public async Task VerifyTripleSlashCommentInTypeArgumentListIsReported()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class TestClass
+                                {
+                                    void Method(bool a, bool b, int[] items, object o)
+                                    {
+                                        var map = new Dictionary<
+                                            {|#0:/// key|}
+                                            string,
+                                            int>();
+                                        _ = map;
+                                    }
+
+                                    static int Run(params object[] values) => 0;
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, AnalyzerResources.RH5046MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, AnalyzerResources.RH5046MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>/** */</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5046-001")]
+    public async Task VerifyDelimitedDocumentationStyleCommentInTypeArgumentListIsReported()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class TestClass
+                                {
+                                    void Method(bool a, bool b, int[] items, object o)
+                                    {
+                                        var map = new Dictionary<
+                                            {|#0:/** key */|}
+                                            string,
+                                            int>();
+                                        _ = map;
+                                    }
+
+                                    static int Run(params object[] values) => 0;
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, AnalyzerResources.RH5046MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5046CommentsMustNotBePlacedInsideTypeParameterTypeArgumentOrTupleListAnalyzer.DiagnosticId, AnalyzerResources.RH5046MessageFormat));
+    }
+
     #endregion // Tests
 }

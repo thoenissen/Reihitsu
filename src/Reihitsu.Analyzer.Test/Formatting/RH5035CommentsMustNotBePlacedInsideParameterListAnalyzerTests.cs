@@ -641,5 +641,55 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
         await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a <c>///</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5035-001")]
+    public async Task VerifyTripleSlashCommentBeforeFirstParameterIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public void Method(
+                                        {|#0:/// the value|}
+                                        int value,
+                                        int other)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>/** */</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5035-001")]
+    public async Task VerifyDelimitedDocumentationStyleCommentBeforeFirstParameterIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public void Method(
+                                        {|#0:/** the value */|}
+                                        int value,
+                                        int other)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+    }
+
     #endregion // Tests
 }

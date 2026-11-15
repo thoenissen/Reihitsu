@@ -49,5 +49,41 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationFormatterTests : 
                               ExpectedDiagnostic(RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, 7, 1, 7, 21, AnalyzerResources.RH7304MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that regions whose first line of code starts with one comment, two comments, or the end of a comment that spans lines stay as written and are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7304-001")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyCommentLedRegionsAreNotReportedAndStayAsWritten()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Fields
+
+                                    /* c */ int _a;
+
+                                    #endregion // Fields
+
+                                    #region Lines
+
+                                    /* g
+                                     */ int _e;
+
+                                    #endregion // Lines
+
+                                    #region Pairs
+
+                                    /* a */ /* b */ int _f;
+
+                                    #endregion // Pairs
+                                }
+                                """;
+
+        await VerifyFormatter(testData);
+    }
+
     #endregion // Tests
 }

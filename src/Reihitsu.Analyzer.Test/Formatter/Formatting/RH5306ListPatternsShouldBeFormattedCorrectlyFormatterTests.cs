@@ -90,5 +90,29 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyFormatterTests : Format
                               Diagnostics(RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5306MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a list pattern whose closing bracket stands behind a comment that starts its line in the column of the opening bracket is not reported and stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5306-001")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyClosingBracketBehindLeadingCommentInBracketColumnIsNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    bool M(int[] v)
+                                    {
+                                        return v is [
+                                                        1
+                                                    /* e */ ];
+                                    }
+                                }
+                                """;
+
+        await VerifyFormatter(testData);
+    }
+
     #endregion // Tests
 }

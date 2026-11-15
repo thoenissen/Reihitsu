@@ -240,5 +240,55 @@ public class RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzerTests : Ana
         await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, AnalyzerResources.RH5044MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a <c>///</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5044-001")]
+    public async Task VerifyTripleSlashCommentBeforeFirstAttributeIsReported()
+    {
+        const string testData = """
+                                using System;
+
+                                [
+                                    {|#0:/// serialization|}
+                                    Serializable,
+                                    Obsolete]
+                                public class Data
+                                {
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, AnalyzerResources.RH5044MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, AnalyzerResources.RH5044MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>/** */</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5044-001")]
+    public async Task VerifyDelimitedDocumentationStyleCommentBeforeFirstAttributeIsReported()
+    {
+        const string testData = """
+                                using System;
+
+                                [
+                                    {|#0:/** serialization */|}
+                                    Serializable,
+                                    Obsolete]
+                                public class Data
+                                {
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, AnalyzerResources.RH5044MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, AnalyzerResources.RH5044MessageFormat));
+    }
+
     #endregion // Tests
 }

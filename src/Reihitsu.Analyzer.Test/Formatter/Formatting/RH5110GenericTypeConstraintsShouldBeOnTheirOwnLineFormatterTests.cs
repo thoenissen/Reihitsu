@@ -70,5 +70,27 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineFormatterTests : 
                               ExpectedDiagnostic(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, 1, 27, 1, 32, AnalyzerResources.RH5110MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a constraint clause behind a comment that starts its line in the constraint column is not reported and stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-001")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyConstraintBehindLeadingCommentInConstraintColumnIsNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N<T>()
+                                        /* c */ where T : class
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyFormatter(testData);
+    }
+
     #endregion // Tests
 }

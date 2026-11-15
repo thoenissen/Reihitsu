@@ -1035,6 +1035,50 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : Ba
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifies the spec example: a member behind two comments, the first of which starts its line outside the member column, is reported on the member, and the code fix is withheld or lays the line out in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5301-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyMemberBehindTwoMisplacedLeadingCommentsIsReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P { get; set; }
+
+                                    void M()
+                                    {
+                                        var c = new C
+                                                {
+                                            /* a */ /* b */ {|RH5301:P = 1|}
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int P { get; set; }
+
+                                     void M()
+                                     {
+                                         var c = new C
+                                                 {
+                                                     /* a */ /* b */ P = 1
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

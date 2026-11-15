@@ -414,5 +414,33 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyFormatterTests
         await VerifyFormatter(source);
     }
 
+    /// <summary>
+    /// Verifies that an element behind two comments, the first of which starts its line in the element column, is not reported and stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5303-002")]
+    public async Task VerifyElementBehindTwoLeadingCommentsInElementColumnIsNotReported()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var values = new List<int>
+                                                     {
+                                                         /* a */ /* b */ 1,
+                                                         2
+                                                     };
+                                    }
+                                }
+                                """;
+
+        await VerifyFormatter(testData);
+    }
+
     #endregion // Tests
 }

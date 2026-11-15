@@ -696,6 +696,206 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzerTests : B
         await AssertEveryOfferedFixParses(source);
     }
 
+    /// <summary>
+    /// Verifies the spec example: the directives of a region whose first line of code starts with a comment are compared with the column where that comment starts, not with the token behind it, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7304-001")]
+    [Requirement("SHARED-COMMENT-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyDirectivesAreComparedWithTheCommentThatLeadsTheFirstLineOfCode(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Fields
+
+                                    /* c */ int _a;
+
+                                    #endregion // Fields
+
+                                  {|RH7304:#region Values|}
+
+                                    /* d */ int _b;
+
+                                  {|RH7304:#endregion // Values|}
+
+                                    {|RH7304:#region Names|}
+
+                                      /* e */ int _c;
+
+                                    {|RH7304:#endregion // Names|}
+
+                                            {|RH7304:#region Others|}
+
+                                    /* f */ int _d;
+
+                                            {|RH7304:#endregion // Others|}
+
+                                    #region Lines
+
+                                    /* g
+                                     */ int _e;
+
+                                    #endregion // Lines
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the directives of a region whose first line of code starts with two comments are compared with the column of the comment that starts the line, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7304-001")]
+    [Requirement("SHARED-COMMENT-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyDirectivesAreComparedWithTheFirstOfSeveralCommentsThatLeadTheFirstLineOfCode(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Pairs
+
+                                    /* a */ /* b */ int _a;
+
+                                    #endregion // Pairs
+
+                                  {|RH7304:#region Others|}
+
+                                    /* a */ /* b */ int _b;
+
+                                  {|RH7304:#endregion // Others|}
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a comment on a line of its own above the region's first token does not change the column the directives are compared with: the token's, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7304-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyCommentOnItsOwnLineAboveTheFirstTokenDoesNotChangeTheComparedColumn(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Fields
+
+                                        // c
+                                    int _a;
+
+                                    #endregion // Fields
+
+                                        {|RH7304:#region Values|}
+
+                                        // d
+                                    int _b;
+
+                                        {|RH7304:#endregion // Values|}
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the spec example: the fix indents the directives of a region whose first line of code starts with a comment, on one line or across two, to the column where that comment starts, under LF and CRLF line endings, line endings included
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7304-004")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyFixIndentsDirectivesToTheCommentThatLeadsTheFirstLineOfCode(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                  {|RH7304:#region Fields|}
+
+                                    /* c */ int _a;
+
+                                  {|RH7304:#endregion // Fields|}
+
+                                  {|RH7304:#region Lines|}
+
+                                    /* g
+                                     */ int _e;
+
+                                  {|RH7304:#endregion // Lines|}
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     #region Fields
+
+                                     /* c */ int _a;
+
+                                     #endregion // Fields
+
+                                     #region Lines
+
+                                     /* g
+                                      */ int _e;
+
+                                     #endregion // Lines
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix indents the directives of a region whose first line of code starts with a comment that is itself out of column to the column where that comment starts, and leaves the comment and the token where they are, under LF and CRLF line endings, line endings included
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7304-004")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyFixIndentsDirectivesToAMisplacedCommentThatLeadsTheFirstLineOfCode(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH7304:#region Names|}
+
+                                      /* e */ int _c;
+
+                                    {|RH7304:#endregion // Names|}
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                       #region Names
+
+                                       /* e */ int _c;
+
+                                       #endregion // Names
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region Methods

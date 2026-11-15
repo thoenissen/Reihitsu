@@ -54,5 +54,29 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyFormatterTest
                               ExpectedDiagnostic(RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 6, 1, 6, 2, AnalyzerResources.RH5308MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a conditional operator behind a comment that starts its line in the operator column is not reported and stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5308-002")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyOperatorBehindLeadingCommentInOperatorColumnIsNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int M(bool a)
+                                    {
+                                        return a
+                                                   /* t */ ? 1
+                                                   : 2;
+                                    }
+                                }
+                                """;
+
+        await VerifyFormatter(testData);
+    }
+
     #endregion // Tests
 }

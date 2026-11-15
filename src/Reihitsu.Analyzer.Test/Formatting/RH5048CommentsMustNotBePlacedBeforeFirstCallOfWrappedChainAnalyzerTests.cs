@@ -514,6 +514,70 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
         await Verify(testData, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat, 2));
     }
 
+    /// <summary>
+    /// Verifies that a <c>///</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5048-001")]
+    public async Task VerifyTripleSlashCommentBeforeFirstCallOfWrappedChainIsReported()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal class TestClass
+                                {
+                                    void Method(bool a, bool b, int[] items, object o)
+                                    {
+                                        var query = items
+                                            {|#0:/// only positive|}
+                                            .Where(value => value > 0)
+                                            .Select(value => value)
+                                            .ToList();
+                                        _ = query;
+                                    }
+
+                                    static int Run(params object[] values) => 0;
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>/** */</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5048-001")]
+    public async Task VerifyDelimitedDocumentationStyleCommentBeforeFirstCallOfWrappedChainIsReported()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal class TestClass
+                                {
+                                    void Method(bool a, bool b, int[] items, object o)
+                                    {
+                                        var query = items
+                                            {|#0:/** only positive */|}
+                                            .Where(value => value > 0)
+                                            .Select(value => value)
+                                            .ToList();
+                                        _ = query;
+                                    }
+
+                                    static int Run(params object[] values) => 0;
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat));
+    }
+
     #endregion // Tests
 
     #region Methods

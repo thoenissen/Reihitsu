@@ -693,6 +693,282 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
         await VerifyNoCodeFixIsOffered(testData);
     }
 
+    /// <summary>
+    /// Verifies that a parameter list whose parameters all start on one line below the opening parenthesis is not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5109-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListWrappedOnlyBehindOpeningParenthesisIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M(
+                                        int a, int b)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a parameter list whose parameters all start on the line of the opening parenthesis and whose closing parenthesis stands on a later line is not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5109-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListWrappedOnlyInFrontOfClosingParenthesisIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N(int a, int b
+                                          )
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a parameter list whose parameters all start on one line and whose closing parenthesis a comment holds on a later line is not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5109-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListWhoseClosingParenthesisACommentHoldsOnALaterLineIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void Q(int a, int b // c
+                                          )
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a parameter list whose parameters all start on one line, kept off the line of the opening parenthesis by a comment, is not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5109-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListWhoseFirstParameterACommentKeepsOffTheOpeningParenthesisLineIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void O( // c
+                                        int a, int b)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a parameter list whose parameters all start on one line, kept off the line of the opening parenthesis by a directive, is not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5109-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListWhoseFirstParameterADirectiveKeepsOffTheOpeningParenthesisLineIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void P(
+                                #pragma warning disable CS0168
+                                        int a, int b)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the parameter lists of every kind of owner whose parameters all start on one line below the opening parenthesis are not reported: constructor, local function, operator, delegate, record primary constructor, parenthesized lambda, and anonymous method, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5109-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListsWrappedOnlyBehindOpeningParenthesisAreNotReportedForEveryOwner(string endOfLine)
+    {
+        const string testData = """
+                                using System;
+
+                                record R(
+                                    int A, int B);
+
+                                delegate void D(
+                                    int a, int b);
+
+                                class C
+                                {
+                                    C(
+                                        int a, int b)
+                                    {
+                                    }
+
+                                    public static C operator +(
+                                        C a, C b) => a;
+
+                                    void M()
+                                    {
+                                        void L(
+                                            int a, int b)
+                                        {
+                                        }
+
+                                        Func<int, int, int> f = (
+                                                                    int a, int b) => a + b;
+                                        Func<int, int, int> g = delegate(
+                                                                    int a, int b)
+                                                                {
+                                                                    return a + b;
+                                                                };
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a parameter list wrapped behind its opening parenthesis is reported when a parameter on the shared line spans several lines, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5109-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListWrappedBehindOpeningParenthesisWithASpanningParameterIsReported(string endOfLine)
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void N{|RH5109:(|}
+                                        int a, Dictionary<int,
+                                                          int> b)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a list whose parameters start on two lines below the opening parenthesis is reported and that the fix, applied to every diagnostic, puts the first parameter behind the opening parenthesis and every further parameter on its own line, under LF and CRLF line endings, and that formatting the fix result changes nothing
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5109-001")]
+    [Requirement("RH5109-003")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListWithParametersOnTwoLinesBelowOpeningParenthesisIsFixed(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M{|RH5109:(|}int a, int b,
+                                           int c)
+                                    {
+                                    }
+
+                                    void N{|RH5109:(|}
+                                        int a, int b,
+                                        int c)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M(int a,
+                                            int b,
+                                            int c)
+                                     {
+                                     }
+
+                                     void N(int a,
+                                            int b,
+                                            int c)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine), ConvertEndOfLine(fixedData, endOfLine));
+
+        AssertFormattingChangesNothing(ConvertEndOfLine(fixedData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the input of the conditional directive report: a list with a conditional directive whose excluded code holds a parameter is not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5109-004")]
+    [Requirement("SHARED-DIAG-008")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyConditionalDirectiveExcludingAParameterKeepsTheListFromBeingReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M(int a, int b,
+                                #if DEBUG
+                                           int c,
+                                #endif
+                                           int d)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
