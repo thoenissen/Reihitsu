@@ -5,7 +5,7 @@
 | ID prefix | FMT-USING |
 | Status | Active |
 | Code owners | `UsingDirectiveOrderingPhase`, `UsingDirectiveOrderingRewriter`, `UsingGrouping`, `UsingLeadingTriviaBuilder`, `UsingTrailingTriviaBuilder` |
-| Uses | SHARED-USING-001, SHARED-USING-004, SHARED-USING-007, SHARED-USING-008, SHARED-USING-009, SHARED-USING-010, SHARED-USING-011, FMT-PIPE-003, FMT-PIPE-030, FMT-BLANK-011, SHARED-FIX-006, SHARED-FIX-007 |
+| Uses | SHARED-USING-001, SHARED-USING-004, SHARED-USING-007, SHARED-USING-008, SHARED-USING-009, SHARED-USING-010, SHARED-USING-011, SHARED-BLANK-001, FMT-PIPE-003, FMT-PIPE-030, FMT-BLANK-011, FMT-CLEAN-001, SHARED-FIX-006, SHARED-FIX-007 |
 
 This spec covers what the `UsingDirectiveOrderingPhase` decides on its own: how a using block is rebuilt once its canonical order is known — blank lines between groups, one directive per line, and where header, leading, and trailing comments end up. The order itself and the safety guard are the shared policy in SHARED-USING. The code fixes of RH7201–RH7207 organize the one block they fix through `ReihitsuFormatter.OrganizeUsingDirectivesInDocumentAsync`, which runs this phase alone on the block's scope (FMT-PIPE-030), so its output is also their output.
 
@@ -346,7 +346,7 @@ class C
 
 ### FMT-USING-009 — The header above the first directive stays at the top
 
-When the reorder moves the block's original first directive away from the top, the comments in its leading trivia up to and including the last blank line among them MUST stay at the top of the block, and only the comments after that blank line MUST move with the directive. When no blank line separates the comments from the directive, all of them MUST stay at the top.
+When the reorder moves the block's original first directive away from the top, the comments in its leading trivia up to and including the last blank line among them MUST stay at the top of the block, and only the comments after that blank line MUST move with the directive. When no blank line separates the comments from the directive, all of them MUST stay at the top. A blank line is a line that holds nothing but whitespace before its line break (SHARED-BLANK-001): an empty line and a line that holds only spaces or tabs both end the header, in every line ending; a line that holds a comment does not.
 
 Why: The comments above the first using of a file are most often a file header — a copyright banner or a description of the file — and do not belong to whichever using happens to be first. A blank line is the only signal that separates a header from a comment written for the directive; without it, keeping the comment in place is the conservative choice.
 
@@ -398,6 +398,35 @@ using System;
 
 // About Analysis
 using Microsoft.CodeAnalysis;
+
+class C
+{
+    int x;
+}
+```
+
+and a line that holds only whitespace ends the header like an empty line — in the input, the line below `// Header` holds four spaces; the comment after it moves with its directive and keeps the blank line above it (FMT-USING-010), and the cleanup phase removes the four spaces (FMT-CLEAN-001):
+
+```csharp
+// Header
+    
+// About Linq
+using System.Linq;
+using System;
+
+class C
+{
+    int x;
+}
+```
+
+```csharp
+// Header
+
+using System;
+
+// About Linq
+using System.Linq;
 
 class C
 {
