@@ -1733,6 +1733,116 @@ public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH
                             });
     }
 
+    /// <summary>
+    /// Verifies that a parameter of a partial method keeps its diagnostic but gets no fix when the renamer would qualify a reference to
+    /// a static field with its type, although the other part of the method spells its parameter like the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAStaticFieldSpelledLikeTheParameterOfTheOtherPart()
+    {
+        const string testCode = """
+                                public partial class Counter
+                                {
+                                    private static int value;
+
+                                    public partial int Get(int value);
+
+                                    public partial int Get(int {|RH4105:Value|})
+                                    {
+                                        var total = Value;
+                                        total += 2;
+                                        return total + value;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a parameter of a partial method keeps its diagnostic but gets no fix when the renamer would qualify a reference to
+    /// an instance field with <c>this.</c>, although the other part of the method spells its parameter like the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAnInstanceFieldSpelledLikeTheParameterOfTheOtherPart()
+    {
+        const string testCode = """
+                                public partial class Counter
+                                {
+                                    private int value;
+
+                                    public partial int Get(int value);
+
+                                    public partial int Get(int {|RH4105:Value|})
+                                    {
+                                        var total = Value;
+                                        total += 2;
+                                        return total + value;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a parameter of a partial method keeps its diagnostic but gets no fix when the renamer would qualify the operand of
+    /// a <c>nameof</c> that names a field, although the other part of the method spells its parameter like the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldChangeANameofOperandSpelledLikeTheParameterOfTheOtherPart()
+    {
+        const string testCode = """
+                                public partial class Counter
+                                {
+                                    private static int value;
+
+                                    public partial int Get(int value);
+
+                                    public partial int Get(int {|RH4105:Value|})
+                                    {
+                                        var total = Value;
+                                        total += 2;
+                                        return total + nameof(value).Length;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a parameter of a partial method keeps its diagnostic but gets no fix when the field reference spelled like the
+    /// other part's parameter stands directly next to a reference to the renamed parameter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldHideAFieldSpelledLikeTheParameterOfTheOtherPartNextToTheParameter()
+    {
+        const string testCode = """
+                                public partial class Counter
+                                {
+                                    private static int value;
+
+                                    public partial int Get(int value);
+
+                                    public partial int Get(int {|RH4105:Value|})
+                                    {
+                                        return Value + value;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
     #endregion // Tests
 
     #region Methods

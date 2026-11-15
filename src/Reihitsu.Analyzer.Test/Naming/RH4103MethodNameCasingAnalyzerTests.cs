@@ -3584,6 +3584,144 @@ public class RH4103MethodNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4103M
                             });
     }
 
+    /// <summary>
+    /// Verifies that an extension method keeps its diagnostic but gets no fix when the renamer would turn a call of it into a static
+    /// call, so that the call keeps binding to the renamed method instead of an imported extension method of the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheRenamerWouldTurnACallOfTheRenamedExtensionMethodIntoAStaticCall()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                namespace N
+                                {
+                                    public static class Extensions
+                                    {
+                                        public static List<int> {|RH4103:toList|}(this IEnumerable<int> source) => new List<int>();
+                                    }
+
+                                    namespace Inner
+                                    {
+                                        using System.Linq;
+
+                                        public class User
+                                        {
+                                            public List<int> Get(int[] values) => values.toList();
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method keeps its diagnostic but gets no fix when the renamer would cast an argument of a call of it, so that
+    /// the call keeps binding to the renamed method instead of an overload of the new name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task NoFixIsOfferedWhenTheRenamerWouldCastAnArgumentOfACallOfTheRenamedMethod()
+    {
+        const string testCode = """
+                                public class Box
+                                {
+                                    public void {|RH4103:write|}(object value)
+                                    {
+                                    }
+
+                                    public void Write(int value)
+                                    {
+                                    }
+
+                                    public void Use(Box box) => box.write(1);
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a method keeps its diagnostic but gets no fix when its new name would make it implement an interface method that
+    /// its type lists among its own base types and that an inherited method implements today, although no reference names the
+    /// interface method
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    [Requirement("SHARED-FIX-003")]
+    public async Task NoFixIsOfferedWhenTheNewNameWouldChangeWhichMethodImplementsAnInterfaceMethod()
+    {
+        const string testCode = """
+                                public interface IProcessor
+                                {
+                                    int Process();
+                                }
+
+                                public class Base : IProcessor
+                                {
+                                    public int Process() => 1;
+                                }
+
+                                public class Derived : Base, IProcessor
+                                {
+                                    public int {|RH4103:process|}() => 2;
+                                }
+                                """;
+
+        await Verify(testCode, testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames a method whose new name hides an inherited method that implements an interface method when the
+    /// type does not list the interface among its own base types, because the inherited method keeps implementing it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-CASING-009")]
+    public async Task FixRenamesAMethodThatHidesAnInheritedInterfaceImplementationWhenTheTypeDoesNotListTheInterface()
+    {
+        const string testCode = """
+                                public interface IWorker
+                                {
+                                    int Work();
+                                }
+
+                                public class WorkerBase : IWorker
+                                {
+                                    public int Work() => 1;
+                                }
+
+                                public class WorkerDerived : WorkerBase
+                                {
+                                    public int {|RH4103:work|}() => 2;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public interface IWorker
+                                 {
+                                     int Work();
+                                 }
+
+                                 public class WorkerBase : IWorker
+                                 {
+                                     public int Work() => 1;
+                                 }
+
+                                 public class WorkerDerived : WorkerBase
+                                 {
+                                     public int Work() => 2;
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
