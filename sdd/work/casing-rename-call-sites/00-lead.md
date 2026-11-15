@@ -56,4 +56,5 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 - Spec author (decision 10) done: `14-spec-author.md` (141b218). Accepted its choices: name match ignores member kind; interface as declaring type included; fields excluded.
 - Test implementer (decision 10) done: `15-test-implementer.md` (e48cb14; 9 failing as intended).
 - Implementer (decision 10) done: `16-implementer.md` (11d3dd8, cd22e38; Naming 750 pass; analyzer 9598 pass; Release 0 warnings).
-- Next: cleaner → spec checker → auditor (delta since df00d3b) → validator.
+- Cleaner (decision 10) done: `17-cleaner.md` (clean; Naming 750/750).
+- Next: spec checker → auditor (delta since df00d3b) → validator.
