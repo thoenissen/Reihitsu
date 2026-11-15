@@ -49,5 +49,7 @@ Bug-fix lane: spec author (for the FMT-PIPE-010 clarification of #1695, and any 
 
 ## State
 
+- Follow-ups filed: thoenissen/Reihitsu#1747 (FMT-CLEAN-005), thoenissen/Reihitsu#1748 (RH5403/RH5404 blank line).
+
 - Audited SHA (final): d8de284e3dec0f1f50efceba719c3ea7d0d2963e (repair round 1 audit 13 passed, handover 3123a2d). Repair rounds used: 1.
 - Next: validator (14) and issue manager (15) with the two follow-up candidates; then note, delete sdd/work, trigger commit, PR.
