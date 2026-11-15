@@ -22,6 +22,7 @@
 | 8 | Implementer | Architecture finding: RH5102 and RH5109 now carry the same multi-line-by-elements loop (one rule stated in two places) | Change the structure in this run: one shared helper used by both analyzers, no new type if an existing utility class fits; RH5109 behavior unchanged | README *Architecture findings*: the narrow fix itself added a copy; RH5109 is RH5102's parameter-list counterpart; a few lines | Pure refactor; RH5109 tests must stay green unchanged | 5c8c36c |
 | 9 | Implementer | Architecture test `UsesListsExactlyTheReferencedRequirements` fails: RH5102.md references SHARED-DIAG-010 without listing it; line-breaks.md lists it without referencing it | Route to spec author | Spec text owner | Spec metadata is internal | cee5505 |
 | 10 | Implementer | Direct Core test for `SyntaxNodeUtilities.IsPartlyWrapped`? | Yes, route to test implementer | Core tests cover the shared utility assembly directly (AGENTS.md architecture) | Test only | 7e2ec7f |
+| 11 | Spec checker | Finding: change doc Status still Draft | Route to spec author; no cleaner or spec-checker re-run, the auditor reviews the full tree | One-field Markdown change; no C# changed | Change-doc metadata is internal | 20f69af |
 | 1 | Claim | Branch name | Use `claude/pensive-davinci-jjfo8i` instead of `claude/issue-1755-<slug>` | The session environment only permits pushing to that branch | Branch names are internal | c59c687 |
 
 ## Follow-up candidates
@@ -37,4 +38,5 @@
 - Implementer done (04; 37c9930): all RH5102 tests green; lane check confirmed behavior-change.
 - Decision 8 done (5c8c36c).
 - Decisions 9 (cee5505) and 10 (7e2ec7f) done.
-- Next: cleaner → spec checker → before-auditor steps → auditor → validator.
+- Cleaner clean (343c1bb); spec checker one finding (b65f499), repaired (20f69af).
+- Next: merge main if behind → build → auditor → validator.
