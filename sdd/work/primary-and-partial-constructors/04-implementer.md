@@ -59,3 +59,31 @@ No production change: maintainer answer 1 (B) keeps today's output and SHARED-DI
 ## Whole run
 
 Commit 5e6cbda carries the production change; this handover is committed after it.
+
+## Amendment (lead correction: no new type)
+
+Commit: 33b7a5a
+
+### Changes
+
+| File | What changed | Requirement |
+|---|---|---|
+| `src/Reihitsu.Analyzer/Base/DocumentationModeAnalysisContextExtensions.cs` → `AnalysisContextExtensions.cs` | Class and file renamed to `AnalysisContextExtensions`; the members of `StructuredTriviaAnalysisContextExtensions` moved in unchanged (`RegisterStructuredTriviaAction`, `RegisterStructuredTriviaActionWithDocumentationModeCheck`, private `IsRepeatedRun`, `GetPrimaryConstructorBaseArgumentList`, `IsInSpan`, `WrapWithRepeatedRunCheck`); class summary describes both duties | as above |
+| `src/Reihitsu.Analyzer/Base/StructuredTriviaAnalysisContextExtensions.cs` | Deleted | lead correction |
+
+Callers use extension syntax and are unchanged. Behavior is identical. No new type remains.
+
+### Production diff size
+
+`git diff -M20% --shortstat origin/main...HEAD -- src ':(exclude,glob)src/*Test*/**'`: 11 files changed, 120 insertions(+), 28 deletions(-). Without rename detection (`--no-renames`): 12 files, 205 insertions, 113 deletions. Either way, the rename makes up most of it.
+
+### Tests run
+
+- `scripts/build.sh --configuration Debug`: 0 errors, 0 warnings. `scripts/format.sh --force` over the merged file formatted nothing.
+- The twelve classes of 03-test-implementer.md: `Passed! - Failed: 0, Passed: 419, Total: 419`.
+- `scripts/test.sh --configuration Debug --project architecture`: `Failed! - Failed: 1, Passed: 117, Total: 118`. The one failure is `SpecConsistencyTests.EveryCodeOwnerNamesAnExistingType`: "shared/element-documentation.md: code owner `DocumentationModeAnalysisContextExtensions` is not declared in any production project under src/".
+
+### Disputed tests or scope
+
+- The rename leaves two spec code-owner lists naming the old class: `sdd/specs/shared/element-documentation.md:7` and `sdd/specs/README.md:30`. Specs belong to the spec author, so I did not edit them. Replacing `DocumentationModeAnalysisContextExtensions` with `AnalysisContextExtensions` in both lines makes the architecture test pass again. Keeping the old class name instead would avoid the spec edit.
+- The untested `: B(...)` edge is left to the auditor, as the lead directed.
