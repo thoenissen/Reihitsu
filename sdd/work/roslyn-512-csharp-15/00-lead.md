@@ -34,6 +34,8 @@ Batch 1 (before test implementer):
 - Blank line inserted after `(` in front of a first comment in a record/union parameter list (FMT-BLANK-011 exempts only blocks/type bodies/switch sections) — open output question for the maintainer, carried in the issue. Source: 02-skeptic.
 - Union test infrastructure facts (CS0518/CS0656 against net10.0 refs; clean against SDK net11.0 refs; Testing 1.1.4 only up to net10.0) — extend the first union sub-issue of #1716. Source: 02-skeptic.
 
+- Roslyn package version is repeated in 11 project files with nothing keeping them equal; consider central package management or an architecture test. Source: 09-auditor (hint).
+
 ## Worklist / next step
 
 - Done: 01-spec-author (change doc, commit 4cd929a), 02-skeptic (db5ecf9).
@@ -44,4 +46,7 @@ Batch 1 (before test implementer):
 - Done: 06-spec-author (README fd5f2ed).
 - Done: 07-cleaner (clean, build 0 warnings).
 - Done: 08-spec-checker (consistent, no findings). Merged origin/main 1defac1 cleanly; build green.
-- Next: auditor 09.
+- Done: 09-auditor (75e4cfd) on b0522fd: findings #1 (medium, undecided output: top-level statement starting with a local named `union`, e.g. `union.Add(4);`, now skipped under default C# 15) and #2 (low, comment text PlaygroundFormatterTests.cs:90 "only C# 14 parses" -> "C# 14 and later").
+- Decision: auditor's interim union layout hints are input for #1762–#1767 (already filed), not new follow-ups. Playground/trace now parse C# 15 (PLAY-005 already requires) -> change-doc mention, internal text.
+- Now: output question batch 2 (auditor #1) asked; waiting.
+- Next after answer: repair round 1 — spec author (change doc: top-level `union` statements per answer, Playground mention), cleaner (#2 comment), then spec checker, auditor (repair only), validator.
