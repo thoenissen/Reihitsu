@@ -45,6 +45,12 @@ public class CliHiddenCodeEndToEndTests
     private const string ConditionalCommentSource = "class C\n{\n    int M(bool a)\n    {\n        var x = a ? /* yes */ 1 : /* no */ 2;\n        var y = a\n                    ? /* yes */ 1\n                    : /* no */ 2;\n\n        return x + y;\n    }\n}\n";
 
     /// <summary>
+    /// The file of the FMT-UNSUP-009 change's visible output example: comments and directives between list elements and the
+    /// commas behind them, whose first comment starts in line 3, column 21
+    /// </summary>
+    private const string ListSeparatorCommentSource = "class C\n{\n    void M<T>(int a // first\n              , int b)\n        where T : class // k\n            , new()\n    {\n        Foo(1 // first\n            , 2);\n        var e = new D { X = 3 // k\n            , Y = 4 };\n        Foo(a, b\n#if DEBUG\n            , c\n#else\n            , d\n#endif\n            );\n        int[] g = new[] { 1,\n            2 /* two */\n            , };\n    }\n}\n";
+
+    /// <summary>
     /// A formatted file
     /// </summary>
     private const string FormattedSource = "class B\n{\n    void M()\n    {\n    }\n}";
@@ -260,6 +266,52 @@ public class CliHiddenCodeEndToEndTests
             Assert.AreEqual(ExitCodes.Error, exitCode);
             Assert.AreSequenceEqual(new[] { $"error: {Path.GetFullPath(filePath)}(5,21): unsupported syntax: a comment or directive between a conditional operator and its branch. The file was left unchanged." }, Lines(error));
             Assert.AreEqual(ConditionalCommentSource, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
+        }
+    }
+
+    /// <summary>
+    /// Verifies the visible output example of FMT-UNSUP-009: a file with comments and a directive between list elements and the
+    /// commas behind them is left unchanged, reported with the reason and the first comment's line and column, and the run exits
+    /// with code 2
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-009")]
+    public async Task CommentInFrontOfACommaOnALaterLineIsReportedAsUnsupported()
+    {
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile("l.cs", ListSeparatorCommentSource);
+
+            var (exitCode, _, error) = await Run(["--check", filePath]);
+
+            Assert.AreEqual(ExitCodes.Error, exitCode);
+            Assert.AreSequenceEqual(new[] { $"error: {Path.GetFullPath(filePath)}(3,21): unsupported syntax: a comment or directive between a list element and the comma behind it. The file was left unchanged." }, Lines(error));
+            Assert.AreEqual(ListSeparatorCommentSource, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
+        }
+    }
+
+    /// <summary>
+    /// Verifies that the CLI formats a file in place whose only comma-first list keeps its comments behind the commas, which
+    /// FMT-UNSUP-009 does not refuse, and reports nothing on standard error
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-009")]
+    public async Task CommentBehindACommaOnALaterLineIsFormatted()
+    {
+        const string source = "class C\n{\n    void M()\n    {\n        Foo(1\n            , /* c */ 2);\n    }\n}\n";
+        const string expected = "class C\n{\n    void M()\n    {\n        Foo(1, /* c */\n            2);\n    }\n}";
+
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile("f.cs", source);
+
+            var (exitCode, _, error) = await Run([filePath]);
+
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+            Assert.AreEqual(string.Empty, error);
+            Assert.AreEqual(expected, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
         }
     }
 

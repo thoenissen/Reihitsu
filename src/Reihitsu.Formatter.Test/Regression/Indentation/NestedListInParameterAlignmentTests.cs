@@ -333,10 +333,11 @@ public class NestedListInParameterAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a leading comma of a tuple type kept on its own line by a line comment is aligned with the elements
+    /// Verifies that a leading comma of a tuple type, which no requirement moves behind the element in front of it, is aligned
+    /// with the elements
     /// </summary>
     [TestMethod]
-    public void TupleTypeLeadingCommaHeldByLineCommentIsAlignedWithTheElements()
+    public void TupleTypeLeadingCommaIsAlignedWithTheElements()
     {
         // Arrange
         const string input = """
@@ -344,7 +345,7 @@ public class NestedListInParameterAlignmentTests : FormatterTestsBase
 
                              internal class Example
                              {
-                                 private (int First // keep
+                                 private (int First
                                  , int Second) Pair => default;
                              }
                              """;
@@ -354,7 +355,7 @@ public class NestedListInParameterAlignmentTests : FormatterTestsBase
 
                                 internal class Example
                                 {
-                                    private (int First // keep
+                                    private (int First
                                              , int Second) Pair => default;
                                 }
                                 """;

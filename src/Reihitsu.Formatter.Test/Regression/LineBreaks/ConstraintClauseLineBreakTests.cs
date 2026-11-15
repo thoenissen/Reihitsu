@@ -716,76 +716,6 @@ public class ConstraintClauseLineBreakTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the spec example: a comment in front of a comma keeps the comma at the start of its line
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-037")]
-    public void CommentInFrontOfCommaKeepsCommaAtLineStart()
-    {
-        const string input = """
-                             class C
-                             {
-                                 void M<T>()
-                                     where T : class // c
-                                         , new()
-                                 {
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    void M<T>()
-                                        where T : class // c
-                                                  , new()
-                                    {
-                                    }
-                                }
-                                """;
-
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies the spec example: a directive in front of a comma keeps the comma at the start of its line
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-037")]
-    public void DirectiveInFrontOfCommaKeepsCommaAtLineStart()
-    {
-        const string input = """
-                             using System;
-
-                             class C
-                             {
-                                 void M<T>()
-                                     where T : IDisposable
-                             #if !X
-                                         , allows ref struct
-                             #endif
-                                 {
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                using System;
-
-                                class C
-                                {
-                                    void M<T>()
-                                        where T : IDisposable
-                                #if !X
-                                                  , allows ref struct
-                                #endif
-                                    {
-                                    }
-                                }
-                                """;
-
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
     /// Verifies the spec example: a block comment behind a comma stays behind it, and the constraint behind the comment
     /// starts its own line in a wrapped clause
     /// </summary>
@@ -1371,28 +1301,6 @@ public class ConstraintClauseLineBreakTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a multi-line comment in front of a comma does not wrap the clause: the comma behind the comment's closing
-    /// line does not start a line, so the clause stays as written
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-037")]
-    public void CommaBehindMultiLineCommentClosingLineDoesNotWrapClause()
-    {
-        const string input = """
-                             class C
-                             {
-                                 void M<T>()
-                                     where T : class /* a
-                                         b */, new()
-                                 {
-                                 }
-                             }
-                             """;
-
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
     /// Verifies that a multi-line comment behind a comma does not wrap the clause: the constraint behind the comment's closing
     /// line does not start a line, so the clause stays as written and is not split partway
     /// </summary>
@@ -1543,46 +1451,6 @@ public class ConstraintClauseLineBreakTests : FormatterTestsBase
                                         where T : /* a
                                             b */ class,
                                                  new()
-                                    {
-                                    }
-                                }
-                                """;
-
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that in a wrapped clause a comma behind a multi-line comment's closing line stays at the end of the line of the
-    /// constraint in front of it, and that the constraint behind the comma starts its own line, so the clause is not split partway
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-037")]
-    [Requirement("FMT-INDENT-032")]
-    public void CommaBehindMultiLineCommentClosingLineInWrappedClauseIsFollowedByLineBreak()
-    {
-        const string input = """
-                             using System;
-
-                             class C
-                             {
-                                 void M<T>()
-                                     where T : class /* a
-                                         b */, new(),
-                                         IDisposable
-                                 {
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                using System;
-
-                                class C
-                                {
-                                    void M<T>()
-                                        where T : class /* a
-                                            b */,
-                                                  new(),
-                                                  IDisposable
                                     {
                                     }
                                 }

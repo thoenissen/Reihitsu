@@ -207,9 +207,8 @@ internal sealed class GenericConstraintLineBreakRewriter : CSharpSyntaxRewriter
     /// every comma joins the line of the constraint in front of it, and every later constraint that no line break
     /// separates from the comma in front of it gets a line break appended to the comma's trailing trivia, behind any
     /// comment there, so a multi-line comment behind a comma stays behind it. A line break inside the text of a multi-line
-    /// comment separates no tokens (<see cref="SyntaxTriviaUtilities.AreSeparatedByEndOfLine"/>). A comma that a comment, a
-    /// directive, or disabled text keeps at the start of its line stays there, and the constraint behind it shares its
-    /// line with no other constraint
+    /// comment separates no tokens (<see cref="SyntaxTriviaUtilities.AreSeparatedByEndOfLine"/>). Every comma joins: the
+    /// precheck refuses a comment, a directive, or disabled text in front of a comma on a later line (FMT-UNSUP-009)
     /// </summary>
     /// <param name="clause">The wrapped constraint clause</param>
     /// <param name="endOfLine">The end-of-line sequence to insert</param>
@@ -229,8 +228,7 @@ internal sealed class GenericConstraintLineBreakRewriter : CSharpSyntaxRewriter
         {
             var separator = clause.Constraints.GetSeparator(separatorIndex);
 
-            if (SyntaxTriviaUtilities.AreSeparatedByEndOfLine(separator, clause.Constraints[separatorIndex + 1].GetFirstToken())
-                || SyntaxTriviaUtilities.AreSeparatedByEndOfLine(clause.Constraints[separatorIndex].GetLastToken(), separator))
+            if (SyntaxTriviaUtilities.AreSeparatedByEndOfLine(separator, clause.Constraints[separatorIndex + 1].GetFirstToken()))
             {
                 continue;
             }

@@ -5,7 +5,7 @@
 | ID prefix | FMT-UNSUP |
 | Status | Active |
 | Code owners | `PrecheckPhase`, `FormattingResult<T>`, `UnsupportedSyntax`, `SyntaxNotSupportedException` |
-| Uses | FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-STRUCT-021, SHARED-FIX-010 |
+| Uses | FMT-BREAK-001, FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-STRUCT-019, FMT-STRUCT-021, SHARED-BLANK-008, SHARED-FIX-010 |
 
 This spec covers the formatter's *Unsupported* outcome: the input shapes the formatter refuses as a whole, the precheck phase that finds them before any other phase runs (FMT-PIPE-001), a phase's refusal of a shape the precheck does not find, what every entry point returns for a refused input, and the query that tells a code fix whether the formatter refuses a node. Each unsupported shape is a requirement of this spec; a shape is declared here so that no phase has to handle it.
 
@@ -372,6 +372,126 @@ class C
     }
 
     int N(int v) => v;
+}
+```
+
+### FMT-UNSUP-009 — Comments and directives between a list element and the comma behind it are unsupported
+
+An input MUST be refused when, for a comma token of the input, a comment — `//`, `/* */`, `///`, or `/** */`, in every documentation mode — a preprocessor directive, or disabled text stands between the comma and the token in front of it — in the trailing trivia of that token or in the leading trivia of the comma — and the comma stands on a later line of the text than the line on which that token ends.
+
+The conditions, each with both sides:
+
+- **Between the comma and the token in front of it.** Only the gap in front of the comma counts. A comment behind the comma, on its line or on a later one, does not refuse the input: `Foo(1⏎, /* c */ 2)`, `Foo(1⏎, // c⏎2)`, and `Foo(1, // c⏎2)` are formatted. When the token in front of the comma is an omitted element without text, such as the omitted type argument of `Dictionary<,>`, the gap starts behind the token in front of that element: `typeof(Dictionary<⏎// c⏎,>)` is refused, `typeof(Dictionary<, // c⏎>)` is not.
+- **On a later line of the text.** Every line break in the text between the end of the token in front of the comma and the comma counts, also one inside the text of a multi-line comment: `Foo(1 // c⏎, 2)` and `Foo(1 /* a⏎ b */, 2)` are refused. A comment in front of a comma on the line the token ends on does not refuse the input: `Foo(true /* force */, false)` and `{ 0x01 /* SOH */, 0x02 /* STX */ }` are formatted.
+- **A comma token of the input.** Every comma of the code counts, whatever list it separates or ends — argument, parameter, attribute argument, type parameter, and type argument lists, base lists, constraint clauses, initializers, collection expressions, patterns, tuples, enum members, switch-expression arms, and `for` expression lists — a trailing comma behind the last element included. A comma in disabled text is no token of the input: in a build that does not define `NEVER`, `Foo(1⏎#if NEVER⏎, 2⏎#endif⏎)` is formatted, while a build that defines it refuses the same text, because there `, 2` is code and `#if NEVER` stands in front of its comma. A comma inside a directive or inside a documentation comment, such as the one in `<see cref="M(int, int)"/>`, is not a token of the code and is not checked.
+
+A comma inside the span of a variable declaration (FMT-UNSUP-004) is a comma of the input too, and a comment in front of it can refuse the input under both requirements, starting at the same comment, where FMT-UNSUP-001's first shape in the text does not decide. Which reason and location the formatter gives depends on the comma:
+
+- **A comma between two declarators of the declaration**, such as the one in front of `, b = 2` in `int a = 1 // c⏎, b = 2;`: the reason and the location are FMT-UNSUP-004's. A directive or disabled text in front of such a comma, which FMT-UNSUP-004 does not cover, is refused under this requirement only, with its reason.
+- **Every other comma in the span** — one in the declaration's type, such as the comma of a tuple type, a function pointer type, or a type argument list, and one in an attribute argument list of a field: `(int A // c⏎, int B) t = default;` and `delegate*<int // c⏎, void> _f;` give this requirement's reason and location.
+
+A comma inside an initializer value raises no such question: FMT-UNSUP-004 excepts the inside of the value, and a comma is never a value's first or last token, so only this requirement refuses a comment in front of it.
+
+The reason the formatter gives for this shape is `a comment or directive between a list element and the comma behind it`, and its location is the span of the first comment, directive, or disabled text in that place.
+
+Why: A comma that a comment or a directive keeps off the line of the element in front of it cannot move behind that element without crossing the comment or the directive (FMT-BREAK-001). Every phase that places commas — the comma moves of argument, parameter, and attribute argument lists, of constraint clauses, and of initializers, collection expressions, and patterns, and the alignment of a comma that starts a line — had to find such a comma and leave it as written, each with its own guard, and the initializers needed a column of their own for it. Comma-first code with a comment or a directive in that gap is rare: in parameter, argument, attribute, base, and type lists a rule already reports the comment, and elsewhere it takes comma-first code with a comment written above the comma. Refusing it lets those guards go. The comment and the directive belong behind the element or behind the comma, where the phases already carry them. A comma at the end of its element's line, also one in front of a directive (`2,⏎#if X⏎3,⏎#endif`), is not the shape. Nor is a comment in front of a comma on the element's line, also where the parser puts it into the comma's leading trivia: in the documentation modes `Parse` and `Diagnose`, a documentation comment never trails a token, so the `/** doc */` of `B /** doc */,` is the comma's leading trivia with no line break in front of it, and the removal of a trailing comma still keeps it behind the last element (FMT-STRUCT-019). Counting the lines of the text, and not the line breaks SHARED-BLANK-008 counts, makes a comma behind a multi-line comment part of the shape, so the phase that moves commas needs no guard for it either. The comma and the token in front of it always belong to one list node, so a node-level input that holds the comma holds the whole gap (FMT-UNSUP-003), and no phase writes a comment, a directive, or disabled text into that gap when it moves a comma (FMT-UNSUP-005). Where FMT-UNSUP-004 refuses the same comment in front of a comma between two declarators, its reason stays the one the formatter gives for that declaration today; every other comma is a list comma like any other, so the reason names the comma, whichever list it stands in.
+
+Example — each list is refused, and the input that holds it is returned unchanged:
+
+```csharp
+class C
+{
+    void M<T>(int a // c1
+              , int b)
+        where T : class /* c2 */
+                  , new()
+    {
+        Foo(1
+            // c3
+            , 2);
+        var e = new D { X = 3 // c4
+            , Y = 4 };
+        Foo(1 /* a
+            b */, 2);
+    }
+}
+```
+
+Example — a directive between a list element and the comma behind it refuses the input in every build: where `DEBUG` is defined, `#if DEBUG` stands in front of the comma of `, c`; where it is not, `#if DEBUG`, the disabled text `, c`, and `#else` stand in front of the comma of `, d`:
+
+```csharp
+class C
+{
+    void M(int a, int b, int c, int d)
+    {
+        M(a, b
+#if DEBUG
+            , c
+#else
+            , d
+#endif
+            );
+    }
+}
+```
+
+Example — the other side: none of these comments and directives refuses the input, and the input is formatted. The `#if NEVER` list is shown as parsed in a build that does not define `NEVER`; the enum is not refused in either build of `X`:
+
+```csharp
+enum E
+{
+    A,
+#if X
+    B,
+#endif
+    C,
+}
+
+class C
+{
+    void M()
+    {
+        Foo(true /* force */, false);
+        Foo(1
+            , /* c */ 2
+            , // c
+            3);
+        Foo(1, // c
+            2);
+        int[] d = [1
+            , 2];
+        Foo(1
+#if NEVER
+            , 2
+#endif
+            );
+    }
+}
+```
+
+Example — a comment in front of a comma between two declarators is reported with FMT-UNSUP-004's reason, `a comment between a variable declaration's own tokens`, at the span of `// c`:
+
+```csharp
+class C
+{
+    void M()
+    {
+        int a = 1 // c
+            , b = 2;
+    }
+}
+```
+
+Example — the other side: a comment in front of the comma of a tuple type in a variable declaration also stands in FMT-UNSUP-004's span, but the comma is not between declarators, so the input is reported with this requirement's reason, `a comment or directive between a list element and the comma behind it`, at the span of `// c`:
+
+```csharp
+class C
+{
+    void M()
+    {
+        (int A // c
+            , int B) t = default;
+    }
 }
 ```
 

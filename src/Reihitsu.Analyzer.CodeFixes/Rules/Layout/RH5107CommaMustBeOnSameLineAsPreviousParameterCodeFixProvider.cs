@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -18,7 +19,9 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 /// <summary>
 /// Code fix provider for <see cref="RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer"/>. The fix is withheld
 /// when the gap between the previous parameter and the comma contains a comment or a preprocessor directive, so
-/// hoisting the comma can never move it across a directive boundary and corrupt an undefined-symbol configuration
+/// hoisting the comma can never move it across a directive boundary and corrupt an undefined-symbol configuration,
+/// and when a comment stands behind the comma on the comma's line, whichever token's trivia carries it, which the
+/// fix would leave behind on the comma's former line instead of moving it with the comma (RH5107-004)
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH5107CommaMustBeOnSameLineAsPreviousParameterCodeFixProvider))]
@@ -72,7 +75,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterCodeFixProvider : Rei
         }
         else
         {
-            // Content remains on the comma's line after it (the next element, or a comment): replace the leading
+            // Content remains on the comma's line after it (the next element): replace the leading
             // whitespace — together with the comma and any whitespace run following it — with the exact column
             // the parameter list's first parameter starts at, not one column past the opening parenthesis (the
             // formula RH5109's fix uses). The two anchors coincide whenever the first parameter immediately follows
@@ -90,6 +93,46 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterCodeFixProvider : Rei
         updatedText = updatedText.Replace(TextSpan.FromBounds(previousToken.Span.End, previousToken.Span.End), ",");
 
         return document.WithText(updatedText);
+    }
+
+    /// <summary>
+    /// Determines whether a comment stands behind the comma on the comma's line (RH5107-004). The parser puts such a
+    /// comment into the comma's trailing trivia, except a documentation comment in the documentation modes
+    /// <c>Parse</c> and <c>Diagnose</c>, which never trails a token and so leads the token behind the comma; that
+    /// token's leading trivia is therefore checked up to the first line break, unless a line break already ends the
+    /// comma's trailing trivia
+    /// </summary>
+    /// <param name="comma">The reported comma</param>
+    /// <returns><see langword="true"/> if a comment stands behind the comma on the comma's line</returns>
+    private static bool HasCommentBehindCommaOnItsLine(SyntaxToken comma)
+    {
+        foreach (var trivia in comma.TrailingTrivia)
+        {
+            if (SyntaxTriviaUtilities.IsCommentTrivia(trivia))
+            {
+                return true;
+            }
+
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                return false;
+            }
+        }
+
+        foreach (var trivia in comma.GetNextToken().LeadingTrivia)
+        {
+            if (SyntaxTriviaUtilities.IsCommentTrivia(trivia))
+            {
+                return true;
+            }
+
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                return false;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -145,7 +188,8 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterCodeFixProvider : Rei
             var previousToken = token.GetPreviousToken();
             var guardSpan = TextSpan.FromBounds(previousToken.Span.End, token.SpanStart);
 
-            if (SyntaxNodeUtilities.SpanContainsCommentOrDirective(root, guardSpan))
+            if (SyntaxNodeUtilities.SpanContainsCommentOrDirective(root, guardSpan)
+                || HasCommentBehindCommaOnItsLine(token))
             {
                 continue;
             }

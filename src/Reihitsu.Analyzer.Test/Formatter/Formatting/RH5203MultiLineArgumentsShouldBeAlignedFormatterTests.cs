@@ -56,29 +56,6 @@ public class RH5203MultiLineArgumentsShouldBeAlignedFormatterTests : FormatterTe
     }
 
     /// <summary>
-    /// Verifies that the formatter's layout for a leading comma kept by a comment is stable and not reported
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyLeadingCommaLayoutIsStableAndNotReported()
-    {
-        const string source = """
-                              using System;
-
-                              internal class Example
-                              {
-                                  internal void Method()
-                                  {
-                                      Console.WriteLine("first" // keep
-                                                        , "second");
-                                  }
-                              }
-                              """;
-
-        await VerifyFormatter(source);
-    }
-
-    /// <summary>
     /// Verifies that an argument behind a comment that starts its line in the alignment column is not reported and stays as written
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

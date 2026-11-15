@@ -1,4 +1,3 @@
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
@@ -7,8 +6,7 @@ namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
 /// <summary>
 /// Full-pipeline tests for lists whose elements decide whether they are multi-line, for the commas of multi-line argument
-/// and attribute argument lists, which end the line of the element in front of them, and for a comma that a comment or a
-/// directive keeps at the start of its line
+/// and attribute argument lists, which end the line of the element in front of them, together with a comment behind them
 /// </summary>
 [TestClass]
 public class ListWrapByElementsTests : FormatterTestsBase
@@ -412,42 +410,19 @@ public class ListWrapByElementsTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the specification example: a comma that a comment or a directive keeps off the line of the element in
-    /// front of it stays at the start of its line while the rest of the list is laid out around it, a comment behind a
-    /// moving comma goes with it, a held comma written alone on its line stays alone on it, and a block comment in front
-    /// of a comma on the element's own line keeps nothing; the example's <c>#if X</c> branch is active, as the
-    /// specification states
+    /// Verifies the specification example: a comment behind a comma that moves goes with the comma, and a block comment in
+    /// front of a comma on the element's own line keeps nothing
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-012")]
-    public void SpecificationExampleHeldCommasStayAndCommentsMoveWithTheirComma()
+    public void SpecificationExampleCommentsMoveWithTheirComma()
     {
         // Arrange
         const string input = """
                              class C
                              {
-                                 void N(int a
-                                        , int b // keep
-                                        , int c)
-                                 {
-                                 }
-
-                                 void P(int a // keep
-                                        ,
-                                        int b)
-                                 {
-                                 }
-
                                  void M()
                                  {
-                                     Foo(1, 2
-                                         , 3 // keep
-                                         , 4);
-                                     Foo(1, 2
-                             #if X
-                                         , 3
-                             #endif
-                                         );
                                      Foo(1
                                          , /* c */ 2, 3);
                                      Foo(1
@@ -461,30 +436,8 @@ public class ListWrapByElementsTests : FormatterTestsBase
         const string expected = """
                                 class C
                                 {
-                                    void N(int a,
-                                           int b // keep
-                                           , int c)
-                                    {
-                                    }
-
-                                    void P(int a // keep
-                                           ,
-                                           int b)
-                                    {
-                                    }
-
                                     void M()
                                     {
-                                        Foo(1,
-                                            2,
-                                            3 // keep
-                                            , 4);
-                                        Foo(1,
-                                            2
-                                #if X
-                                            , 3
-                                #endif
-                                            );
                                         Foo(1, /* c */
                                             2,
                                             3);
@@ -499,7 +452,7 @@ public class ListWrapByElementsTests : FormatterTestsBase
                                 """;
 
         // Act & Assert
-        AssertRuleResult(input, expected, CSharpParseOptions.Default.WithPreprocessorSymbols("X"));
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -629,260 +582,6 @@ public class ListWrapByElementsTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comma a line comment keeps at the start of its line stays there in a parameter list, while the free
-    /// comma in front of it moves behind the first parameter
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-012")]
-    [Requirement("FMT-BREAK-011")]
-    public void CommentHeldParameterCommaStaysWhileFreeCommaMoves()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void N(int a
-                                        , int b // keep
-                                        , int c)
-                                 {
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    void N(int a,
-                                           int b // keep
-                                           , int c)
-                                    {
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a parameter list with a comment-held comma still gets one parameter per line in front of it
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-012")]
-    [Requirement("FMT-BREAK-011")]
-    public void CommentHeldParameterCommaStaysWhileParametersSharingALineAreSplit()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void O(int a, int b // keep
-                                        , int c)
-                                 {
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    void O(int a,
-                                           int b // keep
-                                           , int c)
-                                    {
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a comma a line comment keeps at the start of its line stays there in an argument list, while the
-    /// free comma in front of it moves behind the first argument
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-012")]
-    public void CommentHeldArgumentCommaStaysWhileFreeCommaMoves()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void M()
-                                 {
-                                     Foo(1
-                                         , 2 // keep
-                                         , 3);
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        Foo(1,
-                                            2 // keep
-                                            , 3);
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that the last comma of an argument list stays at the start of its line when a line comment keeps it there,
-    /// while the arguments in front of it are split
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-012")]
-    public void CommentHeldLastArgumentCommaStaysWhileArgumentsInFrontAreSplit()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void M()
-                                 {
-                                     Foo(1, 2
-                                         , 3 // keep
-                                         , 4);
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        Foo(1,
-                                            2,
-                                            3 // keep
-                                            , 4);
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that the arguments sharing the line of a comment-held comma are split behind it
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-012")]
-    public void CommentHeldArgumentCommaStaysWhileArgumentsOnItsLineAreSplit()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void M()
-                                 {
-                                     Foo(1, 2
-                                         , 3, 4 // keep
-                                         , 5);
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        Foo(1,
-                                            2,
-                                            3,
-                                            4 // keep
-                                            , 5);
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a comma a block comment keeps off the line of the argument in front of it stays at the start of its
-    /// line, and that the argument behind it that shares a line with another one is split
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-012")]
-    public void BlockCommentHeldArgumentCommaStaysWhileLaterArgumentsAreSplit()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void M()
-                                 {
-                                     Foo(1 /* x */
-                                         , 2, 3);
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        Foo(1 /* x */
-                                            , 2,
-                                            3);
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a comma a directive keeps at the start of its line stays there, while the arguments in front of the
-    /// directive are split, in the build where the directive's branch is active
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-012")]
-    public void DirectiveHeldArgumentCommaStaysWhileArgumentsInFrontAreSplit()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void M()
-                                 {
-                                     Foo(1, 2
-                             #if X
-                                         , 3
-                             #endif
-                                         );
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        Foo(1,
-                                            2
-                                #if X
-                                            , 3
-                                #endif
-                                            );
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected, CSharpParseOptions.Default.WithPreprocessorSymbols("X"));
-    }
-
-    /// <summary>
     /// Verifies that an argument list whose comma sits only in an inactive conditional branch is single-line, because its
     /// parsed elements start on one line, and stays as written
     /// </summary>
@@ -907,126 +606,6 @@ public class ListWrapByElementsTests : FormatterTestsBase
 
         // Act & Assert
         AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that a comma a line comment keeps at the start of its line stays there in an attribute argument list,
-    /// while the arguments in front of it are split
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-012")]
-    public void CommentHeldAttributeArgumentCommaStaysWhileArgumentsInFrontAreSplit()
-    {
-        // Arrange
-        const string input = """
-                             using System;
-
-                             class A : Attribute
-                             {
-                                 public A(int a, int b, int c)
-                                 {
-                                 }
-                             }
-
-                             [A(1, 2 // keep
-                                , 3)]
-                             class C
-                             {
-                                 private int _value;
-                             }
-                             """;
-        const string expected = """
-                                using System;
-
-                                class A : Attribute
-                                {
-                                    public A(int a, int b, int c)
-                                    {
-                                    }
-                                }
-
-                                [A(1,
-                                   2 // keep
-                                   , 3)]
-                                class C
-                                {
-                                    private int _value;
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a comma a line comment keeps at the start of its line stays there in an indexer parameter list,
-    /// while the free comma in front of it moves behind the first parameter
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-012")]
-    [Requirement("FMT-BREAK-011")]
-    public void CommentHeldIndexerParameterCommaStaysWhileFreeCommaMoves()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 int this[int a
-                                          , int b // keep
-                                          , int c] => a;
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    int this[int a,
-                                             int b // keep
-                                             , int c] => a;
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a comma a line comment keeps at the start of its line stays there in a parenthesized lambda's
-    /// parameter list, while the parameters sharing a line in front of it are split
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-012")]
-    [Requirement("FMT-BREAK-011")]
-    public void CommentHeldLambdaParameterCommaStaysWhileParametersInFrontAreSplit()
-    {
-        // Arrange
-        const string input = """
-                             using System;
-
-                             class C
-                             {
-                                 void M()
-                                 {
-                                     Func<int, int, int, int> f = (int first, int second // keep
-                                                                   , int third) => first;
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                using System;
-
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        Func<int, int, int, int> f = (int first,
-                                                                      int second // keep
-                                                                      , int third) => first;
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -1134,43 +713,6 @@ public class ListWrapByElementsTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a line break inside the text of a multi-line comment in front of a comma keeps the comma on the line
-    /// of the argument in front of it, so the list wrapped behind a later comma gets one argument per line
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-012")]
-    public void LineBreakInsideMultiLineCommentInFrontOfCommaKeepsNothing()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void M()
-                                 {
-                                     Foo(1 /* a
-                                         b */, 2,
-                                         3);
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        Foo(1 /* a
-                                            b */,
-                                            2,
-                                            3);
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
     /// Verifies that a line break inside the text of a multi-line comment between two arguments does not make the list
     /// multi-line, so the list stays as written
     /// </summary>
@@ -1186,30 +728,6 @@ public class ListWrapByElementsTests : FormatterTestsBase
                                  {
                                      Foo(1, /* x
                                          y */ 2, 3);
-                                 }
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that an argument list already laid out with a comment-held comma stays as it is
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-012")]
-    public void ArgumentListWithCommentHeldCommaInFinalLayoutStays()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void M()
-                                 {
-                                     Foo(1,
-                                         2 // keep
-                                         , 3);
                                  }
                              }
                              """;

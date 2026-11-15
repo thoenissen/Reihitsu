@@ -21,21 +21,21 @@ public class TrailingCommaCommentOwnerTests : FormatterTestsBase
     /// </summary>
     private const string EnumInput = """
                                      enum E { A,
-                                     B // about B
+                                     B
                                          , // comma
                                      }
                                      """;
 
     /// <summary>
-    /// An array initializer whose trailing comma is led by a comment on a line of its own, below the last element's line
+    /// An array initializer whose trailing comma stands on the line below its last element, with a trailing comment
     /// </summary>
     private const string ArrayInput = """
                                       class C
                                       {
                                           int[] _a = new[] { 1,
-                                      2 /* two */
-                                      // before comma
-                                      , };
+                                      2
+                                      , // comma
+                                      };
                                       }
                                       """;
 
@@ -53,23 +53,23 @@ public class TrailingCommaCommentOwnerTests : FormatterTestsBase
     {
         const string input = """
                              enum E { A,
-                             B // about B
+                             B
                                  , // comma
                              }
 
                              class C
                              {
                                  int[] _a = new[] { 1,
-                             2 /* two */
-                             // before comma
-                             , };
+                             2
+                             , // comma
+                             };
                              }
                              """;
         const string expected = """
                                 enum E
                                 {
                                     A,
-                                    B // about B
+                                    B
 
                                     // comma
                                 }
@@ -77,9 +77,9 @@ public class TrailingCommaCommentOwnerTests : FormatterTestsBase
                                 class C
                                 {
                                     int[] _a = new[] { 1,
-                                                   2 /* two */
+                                                   2
 
-                                                   // before comma
+                                                   // comma
                                                };
                                 }
                                 """;
@@ -99,7 +99,7 @@ public class TrailingCommaCommentOwnerTests : FormatterTestsBase
                                 enum E
                                 {
                                     A,
-                                    B // about B
+                                    B
 
                                     // comma
                                 }
@@ -109,20 +109,20 @@ public class TrailingCommaCommentOwnerTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies in one pass that a comment that leads an array initializer's trailing comma on a line of its own leads the
-    /// closing brace
+    /// Verifies in one pass that the trailing comment of an array initializer's trailing comma on the line below the last
+    /// element leads the closing brace
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-027")]
-    public void OwnLineCommentInFrontOfAnInitializerCommaLeadsTheClosingBrace()
+    public void TrailingCommentOfAnInitializerCommaOnTheNextLineLeadsTheClosingBrace()
     {
         const string expected = """
                                 class C
                                 {
                                     int[] _a = new[] { 1,
-                                                   2 /* two */
+                                                   2
 
-                                                   // before comma
+                                                   // comma
                                                };
                                 }
                                 """;
@@ -148,8 +148,8 @@ public class TrailingCommaCommentOwnerTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that in the structural-transform phase's tree the comment in front of the removed initializer comma leads the
-    /// closing brace, and that the tree is the one its text parses back to
+    /// Verifies that in the structural-transform phase's tree the comment of the removed initializer comma leads the closing
+    /// brace, and that the tree is the one its text parses back to
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-027")]
@@ -160,7 +160,7 @@ public class TrailingCommaCommentOwnerTests : FormatterTestsBase
             var output = ObservedPipeline.GetPhaseOutput(NormalizeLineEndings(ArrayInput, endOfLine), endOfLine, "StructuralTransformPhase");
             var closeBrace = output.DescendantNodes().OfType<InitializerExpressionSyntax>().Single().CloseBraceToken;
 
-            AssertLeadsAndRoundTrips(output, closeBrace, "// before comma", endOfLine);
+            AssertLeadsAndRoundTrips(output, closeBrace, "// comma", endOfLine);
         }
     }
 

@@ -491,24 +491,19 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : B
     }
 
     /// <summary>
-    /// Verifies the spec example: the fix is offered where a comment behind the colon and a comment in front of a comma
-    /// keep their line breaks, and it lays out the lines around them
+    /// Verifies the spec example: the fix is offered where a comment behind the colon keeps its line break, and it lays out the
+    /// lines around it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5110-003")]
-    public async Task VerifyFixIsOfferedWhereCommentsBlockJoins()
+    public async Task VerifyFixIsOfferedWhereCommentBlocksJoin()
     {
         const string testData = """
                                 internal class TestClass
                                 {
                                     void M<T>() {|#0:where|} T : // c
                                         class, new()
-                                    {
-                                    }
-
-                                    void N<T>() {|#1:where|} T : class // c
-                                        , new()
                                     {
                                     }
                                 }
@@ -522,16 +517,57 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : B
                                                    new()
                                      {
                                      }
-
-                                     void N<T>()
-                                         where T : class // c
-                                                   , new()
-                                     {
-                                     }
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5110MessageFormat, 2));
+        await Verify(testData, fixedData, Diagnostics(RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH5110MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a comment in front of a comma on a later line is a shape the formatter refuses, so the clause
+    /// is reported and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-003")]
+    public async Task VerifyNoCodeFixWhereCommentStandsInFrontOfACommaOnALaterLine()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N<T>() {|RH5110:where|} T : class // c
+                                        , new()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a directive in front of a comma on a later line withholds the fix as the comment does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-003")]
+    public async Task VerifyNoCodeFixWhereDirectiveStandsInFrontOfACommaOnALaterLine()
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    void N<T>() {|RH5110:where|} T : IDisposable
+                                #if !X
+                                        , new()
+                                #endif
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>

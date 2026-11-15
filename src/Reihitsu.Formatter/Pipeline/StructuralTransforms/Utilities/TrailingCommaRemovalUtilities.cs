@@ -13,10 +13,16 @@ internal static class TrailingCommaRemovalUtilities
     #region Methods
 
     /// <summary>
-    /// Moves the trivia of a removed trailing comma to the token the text gives it once the comma is gone. When a line
-    /// break already ends the last element's line, the comma stood on a later line, so its comments start a line of their
-    /// own, which in the text belongs to the closing brace: the trivia then leads the closing brace (FMT-STRUCT-027).
-    /// Otherwise the comma stood on the last element's line, and its trivia trails the last element
+    /// Moves the trivia of a removed trailing comma to the token the text gives it once the comma is gone. When the comma's
+    /// leading trivia holds more than whitespace and line breaks, it holds a documentation comment on the last element's
+    /// line, which the parser never lets trail a token in the documentation modes <c>Parse</c> and <c>Diagnose</c> (the
+    /// precheck refuses a comment, a directive, or disabled text in front of a comma on a later line, FMT-UNSUP-009): the
+    /// comma's leading and trailing trivia then lead the closing brace, in their order, so the comment stays behind the last
+    /// element and is attached as a parse of the text attaches it (FMT-STRUCT-019, FMT-PIPE-021). Otherwise the leading
+    /// trivia is dropped. When a line break already ends the last element's line, the comma stood on a later line, so the
+    /// comments behind it stand on a line that in the text belongs to the closing brace: the trailing trivia then leads the
+    /// closing brace (FMT-STRUCT-027). Otherwise the comma stood on the last element's line, and its trailing trivia trails
+    /// the last element
     /// </summary>
     /// <typeparam name="TNode">Node type</typeparam>
     /// <param name="lastElement">The element in front of the removed comma</param>
@@ -34,7 +40,14 @@ internal static class TrailingCommaRemovalUtilities
         updatedLastElement = lastElement;
         updatedCloseBraceToken = closeBraceToken;
 
-        var triviaToPreserve = GetTriviaToPreserve(separator);
+        if (ContainsNonFormattingTrivia(separator.LeadingTrivia))
+        {
+            updatedCloseBraceToken = closeBraceToken.WithLeadingTrivia(separator.LeadingTrivia.AddRange(separator.TrailingTrivia).AddRange(closeBraceToken.LeadingTrivia));
+
+            return;
+        }
+
+        var triviaToPreserve = separator.TrailingTrivia;
 
         if (triviaToPreserve.Count == 0)
         {
@@ -51,23 +64,6 @@ internal static class TrailingCommaRemovalUtilities
         }
 
         updatedLastElement = lastElement.ReplaceToken(lastToken, lastToken.WithTrailingTrivia(lastToken.TrailingTrivia.AddRange(triviaToPreserve)));
-    }
-
-    /// <summary>
-    /// Gets the separator trivia that should be preserved after removing the trailing comma
-    /// </summary>
-    /// <param name="separator">Separator token</param>
-    /// <returns>The trivia of the separator, its leading trivia only when it holds more than whitespace and line breaks</returns>
-    private static SyntaxTriviaList GetTriviaToPreserve(SyntaxToken separator)
-    {
-        var triviaToPreserve = SyntaxFactory.TriviaList();
-
-        if (ContainsNonFormattingTrivia(separator.LeadingTrivia))
-        {
-            triviaToPreserve = triviaToPreserve.AddRange(separator.LeadingTrivia);
-        }
-
-        return triviaToPreserve.AddRange(separator.TrailingTrivia);
     }
 
     /// <summary>
