@@ -16,11 +16,18 @@ None yet.
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name | Use the session's mandated branch `claude/peaceful-sagan-kchdaf` | The environment permits pushing only there | Internal | claim commit |
+| 2 | Skeptic | Premise | Proceed; bug fix lane kept | Reproduced via CLI; the maintainer decided the target output in #923 (Q3) | Covered by a maintainer decision already recorded in `cleanup.md` | – |
+| 3 | Skeptic | Issue goal scope (agent-filed) | Widen to every failing member in `01-skeptic.md` (spaces/tab behind the last token, behind trailing block comments, comment-only last line; LF, CRLF, BOM) | Same mechanism; #923 Q3 covers all of them | #923 Q3 decides the output for every member | – |
+| 4 | Skeptic | Spec | Spawn spec author for a clarification: drop the end-of-file part of the `cleanup.md` non-goal and widen FMT-CLEAN-005 so it states the removal (keeps the issue's tag) | Bug-fix lane allows the spec author for a clarification; #923 Q1 precedent | Clarifies an output the maintainer already decided | – |
+| 5 | Skeptic | Detached roots (FMT-CLEAN-008) | Leave unchanged; change only the end of a file | No caller sees the difference | No caller reaches it | – |
+| 6 | Skeptic | PR links | `Closes #1747`, `Refs #960` | #1747 is item 2 of #960 | Internal | – |
 
 ## Follow-up candidates
 
-None yet.
+1. Update thoenissen/Reihitsu#960: item 2 is done by this run; keep item 1 (whitespace at the end of a directive line); its triage comment calls item 2 an "extension", contradicting #923 (01-skeptic.md).
+2. FMT-CLEAN-007 says a file with no token besides directives MUST be left unchanged, but the CLI removes a whitespace-only last line behind `#pragma …`; carries the open question whether the spec or the code is wrong (01-skeptic.md).
 
 ## Worklist / next step
 
-- Next: skeptic (premise check), handover `01-skeptic.md`.
+- Done: skeptic `01-skeptic.md` (proceed, no output questions).
+- Next: spec author clarification `02-spec-author.md`, then test implementer `03`.
