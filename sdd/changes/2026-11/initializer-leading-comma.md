@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-BREAK-038 (added), FMT-INDENT-033 (added and retired in this change), FMT-BREAK-021 (changed: array initializers move a comma that starts a line), FMT-BREAK-022 (changed: points to FMT-BREAK-038). FMT-INDENT-022 to FMT-INDENT-026 are referenced, not changed. |
 | Depends on | [A comment or directive in front of a comma on a later line is unsupported](comma-behind-comment-unsupported.md) |

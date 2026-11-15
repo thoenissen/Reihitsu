@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-UNSUP-009 (added), FMT-BREAK-011 (changed: no held comma), FMT-BREAK-012 (changed: held-comma paragraph and examples deleted), FMT-BREAK-037 (changed: held comma deleted from the joins and the examples), FMT-INDENT-032 (changed: no comma line to place), FMT-STRUCT-027 (changed: no comment leads a removed comma on a line of its own), RH5110-003 (changed: the fix is withheld for the shape) |
 | Depends on | [The formatter's Unsupported outcome](unsupported-precheck.md), [Declaring a shape unsupported is a refusal](unsupported-shape-as-refusal.md), [A comma that starts a line in an initializer](initializer-leading-comma.md) |
