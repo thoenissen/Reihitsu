@@ -34,4 +34,5 @@ None yet.
 - Maintainer answered 1A, 2A.
 - Spec author done (02-spec-author.md, a8adc34): FMT-USING-011 added; lane check confirmed bug-fix.
 - Test implementer done (03-test-implementer.md, a9b2d9b): reproduced; 17 formatter + RH7201–RH7207 code-fix tests failing as expected.
-- Next: implementer.
+- Implementer done (04-implementer.md, e360f52): fix in UsingLeadingTriviaBuilder + UsingDirectiveOrderingRewriter (+30/-2); all tests pass in Debug.
+- Next: cleaner.
