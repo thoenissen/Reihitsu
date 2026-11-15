@@ -23,19 +23,26 @@ Bug-fix lane: spec author (for the FMT-PIPE-010 clarification of #1695, and any 
 
 ## Maintainer answers
 
-(none yet)
+- Batch 1 asked (Q1 #1695 whitespace A'/B/C rec. B; Q2 #1696 RH8402 ending A/B rec. B): awaiting answer.
 
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Branch name | Use the session's designated branch `claude/keen-feynman-1ww7fe` instead of `claude/batch-1695-<slug>` | The session environment permits pushes only to that branch | Branch name is internal | claim commit |
+| 2 | Skeptic | Accept spec diff ec7c0c6 (FMT-PIPE-010 line ending)? | Accept; wording notes (a) "when it ends in a line break" to be applied with the Q1 amendment | States what SHARED-FIX-008 already requires | Clarification to an unchanged requirement | ec7c0c6 |
+| 3 | Skeptic | #1695 architecture finding: write-back after last phase restates preparation/cleanup rules | Fix narrowly at the three write-back sites, reusing the existing shared line-ending detection (precedent in `FormatSplitFieldInContext`); no new type, no copy of a phase | Structural move of the write-back would change FMT-PIPE-010's contract for every fix; narrow fix is a few lines | Output follows the clarified spec | – |
+| 4 | Skeptic | L1 (blank line lost when the line before the target ends in a lone `\r`) | Drop: rare input class (lone `\r` breaks in a document whose detected ending is `\n`), not a safety rail (no comment/directive/literal/meaning lost) | AGENTS.md Code-fix coverage, rare inputs | No output change | – |
+| 5 | Skeptic | Spec author's leading-trivia candidate | Drop | FMT-PIPE-018 already decides it; probe confirmed the code does it | – | – |
+| 6 | Skeptic | #1721 premise | Do not change; link `Refs #1721`; PR states the observed output (`\n` outside, lone `\r` inside literal) is what FMT-PIPE-007/FMT-EOL-004 specify and that `ReihitsuFormatterLineEndingIndependenceTests.KeptLineBreaksInsideLiteralsCommentsAndDisabledTextAreTheSameInTheCopy` already pins it; skip remaining roles for it except spec checker and validator | Specified behavior, agent-filed, nothing visible in question | Output unchanged | – |
+| 7 | Skeptic | #1707 RH3005 part does not reproduce | Narrow #1707 to RH3003; RH3005 gets characterization tests as the issue's own Done-when prescribes; keep `Closes #1707` (RH3003 reproduces) | Issue anticipated it; no escalation 4 since the issue's bug reproduces | RH3005 output unchanged | – |
 
 ## Follow-up candidates
 
-- FMT-PIPE-018 writes back the target's leading trivia with its original line endings; SHARED-FIX-008's span names trailing trivia only (e.g. RH5111 fix, LF blank line above target in a CRLF document). Source: 01-spec-author.md.
+- RH5403/RH5404 (FormatNodeInDocumentAsync callers) insert a blank line above a comment that leads their target, against SHARED-FIX-006; carries the output question in 02-skeptic.md (#1695 follow-ups, item 1). Source: 02-skeptic.md.
+- (dropped, Decision 5) FMT-PIPE-018 writes back the target's leading trivia with its original line endings; SHARED-FIX-008's span names trailing trivia only (e.g. RH5111 fix, LF blank line above target in a CRLF document). Source: 01-spec-author.md.
 
 ## State
 
-- Last step finished: spec author (01, commit ec7c0c6). Open output questions: Q1 (#1695 trailing whitespace, rec. A), Q2 (#1696 RH8402 ending, rec. B -> change doc + lane widening).
-- Next: skeptic, then output-question batch before the test implementer.
+- Last step finished: skeptic (02, commit 70a9857). Batch 1 output questions asked.
+- Next: on answers, Q2=B -> widen lane to behavior change, spec author writes change doc (RH8402-002/005) and FMT-PIPE-010 whitespace sentence per Q1 + wording note (a); then test implementer.
