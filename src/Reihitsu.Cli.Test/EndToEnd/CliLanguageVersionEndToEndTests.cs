@@ -69,6 +69,17 @@ public class CliLanguageVersionEndToEndTests
     private const string TypeNamedClosedFormatted = "class closed;\nclass C\n{\n    closed F;\n    closed M()\n    {\n        return null;\n    }\n}";
 
     /// <summary>
+    /// Top-level statements where one statement starts with a local named <c>union</c>, which C# 15 reads as the start of a
+    /// union declaration
+    /// </summary>
+    private const string TopLevelUnionLocalSource = "using System.Linq;\nvar a = new[] { 1,2 };\nvar union = a.Union(new[] { 3 }).ToList();\nunion.Add(4);\nSystem.Console.WriteLine(union.Count);";
+
+    /// <summary>
+    /// The formatted form of <see cref="TopLevelUnionLocalSource"/> under C# 14
+    /// </summary>
+    private const string TopLevelUnionLocalFormatted = "using System.Linq;\nvar a = new[] { 1, 2 };\nvar union = a.Union(new[] { 3 }).ToList();\nunion.Add(4);\nSystem.Console.WriteLine(union.Count);";
+
+    /// <summary>
     /// The warning for <c>--lang-version preview</c>
     /// </summary>
     private const string PreviewWarning = "Warning: C# language version 'preview' is newer than the newest supported version 15.0; formatting for 15.0.";
@@ -384,6 +395,49 @@ public class CliLanguageVersionEndToEndTests
             Assert.AreEqual(string.Empty, error);
             Assert.AreEqual(Join($"Formatted: {filePath}", string.Empty, "Formatted 1 of 1 file(s)."), output);
             Assert.AreEqual(TypeNamedClosedFormatted, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a file whose top-level statement starts with a local named <c>union</c> is skipped with syntax errors
+    /// without <c>--lang-version</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    [Requirement("CLI-004")]
+    public async Task TopLevelStatementStartingWithUnionLocalIsSkippedWithoutLangVersion()
+    {
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile("Program.cs", TopLevelUnionLocalSource);
+
+            var (exitCode, output, error) = await Run([filePath]);
+
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+            Assert.AreEqual(string.Empty, error);
+            Assert.AreEqual(Join(string.Empty, "Formatted 0 of 1 file(s).", SyntaxErrorSummaryLine), output);
+            Assert.AreEqual(TopLevelUnionLocalSource, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
+        }
+    }
+
+    /// <summary>
+    /// Verifies that <c>--lang-version 14</c> formats a file whose top-level statement starts with a local named <c>union</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    [Requirement("CLI-004")]
+    public async Task TopLevelStatementStartingWithUnionLocalIsFormattedUnderLangVersion14()
+    {
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile("Program.cs", TopLevelUnionLocalSource);
+
+            var (exitCode, output, error) = await Run(["--lang-version", "14", filePath]);
+
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+            Assert.AreEqual(string.Empty, error);
+            Assert.AreEqual(Join($"Formatted: {filePath}", string.Empty, "Formatted 1 of 1 file(s)."), output);
+            Assert.AreEqual(TopLevelUnionLocalFormatted, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
         }
     }
 
