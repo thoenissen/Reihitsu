@@ -10,7 +10,7 @@
 
 Every project of the repository moves from Roslyn (`Microsoft.CodeAnalysis`, `Microsoft.CodeAnalysis.CSharp`, `Microsoft.CodeAnalysis.CSharp.Workspaces`) 5.9.0 to 5.12.0, and the newest language version the formatter supports moves from C# 14 to C# 15 (FMT-PIPE-008). `Default`, `Latest`, and `LatestMajor` resolve to C# 15, `Preview` is clamped to C# 15, and the CLI parses files as C# 15 when `--lang-version` is absent or `latest` (CLI-004).
 
-No formatter rule is gated on a version above C# 12, so input that Roslyn parses the same way under C# 14 and C# 15 is formatted exactly as before. Input that parses differently — C# 14 code that uses a type named `union` or `closed` where C# 15 reads a keyword — is listed below. This change specifies no layout, spacing, or analyzer behavior for C# 15 constructs (union declarations, `with(…)` collection-expression elements, the `closed` and `safe` modifiers); that is the work of the other sub-issues of thoenissen/Reihitsu#1716 (#1762 to #1767). Whatever the phases do to such a construct today, they keep doing; this change only makes the CLI reach it by default.
+No formatter rule is gated on a version above C# 12, so input that Roslyn parses the same way under C# 14 and C# 15 is formatted exactly as before. Input that parses differently — C# 14 code that uses a type named `union` or `closed` where C# 15 reads a keyword, or a top-level statement that starts with a local named `union` — is listed below. This change specifies no layout, spacing, or analyzer behavior for C# 15 constructs (union declarations, `with(…)` collection-expression elements, the `closed` and `safe` modifiers); that is the work of the other sub-issues of thoenissen/Reihitsu#1716 (#1762 to #1767). Whatever the phases do to such a construct today, they keep doing; this change only makes the CLI reach it by default.
 
 ## Why
 
@@ -123,6 +123,30 @@ class C
 // after: unchanged; "Skipped 1 file(s) with syntax errors."
 ```
 
+**CLI, a top-level statement that starts with a local named `union`.** In a file with top-level statements, C# 15 reads `union` at the start of a statement as the start of a union declaration. A statement that begins with a local variable or local function named `union` — `union.Add(4);`, `union = …;`, `union++;`, `union[0] = …;`, `union?.M();`, `union(…);`, `union<int>(…);` — therefore has syntax errors under the default version, also when the file declares types after the statements, and the file is skipped; `--lang-version 14` formats it as before. The declaration of the local itself (`var union = …;`), `union` used anywhere else in a statement, and the same statements inside a block or a method body parse as before, and so does every one of these positions with `closed`.
+
+```csharp
+// input, reihitsu-format with no --lang-version
+using System.Linq;
+var a = new[] { 1,2 };
+var union = a.Union(new[] { 3 }).ToList();
+union.Add(4);
+System.Console.WriteLine(union.Count);
+```
+
+```csharp
+// before
+using System.Linq;
+var a = new[] { 1, 2 };
+var union = a.Union(new[] { 3 }).ToList();
+union.Add(4);
+System.Console.WriteLine(union.Count);
+```
+
+```csharp
+// after: unchanged; "Skipped 1 file(s) with syntax errors."
+```
+
 **CLI, `--lang-version 15` and `15.0`.** Before: `Invalid value for --lang-version: '15'. Expected a C# language version such as 12, 12.0, latest, or preview.`, exit code 2. After: accepted, the files are parsed as C# 15, no warning.
 
 **CLI, `--lang-version preview`.** The warning names the new maximum:
@@ -135,6 +159,8 @@ after:  Warning: C# language version 'preview' is newer than the newest supporte
 **CLI, `--help`.** The line under `--lang-version` reads `latest selects 15.0, the newest supported version; …` instead of `latest selects 14.0, …`.
 
 **Analyzer package, host compiler.** `Reihitsu.Analyzer`, its code fixes, and the formatter they carry are compiled against Roslyn 5.12, so they load only in a compiler of at least that version: the .NET 11 SDK (11.0.100 ships Roslyn 5.12) or a Visual Studio release with the same compiler. Before, the floor was Roslyn 5.9. In an older host the compiler reports that the analyzer assembly references a newer compiler and does not load the package's analyzers, so no Reihitsu diagnostic and no code fix appears. This belongs in the release notes of 1.3.0.
+
+**Playground and pipeline trace tool.** Both parse their input with Roslyn's default parse options, which on 5.12 select C# 15, so they now format a file with union declarations as the CLI does by default and show a file with a type named `union` or `closed`, or with a top-level statement that starts with a local named `union`, as having syntax errors. For the Playground, PLAY-005 already requires this: it parses with the default language version and matches the formatter's document-level output (FMT-PIPE-008); the requirement's text does not change.
 
 **Formatter entry points used by code fixes and whole-document formatting.** None. The tree is parsed by the project, not by the formatter, so the Roslyn upgrade does not change which documents have syntax errors, and a 5.9-built package in a 5.12 host already sees C# 15 trees. The resolved version only selects version-gated rules, and none is gated above C# 12.
 
@@ -151,6 +177,10 @@ Maintainer's answer: the CLI formats files with union declarations now, and a un
 ### A type named `union` or `closed` follows C# 15
 
 Maintainer's answer: C# 14 code that uses a type named `union` or `closed` in a position C# 15 reads as a keyword is skipped with syntax errors under the default; `--lang-version 14` restores the old result. An existing test of the repository that uses such a type name and breaks is fixed by renaming the type.
+
+### A top-level statement that starts with a local named `union` follows C# 15
+
+Maintainer's answer: a file whose top-level statement starts with a local named `union` (`union.Add(4);`, `union = …;`, `union++;`, `union[0] = …;`, `union?.M();`, `union(…);`) is skipped with syntax errors under the default C# 15; `--lang-version 14` restores the old result.
 
 ### The analyzer package's host floor rises to Roslyn 5.12
 
