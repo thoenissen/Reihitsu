@@ -60,4 +60,4 @@
 
 ## Open worklist / next step
 
-- Round 2 repairs done (head 4431815, main 450f274 merged, no newer main). Spec checker (25) and auditor repair-only (26) in parallel, then validator (27).
+- Validator pass on 53840d7 (27). Lane check confirmed. Next: issue manager (28) with the 5 follow-up candidates, then note, delete sdd/work, CI trigger, PR body.
