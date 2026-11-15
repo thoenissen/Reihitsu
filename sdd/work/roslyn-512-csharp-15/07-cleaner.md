@@ -18,4 +18,4 @@ _None._
 ## Checks
 - `scripts/build.sh`: Build succeeded, 0 Warning(s), 0 Error(s).
 - `LanguageVersionResolverTests`: Passed 11/11. Playground project: Passed 23/23.
-- `scripts/verify-text-only.sh --strict-docs --base b5bea19 --head worktree`: `TEXT-ONLY PROOF: FAIL ... 1 of 5 changed file(s) carry compiled behavior; xml-doc impact: 1 file(s), including public API documentation`. The only flagged file is the Playground test, flagged solely because --strict-docs counts any documentation-comment change; the diff is one word in a summary comment (14 -> 15).
+- `scripts/verify-text-only.sh --strict-docs --base b5bea19 --head worktree`: FAIL only because --strict-docs flags any doc-comment change (one word, 14 -> 15, in the Playground test). Without --strict-docs: `TEXT-ONLY PROOF: PASS — 5 changed file(s) (4 non-compiled, 1 C# comment/layout-only)`.
