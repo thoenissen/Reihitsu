@@ -21,7 +21,10 @@ internal static class UsingLeadingTriviaBuilder
     /// Creates the leading trivia for the reordered using directive
     /// </summary>
     /// <param name="current">Current using directive</param>
-    /// <param name="firstLeadingTriviaPrefix">Whitespace prefix from the first using directive</param>
+    /// <param name="firstLeadingTriviaPrefix">
+    /// Trivia that starts the block: the whitespace prefix of the original first using directive, followed by the header
+    /// kept at the top and, when that header ends its line, by the whitespace of the original first directive's line
+    /// </param>
     /// <param name="startsNewGroup"><see langword="true"/> if the using starts a new group</param>
     /// <param name="isFirst"><see langword="true"/> if the using is the first directive in the block</param>
     /// <param name="lineIndentation">
@@ -94,7 +97,10 @@ internal static class UsingLeadingTriviaBuilder
     /// trivia from the directive, the whole significant trivia is treated as the header. Any
     /// whitespace or end-of-line trivia before the first significant trivia is excluded from the
     /// header: callers combine it with <see cref="GetWhitespacePrefix"/>, which already covers that
-    /// same span, so including it here would duplicate it
+    /// same span, so including it here would duplicate it. When the header ends its last line (see
+    /// <see cref="SyntaxTriviaUtilities.EndsLine"/>) and only whitespace follows, that whitespace starts
+    /// the directive's line and stays in the remainder, so the directive keeps the whitespace in front
+    /// of its own line when it moves away from the top (FMT-USING-011)
     /// </summary>
     /// <param name="leadingTrivia">Leading trivia of the original first using directive</param>
     /// <returns>The header trivia and the trivia that remains attached to the directive</returns>
@@ -108,6 +114,20 @@ internal static class UsingLeadingTriviaBuilder
         }
 
         var splitIndex = GetHeaderSplitIndex(leadingTrivia, firstSignificantTriviaIndex);
+        var lineStartIndex = splitIndex;
+
+        while (lineStartIndex > firstSignificantTriviaIndex
+               && leadingTrivia[lineStartIndex - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+        {
+            lineStartIndex--;
+        }
+
+        if (lineStartIndex > firstSignificantTriviaIndex
+            && SyntaxTriviaUtilities.EndsLine(leadingTrivia[lineStartIndex - 1]))
+        {
+            splitIndex = lineStartIndex;
+        }
+
         var header = leadingTrivia.Skip(firstSignificantTriviaIndex).Take(splitIndex - firstSignificantTriviaIndex);
 
         return (SyntaxFactory.TriviaList(header), SyntaxFactory.TriviaList(leadingTrivia.Skip(splitIndex)));
