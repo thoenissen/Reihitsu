@@ -697,7 +697,7 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
     /// Applies a rename only when it is safe: no method name the compiler looks up implicitly, no namespace member
     /// collision, no name in excluded code or in a caller-argument expression attribute, no Roslyn conflict annotation,
     /// no rewritten or rebound reference to a symbol outside the rename cascade, no reference of the cascade rewritten
-    /// beyond its name, no new name that a member of an interface in the renamed member's type hierarchy has, no
+    /// beyond its name, no new name that a member of an interface in the type hierarchy of a cascade member has, no
     /// changed native entry point, no changed document that holds code another build configuration hides, no added
     /// compile error, and no change to the properties the compiler declares for positional record parameters
     /// </summary>
@@ -708,8 +708,9 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The renamed solution when it is safe; otherwise, <see langword="null"/></returns>
     /// <remarks>
-    /// The checks that depend on what the rename reaches take it from <see cref="GetRenameCascadeAsync"/>: the native
-    /// entry points of every cascade member, the caller-argument expression attributes of every parameter list that
+    /// The checks that depend on what the rename reaches take it from <see cref="GetRenameCascadeAsync"/>: the interface
+    /// members in the type hierarchy of every cascade method, property, and event, the native entry points of every
+    /// cascade member, the caller-argument expression attributes of every parameter list that
     /// declares a cascade parameter, the changes the renamer makes, which may lie only on identifiers that carry an
     /// old name, and the excluded code of every document that can refer to one, each searched for the new name and for
     /// the old names that the cascade before and after the rename gives. The compile
@@ -733,9 +734,9 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
             return null;
         }
 
-        // A new name that a member of an interface in the renamed member's type hierarchy has may change which member
+        // A new name that a member of an interface in the type hierarchy of a cascade member has may change which member
         // implements it, which a rename may not do (SHARED-CASING-009)
-        if (await HasInterfaceMemberOfNameInHierarchyAsync(solution, prepared.Value.Symbol, identifier, cancellationToken).ConfigureAwait(false))
+        if (await HasInterfaceMemberOfNameInHierarchyAsync(solution, prepared.Value.Cascade, identifier, cancellationToken).ConfigureAwait(false))
         {
             return null;
         }
@@ -1102,44 +1103,55 @@ public abstract class CasingCodeFixProviderBase<T> : ReihitsuCodeFixProviderBase
     }
 
     /// <summary>
-    /// Determines whether a member of an interface in the type hierarchy of a renamed method, property, or event has
-    /// the new name
+    /// Determines whether a member of an interface in the type hierarchy of a method, property, or event of the rename
+    /// cascade has the new name
     /// </summary>
     /// <param name="solution">Solution before the rename</param>
-    /// <param name="symbol">Renamed symbol</param>
+    /// <param name="cascade">Rename cascade before the rename</param>
     /// <param name="identifier">Proposed replacement identifier</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns><see langword="true"/> when such an interface member has the new name; otherwise, <see langword="false"/></returns>
     /// <remarks>
-    /// The hierarchy is the containing type and every type of the solution derived from it; for an interface, every type
-    /// that implements it and every interface that inherits from it. Which member implements an interface member depends
-    /// on all their interface mappings, so the check refuses by name instead of comparing the mappings
+    /// For each method, property, and event of the cascade other than a local function, the hierarchy is its containing
+    /// type and every type of the solution derived from it; for an interface, every type that implements it and every
+    /// interface that inherits from it. Which member implements an interface member depends on all their interface
+    /// mappings, so the check refuses by name instead of comparing the mappings. A local function implements no
+    /// interface member, so it adds no hierarchy
     /// </remarks>
     private static async Task<bool> HasInterfaceMemberOfNameInHierarchyAsync(Solution solution,
-                                                                             ISymbol symbol,
+                                                                             ImmutableArray<ISymbol> cascade,
                                                                              string identifier,
                                                                              CancellationToken cancellationToken)
     {
-        if (symbol.Kind is not (SymbolKind.Method or SymbolKind.Property or SymbolKind.Event)
-            || symbol.ContainingType is not { } containingType)
+        foreach (var symbol in cascade)
         {
-            return false;
+            if (symbol.Kind is not (SymbolKind.Method or SymbolKind.Property or SymbolKind.Event)
+                || symbol is IMethodSymbol { MethodKind: MethodKind.LocalFunction }
+                || symbol.ContainingType is not { } containingType)
+            {
+                continue;
+            }
+
+            IEnumerable<INamedTypeSymbol> types = [containingType];
+
+            if (containingType.TypeKind == TypeKind.Interface)
+            {
+                types = types.Concat(await SymbolFinder.FindImplementationsAsync(containingType, solution, cancellationToken: cancellationToken).ConfigureAwait(false))
+                             .Concat(await SymbolFinder.FindDerivedInterfacesAsync(containingType, solution, cancellationToken: cancellationToken).ConfigureAwait(false));
+            }
+            else if (containingType.TypeKind == TypeKind.Class)
+            {
+                types = types.Concat(await SymbolFinder.FindDerivedClassesAsync(containingType, solution, cancellationToken: cancellationToken).ConfigureAwait(false));
+            }
+
+            if (types.SelectMany(static type => type.AllInterfaces)
+                     .Any(interfaceType => interfaceType.GetMembers(identifier).IsEmpty == false))
+            {
+                return true;
+            }
         }
 
-        IEnumerable<INamedTypeSymbol> types = [containingType];
-
-        if (containingType.TypeKind == TypeKind.Interface)
-        {
-            types = types.Concat(await SymbolFinder.FindImplementationsAsync(containingType, solution, cancellationToken: cancellationToken).ConfigureAwait(false))
-                         .Concat(await SymbolFinder.FindDerivedInterfacesAsync(containingType, solution, cancellationToken: cancellationToken).ConfigureAwait(false));
-        }
-        else if (containingType.TypeKind == TypeKind.Class)
-        {
-            types = types.Concat(await SymbolFinder.FindDerivedClassesAsync(containingType, solution, cancellationToken: cancellationToken).ConfigureAwait(false));
-        }
-
-        return types.SelectMany(static type => type.AllInterfaces)
-                    .Any(interfaceType => interfaceType.GetMembers(identifier).IsEmpty == false);
+        return false;
     }
 
     /// <summary>
