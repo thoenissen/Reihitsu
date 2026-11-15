@@ -108,6 +108,6 @@ Maintainer 2026-11-13: release 1.2.1 and 1.2.2 first; deferred minor bugs #1140 
 
 Risks: Q1 lane (if #1736 needs a change doc, run it alone in B2); soft overlap Q1/R5 on SyntaxTriviaUtilities (move R5 to B3 if its skeptic names it); R2 may grow wide (shared guard, escalation 9); #1140 umbrella — re-measure on main; #1721/#1738/#1289 may end as characterization/spec-only.
 | B3 | R10 | bug fix | `/squad #1754` | using header split: whitespace-only line counts as blank (UsingLeadingTriviaBuilder, FMT-USING-009) | next (B3) |
-| B3 | R11 | behavior change | `/squad #1756` | RH3002 conditional directive inside parentheses (SHARED-DIAG-008 vs RH3002-009); output question | next (B3) |
+| B3 | R11 | bug fix (spec alignment) | `/squad #1756` | RH3002 keeps reporting (3B); spec text only; general reversal = #1759 vNext | next (B3) |
 | B3 | R12 | bug fix | `/squad #1757` | RH2001 fix rename withholding like the casing fixes (unconfirmed) | next (B3) |
 | B4 | R13 | behavior change | `/squad #1755` | RH5102 argument list wrapped only behind `(` (like #1736); after R7 (RH5102 fix) | |
