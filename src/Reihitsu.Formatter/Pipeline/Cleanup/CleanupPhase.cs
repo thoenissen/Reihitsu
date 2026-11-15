@@ -12,7 +12,7 @@ namespace Reihitsu.Formatter.Pipeline.Cleanup;
 
 /// <summary>
 /// Final cleanup pass that removes non-semantic trivia noise such as trailing whitespace
-/// and end-of-file newlines. It moves no token within its line: every column is final after the indentation phase,
+/// and the line breaks and whitespace that end the file. It moves no token within its line: every column is final after the indentation phase,
 /// and tabs in whitespace were already replaced by the first phase.
 /// Collapsing excessive blank lines is owned solely by <see cref="BlankLines.Rewriter.BlankLineCollapser"/>
 /// </summary>
@@ -53,18 +53,21 @@ internal sealed class CleanupPhase : IFormattingPhase
 
     /// <summary>
     /// Cleans the leading trivia of a token by removing trailing whitespace
-    /// and handling end-of-file formatting
+    /// and handling end-of-file formatting: the leading trivia of the end-of-file token ends the text, so the whitespace
+    /// and line breaks at its end are removed whether or not a line break follows the whitespace
     /// </summary>
     /// <param name="leading">The leading trivia list to clean</param>
     /// <param name="original">The original token</param>
     /// <returns>The cleaned leading trivia list</returns>
     private static SyntaxTriviaList CleanLeadingTrivia(SyntaxTriviaList leading, SyntaxToken original)
     {
-        leading = CleanWhitespaceBeforeEndOfLine(leading, startsText: original.FullSpan.Start == 0);
+        var startsText = original.FullSpan.Start == 0;
+
+        leading = CleanWhitespaceBeforeEndOfLine(leading, startsText);
 
         if (original.IsKind(SyntaxKind.EndOfFileToken))
         {
-            leading = RemoveTrailingEndOfLineTrivia(leading);
+            leading = RemoveTrailingEndOfLineTrivia(RemoveWhitespaceThatEndsText(leading, startsText));
         }
 
         return leading;
@@ -72,7 +75,9 @@ internal sealed class CleanupPhase : IFormattingPhase
 
     /// <summary>
     /// Cleans the trailing trivia of a token by removing trailing whitespace, stripping whitespace
-    /// at end of line, and handling end-of-file formatting
+    /// at end of line, and handling end-of-file formatting: when only whitespace trivia and line breaks follow the file's
+    /// last real token, its trailing trivia ends the text, so the whitespace and line breaks at its end are removed whether
+    /// or not a line break follows the whitespace. A detached root's last token loses only its line breaks
     /// </summary>
     /// <param name="trailing">The trailing trivia list to clean</param>
     /// <param name="original">The original token</param>
@@ -99,10 +104,14 @@ internal sealed class CleanupPhase : IFormattingPhase
             // leading trivia still holds a comment, directive, or disabled text that needs to start on
             // its own line. FindFirstSignificantTriviaIndex is that missing check, reused from the
             // shared owner instead of restated here.
-            if (nextToken.IsKind(SyntaxKind.None)
-                || (nextToken.IsKind(SyntaxKind.EndOfFileToken) && SyntaxTriviaUtilities.FindFirstSignificantTriviaIndex(nextToken.LeadingTrivia) < 0))
+            if (nextToken.IsKind(SyntaxKind.None))
             {
                 trailing = RemoveTrailingEndOfLineTrivia(trailing);
+            }
+            else if (nextToken.IsKind(SyntaxKind.EndOfFileToken)
+                     && SyntaxTriviaUtilities.FindFirstSignificantTriviaIndex(nextToken.LeadingTrivia) < 0)
+            {
+                trailing = RemoveTrailingEndOfLineTrivia(RemoveWhitespaceThatEndsText(trailing, startsText: false));
             }
         }
 
@@ -173,6 +182,29 @@ internal sealed class CleanupPhase : IFormattingPhase
     private static SyntaxTriviaList StripTrailingWhitespaceAtEndOfLine(SyntaxTriviaList trailing, SyntaxToken originalToken)
     {
         return EndOfLineWhitespace.StripBeforeFollowingLineBreak(trailing, originalToken.GetNextToken().LeadingTrivia);
+    }
+
+    /// <summary>
+    /// Removes the whitespace trivia at the end of a trivia list that ends the text, where no line break follows it. The
+    /// parser reads a byte order mark at the start of the text as whitespace, so when the list starts the text and its
+    /// removed whitespace began with the byte order mark, the byte order mark is kept
+    /// </summary>
+    /// <param name="triviaList">The trivia list that ends the text, already cleaned of whitespace in front of line breaks</param>
+    /// <param name="startsText">Whether the trivia list starts the text, so its first trivia may hold the byte order mark</param>
+    /// <returns>The trivia list without whitespace trivia at its end</returns>
+    private static SyntaxTriviaList RemoveWhitespaceThatEndsText(SyntaxTriviaList triviaList, bool startsText)
+    {
+        var result = TriviaListUtilities.RemoveTrailingWhitespace(triviaList);
+
+        if (startsText
+            && result.Count == 0
+            && triviaList.Count > 0
+            && ByteOrderMarkUtilities.StartsWithByteOrderMark(triviaList[0]))
+        {
+            return SyntaxFactory.TriviaList(ByteOrderMarkUtilities.CreateByteOrderMarkTrivia());
+        }
+
+        return result;
     }
 
     /// <summary>

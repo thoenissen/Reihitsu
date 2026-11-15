@@ -552,6 +552,45 @@ public class RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAna
         await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies that the fix keeps the indentation of a namespace with a body when a header without a blank line stands above
+    /// the first directive and that directive moves away from the top
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7204-004")]
+    [Requirement("FMT-USING-011")]
+    public async Task CodeFixKeepsNamespaceIndentationBelowAHeader()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    // Header
+                                    using B = System.Text;
+                                    using {|RH7204:A|} = System.Linq;
+
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace N
+                                 {
+                                     // Header
+                                     using A = System.Linq;
+                                     using B = System.Text;
+
+                                     class C
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
