@@ -35,4 +35,4 @@
 ## Worklist / next step
 
 - Skeptic done (01-skeptic.md, commit 994a2e2).
-- Answer 1 = B. Spec author done (02, 454da9a). Test implementer done (03, f95f956): reproduced, 19 red. Implementer done (04, 37e364a): 5 disputed tests. Test implementer 05 done (29d3add), 207/207 RH2001 green. Next: in parallel, spec author correction (06) and test implementer sibling tests (07); then cleaner.
+- Answer 1 = B. Spec author done (02, 454da9a). Test implementer done (03, f95f956): reproduced, 19 red. Implementer done (04, 37e364a): 5 disputed tests. Test implementer 05 done (29d3add), 207/207 RH2001 green. Spec author 06 (5b5d5c2) and test implementer 07 (2143b97, 213/213 green) done; 07's spec-text remark refers to pre-5b5d5c2 lines, already corrected. Next: cleaner (08), spec checker (09), auditor.
