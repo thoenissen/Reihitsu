@@ -138,8 +138,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
     /// property that binds to another symbol adds one. A reference to the property that the renamer qualifies with
     /// <c>this.</c> or its type binds to the renamed property and is not compared, so the fix stays offered for it. The
     /// references include the <c>cref</c> names of documentation comments. A reference to the property that gives an
-    /// anonymous-object member or a tuple element its inferred name withholds the fix, because the rename renames that
-    /// member as well
+    /// anonymous-object member, or a tuple element whose tuple keeps that name in its type, its inferred name withholds the
+    /// fix, because the rename renames that member as well
     /// </remarks>
     private static async Task<bool> RenameChangesBindingAsync(Document document, PropertyDeclarationSyntax node, CancellationToken cancellationToken)
     {
@@ -188,8 +188,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
     }
 
     /// <summary>
-    /// Checks whether a reference to the property gives an anonymous-object member without <c>Name =</c> or a tuple
-    /// element without <c>Name:</c> its inferred name
+    /// Checks whether a reference to the property gives an anonymous-object member without <c>Name =</c>, or a tuple
+    /// element without <c>Name:</c> whose tuple keeps that name in its type where it is used, its inferred name
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="property">Property before the rename</param>
@@ -218,13 +218,48 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
             if (expression != null
                 && SyntaxFacts.TryGetInferredMemberName(expression) == property.Name
                 && expression.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().LastOrDefault() is { } name
-                && SymbolEqualityComparer.Default.Equals(semanticModel?.GetSymbolInfo(name, cancellationToken).Symbol, property))
+                && SymbolEqualityComparer.Default.Equals(semanticModel?.GetSymbolInfo(name, cancellationToken).Symbol, property)
+                && (expression.Parent is not ArgumentSyntax argument
+                    || TupleTypeKeepsElementName(semanticModel, argument, property.Name, cancellationToken)))
             {
                 return true;
             }
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Checks whether the tuple that holds an element without <c>Name:</c> keeps the element's inferred name in its type
+    /// where it is used
+    /// </summary>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="argument">Tuple element</param>
+    /// <param name="elementName">Inferred name of the element</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>
+    /// <see langword="false"/> if the tuple, or a tuple it is nested in, is the target of a deconstruction, or the tuple is
+    /// converted to a type whose element at that position has no name or another name, as the source of a deconstruction is
+    /// </returns>
+    private static bool TupleTypeKeepsElementName(SemanticModel semanticModel, ArgumentSyntax argument, string elementName, CancellationToken cancellationToken)
+    {
+        var tuple = (TupleExpressionSyntax)argument.Parent;
+        ExpressionSyntax outermostTuple = tuple;
+
+        while (outermostTuple.Parent is ArgumentSyntax { Parent: TupleExpressionSyntax enclosingTuple })
+        {
+            outermostTuple = enclosingTuple;
+        }
+
+        if (outermostTuple.Parent is AssignmentExpressionSyntax assignment
+            && assignment.Left == outermostTuple)
+        {
+            return false;
+        }
+
+        return semanticModel.GetTypeInfo(tuple, cancellationToken).ConvertedType is INamedTypeSymbol { IsTupleType: true } tupleType
+               && tupleType.TupleElements.Length == tuple.Arguments.Count
+               && tupleType.TupleElements[tuple.Arguments.IndexOf(argument)].Name == elementName;
     }
 
     /// <summary>
