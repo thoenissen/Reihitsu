@@ -374,8 +374,9 @@ public class LineBreakRequirementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that wrapped attribute argument, parameter, and argument lists become one element
-    /// per line with the first element on the opening line, while a one-line list stays on one line
+    /// Verifies the specification example: attribute argument, parameter, and argument lists whose elements start on
+    /// different lines become one element per line with the first element on the opening line, while a list wrapped only
+    /// behind its opening parenthesis is joined and a one-line list stays on one line
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-012")]
@@ -396,6 +397,8 @@ public class LineBreakRequirementTests : FormatterTestsBase
                                      Foo(
                                          a,
                                          b);
+                                     Foo(
+                                         a, b);
                                      Foo(a, b, c);
                                  }
                              }
@@ -414,6 +417,7 @@ public class LineBreakRequirementTests : FormatterTestsBase
                                             c);
                                         Foo(a,
                                             b);
+                                        Foo(a, b);
                                         Foo(a, b, c);
                                     }
                                 }

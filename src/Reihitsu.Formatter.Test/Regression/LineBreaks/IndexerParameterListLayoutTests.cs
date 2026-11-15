@@ -103,11 +103,12 @@ public class IndexerParameterListLayoutTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a break behind the opening bracket moves the first parameter onto the line of the bracket
+    /// Verifies that an indexer parameter list wrapped only behind its opening bracket has all its parameters on one line,
+    /// so it is single-line and joined onto the line of the bracket
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-012")]
-    public void FirstIndexerParameterJoinsOpeningBracket()
+    public void IndexerParameterListWrappedOnlyBehindOpeningBracketIsJoined()
     {
         const string input = """
                              class C
@@ -119,8 +120,7 @@ public class IndexerParameterListLayoutTests : FormatterTestsBase
         const string expected = """
                                 class C
                                 {
-                                    int this[int a,
-                                             int b] => a;
+                                    int this[int a, int b] => a;
                                 }
                                 """;
 

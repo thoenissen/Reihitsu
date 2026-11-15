@@ -880,6 +880,51 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifying that the fix of an argument list wrapped behind its opening parenthesis and in front of a comma joins the
+    /// first argument, moves the comma behind it, and puts every argument on its own line, under LF and CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5101-003")]
+    [Requirement("FMT-BREAK-012")]
+    public async Task FixMovesLeadingCommaOfListWrappedBehindOpeningParenthesis()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Call(
+                                            {|RH5101:1|}
+                                            , 2, 3);
+                                    }
+
+                                    void Call(int a, int b, int c)
+                                    {
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  internal class TestClass
+                                  {
+                                      void Method()
+                                      {
+                                          Call(1,
+                                               2,
+                                               3);
+                                      }
+
+                                      void Call(int a, int b, int c)
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await VerifyCodeFixWithEndOfLine(testData, resultData, "\n");
+        await VerifyCodeFixWithEndOfLine(testData, resultData, "\r\n");
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

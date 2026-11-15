@@ -188,24 +188,31 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Collapses misplaced commas onto the previous parameter line, in a parenthesized parameter list and in an indexer's
-    /// bracketed one alike. When the moved comma does not already end its line, only the whitespace at the end of its
-    /// trailing trivia is replaced by the line break; whitespace before or between block comments that stay after the
-    /// comma is kept as written
+    /// Moves every comma that starts a line behind the element in front of it, in a parameter list — parenthesized, or an
+    /// indexer's bracketed one — an argument list, and an attribute argument list alike (FMT-BREAK-011, FMT-BREAK-012).
+    /// A comma that a comment, a directive, or disabled text keeps off the line of the element in front of it is left
+    /// where it is, and so is the gap behind it (FMT-BREAK-001). When the moved comma does not already end its line, only
+    /// the whitespace at the end of its trailing trivia is replaced by the line break, so a comment behind the comma
+    /// moves with it; whitespace before or between block comments that stay after the comma is kept as written
     /// </summary>
-    /// <typeparam name="TList">The parameter list type</typeparam>
-    /// <param name="node">The parameter list node</param>
+    /// <typeparam name="TNode">The list node type</typeparam>
+    /// <typeparam name="TElement">The type of the elements in the list</typeparam>
+    /// <param name="node">The list node</param>
+    /// <param name="getElements">Reads the current elements from the (possibly already updated) node</param>
     /// <param name="endOfLine">The end-of-line sequence to keep after a moved separator</param>
-    /// <returns>The updated parameter list</returns>
-    private static TList CollapseSeparatorsToPreviousParameterLine<TList>(TList node,
-                                                                          string endOfLine)
-        where TList : BaseParameterListSyntax
+    /// <returns>The updated list</returns>
+    private static TNode CollapseSeparatorsToPreviousElementLine<TNode, TElement>(TNode node,
+                                                                                  Func<TNode, SeparatedSyntaxList<TElement>> getElements,
+                                                                                  string endOfLine)
+        where TNode : SyntaxNode
+        where TElement : SyntaxNode
     {
-        for (var separatorIndex = 0; separatorIndex < node.Parameters.SeparatorCount; separatorIndex++)
+        for (var separatorIndex = 0; separatorIndex < getElements(node).SeparatorCount; separatorIndex++)
         {
-            var previousToken = node.Parameters[separatorIndex].GetLastToken();
-            var separator = node.Parameters.GetSeparator(separatorIndex);
-            var nextParameter = node.Parameters[separatorIndex + 1].GetFirstToken();
+            var elements = getElements(node);
+            var previousToken = elements[separatorIndex].GetLastToken();
+            var separator = elements.GetSeparator(separatorIndex);
+            var nextElementToken = elements[separatorIndex + 1].GetFirstToken();
 
             if (TokenGapUtilities.HasLineBreakBetween(previousToken, separator) == false)
             {
@@ -220,7 +227,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
             var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.CreateJoinedTrailingTrivia(previousToken, separator));
             var newSeparator = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(separator);
 
-            if (LineBreakTriviaUtilities.HasTrailingEndOfLine(newSeparator) == false && LineBreakTriviaUtilities.HasLeadingEndOfLine(nextParameter) == false)
+            if (LineBreakTriviaUtilities.HasTrailingEndOfLine(newSeparator) == false && LineBreakTriviaUtilities.HasLeadingEndOfLine(nextElementToken) == false)
             {
                 newSeparator = newSeparator.WithTrailingTrivia(LineBreakTriviaUtilities.AppendEndOfLine(LineBreakTriviaUtilities.RemoveTrailingWhitespace(newSeparator.TrailingTrivia), endOfLine));
             }
@@ -501,14 +508,9 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     /// <typeparam name="TList">The parameter list type</typeparam>
     /// <param name="node">The parameter list node</param>
     /// <param name="endOfLine">The end-of-line sequence to insert when splitting parameters</param>
-    /// <param name="isWrappedAfterOpener">
-    /// Whether the list was wrapped behind its opening delimiter before the first
-    /// parameter was joined onto that delimiter's line, which splits the list as well
-    /// </param>
     /// <returns>The parameter list with parameters on separate lines</returns>
     private TList EnsureParametersOnSeparateLines<TList>(TList node,
-                                                         string endOfLine,
-                                                         bool isWrappedAfterOpener = false)
+                                                         string endOfLine)
         where TList : BaseParameterListSyntax
     {
         if (node.Parameters.Count <= 1)
@@ -516,34 +518,33 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        return EnsureSeparatorsHaveEndOfLine(node, node.Parameters, endOfLine, isWrappedAfterOpener);
+        return EnsureSeparatorsHaveEndOfLine(node, node.Parameters, endOfLine);
     }
 
     /// <summary>
     /// Ensures that each separator in a separated syntax list has a trailing end-of-line trivia
-    /// once the list is already multi-line or an element signals a split, including an element that
-    /// attribute formatting later in this pass spreads over several lines. Only the whitespace at the end
-    /// of a separator's trailing trivia is replaced by the line break; whitespace before or between block
-    /// comments that stay after the separator is kept as written
+    /// once two elements start on different lines or an element signals a split, including an element that
+    /// attribute formatting later in this pass spreads over several lines (FMT-BREAK-012). A line break in front
+    /// of a separator — one that a comment, a directive, or disabled text keeps there — separates the elements on
+    /// either side of it, and that separator is left as written. A first element that a comment, a directive, or
+    /// disabled text keeps off the line of the opening delimiter cannot join that line, starts its own line, and
+    /// so makes the list multi-line, one element per line. Only the whitespace at the end of a separator's
+    /// trailing trivia is replaced by the line break; whitespace before or between block comments that stay after
+    /// the separator is kept as written
     /// </summary>
     /// <typeparam name="TNode">The type of the containing syntax node</typeparam>
     /// <typeparam name="TElement">The type of the elements in the separated list</typeparam>
     /// <param name="node">The containing syntax node</param>
     /// <param name="list">The separated syntax list to process</param>
     /// <param name="endOfLine">The end-of-line sequence to add after separators that need splitting</param>
-    /// <param name="isWrappedAfterOpener">
-    /// Whether the list was wrapped behind its opening delimiter as written, which
-    /// signals the split like a wrapped element does
-    /// </param>
     /// <returns>The node with updated separators</returns>
     private TNode EnsureSeparatorsHaveEndOfLine<TNode, TElement>(TNode node,
                                                                  SeparatedSyntaxList<TElement> list,
-                                                                 string endOfLine,
-                                                                 bool isWrappedAfterOpener = false)
+                                                                 string endOfLine)
         where TNode : SyntaxNode
         where TElement : SyntaxNode
     {
-        var hasElementSplitSignal = isWrappedAfterOpener || HasElementSplitSignal(list);
+        var hasElementSplitSignal = HasElementSplitSignal(list);
 
         if (LineBreakDetection.IsMultiLine(node) == false && hasElementSplitSignal == false)
         {
@@ -560,7 +561,9 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
             var nextElement = list[separatorIndex + 1];
             var nextFirstToken = nextElement.GetFirstToken();
 
-            if (LineBreakTriviaUtilities.HasTrailingEndOfLine(separator) || LineBreakTriviaUtilities.HasLeadingEndOfLine(nextFirstToken))
+            if (LineBreakTriviaUtilities.HasLeadingEndOfLine(separator)
+                || LineBreakTriviaUtilities.HasTrailingEndOfLine(separator)
+                || LineBreakTriviaUtilities.HasLeadingEndOfLine(nextFirstToken))
             {
                 hasExistingLineBreak = true;
 
@@ -685,6 +688,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
         }
 
         node = CollapseFirstElementToSameLine(node, node.Arguments.Count > 0 ? node.Arguments[0].GetFirstToken() : default);
+        node = CollapseSeparatorsToPreviousElementLine(node, static argumentList => argumentList.Arguments, _context.EndOfLine);
 
         return EnsureArgumentsOnSeparateLines(node, _context.EndOfLine);
     }
@@ -721,6 +725,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
         }
 
         node = CollapseFirstElementToSameLine(node, node.Arguments.Count > 0 ? node.Arguments[0].GetFirstToken() : default);
+        node = CollapseSeparatorsToPreviousElementLine(node, static attributeArgumentList => attributeArgumentList.Arguments, _context.EndOfLine);
 
         return EnsureAttributeArgumentsOnSeparateLines(node, _context.EndOfLine);
     }
@@ -747,7 +752,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
         }
 
         node = CollapseFirstElementToSameLine(node, node.Parameters.Count > 0 ? node.Parameters[0].GetFirstToken() : default);
-        node = CollapseSeparatorsToPreviousParameterLine(node, _context.EndOfLine);
+        node = CollapseSeparatorsToPreviousElementLine(node, static parameterList => parameterList.Parameters, _context.EndOfLine);
         node = CollapseCloseParenToParameterLine(node);
 
         return EnsureParametersOnSeparateLines(node, _context.EndOfLine);
@@ -766,17 +771,13 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
         }
 
         // An indexer's parameter list hugs its declaration (FMT-BREAK-011); its opening bracket joins `this` where the
-        // indexer declaration is visited. A list wrapped behind its opening bracket is wrapped, and gets one parameter per
-        // line once its first parameter has joined the bracket (FMT-BREAK-012)
-        var firstParameterToken = node.Parameters.Count > 0 ? node.Parameters[0].GetFirstToken() : default;
-        var isWrappedAfterOpener = firstParameterToken != default
-                                   && LineBreakTriviaUtilities.HasLeadingEndOfLine(firstParameterToken);
-
-        node = CollapseFirstElementToSameLine(node, firstParameterToken);
-        node = CollapseSeparatorsToPreviousParameterLine(node, _context.EndOfLine);
+        // indexer declaration is visited. Its parameters decide whether it is multi-line, as in every other list: a line
+        // break behind the opening bracket alone leaves it on one line (FMT-BREAK-012)
+        node = CollapseFirstElementToSameLine(node, node.Parameters.Count > 0 ? node.Parameters[0].GetFirstToken() : default);
+        node = CollapseSeparatorsToPreviousElementLine(node, static bracketedParameterList => bracketedParameterList.Parameters, _context.EndOfLine);
         node = CollapseCloseParenToParameterLine(node);
 
-        return EnsureParametersOnSeparateLines(node, _context.EndOfLine, isWrappedAfterOpener);
+        return EnsureParametersOnSeparateLines(node, _context.EndOfLine);
     }
 
     /// <inheritdoc/>
