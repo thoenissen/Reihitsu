@@ -37,5 +37,5 @@
 ## State
 
 - Last step: skeptic (01-skeptic.md, 71ae774).
-- Audit 1 (07-auditor.md, audited 257eea7): #1680 findings 1–2, #1742 pass. Repair round 1 of 3: test implementer (08) -> implementer (09) -> cleaner -> spec checker -> auditor (repair only) -> validator.
+- Audit 1 (07, audited 257eea7): findings 1–2. Repair round 1: tests 08 (d9c7e7b), impl 09 (703351a), cleaner 10, spec checker 11 consistent. Next: auditor on repair only, then validator.
 - Next: spec author -> test implementer (#1680 reproductions; #1742 characterization of the recorded limitation) -> implementer -> cleaner -> spec checker -> auditor -> validator.
