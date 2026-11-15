@@ -3721,6 +3721,1185 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifies that the fix is withheld for an inherited field that is read unqualified, which the rename would rewrite to
+    /// <c>base._value</c>, while the property is still reported
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenAnInheritedFieldIsReadUnqualified(string endOfLine)
+    {
+        const string testData = """
+                                class Base
+                                {
+                                    protected int _value;
+                                }
+
+                                class Sample : Base
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        return Value + _value;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld for an inherited field read through <see langword="this"/> and through a receiver
+    /// of the type, which would then read the new field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenAnInheritedFieldIsReadThroughThisAndThroughAReceiver()
+    {
+        const string testData = """
+                                class Base
+                                {
+                                    protected int _value;
+                                }
+
+                                class Sample : Base
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get(Sample other)
+                                    {
+                                        return Value + this._value + other._value;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld for an inherited field read only through <see langword="this"/>, whose text the
+    /// rename would leave as written while it would then read the new field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenAnInheritedFieldIsReadOnlyThroughThis()
+    {
+        const string testData = """
+                                class Base
+                                {
+                                    protected int _value;
+                                }
+
+                                class Sample : Base
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        return Value + this._value;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld for an inherited field read only through a receiver of the type, whose text the
+    /// rename would leave as written while it would then read the new field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenAnInheritedFieldIsReadOnlyThroughAReceiver()
+    {
+        const string testData = """
+                                class Base
+                                {
+                                    protected int _value;
+                                }
+
+                                class Sample : Base
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get(Sample other)
+                                    {
+                                        return Value + other._value;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld for an inherited property named like the field, read through
+    /// <see langword="this"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenAnInheritedPropertyIsReadThroughThis()
+    {
+        const string testData = """
+                                class Base
+                                {
+                                    protected int _value { get; set; }
+                                }
+
+                                class Sample : Base
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        return Value + this._value;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld for an inherited <see langword="protected internal"/> field read through a
+    /// receiver inside a nested type, which would then read the new field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenAnInheritedFieldIsReadThroughAReceiverInANestedType()
+    {
+        const string testData = """
+                                class Base
+                                {
+                                    protected internal int _value;
+                                }
+
+                                class Sample : Base
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get() => Value;
+
+                                    class Nested
+                                    {
+                                        int Read(Sample sample)
+                                        {
+                                            return sample._value;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld for an extension method named like the field, whose call the rename would turn
+    /// into a static call
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenAnExtensionMethodIsNamedLikeTheField()
+    {
+        const string testData = """
+                                static class Extensions
+                                {
+                                    public static int _value(this Sample sample) => 1;
+                                }
+
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        return Value + this._value();
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld for a statically imported member named like the field, which the rename would
+    /// qualify with its type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenAStaticallyImportedMemberIsNamedLikeTheField()
+    {
+        const string testData = """
+                                using static Holder;
+
+                                static class Holder
+                                {
+                                    public static int _value = 1;
+                                }
+
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        return Value + _value;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld for a static member of the enclosing type named like the field, which the rename
+    /// would qualify with the enclosing type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenAMemberOfTheEnclosingTypeIsNamedLikeTheField()
+    {
+        const string testData = """
+                                class Outer
+                                {
+                                    private static int _value = 1;
+
+                                    class Sample
+                                    {
+                                        private int {|RH2001:Value|} { get; set; }
+
+                                        int Get()
+                                        {
+                                            return Value + _value;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld when the renamed property reference would read the parameter of a simple lambda
+    /// with an inferred type instead of the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenASimpleLambdaParameterIsNamedLikeTheField()
+    {
+        const string testData = """
+                                using System;
+
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    Func<int, int> Add() => _value => Value + _value;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld when the renamed property reference would read the parameter of a parenthesized
+    /// lambda with an inferred type instead of the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenAParenthesizedLambdaParameterWithAnInferredTypeIsNamedLikeTheField()
+    {
+        const string testData = """
+                                using System;
+
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    Func<int, int> Add() => (_value) => Value + _value;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld for a static property when the renamed reference inside a static method would read
+    /// the parameter of a simple lambda instead of the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenALambdaParameterInAStaticMethodIsNamedLikeTheFieldOfAStaticProperty()
+    {
+        const string testData = """
+                                using System;
+
+                                class Sample
+                                {
+                                    private static int {|RH2001:Value|} { get; set; }
+
+                                    static Func<int, int> Add() => _value => Value + _value;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld when the renamed property reference would read a variable that
+    /// <c>out var</c> declares in the same expression instead of the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenAnOutVarVariableOfTheSameExpressionIsNamedLikeTheField()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Parse(string input) => int.TryParse(input, out var _value) ? Value + _value : 0;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld when the renamed property reference would read a variable that an <c>out</c>
+    /// argument with an explicit type declares in the same expression instead of the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenAnExplicitlyTypedOutVariableOfTheSameExpressionIsNamedLikeTheField()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Parse(string input) => int.TryParse(input, out int _value) ? Value + _value : 0;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld when the renamed property reference would read a primary-constructor parameter
+    /// named like the field instead of the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenAPrimaryConstructorParameterIsNamedLikeTheField()
+    {
+        const string testData = """
+                                class Sample(int _value)
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get() => Value + _value;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld when the reference whose binding the rename would change stands in another
+    /// document, in another <c>partial</c> part of the type: an inherited field read through <see langword="this"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenAnInheritedFieldIsReadInAPartialPartInAnotherDocument()
+    {
+        const string source = """
+                              class Base
+                              {
+                                  protected int _value;
+                              }
+
+                              partial class Sample : Base
+                              {
+                                  private int {|RH2001:Value|} { get; set; }
+
+                                  int Get() => Value;
+                              }
+                              """;
+        const string otherSource = """
+                                   partial class Sample
+                                   {
+                                       int Read()
+                                       {
+                                           return this._value;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     source,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherSource));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", otherSource));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld when the renamed property reference that would read a lambda parameter instead of
+    /// the field stands in another document, in another <c>partial</c> part of the type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenALambdaParameterInAPartialPartInAnotherDocumentIsNamedLikeTheField()
+    {
+        const string source = """
+                              partial class Sample
+                              {
+                                  private int {|RH2001:Value|} { get; set; }
+                              }
+                              """;
+        const string otherSource = """
+                                   using System;
+
+                                   partial class Sample
+                                   {
+                                       Func<int, int> Add() => _value => Value + _value;
+                                   }
+                                   """;
+
+        await Verify(source,
+                     source,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherSource));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", otherSource));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that Fix All leaves a property whose fix is withheld because an inherited field is named like its field,
+    /// and replaces another property of the same type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixAllLeavesAPropertyWhoseFieldNameIsBoundAndReplacesTheOthers()
+    {
+        const string testData = """
+                                class Base
+                                {
+                                    protected int _value;
+                                }
+
+                                class Sample : Base
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    private int {|RH2001:Count|} { get; set; }
+
+                                    private int {|RH2001:Total|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        return Value + _value + Count + Total;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Base
+                                  {
+                                      protected int _value;
+                                  }
+
+                                  class Sample : Base
+                                  {
+                                      private int {|RH2001:Value|} { get; set; }
+
+                                      private int _count;
+
+                                      private int _total;
+
+                                      int Get()
+                                      {
+                                          return Value + _value + _count + _total;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     test =>
+                     {
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered for a method parameter named like the field next to an inherited field of that
+    /// name, and qualifies the renamed property reference with <see langword="this"/>
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixQualifiesThePropertyReferenceNextToAParameterNamedLikeTheFieldAndAnInheritedField(string endOfLine)
+    {
+        const string testData = """
+                                class Base
+                                {
+                                    protected int _value;
+                                }
+
+                                class Sample : Base
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get(int _value)
+                                    {
+                                        return Value + _value;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Base
+                                  {
+                                      protected int _value;
+                                  }
+
+                                  class Sample : Base
+                                  {
+                                      private int _value;
+
+                                      int Get(int _value)
+                                      {
+                                          return this._value + _value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(WithEndOfLine(testData, endOfLine), WithEndOfLine(resultData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered next to an inherited method named like the field, which the call still reaches
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedNextToAnInheritedMethodNamedLikeTheField()
+    {
+        const string testData = """
+                                class Base
+                                {
+                                    protected int _value() => 1;
+                                }
+
+                                class Sample : Base
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        return Value + _value();
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Base
+                                  {
+                                      protected int _value() => 1;
+                                  }
+
+                                  class Sample : Base
+                                  {
+                                      private int _value;
+
+                                      int Get()
+                                      {
+                                          return _value + _value();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered next to an inherited field named like the field that no reference names
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedNextToAnInheritedFieldThatNoReferenceNames()
+    {
+        const string testData = """
+                                class Base
+                                {
+                                    protected int _value;
+                                }
+
+                                class Sample : Base
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        return Value;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Base
+                                  {
+                                      protected int _value;
+                                  }
+
+                                  class Sample : Base
+                                  {
+                                      private int _value;
+
+                                      int Get()
+                                      {
+                                          return _value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered for a local declared by a statement and named like the field, and qualifies the
+    /// renamed property reference with <see langword="this"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixQualifiesThePropertyReferenceNextToALocalNamedLikeTheField()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        var _value = 1;
+
+                                        return Value + _value;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      int Get()
+                                      {
+                                          var _value = 1;
+
+                                          return this._value + _value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered for a method parameter named like the field in a type without a base type, and
+    /// qualifies the renamed property reference with <see langword="this"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixQualifiesThePropertyReferenceNextToAMethodParameterNamedLikeTheField()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get(int _value) => Value + _value;
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      int Get(int _value) => this._value + _value;
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered for a parameter of an explicitly typed lambda named like the field, and qualifies
+    /// the renamed property reference with <see langword="this"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixQualifiesThePropertyReferenceNextToAnExplicitlyTypedLambdaParameterNamedLikeTheField()
+    {
+        const string testData = """
+                                using System;
+
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    Func<int, int> Add() => (int _value) => Value + _value;
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      Func<int, int> Add() => (int _value) => this._value + _value;
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered for a parameter of an anonymous method named like the field, and qualifies the
+    /// renamed property reference with <see langword="this"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixQualifiesThePropertyReferenceNextToAnAnonymousMethodParameterNamedLikeTheField()
+    {
+        const string testData = """
+                                using System;
+
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    Func<int, int> Add()
+                                    {
+                                        return delegate (int _value) { return Value + _value; };
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      Func<int, int> Add()
+                                      {
+                                          return delegate (int _value) { return this._value + _value; };
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered for a parameter of a local function named like the field, and qualifies the
+    /// renamed property reference with <see langword="this"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixQualifiesThePropertyReferenceNextToALocalFunctionParameterNamedLikeTheField()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        return Local(1);
+
+                                        int Local(int _value) => Value + _value;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      int Get()
+                                      {
+                                          return Local(1);
+
+                                          int Local(int _value) => this._value + _value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered for pattern variables named like the field, declared by a type pattern and by a
+    /// <see langword="var"/> pattern, and qualifies the renamed property references with <see langword="this"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixQualifiesThePropertyReferenceNextToAPatternVariableNamedLikeTheField()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get(object input)
+                                    {
+                                        if (input is int _value)
+                                        {
+                                            return Value + _value;
+                                        }
+
+                                        return 0;
+                                    }
+
+                                    int Read(int input) => input is var _value ? Value + _value : 0;
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      int Get(object input)
+                                      {
+                                          if (input is int _value)
+                                          {
+                                              return this._value + _value;
+                                          }
+
+                                          return 0;
+                                      }
+
+                                      int Read(int input) => input is var _value ? this._value + _value : 0;
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered for a variable that <c>out var</c> declares in a statement in front of the use, and
+    /// qualifies the renamed property reference with <see langword="this"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixQualifiesThePropertyReferenceNextToAnOutVarVariableOfAnEarlierStatement()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Parse(string input)
+                                    {
+                                        int.TryParse(input, out var _value);
+
+                                        return Value + _value;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      int Parse(string input)
+                                      {
+                                          int.TryParse(input, out var _value);
+
+                                          return this._value + _value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered for <see langword="foreach"/>, <see langword="catch"/>, query range, and
+    /// deconstruction variables named like the field, and qualifies the renamed property references with
+    /// <see langword="this"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixQualifiesThePropertyReferenceNextToOtherInnerScopeVariablesNamedLikeTheField()
+    {
+        const string testData = """
+                                using System;
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Sum(List<int> items)
+                                    {
+                                        var sum = 0;
+
+                                        foreach (var _value in items)
+                                        {
+                                            sum += Value + _value;
+                                        }
+
+                                        return sum;
+                                    }
+
+                                    int Fail()
+                                    {
+                                        try
+                                        {
+                                            return 0;
+                                        }
+                                        catch (Exception _value)
+                                        {
+                                            return Value + _value.Message.Length;
+                                        }
+                                    }
+
+                                    IEnumerable<int> Query(List<int> items) => from _value in items select Value + _value;
+
+                                    int Split()
+                                    {
+                                        var (_value, other) = (1, 2);
+
+                                        return Value + _value + other;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+                                  using System.Collections.Generic;
+                                  using System.Linq;
+
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      int Sum(List<int> items)
+                                      {
+                                          var sum = 0;
+
+                                          foreach (var _value in items)
+                                          {
+                                              sum += this._value + _value;
+                                          }
+
+                                          return sum;
+                                      }
+
+                                      int Fail()
+                                      {
+                                          try
+                                          {
+                                              return 0;
+                                          }
+                                          catch (Exception _value)
+                                          {
+                                              return this._value + _value.Message.Length;
+                                          }
+                                      }
+
+                                      IEnumerable<int> Query(List<int> items) => from _value in items select this._value + _value;
+
+                                      int Split()
+                                      {
+                                          var (_value, other) = (1, 2);
+
+                                          return this._value + _value + other;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered for a local function named like the field, and qualifies the renamed property
+    /// reference with <see langword="this"/> while the call still reaches the local function
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixQualifiesThePropertyReferenceNextToALocalFunctionNamedLikeTheField()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        return Value + _value();
+
+                                        int _value() => 1;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      int Get()
+                                      {
+                                          return this._value + _value();
+
+                                          int _value() => 1;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered for an outer local named like the field and captured by a lambda, and qualifies the
+    /// renamed property reference with <see langword="this"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixQualifiesThePropertyReferenceNextToACapturedLocalNamedLikeTheField()
+    {
+        const string testData = """
+                                using System;
+
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    Func<int> Get()
+                                    {
+                                        var _value = 1;
+
+                                        return () => Value + _value;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      Func<int> Get()
+                                      {
+                                          var _value = 1;
+
+                                          return () => this._value + _value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered next to a member named like the field that a nested type declares and uses, which
+    /// keeps its text and its binding
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedNextToAMemberOfANestedTypeNamedLikeTheField()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get() => Value + new Inner().Read();
+
+                                    class Inner
+                                    {
+                                        private int _value = 1;
+
+                                        public int Read() => _value;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      int Get() => _value + new Inner().Read();
+
+                                      class Inner
+                                      {
+                                          private int _value = 1;
+
+                                          public int Read() => _value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
     #endregion // Tests
 
     #region Methods
