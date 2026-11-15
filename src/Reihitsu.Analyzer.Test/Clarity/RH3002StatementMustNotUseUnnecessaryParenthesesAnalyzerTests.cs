@@ -8368,6 +8368,48 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Batc
                      });
     }
 
+    /// <summary>
+    /// Verifies that unnecessary parentheses in an <c>#if</c> condition in front of the closing brace of a class with
+    /// a primary constructor are reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-007")]
+    public async Task ParenthesesInIfConditionInFrontOfClosingBraceOfClassWithPrimaryConstructorAreReportedOnce()
+    {
+        const string testData = """
+                                public class Service(int value)
+                                {
+                                    public int Value => value;
+                                #if ({|#0:(A)|})
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
+    /// <summary>
+    /// Verifies that unnecessary parentheses in an <c>#if</c> condition in front of a class with a primary constructor
+    /// are reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3002-007")]
+    public async Task ParenthesesInIfConditionInFrontOfClassWithPrimaryConstructorAreReportedOnce()
+    {
+        const string testData = """
+                                #if ({|#0:(A)|})
+                                #endif
+                                public class Service(int value)
+                                {
+                                    public int Value => value;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statement must not use unnecessary parentheses"));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -715,6 +715,66 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : BatchCodeFixTestsB
         Assert.AreEqual(expected, actual);
     }
 
+    /// <summary>
+    /// Verifies that a placeholder element in the documentation comment of a positional record is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8204-001")]
+    [Requirement("RH8204-002")]
+    public async Task VerifyPlaceholderElementOfPositionalRecordIsReportedOnce()
+    {
+        const string testData = """
+                                /// <summary>
+                                /// Customer {|#0:<placeholder>x</placeholder>|}.
+                                /// </summary>
+                                public record R(int A);
+                                """;
+
+        await Verify(testData, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a placeholder element in the documentation comment of a class with a primary constructor is
+    /// reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8204-001")]
+    [Requirement("RH8204-002")]
+    public async Task VerifyPlaceholderElementOfClassWithPrimaryConstructorIsReportedOnce()
+    {
+        const string testData = """
+                                /// <summary>
+                                /// Service {|#0:<placeholder>x</placeholder>|}.
+                                /// </summary>
+                                public class Service(int value)
+                                {
+                                    public int Value => value;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a placeholder element in a delimited documentation comment of a positional record struct is
+    /// reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8204-001")]
+    [Requirement("RH8204-002")]
+    public async Task VerifyPlaceholderElementInDelimitedCommentOfPositionalRecordStructIsReportedOnce()
+    {
+        const string testData = """
+                                /** <summary>Point {|#0:<placeholder>x</placeholder>|}.</summary> */
+                                public record struct P(int A);
+                                """;
+
+        await Verify(testData, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat));
+    }
+
     #endregion // Tests
 
     #region Methods

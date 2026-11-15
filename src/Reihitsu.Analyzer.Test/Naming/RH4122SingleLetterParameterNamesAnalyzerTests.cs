@@ -416,5 +416,70 @@ public class RH4122SingleLetterParameterNamesAnalyzerTests : AnalyzerTestsBase<R
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies the specification example: a single-letter parameter name that both parts of a partial constructor spell
+    /// alike is reported once, on the implementing part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-013")]
+    public async Task PartialConstructorParameterNamedAlikeOnBothPartsIsReportedOnceOnTheImplementingPart()
+    {
+        const string testData = """
+                                public partial class C
+                                {
+                                    public partial C(int a);
+
+                                    public partial C(int {|RH4122:a|})
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a single-letter parameter name that only the defining part of a partial
+    /// constructor writes is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-013")]
+    public async Task PartialConstructorParameterNamedOnlyOnTheDefiningPartIsNotReported()
+    {
+        const string testData = """
+                                public partial class C
+                                {
+                                    public partial C(int a);
+
+                                    public partial C(int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a single-letter parameter name of a partial constructor whose implementing part lies in generated
+    /// code is not reported on the defining part
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-013")]
+    public async Task PartialConstructorWithGeneratedImplementingPartIsNotReportedOnTheDefiningPart()
+    {
+        const string testData = """
+                                public partial class C
+                                {
+                                    public partial C(int a);
+                                }
+                                """;
+
+        await Verify(testData, test => test.TestState.Sources.Add(("/0/C.g.cs", "public partial class C\n{\n    public partial C(int a)\n    {\n    }\n}\n")));
+    }
+
     #endregion // Tests
 }

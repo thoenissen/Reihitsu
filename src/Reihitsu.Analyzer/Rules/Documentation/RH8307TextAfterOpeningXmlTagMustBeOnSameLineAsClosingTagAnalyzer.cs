@@ -152,7 +152,6 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer : 
         // another element is part of that element's content, and the formatter never rewrites a delimited comment
         if (context.Node is not XmlElementSyntax element
             || element.Parent?.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) != true
-            || DocumentationAnalysisUtilities.IsPrimaryConstructorRun(context)
             || ViolatesRule(element, context.CancellationToken) == false
             || IsInCommentLeftAsWritten(element, context.CancellationToken))
         {
@@ -171,7 +170,7 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer : 
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnXmlElement, SyntaxKind.XmlElement);
+        context.RegisterStructuredTriviaActionWithDocumentationModeCheck(OnXmlElement, SyntaxKind.XmlElement);
     }
 
     #endregion // DiagnosticAnalyzer

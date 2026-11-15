@@ -27,7 +27,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [shared/comment-placement.md](shared/comment-placement.md) | SHARED-COMMENT | `CommentPositionAnalyzerBase`, `CommentRegionAnalyzerBase`, `CommentPositionUtilities`, `FluentChainAnalysisHelper` |
 | [shared/debug-message-text.md](shared/debug-message-text.md) | SHARED-DEBUG | `DebugMessageTextAnalysisUtilities` |
 | [shared/diagnostics.md](shared/diagnostics.md) | SHARED-DIAG | `DiagnosticAnalyzerBase`, `PartialMemberUtilities` |
-| [shared/element-documentation.md](shared/element-documentation.md) | SHARED-DOC | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `DocumentationModeAnalysisContextExtensions`, `DocumentationCommentCodeFixUtilities` |
+| [shared/element-documentation.md](shared/element-documentation.md) | SHARED-DOC | `SplitElementDocumentationAnalyzerBase`, `DocumentationAnalysisUtilities`, `DirectDocumentationSyntaxChecker`, `XmlDocumentationExpander`, `AnalysisContextExtensions`, `DocumentationCommentCodeFixUtilities` |
 | [shared/empty-parentheses.md](shared/empty-parentheses.md) | SHARED-PARENS | `EmptyParenthesesAnalyzerBase<TNode>` |
 | [shared/empty-type-declarations.md](shared/empty-type-declarations.md) | SHARED-EMPTY | `EmptyTypeDeclarationShouldUseSemicolonAnalyzerBase`, `EmptyTypeDeclarationShouldUseSemicolonCodeFixProviderBase`, `EmptyTypeDeclarationSemicolonAnalysisUtilities` |
 | [shared/expression-body-conversion.md](shared/expression-body-conversion.md) | SHARED-BODY | `ExpressionBodyAnalyzerBase<TNode>`, `ExpressionBodyToBlockCodeFixProviderBase<TNode>`, `ExpressionBodyCodeFixUtilities`, `ExpressionBodyRewriteUtilities` |

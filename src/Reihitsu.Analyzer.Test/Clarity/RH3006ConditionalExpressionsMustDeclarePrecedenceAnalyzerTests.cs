@@ -802,6 +802,73 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : Ba
         Assert.AreEqual(expectedCode, await ApplyCodeFixAsync(onceFixedCode));
     }
 
+    /// <summary>
+    /// Verifies that an AND operand inside OR in an <c>#if</c> condition in front of the closing brace of a class
+    /// with a primary constructor is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3006-001")]
+    [Requirement("RH3006-002")]
+    public async Task AndInsideOrInIfConditionInFrontOfClosingBraceOfClassWithPrimaryConstructorIsReportedOnce()
+    {
+        const string testData = """
+                                public class Service(int value)
+                                {
+                                    public int Value => value;
+                                #if A || {|#0:B && C|}
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, "Conditional expressions must declare precedence."));
+    }
+
+    /// <summary>
+    /// Verifies that an AND operand inside OR in an <c>#elif</c> condition in front of the closing brace of a class
+    /// with a primary constructor is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3006-001")]
+    [Requirement("RH3006-002")]
+    public async Task AndInsideOrInElifConditionInFrontOfClosingBraceOfClassWithPrimaryConstructorIsReportedOnce()
+    {
+        const string testData = """
+                                public class Service(int value)
+                                {
+                                    public int Value => value;
+                                #if A
+                                #elif A || {|#0:B && C|}
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, "Conditional expressions must declare precedence."));
+    }
+
+    /// <summary>
+    /// Verifies that an AND operand inside OR in an <c>#if</c> condition in front of a class with a primary
+    /// constructor is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3006-001")]
+    [Requirement("RH3006-002")]
+    public async Task AndInsideOrInIfConditionInFrontOfClassWithPrimaryConstructorIsReportedOnce()
+    {
+        const string testData = """
+                                #if A || {|#0:B && C|}
+                                #endif
+                                public class Service(int value)
+                                {
+                                    public int Value => value;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer.DiagnosticId, "Conditional expressions must declare precedence."));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

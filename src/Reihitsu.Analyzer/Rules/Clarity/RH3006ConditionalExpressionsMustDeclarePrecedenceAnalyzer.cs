@@ -90,7 +90,7 @@ public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer : Diagnos
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnLogicalOrExpression, SyntaxKind.LogicalOrExpression);
+        context.RegisterStructuredTriviaAction(OnLogicalOrExpression, SyntaxKind.LogicalOrExpression);
         context.RegisterSyntaxNodeAction(OnOrPattern, SyntaxKind.OrPattern);
     }
 

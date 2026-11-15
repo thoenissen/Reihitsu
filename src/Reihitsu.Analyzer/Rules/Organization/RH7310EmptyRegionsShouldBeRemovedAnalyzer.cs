@@ -161,7 +161,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzer : DiagnosticAnalyzerBase
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnRegion, SyntaxKind.RegionDirectiveTrivia);
+        context.RegisterStructuredTriviaAction(OnRegion, SyntaxKind.RegionDirectiveTrivia);
     }
 
     #endregion // DiagnosticAnalyzer

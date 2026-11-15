@@ -161,7 +161,7 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer : Diagnostic
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.SingleLineDocumentationCommentTrivia);
+        context.RegisterStructuredTriviaActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.SingleLineDocumentationCommentTrivia);
     }
 
     #endregion // DiagnosticAnalyzer

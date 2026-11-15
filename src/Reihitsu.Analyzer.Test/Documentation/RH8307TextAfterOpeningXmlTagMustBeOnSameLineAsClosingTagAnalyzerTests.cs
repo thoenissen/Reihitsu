@@ -1112,6 +1112,49 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that an element in a documentation comment inside the parameter list of an ordinary method is reported
+    /// once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-003")]
+    public async Task VerifyElementInsideParameterListOfMethodIsReportedOnce()
+    {
+        const string testData = """
+                                public class C
+                                {
+                                    public void M(
+                                        /// {|#0:<summary>A
+                                        /// </summary>|}
+                                        int a)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an element in a documentation comment inside the parameter list of a positional record is reported
+    /// once, like the same comment in the parameter list of a method
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8307-003")]
+    public async Task VerifyElementInsideParameterListOfPositionalRecordIsReportedOnce()
+    {
+        const string testData = """
+                                public record R(
+                                    /// {|#0:<summary>A
+                                    /// </summary>|}
+                                    int A);
+                                """;
+
+        await Verify(testData, Diagnostics(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH8307MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
