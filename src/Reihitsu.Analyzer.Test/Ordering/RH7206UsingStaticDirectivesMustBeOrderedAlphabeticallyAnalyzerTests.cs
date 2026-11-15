@@ -435,6 +435,47 @@ public class RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzerTests
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies the specification example: a leading <c>global::</c> is not part of the sort key, so a static directive
+    /// sorted before <c>global::System.Math</c> by its value is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7206-001")]
+    public async Task GlobalQualifierIsNotPartOfTheSortKey()
+    {
+        const string testCode = """
+                                using static global::System.Math;
+                                using static {|RH7206:System.Console|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that <c>global::System.Math</c> after <c>System.Console</c> is in order by its value and is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7206-002")]
+    public async Task GlobalQualifiedStaticDirectiveThatSortsAfterByItsValueIsNotReported()
+    {
+        const string testCode = """
+                                using static System.Console;
+                                using static global::System.Math;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -643,5 +643,63 @@ public class UsingDirectiveNameValueTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies the specification example: a leading <c>global::</c> is not part of the sort key, so
+    /// <c>global::System.IO</c> sorts as <c>System.IO</c>, after <c>System.Collections</c>, and keeps its spelling
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-USING-007")]
+    public void GlobalQualifierIsNotPartOfTheSortKey()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+                             using global::System.IO;
+                             using System.Collections;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+        const string expected = """
+                                using System;
+                                using System.Collections;
+                                using global::System.IO;
+
+                                class C
+                                {
+                                    int x;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a block already in order by the values of its names, with <c>global::System.IO</c> after
+    /// <c>System.Collections</c>, is left unchanged
+    /// </summary>
+    [TestMethod]
+    [Requirement("SHARED-USING-007")]
+    public void GlobalQualifiedDirectiveInOrderByItsValueIsUnchanged()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+                             using System.Collections;
+                             using global::System.IO;
+
+                             class C
+                             {
+                                 int x;
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
     #endregion // Methods
 }

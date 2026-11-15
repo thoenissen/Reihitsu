@@ -951,6 +951,79 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies the specification example: a leading <c>global::</c> is not part of the sort key, so a directive sorted
+    /// before <c>global::System.IO</c> by its value is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    public async Task GlobalQualifierIsNotPartOfTheSortKey()
+    {
+        const string testCode = """
+                                using global::System.IO;
+                                using {|RH7203:System.Collections|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix places a directive before <c>global::System.IO</c> when its value sorts first, and
+    /// keeps the spelling of the qualified directive
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-001")]
+    [Requirement("RH7203-004")]
+    public async Task CodeFixPlacesADirectiveBeforeAGlobalQualifiedDirectiveThatSortsAfterIt()
+    {
+        const string testCode = """
+                                using global::System.IO;
+                                using {|#0:System.Collections|};
+
+                                class C
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Collections;
+                                 using global::System.IO;
+
+                                 class C
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer.DiagnosticId, AnalyzerResources.RH7203MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: <c>global::System.IO</c> after <c>System.Collections</c> is in order by its
+    /// value and is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7203-002")]
+    public async Task GlobalQualifiedDirectiveThatSortsAfterByItsValueIsNotReported()
+    {
+        const string testCode = """
+                                using System.Collections;
+                                using global::System.IO;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
