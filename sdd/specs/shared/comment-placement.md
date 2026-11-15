@@ -108,7 +108,7 @@ A rule MUST report one diagnostic for each comment in a position it reports, loc
 
 A diagnostic on a `///` or `/** */` comment (SHARED-COMMENT-001) MUST start at the comment's first `///` or `/**` and end at the end of the comment's text on its last line; it MUST NOT include the line break behind that text.
 
-Why: Each comment has to be moved on its own, and the author may want to move one and delete the other. A comment behind code on the same line is just as misplaced as one on its own line. A comment inside, say, an argument list that is itself inside a statement header splits both constructs. The `///` or `/**` is where the comment starts, and the line break behind a `///` comment belongs to the line, not to the comment's text — the same span RH5204-005 gives a documentation comment.
+Why: Each comment has to be moved on its own, and the author may want to move one and delete the other. A comment behind code on the same line is just as misplaced as one on its own line. A comment inside, say, an argument list that is itself inside a statement header splits both constructs. The `///` or `/**` is where the comment starts, and the line break behind a `///` comment belongs to the line, not to the comment's text.
 
 Example — RH5038:
 
