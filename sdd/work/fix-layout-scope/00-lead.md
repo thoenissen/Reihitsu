@@ -58,6 +58,8 @@
 | D22 | Implementer 07 | RH5113 keeps formatter-based withholding (syntax errors, refused shapes) though it now edits text only | Accept | Removing would be a visible change no answer covers | Keeps main | a356c2e |
 | D23 | Implementer 07 | Arch finding: break in front of a shared-line member has two owners (helper vs attribute base private branch; RH5511 tests pin the base) | Fix narrowly (helper only for break behind member); structural unification is a follow-up (FU5) | Unifying changes RH5511 outputs (visible), outside the run's issues | Keeps main for the before-break | a356c2e |
 | D24 | Implementer 07 | FC: `BatchFixer` on fixes that now separate shared-line members | Dropped | Only serves a rare class (two reported members on one line), unmeasured | n/a | n/a |
+| D25 | Audit 11 (repair round 1) | Finding #1: RH2001, RH5110, RH5412/RH5413 base, RH5111 property target leave the member on a shared line (SHARED-FIX-007) | Same requirement: repair — route through `FormatMemberOnLinesOfItsOwnAsync` as D8; withhold for the class where the helper does not fit (rare) | Consistent with D8; one owner | Demanded by unchanged SHARED-FIX-007 | pending |
+| D26 | Audit 11 (repair round 1) | Finding #2: RH5113 text-only fix keeps formatter guards (syntax error, unsupported shape) | Keep `main`'s withholding (D22); record it in RH5113's spec as a decision; correct the `CanApplyCodeFix` summary, the test summary and the SHARED-FIX-011 tag; offering the fix there becomes follow-up FU7 with its output question | Avoids a visible change without an answer; documents the gap | Keeps `main` | pending |
 
 ## Follow-up candidates
 
@@ -66,6 +68,7 @@
 - FU4 (M6): shared write-back step so parts inside a reported construct keep their own code (RH5101, RH5102, RH5303–RH5308, RH5403, RH5404, RH5417) — carries maintainer answers M3, M5 (=A) and the open spanning-part question (options from 04-skeptic Q1, recommended A). Related #1605, #1140 FU3.
 - FU5 (07-implementer, D23): one owner for the line break in front of a member that shares its line (`FormatMemberOnLinesOfItsOwnAsync` vs private branch in `TargetAttributePlacementCodeFixProviderBase`); they disagree on column (tab vs spaces) — e.g. `→private int _pad; [First] internal Example() { }`. Visible for RH5511/RH5513/RH5517: carries an output question.
 - FU6 (07-implementer): `PrecedingTokenFacts`/`TriviaFact` now only wrap a tree token; replace by direct reads (internal cleanup).
+- FU7 (11-auditor, D26): RH5113 fix now edits text only but stays withheld in files with syntax errors and for comments the formatter would refuse (e.g. `int /* c */ _a⏎;`); output question: offer the fix there (and drop the guards) or keep withholding.
 
 ## Worklist / next step
 
@@ -83,7 +86,8 @@
 - Done: test implementer 06 (df2ea58): 74 formatter + 104 analyzer rows failing for the right reason; architecture green.
 - Done: implementer 07 (a356c2e): +281/−532, no new type; 2 disputed RH5201 tests.
 - Done: test implementer 08 (8d8e4fc).
-- Next: cleaner (09).
+- Done: cleaner 09 (1da79ef, clean); spec checker 10 (afbc1a1, consistent); merged origin/main (8333c46, base 4838e9a); auditor 11 (31f19c0): findings #1 (high), #2 (medium).
+- Repair round 1 worklist: spec author (D26 RH5113 decision text) → test implementer (tests for D25 members; RH5113 test summary/tag) → implementer (D25 routing; RH5113 comments) → cleaner → spec checker → auditor (repair only) → validator.
 - Pending internal after answers: SHARED-FIX-006 Leading-trivia exception for SHARED-FIX-007 shared line (accept skeptic rec); rewrite D6 bullet in change doc Alternatives; change-doc completeness items (04-skeptic Internal choices 3); pipeline.md code owners row; Fix All tests for nested constructs.
 - (old) Next: skeptic (fresh) on change doc + spec diff → 04-skeptic.md; then batch 2 output questions (change-doc visible changes not covered by M1–M5; spec author's open: argument spanning lines in RH5101/5102; tab-indented target) → then test implementer.
 - (old) After answers: spec author (fresh) for D6 reverts, D7 consolidation, D5 FMT-PIPE-010/024 amendment, answers; then test implementer.
