@@ -5248,6 +5248,664 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
         await Verify(testData, resultData);
     }
 
+    /// <summary>
+    /// Verifies that no code fix is offered when a reference to the property gives an anonymous-object member its inferred
+    /// name, which the rename would change so that a read of the member no longer compiles
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenAPropertyReferenceGivesAnAnonymousObjectMemberItsInferredName()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        var pair = new { Value };
+
+                                        return pair.Value;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when a reference to the property qualified with <c>this.</c> gives an
+    /// anonymous-object member its inferred name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenAThisQualifiedPropertyReferenceGivesAnAnonymousObjectMemberItsInferredName()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        var x = new { this.Value };
+
+                                        return x.Value;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when a reference to the property through another instance of the type gives an
+    /// anonymous-object member its inferred name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenAPropertyReferenceThroughAnotherInstanceGivesAnAnonymousObjectMemberItsInferredName()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get(Sample other)
+                                    {
+                                        var x = new { other.Value };
+
+                                        return x.Value;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when a reference to the property gives a member of an anonymous object in a
+    /// LINQ projection its inferred name, which a later projection reads
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenAPropertyReferenceGivesAMemberOfAnAnonymousObjectInAQueryProjectionItsInferredName()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int[] Get(int[] items)
+                                    {
+                                        return items.Select(item => new { Value, item }).Select(pair => pair.Value + pair.item).ToArray();
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when a reference to the property gives a tuple element its inferred name, which
+    /// the rename would change so that a read of the element no longer compiles
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenAPropertyReferenceGivesATupleElementItsInferredName()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        var pair = (Value, 1);
+
+                                        return pair.Value;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when a reference to the property gives an anonymous-object member its inferred
+    /// name that <c>ToString()</c> prints, which the rename would change at run time although the code still compiles
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenAPropertyReferenceGivesAnAnonymousObjectMemberItsInferredNameThatToStringPrints()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    string Get()
+                                    {
+                                        return new { Value }.ToString();
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when a reference to the property is the value of an anonymous-object member with an
+    /// explicit name, which keeps its name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedWhenAPropertyReferenceIsTheValueOfAnExplicitlyNamedAnonymousObjectMember()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        var x = new { Value = Value };
+
+                                        return x.Value;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      int Get()
+                                      {
+                                          var x = new { Value = _value };
+
+                                          return x.Value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when a reference to the property is the value of a tuple element with an explicit
+    /// name, which keeps its name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedWhenAPropertyReferenceIsTheValueOfAnExplicitlyNamedTupleElement()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        var t = (Value: Value, 1);
+
+                                        return t.Value;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      int Get()
+                                      {
+                                          var t = (Value: _value, 1);
+
+                                          return t.Value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when a reference to the property in an expression body gives an
+    /// anonymous-object member its inferred name that <c>ToString()</c> prints
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenAPropertyReferenceInAnExpressionBodyGivesAnAnonymousObjectMemberItsInferredName()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    string Describe() => new { Value }.ToString();
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of an anonymous-object member and a tuple element with explicit names next to
+    /// each other, which keep their names while the fix renames the references to the property
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedWhenPropertyReferencesAreTheValuesOfAnExplicitlyNamedAnonymousObjectMemberAndTupleElement()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        var pair = new { Value = Value };
+                                        var tuple = (Value: Value, 1);
+
+                                        return pair.Value + tuple.Value;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      int Get()
+                                      {
+                                          var pair = new { Value = _value };
+                                          var tuple = (Value: _value, 1);
+
+                                          return pair.Value + tuple.Value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when the property is the receiver of a member of another type named like the field,
+    /// which keeps its binding while the receiver is renamed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedWhenThePropertyIsTheReceiverOfAMemberNamedLikeTheField()
+    {
+        const string testData = """
+                                class Outer
+                                {
+                                    private int _value;
+
+                                    class Inner
+                                    {
+                                        private Outer {|RH2001:Value|} { get; set; }
+
+                                        int Get()
+                                        {
+                                            return Value._value;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Outer
+                                  {
+                                      private int _value;
+
+                                      class Inner
+                                      {
+                                          private Outer _value;
+
+                                          int Get()
+                                          {
+                                              return _value._value;
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when the property, qualified with <c>this.</c>, is the receiver of a member of
+    /// another type named like the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedWhenTheThisQualifiedPropertyIsTheReceiverOfAMemberNamedLikeTheField()
+    {
+        const string testData = """
+                                class Outer
+                                {
+                                    private int _value;
+
+                                    class Inner
+                                    {
+                                        private Outer {|RH2001:Value|} { get; set; }
+
+                                        int Get()
+                                        {
+                                            return this.Value._value;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Outer
+                                  {
+                                      private int _value;
+
+                                      class Inner
+                                      {
+                                          private Outer _value;
+
+                                          int Get()
+                                          {
+                                              return this._value._value;
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when the property with the null-forgiving operator is the receiver of a member of
+    /// another type named like the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedWhenTheNullForgivingPropertyIsTheReceiverOfAMemberNamedLikeTheField()
+    {
+        const string testData = """
+                                #nullable enable
+                                class Outer
+                                {
+                                    private int _value;
+
+                                    class Inner
+                                    {
+                                        private Outer? {|RH2001:Value|} { get; set; }
+
+                                        int Get()
+                                        {
+                                            return Value!._value;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  #nullable enable
+                                  class Outer
+                                  {
+                                      private int _value;
+
+                                      class Inner
+                                      {
+                                          private Outer? _value;
+
+                                          int Get()
+                                          {
+                                              return _value!._value;
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when the property, cast to another type, is the receiver of a member of that type
+    /// named like the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedWhenTheCastPropertyIsTheReceiverOfAMemberNamedLikeTheField()
+    {
+        const string testData = """
+                                class Outer
+                                {
+                                    private int _value;
+
+                                    class Inner
+                                    {
+                                        private object {|RH2001:Value|} { get; set; }
+
+                                        int Get()
+                                        {
+                                            return ((Outer)Value)._value;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Outer
+                                  {
+                                      private int _value;
+
+                                      class Inner
+                                      {
+                                          private object _value;
+
+                                          int Get()
+                                          {
+                                              return ((Outer)_value)._value;
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when the property is the conditional receiver of a member of another type named
+    /// like the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedWhenThePropertyIsTheConditionalReceiverOfAMemberNamedLikeTheField()
+    {
+        const string testData = """
+                                class Outer
+                                {
+                                    private int _value;
+
+                                    class Inner
+                                    {
+                                        private Outer {|RH2001:Value|} { get; set; }
+
+                                        int? Get()
+                                        {
+                                            return Value?._value;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Outer
+                                  {
+                                      private int _value;
+
+                                      class Inner
+                                      {
+                                          private Outer _value;
+
+                                          int? Get()
+                                          {
+                                              return _value?._value;
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when a <c>cref</c> in a documentation comment names an inherited member like
+    /// the field, which would bind to the new field after the rename
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenADocumentationCommentReferenceNamesAnInheritedMemberLikeTheField()
+    {
+        const string testData = """
+                                class Base
+                                {
+                                    protected int _value;
+                                }
+
+                                class Sample : Base
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    /// <summary>
+                                    /// Reads <see cref="_value"/>.
+                                    /// </summary>
+                                    public int Get()
+                                    {
+                                        return Value;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when a <c>cref</c> in a documentation comment names an inherited member like the
+    /// field through its type, which keeps its binding
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixIsOfferedWhenADocumentationCommentReferenceNamesAnInheritedMemberLikeTheFieldThroughItsType()
+    {
+        const string testData = """
+                                class Base
+                                {
+                                    protected int _value;
+                                }
+
+                                class Sample : Base
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    /// <summary>
+                                    /// Reads <see cref="Base._value"/>
+                                    /// </summary>
+                                    /// <returns>Value</returns>
+                                    public int Get()
+                                    {
+                                        return Value;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Base
+                                  {
+                                      protected int _value;
+                                  }
+
+                                  class Sample : Base
+                                  {
+                                      private int _value;
+
+                                      /// <summary>
+                                      /// Reads <see cref="Base._value"/>
+                                      /// </summary>
+                                      /// <returns>Value</returns>
+                                      public int Get()
+                                      {
+                                          return _value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix renames a <c>cref</c> in a documentation comment that names the property
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixRenamesADocumentationCommentReferenceToTheProperty()
+    {
+        const string testData = """
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    /// <summary>
+                                    /// Reads <see cref="Value"/>
+                                    /// </summary>
+                                    /// <returns>Value</returns>
+                                    public int Get()
+                                    {
+                                        return Value;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class Sample
+                                  {
+                                      private int _value;
+
+                                      /// <summary>
+                                      /// Reads <see cref="_value"/>
+                                      /// </summary>
+                                      /// <returns>Value</returns>
+                                      public int Get()
+                                      {
+                                          return _value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
     #endregion // Tests
 
     #region Methods
