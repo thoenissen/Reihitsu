@@ -19,6 +19,9 @@ Batch 1 (before test implementer):
 3. C# 14 code with a type named `union`/`closed` in positions C# 15 reads as keywords is skipped as syntax errors under the default; `--lang-version 14` restores the old result: **A**. Addition: if any existing test uses such a type name and breaks, fix that test by renaming the type.
 4. Analyzer package's minimum host compiler rises to Roslyn 5.12 (release-note item for 1.3.0): **A**.
 
+Batch 2 (after audit 09):
+5. Top-level statement starting with a local named `union` (`union.Add(4);`, `union = …;`, `union++;`, `union[0] = …;`, `union?.M();`, `union(…);`) makes the file skipped as syntax errors under the default C# 15; `--lang-version 14` restores the old result: **A**.
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -48,5 +51,6 @@ Batch 1 (before test implementer):
 - Done: 08-spec-checker (consistent, no findings). Merged origin/main 1defac1 cleanly; build green.
 - Done: 09-auditor (75e4cfd) on b0522fd: findings #1 (medium, undecided output: top-level statement starting with a local named `union`, e.g. `union.Add(4);`, now skipped under default C# 15) and #2 (low, comment text PlaygroundFormatterTests.cs:90 "only C# 14 parses" -> "C# 14 and later").
 - Decision: auditor's interim union layout hints are input for #1762–#1767 (already filed), not new follow-ups. Playground/trace now parse C# 15 (PLAY-005 already requires) -> change-doc mention, internal text.
-- Now: output question batch 2 (auditor #1) asked; waiting.
+- Batch 2 answered: 5A.
+- Now: repair round 1 (spec author 10, cleaner 11).
 - Next after answer: repair round 1 — spec author (change doc: top-level `union` statements per answer, Playground mention), cleaner (#2 comment), then spec checker, auditor (repair only), validator.
