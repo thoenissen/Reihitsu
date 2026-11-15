@@ -56,26 +56,24 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer : Diagnostic
             return;
         }
 
-        var openParenLine = argumentList.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Line;
-        var closeParenLine = argumentList.CloseParenToken.GetLocation().GetLineSpan().StartLinePosition.Line;
-
-        if (openParenLine == closeParenLine)
-        {
-            return;
-        }
-
+        // The arguments alone decide whether the list is multi-line: they start on different lines, or one of them
+        // spans lines. A line break behind the opening or in front of the closing parenthesis does not (RH5102-001)
         var startLines = new HashSet<int>();
+        var isMultiLine = false;
+        var sharesLine = false;
 
         foreach (var argument in argumentList.Arguments)
         {
-            var argumentStartLine = argument.GetLocation().GetLineSpan().StartLinePosition.Line;
+            var argumentLineSpan = argument.GetLocation().GetLineSpan();
 
-            if (startLines.Add(argumentStartLine) == false)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(argumentList.GetLocation()));
+            isMultiLine |= argumentLineSpan.StartLinePosition.Line != argumentLineSpan.EndLinePosition.Line;
+            sharesLine |= startLines.Add(argumentLineSpan.StartLinePosition.Line) == false;
+        }
 
-                return;
-            }
+        if ((isMultiLine || startLines.Count > 1)
+            && sharesLine)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(argumentList.GetLocation()));
         }
     }
 
