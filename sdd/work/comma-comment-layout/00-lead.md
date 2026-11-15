@@ -28,6 +28,9 @@
 | 7 | Skeptic | #1738 question shape | Use the skeptic's single reworded question (spec author's Q2 option A conflicted with RH5301/5303/5304; Q3 folded in) | Avoids a permanent diagnostic (FC-013) | Asked as output question | — |
 | 8 | Spec author 05 | Declaration in its own change doc; FMT-INDENT-033 retired; FMT-UNSUP-004 reason wins where both shapes hold; RH5110-003 fix withheld via SHARED-FIX-010; AGENTS.md precheck row updated | Accepted as proposed | Follow the answered declaration; same pattern as FMT-UNSUP-008 | The visible part (refusal, withheld fixes) is the maintainer's 4A/5A answer; rest is spec bookkeeping | 57771bb |
 | 9 | Test implementer | Delete 40 tests whose input FMT-UNSUP-009 now refuses (shapes moved to precheck rows); expected values for uncovered #1738 cases = main's output of the comma-last form | Accepted | Follows the declaration and answer 1A | Covered by maintainer answers 1A/4A | cf2ad90 |
+| 10 | Implementer | Disputed Fix All test lacks MarkupHandling.Allow | Route to fresh test implementer (configuration only, no assertion change) | Implementer's probe shows assertion holds | Test config is internal | pending |
+| 11 | Implementer | Spec gap: which reason wins when FMT-UNSUP-004 and -009 refuse the same comment at a non-declarator comma | Route to fresh spec author: state FMT-UNSUP-009 wins outside declarator commas (as implemented and tested) | One statement of the rule | Reason text was not asked; both reasons are already user-visible texts — choice follows the tested behavior and the declaration's answer | pending |
+| 12 | Implementer | Comma collapse moved to shared `LineBreakTriviaUtilities` with two consumers | Accepted | One owner of the policy | Internal | d3ae8ef |
 | 4 | Spec author | New requirement IDs vs. extending existing ones | New requirements (FMT-BREAK-038, FMT-INDENT-033) | Keeps existing requirements stable | Wording/IDs internal | pending |
 
 ## Follow-up candidates
@@ -43,4 +46,4 @@
 
 ## Open worklist / next step
 
-- Tests done (cf2ad90): both reproduced; 101 new/changed tests fail as expected. Next: implementer (07).
+- Implementer done (d3ae8ef). Running fresh test implementer (08, Fix All config) and fresh spec author (09, reason precedence). Then cleaner.
