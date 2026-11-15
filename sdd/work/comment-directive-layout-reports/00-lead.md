@@ -33,14 +33,24 @@ Behavior-change lane: spec author → skeptic → test implementer → implement
 | 2 | Spec | Change doc for the clarifications (SHARED-INIT-001, RH7304-001, RH5204-005, SHARED-ATTR-019/020, RH5111-005) | No change doc; clarifications/bug fixes against existing principles P12, P13, P22, SHARED-DIAG-010 | Triage comments on the issues say so | Their outputs are decided by unchanged principles or by output questions 1–2 | 3b1b3d3 |
 | 3 | Spec | New IDs vs combined headings for SHARED-ATTR-019/020 | Keep combined headings | Avoids editing ~17 rule specs' `Uses` | Spec structure is internal | 3b1b3d3 |
 
+| 4 | Skeptic | #1147 architecture finding: SHARED-COMMENT-011 decided privately per rule | Change the structure in this run: one shared method for the column of a line's first element (one or more comments, a multi-line comment's start), placed on an existing analyzer utility class (no new type); the failing rules use it and the private copies (RH5201, RH5204, initializer utilities, RH7304) move to it. Implementer reports if it exceeds ~100 production lines (escalation 9) | A narrow fix adds ~9 more copies of one rule; within components the run changes | Outputs are decided by SHARED-COMMENT-011 / SHARED-INIT-001 | |
+| 5 | Skeptic | #1147 scope | Add RH5304 and RH5306 (failing members); replace "same shapes without the comment" Done-when with the misplaced-comment variant (still reported) | Skeptic evidence | SHARED-COMMENT-011 decides | |
+| 6 | Skeptic | #1594 multi-line comment | Reading (i): compare directives with the column where the comment starts; include it in RH7304-001 (F3 dropped as candidate, absorbed) | Consistent with SHARED-INIT-001; cheap trivia check | Formatter output not reported (SHARED-DIAG-010); misaligned stays reported as on main; fix part asked in OQ1 | |
+| 7 | Skeptic | #1386 SHARED-COMMENT-001 list | Clarify: a doc comment followed by a later doc comment in the same leading trivia with an ordinary comment or directive between them documents nothing (compiler CS1587 rule); instance 4 then reports neither comment per unchanged RH5034-001; PR states the difference from the issue | Compiler verdict decides | Unchanged RH5034-001 demands it | |
+| 8 | Skeptic | #1387 RH5102/RH5109/RH5111 conditional-directive instances | Already unreported on main: characterization tests only; fix `TargetAttributeListShapeAnalyzerBase` for the 16 list-shape rules | Skeptic evidence | SHARED-DIAG-008 decides | |
+| 9 | Skeptic | #1736 issue claim "fix result not a fixed point" | Wrong; not repeated in PR; keep fix-stability test as regression | Skeptic ran the formatter | Internal | |
+
 ## Follow-up candidates
 
 - F1 (01-spec-author): RH5102 has the #1736 contradiction for argument lists (`M(⏎1, 2)`).
 - F2 (01-spec-author): RH3002-009 keeps a conditional directive inside the parentheses reported, against SHARED-DIAG-008.
-- F3 (01-spec-author): RH7304 with the first token behind a multi-line comment's `*/` — rare; candidate to drop.
+- F3 (01-spec-author): dropped — absorbed into #1594 (decision 6).
+- F4 (02-skeptic): no rule reports a parenthesized lambda / anonymous method parameter list wrapped only behind `(` after #1736; formatter joins it (P11: new rule or RH5108 gap).
+- F5 (02-skeptic): formatter writes a blank line between `=` and an own-line comment (`y =⏎// c⏎2;` → blank line inserted); may already be tracked (FMT-BLANK-011 issue listed on #912) — issue manager dedupes.
 
 ## State
 
 - Last step: spec author done (3b1b3d3); lane check confirmed behavior-change.
 - Open output questions (from 01-spec-author): OQ1 RH7304 fix for comment-led region line; OQ2 RH5111 comment/#pragma in wrapped gap; #1736 change-doc visible output changes (5 entries, entry 3 comment keeping first parameter off `(` line).
-- Next: skeptic (02), then batch output questions before the test implementer.
+- Skeptic done (829026e). Output-question batch 1 posted to maintainer (OQ1 RH7304 fix, OQ2 RH5111 gap, OQ3 RH5111 declarator directive-only gap, OQ4 #1736 entries 1/2/`)`-comment/5, OQ5 #1736 entry 3).
+- Next: on answers, spec author amends (SHARED-COMMENT-001 clarification, RH7304-001 multi-line, change doc per answers, RH5111-005 per OQ2/3), then test implementer.
