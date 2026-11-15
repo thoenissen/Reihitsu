@@ -47,5 +47,5 @@ Bug-fix lane: spec author (for the FMT-PIPE-010 clarification of #1695, and any 
 
 ## State
 
-- Last step finished: test implementer 04 (3082127); #1695, #1696, RH3003 reproduced; RH3005 characterization.
-- Next: implementer (05).
+- Last step finished: implementer 05 (60943ca); all tests pass.
+- Next: cleaner (06), spec checker (07).
