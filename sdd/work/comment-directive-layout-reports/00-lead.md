@@ -67,6 +67,10 @@ Behavior-change lane: spec author → skeptic → test implementer → implement
 - F6 (04-test-implementer): RH5204 does not check a misindented member line that starts with a predefined type and has no modifier (`  bool Value { get; }`), nor a comment above it; RH5204-006's own example uses that shape.
 - F5 (02-skeptic): formatter writes a blank line between `=` and an own-line comment (`y =⏎// c⏎2;` → blank line inserted); may already be tracked (FMT-BLANK-011 issue listed on #912) — issue manager dedupes.
 
+## Follow-up issues (22-issue-manager)
+
+F1 → #1755 (new); F2 → #1756 (new); F4 → #1158 (extended); F5 → #1148 (extended); F6 → #1157 (extended).
+
 ## State
 
 - Audit of repair round 3 (20-auditor, a3a086c): pass for all issues. **Audited SHA: c79f4bf.** Repair rounds used: 3 of 3.
