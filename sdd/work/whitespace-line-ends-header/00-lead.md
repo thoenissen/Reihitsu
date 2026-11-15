@@ -24,5 +24,5 @@ None yet.
 
 ## Worklist / next step
 
-- Done: claim, draft PR #1768, `scripts/prepare.sh` green.
-- Next: spec author (clarification).
+- Done: claim, draft PR #1768, `scripts/prepare.sh` green; spec author (01, commit 487f1ec): FMT-USING-009 clarified by citing SHARED-BLANK-001, no output questions; issue's "Required output" contradicts FMT-USING-010 (blank line above `// About Linq` stays).
+- Next: skeptic.
