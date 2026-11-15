@@ -23,6 +23,8 @@
 | 9 | Implementer | Architecture test `UsesListsExactlyTheReferencedRequirements` fails: RH5102.md references SHARED-DIAG-010 without listing it; line-breaks.md lists it without referencing it | Route to spec author | Spec text owner | Spec metadata is internal | cee5505 |
 | 10 | Implementer | Direct Core test for `SyntaxNodeUtilities.IsPartlyWrapped`? | Yes, route to test implementer | Core tests cover the shared utility assembly directly (AGENTS.md architecture) | Test only | 7e2ec7f |
 | 11 | Spec checker | Finding: change doc Status still Draft | Route to spec author; no cleaner or spec-checker re-run, the auditor reviews the full tree | One-field Markdown change; no C# changed | Change-doc metadata is internal | 20f69af |
+| 12 | Auditor | Text finding: change doc *What* says the old fix split the list | Route to spec author; prove with verify-text-only against audited SHA faad5a1 | Lead playbook section 7, pass with documentation findings | Change-doc text is internal | — |
+| 13 | Auditor | Hint: early exit when `(` and `)` share a line, for analyzer cost | Not taken | Cost not shown; a compiled change after the audit needs a re-audit | Pure performance; no output | — |
 | 1 | Claim | Branch name | Use `claude/pensive-davinci-jjfo8i` instead of `claude/issue-1755-<slug>` | The session environment only permits pushing to that branch | Branch names are internal | c59c687 |
 
 ## Follow-up candidates
@@ -39,4 +41,5 @@
 - Decision 8 done (5c8c36c).
 - Decisions 9 (cee5505) and 10 (7e2ec7f) done.
 - Cleaner clean (343c1bb); spec checker one finding (b65f499), repaired (20f69af).
-- Next: merge main if behind → build → auditor → validator.
+- Up to date with main (6a3d59f); build green. Auditor (07, 32212d3): pass, text cleanup. **Audited SHA: faad5a1.**
+- Next: spec author text fix ∥ validator → verify-text-only → publish.
