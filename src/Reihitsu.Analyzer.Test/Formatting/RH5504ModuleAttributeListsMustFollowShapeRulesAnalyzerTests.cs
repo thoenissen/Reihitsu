@@ -264,6 +264,74 @@ public class RH5504ModuleAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(RemoveMarkup(testData))), "Every line break the fix inserts must be CRLF.");
     }
 
+    /// <summary>
+    /// Verifies that a module attribute list with a conditional directive between its attributes is not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-019")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoDiagnosticWhenConditionalDirectiveIsBetweenTheAttributes(string endOfLine)
+    {
+        const string testData = """
+                                [module: A,
+                                #if DEBUG
+                                 B,
+                                #endif
+                                 C1]
+                                class C
+                                {
+                                }
+
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                sealed class C1 : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a module attribute list with a region directive pair between its attributes is still reported without offering a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5504-004")]
+    [Requirement("SHARED-ATTR-019")]
+    public async Task VerifyDiagnosticWithoutCodeFixWhenRegionDirectiveIsBetweenTheAttributes()
+    {
+        const string testData = """
+                                {|RH5504:[module: A,
+                                #region Attributes
+                                 B
+                                #endregion
+                                 ]|}
+                                class C
+                                {
+                                }
+
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                sealed class C1 : System.Attribute
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

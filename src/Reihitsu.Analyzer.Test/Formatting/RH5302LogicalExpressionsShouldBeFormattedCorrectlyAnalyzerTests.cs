@@ -797,6 +797,42 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifies that an operator behind a comment that starts its line outside the operator column is reported, although the operator behind the comment reaches that column, and that the code fix is withheld or lays the line out in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5302-002")]
+    [Requirement("SHARED-COMMENT-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyOperatorBehindMisplacedLeadingCommentIsReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    bool M(bool a, bool b)
+                                    {
+                                        return a
+                                       /* x */ {|RH5302:&&|} b;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     bool M(bool a, bool b)
+                                     {
+                                         return a
+                                                /* x */ && b;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

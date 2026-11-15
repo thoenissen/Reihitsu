@@ -496,6 +496,32 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzerTests : BatchCo
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifies that a list pattern whose closing bracket stands behind a comment that starts its line outside the column of the opening bracket is not reported, because the rule does not report a list pattern with a comment inside
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5306-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyClosingBracketBehindMisplacedLeadingCommentIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    bool M(int[] v)
+                                    {
+                                        return v is [
+                                                        1
+                                            /* e */ ];
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

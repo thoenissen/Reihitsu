@@ -1890,6 +1890,244 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifies that a nested collection initializer whose element stands behind two comments, the first of which starts its line outside the element column, is reported on the assignment, and that the code fix is withheld or lays the line out in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5304-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyElementBehindTwoMisplacedLeadingCommentsIsReported(string endOfLine)
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    List<int> L { get; } = new List<int>();
+
+                                    void M()
+                                    {
+                                        var c = new C
+                                                {
+                                                    {|RH5304:L = {
+                                                    /* a */ /* b */ 1,
+                                                            2
+                                                        }|}
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     List<int> L { get; } = new List<int>();
+
+                                     void M()
+                                     {
+                                         var c = new C
+                                                 {
+                                                     L = {
+                                                             /* a */ /* b */ 1,
+                                                             2
+                                                         }
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a element of a nested collection initializer behind a line of its own that holds two comments, the first of which starts the line in the expected column, is not reported: the further comment is not checked
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5304-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNestedElementBelowLineOfTwoCommentsInExpectedColumnIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    List<int> L { get; } = new List<int>();
+
+                                    void M()
+                                    {
+                                        var c = new C
+                                                {
+                                                    L = {
+                                                            /* a */ /* b */
+                                                            1,
+                                                            2
+                                                        }
+                                                };
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a element of a nested collection initializer behind a further comment that starts on an earlier line behind a comment in the expected column and ends on the element of a nested collection initializer's line is not reported: neither the further comment nor the element of a nested collection initializer is checked
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5304-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNestedElementBehindFurtherCommentEndingOnItsLineIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    List<int> L { get; } = new List<int>();
+
+                                    void M()
+                                    {
+                                        var c = new C
+                                                {
+                                                    L = {
+                                                            1,
+                                                            /* a */ /* b
+                                                    */ 2
+                                                        }
+                                                };
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a element of a nested collection initializer below a line of its own that holds two comments, the first of which starts the line outside the expected column, is reported, and that the code fix is withheld or lays the line out in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5304-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNestedElementBelowLineOfTwoCommentsOutsideExpectedColumnIsReported(string endOfLine)
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    List<int> L { get; } = new List<int>();
+
+                                    void M()
+                                    {
+                                        var c = new C
+                                                {
+                                                    {|RH5304:L = {
+                                                    /* a */ /* b */
+                                                            1,
+                                                            2
+                                                        }|}
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     List<int> L { get; } = new List<int>();
+
+                                     void M()
+                                     {
+                                         var c = new C
+                                                 {
+                                                     L = {
+                                                             /* a */ /* b */
+                                                             1,
+                                                             2
+                                                         }
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a element of a nested collection initializer behind a further comment that starts on an earlier line behind a comment outside the expected column and ends on the element of a nested collection initializer's line is reported, and that the code fix is withheld or lays the line out in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5304-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNestedElementBehindFurtherCommentWhoseLineStartsOutsideExpectedColumnIsReported(string endOfLine)
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    List<int> L { get; } = new List<int>();
+
+                                    void M()
+                                    {
+                                        var c = new C
+                                                {
+                                                    {|RH5304:L = {
+                                                            1,
+                                                    /* a */ /* b
+                                                    */ 2
+                                                        }|}
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     List<int> L { get; } = new List<int>();
+
+                                     void M()
+                                     {
+                                         var c = new C
+                                                 {
+                                                     L = {
+                                                             1,
+                                                             /* a */ /* b
+                                                     */ 2
+                                                         }
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

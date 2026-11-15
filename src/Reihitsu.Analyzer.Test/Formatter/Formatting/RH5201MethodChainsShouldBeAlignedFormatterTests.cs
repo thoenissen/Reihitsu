@@ -395,5 +395,51 @@ public class RH5201MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
                               ExpectedDiagnostic(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, 8, 12, 8, 13, AnalyzerResources.RH5201MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a link whose line starts with the end of a comment that spans several lines outside the anchor's
+    /// column is reported although its operator stands in that column, and that the formatter breaks the line in front of
+    /// the link, so its output is clean and stable under LF and CRLF
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5201-002")]
+    public async Task VerifyFormatterBreaksLinkInAnchorColumnBehindMisalignedCommentTail()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal object Run(dynamic a)
+                                 {
+                                     var r = a.B()
+                                              .C()
+                                              /* x
+                                     */       .D();
+
+                                     return r;
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal object Run(dynamic a)
+                                     {
+                                         var r = a.B()
+                                                  .C()
+
+                                                  /* x
+                                         */
+                                                  .D();
+
+                                         return r;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, 8, 18, 8, 19, AnalyzerResources.RH5201MessageFormat));
+    }
+
     #endregion // Tests
 }

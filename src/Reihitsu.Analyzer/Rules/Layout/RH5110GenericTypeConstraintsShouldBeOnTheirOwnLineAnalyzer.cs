@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
 
@@ -66,7 +67,7 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : Diagno
             var whereLineSpan = whereKeyword.GetLocation().GetLineSpan();
             var previousLineSpan = previousToken.GetLocation().GetLineSpan();
             var isOnOwnLine = whereLineSpan.StartLinePosition.Line > previousLineSpan.EndLinePosition.Line;
-            var hasExpectedIndentation = whereLineSpan.StartLinePosition.Character == expectedColumn;
+            var hasExpectedIndentation = CommentPositionUtilities.GetLineStartColumn(whereKeyword) == expectedColumn;
 
             if (isOnOwnLine == false
                 || hasExpectedIndentation == false)

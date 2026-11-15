@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
 
@@ -39,16 +40,15 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer : DiagnosticAn
     #region Methods
 
     /// <summary>
-    /// Determines whether the token is aligned to the expected column
+    /// Determines whether the token's line starts at the expected column: the token, or the comment that starts its line
+    /// in front of it (SHARED-COMMENT-011)
     /// </summary>
     /// <param name="token">Token</param>
     /// <param name="expectedColumn">Expected column</param>
     /// <returns><see langword="true"/> if the token matches the formatter contract</returns>
     private static bool IsTokenAligned(SyntaxToken token, int expectedColumn)
     {
-        var linePosition = token.GetLocation().GetLineSpan().StartLinePosition;
-
-        return linePosition.Character == expectedColumn;
+        return CommentPositionUtilities.GetLineStartColumn(token) == expectedColumn;
     }
 
     /// <summary>

@@ -1571,6 +1571,88 @@ public class RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
                      Diagnostics(RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5524MessageFormat, 2));
     }
 
+    /// <summary>
+    /// Verifies the spec example: a parameter attribute list behind a conditional directive between the lists of its target is not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5524-004")]
+    [Requirement("SHARED-ATTR-020")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoDiagnosticWhenConditionalDirectiveIsBetweenTheLists(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M([A]
+                                #if DEBUG
+                                           [B]
+                                #endif
+                                           [D] int a)
+                                    {
+                                    }
+                                }
+
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                sealed class C1 : System.Attribute
+                                {
+                                }
+                                sealed class D : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a conditional directive behind a reported list lies outside that list's span, so the list in front of the directive is still reported while the list behind it is not, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5524-004")]
+    [Requirement("SHARED-ATTR-020")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListInFrontOfConditionalDirectiveIsStillReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M([A] {|RH5524:[B]|}
+                                #if DEBUG
+                                           [C1]
+                                #endif
+                                           [D] int a)
+                                    {
+                                    }
+                                }
+
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                sealed class C1 : System.Attribute
+                                {
+                                }
+                                sealed class D : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

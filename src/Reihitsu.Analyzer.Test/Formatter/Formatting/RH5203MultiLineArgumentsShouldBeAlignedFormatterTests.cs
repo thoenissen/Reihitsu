@@ -78,5 +78,32 @@ public class RH5203MultiLineArgumentsShouldBeAlignedFormatterTests : FormatterTe
         await VerifyFormatter(source);
     }
 
+    /// <summary>
+    /// Verifies that an argument behind a comment that starts its line in the alignment column is not reported and stays as written
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5203-001")]
+    [Requirement("SHARED-COMMENT-011")]
+    public async Task VerifyArgumentBehindLeadingCommentInAlignmentColumnIsNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(1,
+                                          /* two */ 2);
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyFormatter(testData);
+    }
+
     #endregion // Tests
 }

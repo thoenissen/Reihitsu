@@ -22,7 +22,7 @@ It also states, for the rules that list them under `Uses`, which comments are or
 
 ### SHARED-COMMENT-001 — Only ordinary comments are checked, every kind alike
 
-A rule MUST check only ordinary comments, and MUST treat every kind of them alike: a `//` comment, a `/* */` comment, and a `///` or `/** */` comment that documents nothing. It MUST NOT report a documentation comment that documents a declaration. A `///` or `/** */` comment documents a declaration exactly when the compiler reads it as that declaration's documentation and does not report it as misplaced (CS1587). The compiler reads documentation only in front of a type, a delegate, a member, or an enum member, ahead of the declaration's attribute lists and modifiers; a `///` or `/** */` comment anywhere else documents nothing — behind an attribute list, inside an argument list or a statement, in front of a namespace, an accessor, a parameter, a local function, or a statement, or behind the last member of a type.
+A rule MUST check only ordinary comments, and MUST treat every kind of them alike: a `//` comment, a `/* */` comment, and a `///` or `/** */` comment that documents nothing. It MUST NOT report a documentation comment that documents a declaration. A `///` or `/** */` comment documents a declaration exactly when the compiler reads it as that declaration's documentation and does not report it as misplaced (CS1587). The compiler reads documentation only in front of a type, a delegate, a member, or an enum member, ahead of the declaration's attribute lists and modifiers; a `///` or `/** */` comment anywhere else documents nothing — behind an attribute list, inside an argument list or a statement, in front of a namespace, an accessor, a parameter, a local function, or a statement, or behind the last member of a type. In front of a declaration that takes documentation, a `///` or `/** */` comment also documents nothing when a later `///` or `/** */` comment follows it in the same leading trivia and an ordinary comment or a preprocessor directive stands between the two: only the comments from the later one on document the declaration. A blank line alone between two documentation comments does not detach the earlier one, and neither do ordinary comments that only follow it.
 
 The verdict MUST NOT depend on whether the compiler parses documentation comments. When it does not, a comment counts as a `///` or `/** */` comment by its text — a `//` comment that starts with exactly three slashes, and a `/* */` comment that starts with `/**` and is not the empty comment `/**/` — and it documents a declaration exactly where it would if documentation comments were parsed.
 
@@ -62,6 +62,22 @@ class C
 
 is not reported, whether or not documentation comments are parsed.
 
+Example — RH5034, where `// note` separates `/// a` from the later documentation comment `/// b`, so `/// a` documents nothing:
+
+```csharp
+class C
+{
+    /// a
+    // note
+    /// b
+    void N()
+    {
+    }
+}
+```
+
+is not reported, whether or not documentation comments are parsed: `/// a` and `// note` are ordinary comments in front of the documentation comment of `N`, which RH5034 does not report.
+
 ### SHARED-COMMENT-002 — A comment inside a preprocessor directive is not checked
 
 A rule MUST NOT report a comment that is part of a preprocessor directive line, such as the comment behind `#if DEBUG`.
@@ -90,7 +106,9 @@ is not reported.
 
 A rule MUST report one diagnostic for each comment in a position it reports, located on that comment, whether the comment stands on a line of its own or shares a line with code. Two comments in the same gap MUST be reported separately. A comment in a position that several rules report MUST be reported by each of them, each rule deciding on its own.
 
-Why: Each comment has to be moved on its own, and the author may want to move one and delete the other. A comment behind code on the same line is just as misplaced as one on its own line. A comment inside, say, an argument list that is itself inside a statement header splits both constructs.
+Each line of a `///` comment that documents nothing (SHARED-COMMENT-001) is a comment of its own: a run of consecutive `///` lines in a position the rule reports MUST be reported with one diagnostic per line, whether or not documentation comments are parsed. A diagnostic on a `///` line MUST start at that line's `///` and end at the end of that line's text. A diagnostic on a `/** */` comment MUST start at its `/**` and end at the end of the comment's text on its last line, also when the comment spans several lines. Neither diagnostic includes the line break behind the text.
+
+Why: Each comment has to be moved on its own, and the author may want to move one and delete the other. A comment behind code on the same line is just as misplaced as one on its own line. A comment inside, say, an argument list that is itself inside a statement header splits both constructs. A `///` line that documents nothing is an ordinary comment that ends with its line, like a `//` line, and the number of diagnostics must not change with the project setting that decides whether documentation comments are parsed. The `///` or `/**` is where the comment starts, and the line break behind a `///` comment belongs to the line, not to the comment's text.
 
 Example — RH5038:
 
@@ -126,6 +144,46 @@ class C
 ```
 
 RH5039 reports the same comment, because the argument list is part of the `if` header.
+
+Example — RH5038, whose diagnostics on a `///` and a `/** */` comment cover the comment's text from its `///` or `/**` on, and not the line break behind it:
+
+```csharp
+class C
+{
+    int M(params object[] values) => 0;
+
+    void N()
+    {
+        M(
+            {|RH5038:/// first value|}
+            1,
+            {|RH5038:/** second value */|}
+            2);
+    }
+}
+```
+
+Example — RH5038, which reports each line of a run of `///` lines that documents nothing on its own, and a `/** */` comment that spans two lines once:
+
+```csharp
+class C
+{
+    int M(params object[] values) => 0;
+
+    void N()
+    {
+        M(
+            {|RH5038:/// first|}
+            {|RH5038:/// second|}
+            1,
+            {|RH5038:/** third
+                fourth */|}
+            2);
+    }
+}
+```
+
+The diagnostics are the same whether or not documentation comments are parsed.
 
 ### SHARED-COMMENT-004 — A comment inside a region is reported
 

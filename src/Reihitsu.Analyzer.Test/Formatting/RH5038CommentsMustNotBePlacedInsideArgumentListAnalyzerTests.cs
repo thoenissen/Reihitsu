@@ -1961,5 +1961,104 @@ public class RH5038CommentsMustNotBePlacedInsideArgumentListAnalyzerTests : Anal
         await Verify(testData.ReplaceLineEndings("\r\n"));
     }
 
+    /// <summary>
+    /// Verifies that a <c>///</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5038-001")]
+    public async Task VerifyTripleSlashCommentBeforeFirstArgumentIsReported()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    void Method(bool a, bool b, int[] items, object o)
+                                    {
+                                        var result = Math.Max(
+                                            {|#0:/// first value|}
+                                            1,
+                                            2);
+                                        _ = result;
+                                    }
+
+                                    static int Run(params object[] values) => 0;
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5038CommentsMustNotBePlacedInsideArgumentListAnalyzer.DiagnosticId, AnalyzerResources.RH5038MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5038CommentsMustNotBePlacedInsideArgumentListAnalyzer.DiagnosticId, AnalyzerResources.RH5038MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>/** */</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5038-001")]
+    public async Task VerifyDelimitedDocumentationStyleCommentBeforeFirstArgumentIsReported()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    void Method(bool a, bool b, int[] items, object o)
+                                    {
+                                        var result = Math.Max(
+                                            {|#0:/** first value */|}
+                                            1,
+                                            2);
+                                        _ = result;
+                                    }
+
+                                    static int Run(params object[] values) => 0;
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5038CommentsMustNotBePlacedInsideArgumentListAnalyzer.DiagnosticId, AnalyzerResources.RH5038MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5038CommentsMustNotBePlacedInsideArgumentListAnalyzer.DiagnosticId, AnalyzerResources.RH5038MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the spec example: each line of a run of <c>///</c> lines that documents nothing is reported on its own, from its <c>///</c> to the end of its text, and a <c>/** */</c> comment that spans two lines is reported once, the same whether or not documentation comments are parsed
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-003")]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5038-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyEveryLineOfTripleSlashRunIsReportedOnItsOwnInEveryDocumentationMode(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int M(params object[] values) => 0;
+
+                                    void N()
+                                    {
+                                        M(
+                                            {|#0:/// first|}
+                                            {|#1:/// second|}
+                                            1,
+                                            {|#2:/** third
+                                                fourth */|}
+                                            2);
+                                    }
+                                }
+                                """;
+
+        var source = testData.ReplaceLineEndings(endOfLine);
+
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5038CommentsMustNotBePlacedInsideArgumentListAnalyzer.DiagnosticId, AnalyzerResources.RH5038MessageFormat, 3));
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5038CommentsMustNotBePlacedInsideArgumentListAnalyzer.DiagnosticId, AnalyzerResources.RH5038MessageFormat, 3));
+    }
+
     #endregion // Tests
 }

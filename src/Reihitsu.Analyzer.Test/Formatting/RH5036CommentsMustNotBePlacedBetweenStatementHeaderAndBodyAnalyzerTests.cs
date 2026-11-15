@@ -651,5 +651,61 @@ public class RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzerT
         await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, AnalyzerResources.RH5036MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a <c>///</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5036-001")]
+    public async Task VerifyTripleSlashCommentBetweenIfHeaderAndBlockIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(bool a, bool b, int[] items, object o)
+                                    {
+                                        if (a)
+                                            {|#0:/// explanation|}
+                                        {
+                                        }
+                                    }
+
+                                    static int Run(params object[] values) => 0;
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, AnalyzerResources.RH5036MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, AnalyzerResources.RH5036MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>/** */</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5036-001")]
+    public async Task VerifyDelimitedDocumentationStyleCommentBetweenIfHeaderAndBlockIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(bool a, bool b, int[] items, object o)
+                                    {
+                                        if (a)
+                                            {|#0:/** explanation */|}
+                                        {
+                                        }
+                                    }
+
+                                    static int Run(params object[] values) => 0;
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, AnalyzerResources.RH5036MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5036CommentsMustNotBePlacedBetweenStatementHeaderAndBodyAnalyzer.DiagnosticId, AnalyzerResources.RH5036MessageFormat));
+    }
+
     #endregion // Tests
 }

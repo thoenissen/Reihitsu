@@ -295,5 +295,49 @@ public class RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer
         await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, AnalyzerResources.RH5047MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a <c>///</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5047-002")]
+    public async Task VerifyTripleSlashCommentBeforeAccessorListIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public int Value
+                                        {|#0:/// storage|}
+                                        { get; set; }
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, AnalyzerResources.RH5047MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, AnalyzerResources.RH5047MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>/** */</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5047-002")]
+    public async Task VerifyDelimitedDocumentationStyleCommentBeforeAccessorListIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public int Value
+                                        {|#0:/** storage */|}
+                                        { get; set; }
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, AnalyzerResources.RH5047MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, AnalyzerResources.RH5047MessageFormat));
+    }
+
     #endregion // Tests
 }

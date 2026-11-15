@@ -1035,6 +1035,216 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : Ba
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifies the spec example: a member behind two comments, the first of which starts its line outside the member column, is reported on the member, and the code fix is withheld or lays the line out in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5301-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyMemberBehindTwoMisplacedLeadingCommentsIsReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P { get; set; }
+
+                                    void M()
+                                    {
+                                        var c = new C
+                                                {
+                                            /* a */ /* b */ {|RH5301:P = 1|}
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int P { get; set; }
+
+                                     void M()
+                                     {
+                                         var c = new C
+                                                 {
+                                                     /* a */ /* b */ P = 1
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a member behind a line of its own that holds two comments, the first of which starts the line in the expected column, is not reported: the further comment is not checked
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5301-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyMemberBelowLineOfTwoCommentsInExpectedColumnIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P { get; set; }
+                                    int Q { get; set; }
+
+                                    void M()
+                                    {
+                                        var c = new C
+                                                {
+                                                    /* a */ /* b */
+                                                    P = 1,
+                                                    Q = 2
+                                                };
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a member behind a further comment that starts on an earlier line behind a comment in the expected column and ends on the member's line is not reported: neither the further comment nor the member is checked
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5301-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyMemberBehindFurtherCommentEndingOnItsLineIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P { get; set; }
+                                    int Q { get; set; }
+
+                                    void M()
+                                    {
+                                        var c = new C
+                                                {
+                                                    P = 1,
+                                                    /* a */ /* b
+                                            */ Q = 2
+                                                };
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a member below a line of its own that holds two comments, the first of which starts the line outside the expected column, is reported, and that the code fix is withheld or lays the line out in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5301-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyMemberBelowLineOfTwoCommentsOutsideExpectedColumnIsReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P { get; set; }
+                                    int Q { get; set; }
+
+                                    void M()
+                                    {
+                                        var c = new C
+                                                {
+                                            /* a */ /* b */
+                                                    {|RH5301:P = 1|},
+                                                    Q = 2
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int P { get; set; }
+                                     int Q { get; set; }
+
+                                     void M()
+                                     {
+                                         var c = new C
+                                                 {
+                                                     /* a */ /* b */
+                                                     P = 1,
+                                                     Q = 2
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a member behind a further comment that starts on an earlier line behind a comment outside the expected column and ends on the member's line is reported, and that the code fix is withheld or lays the line out in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-INIT-001")]
+    [Requirement("RH5301-002")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyMemberBehindFurtherCommentWhoseLineStartsOutsideExpectedColumnIsReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int P { get; set; }
+                                    int Q { get; set; }
+
+                                    void M()
+                                    {
+                                        var c = new C
+                                                {
+                                                    P = 1,
+                                            /* a */ /* b
+                                            */ {|RH5301:Q = 2|}
+                                                };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int P { get; set; }
+                                     int Q { get; set; }
+
+                                     void M()
+                                     {
+                                         var c = new C
+                                                 {
+                                                     P = 1,
+                                                     /* a */ /* b
+                                             */ Q = 2
+                                                 };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

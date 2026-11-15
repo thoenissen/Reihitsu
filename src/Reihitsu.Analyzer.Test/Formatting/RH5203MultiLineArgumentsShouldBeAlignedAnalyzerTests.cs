@@ -943,6 +943,50 @@ public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzerTests : BatchCodeFix
     }
 
     /// <summary>
+    /// Verifies that an argument behind a comment that starts its line outside the alignment column is reported, although the argument behind the comment reaches the alignment column, and that the code fix is withheld or lays the line out in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5203-001")]
+    [Requirement("SHARED-COMMENT-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyArgumentBehindMisplacedLeadingCommentIsReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(1,
+                                /* two */ {|RH5203:2|});
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void N()
+                                     {
+                                         M(1,
+                                           /* two */ 2);
+                                     }
+
+                                     void M(params int[] values)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
+    }
+
+    /// <summary>
     /// Verifies the diagnostics marked in the source and that no code fix is offered, under LF and under CRLF
     /// </summary>
     /// <param name="testCode">The source with markup and LF line endings</param>

@@ -357,6 +357,90 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : BatchCo
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifies that a switch expression whose arm stands behind a comment that starts its line outside the arm column is reported, although the arm behind the comment reaches the arm column, and that the code fix is withheld or lays the line out in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5206-001")]
+    [Requirement("SHARED-COMMENT-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyArmBehindMisplacedLeadingCommentIsReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string M(int status)
+                                    {
+                                        return {|RH5206:status switch
+                                               {
+                                        /* idle */ 0 => "Idle",
+                                                   _ => "Other"
+                                               }|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     string M(int status)
+                                     {
+                                         return status switch
+                                                {
+                                                    /* idle */ 0 => "Idle",
+                                                    _ => "Other"
+                                                };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a switch expression whose opening brace stands behind a comment that starts its line outside the column of the governing expression is reported, although the brace behind the comment reaches that column, and that the code fix is withheld or lays the line out in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5206-001")]
+    [Requirement("SHARED-COMMENT-011")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyOpeningBraceBehindMisplacedLeadingCommentIsReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string M(int status)
+                                    {
+                                        return {|RH5206:status switch
+                                       /* m */ {
+                                                   0 => "Idle",
+                                                   _ => "Other"
+                                               }|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     string M(int status)
+                                     {
+                                         return status switch
+                                                /* m */ {
+                                                    0 => "Idle",
+                                                    _ => "Other"
+                                                };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

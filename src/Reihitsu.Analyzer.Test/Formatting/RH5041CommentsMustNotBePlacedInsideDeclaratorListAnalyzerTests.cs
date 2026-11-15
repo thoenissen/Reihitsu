@@ -407,5 +407,49 @@ public class RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzerTests : An
         await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzer.DiagnosticId, AnalyzerResources.RH5041MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a <c>///</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5041-001")]
+    public async Task VerifyTripleSlashCommentAfterDeclaratorSeparatorIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int _first,
+                                        {|#0:/// second|}
+                                        _second;
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzer.DiagnosticId, AnalyzerResources.RH5041MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzer.DiagnosticId, AnalyzerResources.RH5041MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>/** */</c> comment that documents nothing is reported like an ordinary comment in the same position, whether or not documentation comments are parsed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-COMMENT-001")]
+    [Requirement("RH5041-001")]
+    public async Task VerifyDelimitedDocumentationStyleCommentAfterDeclaratorSeparatorIsReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int _first,
+                                        {|#0:/** second */|}
+                                        _second;
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzer.DiagnosticId, AnalyzerResources.RH5041MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5041CommentsMustNotBePlacedInsideDeclaratorListAnalyzer.DiagnosticId, AnalyzerResources.RH5041MessageFormat));
+    }
+
     #endregion // Tests
 }

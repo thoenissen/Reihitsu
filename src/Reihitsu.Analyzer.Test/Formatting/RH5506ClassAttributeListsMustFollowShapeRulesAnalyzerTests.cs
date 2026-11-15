@@ -364,7 +364,7 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
     }
 
     /// <summary>
-    /// Verifies that a list with a comment or a preprocessor directive between its brackets is still reported without offering a code fix
+    /// Verifies the spec example: a list with a comment, a <c>#pragma</c> directive between its attributes, or a conditional directive inside an attribute's argument list is still reported without offering a code fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -373,60 +373,42 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
     public async Task VerifyDiagnosticWithoutCodeFixWhenCommentOrDirectiveIsInsideTheList()
     {
         const string testData = """
-                                {|#0:[A, /* c */ B]|}
+                                {|RH5506:[A, /* c */ B]|}
                                 class C
                                 {
                                 }
 
-                                {|#1:[A,
-                                #if DEBUG
-                                #endif
+                                {|RH5506:[A,
+                                #pragma warning disable CS0618
                                  B]|}
                                 class E
                                 {
                                 }
+
+                                {|RH5506:[A(1
+                                #if DEBUG
+                                 + 1
+                                #endif
+                                 ), B]|}
+                                class F
+                                {
+                                }
                                 sealed class A : System.Attribute
                                 {
+                                    public A()
+                                    {
+                                    }
+
+                                    public A(int value)
+                                    {
+                                    }
                                 }
                                 sealed class B : System.Attribute
                                 {
                                 }
                                 """;
-        const string codeFixData = """
-                                   [A, /* c */ B]
-                                   class C
-                                   {
-                                   }
 
-                                   [A,
-                                   #if DEBUG
-                                   #endif
-                                    B]
-                                   class E
-                                   {
-                                   }
-                                   sealed class A : System.Attribute
-                                   {
-                                   }
-                                   sealed class B : System.Attribute
-                                   {
-                                   }
-                                   """;
-
-        await Verify(testData,
-                     Diagnostics(RH5506ClassAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5506MessageFormat, 2));
-
-        foreach (var index in new[] { 0, 1 })
-        {
-            var actions = await GetCodeFixActionsAsync(codeFixData,
-                                                       RH5506ClassAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
-                                                       root => root.DescendantNodes()
-                                                                   .OfType<AttributeListSyntax>()
-                                                                   .ElementAt(index)
-                                                                   .GetLocation());
-
-            Assert.IsEmpty(actions, $"A code fix was offered for attribute list {index}.");
-        }
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>
@@ -628,6 +610,159 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
                                  """;
 
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the spec example: a list with a conditional directive between its attributes is not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5506-004")]
+    [Requirement("SHARED-ATTR-019")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoDiagnosticWhenConditionalDirectiveIsBetweenTheAttributes(string endOfLine)
+    {
+        const string testData = """
+                                [A,
+                                #if DEBUG
+                                 B,
+                                #endif
+                                 C1]
+                                class C
+                                {
+                                }
+
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                sealed class C1 : System.Attribute
+                                {
+                                }
+                                sealed class D : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a list whose attribute a false conditional excludes as disabled text is not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5506-004")]
+    [Requirement("SHARED-ATTR-019")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoDiagnosticWhenDisabledTextHoldsAnAttributeOfTheList(string endOfLine)
+    {
+        const string testData = """
+                                [A,
+                                #if false
+                                 B,
+                                #else
+                                 D,
+                                #endif
+                                 C1]
+                                class C
+                                {
+                                }
+
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                sealed class C1 : System.Attribute
+                                {
+                                }
+                                sealed class D : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a list with a region directive pair between its attributes is still reported without offering a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5506-004")]
+    [Requirement("SHARED-ATTR-019")]
+    public async Task VerifyDiagnosticWithoutCodeFixWhenRegionDirectiveIsBetweenTheAttributes()
+    {
+        const string testData = """
+                                {|RH5506:[A,
+                                #region Attributes
+                                 B
+                                #endregion
+                                 ]|}
+                                class C
+                                {
+                                }
+
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                sealed class C1 : System.Attribute
+                                {
+                                }
+                                sealed class D : System.Attribute
+                                {
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional directive in front of the list lies outside the span the rule judges, so a list with two attributes inside it is still reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5506-004")]
+    [Requirement("SHARED-ATTR-019")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyDiagnosticWhenConditionalDirectiveIsInFrontOfTheList(string endOfLine)
+    {
+        const string testData = """
+                                #if DEBUG
+                                #endif
+                                {|RH5506:[A, B]|}
+                                class C
+                                {
+                                }
+
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                sealed class C1 : System.Attribute
+                                {
+                                }
+                                sealed class D : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
     }
 
     #endregion // Tests
