@@ -47,4 +47,5 @@ None yet. The issue itself carries an output question (withhold the casing fix w
 - Spec author round 1 done: `08-spec-author.md` (b58ee29).
 - Test implementer round 1 done: `09-test-implementer.md` (c8650bb; 12 tests, 7 failing as intended). Decision 5 premise was a misreading; f26 row was already correct.
 - Implementer round 1 done: `10-implementer.md` (8c7e443, e30fcd7; all Naming tests pass, Release 0 warnings).
-- Next: cleaner (round 1) → spec checker → auditor (repair only, audited before: 62b92c4) → validator.
+- Cleaner round 1 done: `11-cleaner.md` (clean).
+- Next: spec checker → auditor (repair only, audited before: 62b92c4) → validator.
