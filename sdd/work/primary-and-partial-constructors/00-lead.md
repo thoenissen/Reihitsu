@@ -28,6 +28,7 @@
 | 9 | Audit 1 | Finding 1: RH3002/RH3005/RH3006 report `#if`/`#elif` condition expressions twice on primary-constructor types (same mechanism, unchanged analyzers) | Take in as adjacent fix in repair round 1: same mechanism and guard, a few lines, gets tests, brings output back to one diagnostic | Cheaper here than as a separate run; component the run already changes | One diagnostic per element is an unchanged requirement | – |
 | 10 | Audit 1 | Finding 2: guard edges (base-type argument list exemption, FullSpan of parameter list) untested | Repair: one RH7302 test per edge | PR-introduced coverage gap | Tests only | – |
 | 11 | Audit 1 | Hint: `IsRepeatedRun` summary incomplete | Route to the implementer with the repair | Comment only | Comment only | – |
+| 12 | Audit 2 | Hints: check order in `IsRepeatedRun` (perf), registration name/summary | No change | Both non-blocking; a compiled change would need another audit for a minor cost (one parent walk per parenthesized/comparison/`||` node) | Internal | – |
 | 5 | Skeptic | #1742 output question 2 (RH8017/RH8018/RH8030/RH8101–RH8105/RH8108 on defining part) | Not asked: unchanged SHARED-DOC-001/005 leave partial elements outside these rules; keep today's output (not reported) | An unchanged spec decides it | Unchanged spec decides | – |
 
 ## Follow-up candidates
@@ -37,5 +38,5 @@
 ## State
 
 - Last step: skeptic (01-skeptic.md, 71ae774).
-- Audit 1 (07, audited 257eea7): findings 1–2. Repair round 1: tests 08 (d9c7e7b), impl 09 (703351a), cleaner 10, spec checker 11 consistent. Next: auditor on repair only, then validator.
+- Audit 1 (07, audited 257eea7): findings 1–2. Repair round 1: tests 08 (d9c7e7b), impl 09 (703351a), cleaner 10, spec checker 11 consistent. Audit 2 (12, audited 0f08cfd): pass both. Next: validator.
 - Next: spec author -> test implementer (#1680 reproductions; #1742 characterization of the recorded limitation) -> implementer -> cleaner -> spec checker -> auditor -> validator.
