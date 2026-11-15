@@ -4361,6 +4361,192 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
     }
 
     /// <summary>
+    /// Verifies that the fix is withheld when the renamed property reference would read the parameter of a lambda with an
+    /// inferred type that initializes a local declaration instead of the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenALambdaParameterInALocalDeclarationIsNamedLikeTheField()
+    {
+        const string testData = """
+                                using System;
+
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        Func<int, int> add = _value => Value + _value;
+
+                                        return add(1);
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld when the renamed property reference would write the parameter of a lambda that is
+    /// assigned in a statement instead of the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenALambdaParameterInAnAssignmentStatementIsNamedLikeTheField()
+    {
+        const string testData = """
+                                using System;
+
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        Func<int, int> add;
+                                        add = _value => Value = _value;
+
+                                        return add(1);
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld when the renamed property reference would read the parameter of a lambda that a
+    /// constructor assigns instead of the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenALambdaParameterInAConstructorIsNamedLikeTheField()
+    {
+        const string testData = """
+                                using System;
+
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    private readonly Func<int, int> _add;
+
+                                    Sample()
+                                    {
+                                        _add = _value => Value + _value;
+                                    }
+
+                                    int Get() => _add(1);
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld when the renamed property reference would read the parameter of an explicitly
+    /// typed lambda in a block body instead of the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenAnExplicitlyTypedLambdaParameterInABlockBodyIsNamedLikeTheField()
+    {
+        const string testData = """
+                                using System;
+
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Get()
+                                    {
+                                        Func<int, int> add = (int _value) => Value + _value;
+
+                                        return add(1);
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld when the renamed property reference would read a query range variable named like
+    /// the field instead of the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyNoFixIsOfferedWhenAQueryRangeVariableIsNamedLikeTheField()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                class Sample
+                                {
+                                    private int {|RH2001:Value|} { get; set; }
+
+                                    int Sum() => (from _value in Enumerable.Range(0, 3) select Value + _value).Sum();
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is offered when a lambda parameter named like the field stands in an expression body in
+    /// another document, in another <c>partial</c> part of the type, and qualifies the renamed property reference there
+    /// with <see langword="this"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-011")]
+    public async Task VerifyFixQualifiesThePropertyReferenceNextToALambdaParameterInAnExpressionBodyInAPartialPartInAnotherDocument()
+    {
+        const string source = """
+                              partial class Sample
+                              {
+                                  private int {|RH2001:Value|} { get; set; }
+                              }
+                              """;
+        const string fixedSource = """
+                                   partial class Sample
+                                   {
+                                       private int _value;
+                                   }
+                                   """;
+        const string otherSource = """
+                                   using System;
+
+                                   partial class Sample
+                                   {
+                                       Func<int, int> Add() => _value => Value + _value;
+                                   }
+                                   """;
+        const string fixedOtherSource = """
+                                        using System;
+
+                                        partial class Sample
+                                        {
+                                            Func<int, int> Add() => _value => this._value + _value;
+                                        }
+                                        """;
+
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherSource));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", fixedOtherSource));
+                     });
+    }
+
+    /// <summary>
     /// Verifies that Fix All leaves a property whose fix is withheld because an inherited field is named like its field,
     /// and replaces another property of the same type
     /// </summary>
