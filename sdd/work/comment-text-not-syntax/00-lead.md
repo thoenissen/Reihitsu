@@ -31,10 +31,11 @@
 | 8 | Skeptic (spec) | SHARED-DIAG-003 sentence wording | State plainly that RH2109 departs from SHARED-DIAG-003 for this class | Clearer exception record | Spec wording internal | — |
 | 9 | Skeptic (spec) | Continue spec author for the amendments | Continue (small correction, small agent, first correction this stage) | Continue table | Process | — |
 | 10 | Test implementer | Architecture test `UsesListsExactlyTheReferencedRequirements` fails: RH2109-004 referenced in shared/diagnostics.md but missing from its Uses | PR-introduced spec gap; route to a fresh spec author before the implementer | Spec author was already continued once this stage | Spec metadata only | — |
+| 11 | Publish | RH2109 follow-up candidate (comment opened behind other text on its line does not hide next-line `@code {`) | Drop; not passed to the issue manager | Only serves a rare input class (commented-out `@code` after markup on the same line); keeping it reported is the refusal `AGENTS.md` Code-fix coverage prescribes | Output unchanged | — |
 
 ## Follow-up candidates
 
-- RH2109: a Razor/HTML comment opened behind other text on its line (`<p>Counter</p><!--`) does not hide a `@code {` on the next line, so it is reported though SHARED-DIAG-003 makes it comment text; RH2109-001 does not record it. Carries an output question (spec author recommends: keep reported, record in RH2109-001). Source: 02-spec-author.md.
+- RH2109: a Razor/HTML comment opened behind other text on its line (`<p>Counter</p><!--`) does not hide a `@code {` on the next line, so it is reported though SHARED-DIAG-003 makes it comment text; RH2109-001 does not record it. Carries an output question (spec author recommends: keep reported, record in RH2109-001). Source: 02-spec-author.md. **Dropped (decision 11).**
 - RH7203 (possibly other ordering fixes): in a block-scoped namespace whose first using has a comment above it (`// Header` or `/* Header */`), the fix writes the moved using at column 0 instead of the namespace indentation; pre-existing on main, LF and CRLF; the formatter writes column 4. Source: 05-test-implementer.md.
 
 ## Worklist / next step
