@@ -53,3 +53,7 @@ On `00-lead.md` decision 9 (`UsesListsExactlyTheReferencedRequirements` failed):
 ## Amendment 3
 
 On `06-spec-checker.md` check 1 and `00-lead.md` decision 3: `Status` of `sdd/changes/2026-11/rh5102-arguments-on-one-line.md` set from `Draft` to `Accepted`, in the form the other accepted change docs under `sdd/changes/2026-11/` use (`| Status | Accepted |`).
+
+## Amendment 4
+
+On `07-auditor.md` finding #1: the last sentence of *What* in `sdd/changes/2026-11/rh5102-arguments-on-one-line.md` no longer says the old fix split the list. It now says the fix, which lays the list out as the formatter does, joined it where the formatter joins it and changed nothing where the formatter keeps it, in agreement with *Why*. No other text changed.
