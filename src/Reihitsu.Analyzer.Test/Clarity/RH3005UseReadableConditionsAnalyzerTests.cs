@@ -1338,6 +1338,50 @@ public class RH3005UseReadableConditionsAnalyzerTests : BatchCodeFixTestsBase<RH
                      });
     }
 
+    /// <summary>
+    /// Verifies that a constant on the left of a comparison in an <c>#if</c> condition in front of the closing brace
+    /// of a class with a primary constructor is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3005-001")]
+    [Requirement("RH3005-003")]
+    public async Task ConstantOnLeftInIfConditionInFrontOfClosingBraceOfClassWithPrimaryConstructorIsReportedOnce()
+    {
+        const string testData = """
+                                public class Service(int value)
+                                {
+                                    public int Value => value;
+                                #if true {|#0:==|} A
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, "Use readable conditions."));
+    }
+
+    /// <summary>
+    /// Verifies that a constant on the left of a comparison in an <c>#if</c> condition in front of a class with a
+    /// primary constructor is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3005-001")]
+    [Requirement("RH3005-003")]
+    public async Task ConstantOnLeftInIfConditionInFrontOfClassWithPrimaryConstructorIsReportedOnce()
+    {
+        const string testData = """
+                                #if true {|#0:==|} A
+                                #endif
+                                public class Service(int value)
+                                {
+                                    public int Value => value;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, "Use readable conditions."));
+    }
+
     #endregion // Tests
 
     #region Methods

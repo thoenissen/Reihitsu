@@ -810,6 +810,54 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a lower-case region in front of the argument list of the base type of a class with a primary
+    /// constructor is reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7302-001")]
+    [Requirement("RH7302-003")]
+    public async Task VerifyLowercaseRegionInFrontOfBaseTypeArgumentListOfClassWithPrimaryConstructorIsReportedOnce()
+    {
+        const string testData = """
+                                public class Base(int value)
+                                {
+                                    public int Value => value;
+                                }
+
+                                public class Derived(int value) : Base
+                                    {|#0:#region lower|}
+                                    #endregion
+                                    (value);
+                                """;
+
+        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a lower-case region in front of the parameter list of a class with a primary constructor is
+    /// reported once
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7302-001")]
+    [Requirement("RH7302-003")]
+    public async Task VerifyLowercaseRegionInFrontOfParameterListOfClassWithPrimaryConstructorIsReportedOnce()
+    {
+        const string testData = """
+                                public class Service
+                                    {|#0:#region lower|}
+                                    #endregion
+                                    (int value)
+                                {
+                                    public int Value => value;
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
