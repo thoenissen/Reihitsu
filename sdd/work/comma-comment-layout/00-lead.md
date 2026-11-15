@@ -31,6 +31,7 @@
 | 10 | Implementer | Disputed Fix All test lacks MarkupHandling.Allow | Route to fresh test implementer (configuration only, no assertion change) | Implementer's probe shows assertion holds | Test config is internal | 481c314 |
 | 11 | Implementer | Spec gap: which reason wins when FMT-UNSUP-004 and -009 refuse the same comment at a non-declarator comma | Route to fresh spec author: state FMT-UNSUP-009 wins outside declarator commas (as implemented and tested) | One statement of the rule | Reason text was not asked; both reasons are already user-visible texts — choice follows the tested behavior and the declaration's answer | dd4f25b |
 | 12 | Implementer | Comma collapse moved to shared `LineBreakTriviaUtilities` with two consumers | Accepted | One owner of the policy | Internal | d3ae8ef |
+| 13 | Before auditor | origin/main moved (#1750, #1752) | Merged before the audit; ledger auto-merged | lead.md §6.1 | Internal | merge commit |
 | 4 | Spec author | New requirement IDs vs. extending existing ones | New requirements (FMT-BREAK-038, FMT-INDENT-033) | Keeps existing requirements stable | Wording/IDs internal | pending |
 
 ## Follow-up candidates
@@ -46,4 +47,4 @@
 
 ## Open worklist / next step
 
-- 08/09 done. Next: cleaner (10), then spec checker (11).
+- Spec checker: consistent (11). Change docs Accepted (8615cd1). main merged, Release build green. Next: auditor (13).
