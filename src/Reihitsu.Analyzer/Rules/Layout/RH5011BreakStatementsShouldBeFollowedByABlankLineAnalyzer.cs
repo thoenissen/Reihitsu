@@ -38,19 +38,6 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer : Stateme
     #region StatementShouldBeFollowedByABlankLineAnalyzerBase
 
     /// <inheritdoc />
-    protected override SyntaxToken GetNextToken(BreakStatementSyntax breakStatement)
-    {
-        var nextToken = breakStatement.BreakKeyword.GetNextToken();
-
-        if (nextToken.IsKind(SyntaxKind.SemicolonToken))
-        {
-            nextToken = nextToken.GetNextToken();
-        }
-
-        return nextToken;
-    }
-
-    /// <inheritdoc />
     protected override Location GetLocation(BreakStatementSyntax statement)
     {
         return statement.BreakKeyword.GetLocation();

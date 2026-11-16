@@ -52,13 +52,6 @@ public abstract class StatementShouldBeFollowedByABlankLineAnalyzerBase<TStateme
     protected abstract Location GetLocation(TStatement statement);
 
     /// <summary>
-    /// Get next token
-    /// </summary>
-    /// <param name="statement">Statement</param>
-    /// <returns>Token</returns>
-    protected abstract SyntaxToken GetNextToken(TStatement statement);
-
-    /// <summary>
     /// Determines whether a token continues a statement that holds the analyzed statement rather than starting a new one:
     /// the <c>else</c> keyword of an <c>if</c> statement or the <c>while</c> keyword of a <c>do</c> statement (RH5011-008)
     /// </summary>
@@ -72,22 +65,24 @@ public abstract class StatementShouldBeFollowedByABlankLineAnalyzerBase<TStateme
     }
 
     /// <summary>
-    /// Analyze statement. Blank lines are counted with <see cref="TokenGapAnalysis"/>, the one measure of SHARED-BLANK-001,
-    /// so a line holding only whitespace directly below a trivia that ends with its own line break - a <c>///</c> comment
-    /// or a directive - counts as blank
+    /// Analyze statement. The gap is measured from the statement's last token, its terminator, to the token behind it, so
+    /// every token the statement holds - such as the label of <c>break outer;</c> - lies in front of the gap. Blank lines
+    /// are counted with <see cref="TokenGapAnalysis"/>, the one measure of SHARED-BLANK-001, so a line holding only
+    /// whitespace directly below a trivia that ends with its own line break - a <c>///</c> comment or a directive - counts
+    /// as blank
     /// </summary>
     /// <param name="context">Context</param>
     private void OnStatement(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is TStatement statement)
         {
-            var nextToken = GetNextToken(statement);
+            var lastToken = statement.GetLastToken();
+            var nextToken = lastToken.GetNextToken();
 
             if (nextToken.IsKind(SyntaxKind.CloseBraceToken) == false
                 && nextToken.IsKind(SyntaxKind.None) == false
                 && ContinuesEnclosingStatement(nextToken) == false)
             {
-                var lastToken = statement.GetLastToken();
                 var trivia = lastToken.TrailingTrivia.Concat(nextToken.LeadingTrivia);
 
                 if (TokenGapAnalysis.Between(lastToken, nextToken).BlankLineCount == 0
