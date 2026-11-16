@@ -116,6 +116,34 @@ public class RH5521InterfaceAttributesMustFollowPlacementRulesAnalyzerTests : Ba
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that the list of an interface declared with a semicolon is reported and moved when other code
+    /// precedes it
+    /// </summary>
+    /// <param name="endOfLine">Line break of the source and the expected result</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5521-001")]
+    [Requirement("RH5521-003")]
+    [DataRow("\n", DisplayName = "LF")]
+    [DataRow("\r\n", DisplayName = "CRLF")]
+    public async Task InterfaceDeclaredWithSemicolonAfterOtherCodeIsReportedAndMoved(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                {|RH5521:[Obsolete]|} internal interface IMarker;
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 [Obsolete]
+                                 internal interface IMarker;
+                                 """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -193,6 +193,86 @@ public class RH5507StructAttributesMustFollowPlacementRulesAnalyzerTests : Batch
         await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine), test => test.TestState.AdditionalReferences.Add(unionSupport));
     }
 
+    /// <summary>
+    /// Verifies the struct example of RH5507-001 with the fix of RH5507-003: the list of a struct and the list of a
+    /// record struct declared with a semicolon behind it are reported and moved, and the list on its own line is not
+    /// reported
+    /// </summary>
+    /// <param name="endOfLine">Line break of the source and the expected result</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5507-001")]
+    [Requirement("RH5507-002")]
+    [Requirement("RH5507-003")]
+    [DataRow("\n", DisplayName = "LF")]
+    [DataRow("\r\n", DisplayName = "CRLF")]
+    public async Task StructSpecificationExampleIsReportedAndFixed(string endOfLine)
+    {
+        const string testCode = """
+                                {|RH5507:[A]|} struct S
+                                {
+                                }
+
+                                {|RH5507:[A]|} record struct R;
+
+                                [A]
+                                struct T
+                                {
+                                }
+
+                                sealed class AAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedCode = """
+                                 [A]
+                                 struct S
+                                 {
+                                 }
+
+                                 [A]
+                                 record struct R;
+
+                                 [A]
+                                 struct T
+                                 {
+                                 }
+
+                                 sealed class AAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the list of a struct declared with a semicolon is reported and moved when other code precedes it
+    /// </summary>
+    /// <param name="endOfLine">Line break of the source and the expected result</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5507-001")]
+    [Requirement("RH5507-003")]
+    [DataRow("\n", DisplayName = "LF")]
+    [DataRow("\r\n", DisplayName = "CRLF")]
+    public async Task StructDeclaredWithSemicolonAfterOtherCodeIsReportedAndMoved(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                {|RH5507:[Serializable]|} internal struct Empty;
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 [Serializable]
+                                 internal struct Empty;
+                                 """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
