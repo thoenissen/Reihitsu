@@ -99,12 +99,20 @@ fi
 
 subagent_dir="${main_file%.jsonl}/subagents"
 
+# The responses of one transcript, the one definition every filter below starts from: a response is a line whose message
+# carries a usage object and a model other than "<synthetic>", counted once per message id with the usage of the line that
+# has the most output tokens, the earliest timestamp, and the first effort level its lines record.
+responses_def='
+  def responses:
+    [ .[] | select((.message | type) == "object" and (.message.usage | type) == "object" and .message.model != "<synthetic>") ]
+    | group_by(.message.id)
+    | map({ timestamp: (map(.timestamp) | min), model: .[0].message.model, effort: (map(.effort // empty) | first), usage: (map(.message.usage) | max_by(.output_tokens)) });'
+
 # One object per prompt of one transcript. A spawn is its first prompt; every later prompt is a continuation
 # (SendMessage) that writes to the same transcript. A response belongs to the latest prompt that started before it.
-turns_of='
+turns_of="$responses_def"'
   ([ .[] | select(.type == "user" and .promptId != null) ] | group_by(.promptId) | map({ prompt_id: .[0].promptId, start: (map(.timestamp) | min) }) | sort_by(.start)) as $prompts
-  | [ .[] | select((.message | type) == "object" and (.message.usage | type) == "object" and .message.model != "<synthetic>") ]
-  | group_by(.message.id) | map({ timestamp: (map(.timestamp) | min), model: .[0].message.model, usage: (map(.message.usage) | max_by(.output_tokens)) })
+  | responses
   | map(. as $r | $r + { prompt_id: ([ $prompts[] | select(.start <= $r.timestamp) ] | last | .prompt_id // "-") })
   | group_by(.prompt_id)
   | map({
@@ -121,20 +129,19 @@ turns_of='
 # The context of one transcript: a response's context is its whole prompt, input + cache read + cache write. First and
 # last are taken by timestamp over every prompt and model tier; the growth between them is what the transcript added to
 # the context the agent started from. A transcript without a response has no context.
-context_of='
-  [ .[] | select((.message | type) == "object" and (.message.usage | type) == "object" and .message.model != "<synthetic>") ]
-  | group_by(.message.id) | map({ timestamp: (map(.timestamp) | min), usage: (map(.message.usage) | max_by(.output_tokens)) })
+context_of="$responses_def"'
+  responses
   | map({ timestamp, context: ((.usage.input_tokens // 0) + (.usage.cache_read_input_tokens // 0) + (.usage.cache_creation_input_tokens // 0)) })
   | sort_by(.timestamp)
   | if length == 0 then { first_context_tokens: null, last_context_tokens: null, context_growth_tokens: null, last_response_at: null }
     else { first_context_tokens: .[0].context, last_context_tokens: .[-1].context, context_growth_tokens: (.[-1].context - .[0].context), last_response_at: .[-1].timestamp }
     end'
 
-# One object per model tier of one transcript: responses counted once per message id.
-summarize='
+# One object per model tier of one transcript.
+summarize="$responses_def"'
   def tier: if test("opus") then "large" elif test("sonnet") then "medium" elif test("haiku") then "small" else "other" end;
-  [ .[] | select((.message | type) == "object" and (.message.usage | type) == "object" and .message.model != "<synthetic>") ]
-  | group_by(.message.id) | map({ model: (.[0].message.model | tier), timestamp: (map(.timestamp) | min), effort: (map(.effort // empty) | first), usage: (map(.message.usage) | max_by(.output_tokens)) })
+  responses
+  | map(.model |= tier)
   | group_by(.model)
   | map({
       model: .[0].model,
@@ -208,7 +215,7 @@ if [[ "$as_json" -eq 1 ]]; then
 fi
 
 printf '%s' "$report" | jq -r '
-  def n: tostring | [match("\\d"; "g").string] | reverse | [range(0; length; 3) as $i | .[$i:$i+3] | reverse | join("")] | reverse | join(".");
+  def n: if type == "number" and . < 0 then "-" + (-. | n) else tostring | [match("\\d"; "g").string] | reverse | [range(0; length; 3) as $i | .[$i:$i+3] | reverse | join("")] | reverse | join(".") end;
   def cols: "| \(.responses | n) | \(.input_tokens | n) | \(.output_tokens | n) | \(.thinking_tokens | n) | \(.cache_read_tokens | n) | \(.cache_write_tokens | n) |";
   "## Usage",
   "",
