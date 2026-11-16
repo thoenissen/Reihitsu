@@ -914,7 +914,7 @@ public class FormatCommandHandlerIntegrationTests
                                                          new DefaultDiffGenerator());
 
         // Above one, so every integration test also holds when files are processed in parallel (CLI-022)
-        return new FormatCommandHandler(paths, checkOnly, dryRun, verbose, force: false, utf8Bom, LanguageVersionResolver.MaxSupportedLanguageVersion, dependencies, maxParallelism: 4);
+        return new FormatCommandHandler(paths, checkOnly, dryRun, verbose, force: false, utf8Bom, LanguageVersionResolver.MaxSupportedLanguageVersion, dependencies, suppressUnsupported: false, maxParallelism: 4);
     }
 
     /// <summary>

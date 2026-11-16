@@ -532,7 +532,7 @@ public sealed class FormatCommandHandlerParallelTests
     [Requirement("CLI-023")]
     public async Task DegreeOneNeverProcessesTwoFilesAtTheSameTime()
     {
-        var maximumInFlight = await RunWithInFlightCounter(fileCount: 4, maxParallelism: 1);
+        var maximumInFlight = await RunWithInFlightCounter(fileCount: 4, expectedDegree: 1, ForDegree(1));
 
         Assert.AreEqual(1, maximumInFlight);
     }
@@ -545,7 +545,7 @@ public sealed class FormatCommandHandlerParallelTests
     [Requirement("CLI-023")]
     public async Task DegreeTwoProcessesTwoFilesAtTheSameTimeButNeverThree()
     {
-        var maximumInFlight = await RunWithInFlightCounter(fileCount: 6, maxParallelism: 2);
+        var maximumInFlight = await RunWithInFlightCounter(fileCount: 6, expectedDegree: 2, ForDegree(2));
 
         Assert.AreEqual(2, maximumInFlight);
     }
@@ -579,14 +579,68 @@ public sealed class FormatCommandHandlerParallelTests
     }
 
     /// <summary>
+    /// Verifies that the count given with <c>--max-parallelism</c> on the command line is the degree the handler the CLI
+    /// creates processes files with
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    [Requirement("CLI-023")]
+    public async Task CommandLineCountIsTheDegreeOfTheHandler()
+    {
+        var parseResult = Program.ParseArguments(["--check", "--max-parallelism", "2"]);
+
+        var maximumInFlight = await RunWithInFlightCounter(fileCount: 6, expectedDegree: 2, (paths, dependencies) => Program.CreateHandler(parseResult, paths, dependencies));
+
+        Assert.AreEqual(2, maximumInFlight);
+    }
+
+    /// <summary>
+    /// Verifies that without <c>--max-parallelism</c> the handler the CLI creates processes as many files at the same time as
+    /// the machine has logical processors
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    [Requirement("CLI-023")]
+    public async Task WithoutCountTheHandlerProcessesAsManyFilesAsLogicalProcessors()
+    {
+        var parseResult = Program.ParseArguments(["--check"]);
+        var processorCount = Environment.ProcessorCount;
+
+        var maximumInFlight = await RunWithInFlightCounter(fileCount: processorCount + 2, expectedDegree: processorCount, (paths, dependencies) => Program.CreateHandler(parseResult, paths, dependencies));
+
+        Assert.AreEqual(processorCount, maximumInFlight);
+    }
+
+    /// <summary>
+    /// Creates a factory for a check handler with the given degree of parallelism
+    /// </summary>
+    /// <param name="maxParallelism">The degree of parallelism</param>
+    /// <returns>The factory</returns>
+    private static Func<string[], FormatCommandDependencies, FormatCommandHandler> ForDegree(int maxParallelism)
+    {
+        return (paths, dependencies) => new FormatCommandHandler(paths,
+                                                                 checkOnly: true,
+                                                                 dryRun: false,
+                                                                 verbose: false,
+                                                                 force: true,
+                                                                 utf8Bom: false,
+                                                                 LanguageVersionResolver.MaxSupportedLanguageVersion,
+                                                                 dependencies,
+                                                                 suppressUnsupported: false,
+                                                                 maxParallelism: maxParallelism);
+    }
+
+    /// <summary>
     /// Runs a check over the given number of files with a read fake that counts the reads in progress; every read waits until
-    /// as many reads as the degree are in progress, or until every file has started, and then holds briefly, so a run that
-    /// processes more files at the same time than the degree shows it in the count
+    /// as many reads as the expected degree are in progress, until every file has started, or until one shared deadline, and
+    /// then holds briefly, so a run that processes more files at the same time than the expected degree shows it in the count,
+    /// and a run that processes fewer ends after the deadline with a lower count
     /// </summary>
     /// <param name="fileCount">The number of files</param>
-    /// <param name="maxParallelism">The degree of parallelism</param>
+    /// <param name="expectedDegree">The degree of parallelism the run is expected to reach</param>
+    /// <param name="createHandler">Creates a check handler over the given paths and dependencies</param>
     /// <returns>The largest number of reads in progress at the same time</returns>
-    private static async Task<int> RunWithInFlightCounter(int fileCount, int maxParallelism)
+    private static async Task<int> RunWithInFlightCounter(int fileCount, int expectedDegree, Func<string[], FormatCommandDependencies, FormatCommandHandler> createHandler)
     {
         var fileSystem = Substitute.For<IFileSystem>();
         var console = new CapturedConsoleOutput();
@@ -596,6 +650,7 @@ public sealed class FormatCommandHandlerParallelTests
         var inFlight = 0;
         var started = 0;
         var maximumInFlight = 0;
+        var deadline = DateTime.UtcNow + _holdTimeout;
 
         SetupFiles(fileSystem, paths.Select(path => (path, UnformattedCsContent)).ToArray());
 
@@ -611,13 +666,11 @@ public sealed class FormatCommandHandlerParallelTests
                                        maximumInFlight = Math.Max(maximumInFlight, inFlight);
                                    }
 
-                                   var deadline = DateTime.UtcNow + _holdTimeout;
-
                                    while (DateTime.UtcNow < deadline)
                                    {
                                        lock (gate)
                                        {
-                                           if (inFlight >= maxParallelism || started == fileCount)
+                                           if (inFlight >= expectedDegree || started == fileCount)
                                            {
                                                break;
                                            }
@@ -637,7 +690,8 @@ public sealed class FormatCommandHandlerParallelTests
                                });
         }
 
-        var handler = CreateHandler(paths, "check", verbose: false, maxParallelism, fileSystem, console, formatter);
+        var dependencies = new FormatCommandDependencies(fileSystem, console, Substitute.For<IConsoleInput>(), formatter, Substitute.For<IDiffGenerator>());
+        var handler = createHandler(paths, dependencies);
 
         var exitCode = await handler.ExecuteAsync(CancellationToken.None);
 
@@ -765,6 +819,76 @@ public sealed class FormatCommandHandlerParallelTests
             await Assert.ThrowsAsync<OperationCanceledException>(() => handler.ExecuteAsync(cts.Token));
 
             Assert.IsTrue(cWriteObservedB, "Precondition: B.cs must have been written before the write of C.cs was interrupted.");
+            Assert.AreSequenceEqual(StandardOutputLines("Formatted: /work/B.cs",
+                                                        "Formatted: /work/C.cs"),
+                                    console.InterleavedOutput.ToArray());
+            Assert.HasCount(2, writes);
+            Assert.AreEqual(FormattedCsContent, writes["/work/B.cs"]);
+            Assert.AreEqual(FormattedCsContent, writes["/work/C.cs"]);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that Ctrl+C while <c>A.cs</c> is still being read, <c>C.cs</c> has been written, and the write of <c>B.cs</c>
+    /// has started names <c>B.cs</c> before <c>C.cs</c>, in selection order, although <c>C.cs</c> finished first
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    [Requirement("CLI-017")]
+    [Requirement("CLI-022")]
+    public async Task CancellationNamesFinishedFilesInSelectionOrderWhenLaterFileFinishedFirst()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = CreateFormatter(null, new TaskCompletionSource());
+        var cWritten = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var writes = new ConcurrentDictionary<string, string>();
+        var bWriteObservedC = false;
+
+        using (var cts = new CancellationTokenSource())
+        {
+            SetupFiles(fileSystem, ("/work/A.cs", UnformattedCsContent), ("/work/B.cs", UnformattedCsContent), ("/work/C.cs", UnformattedCsContent));
+
+            // A.cs is still being read when the run is canceled; its read observes its token
+            fileSystem.ReadFileAsync("/work/A.cs", Arg.Any<CancellationToken>())
+                      .Returns<Task<FileReadResult>>(async callInfo =>
+                                                     {
+                                                         await Task.Delay(_holdTimeout, callInfo.ArgAt<CancellationToken>(1));
+
+                                                         throw new TimeoutException("A.cs was never canceled.");
+                                                     });
+            fileSystem.WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>())
+                      .Returns(async callInfo =>
+                               {
+                                   var path = callInfo.ArgAt<string>(0);
+                                   var writeToken = callInfo.ArgAt<CancellationToken>(3);
+
+                                   if (path == "/work/B.cs")
+                                   {
+                                       // Ctrl+C arrives after C.cs is written and has finished, while the write of B.cs is in progress
+                                       bWriteObservedC = await WaitForAsync(cWritten.Task);
+
+                                       await Task.Delay(100, CancellationToken.None);
+                                       await cts.CancelAsync();
+                                       await Task.Yield();
+                                   }
+
+                                   // The write observes its token between chunks, as File.WriteAllTextAsync does
+                                   writeToken.ThrowIfCancellationRequested();
+
+                                   writes[path] = callInfo.ArgAt<string>(1);
+
+                                   if (path == "/work/C.cs")
+                                   {
+                                       cWritten.TrySetResult();
+                                   }
+                               });
+
+            var handler = CreateHandler(["/work/A.cs", "/work/B.cs", "/work/C.cs"], "write", verbose: true, maxParallelism: 4, fileSystem, console, formatter);
+
+            await Assert.ThrowsAsync<OperationCanceledException>(() => handler.ExecuteAsync(cts.Token));
+
+            Assert.IsTrue(bWriteObservedC, "Precondition: C.cs must have been written before the write of B.cs was interrupted.");
             Assert.AreSequenceEqual(StandardOutputLines("Formatted: /work/B.cs",
                                                         "Formatted: /work/C.cs"),
                                     console.InterleavedOutput.ToArray());

@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -284,7 +284,8 @@ public class CliMaxParallelismEndToEndTests
 
     /// <summary>
     /// Verifies the specification example in write mode for one file reached under two paths through a symbolic link: the file
-    /// holds the formatted text, at least one of the paths is named <c>Formatted:</c>, and the summary counts one or two
+    /// holds the formatted text, at least one of the paths is named <c>Formatted:</c>, and the summary counts the paths named
+    /// <c>Formatted:</c>
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
@@ -313,7 +314,7 @@ public class CliMaxParallelismEndToEndTests
                           || fileLines.SequenceEqual([$"Formatted: {realFile}", $"Unchanged: {linkFile}"]),
                           $"Unexpected file lines: {string.Join(" | ", fileLines)}");
             Assert.AreEqual(string.Empty, lines[2]);
-            Assert.IsTrue(lines[3] == "Formatted 1 of 2 file(s)." || lines[3] == "Formatted 2 of 2 file(s).", $"Unexpected summary: {lines[3]}");
+            Assert.AreEqual($"Formatted {fileLines.Count(line => line.StartsWith("Formatted: ", StringComparison.Ordinal))} of 2 file(s).", lines[3]);
         }
     }
 
