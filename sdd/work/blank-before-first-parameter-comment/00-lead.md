@@ -21,6 +21,7 @@
 | 4 | Implementer | BlankLineTokenCleanupRewriter removed an author's blank line before a comment ahead of `]` once `[` was exempt | Keep the implementer's cheap condition in this run | Fallout of the run's change; covered by the existing empty-collection test | Restores FMT-BLANK-011/019 output that `main` already produces | a730de0 |
 | 5 | Implementer | Own Core.Test case for `SyntaxTriviaUtilities.IsContentOpeningToken` | Not added | The formatter, RH5020 and RH8303 matrices cover generic and operator `<` | Tests only | — |
 | 6 | Repair 1 | Trim change-doc entry 3 (`void M<`, `new int[` columns)? | Leave it | A change doc records real output, not a requirement; the spec no longer pins the column | The output equals `main` apart from the decided blank line | 37af885 |
+| 7 | Publish | Which follow-up candidates go to the issue manager | File: FMT-BLANK-019 empty-`[⏎⏎]` wording contradiction; S1125 warnings in the CLI Debug build. Drop: first-element column behind `<`/array-size `[`/statement headers (rare: RH5039/5044/5046 report those wraps), operator-wrap comment (rare: comment inside an expression), parenthesized-pattern comment (rare), RH8303 over-reporting (resolved by RH8303-002 in this run) | AGENTS.md *Code-fix coverage*: rare classes are not follow-ups | Follow-up issues are internal | — |
 
 ## Follow-up candidates
 
