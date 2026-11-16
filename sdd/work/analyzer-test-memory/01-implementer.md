@@ -21,3 +21,8 @@ w4b `/proc/<testhost>/smaps` at 7.6 GiB RSS, grouped by mapping: 7194232 kB in 1
 | w1 | `bounded.sh w1 10 scripts/test.sh --project analyzer --no-build -- MSTest.Parallelize.Workers=1` | **Test host OOM-killed by the 10 GiB cgroup** (`oom_kill 1`) after 3806 passed tests: "The active test run was aborted. Reason: Test host process crashed" | 245 s | 9491 MiB; 4577 at 20 s, 4853 at 81 s, 6659 at 101 s, 7865 at 122 s, 8914 at 224 s |
 
 So the peak does **not** scale with the worker count: one worker reaches 9.5 GiB after 37 % of the tests, faster per test than four workers. It grows with the tests that have run, in jumps.
+| w4c | as w4; at 7.0 GiB RSS, `gdb -q -batch -p <testhost> -x probe.gdb` calls `malloc_info(0, fopen(...))` and then `malloc_trim(0)` | see below | | |
+
+w4c `malloc_info` at VmRSS 7374596 kB: `<total type="rest" count="3666" size="6753070994"/>` (free chunks held by glibc), `<system type="current" size="6781734912"/>`. Right after `malloc_trim(0)` returned 1: VmRSS **742616 kB**. About 6.3 GiB of the 7.0 GiB were memory the test host had already freed and glibc's arenas had not returned to the system.
+
+**Cause.** The peak is glibc malloc retention in the analyzer test host: native allocations that the code frees, kept by the arenas. Not a leak (`malloc_trim` returns it), not the managed heap (≈ 250 MiB committed), not the worker count (one worker grows as fast per test as four).
