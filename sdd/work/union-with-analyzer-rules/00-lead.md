@@ -49,4 +49,4 @@
 
 - Side task (maintainer request): moved #1786 from vNext to milestone 1.4.0; #1781/#1785 left in vNext.
 - Last step: skeptic 02 (output questions Q1-Q4 stand, with adjustments). Spec-author amendment 03 running (decisions 5-7). Output questions Q1 (unions join type rules), Q2 (RH5507/RH5508 on unions), Q3 (RH5418, escalation 5), Q4 (RH2110, escalation 5) asked to the maintainer; waiting.
-- Spec checker 10: one finding (change doc Status Draft). Repair round 1: spec author 11 sets Accepted; then spec checker 12, auditor 13.
+- Repair round 1 done: spec author 11 (7d2bb7e), spec checker 12 consistent. Next: auditor 13.
