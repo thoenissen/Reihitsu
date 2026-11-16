@@ -538,6 +538,330 @@ public class UnsupportedVariableDeclarationTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a comment behind the last token of a value of several tokens that is not the declaration's first value refuses
+    /// the input: the value's edges are its own, not the first value's
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-004")]
+    public void CommentBehindTheLastTokenOfALaterValueOfSeveralTokensIsUnsupported()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int a = x + y, b = p + q /* c */;
+                                 }
+                             }
+                             """;
+
+        AssertUnsupported(input, "/* c */");
+    }
+
+    /// <summary>
+    /// Verifies that a comment on its own line in front of a value of several tokens that is not the declaration's first value
+    /// refuses the input
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-004")]
+    public void CommentOnItsOwnLineInFrontOfALaterValueOfSeveralTokensIsUnsupported()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int a = x + y, b =
+                                         // c
+                                         p + q;
+                                 }
+                             }
+                             """;
+
+        AssertUnsupported(input, "// c");
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the first token of a value of several tokens that is not the declaration's first value does
+    /// not refuse the input: it is inside that value
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-004")]
+    public void CommentInsideALaterValueBehindItsFirstTokenIsSupported()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int a = x + y, b = p /* c */ + q;
+                                 }
+                             }
+                             """;
+
+        AssertSupported(input);
+    }
+
+    /// <summary>
+    /// Verifies that a comment on its own line in front of the last token of a value of several tokens that is not the declaration's
+    /// first value does not refuse the input: it is inside that value
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-004")]
+    public void CommentInsideALaterValueInFrontOfItsLastTokenIsSupported()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int a = x + y, b = p +
+                                         // c
+                                         q;
+                                 }
+                             }
+                             """;
+
+        AssertSupported(input);
+    }
+
+    /// <summary>
+    /// Verifies that a comment between a value of several tokens and the separating comma behind it refuses the input, also when
+    /// a later value of several tokens follows
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-004")]
+    public void CommentBetweenAValueOfSeveralTokensAndASeparatingCommaIsUnsupported()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int a = x + y /* c */, b = p + q;
+                                 }
+                             }
+                             """;
+
+        AssertUnsupported(input, "/* c */");
+    }
+
+    /// <summary>
+    /// Verifies that a comment in front of a value whose first token lies several levels deep, a concatenation nested to the left,
+    /// refuses the input
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-004")]
+    public void CommentInFrontOfTheFirstTokenOfALeftNestedValueIsUnsupported()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     string s = /* c */ "x" + "p0" + "p1" + "p2";
+                                 }
+                             }
+                             """;
+
+        AssertUnsupported(input, "/* c */");
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind the first token of a value whose first token lies several levels deep, a concatenation
+    /// nested to the left, does not refuse the input: it is inside the value
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-004")]
+    public void CommentBehindTheFirstTokenOfALeftNestedValueIsSupported()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     string s = "x" /* c */ + "p0" + "p1" + "p2";
+                                 }
+                             }
+                             """;
+
+        AssertSupported(input);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind a value whose last token lies several levels deep, a conditional chain nested to the right,
+    /// refuses the input
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-004")]
+    public void CommentBehindTheLastTokenOfARightNestedValueIsUnsupported()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int r = k == 0 ? 0 : k == 1 ? 1 : k == 2 ? 2 : 3 /* c */;
+                                 }
+                             }
+                             """;
+
+        AssertUnsupported(input, "/* c */");
+    }
+
+    /// <summary>
+    /// Verifies that a comment on its own line in front of the last token of a value whose last token lies several levels deep, a
+    /// conditional chain nested to the right, does not refuse the input: it is inside the value
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-004")]
+    public void CommentInFrontOfTheLastTokenOfARightNestedValueIsSupported()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int r = k == 0 ? 0 : k == 1 ? 1 : k == 2 ? 2 : 3 +
+                                         // c
+                                         4;
+                                 }
+                             }
+                             """;
+
+        AssertSupported(input);
+    }
+
+    /// <summary>
+    /// Verifies that a comment on its own line between the links of a fluent chain value does not refuse the input: it is inside the
+    /// value
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-004")]
+    public void CommentOnItsOwnLineInsideAFluentChainValueIsSupported()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var q = items
+                                         .Where(x => x > 0)
+                                         // c
+                                         .Where(x => x > 1)
+                                         .ToList();
+                                 }
+                             }
+                             """;
+
+        AssertSupported(input);
+    }
+
+    /// <summary>
+    /// Verifies that a comment between a fluent chain value and the semicolon behind it refuses the input
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-004")]
+    public void CommentBehindAFluentChainValueIsUnsupported()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var q = items
+                                         .Where(x => x > 0)
+                                         .Where(x => x > 1)
+                                         .ToList() /* c */;
+                                 }
+                             }
+                             """;
+
+        AssertUnsupported(input, "/* c */");
+    }
+
+    /// <summary>
+    /// Verifies that a declaration inside a value that is not the outer declaration's first value is checked with its own span: a
+    /// comment in front of its value refuses the input, although the outer value excepts its inside
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-004")]
+    public void CommentInFrontOfTheValueOfADeclarationInsideALaterValueIsUnsupported()
+    {
+        const string input = """
+                             using System;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     Func<int> f = null, g = () =>
+                                     {
+                                         int x = /* c */ Compute(1);
+                                         return x;
+                                     };
+                                 }
+                             }
+                             """;
+
+        AssertUnsupported(input, "/* c */");
+    }
+
+    /// <summary>
+    /// Verifies that a declaration inside a value that is not the outer declaration's first value is checked with its own span: a
+    /// comment between its value and its semicolon refuses the input
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-004")]
+    public void CommentBehindTheValueOfADeclarationInsideALaterValueIsUnsupported()
+    {
+        const string input = """
+                             using System;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     Func<int> f = null, g = () =>
+                                     {
+                                         int x = Compute(1) /* c */;
+                                         return x;
+                                     };
+                                 }
+                             }
+                             """;
+
+        AssertUnsupported(input, "/* c */");
+    }
+
+    /// <summary>
+    /// Verifies that a comment inside the value of a declaration inside a value that is not the outer declaration's first value does
+    /// not refuse the input
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-004")]
+    public void CommentInsideTheValueOfADeclarationInsideALaterValueIsSupported()
+    {
+        const string input = """
+                             using System;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     Func<int> f = null, g = () =>
+                                     {
+                                         int x = Compute(/* c */ 1);
+                                         return x;
+                                     };
+                                 }
+                             }
+                             """;
+
+        AssertSupported(input);
+    }
+
+    /// <summary>
     /// Verifies that comment-looking text inside a string literal of a value is no comment and does not refuse the input
     /// </summary>
     [TestMethod]
