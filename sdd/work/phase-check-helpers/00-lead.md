@@ -41,10 +41,12 @@ Note: the self-hosting scans are not run by `scripts/test.sh` by default (CI run
 
 - Consolidate the private copies of `FormatterTestsBase.ApplyRule` in three regression test classes and `FormattingPipelineTests` into the base (01-skeptic, architecture finding).
 - `FormattingPipelineTests.ExecuteAlreadyFormattedCodeNoChanges` compares two passes after trimming trailing newlines, weaker than whole-text idempotency (FC-017); fold into the `ApplyRule` consolidation candidate (02-test-implementer).
+- The build inside `scripts/format.sh` prints S1125 warnings in `src/Reihitsu.Cli/Diagnostics/PipelineTraceCommand.cs` (untouched by the run; `scripts/build.sh` Release reports none) (04-cleaner).
 - `scripts/trace.sh` is committed with mode 100644, so `scripts/trace.sh` as documented in `AGENTS.md` fails with "Permission denied"; `bash scripts/trace.sh` works (01-skeptic).
 
 ## State
 
 - Lane widened to tooling (decision 6): roles now test implementer → implementer (project reference / anything tests need beyond test code) → cleaner → spec checker → auditor → validator (+ `--project selfhosting`).
-- Last step: implementer (03) done at 5652ed0; selfhosting new test green on 1810 rows (+2m22s); only `WorkingDocumentsDirectoryContainsNoFiles` fails while `sdd/work/` exists (expected).
-- Next: cleaner (04).
+- Implementer (03) at 5652ed0: selfhosting new test green on 1810 rows (+2m22s); only `WorkingDocumentsDirectoryContainsNoFiles` fails while `sdd/work/` exists (expected).
+- Last step: cleaner (04) clean at a5093eb.
+- Next: spec checker (05).
