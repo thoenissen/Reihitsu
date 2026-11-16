@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Pipeline.Indentation;
@@ -30,6 +30,12 @@ public class PhaseStabilityAssertionTests
     /// Source whose misindented member is code only when <c>FEATURE</c> is defined, and disabled text otherwise
     /// </summary>
     private const string ConditionalMisindentedSource = "#if FEATURE\nclass C\n{\n        int _value;\n}\n#endif";
+
+    /// <summary>
+    /// Source with a misindented member in each branch of <c>#if FEATURE</c>, so which member is code and which is disabled
+    /// text depends on whether <c>FEATURE</c> is defined
+    /// </summary>
+    private const string BranchesMisindentedSource = "#if FEATURE\nclass C\n{\n        int _value;\n}\n#else\nclass D\n{\n        int _other;\n}\n#endif";
 
     #endregion // Constants
 
@@ -136,7 +142,8 @@ public class PhaseStabilityAssertionTests
 
     /// <summary>
     /// Verifies that the assertion on the output tree of <see cref="ReihitsuFormatter.FormatSyntaxTree"/> passes, with
-    /// the parse options of the input carried to the output
+    /// the parse options of the input carried to the output: the formatter leaves the branch the input's symbols disable
+    /// misindented, and the same output text checked without those symbols fails on that branch
     /// </summary>
     [TestMethod]
     [Requirement("FMT-PIPE-027")]
@@ -146,11 +153,17 @@ public class PhaseStabilityAssertionTests
 
         foreach (var endOfLine in _lineEndings)
         {
-            var output = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(ConditionalMisindentedSource.Replace("\n", endOfLine), parseOptions, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken).Output;
+            var output = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(BranchesMisindentedSource.Replace("\n", endOfLine), parseOptions, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken).Output;
+            var outputText = output.ToString();
 
-            Assert.Contains($"{endOfLine}    int _value;", output.ToString(), "The formatter should indent the active member.");
+            Assert.Contains($"{endOfLine}    int _value;", outputText, "The formatter should indent the active member.");
+            Assert.Contains($"{endOfLine}        int _other;", outputText, "The formatter should leave the disabled member as written.");
 
             PhaseStabilityCheck.AssertNoPhaseChanges(output);
+
+            var failure = Assert.Throws<AssertFailedException>(() => PhaseStabilityCheck.AssertNoPhaseChanges(CSharpSyntaxTree.ParseText(outputText, cancellationToken: TestContext.CancellationToken)));
+
+            Assert.Contains("phase returned \"    int _other;", failure.Message);
         }
     }
 

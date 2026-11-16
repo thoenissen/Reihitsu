@@ -18,9 +18,10 @@ namespace Reihitsu.Formatter.Test.Helpers;
 /// of a fixture, must leave that output unchanged. A final output that two phases change and change back in every pass is
 /// stable as text and still fails this check. The helpers of <see cref="FormatterTestsBase"/> run it through the session
 /// of the current test, also on the output of an input with syntax errors, which the requirement does not cover; that is
-/// stricter than the requirement, so a failure there is a reversal between phases, not a violation of FMT-PIPE-027. Tests
-/// outside that base that assert the idempotency of a full formatter run use <see cref="AssertNoPhaseChanges(string, string, CSharpParseOptions)"/>,
-/// which needs no session and fails with the same text
+/// stricter than the requirement, so a failure there is a reversal between phases, not a violation of FMT-PIPE-027.
+/// <see cref="AssertNoPhaseChanges(string, string, CSharpParseOptions)"/> and <see cref="DescribeChangingPhases(SyntaxTree)"/>
+/// run the check on the final output of a full formatter run without that session, and fail or describe a phase with the
+/// same text
 /// </summary>
 public static class PhaseStabilityCheck
 {
@@ -83,13 +84,7 @@ public static class PhaseStabilityCheck
     /// <param name="parseOptions">The parse options the input was parsed with, or <see langword="null"/> for the defaults</param>
     public static void AssertNoPhaseChanges(string finalOutput, string endOfLine, CSharpParseOptions parseOptions)
     {
-        var failures = FindChangingPhases(finalOutput, endOfLine, parseOptions).Select(change => DescribeFailure(change, endOfLine))
-                                                                               .ToList();
-
-        if (failures.Count > 0)
-        {
-            Assert.Fail(string.Join(Environment.NewLine, failures));
-        }
+        FailOnChangingPhases(DescribeChangingPhases(finalOutput, endOfLine, parseOptions));
     }
 
     /// <summary>
@@ -101,9 +96,22 @@ public static class PhaseStabilityCheck
     /// <param name="outputTree">The output tree of the formatter</param>
     public static void AssertNoPhaseChanges(SyntaxTree outputTree)
     {
+        FailOnChangingPhases(DescribeChangingPhases(outputTree));
+    }
+
+    /// <summary>
+    /// Runs the check on the output tree of <see cref="ReihitsuFormatter.FormatSyntaxTree"/> or of the document of
+    /// <see cref="ReihitsuFormatter.FormatDocumentAsync"/> with the input <see cref="AssertNoPhaseChanges(SyntaxTree)"/>
+    /// uses, and describes every phase that changes the output with the text that assertion fails with, so a caller can
+    /// collect the failures of several outputs and fail once
+    /// </summary>
+    /// <param name="outputTree">The output tree of the formatter</param>
+    /// <returns>One failure text per phase that changes the output, in pipeline order; empty when no phase changes it</returns>
+    public static IReadOnlyList<string> DescribeChangingPhases(SyntaxTree outputTree)
+    {
         var root = outputTree.GetRoot();
 
-        AssertNoPhaseChanges(root.ToFullString(), ReihitsuFormatterHelpers.DetectEndOfLine(root), (CSharpParseOptions)outputTree.Options);
+        return DescribeChangingPhases(root.ToFullString(), ReihitsuFormatterHelpers.DetectEndOfLine(root), (CSharpParseOptions)outputTree.Options);
     }
 
     /// <summary>
@@ -231,6 +239,31 @@ public static class PhaseStabilityCheck
     }
 
     /// <summary>
+    /// Runs every production phase alone on the given output and describes every phase that changes it
+    /// </summary>
+    /// <param name="finalOutput">The final output of the formatter run</param>
+    /// <param name="endOfLine">The end-of-line sequence the output was formatted with</param>
+    /// <param name="parseOptions">The parse options the input was parsed with, or <see langword="null"/> for the defaults</param>
+    /// <returns>One failure text per phase that changes the output, in pipeline order</returns>
+    private static List<string> DescribeChangingPhases(string finalOutput, string endOfLine, CSharpParseOptions parseOptions)
+    {
+        return FindChangingPhases(finalOutput, endOfLine, parseOptions).Select(change => DescribeFailure(change, endOfLine))
+                                                                       .ToList();
+    }
+
+    /// <summary>
+    /// Fails with the given failure texts, one per line, when there is any
+    /// </summary>
+    /// <param name="failures">The failure texts</param>
+    private static void FailOnChangingPhases(IReadOnlyList<string> failures)
+    {
+        if (failures.Count > 0)
+        {
+            Assert.Fail(string.Join(Environment.NewLine, failures));
+        }
+    }
+
+    /// <summary>
     /// Returns the check's state for the current test
     /// </summary>
     /// <returns>The state</returns>
@@ -238,7 +271,7 @@ public static class PhaseStabilityCheck
     {
         var session = _currentSession.Value;
 
-        Assert.IsNotNull(session, "The phase-level stability check runs only inside a test of a class derived from FormatterTestsBase.");
+        Assert.IsNotNull(session, "The session of the phase-level stability check exists only inside a test of a class derived from FormatterTestsBase; outside it, use PhaseStabilityCheck.AssertNoPhaseChanges.");
 
         return session;
     }
