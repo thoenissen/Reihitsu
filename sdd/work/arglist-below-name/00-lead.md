@@ -26,6 +26,7 @@
 
 - F1 (01-spec-author): element access outside a chain (`arr⏎[0]`) not joined.
 - F2 (01-spec-author): continuation line no indentation requirement covers gets different columns from CLI vs. code fix (`[() =>⏎1, () => 2]`); related #953.
+- F5 (07-cleaner): `scripts/format.sh` build prints S1125 warnings from `src/Reihitsu.Cli/FormatCommandHandler.cs` (pre-existing on main; Release build clean).
 - F3 (01-spec-author): candidate new analyzer rule for an argument list's `(` below its name (P11).
 
 ## State
@@ -35,4 +36,5 @@
 - Last step: spec author 04 (185f42c), change doc Accepted.
 - Last step: test implementer 05 (856fbf9): 29 formatter + 12 code-fix failures expected.
 - Implementer 06 (993f700, 1e1f7bb): all tests pass (Debug full run green).
-- Next: cleaner (07).
+- Cleaner 07 (8154f04): clean.
+- Next: spec checker (08).
