@@ -33,4 +33,5 @@
 - Amendment done (b48ac9c).
 - Now: asked #1586 output question with option D (escalation 10), then test implementer. Answers received: 1A, 2A.
 - Change doc Accepted (5fb97e9).
-- Next: test implementer.
+- Test implementer done (707b6b8 tests, 505948e handover).
+- Next: implementer.
