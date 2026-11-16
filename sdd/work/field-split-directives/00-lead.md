@@ -40,3 +40,4 @@
 - Spec checker consistent (cce9f0a). Build green. Audit base main=eb89003, head cce9f0a.
 - Audit 1 (e3a5531): #1728 findings (#1 medium: tie-reason order untested; #2 low: AGENTS.md structural row lacks HasDisabledTextInLeadingTrivia); #1586 pass.
 - Repair round 1: #1 → test implementer (10), #2 → spec author (11); then cleaner, spec checker, auditor (repair only), validator.
+- Repair round 1 done: tests ec05997 (10), text fbf5ac8 (11). Next: cleaner (12), spec checker (13), auditor on repair (14).
