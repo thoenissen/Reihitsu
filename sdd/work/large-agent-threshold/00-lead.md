@@ -32,11 +32,13 @@ None yet.
 | 1 | Start | Who writes the process change doc in the tooling lane? | Spec author, before the implementer | Change docs are the spec author's product; the implementer then implements against it | Process documents and a squad script only | 64cd288 |
 | 2 | Spec author | Accept the change doc (signal: context growth >= ~120k, first->last response, input+cache read+cache write; response count and lifetime average dropped; usage.sh --json prints first/last/growth, Markdown gains a column) | Accept; departs from the issue's suggested 'cache read of the last response' for the cache-expiry reason in the doc | Evidence in 01-spec-author.md from 23 notes / 534 spawns | Squad process and a squad script only | 64cd288, 9522a08 |
 | 3 | Spec author | Lane check: a change doc under sdd/changes/ makes the diff need behavior-change | Widen tooling -> behavior change before the implementer; run the added roles skeptic (premise and change doc) and test implementer (tests where the tool has a test surface) | The lane check decides the claim; widening order tooling -> behavior change | No shipped surface changes; process and squad script only | — |
+| 4 | Skeptic | Threshold: 120k growth (C), one cold-cache number ~50k (B), or cache-aware (A: last response older than ~5 min -> large at ~50k growth, otherwise ~150k) | A, plus the change doc's evidence corrections the skeptic lists (growth table, orientation baseline, 56k-prefix sentence, cost bracket, premise statement); last-response time per spawn in usage.sh --json | Skeptic's break-even model: continue rows follow a maintainer answer or another role, so the cache is usually cold; 120k fits neither case | Squad process and squad script only | — |
+| 5 | Skeptic | Change doc was accepted before the skeptic ran | Re-accept after the amendment; the amending spec author keeps Status Accepted | lead.md section 4 | Process text | — |
 
 ## Follow-up candidates
 
-- The table's 'continue for the maintainer's answer' row assumes continuing is cheap; with 5-minute subagent caches a late continuation rewrites the whole context. Measure with the new per-prompt figures before changing the table. (01-spec-author.md)
+- The table's 'continue for the maintainer's answer' row assumes continuing is cheap; with 5-minute subagent caches a late continuation rewrites the whole context. Measure with the new per-prompt figures before changing the table. (01-spec-author.md) — mostly absorbed by decision 4 (02-skeptic.md); re-check at publish whether anything remains.
 
 ## Open worklist / next step
 
-- Done: spec author (01), status Accepted (9522a08). Next: skeptic (02), then test implementer (03), implementer (04).
+- Done: spec author (01), status Accepted (9522a08). Done: skeptic (02, 8d742a6). Next: fresh spec author amendment (03), then test implementer (04), implementer (05).
