@@ -488,7 +488,7 @@ public sealed class FormatCommandHandlerParallelTests
 
         SetupFiles(fileSystem, ("/work/A.cs", UnformattedCsContent), ("/work/B.cs", FormattedCsContent), ("/work/C.cs", UnformattedCsContent));
         HoldRead(fileSystem, "/work/A.cs", UnformattedCsContent, cWritten.Task, releasedByEvent);
-        fileSystem.WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>())
+        fileSystem.WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>())
                   .Returns(callInfo =>
                            {
                                var path = callInfo.ArgAt<string>(0);
@@ -788,11 +788,10 @@ public sealed class FormatCommandHandlerParallelTests
 
                                                          throw new TimeoutException("A.cs was never canceled.");
                                                      });
-            fileSystem.WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>())
+            fileSystem.WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>())
                       .Returns(async callInfo =>
                                {
                                    var path = callInfo.ArgAt<string>(0);
-                                   var writeToken = callInfo.ArgAt<CancellationToken>(3);
 
                                    if (path == "/work/C.cs")
                                    {
@@ -802,9 +801,6 @@ public sealed class FormatCommandHandlerParallelTests
                                        await cts.CancelAsync();
                                        await Task.Yield();
                                    }
-
-                                   // The write observes its token between chunks, as File.WriteAllTextAsync does
-                                   writeToken.ThrowIfCancellationRequested();
 
                                    writes[path] = callInfo.ArgAt<string>(1);
 
@@ -857,11 +853,10 @@ public sealed class FormatCommandHandlerParallelTests
 
                                                          throw new TimeoutException("A.cs was never canceled.");
                                                      });
-            fileSystem.WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>())
+            fileSystem.WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>())
                       .Returns(async callInfo =>
                                {
                                    var path = callInfo.ArgAt<string>(0);
-                                   var writeToken = callInfo.ArgAt<CancellationToken>(3);
 
                                    if (path == "/work/B.cs")
                                    {
@@ -872,9 +867,6 @@ public sealed class FormatCommandHandlerParallelTests
                                        await cts.CancelAsync();
                                        await Task.Yield();
                                    }
-
-                                   // The write observes its token between chunks, as File.WriteAllTextAsync does
-                                   writeToken.ThrowIfCancellationRequested();
 
                                    writes[path] = callInfo.ArgAt<string>(1);
 
@@ -916,15 +908,11 @@ public sealed class FormatCommandHandlerParallelTests
         using (var cts = new CancellationTokenSource())
         {
             SetupFiles(fileSystem, ("/work/A.cs", UnformattedCsContent), ("/work/B.cs", UnformattedCsContent), ("/work/C.cs", UnformattedCsContent));
-            fileSystem.WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>())
+            fileSystem.WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>())
                       .Returns(async callInfo =>
                                {
-                                   var writeToken = callInfo.ArgAt<CancellationToken>(3);
-
                                    await cts.CancelAsync();
                                    await Task.Yield();
-
-                                   writeToken.ThrowIfCancellationRequested();
 
                                    writes[callInfo.ArgAt<string>(0)] = callInfo.ArgAt<string>(1);
                                });

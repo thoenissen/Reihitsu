@@ -113,7 +113,7 @@ internal static class Program
                 var diffGenerator = new DefaultDiffGenerator();
 
                 var dependencies = new FormatCommandDependencies(fileSystem, console, consoleInput, formatter, diffGenerator);
-                var handler = new FormatCommandHandler(paths.ToArray(), result.CheckOnly, result.DryRun, result.Verbose, result.Force, result.Utf8Bom, result.LanguageVersion, dependencies, result.SuppressUnsupported, result.MaxParallelism);
+                var handler = CreateHandler(result, paths.ToArray(), dependencies);
 
                 return await handler.ExecuteAsync(cancellationTokenSource.Token).ConfigureAwait(false);
             }
@@ -134,6 +134,27 @@ internal static class Program
                 Console.CancelKeyPress -= cancelHandler;
             }
         }
+    }
+
+    /// <summary>
+    /// Creates the format command handler from every parsed option value
+    /// </summary>
+    /// <param name="result">The parsed command-line arguments</param>
+    /// <param name="paths">The file or directory paths to process</param>
+    /// <param name="dependencies">The command dependencies</param>
+    /// <returns>The handler that runs the format command</returns>
+    internal static FormatCommandHandler CreateHandler(ParseResult result, string[] paths, FormatCommandDependencies dependencies)
+    {
+        return new FormatCommandHandler(paths,
+                                        result.CheckOnly,
+                                        result.DryRun,
+                                        result.Verbose,
+                                        result.Force,
+                                        result.Utf8Bom,
+                                        result.LanguageVersion,
+                                        dependencies,
+                                        result.SuppressUnsupported,
+                                        result.MaxParallelism);
     }
 
     /// <summary>

@@ -176,7 +176,7 @@ internal sealed class SharedFileFileSystem : IFileSystem
     }
 
     /// <inheritdoc/>
-    public async Task WriteAllTextAsync(string path, string content, Encoding encoding, CancellationToken cancellationToken)
+    public async Task WriteAllTextAsync(string path, string content, Encoding encoding)
     {
         lock (_gate)
         {

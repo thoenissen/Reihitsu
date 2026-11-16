@@ -658,7 +658,7 @@ public sealed class FormatCommandHandlerTests
         Assert.AreEqual(ExitCodes.Error, exitCode);
         Assert.AreSequenceEqual(new[] { "error: /test/file.cs(3,11): unsupported syntax: a shape a phase refuses. The file was left unchanged." }, console.ErrorOutput.ToArray());
         Assert.AreSequenceEqual(new[] { string.Empty, "Formatted 0 of 1 file(s).", "Skipped 1 file(s) with unsupported syntax." }, console.StandardOutput.ToArray());
-        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>());
     }
 
     /// <summary>
@@ -686,7 +686,7 @@ public sealed class FormatCommandHandlerTests
 
         Assert.AreEqual(ExitCodes.Error, exitCode);
         Assert.AreSequenceEqual(new[] { "error: /test/file.cs(1,1): unsupported syntax: a shape a phase refuses. The file was left unchanged." }, console.ErrorOutput.ToArray());
-        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>());
     }
 
     /// <summary>
@@ -743,7 +743,7 @@ public sealed class FormatCommandHandlerTests
         Assert.AreEqual(ExitCodes.Success, exitCode);
         Assert.AreSequenceEqual(new[] { "warning: /test/file.cs(3,11): unsupported syntax: a shape a phase refuses. The file was left unchanged." }, console.ErrorOutput.ToArray());
         Assert.AreSequenceEqual(new[] { string.Empty, "Formatted 0 of 1 file(s).", "Skipped 1 file(s) with unsupported syntax." }, console.StandardOutput.ToArray());
-        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>());
     }
 
     #endregion // Unsupported Syntax
@@ -824,7 +824,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>());
     }
 
     /// <summary>
@@ -908,7 +908,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>());
     }
 
     /// <summary>
@@ -992,7 +992,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        await fileSystem.Received(1).WriteAllTextAsync(filePath, Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+        await fileSystem.Received(1).WriteAllTextAsync(filePath, Arg.Any<string>(), Arg.Any<Encoding>());
     }
 
     /// <summary>
@@ -1017,7 +1017,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>());
     }
 
     /// <summary>
@@ -1126,8 +1126,7 @@ public sealed class FormatCommandHandlerTests
         await fileSystem.Received(1)
                         .WriteAllTextAsync(filePath,
                                            ValidCsContent,
-                                           Arg.Is<Encoding>(encoding => IsUtf8WithBom(encoding)),
-                                           Arg.Any<CancellationToken>());
+                                           Arg.Is<Encoding>(encoding => IsUtf8WithBom(encoding)));
         Assert.Contains(line => line == $"Formatted: {filePath}", console.StandardOutput);
     }
 
@@ -1158,8 +1157,7 @@ public sealed class FormatCommandHandlerTests
         await fileSystem.DidNotReceive()
                         .WriteAllTextAsync(Arg.Any<string>(),
                                            Arg.Any<string>(),
-                                           Arg.Any<Encoding>(),
-                                           Arg.Any<CancellationToken>());
+                                           Arg.Any<Encoding>());
         Assert.Contains(line => line == $"Unchanged: {filePath}", console.StandardOutput);
     }
 
@@ -1190,8 +1188,7 @@ public sealed class FormatCommandHandlerTests
         await fileSystem.DidNotReceive()
                         .WriteAllTextAsync(Arg.Any<string>(),
                                            Arg.Any<string>(),
-                                           Arg.Any<Encoding>(),
-                                           Arg.Any<CancellationToken>());
+                                           Arg.Any<Encoding>());
     }
 
     /// <summary>
@@ -1222,8 +1219,7 @@ public sealed class FormatCommandHandlerTests
         await fileSystem.DidNotReceive()
                         .WriteAllTextAsync(Arg.Any<string>(),
                                            Arg.Any<string>(),
-                                           Arg.Any<Encoding>(),
-                                           Arg.Any<CancellationToken>());
+                                           Arg.Any<Encoding>());
     }
 
     /// <summary>
@@ -1252,8 +1248,7 @@ public sealed class FormatCommandHandlerTests
         await fileSystem.DidNotReceive()
                         .WriteAllTextAsync(Arg.Any<string>(),
                                            Arg.Any<string>(),
-                                           Arg.Any<Encoding>(),
-                                           Arg.Any<CancellationToken>());
+                                           Arg.Any<Encoding>());
     }
 
     #endregion // UTF-8 BOM Normalization
@@ -1317,7 +1312,7 @@ public sealed class FormatCommandHandlerTests
                         .ReadFileAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
         await fileSystem.Received(fileCount)
                         .ReadSourceHeaderAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
-        await fileSystem.Received(fileCount).WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+        await fileSystem.Received(fileCount).WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>());
     }
 
     /// <summary>
@@ -1382,8 +1377,7 @@ public sealed class FormatCommandHandlerTests
         await fileSystem.Received(1)
                         .WriteAllTextAsync(editedFile,
                                            formattedEditedContent,
-                                           Arg.Any<Encoding>(),
-                                           Arg.Any<CancellationToken>());
+                                           Arg.Any<Encoding>());
     }
 
     /// <summary>
@@ -1410,7 +1404,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        await fileSystem.Received(fileCount).WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+        await fileSystem.Received(fileCount).WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>());
     }
 
     /// <summary>
@@ -1440,7 +1434,7 @@ public sealed class FormatCommandHandlerTests
         Assert.AreEqual(ExitCodes.Success, exitCode);
         Assert.Contains(line => line == "Formatting aborted. No files were changed.", console.StandardOutput);
 
-        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>());
     }
 
     /// <summary>
@@ -1466,7 +1460,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>());
     }
 
     /// <summary>
@@ -1497,7 +1491,7 @@ public sealed class FormatCommandHandlerTests
 
         consoleInput.DidNotReceive().ReadLine();
 
-        await fileSystem.Received(fileCount).WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+        await fileSystem.Received(fileCount).WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>());
     }
 
     /// <summary>
@@ -1529,7 +1523,7 @@ public sealed class FormatCommandHandlerTests
 
         consoleInput.DidNotReceive().ReadLine();
 
-        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>());
     }
 
     /// <summary>
@@ -1585,8 +1579,7 @@ public sealed class FormatCommandHandlerTests
         await fileSystem.DidNotReceive()
                         .WriteAllTextAsync(Arg.Any<string>(),
                                            Arg.Any<string>(),
-                                           Arg.Any<Encoding>(),
-                                           Arg.Any<CancellationToken>());
+                                           Arg.Any<Encoding>());
     }
 
     /// <summary>
@@ -1675,7 +1668,7 @@ public sealed class FormatCommandHandlerTests
 
         consoleInput.DidNotReceive().ReadLine();
 
-        await fileSystem.Received(fileCount).WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+        await fileSystem.Received(fileCount).WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>());
     }
 
     /// <summary>
@@ -1717,7 +1710,7 @@ public sealed class FormatCommandHandlerTests
 
         consoleInput.DidNotReceive().ReadLine();
 
-        await fileSystem.Received(normalFiles.Length).WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+        await fileSystem.Received(normalFiles.Length).WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>());
     }
 
     #endregion // Large Run Confirmation
@@ -1857,7 +1850,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        await fileSystem.DidNotReceive().WriteAllTextAsync(filePath, Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+        await fileSystem.DidNotReceive().WriteAllTextAsync(filePath, Arg.Any<string>(), Arg.Any<Encoding>());
     }
 
     /// <summary>
@@ -2264,9 +2257,8 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that a write that has started is not interrupted when the run is canceled: the file system receives a token the
-    /// run's cancellation does not cancel, so a write that observes its token, as <see cref="File.WriteAllTextAsync(string, string?, Encoding, CancellationToken)"/>
-    /// does between chunks, completes with the whole formatted text, and the file is named
+    /// Verifies that a write that has started is not interrupted when the run is canceled: the write completes with the whole
+    /// formatted text, and the file is named
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
@@ -2286,16 +2278,12 @@ public sealed class FormatCommandHandlerTests
 
             SetupSingleFile(fileSystem, filePath, UnformattedCsContent);
             SetupFormatter(formatter, FormattedCsContent);
-            fileSystem.WriteAllTextAsync(filePath, Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>())
+            fileSystem.WriteAllTextAsync(filePath, Arg.Any<string>(), Arg.Any<Encoding>())
                       .Returns(async callInfo =>
                                {
-                                   var writeToken = callInfo.ArgAt<CancellationToken>(3);
-
-                                   // Ctrl+C arrives after the write has started; the write then checks its token as a chunked write does
+                                   // Ctrl+C arrives after the write has started
                                    await cts.CancelAsync();
                                    await Task.Yield();
-
-                                   writeToken.ThrowIfCancellationRequested();
 
                                    writtenContent = callInfo.ArgAt<string>(1);
                                });

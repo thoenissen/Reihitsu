@@ -121,7 +121,7 @@ internal sealed class FormatCommandHandler
     /// <param name="dependencies">The command dependencies</param>
     /// <param name="suppressUnsupported">If <see langword="true"/>, report a file the formatter refuses as unsupported as a warning that does not change the exit code</param>
     /// <param name="maxParallelism">Maximum number of files processed at the same time; <c>1</c> processes one file after another</param>
-    public FormatCommandHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, bool force, bool utf8Bom, LanguageVersion languageVersion, FormatCommandDependencies dependencies, bool suppressUnsupported = false, int maxParallelism = 1)
+    public FormatCommandHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, bool force, bool utf8Bom, LanguageVersion languageVersion, FormatCommandDependencies dependencies, bool suppressUnsupported, int maxParallelism)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(maxParallelism, 1);
         ArgumentNullException.ThrowIfNull(paths);
@@ -265,7 +265,9 @@ internal sealed class FormatCommandHandler
     /// <remarks>
     /// When the run is canceled, or a file's processing is canceled, no further file is started; the files in progress run
     /// to their end, the lines of every finished file are written in selection order, also behind an unfinished file, and the
-    /// cancellation is rethrown without counters
+    /// cancellation is rethrown without counters. In write mode, no file's read runs while a write is in progress, so a file
+    /// reached through two selected paths is never read while the other path's write has truncated it (CLI-022); formatting
+    /// stays parallel
     /// </remarks>
     private async Task<(int TotalFiles, int ChangedFiles, int SkippedSyntaxErrors, int SkippedEncoding, int SkippedGenerated, int ErrorFiles, int SkippedUnsupported, int SkippedHiddenCode)> ProcessFilesAsync(IReadOnlyList<string> files,
                                                                                                                                                                                                                 CancellationToken cancellationToken)
@@ -277,7 +279,7 @@ internal sealed class FormatCommandHandler
         var tasks = new List<Task>(files.Count);
         ExceptionDispatchInfo cancellation = null;
 
-        using (var slots = new SemaphoreSlim(_maxParallelism, _maxParallelism))
+        using (SemaphoreSlim slots = new(_maxParallelism, _maxParallelism), fileAccess = _checkOnly || _dryRun ? null : new(1, 1))
         {
             for (var index = 0; index < files.Count; index++)
             {
@@ -306,7 +308,7 @@ internal sealed class FormatCommandHandler
                                    {
                                        try
                                        {
-                                           var result = await ProcessSelectedFileAsync(files[fileIndex], outputs[fileIndex], cancellationToken).ConfigureAwait(false);
+                                           var result = await ProcessSelectedFileAsync(files[fileIndex], outputs[fileIndex], fileAccess, cancellationToken).ConfigureAwait(false);
 
                                            lock (outputGate)
                                            {
@@ -383,9 +385,10 @@ internal sealed class FormatCommandHandler
     /// </summary>
     /// <param name="filePath">The file path to process</param>
     /// <param name="console">The output that collects the file's lines</param>
+    /// <param name="fileAccess">The gate every read and write of the run takes in write mode; <see langword="null"/> when nothing is written</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests</param>
     /// <returns>The processing counters for the file</returns>
-    private async Task<FileProcessResult> ProcessSelectedFileAsync(string filePath, IConsoleOutput console, CancellationToken cancellationToken)
+    private async Task<FileProcessResult> ProcessSelectedFileAsync(string filePath, IConsoleOutput console, SemaphoreSlim fileAccess, CancellationToken cancellationToken)
     {
         if (GeneratedFileUtilities.IsGeneratedFile(filePath))
         {
@@ -397,7 +400,7 @@ internal sealed class FormatCommandHandler
             return FileProcessResult.SkippedGenerated;
         }
 
-        return await ProcessFileAsync(filePath, console, cancellationToken).ConfigureAwait(false);
+        return await ProcessFileAsync(filePath, console, fileAccess, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -405,13 +408,14 @@ internal sealed class FormatCommandHandler
     /// </summary>
     /// <param name="filePath">The file path to process</param>
     /// <param name="console">The output that collects the file's lines</param>
+    /// <param name="fileAccess">The gate every read and write of the run takes in write mode; <see langword="null"/> when nothing is written</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests</param>
     /// <returns>The processing counters for the file</returns>
-    private async Task<FileProcessResult> ProcessFileAsync(string filePath, IConsoleOutput console, CancellationToken cancellationToken)
+    private async Task<FileProcessResult> ProcessFileAsync(string filePath, IConsoleOutput console, SemaphoreSlim fileAccess, CancellationToken cancellationToken)
     {
         try
         {
-            var fileRead = await _fileSystem.ReadFileAsync(filePath, cancellationToken).ConfigureAwait(false);
+            var fileRead = await ReadFileAsync(filePath, fileAccess, cancellationToken).ConfigureAwait(false);
             var originalContent = fileRead.Content;
             var syntaxTree = CSharpSyntaxTree.ParseText(originalContent, _parseOptions, filePath, cancellationToken: cancellationToken);
 
@@ -470,7 +474,7 @@ internal sealed class FormatCommandHandler
                 return FileProcessResult.NoChange;
             }
 
-            await HandleChangedFileAsync(filePath, originalContent, formattedContent, fileRead.Encoding, console, cancellationToken).ConfigureAwait(false);
+            await HandleChangedFileAsync(filePath, originalContent, formattedContent, fileRead.Encoding, console, fileAccess, cancellationToken).ConfigureAwait(false);
 
             return FileProcessResult.Changed;
         }
@@ -494,6 +498,33 @@ internal sealed class FormatCommandHandler
     }
 
     /// <summary>
+    /// Reads a file; in write mode it takes the run's file-access gate, so the read never sees a file another selected path
+    /// is writing
+    /// </summary>
+    /// <param name="filePath">The file path to read</param>
+    /// <param name="fileAccess">The gate every read and write of the run takes in write mode; <see langword="null"/> when nothing is written</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests</param>
+    /// <returns>The file's content and detected encoding</returns>
+    private async Task<FileReadResult> ReadFileAsync(string filePath, SemaphoreSlim fileAccess, CancellationToken cancellationToken)
+    {
+        if (fileAccess == null)
+        {
+            return await _fileSystem.ReadFileAsync(filePath, cancellationToken).ConfigureAwait(false);
+        }
+
+        await fileAccess.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            return await _fileSystem.ReadFileAsync(filePath, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            fileAccess.Release();
+        }
+    }
+
+    /// <summary>
     /// Reports a file the formatter refuses as unsupported on standard error, as an error, or as a warning with
     /// <c>--suppress-unsupported</c>, with the one-based line and column of the shape's first character (CLI-019, CLI-020)
     /// </summary>
@@ -510,16 +541,18 @@ internal sealed class FormatCommandHandler
 
     /// <summary>
     /// Handles output and optional writing for a changed file; a write is not started once the run is canceled, and a write
-    /// that has started is not interrupted, so a canceled run never leaves a truncated file (CLI-022)
+    /// that has started is not interrupted, so a canceled run never leaves a truncated file (CLI-022). A write holds the run's
+    /// file-access gate, so no read of the run sees the file while it is truncated
     /// </summary>
     /// <param name="filePath">The file path</param>
     /// <param name="originalContent">The original file content</param>
     /// <param name="formattedContent">The formatted file content</param>
     /// <param name="originalEncoding">The encoding detected while reading the original file</param>
     /// <param name="console">The output that collects the file's lines</param>
+    /// <param name="fileAccess">The gate every read and write of the run takes in write mode; <see langword="null"/> when nothing is written</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests before the write starts</param>
     /// <returns>A task that completes when file handling is finished</returns>
-    private async Task HandleChangedFileAsync(string filePath, string originalContent, string formattedContent, Encoding originalEncoding, IConsoleOutput console, CancellationToken cancellationToken)
+    private async Task HandleChangedFileAsync(string filePath, string originalContent, string formattedContent, Encoding originalEncoding, IConsoleOutput console, SemaphoreSlim fileAccess, CancellationToken cancellationToken)
     {
         if (_checkOnly)
         {
@@ -542,10 +575,20 @@ internal sealed class FormatCommandHandler
 
         var outputEncoding = _utf8Bom ? _utf8BomEncoding : originalEncoding;
 
-        cancellationToken.ThrowIfCancellationRequested();
+        await fileAccess.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-        await _fileSystem.WriteAllTextAsync(filePath, formattedContent, outputEncoding, CancellationToken.None)
-                         .ConfigureAwait(false);
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await _fileSystem.WriteAllTextAsync(filePath, formattedContent, outputEncoding)
+                             .ConfigureAwait(false);
+        }
+        finally
+        {
+            fileAccess.Release();
+        }
+
         console.WriteLine($"Formatted: {filePath}");
     }
 
