@@ -316,9 +316,73 @@ public class UnsupportedFieldDeclarationDirectiveTests : FormatterTestsBase
     [DataRow("    private int _a = true ?\n#pragma warning disable CS0162\n        1 : 2, _b;", "#pragma warning disable CS0162", DisplayName = "Behind the question mark")]
     [DataRow("    private int _a = true ? 1 :\n#pragma warning disable CS0162\n        2, _b;", "#pragma warning disable CS0162", DisplayName = "Behind the colon")]
     [DataRow("    private int _a = true ?\n#if DEBUG\n        1\n#else\n        2\n#endif\n        : 3, _b;", "#if DEBUG", DisplayName = "Conditional group behind the question mark")]
+    [DataRow("    private int _a = true ?\n#pragma warning disable CS0162\n        1 : Math.Max(2\n        // c\n        , 3), _b;", "#pragma warning disable CS0162", DisplayName = "Behind the question mark, with a comment in front of a later comma of a call")]
     public void DirectiveBetweenAConditionalOperatorAndItsBranchGivesTheReasonOfThisRequirement(string member, string shape)
     {
         AssertUnsupportedFor(FieldDeclarationDirectiveReason, WrapInClass(member), shape);
+    }
+
+    /// <summary>
+    /// Verifies that a directive between an operator of a conditional expression in a value and its branch gives this
+    /// requirement's reason and location also when a comment, a directive, or disabled text stands later in the text in front of a
+    /// comma between two declarators on a later line — of the same field, of another field, or of a local declaration inside the
+    /// value: the directive is refused under this requirement and under FMT-UNSUP-008, starting at the same directive, and it is
+    /// no directive in front of a declarator comma
+    /// </summary>
+    /// <param name="members">The members, indented by four spaces</param>
+    /// <param name="shape">The text of the first directive</param>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-010")]
+    [Requirement("FMT-UNSUP-008")]
+    [DataRow("    private int _a = true ?\n#pragma warning disable CS0162\n        1 : 2\n#pragma warning disable CS0414\n        , _b;", "#pragma warning disable CS0162", DisplayName = "Behind the question mark, directive in front of the declarator comma")]
+    [DataRow("    private int _a = true ? 1 :\n#pragma warning disable CS0162\n        2\n#pragma warning disable CS0414\n        , _b;", "#pragma warning disable CS0162", DisplayName = "Behind the colon, directive in front of the declarator comma")]
+    [DataRow("    private int _a = true ?\n#if DEBUG\n        1\n#else\n        2\n#endif\n        : 3\n#pragma warning disable CS0414\n        , _b;", "#if DEBUG", DisplayName = "Conditional group behind the question mark, directive in front of the declarator comma")]
+    [DataRow("    private int _a = true ?\n#pragma warning disable CS0162\n        1 : 2\n        // c\n        , _b;", "#pragma warning disable CS0162", DisplayName = "Behind the question mark, comment in front of the declarator comma")]
+    [DataRow("    private int _a = true ?\n#pragma warning disable CS0162\n        1 : 2, _b;\n\n    private int _c\n        // c\n        , _d;", "#pragma warning disable CS0162", DisplayName = "Behind the question mark, comment in front of the declarator comma of a later field")]
+    [DataRow("    private Func<int> _f = () =>\n    {\n        var a = true ?\n#pragma warning disable CS0162\n            1 : 2;\n        int x = a\n            // c\n            , y = 3;\n\n        return x + y;\n    }, _g;", "#pragma warning disable CS0162", DisplayName = "Behind the question mark in a lambda value, comment in front of the declarator comma of a later local")]
+    public void DirectiveBetweenAConditionalOperatorAndItsBranchGivesTheReasonOfThisRequirementBeforeALaterDeclaratorComma(string members, string shape)
+    {
+        AssertUnsupportedFor(FieldDeclarationDirectiveReason, WrapInClass(members), shape);
+    }
+
+    /// <summary>
+    /// Verifies that a directive in front of a comma on a later line between two declarators of a local declaration inside a
+    /// value of the field is refused under this requirement and under FMT-UNSUP-009, starting at the same directive, and keeps
+    /// the reason and the location of FMT-UNSUP-009: it stands between a declarator and a comma on a later line
+    /// </summary>
+    /// <param name="member">The field declaration, indented by four spaces</param>
+    /// <param name="shape">The text of the first directive</param>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-010")]
+    [Requirement("FMT-UNSUP-009")]
+    [DataRow("    private Func<int> _f = () =>\n    {\n        int x = 1\n#pragma warning disable CS0168\n            , y = 2;\n\n        return x + y;\n    }, _g;", "#pragma warning disable CS0168", DisplayName = "Pragma directive")]
+    [DataRow("    private Func<int> _f = () =>\n    {\n        int x = 1\n#if DEBUG\n            , y = 2\n#else\n            , y = 3\n#endif\n            ;\n\n        return x + y;\n    }, _g;", "#if DEBUG", DisplayName = "Conditional group")]
+    public void DirectiveInFrontOfADeclaratorCommaOfALocalInAValueKeepsTheReasonOfAListSeparator(string member, string shape)
+    {
+        AssertUnsupportedFor(ListSeparatorCommentReason, WrapInClass(member), shape);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FindUnsupportedSyntax"/> gives this requirement's reason and location for a
+    /// directive between a conditional operator in a value and its branch both for the whole document, which also holds a later
+    /// field with a comment in front of its declarator comma, and for the field declaration alone, which does not
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-010")]
+    [Requirement("FMT-UNSUP-008")]
+    public void FindUnsupportedSyntaxGivesThisRequirementsReasonBehindAConditionalOperatorForTheDocumentAndTheField()
+    {
+        const string shape = "#pragma warning disable CS0162";
+
+        foreach (var endOfLine in new[] { "\n", "\r\n" })
+        {
+            var source = WrapInClass("    private int _a = true ?\n#pragma warning disable CS0162\n        1 : 2, _b;\n\n    private int _c\n        // c\n        , _d;").Replace("\n", endOfLine);
+            var root = CSharpSyntaxTree.ParseText(source, cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
+            var field = root.DescendantNodes().OfType<FieldDeclarationSyntax>().First();
+
+            AssertReportsShape(ReihitsuFormatter.FindUnsupportedSyntax(root), source, shape);
+            AssertReportsShape(ReihitsuFormatter.FindUnsupportedSyntax(field), source, shape);
+        }
     }
 
     /// <summary>
