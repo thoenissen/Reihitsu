@@ -17,6 +17,11 @@ None yet.
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Run the test implementer before the implementer? | Not up front; implementer measures first, test implementer runs afterwards only if the change has testable behavior | The mechanism is unknown until measured; a test written before would be guesswork | Tooling only | — |
+| 2 | Implementer | Issue goal "bound the worker count" | Dropped; the change sets glibc malloc tunables for the test host instead | Measured: one worker grows as fast per test as four; retained freed native memory is the cause (01-implementer.md) | Tooling only | 9b401f7 |
+| 3 | Implementer | Add a test for test.sh's argument assembly? | No; test implementer skipped | Bash glue exercised by every run; an architecture test could only grep the script text | Tooling only | — |
+| 4 | Implementer | Follow-up: give SonarCloud.yml the setting | Dropped, no candidate filed | No defect today (CI runners fit the peak); speculative | Tooling only | — |
+| 5 | Cleaner | Run the cleaner? | Skipped | Diff changes no C# or compiled file; nothing to format, Release build unaffected | Tooling only | — |
+| 6 | Spec checker / auditor | Order | Run in parallel on the same commit | Neither changes the tree; findings form one worklist | Tooling only | — |
 
 ## Follow-up candidates
 
@@ -25,4 +30,5 @@ None yet.
 ## Worklist / next step
 
 - First implementer spawn lost: the container restarted while it was measuring, before it committed anything (cause not established; a memory-exhausted container is one possibility).
-- Next: implementer, fresh spawn (`01-implementer.md`).
+- Implementer done: 01-implementer.md, verdict tests pass, commit 9b401f7.
+- Next: spec checker (02) and auditor (03) in parallel, then validator.
