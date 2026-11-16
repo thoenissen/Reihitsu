@@ -2,7 +2,7 @@
 
 // Syntax-aware proof that a change carries no compiled behavior.
 //
-//   dotnet run scripts/proof/verify-text-only.cs -- [--base <rev>] [--head <rev>] [--strict-docs]
+//   dotnet run scripts/proof/verify-text-only.cs -- [--base <rev>] [--head <rev>]
 //
 // The workflow skills use this instead of a line-based grep over the diff,
 // because a grep does not recognize every block-comment form and cannot
@@ -21,10 +21,8 @@
 //
 // Generated XML-documentation impact is reported separately instead of being
 // folded into the verdict, because a documentation edit is exactly what a
-// comment-only change is allowed to be. Pass `--strict-docs` when the caller
-// must additionally exclude public API documentation — a text cleanup after a
-// passing squad audit requires that, and plain exit code 0 does not establish
-// it.
+// comment-only change is allowed to be. No assembly of this repository is a
+// public API, so a documentation change never fails the proof.
 //
 // Both sides are decoded identically and a leading byte order mark is stripped
 // from each. When the head is the working tree, both sides are additionally
@@ -44,7 +42,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 string? baseRevision = null;
 var headRevision = "HEAD";
 var repositoryPath = ".";
-var strictDocumentation = false;
 
 for (var index = 0; index < args.Length; index++)
 {
@@ -58,19 +55,14 @@ for (var index = 0; index < args.Length; index++)
             headRevision = args[++index];
             break;
 
-        case "--strict-docs":
-            strictDocumentation = true;
-            break;
-
         case "--repository" when index + 1 < args.Length:
             repositoryPath = args[++index];
             break;
 
         case "--help":
         case "-h":
-            Console.WriteLine("usage: dotnet run scripts/proof/verify-text-only.cs -- [--base <rev>] [--head <rev>] [--strict-docs] [--repository <path>]");
+            Console.WriteLine("usage: dotnet run scripts/proof/verify-text-only.cs -- [--base <rev>] [--head <rev>] [--repository <path>]");
             Console.WriteLine("       --head worktree compares the base revision against the working tree");
-            Console.WriteLine("       --strict-docs fails the proof when public API documentation changed");
             Console.WriteLine("       --repository names the repository to inspect, defaulting to the working directory");
 
             return 0;
@@ -139,7 +131,7 @@ foreach (var changedFile in changedFiles)
 {
     try
     {
-        verdicts.Add(Proof.Verify(repositoryRoot, baseRevision, comparesWorkTree ? null : headRevision, changedFile, strictDocumentation));
+        verdicts.Add(Proof.Verify(repositoryRoot, baseRevision, comparesWorkTree ? null : headRevision, changedFile));
     }
     catch (Exception exception)
     {
@@ -157,13 +149,9 @@ foreach (var verdict in verdicts.OrderBy(entry => entry.Path, StringComparer.Ord
 var behavioral = verdicts.Count(verdict => verdict.CarriesBehavior);
 var nonCompiled = verdicts.Count(verdict => verdict is { CarriesBehavior: false, IsCSharp: false });
 var commentOnly = verdicts.Count(verdict => verdict is { CarriesBehavior: false, IsCSharp: true });
-var documentationImpact = verdicts.Where(verdict => verdict.DocumentationImpact != DocumentationImpact.None).ToList();
+var documentationChanges = verdicts.Count(verdict => verdict.ChangesDocumentation);
 
-var documentationSummary = documentationImpact.Count == 0
-                               ? "none"
-                               : documentationImpact.Any(verdict => verdict.DocumentationImpact == DocumentationImpact.PublicApi)
-                                   ? $"{documentationImpact.Count} file(s), including public API documentation"
-                                   : $"{documentationImpact.Count} file(s), no public API documentation";
+var documentationSummary = documentationChanges == 0 ? "none" : $"{documentationChanges} file(s)";
 
 if (Proof.SkippedUntracked.Count > 0)
 {
@@ -190,35 +178,14 @@ return 0;
 internal sealed record ChangedFile(string Status, string Path, string? OldPath);
 
 /// <summary>
-/// Impact of a change on generated XML documentation
-/// </summary>
-internal enum DocumentationImpact
-{
-    /// <summary>
-    /// No documentation comment changed
-    /// </summary>
-    None,
-
-    /// <summary>
-    /// A documentation comment changed on a member that is not publicly visible
-    /// </summary>
-    Internal,
-
-    /// <summary>
-    /// A documentation comment changed on a public or protected member
-    /// </summary>
-    PublicApi
-}
-
-/// <summary>
 /// Result for a single changed file
 /// </summary>
 /// <param name="Path">Repository-relative path</param>
 /// <param name="CarriesBehavior">Whether the file could not be proven free of compiled behavior</param>
 /// <param name="IsCSharp">Whether the file was inspected as C# source</param>
 /// <param name="Detail">Human-readable evidence for the verdict</param>
-/// <param name="DocumentationImpact">Reported separately from the verdict</param>
-internal sealed record FileVerdict(string Path, bool CarriesBehavior, bool IsCSharp, string Detail, DocumentationImpact DocumentationImpact);
+/// <param name="ChangesDocumentation">Whether a documentation comment of a member changed; reported separately from the verdict</param>
+internal sealed record FileVerdict(string Path, bool CarriesBehavior, bool IsCSharp, string Detail, bool ChangesDocumentation);
 
 /// <summary>
 /// Proof implementation
@@ -393,31 +360,30 @@ internal static class Proof
     /// <param name="baseRevision">Base revision</param>
     /// <param name="headRevision">Head revision, or <c>null</c> for the working tree</param>
     /// <param name="changedFile">Changed file to verify</param>
-    /// <param name="strictDocumentation">Whether changed public API documentation fails the proof</param>
     /// <returns>Verdict for the file</returns>
-    public static FileVerdict Verify(string repositoryRoot, string baseRevision, string? headRevision, ChangedFile changedFile, bool strictDocumentation)
+    public static FileVerdict Verify(string repositoryRoot, string baseRevision, string? headRevision, ChangedFile changedFile)
     {
         var isCSharp = changedFile.Path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase);
 
         if (changedFile.OldPath is not null)
         {
-            return new FileVerdict(changedFile.Path, true, isCSharp, $"renamed from {changedFile.OldPath}; a path change is not a comment change", DocumentationImpact.None);
+            return new FileVerdict(changedFile.Path, true, isCSharp, $"renamed from {changedFile.OldPath}; a path change is not a comment change", false);
         }
 
         if (isCSharp == false)
         {
             return IsNonCompiledPath(changedFile.Path)
-                       ? new FileVerdict(changedFile.Path, false, false, "non-compiled text file", DocumentationImpact.None)
-                       : new FileVerdict(changedFile.Path, true, false, "not a C# file and not a known non-compiled text path", DocumentationImpact.None);
+                       ? new FileVerdict(changedFile.Path, false, false, "non-compiled text file", false)
+                       : new FileVerdict(changedFile.Path, true, false, "not a C# file and not a known non-compiled text path", false);
         }
 
         switch (changedFile.Status)
         {
             case "A":
-                return new FileVerdict(changedFile.Path, true, true, "added C# file", DocumentationImpact.None);
+                return new FileVerdict(changedFile.Path, true, true, "added C# file", false);
 
             case "D":
-                return new FileVerdict(changedFile.Path, true, true, "deleted C# file", DocumentationImpact.None);
+                return new FileVerdict(changedFile.Path, true, true, "deleted C# file", false);
         }
 
         // The working tree carries whatever line endings the checkout produced, while a blob carries what was committed, so the worktree comparison normalizes both sides
@@ -429,7 +395,7 @@ internal static class Proof
                                : ReadBlob(repositoryRoot, headRevision, changedFile.Path),
                            normalizeLineEndings);
 
-        return VerifyCSharp(changedFile.Path, before, after, strictDocumentation);
+        return VerifyCSharp(changedFile.Path, before, after);
     }
 
     /// <summary>
@@ -454,21 +420,20 @@ internal static class Proof
     /// <param name="path">Repository-relative path</param>
     /// <param name="before">Content at the base revision</param>
     /// <param name="after">Content at the head revision</param>
-    /// <param name="strictDocumentation">Whether changed public API documentation fails the proof</param>
     /// <returns>Verdict for the file</returns>
-    private static FileVerdict VerifyCSharp(string path, string before, string after, bool strictDocumentation)
+    private static FileVerdict VerifyCSharp(string path, string before, string after)
     {
         var beforeTree = CSharpSyntaxTree.ParseText(before);
         var afterTree = CSharpSyntaxTree.ParseText(after);
 
         if (HasParseErrors(beforeTree))
         {
-            return new FileVerdict(path, true, true, "the base version does not parse", DocumentationImpact.None);
+            return new FileVerdict(path, true, true, "the base version does not parse", false);
         }
 
         if (HasParseErrors(afterTree))
         {
-            return new FileVerdict(path, true, true, "the changed version does not parse", DocumentationImpact.None);
+            return new FileVerdict(path, true, true, "the changed version does not parse", false);
         }
 
         var beforeRoot = beforeTree.GetRoot();
@@ -481,30 +446,25 @@ internal static class Proof
 
         if (tokenDifference is not null)
         {
-            return new FileVerdict(path, true, true, $"token stream differs ({tokenDifference})", DocumentationImpact.None);
+            return new FileVerdict(path, true, true, $"token stream differs ({tokenDifference})", false);
         }
 
         var structuralDifference = FirstDifference(DescribeStructuralTrivia(beforeRoot), DescribeStructuralTrivia(afterRoot));
 
         if (structuralDifference is not null)
         {
-            return new FileVerdict(path, true, true, $"directive or disabled-text structure differs ({structuralDifference})", DocumentationImpact.None);
+            return new FileVerdict(path, true, true, $"directive or disabled-text structure differs ({structuralDifference})", false);
         }
 
         var literalCount = beforeTokens.Count(IsLiteralToken);
-        var documentationImpact = DetermineDocumentationImpact(beforeRoot, afterRoot);
+        var changesDocumentation = DescribeDocumentation(beforeRoot).SequenceEqual(DescribeDocumentation(afterRoot)) == false;
         var changedCategories = DescribeChangedTriviaCategories(beforeRoot, afterRoot);
-
-        if (strictDocumentation && documentationImpact == DocumentationImpact.PublicApi)
-        {
-            return new FileVerdict(path, true, true, "public API documentation changed and --strict-docs was requested", documentationImpact);
-        }
 
         return new FileVerdict(path,
                                false,
                                true,
                                $"{beforeTokens.Count} tokens identical ({literalCount} literal), directives and disabled text identical, changed trivia: {changedCategories}",
-                               documentationImpact);
+                               changesDocumentation);
     }
 
     /// <summary>
@@ -581,60 +541,16 @@ internal static class Proof
                                                                                            .ToList();
 
     /// <summary>
-    /// Determines whether changed documentation comments affect publicly visible members
-    /// </summary>
-    /// <param name="beforeRoot">Root node at the base revision</param>
-    /// <param name="afterRoot">Root node at the head revision</param>
-    /// <returns>Documentation impact of the change</returns>
-    private static DocumentationImpact DetermineDocumentationImpact(SyntaxNode beforeRoot, SyntaxNode afterRoot)
-    {
-        var before = DescribeDocumentation(beforeRoot);
-        var after = DescribeDocumentation(afterRoot);
-
-        if (before.Select(entry => entry.Text).SequenceEqual(after.Select(entry => entry.Text)))
-        {
-            return DocumentationImpact.None;
-        }
-
-        for (var index = 0; index < Math.Min(before.Count, after.Count); index++)
-        {
-            if (before[index].Text != after[index].Text && (before[index].IsPublic || after[index].IsPublic))
-            {
-                return DocumentationImpact.PublicApi;
-            }
-        }
-
-        return DocumentationImpact.Internal;
-    }
-
-    /// <summary>
     /// Collects the documentation comment of every member declaration, in document order
     /// </summary>
     /// <param name="root">Root node to inspect</param>
-    /// <returns>Documentation text and visibility per member</returns>
-    private static List<(string Text, bool IsPublic)> DescribeDocumentation(SyntaxNode root) => root.DescendantNodes()
-                                                                                                   .OfType<MemberDeclarationSyntax>()
-                                                                                                   .Select(member => (Text: string.Concat(member.GetLeadingTrivia()
-                                                                                                                                                .Where(trivia => _documentationTriviaKinds.Contains(trivia.Kind()))
-                                                                                                                                                .Select(trivia => trivia.ToFullString())),
-                                                                                                                      IsPublic: IsPubliclyVisible(member)))
-                                                                                                   .ToList();
-
-    /// <summary>
-    /// Determines whether a member reaches the generated XML documentation file
-    /// </summary>
-    /// <param name="member">Member to inspect</param>
-    /// <returns><c>true</c> for public and protected members, interface members, and enum members</returns>
-    private static bool IsPubliclyVisible(MemberDeclarationSyntax member)
-    {
-        // Interface and enum members carry no accessibility modifier of their own, yet both land in the generated documentation
-        if (member is EnumMemberDeclarationSyntax || member.Parent is InterfaceDeclarationSyntax)
-        {
-            return true;
-        }
-
-        return member.Modifiers.Any(SyntaxKind.PublicKeyword) || member.Modifiers.Any(SyntaxKind.ProtectedKeyword);
-    }
+    /// <returns>Documentation text per member</returns>
+    private static List<string> DescribeDocumentation(SyntaxNode root) => root.DescendantNodes()
+                                                                              .OfType<MemberDeclarationSyntax>()
+                                                                              .Select(member => string.Concat(member.GetLeadingTrivia()
+                                                                                                                    .Where(trivia => _documentationTriviaKinds.Contains(trivia.Kind()))
+                                                                                                                    .Select(trivia => trivia.ToFullString())))
+                                                                              .ToList();
 
     /// <summary>
     /// Returns the first difference between two comparable sequences

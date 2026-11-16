@@ -10,11 +10,16 @@
 #
 # One row per spawn (one subagent transcript), so a role the lead spawned three times appears three
 # times, numbered per agent type; the main session is the lead's row. A subagent continued through
-# SendMessage writes to the same transcript and stays one row. Rows are split per model.
+# SendMessage writes to the same transcript and stays one row. Rows are split per model tier.
 #
 # The transcript records one line per content block of an API response, each carrying the same usage,
 # so responses are counted once per message id. Prices are not recorded in the transcript and are
-# deliberately not applied: every row names its model so a cost can be computed from the token counts.
+# deliberately not applied: every row names its model tier so a cost can be computed from the token counts.
+#
+# The output names a model tier, never a model identifier: some session environments forbid pushing model
+# identifiers, and the run notes that carry this output are pushed. The tiers are the ones
+# .claude/agents/README.md assigns to the roles: large (opus), medium (sonnet), small (haiku); a model of no
+# known tier is reported as "other".
 #
 # A "prompt" is one instruction the agent received: a spawn has one, and each SendMessage continuation adds
 # one, so a row with several prompts was resumed. The JSON output breaks every row down per prompt.
@@ -106,10 +111,11 @@ turns_of='
     })
   | sort_by(.started)'
 
-# One object per model of one transcript: responses counted once per message id.
+# One object per model tier of one transcript: responses counted once per message id.
 summarize='
+  def tier: if test("opus") then "large" elif test("sonnet") then "medium" elif test("haiku") then "small" else "other" end;
   [ .[] | select((.message | type) == "object" and (.message.usage | type) == "object" and .message.model != "<synthetic>") ]
-  | group_by(.message.id) | map({ model: .[0].message.model, timestamp: (map(.timestamp) | min), effort: (map(.effort // empty) | first), usage: (map(.message.usage) | max_by(.output_tokens)) })
+  | group_by(.message.id) | map({ model: (.[0].message.model | tier), timestamp: (map(.timestamp) | min), effort: (map(.effort // empty) | first), usage: (map(.message.usage) | max_by(.output_tokens)) })
   | group_by(.model)
   | map({
       model: .[0].model,
@@ -187,13 +193,13 @@ printf '%s' "$report" | jq -r '
   def cols: "| \(.responses | n) | \(.input_tokens | n) | \(.output_tokens | n) | \(.thinking_tokens | n) | \(.cache_read_tokens | n) | \(.cache_write_tokens | n) |";
   "## Usage",
   "",
-  "Session `\(.session)`. Responses counted once per message id. Prices are not applied; compute a cost from the tokens and the model.",
+  "Session `\(.session)`. Responses counted once per message id. Models are named by tier (large, medium, small), as `.claude/agents/README.md` assigns them. Prices are not applied; compute a cost from the tokens and the tier.",
   "",
-  "| Agent | Spawn | Agent ID | Description | Model | Effort | Prompts | Responses | Input | Output | of which thinking | Cache read | Cache write |",
+  "| Agent | Spawn | Agent ID | Description | Tier | Effort | Prompts | Responses | Input | Output | of which thinking | Cache read | Cache write |",
   "|---|---|---|---|---|---|---|---|---|---|---|---|---|",
   (.spawns[] as $s | $s.models[] | "| \($s.agent) | \($s.spawn) | \($s.agent_id // "-") | \($s.description // "-") | \(.model) | \(.efforts | join(", ") | if . == "" then "-" else . end) | \($s.turns | length) \(cols)"),
   "",
-  "| Model | Responses | Input | Output | of which thinking | Cache read | Cache write |",
+  "| Tier | Responses | Input | Output | of which thinking | Cache read | Cache write |",
   "|---|---|---|---|---|---|---|",
   (.by_model[] | "| \(.model) \(cols)"),
   "| **Total** \(.total | cols)"

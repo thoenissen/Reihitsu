@@ -29,6 +29,7 @@ Every issue of the run by number, `00-lead.md`, the spec author's and skeptic's 
 Then, before the implementer starts, cover:
 
 - every example of the requirements the spec author named, and every candidate input the skeptic listed;
+- every existing test that asserts an output the change doc or the spec diff changes: `rg` the test projects, code-fix tests included, for each changed output separately, not only the tests the handovers name, and report each one you change or leave;
 - a test on **each** side of every condition the change adds, removes, or moves (FC-003);
 - stable valid code that must not change, next to invalid code that must;
 - the failure classes that can reach the changed code — walk the catalog, keep what applies, and say why the rest cannot;
@@ -87,6 +88,9 @@ Verdict: reproduced | not reproduced | no scenario | tests written | blocked
 
 ## Commands
 <the focused scripts/test.sh calls that run these tests>
+
+## Follow-up candidates
+<out-of-scope finds, such as a pre-existing test that asserts a disputed output outside the run; or _None._>
 ```
 
 Format your test files with `scripts/format.sh`, then commit them and the handover with `[skip ci]`.
