@@ -272,6 +272,204 @@ public sealed class PipelineTraceCommandTests
     }
 
     /// <summary>
+    /// Verifies that a file holding code hidden in another build configuration is skipped before any phase runs
+    /// </summary>
+    /// <param name="endOfLine">Line ending of the source</param>
+    /// <param name="carrier">Lines of the carrier inside the active conditional group</param>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    [DataRow("\n", "    string s = @\"|#else|\";")]
+    [DataRow("\r\n", "    string s = @\"|#else|\";")]
+    [DataRow("\n", "    /*|#endif|    */")]
+    [DataRow("\r\n", "    /*|#endif|    */")]
+    public async Task ExecuteAsyncHiddenCodeIsSkippedWithoutRunningAnyPhase(string endOfLine, string carrier)
+    {
+        // Arrange
+        using (var fixture = new TemporaryDirectoryFixture())
+        {
+            var source = string.Join(endOfLine,
+                                     "class C",
+                                     "{",
+                                     "#if true",
+                                     carrier.Replace("|", endOfLine, StringComparison.Ordinal),
+                                     "#endif",
+                                     "    void M( ) { }",
+                                     "}");
+            var filePath = fixture.CreateFile("Sample.cs", source);
+            var fullPath = Path.GetFullPath(filePath);
+            var originalBytes = await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken);
+            var output = new StringWriter();
+            var error = new StringWriter();
+
+            // Act
+            var exitCode = await PipelineTraceCommand.ExecuteAsync([filePath],
+                                                                   output,
+                                                                   error,
+                                                                   TestContext.CancellationToken);
+
+            // Assert
+            var expectedOutput = $"Tracing {fullPath} (maximum passes: 3){output.NewLine}"
+                                 + $"Skipped (code hidden in another build configuration): {fullPath}{output.NewLine}";
+
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+            Assert.AreEqual(expectedOutput, output.ToString());
+            Assert.AreEqual(string.Empty, error.ToString());
+
+            var currentBytes = await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken);
+
+            Assert.AreSequenceEqual(originalBytes, currentBytes);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that the hidden-code skip applies before the precheck, so a file that also holds an unsupported shape is named as skipped and not refused
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncHiddenCodeIsSkippedBeforeUnsupportedSyntaxIsRefused()
+    {
+        // Arrange
+        using (var fixture = new TemporaryDirectoryFixture())
+        {
+            var source = string.Join("\n",
+                                     "class C",
+                                     "{",
+                                     "#if true",
+                                     "    string s = @\"",
+                                     "#else",
+                                     "\";",
+                                     "#endif",
+                                     "    int a /* c */ = 1;",
+                                     "    void M( ) { }",
+                                     "}");
+            var filePath = fixture.CreateFile("Sample.cs", source);
+            var fullPath = Path.GetFullPath(filePath);
+            var output = new StringWriter();
+            var error = new StringWriter();
+
+            // Act
+            var exitCode = await PipelineTraceCommand.ExecuteAsync([filePath],
+                                                                   output,
+                                                                   error,
+                                                                   TestContext.CancellationToken);
+
+            // Assert
+            var expectedOutput = $"Tracing {fullPath} (maximum passes: 3){output.NewLine}"
+                                 + $"Skipped (code hidden in another build configuration): {fullPath}{output.NewLine}";
+
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+            Assert.AreEqual(expectedOutput, output.ToString());
+            Assert.AreEqual(string.Empty, error.ToString());
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a file with a syntax error or generated source is skipped under that reason, ahead of the hidden-code skip
+    /// </summary>
+    /// <param name="relativePath">Input path, including any generated-file suffix</param>
+    /// <param name="header">Lines written in front of the class</param>
+    /// <param name="trailer">Lines written behind the class</param>
+    /// <param name="expectedMessage">Expected skip reason</param>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    [DataRow("Sample.cs", "// <auto-generated/>", "", "Skipped (generated)")]
+    [DataRow("Sample.g.cs", "", "", "Skipped (generated)")]
+    [DataRow("Sample.cs", "", "internal class {", "Skipped (syntax errors)")]
+    public async Task ExecuteAsyncEarlierSkipTakesPrecedenceOverHiddenCode(string relativePath, string header, string trailer, string expectedMessage)
+    {
+        // Arrange
+        using (var fixture = new TemporaryDirectoryFixture())
+        {
+            var source = string.Join("\n",
+                                     header,
+                                     "class C",
+                                     "{",
+                                     "#if true",
+                                     "    string s = @\"",
+                                     "#else",
+                                     "\";",
+                                     "#endif",
+                                     "    void M( ) { }",
+                                     "}",
+                                     trailer);
+            var filePath = fixture.CreateFile(relativePath, source);
+            var originalBytes = await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken);
+            var output = new StringWriter();
+            var error = new StringWriter();
+
+            // Act
+            var exitCode = await PipelineTraceCommand.ExecuteAsync([filePath],
+                                                                   output,
+                                                                   error,
+                                                                   TestContext.CancellationToken);
+
+            // Assert
+            var trace = output.ToString();
+
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+            Assert.Contains($"{expectedMessage}: {Path.GetFullPath(filePath)}", trace);
+            Assert.DoesNotContain("code hidden in another build configuration", trace);
+            Assert.DoesNotContain("Pass 1", trace);
+            Assert.AreEqual(string.Empty, error.ToString());
+
+            var currentBytes = await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken);
+
+            Assert.AreSequenceEqual(originalBytes, currentBytes);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line literal outside the hidden-code definition is traced: a directive-like line without an enclosing conditional group, and a non-directive line inside one
+    /// </summary>
+    /// <param name="ifLine">Line in front of the field, or an empty string for none</param>
+    /// <param name="innerLine">Line inside the verbatim string</param>
+    /// <param name="endIfLine">Line behind the field, or an empty string for none</param>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    [DataRow("", "#else", "")]
+    [DataRow("#if true", "# Title", "#endif")]
+    public async Task ExecuteAsyncLiteralOutsideHiddenCodeDefinitionIsTraced(string ifLine, string innerLine, string endIfLine)
+    {
+        // Arrange
+        using (var fixture = new TemporaryDirectoryFixture())
+        {
+            var source = string.Join("\n",
+                                     "class C",
+                                     "{",
+                                     ifLine,
+                                     "    string s = @\"",
+                                     innerLine,
+                                     "\";",
+                                     endIfLine,
+                                     "    void M( ) { }",
+                                     "}");
+            var filePath = fixture.CreateFile("Sample.cs", source);
+            var originalBytes = await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken);
+            var output = new StringWriter();
+            var error = new StringWriter();
+
+            // Act
+            var exitCode = await PipelineTraceCommand.ExecuteAsync([filePath],
+                                                                   output,
+                                                                   error,
+                                                                   TestContext.CancellationToken);
+
+            // Assert
+            var trace = output.ToString();
+
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+            Assert.DoesNotContain("Skipped", trace);
+            Assert.Contains("Pass 1" + output.NewLine, trace);
+            Assert.Contains("== Pass 1: HorizontalSpacingPhase ==", trace);
+            Assert.AreEqual(string.Empty, error.ToString());
+
+            var currentBytes = await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken);
+
+            Assert.AreSequenceEqual(originalBytes, currentBytes);
+        }
+    }
+
+    /// <summary>
     /// Verifies that missing paths and malformed argument lists return the command-error exit code
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
