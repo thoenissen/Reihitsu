@@ -31,6 +31,9 @@ None yet.
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Start | Batch of four issues with partly different mechanisms — split? | Keep one run | All four restate a rule in documents that drift from its one executed or specified statement; all text-sized, no code fix or rule; the maintainer named them together | Repository tooling and agent docs only | 5de9bc5 |
+| 2 | Implementer | #1544: the `LineBreakPhase` keep-rule goal | Dropped; the row already states it on `main` | Issue comment and 02-implementer confirm the text exists | Agent docs only | 3b4ac9f |
+| 3 | Implementer | #1470: `squad/roles/auditor.md` also restated the coverage split, not listed in the issue | Taken in | Same restatement the issue removes; a few lines | Agent docs only | 3b4ac9f |
+| 4 | Implementer | #1471: root Markdown rule (every root `*.md` is text except `AGENTS.md`, `CLAUDE.md`) | Accepted | Meets the issue's "Done when"; keeps the existing tooling assertions | Lane check is repository tooling | 3b4ac9f |
 
 ## Follow-up candidates
 
@@ -38,5 +41,5 @@ None yet.
 
 ## State
 
-- Last step: test implementer (01), committed a087501; lane check confirmed tooling.
-- Next: implementer.
+- Last step: implementer (02), 3b4ac9f + 18da494; all tests pass.
+- Next: cleaner.
