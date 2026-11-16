@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-SPACE-002, FMT-SPACE-028 (new), FMT-BREAK-022 |
 | Depends on | [Roslyn 5.12 and C# 15 as the newest supported language version](roslyn-512-csharp-15.md) |
@@ -56,13 +56,39 @@ List<string> d = [with /* size */ (4)];
 List<string> d = [with /* size */(4)];
 ```
 
+**3. The RH5305 code fix removes the space as well.**
+
+The fix formats the collection expression it reports through the formatter, so the `with(…)` element it lays out loses the space of change 1. This is a consequence of change 1, not a decision of its own.
+
+```csharp
+// input
+List<string> x = [with (4),
+    "a"];
+```
+
+```csharp
+// before
+List<string> x = [
+                     with (4),
+                     "a"
+                 ];
+```
+
+```csharp
+// after
+List<string> x = [
+                     with(4),
+                     "a"
+                 ];
+```
+
 The layout of a wrapped collection expression that starts with a `with(…)` element does not change (FMT-BREAK-022).
 
 ## Decisions
 
-### Pending maintainer answer
+### No space between `with` and `(`
 
-- Change 1 — no space between `with` and `(` (recommended), or keep the author's gap, collapsed to one space, as today.
+Maintainer answer (change 1): the whitespace between `with` and `(` is removed, also in front of an empty argument list (`with()`), and not kept as the author's gap collapsed to one space (FMT-SPACE-028). The maintainer accepted with this answer that the code fixes which format a `with(…)` element through the formatter write it the same way, such as the RH5305 fix (change 3).
 
 ### A comment in the gap is treated as in every other gap
 

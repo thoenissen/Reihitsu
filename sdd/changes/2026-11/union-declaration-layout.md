@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-BREAK-002, FMT-BREAK-007, FMT-BREAK-011, FMT-BREAK-023, FMT-STRUCT-017, FMT-STRUCT-021, FMT-PIPE-031 |
 | Depends on | [Roslyn 5.12 and C# 15 as the newest supported language version](roslyn-512-csharp-15.md) |
@@ -196,6 +196,34 @@ public union U7(int, string)
 
 RH7101 reports `B` in this input before and after the change. Before, no code fix was offered; after, the fix produces the output above.
 
+**7. The RH5404 code fix lays out a union inside the type it formats.**
+
+The fix formats the element it reports through the formatter, so a union nested in that element gets the layout of change 1. This is a consequence of change 1, not a decision of its own.
+
+```csharp
+// input
+class C { union U(int, string) { public int X => 1; } }
+```
+
+```csharp
+// before
+class C
+{
+    union U(int, string) { public int X => 1; }
+}
+```
+
+```csharp
+// after
+class C
+{
+    union U(int, string)
+    {
+        public int X => 1;
+    }
+}
+```
+
 ## Decisions
 
 ### A union is a type declaration for every layout and shape rule that names types
@@ -206,11 +234,17 @@ The requirements that name type declarations in general — braces (FMT-BREAK-00
 
 A union exists only from C# 15, and its semicolon form exists with it. The gate keeps FMT-STRUCT-017's shape of one version per kind; it never refuses a union the formatter sees, because an earlier version parses a union as a syntax error and the formatter leaves such a file alone (FMT-PIPE-005).
 
-### Pending maintainer answers
+### A wrapped case-type list keeps the primary-constructor layout
 
-- Change 3 — whether a wrapped case-type list keeps the primary-constructor layout (recommended) or is always joined onto one line like a type-argument list.
-- Change 5 — whether an empty union body becomes a semicolon (recommended) or keeps its braces.
-- Changes 1, 2, 4, and 6 — the layout and rewrites a class gets.
+Maintainer answer (change 3): the wrapped list keeps one case type per line, aligned under the first, as a primary constructor's parameter list does (FMT-BREAK-011, FMT-BREAK-012, FMT-INDENT-012). It is not joined onto one line like a type-argument list.
+
+### An empty union body becomes a semicolon
+
+Maintainer answer (change 5): `{ }` and `{⏎}` become `;` (FMT-STRUCT-017); a body that holds a comment or a directive keeps its braces (FMT-STRUCT-018).
+
+### A union gets the layout and rewrites of a class, and the code fixes follow
+
+Maintainer answer (changes 1, 2, 4, and 6): braces and members on their own lines, the `(` of the case-type list joined to the name, each `where` clause on its own line, and the split of a combined static field, with the RH7101 code fix offered for it. The maintainer accepted with this answer that the code fixes which format through the formatter produce the same layout for a union they format, such as the RH5404 fix for a union nested in the type it lays out (change 7).
 
 ## Alternatives considered
 
