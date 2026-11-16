@@ -1,3 +1,5 @@
+using System.IO;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Tooling.Enumerations;
@@ -68,6 +70,46 @@ public sealed class LaneClassifierTests
 
         // Assert
         Assert.AreEqual(PathCategory.Text, category);
+    }
+
+    /// <summary>
+    /// Verifies that the root code of conduct and security policy are text, whether or not the diff was proven text-only
+    /// </summary>
+    /// <param name="path">Root Markdown file</param>
+    /// <param name="isTextOnlyProven">Whether the whole diff was proven text-only</param>
+    [TestMethod]
+    [DataRow("CODE_OF_CONDUCT.md", false)]
+    [DataRow("CODE_OF_CONDUCT.md", true)]
+    [DataRow("SECURITY.md", false)]
+    [DataRow("SECURITY.md", true)]
+    public void ClassifyPathTreatsTheRootCommunityFilesAsText(string path, bool isTextOnlyProven)
+    {
+        // Act
+        var category = LaneClassifier.ClassifyPath(path, isTextOnlyProven);
+
+        // Assert
+        Assert.AreEqual(PathCategory.Text, category);
+    }
+
+    /// <summary>
+    /// Verifies that every Markdown file at the repository root is classified by some lane rule
+    /// </summary>
+    [TestMethod]
+    public void ClassifyPathClassifiesEveryRootMarkdownFile()
+    {
+        // Arrange
+        var rootMarkdownFiles = Directory.GetFiles(FindRepositoryRoot())
+                                         .Select(Path.GetFileName)
+                                         .Where(name => name.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
+                                         .ToList();
+
+        // Act
+        var unknown = rootMarkdownFiles.Where(name => LaneClassifier.ClassifyPath(name, false) == PathCategory.Unknown)
+                                       .ToList();
+
+        // Assert
+        Assert.IsNotEmpty(rootMarkdownFiles);
+        Assert.IsEmpty(unknown, $"Root Markdown files no lane rule classifies: {string.Join(", ", unknown)}");
     }
 
     /// <summary>
@@ -190,6 +232,27 @@ public sealed class LaneClassifierTests
         // Assert
         Assert.IsTrue(parsed);
         Assert.AreEqual(lane, result);
+    }
+
+    /// <summary>
+    /// Finds the repository root from the test output directory
+    /// </summary>
+    /// <returns>Absolute repository-root path</returns>
+    private static string FindRepositoryRoot()
+    {
+        var current = new DirectoryInfo(AppContext.BaseDirectory);
+
+        while (current != null)
+        {
+            if (File.Exists(Path.Combine(current.FullName, "Reihitsu.sln")))
+            {
+                return current.FullName;
+            }
+
+            current = current.Parent;
+        }
+
+        throw new DirectoryNotFoundException("Could not locate the Reihitsu repository root.");
     }
 
     #endregion // Methods

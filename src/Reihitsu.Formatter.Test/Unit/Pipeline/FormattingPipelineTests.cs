@@ -125,7 +125,7 @@ public class FormattingPipelineTests
 
     /// <summary>
     /// Verifies that already well-formatted code passes through the pipeline without any
-    /// modifications
+    /// modifications, and that no phase run alone changes it (FMT-PIPE-027)
     /// </summary>
     [TestMethod]
     public void ExecuteAlreadyFormattedCodeNoChanges()
@@ -154,6 +154,8 @@ public class FormattingPipelineTests
         // Assert - second pass must produce identical output, ignoring trailing newline
         // differences introduced by the cleanup phase
         Assert.AreEqual(canonical.TrimEnd('\n'), actual.TrimEnd('\n'), "Formatted code should not change when formatted again.");
+
+        PhaseStabilityCheck.AssertNoPhaseChanges(canonical, context.EndOfLine, null);
     }
 
     /// <summary>

@@ -9,10 +9,8 @@
 #   --no-build                                                         reuse the previous build of that configuration
 #   --no-install                                                       fail instead of installing the SDK
 #
-# "all" runs every test project except selfhosting: the self-hosting scans run
-# every analyzer and the formatter over the repository's own source, which takes
-# long enough that CI runs them on every pull request and a local default run
-# leaves them out. Select them explicitly with --project selfhosting.
+# "all" is the default run; the all) branch below defines its projects, and
+# scripts/README.md, "The default test run", states what it covers and why.
 #
 # Test projects are addressed by absolute path, so the caller's working
 # directory is never changed and relative arguments keep their meaning.

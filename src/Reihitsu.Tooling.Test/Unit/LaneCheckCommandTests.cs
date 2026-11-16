@@ -116,6 +116,24 @@ public sealed class LaneCheckCommandTests
     }
 
     /// <summary>
+    /// Verifies that a diff changing only a root community file is text and fits the docs lane
+    /// </summary>
+    /// <param name="path">Root Markdown file</param>
+    [TestMethod]
+    [DataRow("CODE_OF_CONDUCT.md")]
+    [DataRow("SECURITY.md")]
+    public void ExecuteConfirmsTheDocsLaneForARootCommunityFile(string path)
+    {
+        // Act
+        var (exitCode, output, _) = Run($"M\t{path}\n", "--lane", "docs", "--text-only", "fail");
+
+        // Assert
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+        Assert.Contains($"Text       {path}", output);
+        Assert.Contains("LANE CHECK: confirmed — claimed docs, diff needs docs", output);
+    }
+
+    /// <summary>
     /// Verifies that the root contributing guide next to tooling paths leaves the tooling lane rather than no lane
     /// </summary>
     [TestMethod]

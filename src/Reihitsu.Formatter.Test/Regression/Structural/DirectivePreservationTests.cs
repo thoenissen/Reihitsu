@@ -21,9 +21,9 @@ public class DirectivePreservationTests
     #region Fields
 
     /// <summary>
-    /// Preprocessor symbols that keep the directive branch active
+    /// Parse options with <c>DEBUG</c> defined, which keep the directive branch active
     /// </summary>
-    private static readonly string[] _preprocessorSymbols = ["DEBUG"];
+    private static readonly CSharpParseOptions _parseOptions = new(preprocessorSymbols: ["DEBUG"]);
 
     #endregion // Fields
 
@@ -47,8 +47,7 @@ public class DirectivePreservationTests
     /// <returns>The formatted source text</returns>
     private static string Format(string input, CancellationToken cancellationToken)
     {
-        var parseOptions = new CSharpParseOptions(preprocessorSymbols: _preprocessorSymbols);
-        var tree = CSharpSyntaxTree.ParseText(input, parseOptions, cancellationToken: cancellationToken);
+        var tree = CSharpSyntaxTree.ParseText(input, _parseOptions, cancellationToken: cancellationToken);
         var context = new FormattingContext("\n");
         var result = FormattingPipeline.Execute(tree.GetRoot(cancellationToken), context, cancellationToken).Output;
 
@@ -67,7 +66,8 @@ public class DirectivePreservationTests
 
     /// <summary>
     /// Asserts that formatting produces the expected output and is idempotent, confirming the
-    /// directive was preserved rather than dropped by the transform
+    /// directive was preserved rather than dropped by the transform, and that no phase run alone
+    /// changes the output (FMT-PIPE-027)
     /// </summary>
     /// <param name="input">The C# source text</param>
     /// <param name="expected">The expected formatted output</param>
@@ -80,6 +80,8 @@ public class DirectivePreservationTests
         var secondPass = Format(actual, TestContext.CancellationToken);
 
         Assert.AreEqual(expected, secondPass, "Formatting must be idempotent.");
+
+        PhaseStabilityCheck.AssertNoPhaseChanges(actual, "\n", _parseOptions);
     }
 
     #endregion // Methods

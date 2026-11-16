@@ -44,7 +44,8 @@ public class RawStringOtherLineTerminatorAlignmentTests
 
     /// <summary>
     /// Verifies the reported example and its Unicode variants: the literal's content line and closing marker move under the
-    /// opening quotes, a second pass changes nothing, and the terminators inside the literal stay
+    /// opening quotes, a second pass changes nothing, no phase run alone changes the output (FMT-PIPE-027), and the
+    /// terminators inside the literal stay
     /// </summary>
     /// <param name="terminator">The line terminator inside the literal</param>
     [TestMethod]
@@ -60,13 +61,16 @@ public class RawStringOtherLineTerminatorAlignmentTests
             var input = $"class C{endOfLine}{{{endOfLine}    void M(){endOfLine}    {{{endOfLine}        var a = \"\"\"{terminator}    Hello{terminator}    \"\"\";{endOfLine}    }}{endOfLine}}}";
             var expected = $"class C{endOfLine}{{{endOfLine}    void M(){endOfLine}    {{{endOfLine}        var a = \"\"\"{terminator}                Hello{terminator}                \"\"\";{endOfLine}    }}{endOfLine}}}";
 
-            var actual = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken).Output.ToString();
+            var output = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken).Output;
+            var actual = output.ToString();
 
             Assert.AreEqual(Escape(expected), Escape(actual));
 
             var secondPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(actual, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken).Output.ToString();
 
             Assert.AreEqual(Escape(actual), Escape(secondPass), "The formatter is not idempotent.");
+
+            PhaseStabilityCheck.AssertNoPhaseChanges(output);
         }
     }
 

@@ -9,14 +9,15 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter;
+using Reihitsu.Formatter.Test.Helpers;
 using Reihitsu.SelfHosting.Test.Utilities;
 
 namespace Reihitsu.SelfHosting.Test.Formatting;
 
 /// <summary>
 /// Self-hosting scans that run the formatter over the solution's own C# source files, one test row per file. They
-/// verify that the formatter changes nothing in correctly formatted code and that formatting is idempotent, each under
-/// both LF and CRLF line endings
+/// verify that the formatter changes nothing in correctly formatted code, that formatting is idempotent, and that no
+/// phase run alone changes the formatted output, each under both LF and CRLF line endings
 /// </summary>
 [TestClass]
 public sealed class FormatterSelfHostingTests
@@ -103,6 +104,41 @@ public sealed class FormatterSelfHostingTests
         if (failures.Count > 0)
         {
             Assert.Fail($"Formatter changed {relativePath}:\n\n{string.Join("\n\n", failures)}");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that every phase of the formatter, run alone on the file's formatted output, leaves that output unchanged,
+    /// so two phases that undo each other's change in every pass cannot hide behind a stable whole-pass output; a failure
+    /// names each phase that changes the output and the line ending it changes it under. An output the formatter did not
+    /// format is not checked, because the requirement covers only the output of an input the formatter formats; the
+    /// formatter returns exactly such an input as its own output tree — one with a syntax error or a generated-code header,
+    /// one that holds a hiding carrier (FMT-PIPE-033), or one it refuses as unsupported — and a new tree for every input it
+    /// formats
+    /// </summary>
+    /// <param name="relativePath">Solution-relative path of the source file</param>
+    [TestMethod]
+    [DynamicData(nameof(SourceFiles))]
+    [Requirement("FMT-PIPE-027")]
+    public void NoPhaseChangesTheFormattedOutputOfSourceFile(string relativePath)
+    {
+        var failures = new List<string>();
+
+        foreach (var (_, syntaxTree) in ParseUnderEachLineEnding(relativePath))
+        {
+            var output = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, TestContext.CancellationToken).Output;
+
+            if (ReferenceEquals(output, syntaxTree))
+            {
+                continue;
+            }
+
+            failures.AddRange(PhaseStabilityCheck.DescribeChangingPhases(output));
+        }
+
+        if (failures.Count > 0)
+        {
+            Assert.Fail($"A phase run alone changes the formatted output of {relativePath}:\n\n{string.Join("\n\n", failures)}");
         }
     }
 
