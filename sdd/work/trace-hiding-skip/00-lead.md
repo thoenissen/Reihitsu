@@ -33,5 +33,5 @@ None yet.
 
 ## State
 
-- Last step: test implementer (04) — 5 red tests for the right reason; spec author (03) accepted change doc.
-- Next: implementer (05).
+- Last step: implementer (05) — tests pass, b0386f5.
+- Next: cleaner (06).
