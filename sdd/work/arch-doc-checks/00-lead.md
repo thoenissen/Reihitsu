@@ -26,6 +26,9 @@ None yet.
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | Spec author | #1507: which guard-column spans must resolve, and against what? | Only identifier / dotted-identifier spans of the guard column; a plain name may also resolve as a Roslyn `SyntaxKind` member; resolve against production projects under `src/` only. No allow-list, no `AGENTS.md` edit | The table legitimately holds `SyntaxKind` names, punctuation and a path; an allow-list drifts; editing `AGENTS.md` widens to tooling for no gain | Architecture test only | pending |
+| 2 | Spec author | #1428: what counts as a valid exemption key? | Exactly the relative path of a spec `SpecCatalog.EnumerateSpecFiles` yields (rejects directories and the `specs/README.md` index) | `File.Exists` would accept the index | Test-project and `sdd/README.md` only | 0b74f22 |
+| 3 | Spec author | Change doc for #1428? | None | No spec, requirement, rule, or visible surface changes | — | — |
 
 ## Follow-up candidates
 
@@ -33,5 +36,5 @@ None yet.
 
 ## State
 
-- Last step: claim, draft PR, prepare.
-- Next: spec author (01) for both issues, then skeptic.
+- Last step: spec author (01, 0b74f22): #1507 no text; #1428 sdd/README.md written. No output questions, no follow-ups.
+- Next: skeptic (02).
