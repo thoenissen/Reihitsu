@@ -823,5 +823,135 @@ public class RH8035NonPrivateUnionsMustBeDocumentedAnalyzerTests : AnalyzerTests
                      });
     }
 
+    /// <summary>
+    /// Verifies no diagnostic is reported and no exception is thrown under the default documentation mode for a union
+    /// declaration without the <c>partial</c> modifier when the documentation comment of its partial declaration in
+    /// another file holds a <c>&lt;param&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8035-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForUnionWithoutPartialModifierWhosePartialDeclarationInAnotherFileHoldsParamElement()
+    {
+        const string source = """
+                              /// <remarks>Shape</remarks>
+                              public union Shape;
+                              """;
+
+        const string otherDeclaration = """
+                                        /// <remarks>See <param name="x"/></remarks>
+                                        public partial union Shape(int, string);
+                                        """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherDeclaration));
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported and no exception is thrown under the documentation mode Parse for a union
+    /// declaration without the <c>partial</c> modifier when the documentation comment of its partial declaration in
+    /// another file holds a <c>&lt;param&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8035-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForUnionWithoutPartialModifierWhosePartialDeclarationInAnotherFileHoldsParamElementInParseMode()
+    {
+        const string source = """
+                              /// <remarks>Shape</remarks>
+                              public union Shape;
+                              """;
+
+        const string otherDeclaration = """
+                                        /// <remarks>See <param name="x"/></remarks>
+                                        public partial union Shape(int, string);
+                                        """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherDeclaration));
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                         test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject);
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported and no exception is thrown under the default documentation mode for a union
+    /// declared in two files, neither declaration with the <c>partial</c> modifier, when the documentation comment of
+    /// the other declaration holds a <c>&lt;param&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8035-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForUnionDeclaredTwiceWithoutPartialModifierWhoseOtherDeclarationHoldsParamElement()
+    {
+        const string source = """
+                              /// <remarks>Shape</remarks>
+                              public union Shape;
+                              """;
+
+        const string otherDeclaration = """
+                                        /// <remarks>See <param name="x"/></remarks>
+                                        public union Shape(int, string);
+                                        """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherDeclaration));
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported and no exception is thrown under the documentation mode Parse for a union
+    /// declared in two files, neither declaration with the <c>partial</c> modifier, when the documentation comment of
+    /// the other declaration holds a <c>&lt;param&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8035-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForUnionDeclaredTwiceWithoutPartialModifierWhoseOtherDeclarationHoldsParamElementInParseMode()
+    {
+        const string source = """
+                              /// <remarks>Shape</remarks>
+                              public union Shape;
+                              """;
+
+        const string otherDeclaration = """
+                                        /// <remarks>See <param name="x"/></remarks>
+                                        public union Shape(int, string);
+                                        """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherDeclaration));
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                         test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject);
+                     });
+    }
+
     #endregion // Documentation holding a parameter element
 }

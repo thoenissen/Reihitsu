@@ -2227,5 +2227,70 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzerTests : Analyz
                      });
     }
 
+    /// <summary>
+    /// Verifies <c>&lt;inheritdoc/&gt;</c> is not reported and no exception is thrown under the default documentation
+    /// mode on a union declaration without the <c>partial</c> modifier when the documentation comment of its partial
+    /// declaration in another file holds a <c>&lt;param&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForInheritdocOnUnionWithoutPartialModifierWhosePartialDeclarationInAnotherFileHoldsParamElement()
+    {
+        const string source = """
+                              /// <inheritdoc/>
+                              public union Shape;
+                              """;
+
+        const string otherDeclaration = """
+                                        /// <param name="Circle">Circle</param>
+                                        public partial union Shape(int, string);
+                                        """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherDeclaration));
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies <c>&lt;inheritdoc/&gt;</c> is not reported and no exception is thrown under the documentation mode
+    /// Parse on a union declaration without the <c>partial</c> modifier when the documentation comment of its partial
+    /// declaration in another file holds a <c>&lt;param&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForInheritdocOnUnionWithoutPartialModifierWhosePartialDeclarationInAnotherFileHoldsParamElementInParseMode()
+    {
+        const string source = """
+                              /// <inheritdoc/>
+                              public union Shape;
+                              """;
+
+        const string otherDeclaration = """
+                                        /// <param name="Circle">Circle</param>
+                                        public partial union Shape(int, string);
+                                        """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherDeclaration));
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                         test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject);
+                     });
+    }
+
     #endregion // Tests
 }

@@ -564,5 +564,76 @@ public class RH8036PrivateUnionsMustBeDocumentedAnalyzerTests : AnalyzerTestsBas
                      });
     }
 
+    /// <summary>
+    /// Verifies no diagnostic is reported and no exception is thrown under the default documentation mode for a private
+    /// union declaration without the <c>partial</c> modifier when the documentation comment of its partial declaration
+    /// holds a <c>&lt;paramref&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8036-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForPrivateUnionWithoutPartialModifierWhosePartialDeclarationHoldsParamrefElement()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Outer
+                              /// </summary>
+                              public class Outer
+                              {
+                                  /// <remarks>Inner</remarks>
+                                  private union Inner;
+
+                                  /// <remarks>See <paramref name="x"/></remarks>
+                                  private partial union Inner(int, string);
+                              }
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported and no exception is thrown under the documentation mode Parse for a private
+    /// union declaration without the <c>partial</c> modifier when the documentation comment of its partial declaration
+    /// holds a <c>&lt;paramref&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8036-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForPrivateUnionWithoutPartialModifierWhosePartialDeclarationHoldsParamrefElementInParseMode()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Outer
+                              /// </summary>
+                              public class Outer
+                              {
+                                  /// <remarks>Inner</remarks>
+                                  private union Inner;
+
+                                  /// <remarks>See <paramref name="x"/></remarks>
+                                  private partial union Inner(int, string);
+                              }
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                         test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject);
+                     });
+    }
+
     #endregion // Documentation holding a parameter element
 }
