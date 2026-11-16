@@ -266,6 +266,9 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
             var applyChanges = operations.OfType<ApplyChangesOperation>().First();
             var changedDocument = applyChanges.ChangedSolution.GetDocument(documentId)
                                       ?? throw new InvalidOperationException("Failed to resolve the changed document.");
+
+            await AssertNoWarningWaveDiagnosticIsIntroducedAsync(document, changedDocument).ConfigureAwait(false);
+
             var text = await changedDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
 
             return text.ToString();
@@ -298,6 +301,9 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
             var applyChanges = operations.OfType<ApplyChangesOperation>().First();
             var changedDocument = applyChanges.ChangedSolution.GetDocument(documentId)
                                       ?? throw new InvalidOperationException("Failed to resolve the changed document.");
+
+            await AssertNoWarningWaveDiagnosticIsIntroducedAsync(document, changedDocument).ConfigureAwait(false);
+
             var text = await changedDocument.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
 
             return text.ToString();
@@ -440,6 +446,20 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
                 Assert.IsEmpty(actions, $"No code fix may be offered for the diagnostic at {diagnostic.Location.SourceSpan}.");
             }
         }
+    }
+
+    /// <summary>
+    /// Fails the test when the document the code fix produced holds a warning-wave diagnostic the source document does
+    /// not hold, as <see cref="CSharpCodeFixVerifierTest{TAnalyzer, TCodeFix}"/> does for the fixed states it verifies
+    /// </summary>
+    /// <param name="document">Source document</param>
+    /// <param name="changedDocument">Document the code fix produced</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task AssertNoWarningWaveDiagnosticIsIntroducedAsync(Document document, Document changedDocument)
+    {
+        var introduced = await WarningWaveDiagnostics.GetIntroducedAsync(document.Project.Solution, changedDocument.Project.Solution, CancellationToken.None).ConfigureAwait(false);
+
+        Assert.IsTrue(introduced.IsEmpty, WarningWaveDiagnostics.CreateMessage("fixed document", introduced));
     }
 
     /// <summary>
