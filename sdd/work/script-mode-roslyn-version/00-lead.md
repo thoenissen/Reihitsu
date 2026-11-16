@@ -23,6 +23,7 @@ None.
 | 4 | Tests | Bump or guard the `#:package Microsoft.CodeAnalysis.CSharp@5.6.0` pin in `scripts/proof/verify-text-only.cs`? | Neither in this run; follow-up candidate | It is a standalone file-based script outside `src/`; whether the one-version rule covers the scripts' own pins is a separate decision with its own verification of the text-only proof | Tooling only | — |
 | 5 | Implementer | #1780: the guard alone, or also one version property? | Also one version property used by every non-Testing Roslyn reference | The issue's title asks for one owner; with the guard alone a bump still edits 11 files. The guard stays as the regression check | Build configuration only; the resolved version stays 5.12.0 | 8f52e40 |
 | 6 | Audit 1 | Finding #1: the #1780 guard models MSBuild version resolution and misses `Update` items, Roslyn references in props files, and a conditional `RoslynVersion` | Repair round 1 (same requirement, PR-introduced): replace the model by a cheap check of the chosen mechanism — every non-Testing Roslyn `PackageReference`/`PackageVersion` item (`Include` or `Update`) in tracked `*.csproj`/`*.props`/`*.targets` names exactly `$(RoslynVersion)`, and `RoslynVersion` is defined once, unconditionally, in the root `Directory.Build.props`; drop the paths and fixtures that only serve options not taken. Routed to the test implementer (fresh) | FC-044: a guard that models a result another tool computes is refused from the first finding; the cheap check follows decision 5 | Test only | ca374b3 |
+| 7 | Audit 2 | Finding #2 repeats #1's class (guard reads MSBuild names case-sensitively; MSBuild does not) — architecture finding | Fix by the cause in this run: the guard compares every MSBuild name it reads (item types, attribute and child-element metadata names) with one case-insensitive rule, as it already does for property names and package IDs; one fixture each for (e), (f), (g); no other modelling. Routed to the test implementer (fresh); not a repair round | The cause is one comparison rule applied two ways in one file; unifying it is a cheap check, no new machinery, and it closes the class rather than the three cells. Reading MSBuild's evaluated result would add a process dependency to the architecture tests for a rare casing | Test only | pending |
 
 ## Follow-up candidates
 
@@ -40,4 +41,5 @@ None.
 - Audit 1 on 2d4c863 (main eb89003): findings, 1 (05-auditor.md). Repair round 1 of 3.
 - Repair 1: test implementer ca374b3 (06).
 - Repair 1: cleaner clean (07), spec checker consistent (08, 4e35f30).
-- Next step: auditor (repair only).
+- Audit 2 on 61cf6e1 (main eb89003): finding #2, architecture finding (09-auditor.md, 797c0b4); decision 7.
+- Next step: test implementer (decision 7), cleaner, spec checker, auditor (that change only).
