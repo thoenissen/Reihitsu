@@ -5,7 +5,7 @@
 | ID prefix | FMT-STRUCT |
 | Status | Active |
 | Code owners | `StructuralTransformPhase`, `ConfigurableStructuralTransforms`, `ControlFlowBraceTransform`, `ExpressionBodiedMethodTransform`, `ExpressionBodiedConstructorTransform`, `ExpressionBodiedOperatorTransform`, `ExpressionBodiedConversionTransform`, `ExpressionBodiedFinalizerTransform`, `ExpressionBodiedLocalFunctionTransform`, `ExpressionBodiedTransformUtilities`, `ExpressionBodyToBlockConverter`, `AccessorExpressionBodyTransform`, `GetOnlyMemberExpressionBodyTransform`, `EmptyTypeDeclarationSemicolonTransform`, `EnumTrailingCommaRemovalTransform`, `InitializerTrailingCommaRemovalTransform`, `TrailingCommaRemovalUtilities`, `FieldDeclarationSplitTransform`, `AttributeListSplitTransform`, `AttributeListMergeTransform`, `AttributeListShapeUtilities` |
-| Uses | FMT-BREAK-013, FMT-BREAK-014, FMT-BREAK-027, FMT-BREAK-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-PIPE-029, FMT-SPACE-003, FMT-SPACE-004, FMT-SPACE-008, FMT-SPACE-012, FMT-SPACE-017, FMT-UNSUP-004, FMT-UNSUP-009, SHARED-ATTR-013, SHARED-DOC-004 |
+| Uses | FMT-BREAK-013, FMT-BREAK-014, FMT-BREAK-027, FMT-BREAK-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-PIPE-029, FMT-SPACE-003, FMT-SPACE-004, FMT-SPACE-008, FMT-SPACE-012, FMT-SPACE-017, FMT-UNSUP-004, FMT-UNSUP-009, FMT-UNSUP-010, SHARED-ATTR-013, SHARED-DOC-004 |
 
 This spec covers the phase that rewrites syntax shape before any layout is decided, right after the tabs in whitespace are replaced (FMT-PIPE-001): braces for `if`/`else` bodies, block bodies for expression-bodied functions, expression bodies for simple accessors and get-only members, semicolon declarations for empty types, removal of trailing commas, one field per declaration, one attribute per list on declarations (FMT-STRUCT-028), and the merge of attribute lists that name one target (FMT-STRUCT-029). Every rewrite produces equivalent code (FMT-PIPE-003) and is refused for a construct whose comments, directives, or disabled text it could not carry over (FMT-PIPE-002). The RH7101 code fix splits a field by formatting it with its type as context (FMT-PIPE-029), so the field split, laid out by the phases after this one, is also that fix's output.
 
@@ -1085,13 +1085,15 @@ union U(int, string)
 }
 ```
 
-### FMT-STRUCT-022 — Split fields keep their comments
+### FMT-STRUCT-022 — Split fields keep their comments and directives
 
 When the formatter splits a field under FMT-STRUCT-021, the declaration's leading trivia MUST stay on the first generated field, a comment inside a declarator's initializer value MUST stay in that value in the declarator's field, and the trivia behind the declaration's `;` MUST stay behind the last field.
 
 These are the only places of a split declaration that can hold a comment. The formatter refuses an input with a comment anywhere else in a field declaration — among its attributes and modifiers, in its type, at a declarator's name, at an `=` or in front of a value, at a `,` between declarators, or in front of the `;` (FMT-UNSUP-004) — so no split field carries one there. FMT-UNSUP-004 states which comments around a value count as inside it. A declaration with a documentation comment is not split (FMT-STRUCT-030), so the leading trivia that stays on the first field holds no documentation comment.
 
-Why: Each comment keeps describing the code it was written next to. A comment in front of the declaration stays in front of it, where its first field now begins; a comment in a value stays in the value it describes; and a comment behind the declaration stays behind its end, which is now the last field's. A documentation comment documents every field of the declaration, so keeping it on the first field would leave the others undocumented, and the declaration is not split instead (FMT-STRUCT-030).
+The declaration's leading trivia stays on the first field also when it holds a preprocessor directive or disabled text — a `#region`, the `#if` or `#else` of a group that holds the whole declaration, or the `#endif` and the disabled text of a group in front of it. The leading trivia is the only place of a split declaration that can hold a directive or disabled text: the formatter refuses an input with one anywhere else in a field declaration with several declarators, also inside an initializer value (FMT-UNSUP-010), and no directive or disabled text can stand behind the `;`, because it always belongs to the leading trivia of the token behind it.
+
+Why: Each comment keeps describing the code it was written next to. A comment in front of the declaration stays in front of it, where its first field now begins; a comment in a value stays in the value it describes; and a comment behind the declaration stays behind its end, which is now the last field's. A documentation comment documents every field of the declaration, so keeping it on the first field would leave the others undocumented, and the declaration is not split instead (FMT-STRUCT-030). A directive in front of the declaration stays in front of its first field, so a region still opens in front of the same code, and a conditional group that held the declaration holds all of its fields; a group that ends in front of the declaration still ends there.
 
 Example:
 
@@ -1112,17 +1114,47 @@ class C
 }
 ```
 
+Example — a region in front of the declaration, and a group that holds the whole declaration:
+
+```csharp
+class C
+{
+    #region Fields
+
+    private int _x, _y;
+
+    #endregion // Fields
+
+#if !RELEASE
+    private int _p, _q = 1;
+#endif
+}
+```
+
+```csharp
+class C
+{
+    #region Fields
+
+    private int _x;
+    private int _y;
+
+    #endregion // Fields
+
+#if !RELEASE
+    private int _p;
+    private int _q = 1;
+#endif
+}
+```
+
 ### FMT-STRUCT-023 — A field with directives is not split
 
-The formatter MUST NOT split a field declaration that contains a preprocessor directive or disabled text anywhere in its trivia.
-
-Why: The split carries over only the declaration's leading trivia, the declarators with their values, and the trivia behind its `;` (FMT-STRUCT-022), so a directive between the declarators would be dropped or end up guarding a different field. The precheck refuses comments only (FMT-UNSUP-004), so directives still reach the split.
-
-For example, a declaration `private int _x, _debug, _y;` whose `_debug,` line is wrapped in `#if DEBUG` … `#endif` keeps its three declarators in one declaration.
+Status: Retired — a directive or disabled text inside a field declaration with several declarators, outside the leading trivia of its first token, is a shape the formatter refuses as a whole (FMT-UNSUP-010), so the split never meets it; a directive or disabled text in the leading trivia stays on the first field, and the declaration is split (FMT-STRUCT-022).
 
 ### FMT-STRUCT-024 — A rewrite that cannot be completed safely is not applied
 
-The formatter MUST NOT apply a rewrite of this phase when its result would not compile, would leave a declaration without documentation that applied to it in the input, or would put a comment next to other code than the code it was written next to. It MUST leave the construct as it was written instead. This holds for every transform of the phase, whether or not a requirement of its own names the case; FMT-STRUCT-007, the comment clauses of FMT-STRUCT-012, and FMT-STRUCT-030 are instances of it. It adds to FMT-PIPE-002 and FMT-PIPE-003 and does not replace them: a rewrite that would drop a comment, drop or misplace a directive or disabled text, or change what the code compiles to, is refused by those requirements, as FMT-STRUCT-003, FMT-STRUCT-018, and FMT-STRUCT-023 refuse it. A rewrite that keeps each comment next to the code it was written next to, such as one that moves a comment onto its own line in front of the same code, is not refused by this requirement.
+The formatter MUST NOT apply a rewrite of this phase when its result would not compile, would leave a declaration without documentation that applied to it in the input, or would put a comment next to other code than the code it was written next to. It MUST leave the construct as it was written instead. This holds for every transform of the phase, whether or not a requirement of its own names the case; FMT-STRUCT-007, the comment clauses of FMT-STRUCT-012, and FMT-STRUCT-030 are instances of it. It adds to FMT-PIPE-002 and FMT-PIPE-003 and does not replace them: a rewrite that would drop a comment, drop or misplace a directive or disabled text, or change what the code compiles to, is refused by those requirements, as FMT-STRUCT-003 and FMT-STRUCT-018 refuse it. A rewrite that keeps each comment next to the code it was written next to, such as one that moves a comment onto its own line in front of the same code, is not refused by this requirement.
 
 Why: A structural rewrite only changes the shape of code the author wrote, so it is worth applying only when nothing else changes. A result that does not compile, a declaration that lost its documentation, or a comment that now describes other code is a regression the author has to find and repair by hand, which costs more than the canonical shape gains. A code fix is withheld in the same situations.
 
