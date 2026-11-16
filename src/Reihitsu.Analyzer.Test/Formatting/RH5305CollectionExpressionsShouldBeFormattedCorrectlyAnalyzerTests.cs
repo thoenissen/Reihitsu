@@ -495,6 +495,47 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzerTests 
         await Verify(testData, fixedData, static config => config.NumberOfFixAllIterations = 1);
     }
 
+    /// <summary>
+    /// Verifies that the fix of a wrapped collection expression that starts with a <c>with (…)</c> element places the element on
+    /// the first line after the opening bracket and removes the space between <c>with</c> and its argument list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5305-004")]
+    public async Task VerifyFixRemovesTheSpaceInFrontOfTheArgumentListOfAWithElement()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        List<string> x = {|#0:[with (4),
+                                            "a"]|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Example
+                                 {
+                                     private static void Method()
+                                     {
+                                         List<string> x = [
+                                                              with(4),
+                                                              "a"
+                                                          ];
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5305MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

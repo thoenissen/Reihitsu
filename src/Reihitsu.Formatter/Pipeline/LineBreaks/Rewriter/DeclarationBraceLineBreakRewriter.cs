@@ -170,6 +170,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
             case StructDeclarationSyntax:
             case InterfaceDeclarationSyntax:
             case RecordDeclarationSyntax:
+            case UnionDeclarationSyntax:
                 {
                     var typeDeclaration = (BaseTypeDeclarationSyntax)visited;
 

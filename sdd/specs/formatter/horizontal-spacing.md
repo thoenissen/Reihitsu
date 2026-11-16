@@ -52,7 +52,7 @@ class C
 
 ### FMT-SPACE-002 — Whitespace no rule covers is only collapsed
 
-When no spacing rule applies to a token pair, the formatter MUST replace each run of whitespace between the two tokens by a single space and MUST NOT insert or remove a gap. A run of tabs, or of tabs and spaces, counts as a run and becomes one space. This holds for a gap the line-break phase joined as for one the author wrote on one line: the phase decides a gap by its two tokens, never by whether the gap held a line break before, so a joined pair that no rule covers keeps the separator the join wrote (FMT-BREAK-031). When several rules apply to one pair, the first rule in this order MUST decide: attribute close bracket (FMT-SPACE-003), no-space (FMT-SPACE-004 to FMT-SPACE-007), comma (FMT-SPACE-008), single-space (FMT-SPACE-009), operator (FMT-SPACE-010), for-loop semicolon (FMT-SPACE-011), attribute-target colon (FMT-SPACE-016), keyword (FMT-SPACE-012), arrow (FMT-SPACE-017), conditional operator (FMT-SPACE-018), name colon (FMT-SPACE-019), `when` (FMT-SPACE-020), declared name (FMT-SPACE-021), accessor list (FMT-SPACE-022), relational pattern (FMT-SPACE-023), modifier and prefix keyword (FMT-SPACE-024), `with` (FMT-SPACE-025), lambda return type (FMT-SPACE-026), function-pointer calling convention (FMT-SPACE-027).
+When no spacing rule applies to a token pair, the formatter MUST replace each run of whitespace between the two tokens by a single space and MUST NOT insert or remove a gap. A run of tabs, or of tabs and spaces, counts as a run and becomes one space. This holds for a gap the line-break phase joined as for one the author wrote on one line: the phase decides a gap by its two tokens, never by whether the gap held a line break before, so a joined pair that no rule covers keeps the separator the join wrote (FMT-BREAK-031). When several rules apply to one pair, the first rule in this order MUST decide: attribute close bracket (FMT-SPACE-003), no-space (FMT-SPACE-004 to FMT-SPACE-007), comma (FMT-SPACE-008), single-space (FMT-SPACE-009), operator (FMT-SPACE-010), for-loop semicolon (FMT-SPACE-011), attribute-target colon (FMT-SPACE-016), keyword (FMT-SPACE-012), arrow (FMT-SPACE-017), conditional operator (FMT-SPACE-018), name colon (FMT-SPACE-019), `when` (FMT-SPACE-020), declared name (FMT-SPACE-021), accessor list (FMT-SPACE-022), relational pattern (FMT-SPACE-023), modifier and prefix keyword (FMT-SPACE-024), `with` (FMT-SPACE-025, FMT-SPACE-028), lambda return type (FMT-SPACE-026), function-pointer calling convention (FMT-SPACE-027).
 
 Why: The phase only enforces a spacing it has a rule for. Where it has none — the space after a cast, for instance — both forms are acceptable and the author's choice is kept; only the clearly accidental double space or tab goes. A joined pair is decided like the same pair written on one line, so the output does not depend on where the author broke the line; a rule that applied to joined gaps only would keep that difference. A tab is collapsed even when it is alone, because a tab the phase kept would later be expanded to spaces and collapsed on the next run, and the output would never become stable (FMT-PIPE-004).
 
@@ -1419,6 +1419,46 @@ unsafe class C
 {
     void M(delegate* unmanaged[Cdecl]<int, void> f, delegate* managed<int> g)
     {
+    }
+}
+```
+
+### FMT-SPACE-028 — No space between the `with` of a collection-expression element and its argument list
+
+The formatter MUST remove the whitespace between the `with` keyword of a `with(…)` element of a collection expression and the `(` of its argument list, an empty argument list (`with()`) included. A comment in the gap keeps its place, and the decision applies to the whitespace behind it (FMT-SPACE-013, FMT-SPACE-014). The `with` of a `with` expression is FMT-SPACE-025's and keeps one space on each side.
+
+Why: The `with(…)` element passes its arguments to the collection's constructor or factory, so it reads as a call, and the C# documentation writes it without a space: `[with(comparer), "a"]`. The repository already writes a keyword that takes an argument list in the same way where it has a rule for it — `new()` (FMT-SPACE-012). Without a rule, the gap is only collapsed (FMT-SPACE-002), so `with (comparer)` and `with(comparer)` would both stay.
+
+Example:
+
+```csharp
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    void M(string[] values)
+    {
+        HashSet<string> a = [with ( StringComparer.Ordinal ) , "x"];
+        List<string> b = [with  (capacity: values.Length), .. values];
+        List<string> c = [with ()];
+        List<string> d = [with /* size */ (4)];
+    }
+}
+```
+
+```csharp
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    void M(string[] values)
+    {
+        HashSet<string> a = [with(StringComparer.Ordinal), "x"];
+        List<string> b = [with(capacity: values.Length), .. values];
+        List<string> c = [with()];
+        List<string> d = [with /* size */(4)];
     }
 }
 ```

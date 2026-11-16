@@ -182,6 +182,16 @@ internal sealed class MemberLineStartRewriter : CSharpSyntaxRewriter
     }
 
     /// <inheritdoc/>
+    public override SyntaxNode VisitUnionDeclaration(UnionDeclarationSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (UnionDeclarationSyntax)base.VisitUnionDeclaration(node);
+
+        return EnsureMembersStartOnSeparateLines(node, static owner => owner.Members, static (owner, members) => owner.WithMembers(members));
+    }
+
+    /// <inheritdoc/>
     public override SyntaxNode VisitExtensionBlockDeclaration(ExtensionBlockDeclarationSyntax node)
     {
         _cancellationToken.ThrowIfCancellationRequested();
