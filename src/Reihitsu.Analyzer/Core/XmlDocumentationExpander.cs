@@ -31,6 +31,20 @@ internal static class XmlDocumentationExpander
     }
 
     /// <summary>
+    /// Parses the expanded documentation XML for the enum member declaration
+    /// </summary>
+    /// <param name="declaration">Declaration</param>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The expanded XML documentation root, when available</returns>
+    internal static XElement GetExpandedDocumentation(EnumMemberDeclarationSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        var declaredSymbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
+
+        return ParseExpandedDocumentation(declaredSymbol, cancellationToken);
+    }
+
+    /// <summary>
     /// Determines whether the compiler can expand the documentation of the declaration's symbol without failing
     /// </summary>
     /// <param name="declaration">Declaration</param>
@@ -55,20 +69,6 @@ internal static class XmlDocumentationExpander
         {
             return false;
         }
-    }
-
-    /// <summary>
-    /// Parses the expanded documentation XML for the enum member declaration
-    /// </summary>
-    /// <param name="declaration">Declaration</param>
-    /// <param name="semanticModel">Semantic model</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The expanded XML documentation root, when available</returns>
-    internal static XElement GetExpandedDocumentation(EnumMemberDeclarationSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
-    {
-        var declaredSymbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
-
-        return ParseExpandedDocumentation(declaredSymbol, cancellationToken);
     }
 
     /// <summary>
