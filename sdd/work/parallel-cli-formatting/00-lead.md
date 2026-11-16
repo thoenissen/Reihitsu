@@ -41,6 +41,7 @@ Batch 1 (before test implementer), answer "1a 2a 3a 4a 5a 6a":
 | 8 | implementer 05 | New type `BufferedConsoleOutput` (62 lines) | Accept, not escalation 9 | Part of the issue's own fix | Internal | a1d2458 |
 | 9 | cleaner 06 | Debug-only S1125 on unchanged lines of FormatCommandHandler.cs | Drop as follow-up | Pre-existing, Release build is warning-free, not reached by the run | Internal | — |
 | 10 | spec checker 07 | Repair round 1: spec index row misses `BufferedConsoleOutput`; cleaner skipped for this round | Route to spec author; then spec checker again | Markdown-only repair, nothing for the cleaner to format or build | Internal | b0ae134 |
+| 11 | auditor 10 | Repair round 2 worklist: #1 high (alias read overlapping a write loses content, PR-introduced, safety rail repairable in scope), #2 cancel test cannot detect completion order, #3 handler default 1 vs parser ProcessorCount and no wiring test; hints 2 (write token parameter now unused) and 3 (E2E summary count) taken in; hints 1 and 4 dropped (1 same window as main, 4 CI is Linux/macOS only) | Route: test implementer 11 (#1 test, #2, #3, hint 3), then implementer 12 (#1, #3, hint 2), cleaner, spec checker, auditor on the repair | All are same-requirement/PR-introduced; #1 keeps answer 5A outputs unchanged and restores CLI-022 "file MUST still hold the formatted text" | CLI-022 unchanged requirement demands it | |
 
 ## Follow-up candidates
 
@@ -52,4 +53,4 @@ Batch 1 (before test implementer), answer "1a 2a 3a 4a 5a 6a":
 ## State
 
 - Last step: skeptic 02 (verdict: output question). Batch 1 asked: Q1 name, Q2 default, Q3 docs, Q4 Ctrl+C several in progress, Q5 aliases (skeptic's Q6), Q6 accepted values (skeptic's Q7).
-- Implementer 05 done (a1d2458), tests pass. Lane check confirmed. Cleaner 06 clean (df039b2). Spec checker 07: 1 finding (sdd/specs/README.md:399 index row). Repair round 1 open. Spec author 08 repaired (b0ae134). Spec checker 09 consistent (263a255). main eb89003 not ahead, build green. Next: auditor 10 on HEAD, main eb89003591b8371d91e4a14b8590d764bdf6d605.
+- Implementer 05 done (a1d2458), tests pass. Lane check confirmed. Cleaner 06 clean (df039b2). Spec checker 07: 1 finding (sdd/specs/README.md:399 index row). Repair round 1 open. Spec author 08 repaired (b0ae134). Spec checker 09 consistent (263a255). main eb89003 not ahead, build green. Auditor 10 (audited 00262af vs main eb89003): findings #1 high, #2, #3. Repair round 2 open. Next: test implementer 11, implementer 12, cleaner 13, spec checker 14, auditor 15.
