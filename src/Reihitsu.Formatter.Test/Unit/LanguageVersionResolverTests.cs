@@ -27,6 +27,29 @@ public class LanguageVersionResolverTests
     }
 
     /// <summary>
+    /// Verifies that the symbolic versions resolve to C# 15 and that <see cref="LanguageVersion.Preview"/> is clamped to C# 15
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public void ResolveMapsSymbolicVersionsAndPreviewToCSharp15()
+    {
+        Assert.AreEqual(LanguageVersion.CSharp15, LanguageVersionResolver.Resolve(LanguageVersion.Default));
+        Assert.AreEqual(LanguageVersion.CSharp15, LanguageVersionResolver.Resolve(LanguageVersion.Latest));
+        Assert.AreEqual(LanguageVersion.CSharp15, LanguageVersionResolver.Resolve(LanguageVersion.LatestMajor));
+        Assert.AreEqual(LanguageVersion.CSharp15, LanguageVersionResolver.Resolve(LanguageVersion.Preview));
+    }
+
+    /// <summary>
+    /// Verifies that missing parse options resolve to C# 15
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-008")]
+    public void ResolveTreatsMissingParseOptionsAsCSharp15()
+    {
+        Assert.AreEqual(LanguageVersion.CSharp15, LanguageVersionResolver.Resolve((CSharpParseOptions)null));
+    }
+
+    /// <summary>
     /// Verifies that a concrete version at or below the maximum resolves to itself
     /// </summary>
     [TestMethod]
@@ -37,6 +60,7 @@ public class LanguageVersionResolverTests
         Assert.AreEqual(LanguageVersion.CSharp11, LanguageVersionResolver.Resolve(LanguageVersion.CSharp11));
         Assert.AreEqual(LanguageVersion.CSharp13, LanguageVersionResolver.Resolve(LanguageVersion.CSharp13));
         Assert.AreEqual(LanguageVersion.CSharp14, LanguageVersionResolver.Resolve(LanguageVersion.CSharp14));
+        Assert.AreEqual(LanguageVersion.CSharp15, LanguageVersionResolver.Resolve(LanguageVersion.CSharp15));
     }
 
     /// <summary>
@@ -53,13 +77,14 @@ public class LanguageVersionResolverTests
     }
 
     /// <summary>
-    /// Verifies that a concrete version above the maximum is clamped to it
+    /// Verifies that a concrete version above the maximum is clamped to it. The value 1600 lies above every version Roslyn 5.12
+    /// knows, so it stays above the maximum
     /// </summary>
     [TestMethod]
     [Requirement("FMT-PIPE-008")]
     public void ResolveClampsVersionsAboveTheMaximum()
     {
-        Assert.AreEqual(LanguageVersionResolver.MaxSupportedLanguageVersion, LanguageVersionResolver.Resolve((LanguageVersion)1500));
+        Assert.AreEqual(LanguageVersionResolver.MaxSupportedLanguageVersion, LanguageVersionResolver.Resolve((LanguageVersion)1600));
     }
 
     /// <summary>
@@ -70,6 +95,7 @@ public class LanguageVersionResolverTests
     public void ResolveReadsTheLanguageVersionOfParseOptions()
     {
         Assert.AreEqual(LanguageVersion.CSharp11, LanguageVersionResolver.Resolve(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp11)));
+        Assert.AreEqual(LanguageVersion.CSharp15, LanguageVersionResolver.Resolve(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp15)));
         Assert.AreEqual(LanguageVersionResolver.MaxSupportedLanguageVersion, LanguageVersionResolver.Resolve(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)));
     }
 
@@ -84,18 +110,21 @@ public class LanguageVersionResolverTests
     }
 
     /// <summary>
-    /// Verifies that only versions newer than the maximum count as exceeding it
+    /// Verifies that only versions newer than the maximum count as exceeding it. The value 1600 lies above every version
+    /// Roslyn 5.12 knows
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-PIPE-008")]
     public void ExceedsMaximumIsTrueOnlyAboveTheMaximum()
     {
+        Assert.IsFalse(LanguageVersionResolver.ExceedsMaximum(LanguageVersion.CSharp15));
         Assert.IsFalse(LanguageVersionResolver.ExceedsMaximum(LanguageVersion.CSharp14));
         Assert.IsFalse(LanguageVersionResolver.ExceedsMaximum(LanguageVersion.CSharp11));
         Assert.IsFalse(LanguageVersionResolver.ExceedsMaximum(LanguageVersion.Default));
         Assert.IsFalse(LanguageVersionResolver.ExceedsMaximum(LanguageVersion.Latest));
         Assert.IsFalse(LanguageVersionResolver.ExceedsMaximum(LanguageVersion.LatestMajor));
         Assert.IsTrue(LanguageVersionResolver.ExceedsMaximum(LanguageVersion.Preview));
-        Assert.IsTrue(LanguageVersionResolver.ExceedsMaximum((LanguageVersion)1500));
+        Assert.IsTrue(LanguageVersionResolver.ExceedsMaximum((LanguageVersion)1600));
     }
 
     /// <summary>

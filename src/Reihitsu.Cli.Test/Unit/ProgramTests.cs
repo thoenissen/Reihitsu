@@ -416,6 +416,90 @@ public class ProgramTests
     }
 
     /// <summary>
+    /// Verifies that omitting <c>--lang-version</c> selects C# 15 without a warning or error
+    /// </summary>
+    [TestMethod]
+    [Requirement("CLI-004")]
+    public void ParseArgumentsWithoutLangVersionSelectsCSharp15()
+    {
+        var result = Program.ParseArguments([]);
+
+        Assert.AreEqual(LanguageVersion.CSharp15, result.LanguageVersion);
+        Assert.IsNull(result.ExceedingLanguageVersion);
+        Assert.IsNull(result.ArgumentError);
+    }
+
+    /// <summary>
+    /// Verifies that <c>latest</c> selects C# 15 without a warning
+    /// </summary>
+    [TestMethod]
+    [Requirement("CLI-004")]
+    public void ParseArgumentsLangVersionLatestSelectsCSharp15()
+    {
+        var result = Program.ParseArguments(["--lang-version", "latest"]);
+
+        Assert.AreEqual(LanguageVersion.CSharp15, result.LanguageVersion);
+        Assert.IsNull(result.ExceedingLanguageVersion);
+        Assert.IsNull(result.ArgumentError);
+    }
+
+    /// <summary>
+    /// Verifies that <c>--lang-version 15</c> selects C# 15 without a warning or error
+    /// </summary>
+    [TestMethod]
+    [Requirement("CLI-004")]
+    public void ParseArgumentsLangVersion15SelectsCSharp15WithoutWarning()
+    {
+        var result = Program.ParseArguments(["--lang-version", "15"]);
+
+        Assert.AreEqual(LanguageVersion.CSharp15, result.LanguageVersion);
+        Assert.IsNull(result.ExceedingLanguageVersion);
+        Assert.IsNull(result.ArgumentError);
+    }
+
+    /// <summary>
+    /// Verifies that <c>--lang-version 15.0</c> selects C# 15 without a warning or error
+    /// </summary>
+    [TestMethod]
+    [Requirement("CLI-004")]
+    public void ParseArgumentsLangVersion15Point0SelectsCSharp15WithoutWarning()
+    {
+        var result = Program.ParseArguments(["--lang-version", "15.0"]);
+
+        Assert.AreEqual(LanguageVersion.CSharp15, result.LanguageVersion);
+        Assert.IsNull(result.ExceedingLanguageVersion);
+        Assert.IsNull(result.ArgumentError);
+    }
+
+    /// <summary>
+    /// Verifies that <c>--lang-version 14</c> selects C# 14 without a warning, below the newest supported version
+    /// </summary>
+    [TestMethod]
+    [Requirement("CLI-004")]
+    public void ParseArgumentsLangVersion14SelectsCSharp14WithoutWarning()
+    {
+        var result = Program.ParseArguments(["--lang-version", "14"]);
+
+        Assert.AreEqual(LanguageVersion.CSharp14, result.LanguageVersion);
+        Assert.IsNull(result.ExceedingLanguageVersion);
+        Assert.IsNull(result.ArgumentError);
+    }
+
+    /// <summary>
+    /// Verifies that <c>preview</c> is clamped to C# 15 and reported for a warning
+    /// </summary>
+    [TestMethod]
+    [Requirement("CLI-004")]
+    public void ParseArgumentsLangVersionPreviewIsClampedToCSharp15()
+    {
+        var result = Program.ParseArguments(["--lang-version", "preview"]);
+
+        Assert.AreEqual(LanguageVersion.CSharp15, result.LanguageVersion);
+        Assert.AreEqual("preview", result.ExceedingLanguageVersion);
+        Assert.IsNull(result.ArgumentError);
+    }
+
+    /// <summary>
     /// Verifies that an unrecognized version produces an argument error naming the option and the value
     /// </summary>
     [TestMethod]

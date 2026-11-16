@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -56,26 +54,11 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer : Diagnostic
             return;
         }
 
-        var openParenLine = argumentList.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Line;
-        var closeParenLine = argumentList.CloseParenToken.GetLocation().GetLineSpan().StartLinePosition.Line;
-
-        if (openParenLine == closeParenLine)
+        // The arguments alone decide whether the list is multi-line; a line break behind the opening or in front of the
+        // closing parenthesis does not (RH5102-001)
+        if (SyntaxNodeUtilities.IsPartlyWrapped(argumentList.Arguments))
         {
-            return;
-        }
-
-        var startLines = new HashSet<int>();
-
-        foreach (var argument in argumentList.Arguments)
-        {
-            var argumentStartLine = argument.GetLocation().GetLineSpan().StartLinePosition.Line;
-
-            if (startLines.Add(argumentStartLine) == false)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(argumentList.GetLocation()));
-
-                return;
-            }
+            context.ReportDiagnostic(CreateDiagnostic(argumentList.GetLocation()));
         }
     }
 

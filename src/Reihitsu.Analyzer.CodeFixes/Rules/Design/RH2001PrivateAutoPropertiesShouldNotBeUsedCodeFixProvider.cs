@@ -88,16 +88,255 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
             return solution;
         }
 
-        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-        var annotatedRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var annotatedNode = annotatedRoot?.GetAnnotatedNodes(propertyAnnotation).OfType<PropertyDeclarationSyntax>().FirstOrDefault();
-        var symbol = annotatedNode != null
-                         ? semanticModel?.GetDeclaredSymbol(annotatedNode, cancellationToken)
-                         : null;
+        var symbol = await GetAnnotatedPropertySymbolAsync(document, propertyAnnotation, cancellationToken).ConfigureAwait(false);
 
         return symbol == null
                    ? solution
                    : await Renamer.RenameSymbolAsync(solution, symbol, default, fieldName, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Gets the symbol of the property declaration that carries the annotation
+    /// </summary>
+    /// <param name="document">Document holding the annotated property</param>
+    /// <param name="propertyAnnotation">Annotation tracking the property declaration</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The property symbol, or <see langword="null"/> when the document holds no annotated property</returns>
+    private static async Task<IPropertySymbol> GetAnnotatedPropertySymbolAsync(Document document, SyntaxAnnotation propertyAnnotation, CancellationToken cancellationToken)
+    {
+        if (document == null)
+        {
+            return null;
+        }
+
+        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var annotatedRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var annotatedNode = annotatedRoot?.GetAnnotatedNodes(propertyAnnotation).OfType<PropertyDeclarationSyntax>().FirstOrDefault();
+
+        return annotatedNode != null
+                   ? semanticModel?.GetDeclaredSymbol(annotatedNode, cancellationToken)
+                   : null;
+    }
+
+    /// <summary>
+    /// Checks whether the rename to the field name would change which symbol a reference binds to, or rewrite a reference
+    /// to another symbol (RH2001-011)
+    /// </summary>
+    /// <param name="document">Document holding the property</param>
+    /// <param name="node">Property declaration</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>
+    /// <see langword="true"/> if the rename changes a binding, rewrites a reference to another symbol, or renames an
+    /// inferred anonymous-object member or tuple element, or its result cannot be checked
+    /// </returns>
+    /// <remarks>
+    /// The check runs the rename and compares, in every document that can refer to the property, the references spelled
+    /// like the field name that bind to a symbol other than the property, before and after the rename. A reference to
+    /// another symbol that the renamer rewrites, such as qualifying it with <c>base.</c> or a type, or turning an
+    /// extension call into a static call, changes its qualifier. A reference to another symbol left as written that then
+    /// binds to the renamed property disappears from the references to that symbol, and a renamed reference to the
+    /// property that binds to another symbol adds one. A reference to the property that the renamer qualifies with
+    /// <c>this.</c> or its type binds to the renamed property and is not compared, so the fix stays offered for it. The
+    /// references include the <c>cref</c> names of documentation comments. A reference to the property that gives an
+    /// anonymous-object member, or a tuple element whose tuple keeps that name in its type, its inferred name withholds the
+    /// fix, because the rename renames that member as well
+    /// </remarks>
+    private static async Task<bool> RenameChangesBindingAsync(Document document, PropertyDeclarationSyntax node, CancellationToken cancellationToken)
+    {
+        if (GetFieldName(node, out var fieldName) == false)
+        {
+            return false;
+        }
+
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return true;
+        }
+
+        var propertyAnnotation = new SyntaxAnnotation();
+        var annotatedDocument = document.WithSyntaxRoot(root.ReplaceNode(node, node.WithAdditionalAnnotations(propertyAnnotation)));
+        var originalSolution = annotatedDocument.Project.Solution;
+        var renamedSolution = await RenamePropertyToFieldNameAsync(annotatedDocument, node, propertyAnnotation, cancellationToken).ConfigureAwait(false);
+        var originalSymbol = await GetAnnotatedPropertySymbolAsync(annotatedDocument, propertyAnnotation, cancellationToken).ConfigureAwait(false);
+        var renamedSymbol = await GetAnnotatedPropertySymbolAsync(renamedSolution.GetDocument(document.Id), propertyAnnotation, cancellationToken).ConfigureAwait(false);
+
+        if (originalSymbol == null
+            || renamedSymbol == null)
+        {
+            return true;
+        }
+
+        foreach (var documentId in ExcludedCodeUtilities.GetReferringDocuments(renamedSolution, renamedSymbol).Select(static referringDocument => referringDocument.Id))
+        {
+            if (await GivesInferredMemberNameAsync(originalSolution.GetDocument(documentId), originalSymbol, cancellationToken).ConfigureAwait(false))
+            {
+                return true;
+            }
+
+            var originalReferences = await GetOtherSymbolReferencesAsync(originalSolution.GetDocument(documentId), fieldName, originalSymbol, cancellationToken).ConfigureAwait(false);
+            var renamedReferences = await GetOtherSymbolReferencesAsync(renamedSolution.GetDocument(documentId), fieldName, renamedSymbol, cancellationToken).ConfigureAwait(false);
+
+            if (originalReferences.SequenceEqual(renamedReferences, StringComparer.Ordinal) == false)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Checks whether a reference to the property gives an anonymous-object member without <c>Name =</c>, or a tuple
+    /// element without <c>Name:</c> whose tuple keeps that name in its type where it is used, its inferred name
+    /// </summary>
+    /// <param name="document">Document</param>
+    /// <param name="property">Property before the rename</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> if a member or element takes its inferred name from a reference to the property</returns>
+    private static async Task<bool> GivesInferredMemberNameAsync(Document document, IPropertySymbol property, CancellationToken cancellationToken)
+    {
+        var root = document == null
+                       ? null
+                       : await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return false;
+        }
+
+        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+        foreach (var expression in root.DescendantNodes().Select(static node => node switch
+                                                                                {
+                                                                                    AnonymousObjectMemberDeclaratorSyntax { NameEquals: null } declarator => declarator.Expression,
+                                                                                    ArgumentSyntax { NameColon: null, Parent: TupleExpressionSyntax } argument => argument.Expression,
+                                                                                    _ => null
+                                                                                }))
+        {
+            if (expression != null
+                && SyntaxFacts.TryGetInferredMemberName(expression) == property.Name
+                && expression.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().LastOrDefault() is { } name
+                && SymbolEqualityComparer.Default.Equals(semanticModel?.GetSymbolInfo(name, cancellationToken).Symbol, property)
+                && (expression.Parent is not ArgumentSyntax argument
+                    || TupleTypeKeepsElementName(semanticModel, argument, property.Name, cancellationToken)))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Checks whether the tuple that holds an element without <c>Name:</c> keeps the element's inferred name in its type
+    /// where it is used
+    /// </summary>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="argument">Tuple element</param>
+    /// <param name="elementName">Inferred name of the element</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>
+    /// <see langword="false"/> if the tuple, or a tuple it is nested in, is the target of a deconstruction, or if the
+    /// conversion of the tuple itself gives its element at that position no name or another name; <see langword="true"/>
+    /// in every other position, where the fix is withheld
+    /// </returns>
+    private static bool TupleTypeKeepsElementName(SemanticModel semanticModel, ArgumentSyntax argument, string elementName, CancellationToken cancellationToken)
+    {
+        var tuple = (TupleExpressionSyntax)argument.Parent;
+        ExpressionSyntax outermostTuple = tuple;
+
+        while (outermostTuple.Parent is ArgumentSyntax { Parent: TupleExpressionSyntax enclosingTuple })
+        {
+            outermostTuple = enclosingTuple;
+        }
+
+        if (outermostTuple.Parent is AssignmentExpressionSyntax assignment
+            && assignment.Left == outermostTuple)
+        {
+            return false;
+        }
+
+        return semanticModel.GetTypeInfo(tuple, cancellationToken).ConvertedType is INamedTypeSymbol { IsTupleType: true } tupleType
+               && tupleType.TupleElements.Length == tuple.Arguments.Count
+               && tupleType.TupleElements[tuple.Arguments.IndexOf(argument)].Name == elementName;
+    }
+
+    /// <summary>
+    /// Gets a description of every reference spelled like the field name that does not bind to the property, including
+    /// the <c>cref</c> names of documentation comments: the symbol it binds to, or its candidates, and the qualifier
+    /// written in front of it, with every reference to the property in the qualifier described by one marker, sorted
+    /// ordinally
+    /// </summary>
+    /// <param name="document">Document</param>
+    /// <param name="fieldName">Field name</param>
+    /// <param name="property">Property whose references are skipped and marked in qualifiers</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The sorted descriptions</returns>
+    private static async Task<List<string>> GetOtherSymbolReferencesAsync(Document document, string fieldName, IPropertySymbol property, CancellationToken cancellationToken)
+    {
+        var references = new List<string>();
+        var root = document == null
+                       ? null
+                       : await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var semanticModel = document == null
+                                ? null
+                                : await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+        if (root == null
+            || semanticModel == null)
+        {
+            return references;
+        }
+
+        foreach (var identifierName in root.DescendantNodes(descendIntoTrivia: true).OfType<IdentifierNameSyntax>().Where(identifierName => identifierName.Identifier.ValueText == fieldName))
+        {
+            var symbolInfo = semanticModel.GetSymbolInfo(identifierName, cancellationToken);
+
+            if (SymbolEqualityComparer.Default.Equals(symbolInfo.Symbol, property))
+            {
+                continue;
+            }
+
+            var symbols = symbolInfo.Symbol != null
+                              ? [symbolInfo.Symbol]
+                              : symbolInfo.CandidateSymbols;
+            var qualifier = identifierName.Parent switch
+                            {
+                                MemberAccessExpressionSyntax memberAccess when memberAccess.Name == identifierName => DescribeQualifier(memberAccess.Expression, semanticModel, property, cancellationToken),
+                                QualifiedNameSyntax qualifiedName when qualifiedName.Right == identifierName => DescribeQualifier(qualifiedName.Left, semanticModel, property, cancellationToken),
+                                MemberBindingExpressionSyntax => "?",
+                                _ => string.Empty
+                            };
+
+            var boundSymbols = string.Join("|", symbols.Select(static symbol => $"{symbol.Kind} {symbol.ContainingSymbol?.ToDisplayString()} {symbol.ToDisplayString()}"));
+
+            references.Add($"{boundSymbols} {symbolInfo.CandidateReason} {qualifier}");
+        }
+
+        references.Sort(StringComparer.Ordinal);
+
+        return references;
+    }
+
+    /// <summary>
+    /// Describes a qualifier by its tokens, with every reference to the property replaced by one marker, so that the
+    /// rename of the property does not change the description
+    /// </summary>
+    /// <param name="qualifier">Qualifier</param>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="property">Property</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The description</returns>
+    private static string DescribeQualifier(SyntaxNode qualifier, SemanticModel semanticModel, IPropertySymbol property, CancellationToken cancellationToken)
+    {
+        return string.Join(" ",
+                           qualifier.DescendantTokens()
+                                    .Select(token => token.Parent is IdentifierNameSyntax name
+                                                     && SymbolEqualityComparer.Default.Equals(semanticModel.GetSymbolInfo(name, cancellationToken).Symbol, property)
+                                                         ? "\u0001"
+                                                         : token.Text));
     }
 
     /// <summary>
@@ -480,7 +719,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : Reihits
                 && semanticModel?.GetDeclaredSymbol(node, context.CancellationToken) is { } symbol
                 && HasValueSafeFieldType(symbol.Type)
                 && await HasExcludedCodeOccurrenceAsync(context.Document, symbol, node, context.CancellationToken).ConfigureAwait(false) == false
-                && await HasHidingCarrierInReferringDocumentAsync(context.Document, symbol, context.CancellationToken).ConfigureAwait(false) == false)
+                && await HasHidingCarrierInReferringDocumentAsync(context.Document, symbol, context.CancellationToken).ConfigureAwait(false) == false
+                && await RenameChangesBindingAsync(context.Document, node, context.CancellationToken).ConfigureAwait(false) == false)
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH2001Title,
                                                           cancellationToken => ApplyCodeFixAsync(context.Document, node, cancellationToken),

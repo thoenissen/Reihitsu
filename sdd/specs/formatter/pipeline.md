@@ -315,9 +315,9 @@ Roslyn decides which tree a node passed to `FormatNode` reports, by how the node
 - A node returned by an edit that produces a new root — `ReplaceNode`, `ReplaceToken`, `ReplaceTrivia`, `RemoveNode`, the `Insert…` methods, `NormalizeWhitespace`, and `WithLeadingTrivia`, `WithTrailingTrivia`, and `WithoutTrivia` — reports a new tree with the parse options of the edited node's tree, and so do the nodes inside it.
 - These nodes report a tree with the default parse options: a node returned by a `SyntaxFactory.Parse…` method called without parse options, a node built with `SyntaxFactory`, a node returned by a generated `With…` or `Add…` method or by `WithAdditionalAnnotations` when the call changes the node, and every node inside such a node. A later edit of the previous kind keeps the default parse options. A `With…` call that changes nothing returns the node itself, which keeps its tree.
 
-`Default`, `Latest`, and `LatestMajor` MUST resolve to the newest supported version (C# 14), and `Preview` or any newer version MUST be clamped to it. Without C# parse options, the newest supported version applies.
+`Default`, `Latest`, and `LatestMajor` MUST resolve to the newest supported version (C# 15), and `Preview` or any newer version MUST be clamped to it. Without C# parse options, the newest supported version applies.
 
-Why: The formatter must not produce syntax the project's compiler rejects, such as an expression-bodied property in a C# 5 project. Clamping keeps the formatter's output stable when Roslyn learns a version the formatter has not been reviewed against.
+Why: The formatter must not produce syntax the project's compiler rejects, such as an expression-bodied property in a C# 5 project. Clamping keeps a new Roslyn `Latest` or `Preview` from switching on version-gated rules that were never reviewed for that version: the maximum names the newest version whose gates were reviewed. It does not mean that every construct of that version has a reviewed layout.
 
 Example — the same input under C# 5 and under C# 6:
 

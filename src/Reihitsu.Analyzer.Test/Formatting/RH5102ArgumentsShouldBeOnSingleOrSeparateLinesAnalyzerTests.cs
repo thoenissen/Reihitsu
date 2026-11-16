@@ -972,6 +972,777 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
         await Verify(ConvertEndOfLine(testData, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies that an argument list whose arguments all start on one line below the opening parenthesis is not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListWrappedOnlyBehindOpeningParenthesisIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(
+                                            1, 2);
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an argument list whose arguments all start on the line of the opening parenthesis and whose closing parenthesis stands on a later line is not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListWrappedOnlyInFrontOfClosingParenthesisIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(1, 2
+                                          );
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an argument list whose arguments all start on one line between a line break behind the opening parenthesis and a line break in front of the closing parenthesis is not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListWrappedBehindOpeningAndInFrontOfClosingParenthesisIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(
+                                            1, 2
+                                          );
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an argument list whose arguments all start on one line and whose closing parenthesis a comment holds on a later line is not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListWhoseClosingParenthesisACommentHoldsOnALaterLineIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(1, 2 // c
+                                          );
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an argument list whose arguments all start on one line, kept off the line of the opening parenthesis by a single-line comment, is not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListWhoseFirstArgumentACommentKeepsOffTheOpeningParenthesisLineIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M( // c
+                                            1, 2);
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an argument list whose arguments all start on one line below the opening parenthesis, behind a delimited comment in front of the first argument, is not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListWhoseArgumentsFollowADelimitedCommentBelowTheOpeningParenthesisIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(
+                                            /* c */ 1, 2);
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an argument list whose only line break lies inside a multi-line comment in front of the first argument is not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListWhoseFirstArgumentFollowsAMultiLineCommentIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M( /* a
+                                            b */ 1, 2);
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an argument list whose arguments all start on one line, kept off the line of the opening parenthesis by a pragma directive, is not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListWhoseFirstArgumentADirectiveKeepsOffTheOpeningParenthesisLineIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(
+                                #pragma warning disable CS0168
+                                            1, 2);
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an argument list whose arguments all start on one line between a region directive behind the opening parenthesis and its end directive in front of the closing parenthesis is not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListWhoseArgumentsARegionEnclosesOnOneLineIsNotReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(
+                                #region R
+                                            1, 2
+                                #endregion // R
+                                          );
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the argument lists of every kind of owner whose arguments all start on one line below the opening parenthesis are not reported: object creation, target-typed object creation, base and this constructor initializers, and a primary constructor base type, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListsWrappedOnlyBehindOpeningParenthesisAreNotReportedForEveryOwner(string endOfLine)
+    {
+        const string testData = """
+                                class B
+                                {
+                                    public B(int a, int b)
+                                    {
+                                    }
+                                }
+
+                                class C : B
+                                {
+                                    public C(int a, int b)
+                                        : base(
+                                            a, b)
+                                    {
+                                    }
+
+                                    public C(int a)
+                                        : this(
+                                            a, a)
+                                    {
+                                    }
+
+                                    void N()
+                                    {
+                                        _ = new B(
+                                            1, 2);
+                                        B b = new(
+                                            1, 2);
+                                    }
+                                }
+
+                                class D() : B(
+                                    1, 2);
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that argument lists of named and out arguments that all start on one line below the opening parenthesis are not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNamedAndOutArgumentsWrappedOnlyBehindOpeningParenthesisAreNotReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(
+                                            a: 1, b: 2);
+                                        O(
+                                            out var x, out var y);
+                                    }
+
+                                    void M(int a, int b)
+                                    {
+                                    }
+
+                                    void O(out int a, out int b)
+                                    {
+                                        a = 0;
+                                        b = 0;
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that argument lists in which every argument starts its own line are not reported, also when the first argument stands below the opening parenthesis, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListsWithEveryArgumentOnItsOwnLineAreNotReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(1,
+                                          2);
+                                        M(
+                                            1,
+                                            2);
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of lists that are not reported: arguments that all start on one line, behind a line break after the opening parenthesis, in front of the closing parenthesis, behind a comment or a directive that keeps the first argument off the line of the opening parenthesis, or in front of a comment that holds the closing parenthesis on a later line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    public async Task VerifySpecificationExampleOfListsWhoseArgumentsAllStartOnOneLineIsNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(
+                                            1, 2);
+                                        M(1, 2
+                                          );
+                                        M( // c
+                                            1, 2);
+                                        M(
+                                #pragma warning disable CS0168
+                                            1, 2);
+                                        M(1, 2 // c
+                                          );
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example of lists that are reported: arguments that start on two lines, or an argument that spans lines next to another argument, also when every argument stands below the opening parenthesis
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    public async Task VerifySpecificationExampleOfReportedAndCompliantListsIsReportedAsMarked()
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M{|RH5102:(1, 2,
+                                          3)|};
+                                        M{|RH5102:(1, () =>
+                                        {
+                                        })|};
+                                        M{|RH5102:(
+                                            1, 2,
+                                            3)|};
+                                        M{|RH5102:(
+                                            1, () =>
+                                            {
+                                            })|};
+                                        M(1, 2, 3);
+                                        M(1,
+                                          2,
+                                          3);
+                                        M(1,
+                                          () =>
+                                          {
+                                          });
+                                    }
+
+                                    void M(params object[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an argument list whose arguments start on two lines below the opening parenthesis is reported and that the fix, applied to every diagnostic, puts the first argument behind the opening parenthesis and every further argument on its own line, under LF and CRLF line endings, and that formatting the fix result changes nothing
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [Requirement("RH5102-003")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListWithArgumentsOnTwoLinesBelowOpeningParenthesisIsFixed(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M{|RH5102:(
+                                            1, 2,
+                                            3)|};
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void N()
+                                     {
+                                         M(1,
+                                           2,
+                                           3);
+                                     }
+
+                                     void M(params int[] values)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine), ConvertEndOfLine(fixedData, endOfLine));
+
+        AssertFormattingChangesNothing(ConvertEndOfLine(fixedData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an argument list wrapped behind its opening parenthesis whose second argument is a lambda with a block body is reported and fixed to one argument per line, under LF and CRLF line endings, and that formatting the fix result changes nothing
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [Requirement("RH5102-003")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListWrappedBehindOpeningParenthesisWithASpanningLambdaIsFixed(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M{|RH5102:(
+                                            1, () =>
+                                            {
+                                            })|};
+                                    }
+
+                                    void M(params object[] values)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void N()
+                                     {
+                                         M(1,
+                                           () =>
+                                           {
+                                           });
+                                     }
+
+                                     void M(params object[] values)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine), ConvertEndOfLine(fixedData, endOfLine));
+
+        AssertFormattingChangesNothing(ConvertEndOfLine(fixedData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an argument list wrapped behind its opening parenthesis is reported when an argument on the shared line is a verbatim string literal that spans lines, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListWrappedBehindOpeningParenthesisWithASpanningVerbatimStringIsReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M{|RH5102:(
+                                            1, @"a
+                                b")|};
+                                    }
+
+                                    void M(params object[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an argument list wrapped behind its opening parenthesis is reported when an argument on the shared line is a raw string literal that spans lines, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListWrappedBehindOpeningParenthesisWithASpanningRawStringIsReported(string endOfLine)
+    {
+        const string testData = """"
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M{|RH5102:(
+                                            1, """
+                                                a
+                                                """)|};
+                                    }
+
+                                    void M(params object[] values)
+                                    {
+                                    }
+                                }
+                                """";
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an argument list wrapped behind its opening parenthesis is reported when an argument on the shared line is an interpolated string with a line break inside a hole, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListWrappedBehindOpeningParenthesisWithASpanningInterpolatedStringIsReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N(int x)
+                                    {
+                                        M{|RH5102:(
+                                            1, $"{x
+                                            }")|};
+                                    }
+
+                                    void M(params object[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an argument list wrapped behind its opening parenthesis is reported when an argument on the shared line is a call whose own arguments each start their own line, while that inner list is not reported, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListWrappedBehindOpeningParenthesisWithASpanningNestedCallIsReported(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M{|RH5102:(
+                                            1, P(2,
+                                                 3))|};
+                                    }
+
+                                    void M(params object[] values)
+                                    {
+                                    }
+
+                                    int P(int a, int b) => a + b;
+                                }
+                                """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that an argument list wrapped behind its opening parenthesis is reported without a code fix when an argument on the shared line spans lines through a multi-line comment inside it, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [Requirement("RH5102-004")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyListWrappedBehindOpeningParenthesisWithACommentSpanningAnArgumentIsReportedWithoutCodeFix(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M{|RH5102:(
+                                            1, 2 /* a
+                                            b */ + 3)|};
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that fixing every diagnostic of a document lays out the reported list only and leaves the lists whose arguments all start on one line as written, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [Requirement("RH5102-003")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyFixLeavesListsWhoseArgumentsAllStartOnOneLineAsWritten(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(
+                                            1, 2);
+                                        M{|RH5102:(
+                                            1, 2,
+                                            3)|};
+                                        M(1, 2
+                                          );
+                                    }
+
+                                    void M(params int[] values)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void N()
+                                     {
+                                         M(
+                                             1, 2);
+                                         M(1,
+                                           2,
+                                           3);
+                                         M(1, 2
+                                           );
+                                     }
+
+                                     void M(params int[] values)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine), ConvertEndOfLine(fixedData, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

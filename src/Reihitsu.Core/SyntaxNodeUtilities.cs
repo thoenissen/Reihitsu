@@ -252,6 +252,35 @@ public static class SyntaxNodeUtilities
     }
 
     /// <summary>
+    /// Determines whether the elements of a list are partly wrapped: the list is multi-line and two of its elements start
+    /// on the same line. The elements alone decide whether the list is multi-line: two of them start on different lines,
+    /// or one of them spans lines. A line break behind the opening or in front of the closing delimiter of the list does
+    /// not count. This is the one reading of a partly wrapped list for the rules that report one (RH5102-001,
+    /// RH5109-001)
+    /// </summary>
+    /// <typeparam name="TNode">The element type</typeparam>
+    /// <param name="elements">The elements of the list</param>
+    /// <returns><see langword="true"/> if the list is multi-line and two elements start on the same line; otherwise <see langword="false"/></returns>
+    public static bool IsPartlyWrapped<TNode>(IEnumerable<TNode> elements)
+        where TNode : SyntaxNode
+    {
+        var startLines = new HashSet<int>();
+        var spansLines = false;
+        var sharesLine = false;
+
+        foreach (var element in elements)
+        {
+            var lineSpan = element.GetLocation().GetLineSpan();
+
+            spansLines |= CoversSingleLine(lineSpan) == false;
+            sharesLine |= startLines.Add(lineSpan.StartLinePosition.Line) == false;
+        }
+
+        return (spansLines || startLines.Count > 1)
+               && sharesLine;
+    }
+
+    /// <summary>
     /// Gets the spans of the strings and comments in a span that start on one line and end on a later one: string literals
     /// of any kind, a UTF-8, verbatim, or raw one included, interpolated strings of any kind, and delimited comments. A
     /// string is decided as a whole node, so a line of an interpolated string that starts at the brace of a hole or at the

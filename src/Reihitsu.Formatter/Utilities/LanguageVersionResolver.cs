@@ -14,7 +14,7 @@ internal static class LanguageVersionResolver
     /// <summary>
     /// The newest C# language version the formatter supports. Every requested version is clamped to it
     /// </summary>
-    public const LanguageVersion MaxSupportedLanguageVersion = LanguageVersion.CSharp14;
+    public const LanguageVersion MaxSupportedLanguageVersion = LanguageVersion.CSharp15;
 
     #endregion // Constants
 
