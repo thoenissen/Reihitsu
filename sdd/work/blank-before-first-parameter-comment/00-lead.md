@@ -33,6 +33,5 @@
 
 ## State
 
-- Last step: spec checker (6b45f17) consistent; audit 1 of 6b45f17 (base eb89003): findings #1 (spec example/tests pin undecided `<`/array-size column) and #2 (cleanup guard untested). Repair round 1.
-- Repair 1 done: spec author 37af885, test implementer 5a1c21e.
-- Next: cleaner, spec checker, auditor (repair only), validator.
+- Audit 2 (repair 1 of 4ebe340): pass; audited SHA de1f1a5. Repair rounds used: 1.
+- Next: validator, lane check, issue manager (follow-up candidates), note, publish.
