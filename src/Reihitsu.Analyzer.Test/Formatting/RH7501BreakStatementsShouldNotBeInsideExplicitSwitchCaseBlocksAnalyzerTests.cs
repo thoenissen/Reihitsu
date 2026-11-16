@@ -1545,6 +1545,137 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
         await VerifyNoCodeFixIsOffered(source);
     }
 
+    /// <summary>
+    /// Verifies the RH7501-001 example of labeled <c>break</c> and <c>continue</c> statements that end a section's
+    /// block: the labeled <c>break</c> statements are reported, the labeled <c>continue</c> is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7501-001")]
+    [Requirement("RH7501-002")]
+    [Requirement("RH7501-003")]
+    public async Task VerifySpecExampleLabeledBreakEndingSectionBlockIsReportedAndLabeledContinueIsNot()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[] items, int x)
+                                    {
+                                        outer: foreach (var item in items)
+                                        {
+                                            switch (x)
+                                            {
+                                                case 1:
+                                                    {
+                                                        A();
+                                                        {|RH7501:break|} outer;
+                                                    }
+
+                                                case 2:
+                                                    {
+                                                        A();
+                                                        continue outer;
+                                                    }
+                                            }
+                                        }
+
+                                        inner: switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    A();
+                                                    {|RH7501:break|} inner;
+                                                }
+                                        }
+                                    }
+
+                                    void A()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the fix moves labeled <c>break</c> statements, one naming an enclosing loop and one naming the switch
+    /// statement itself, behind the block with their labels kept
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7501-001")]
+    [Requirement("RH7501-004")]
+    public async Task VerifyLabeledBreakEndingSectionBlockIsMovedBehindTheBlock()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[] items, int x)
+                                    {
+                                        outer: foreach (var item in items)
+                                        {
+                                            switch (x)
+                                            {
+                                                case 1:
+                                                    {
+                                                        A();
+                                                        {|RH7501:break|} outer;
+                                                    }
+                                            }
+                                        }
+
+                                        inner: switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    A();
+                                                    {|RH7501:break|} inner;
+                                                }
+                                        }
+                                    }
+
+                                    void A()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int[] items, int x)
+                                     {
+                                         outer: foreach (var item in items)
+                                         {
+                                             switch (x)
+                                             {
+                                                 case 1:
+                                                     {
+                                                         A();
+                                                     }
+                                                     break outer;
+                                             }
+                                         }
+
+                                         inner: switch (x)
+                                         {
+                                             case 1:
+                                                 {
+                                                     A();
+                                                 }
+                                                 break inner;
+                                         }
+                                     }
+
+                                     void A()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

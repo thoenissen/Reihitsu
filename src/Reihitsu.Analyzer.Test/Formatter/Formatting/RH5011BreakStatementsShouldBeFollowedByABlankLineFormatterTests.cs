@@ -178,5 +178,103 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineFormatterTests : F
         await VerifyFormatter(input);
     }
 
+    /// <summary>
+    /// Verifies that code with labeled <c>break</c> statements in front of a closing brace, in front of the footer of a
+    /// <c>do</c> statement, and above a blank line is left unchanged by the formatter and not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-010")]
+    public async Task VerifyFormatterKeepsLabeledBreakStatementsAndAnalyzerReportsNothing()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(int[] values, int a)
+                                 {
+                                     outer: foreach (var v in values)
+                                     {
+                                         foreach (var w in values)
+                                         {
+                                             if (v == w)
+                                             {
+                                                 break outer;
+                                             }
+                                         }
+
+                                         do
+                                             break outer;
+                                         while (a > 3);
+
+                                         while (true)
+                                         {
+                                             break outer;
+
+                                             a++;
+                                         }
+                                     }
+                                 }
+                             }
+                             """;
+
+        await VerifyFormatter(input);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter inserts a blank line after a labeled <c>break</c> followed directly by a statement,
+    /// and that the analyzer reports nothing on the result
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-010")]
+    public async Task VerifyFormatterFixesLabeledBreakViolation()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method()
+                                 {
+                                     outer: while (true)
+                                     {
+                                         while (true)
+                                         {
+                                             break outer;
+                                             Consume();
+                                         }
+                                     }
+                                 }
+
+                                 private static void Consume()
+                                 {
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method()
+                                     {
+                                         outer: while (true)
+                                         {
+                                             while (true)
+                                             {
+                                                 break outer;
+
+                                                 Consume();
+                                             }
+                                         }
+                                     }
+
+                                     private static void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              ExpectedDiagnostic(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, 9, 17, 9, 22, AnalyzerResources.RH5011MessageFormat));
+    }
+
     #endregion // Tests
 }

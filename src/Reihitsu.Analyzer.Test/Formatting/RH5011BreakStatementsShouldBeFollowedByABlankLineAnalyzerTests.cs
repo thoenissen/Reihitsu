@@ -17,6 +17,85 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : BatchCodeFixTestsBase<RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer, RH5011BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider>
 {
+    #region Constants
+
+    /// <summary>
+    /// Source of a labeled <c>break</c> followed directly by a statement on the next line
+    /// </summary>
+    private const string LabeledBreakFollowedByStatementSource = """
+                                                                 class C
+                                                                 {
+                                                                     void M(int a)
+                                                                     {
+                                                                         outer: while (true)
+                                                                         {
+                                                                             while (true)
+                                                                             {
+                                                                                 {|RH5011:break|} outer;
+                                                                                 a++;
+                                                                             }
+                                                                         }
+                                                                     }
+                                                                 }
+                                                                 """;
+
+    /// <summary>
+    /// Fixed source of <see cref="LabeledBreakFollowedByStatementSource"/>
+    /// </summary>
+    private const string LabeledBreakFollowedByStatementFixedSource = """
+                                                                      class C
+                                                                      {
+                                                                          void M(int a)
+                                                                          {
+                                                                              outer: while (true)
+                                                                              {
+                                                                                  while (true)
+                                                                                  {
+                                                                                      break outer;
+
+                                                                                      a++;
+                                                                                  }
+                                                                              }
+                                                                          }
+                                                                      }
+                                                                      """;
+
+    /// <summary>
+    /// Source of a labeled <c>break</c> followed by a statement on its own line
+    /// </summary>
+    private const string LabeledBreakFollowedByStatementOnTheSameLineSource = """
+                                                                              class C
+                                                                              {
+                                                                                  void M(int a)
+                                                                                  {
+                                                                                      outer: while (true)
+                                                                                      {
+                                                                                          {|RH5011:break|} outer; a++;
+                                                                                      }
+                                                                                  }
+                                                                              }
+                                                                              """;
+
+    /// <summary>
+    /// Fixed source of <see cref="LabeledBreakFollowedByStatementOnTheSameLineSource"/>
+    /// </summary>
+    private const string LabeledBreakFollowedByStatementOnTheSameLineFixedSource = """
+                                                                                   class C
+                                                                                   {
+                                                                                       void M(int a)
+                                                                                       {
+                                                                                           outer: while (true)
+                                                                                           {
+                                                                                               break outer;
+
+                                                                                               a++;
+                                                                                           }
+                                                                                       }
+                                                                                   }
+                                                                                   """;
+
+    #endregion // Constants
+
     #region Tests
 
     /// <summary>
@@ -1617,6 +1696,639 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : Ba
         var actual = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode).Replace("LF\r\n", "\n", System.StringComparison.Ordinal));
 
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedCode).Replace("LF\r\n", "\n", System.StringComparison.Ordinal), actual);
+    }
+
+    /// <summary>
+    /// Verifies that a labeled <c>break</c> that leaves an outer loop directly in front of the closing brace of its block
+    /// is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-002")]
+    public async Task VerifyNoDiagnosticForLabeledBreakBeforeClosingBraceOfBlock()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[] values)
+                                    {
+                                        outer: foreach (var v in values)
+                                        {
+                                            foreach (var w in values)
+                                            {
+                                                if (v == w)
+                                                {
+                                                    break outer;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a labeled <c>break</c> directly in front of the closing brace of a switch statement is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-002")]
+    public async Task VerifyNoDiagnosticForLabeledBreakBeforeClosingBraceOfSwitch()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        outer: while (true)
+                                        {
+                                            switch (a)
+                                            {
+                                                case 1:
+                                                    break outer;
+                                            }
+
+                                            a++;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a labeled <c>break</c> directly in front of a directive line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-002")]
+    public async Task VerifyNoDiagnosticForLabeledBreakBeforeDirective()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        outer: while (true)
+                                        {
+                                            while (true)
+                                            {
+                                                break outer;
+                                #pragma warning disable CS0168
+                                                a++;
+                                            }
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the RH5011-002 example of labeled <c>break</c> statements in front of a closing brace and a directive
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-002")]
+    public async Task VerifySpecExampleLabeledBreakBeforeClosingBraceOrDirectiveIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        outer: while (true)
+                                        {
+                                            while (true)
+                                            {
+                                                break outer;
+                                            }
+
+                                            switch (a)
+                                            {
+                                                case 1:
+                                                    break outer;
+                                            }
+
+                                            while (true)
+                                            {
+                                                break outer;
+                                #pragma warning disable CS0168
+                                                a++;
+                                            }
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a labeled <c>break</c> in front of <c>else</c> on the same line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-008")]
+    public async Task VerifyNoDiagnosticForLabeledBreakBeforeElseOnTheSameLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        outer: while (true)
+                                        {
+                                            if (a > 0) break outer; else a++;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a labeled <c>break</c> in front of <c>else</c> on the next line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-008")]
+    public async Task VerifyNoDiagnosticForLabeledBreakBeforeElseOnTheNextLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        outer: while (true)
+                                        {
+                                            if (a > 1)
+                                                break outer;
+                                            else
+                                                a--;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a labeled <c>break</c> in front of the footer of a <c>do</c> statement is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-008")]
+    public async Task VerifyNoDiagnosticForLabeledBreakBeforeDoStatementFooter()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        outer: while (true)
+                                        {
+                                            do
+                                                break outer;
+                                            while (a > 3);
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the RH5011-008 example of labeled <c>break</c> statements in front of <c>else</c> and in front of the
+    /// footer of a <c>do</c> statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-008")]
+    public async Task VerifySpecExampleLabeledBreakBeforeElseOrDoFooterIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        outer: while (true)
+                                        {
+                                            if (a > 0) break outer; else a++;
+
+                                            if (a > 1)
+                                                break outer;
+                                            else
+                                                a--;
+
+                                            do break outer; while (a > 2);
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a labeled <c>break</c> in front of a <c>while</c> statement, which starts a new statement, is
+    /// reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-001")]
+    [Requirement("RH5011-008")]
+    public async Task VerifyLabeledBreakBeforeWhileStatementIsReportedAndFixed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        outer: while (true)
+                                        {
+                                            {|RH5011:break|} outer;
+                                            while (a > 4) a--;
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         outer: while (true)
+                                         {
+                                             break outer;
+
+                                             while (a > 4) a--;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a labeled <c>break</c> followed by a blank line and a statement is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-001")]
+    public async Task VerifyNoDiagnosticForLabeledBreakFollowedByBlankLine()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        outer: while (true)
+                                        {
+                                            while (true)
+                                            {
+                                                break outer;
+
+                                                a++;
+                                            }
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a labeled <c>break</c> followed directly by a statement on the next line is reported on the
+    /// <c>break</c> keyword, and that the fix inserts one blank line below it and converges, with LF line breaks
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-001")]
+    [Requirement("RH5011-003")]
+    [Requirement("RH5011-004")]
+    public async Task VerifyLabeledBreakFollowedByStatementIsReportedAndFixedWithLineFeed()
+    {
+        await VerifyCodeFixWithEndOfLine(LabeledBreakFollowedByStatementSource, LabeledBreakFollowedByStatementFixedSource, "\n");
+    }
+
+    /// <summary>
+    /// Verifies that a labeled <c>break</c> followed directly by a statement on the next line is reported, and that the
+    /// fix inserts one blank line below it and converges, with CRLF line breaks
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-001")]
+    [Requirement("RH5011-004")]
+    public async Task VerifyLabeledBreakFollowedByStatementIsReportedAndFixedWithCarriageReturnLineFeed()
+    {
+        await VerifyCodeFixWithEndOfLine(LabeledBreakFollowedByStatementSource, LabeledBreakFollowedByStatementFixedSource, "\r\n");
+    }
+
+    /// <summary>
+    /// Verifies that a labeled <c>break</c> followed by a statement on its own line is reported, and that the fix moves
+    /// the statement below a blank line and converges, with LF line breaks
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-001")]
+    [Requirement("RH5011-005")]
+    public async Task VerifyLabeledBreakFollowedByStatementOnTheSameLineIsReportedAndFixedWithLineFeed()
+    {
+        await VerifyCodeFixWithEndOfLine(LabeledBreakFollowedByStatementOnTheSameLineSource, LabeledBreakFollowedByStatementOnTheSameLineFixedSource, "\n");
+    }
+
+    /// <summary>
+    /// Verifies that a labeled <c>break</c> followed by a statement on its own line is reported, and that the fix moves
+    /// the statement below a blank line and converges, with CRLF line breaks
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-001")]
+    [Requirement("RH5011-005")]
+    public async Task VerifyLabeledBreakFollowedByStatementOnTheSameLineIsReportedAndFixedWithCarriageReturnLineFeed()
+    {
+        await VerifyCodeFixWithEndOfLine(LabeledBreakFollowedByStatementOnTheSameLineSource, LabeledBreakFollowedByStatementOnTheSameLineFixedSource, "\r\n");
+    }
+
+    /// <summary>
+    /// Verifies that a <c>break</c> naming the label of its own switch statement and followed directly by the next
+    /// section is reported, and that the fix inserts a blank line in front of the section and converges
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-001")]
+    [Requirement("RH5011-004")]
+    public async Task VerifyBreakNamingItsSwitchFollowedBySectionIsReportedAndFixed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        sw: switch (a)
+                                        {
+                                            case 1:
+                                                a++;
+                                                {|RH5011:break|} sw;
+                                            default:
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         sw: switch (a)
+                                         {
+                                             case 1:
+                                                 a++;
+                                                 break sw;
+
+                                             default:
+                                                 break;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a labeled <c>break</c> that is the embedded body of an <c>if</c> statement and is followed directly
+    /// by a statement is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-001")]
+    [Requirement("RH5011-004")]
+    public async Task VerifyLabeledBreakAsEmbeddedBodyFollowedByStatementIsReportedAndFixed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        outer: while (true)
+                                        {
+                                            if (a > 0)
+                                                {|RH5011:break|} outer;
+                                            a++;
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         outer: while (true)
+                                         {
+                                             if (a > 0)
+                                                 break outer;
+
+                                             a++;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a labeled <c>break</c> followed by a comment line and a statement is reported, and that the fix
+    /// inserts the blank line directly below the <c>break</c> line, above the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-001")]
+    [Requirement("RH5011-004")]
+    public async Task VerifyLabeledBreakFollowedByCommentLineIsReportedAndFixedAboveTheComment()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        outer: while (true)
+                                        {
+                                            {|RH5011:break|} outer; // leave
+                                            // note
+                                            a++;
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         outer: while (true)
+                                         {
+                                             break outer; // leave
+
+                                             // note
+                                             a++;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a labeled <c>break</c> followed on its line by a comment and a statement is reported and no code
+    /// fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-006")]
+    public async Task VerifyLabeledBreakWithCommentBeforeSameLineStatementIsReportedWithoutFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        outer: while (true)
+                                        {
+                                            {|RH5011:break|} outer; /* note */ a++;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a labeled <c>break</c> whose line ends inside a comment is reported, and that the fix inserts the
+    /// blank line below the line on which the comment ends
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-007")]
+    public async Task VerifyLabeledBreakWithCommentSpanningItsLineIsFixedBelowTheComment()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        outer: while (true)
+                                        {
+                                            {|RH5011:break|} outer; /* a
+                                            b */
+                                            a++;
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         outer: while (true)
+                                         {
+                                             break outer; /* a
+                                             b */
+
+                                             a++;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All corrects several labeled <c>break</c> statements in one document, next to labeled
+    /// <c>break</c> statements that are not reported, and converges
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5011-001")]
+    [Requirement("RH5011-002")]
+    [Requirement("RH5011-004")]
+    public async Task VerifyFixAllCorrectsSeveralLabeledBreakStatements()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        outer: while (true)
+                                        {
+                                            while (true)
+                                            {
+                                                {|RH5011:break|} outer;
+                                                a++;
+                                            }
+
+                                            while (true)
+                                            {
+                                                {|RH5011:break|} outer;
+                                                a--;
+                                            }
+
+                                            while (true)
+                                            {
+                                                break outer;
+                                            }
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         outer: while (true)
+                                         {
+                                             while (true)
+                                             {
+                                                 break outer;
+
+                                                 a++;
+                                             }
+
+                                             while (true)
+                                             {
+                                                 break outer;
+
+                                                 a--;
+                                             }
+
+                                             while (true)
+                                             {
+                                                 break outer;
+                                             }
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
     }
 
     #endregion // Tests

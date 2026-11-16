@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -172,5 +173,116 @@ public class ModifierOrderingUtilitiesTests
         Assert.AreSequenceEqual([SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword], orderedModifiers.Select(obj => obj.Kind()).ToArray());
     }
 
+    /// <summary>
+    /// Verifies that RH7105 ranks <see langword="closed"/> in the position of <see langword="sealed"/>: behind the
+    /// accessibility and <see langword="static"/>, and in front of <see langword="new"/>, <see langword="unsafe"/>, and
+    /// <see langword="partial"/>
+    /// </summary>
+    /// <param name="first">Modifier the canonical order puts first</param>
+    /// <param name="second">Modifier the canonical order puts second</param>
+    [TestMethod]
+    [Requirement("RH7105-001")]
+    [DataRow(SyntaxKind.PublicKeyword, SyntaxKind.ClosedKeyword)]
+    [DataRow(SyntaxKind.FileKeyword, SyntaxKind.ClosedKeyword)]
+    [DataRow(SyntaxKind.StaticKeyword, SyntaxKind.ClosedKeyword)]
+    [DataRow(SyntaxKind.ClosedKeyword, SyntaxKind.NewKeyword)]
+    [DataRow(SyntaxKind.ClosedKeyword, SyntaxKind.UnsafeKeyword)]
+    [DataRow(SyntaxKind.ClosedKeyword, SyntaxKind.RefKeyword)]
+    [DataRow(SyntaxKind.ClosedKeyword, SyntaxKind.PartialKeyword)]
+    public void Rh7105RanksClosedInThePositionOfSealed(SyntaxKind first, SyntaxKind second)
+    {
+        AssertRh7105Order(SyntaxFactory.Token(first), SyntaxFactory.Token(second));
+    }
+
+    /// <summary>
+    /// Verifies that RH7105 ranks the preview <see langword="safe"/> in the position of <see langword="unsafe"/>: behind
+    /// the accessibility, <see langword="static"/>, <see langword="new"/>, <see langword="readonly"/>,
+    /// <see langword="async"/>, and <see langword="extern"/>, and in front of <see langword="required"/>,
+    /// <see langword="ref"/>, and <see langword="partial"/>. The <see langword="safe"/> token is parsed from preview
+    /// source, because its syntax kind is an experimental API
+    /// </summary>
+    /// <param name="otherModifier">Modifier paired with <see langword="safe"/></param>
+    /// <param name="safeIsFirst">Whether the canonical order puts <see langword="safe"/> in front of the other modifier</param>
+    [TestMethod]
+    [Requirement("RH7105-001")]
+    [DataRow(SyntaxKind.PublicKeyword, false)]
+    [DataRow(SyntaxKind.StaticKeyword, false)]
+    [DataRow(SyntaxKind.NewKeyword, false)]
+    [DataRow(SyntaxKind.ReadOnlyKeyword, false)]
+    [DataRow(SyntaxKind.AsyncKeyword, false)]
+    [DataRow(SyntaxKind.ExternKeyword, false)]
+    [DataRow(SyntaxKind.RequiredKeyword, true)]
+    [DataRow(SyntaxKind.RefKeyword, true)]
+    [DataRow(SyntaxKind.PartialKeyword, true)]
+    public void Rh7105RanksSafeInThePositionOfUnsafe(SyntaxKind otherModifier, bool safeIsFirst)
+    {
+        var safeModifier = CoreSyntaxTestHelper.GetSingleMember<MethodDeclarationSyntax>("""
+                                                                                         class Sample
+                                                                                         {
+                                                                                             safe void M()
+                                                                                             {
+                                                                                             }
+                                                                                         }
+                                                                                         """,
+                                                                                         LanguageVersion.Preview)
+                                               .Modifiers
+                                               .Single();
+        var other = SyntaxFactory.Token(otherModifier);
+
+        Assert.AreEqual("safe", safeModifier.Text);
+
+        if (safeIsFirst)
+        {
+            AssertRh7105Order(safeModifier, other);
+        }
+        else
+        {
+            AssertRh7105Order(other, safeModifier);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that RH7105 keeps ranking <see langword="const"/> and <see langword="fixed"/>, which the order does not
+    /// name, behind every named modifier
+    /// </summary>
+    /// <param name="first">Modifier the canonical order puts first</param>
+    /// <param name="second">Modifier the canonical order puts second</param>
+    [TestMethod]
+    [Requirement("RH7105-001")]
+    [DataRow(SyntaxKind.PartialKeyword, SyntaxKind.ConstKeyword)]
+    [DataRow(SyntaxKind.RefKeyword, SyntaxKind.ConstKeyword)]
+    [DataRow(SyntaxKind.PartialKeyword, SyntaxKind.FixedKeyword)]
+    [DataRow(SyntaxKind.RefKeyword, SyntaxKind.FixedKeyword)]
+    public void Rh7105RanksUnnamedModifiersLast(SyntaxKind first, SyntaxKind second)
+    {
+        AssertRh7105Order(SyntaxFactory.Token(first), SyntaxFactory.Token(second));
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Asserts that RH7105 accepts the two modifiers in the given order, and that it reports the reverse order on its
+    /// first modifier and reorders it to the given order
+    /// </summary>
+    /// <param name="first">Modifier the canonical order puts first</param>
+    /// <param name="second">Modifier the canonical order puts second</param>
+    private static void AssertRh7105Order(SyntaxToken first, SyntaxToken second)
+    {
+        var orderedModifiers = SyntaxFactory.TokenList(first, second);
+
+        Assert.IsFalse(ModifierOrderingUtilities.TryGetRh7105Violation(orderedModifiers, out _));
+
+        var misorderedModifiers = SyntaxFactory.TokenList(second, first);
+
+        var hasViolation = ModifierOrderingUtilities.TryGetRh7105Violation(misorderedModifiers, out var diagnosticToken);
+        var reorderedModifiers = ModifierOrderingUtilities.OrderModifiersForRh7105(misorderedModifiers);
+
+        Assert.IsTrue(hasViolation);
+        Assert.AreEqual(second.Text, diagnosticToken.Text);
+        Assert.AreSequenceEqual([first.Text, second.Text], reorderedModifiers.Select(token => token.Text).ToArray());
+    }
+
+    #endregion // Methods
 }
