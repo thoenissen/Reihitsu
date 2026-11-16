@@ -532,5 +532,36 @@ public class RH8108GenericTypeParametersMustBeDocumentedAnalyzerTests : Analyzer
                      });
     }
 
+    /// <summary>
+    /// Verifies no diagnostic is reported and no exception is thrown under the default documentation mode for the
+    /// undocumented type parameter of a partial union whose second part's documentation comment holds a
+    /// <c>&lt;param&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8108-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForPartialUnionWhoseOtherPartHoldsParamElement()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Result
+                              /// </summary>
+                              public partial union Result<T>(T, string);
+
+                              /// <param name="x">X</param>
+                              public partial union Result<T>;
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
     #endregion // Tests
 }

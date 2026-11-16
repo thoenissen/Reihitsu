@@ -436,5 +436,39 @@ public class RH8036PrivateUnionsMustBeDocumentedAnalyzerTests : AnalyzerTestsBas
                      });
     }
 
+    /// <summary>
+    /// Verifies no diagnostic is reported and no exception is thrown under the default documentation mode for a
+    /// private partial union whose second part's documentation comment holds a <c>&lt;paramref&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8036-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForPrivatePartialUnionWhoseOtherPartHoldsParamrefElement()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Outer
+                              /// </summary>
+                              public partial class Outer
+                              {
+                                  /// <remarks>Inner</remarks>
+                                  private partial union Inner(int, string);
+
+                                  /// <remarks>See <paramref name="x"/></remarks>
+                                  private partial union Inner;
+                              }
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
     #endregion // Documentation holding a parameter element
 }

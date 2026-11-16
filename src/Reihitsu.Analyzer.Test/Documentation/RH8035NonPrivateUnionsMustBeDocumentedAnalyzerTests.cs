@@ -481,5 +481,92 @@ public class RH8035NonPrivateUnionsMustBeDocumentedAnalyzerTests : AnalyzerTests
                      });
     }
 
+    /// <summary>
+    /// Verifies no diagnostic is reported and no exception is thrown under the default documentation mode for a
+    /// partial union whose second part's documentation comment holds a <c>&lt;param&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8035-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForPartialUnionWhoseOtherPartHoldsParamElement()
+    {
+        const string source = """
+                              /// <inheritdoc/>
+                              public partial union Shape(int, string);
+
+                              /// <param name="Circle">Circle</param>
+                              public partial union Shape;
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for a partial union without a <c>&lt;summary&gt;</c> whose first part's
+    /// documentation comment holds a <c>&lt;paramref&gt;</c> element and whose second part has a remark only
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8035-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForPartialUnionWhoseFirstPartHoldsParamrefElement()
+    {
+        const string source = """
+                              /// <remarks>See <paramref name="x"/></remarks>
+                              public partial union Shape(int, string);
+
+                              /// <remarks>Shape</remarks>
+                              public partial union Shape;
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for a partial union declared in two files when the documentation comment of
+    /// the part in the other file holds a <c>&lt;param&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8035-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForPartialUnionWhosePartInAnotherFileHoldsParamElement()
+    {
+        const string source = """
+                              /// <remarks>Shape</remarks>
+                              public partial union Shape(int, string);
+                              """;
+
+        const string otherPart = """
+                                 /// <param name="Circle">Circle</param>
+                                 public partial union Shape;
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherPart));
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
     #endregion // Documentation holding a parameter element
 }

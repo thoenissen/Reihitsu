@@ -54,3 +54,27 @@ scripts/test.sh --project analyzer --filter "FullyQualifiedName~ParamElement|Ful
 ```
 
 The filter also matches 26 pre-existing tests (RH8101–RH8104 and others with `ParamElement` in the name), which pass.
+
+## Addendum — partial unions (lead decision 5, SHARED-DOC-019 as widened in 97c083f)
+
+Commit: 97c083f (head when run). Implementer's note in `11-implementer.md` (partial unions, guard reads only the analyzed part) taken as the place to look, not as an expected result. Every test: default documentation mode (`Diagnose`), `UnionSupport`, `CompilerDiagnostics.None`; both parts analyzed. Two of them put the second part in a second document (`TestState.Sources`, `/0/Test1.cs`).
+
+| Test | Requirement / failure class | Helper | Observed on 97c083f |
+|---|---|---|---|
+| `RH8035…VerifyNoDiagnosticForPartialUnionWhoseOtherPartHoldsParamElement` (spec example: `<inheritdoc/>` part, `<param>` part) | RH8035-001, SHARED-DOC-019 | `Verify` | passes (the `<inheritdoc/>` part documents the union and the expander is not reached) |
+| `RH8035…VerifyNoDiagnosticForPartialUnionWhoseFirstPartHoldsParamrefElement` (`<paramref>` in the first part, `<remarks>` only in the second) | RH8035-001, SHARED-DOC-019 | `Verify` | fails: AD0001 (NullReferenceException) from RH8035 |
+| `RH8035…VerifyNoDiagnosticForPartialUnionWhosePartInAnotherFileHoldsParamElement` (`<remarks>` part in Test0, `<param>` part in Test1) | RH8035-001, SHARED-DOC-019 | `Verify` + second source | fails: RH8035 reported on `Shape` in Test0 (2,22) |
+| `RH8036…VerifyNoDiagnosticForPrivatePartialUnionWhoseOtherPartHoldsParamrefElement` (both parts in `partial class Outer`, `<paramref>` in the second) | RH8036-001, SHARED-DOC-019 | `Verify` | fails: RH8036 reported on the first part `Inner` (7,27) |
+| `RH8108…VerifyNoDiagnosticForPartialUnionWhoseOtherPartHoldsParamElement` (`<summary>` part, `<param>` part, no `<typeparam>`) | RH8108-001, SHARED-DOC-019 | `Verify` | fails: RH8108 reported on `T` of the second part (4,29) |
+| `RH8203…VerifyNoDiagnosticForInheritdocOnPartialUnionWhoseOtherPartHoldsParamElement` (spec example) | RH8203-001, SHARED-DOC-019 | `Verify` | fails: RH8203 reported on the first part's `<inheritdoc/>` (1,5) |
+| `RH8203…VerifyNoDiagnosticForInheritdocOnPartialUnionWhosePartInAnotherFileHoldsParamrefElement` (`<inheritdoc/>` in Test0, `<paramref>` in Test1) | RH8203-001, SHARED-DOC-019 | `Verify` + second source | fails: RH8203 reported in Test0 (1,5) |
+
+Observed: 7 tests, 6 fail, 1 passes. In five failures, the part without the element is still judged and reported. In the sixth (RH8035, first part holds `<paramref>`), analyzing the `<remarks>`-only part still crashes: the compiler joins every part's documentation for the union symbol. No compiler diagnostic and no unexpected report elsewhere.
+
+Not covered: a partial union with no `param`/`paramref` element in any part. SHARED-DOC-005 and the RH8203 coverage sentence still leave partial types out of scope, so a test there would assert behavior no spec states.
+
+```shell
+scripts/test.sh --project analyzer --filter "FullyQualifiedName~PartialUnion"
+```
+
+The filter also matches the existing passing `RH4012…FixRenamesEveryPartOfAPartialUnion`.
