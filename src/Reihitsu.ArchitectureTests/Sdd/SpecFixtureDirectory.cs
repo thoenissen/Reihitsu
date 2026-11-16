@@ -5,8 +5,9 @@ using System.Text;
 namespace Reihitsu.ArchitectureTests.Sdd;
 
 /// <summary>
-/// Creates and cleans up a temporary repository-shaped directory holding fixture specs and sources for one
-/// <see cref="SpecConsistencyTests"/> test
+/// Creates and cleans up a temporary repository-shaped directory holding fixture specs and sources for one test of
+/// <see cref="SpecConsistencyTests"/>, <see cref="SpecStructureTests"/>, <see cref="RequirementCoverageTests"/>, or
+/// <see cref="Formatter.PhaseOwnershipDocumentationTests"/>
 /// </summary>
 internal sealed class SpecFixtureDirectory : IDisposable
 {
