@@ -11,6 +11,15 @@ namespace Reihitsu.Core;
 /// </summary>
 public static class ModifierOrderingUtilities
 {
+    #region Constants
+
+    /// <summary>
+    /// Text of the preview <c>safe</c> modifier, whose syntax kind Roslyn marks as experimental
+    /// </summary>
+    private const string SafeModifierText = "safe";
+
+    #endregion // Constants
+
     #region Methods
 
     /// <summary>
@@ -243,13 +252,19 @@ public static class ModifierOrderingUtilities
     /// follow every other modifier and <see langword="partial"/> has to be last, so a ref struct reads
     /// <c>public readonly ref partial struct</c>.
     /// <para>
-    /// The default rank sorts behind both of them, which is already correct for the two unranked modifiers that
-    /// reach this switch: <see langword="const"/> and <see langword="fixed"/> also have to come last on the
-    /// declarations that allow them (<c>public const int Value = 1</c>, <c>public unsafe fixed int Buffer[4]</c>),
-    /// and neither can combine with <see langword="ref"/> or <see langword="partial"/>. A modifier that must
-    /// precede any ranked one, on the other hand, would be reordered into a declaration that no longer compiles,
-    /// so new modifiers have to be checked against the grammar and given an explicit rank where the default does
-    /// not hold
+    /// <c>closed</c> shares the rank of <see langword="sealed"/>, which it replaces on a type, and the preview
+    /// <c>safe</c> shares the rank of <see langword="unsafe"/>, its alternative; C# allows neither pair on one
+    /// declaration, so a shared rank never has to order them. <c>safe</c> is recognized by its text, because
+    /// Roslyn marks its syntax kind as experimental
+    /// </para>
+    /// <para>
+    /// The default rank sorts behind <see langword="ref"/> and <see langword="partial"/>, which is correct for the
+    /// two unranked modifiers that reach this switch: <see langword="const"/> and <see langword="fixed"/> also
+    /// have to come last on the declarations that allow them (<c>public const int Value = 1</c>,
+    /// <c>public unsafe fixed int Buffer[4]</c>), and neither can combine with <see langword="ref"/> or
+    /// <see langword="partial"/>. A modifier that must precede any ranked one, on the other hand, would be
+    /// reordered into a declaration that no longer compiles, so new modifiers have to be checked against the
+    /// grammar and given an explicit rank where the default does not hold
     /// </para>
     /// </remarks>
     private static int GetRh7105Rank(SyntaxToken modifier)
@@ -265,6 +280,7 @@ public static class ModifierOrderingUtilities
                    SyntaxKind.AbstractKeyword => 2,
                    SyntaxKind.VirtualKeyword => 3,
                    SyntaxKind.SealedKeyword => 4,
+                   SyntaxKind.ClosedKeyword => 4,
                    SyntaxKind.OverrideKeyword => 5,
                    SyntaxKind.NewKeyword => 6,
                    SyntaxKind.ReadOnlyKeyword => 7,
@@ -275,6 +291,7 @@ public static class ModifierOrderingUtilities
                    SyntaxKind.RequiredKeyword => 12,
                    SyntaxKind.RefKeyword => 13,
                    SyntaxKind.PartialKeyword => 14,
+                   _ when modifier.Text == SafeModifierText => 11,
                    _ => 100,
                };
     }
