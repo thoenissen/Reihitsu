@@ -610,6 +610,16 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     }
 
     /// <inheritdoc/>
+    public override SyntaxNode VisitUnionDeclaration(UnionDeclarationSyntax node)
+    {
+        node = (UnionDeclarationSyntax)base.VisitUnionDeclaration(node);
+
+        return node?.ParameterList == null
+                   ? node
+                   : CollapseOwnedOpenParenToDeclarationLine(node, node.ParameterList);
+    }
+
+    /// <inheritdoc/>
     public override SyntaxNode VisitOperatorDeclaration(OperatorDeclarationSyntax node)
     {
         node = (OperatorDeclarationSyntax)base.VisitOperatorDeclaration(node);

@@ -77,6 +77,7 @@ internal sealed class GenericConstraintLineBreakRewriter : CSharpSyntaxRewriter
                    StructDeclarationSyntax structDeclaration => (structDeclaration.ConstraintClauses, clauses => structDeclaration.WithConstraintClauses(clauses)),
                    InterfaceDeclarationSyntax interfaceDeclaration => (interfaceDeclaration.ConstraintClauses, clauses => interfaceDeclaration.WithConstraintClauses(clauses)),
                    RecordDeclarationSyntax recordDeclaration => (recordDeclaration.ConstraintClauses, clauses => recordDeclaration.WithConstraintClauses(clauses)),
+                   UnionDeclarationSyntax unionDeclaration => (unionDeclaration.ConstraintClauses, clauses => unionDeclaration.WithConstraintClauses(clauses)),
                    MethodDeclarationSyntax methodDeclaration => (methodDeclaration.ConstraintClauses, clauses => methodDeclaration.WithConstraintClauses(clauses)),
                    DelegateDeclarationSyntax delegateDeclaration => (delegateDeclaration.ConstraintClauses, clauses => delegateDeclaration.WithConstraintClauses(clauses)),
                    LocalFunctionStatementSyntax localFunction => (localFunction.ConstraintClauses, clauses => localFunction.WithConstraintClauses(clauses)),

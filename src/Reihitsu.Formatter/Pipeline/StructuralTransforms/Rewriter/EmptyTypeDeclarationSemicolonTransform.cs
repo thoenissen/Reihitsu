@@ -160,5 +160,20 @@ internal sealed class EmptyTypeDeclarationSemicolonTransform : CSharpSyntaxRewri
         return ConvertToSemicolonDeclaration(node);
     }
 
+    /// <inheritdoc/>
+    public override SyntaxNode VisitUnionDeclaration(UnionDeclarationSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (UnionDeclarationSyntax)base.VisitUnionDeclaration(node);
+
+        if (node == null || EmptyTypeDeclarationSemicolonAnalysisUtilities.CanConvertSafely(node, node.Kind(), LanguageVersion.CSharp15, _languageVersion) == false)
+        {
+            return node;
+        }
+
+        return ConvertToSemicolonDeclaration(node);
+    }
+
     #endregion // CSharpSyntaxVisitor
 }
