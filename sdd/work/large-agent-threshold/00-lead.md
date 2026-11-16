@@ -44,4 +44,4 @@ None yet.
 
 ## Open worklist / next step
 
-- Done: spec author (01), status Accepted (9522a08). Done: skeptic (02, 8d742a6). Done: spec author amendment (03, ca9dbea). Next: implementer (04), cleaner (05), spec checker (06), auditor (07), validator (08).
+- Done: spec author (01), status Accepted (9522a08). Done: skeptic (02, 8d742a6). Done: spec author amendment (03, ca9dbea), implementer (04, 881055c). Next: cleaner (05), spec checker (06), auditor (07), validator (08).
