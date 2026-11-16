@@ -26,6 +26,7 @@ None.
 ## Follow-up candidates
 
 - Whether the file-based scripts' own Roslyn pins (`scripts/proof/verify-text-only.cs` pins `Microsoft.CodeAnalysis.CSharp@5.6.0`, the projects use 5.12.0) fall under the one-version rule: bump and/or guard them. Named in `01-test-implementer.md`.
+- S1125 warnings in the Debug compile of `PipelineTraceCommand.cs` and `FormatCommandHandler.cs` (pre-existing on `main`, files untouched by the run; Release build clean). Named in `03-cleaner.md`.
 
 ## State
 
@@ -33,4 +34,5 @@ None.
 - Last step: test implementer (f32b2c3; #898 reproduced, #1780 guard written).
 - Implementer: 65b3a94 (trace.sh +x). Continued once for decision 5.
 - Implementer round 2: 8f52e40.
-- Next step: cleaner.
+- Cleaner: clean.
+- Next step: spec checker.
