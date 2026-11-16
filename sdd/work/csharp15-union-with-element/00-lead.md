@@ -56,3 +56,4 @@ Audited SHA: 0c7c198045012f1875b866828ff2beeb40831aa2 (10-auditor: pass, no find
 - 08-spec-author (d1af94b): FMT-PIPE-029 names union; change doc lists FMT-PIPE-029, RH7101-002. Next: spec checker (fresh).
 - 09-spec-checker (f23bbdb): consistent. main not ahead (1d2d29a); build green.
 - 10-auditor (ce6bc24): pass, no findings, audited 0c7c198. Next: validator, then issue manager, note, publish.
+- 12-issue-manager (e8604dd): (a),(d) extended #1767; (b) created #1786; (c) created #1785, cross-ref #1636. Waiting for validator.
