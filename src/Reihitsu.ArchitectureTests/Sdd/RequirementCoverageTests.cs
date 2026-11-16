@@ -11,8 +11,8 @@ namespace Reihitsu.ArchitectureTests.Sdd;
 /// Links the tests to the spec requirements they cover, as <c>sdd/README.md</c> describes: a test names each
 /// requirement it covers with a <c>[Requirement("&lt;ID&gt;")]</c> attribute. Every such reference must name an
 /// active requirement, and every active requirement of an enforced spec must be covered by at least one test.
-/// Every spec is enforced unless <see cref="ExemptedSpecs"/> names it, and every exemption must state its reason; a
-/// requirement of an exempted <c>shared/</c> spec stays enforced when a spec that is not exempted lists it under
+/// Every spec is enforced unless <see cref="ExemptedSpecs"/> names it, and every exemption must name a spec file and
+/// state its reason; a requirement of an exempted spec stays enforced when a spec that is not exempted lists it under
 /// <c>Uses</c>. The uncovered requirements of exempted specs are reported but do not fail
 /// </summary>
 [TestClass]
@@ -21,16 +21,11 @@ public sealed class RequirementCoverageTests
     #region Constants
 
     /// <summary>
-    /// Specs left out of the coverage check, each a single spec file relative to <c>sdd/specs</c> mapped to the reason
-    /// it is exempted. Every spec not on this list is enforced; the goal is an empty list
+    /// Specs left out of the coverage check, each a single spec file, by its path relative to <c>sdd/specs</c> with
+    /// forward slashes, mapped to the reason it is exempted. Every spec not on this list is enforced; the goal is an
+    /// empty list
     /// </summary>
     internal static readonly IReadOnlyDictionary<string, string> ExemptedSpecs = new Dictionary<string, string>(StringComparer.Ordinal);
-
-    /// <summary>
-    /// Spec directory of the shared specs, whose requirements of an exempted spec an enforced spec keeps enforced by
-    /// using them
-    /// </summary>
-    private const string SharedDirectory = "shared/";
 
     #endregion // Constants
 
@@ -89,6 +84,22 @@ public sealed class RequirementCoverageTests
 
         // Assert
         Assert.IsEmpty(findings, DescribeFindings("Every exemption from the requirement coverage check must state its reason", findings));
+    }
+
+    /// <summary>
+    /// Verifies that every exemption from the coverage check names a spec file under <c>sdd/specs</c>
+    /// </summary>
+    [TestMethod]
+    public void EveryExemptionNamesASpecFile()
+    {
+        // Arrange
+        var repositoryRoot = FindRepositoryRoot();
+
+        // Act
+        var findings = FindExemptionsWithoutSpecFile(repositoryRoot, ExemptedSpecs);
+
+        // Assert
+        Assert.IsEmpty(findings, DescribeFindings("Every exemption from the requirement coverage check must name a spec file under sdd/specs", findings));
     }
 
     /// <summary>
@@ -564,6 +575,338 @@ public sealed class RequirementCoverageTests
         Assert.DoesNotContain("cli/reihitsu-format.md", report);
     }
 
+    /// <summary>
+    /// Verifies that a requirement of an exempted spec outside <c>shared/</c> stays enforced when a spec that is not
+    /// exempted lists it under <c>Uses</c>, while an unused requirement of the same exempted spec is not enforced
+    /// </summary>
+    [TestMethod]
+    public void CoverageCheckEnforcesExemptedRequirementsOutsideSharedThatAnEnforcedSpecUses()
+    {
+        // Arrange
+        using (var fixture = new SpecFixtureDirectory())
+        {
+            fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001", "FMT-CLEAN-002");
+            fixture.WriteFile("sdd/specs/analyzer/RH6006.md",
+                              "# RH6006\n\n| | |\n|---|---|\n| ID prefix | RH6006 |\n| Uses | FMT-CLEAN-001 |\n\n## Requirements\n\n### RH6006-001 — Title\n\nThe rule MUST follow FMT-CLEAN-001.\n");
+            fixture.WriteFile("src/Reihitsu.Analyzer.Test/RH6006Tests.cs", CreateTestSource("[Requirement(\"RH6006-001\")]"));
+
+            // Act
+            var findings = FindUncoveredRequirements(fixture.Path, CreateExemptions(("formatter/cleanup.md", "Its tests are written in a follow-up.")));
+
+            // Assert
+            Assert.HasCount(1, findings, DescribeFindings("Findings", findings));
+            Assert.StartsWith("FMT-CLEAN-001", findings[0]);
+            Assert.Contains("formatter/cleanup.md:", findings[0]);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a requirement of an exempted spec outside <c>shared/</c> is not enforced when only an exempted
+    /// spec lists it under <c>Uses</c>
+    /// </summary>
+    [TestMethod]
+    public void CoverageCheckDoesNotEnforceExemptedRequirementsOutsideSharedThatOnlyAnExemptedSpecUses()
+    {
+        // Arrange
+        using (var fixture = new SpecFixtureDirectory())
+        {
+            fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
+            fixture.WriteFile("sdd/specs/analyzer/RH6006.md",
+                              "# RH6006\n\n| | |\n|---|---|\n| ID prefix | RH6006 |\n| Uses | FMT-CLEAN-001 |\n\n## Requirements\n\n### RH6006-001 — Title\n\nThe rule MUST follow FMT-CLEAN-001.\n");
+
+            // Act
+            var findings = FindUncoveredRequirements(fixture.Path,
+                                                     CreateExemptions(("formatter/cleanup.md", "Its tests are written in a follow-up."),
+                                                                      ("analyzer/RH6006.md", "Its tests are written in a follow-up.")));
+
+            // Assert
+            Assert.IsEmpty(findings, DescribeFindings("Unexpected findings", findings));
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a requirement of an exempted spec outside <c>shared/</c> is not enforced when no spec lists it
+    /// under <c>Uses</c>, although an enforced spec lists another ID there
+    /// </summary>
+    [TestMethod]
+    public void CoverageCheckDoesNotEnforceExemptedRequirementsOutsideSharedThatNoSpecUses()
+    {
+        // Arrange
+        using (var fixture = new SpecFixtureDirectory())
+        {
+            fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
+            fixture.WriteSpec("formatter/indentation.md", "`IndentationPhase`", "FMT-INDENT-001");
+            fixture.WriteFile("sdd/specs/analyzer/RH6006.md",
+                              "# RH6006\n\n| | |\n|---|---|\n| ID prefix | RH6006 |\n| Uses | FMT-INDENT-001 |\n\n## Requirements\n\n### RH6006-001 — Title\n\nThe rule MUST follow FMT-INDENT-001.\n");
+            fixture.WriteFile("src/Reihitsu.Analyzer.Test/RH6006Tests.cs", CreateTestSource("[Requirement(\"RH6006-001\")]"));
+            fixture.WriteFile("src/Reihitsu.Formatter.Test/IndentationTests.cs", CreateTestSource("[Requirement(\"FMT-INDENT-001\")]"));
+
+            // Act
+            var findings = FindUncoveredRequirements(fixture.Path, CreateExemptions(("formatter/cleanup.md", "Its tests are written in a follow-up.")));
+
+            // Assert
+            Assert.IsEmpty(findings, DescribeFindings("Unexpected findings", findings));
+        }
+    }
+
+    /// <summary>
+    /// Verifies that an exemption whose key misspells a spec path is reported with its key
+    /// </summary>
+    [TestMethod]
+    public void ExemptionCheckReportsMisspelledSpecPath()
+    {
+        // Arrange
+        using (var fixture = new SpecFixtureDirectory())
+        {
+            fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
+
+            // Act
+            var findings = FindExemptionsWithoutSpecFile(fixture.Path, CreateExemptions(("formatter/cleanu.md", "Its tests are written in a follow-up.")));
+
+            // Assert
+            Assert.HasCount(1, findings);
+            Assert.Contains("formatter/cleanu.md", findings[0]);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that an exemption keyed by a directory is reported with its key, although specs lie in that directory
+    /// </summary>
+    [TestMethod]
+    public void ExemptionCheckReportsDirectoryKey()
+    {
+        // Arrange
+        using (var fixture = new SpecFixtureDirectory())
+        {
+            fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
+
+            // Act
+            var findings = FindExemptionsWithoutSpecFile(fixture.Path, CreateExemptions(("formatter/", "Its tests are written in a follow-up.")));
+
+            // Assert
+            Assert.HasCount(1, findings);
+            Assert.Contains("formatter/", findings[0]);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that an exemption keyed by a directory name without a trailing slash is reported with its key
+    /// </summary>
+    [TestMethod]
+    public void ExemptionCheckReportsDirectoryKeyWithoutSlash()
+    {
+        // Arrange
+        using (var fixture = new SpecFixtureDirectory())
+        {
+            fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
+
+            // Act
+            var findings = FindExemptionsWithoutSpecFile(fixture.Path, CreateExemptions(("formatter", "Its tests are written in a follow-up.")));
+
+            // Assert
+            Assert.HasCount(1, findings);
+            Assert.Contains("formatter", findings[0]);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that an exemption keyed by the spec index, which is no spec, is reported with its key
+    /// </summary>
+    [TestMethod]
+    public void ExemptionCheckReportsSpecIndexKey()
+    {
+        // Arrange
+        using (var fixture = new SpecFixtureDirectory())
+        {
+            fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
+            fixture.WriteFile("sdd/specs/README.md", "# Specs\n");
+
+            // Act
+            var findings = FindExemptionsWithoutSpecFile(fixture.Path, CreateExemptions(("README.md", "Its tests are written in a follow-up.")));
+
+            // Assert
+            Assert.HasCount(1, findings);
+            Assert.Contains("README.md", findings[0]);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that an exemption keyed by a file under <c>sdd/specs</c> that is no spec, the requirement-ID ledger,
+    /// is reported with its key
+    /// </summary>
+    [TestMethod]
+    public void ExemptionCheckReportsLedgerKey()
+    {
+        // Arrange
+        using (var fixture = new SpecFixtureDirectory())
+        {
+            fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
+            fixture.WriteFile("sdd/specs/requirement-ids.txt", "FMT-CLEAN-001\n");
+
+            // Act
+            var findings = FindExemptionsWithoutSpecFile(fixture.Path, CreateExemptions(("requirement-ids.txt", "Its tests are written in a follow-up.")));
+
+            // Assert
+            Assert.HasCount(1, findings);
+            Assert.Contains("requirement-ids.txt", findings[0]);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that an exemption whose key differs from an existing spec path only in letter case is reported, because
+    /// the coverage check matches spec paths ordinally
+    /// </summary>
+    [TestMethod]
+    public void ExemptionCheckReportsKeyInOtherCase()
+    {
+        // Arrange
+        using (var fixture = new SpecFixtureDirectory())
+        {
+            fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
+
+            // Act
+            var findings = FindExemptionsWithoutSpecFile(fixture.Path, CreateExemptions(("Formatter/Cleanup.md", "Its tests are written in a follow-up.")));
+
+            // Assert
+            Assert.HasCount(1, findings);
+            Assert.Contains("Formatter/Cleanup.md", findings[0]);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that an exemption whose key separates the path with a backslash is reported, because the coverage
+    /// check matches spec paths written with forward slashes
+    /// </summary>
+    [TestMethod]
+    public void ExemptionCheckReportsKeyWithBackslash()
+    {
+        // Arrange
+        using (var fixture = new SpecFixtureDirectory())
+        {
+            fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
+
+            // Act
+            var findings = FindExemptionsWithoutSpecFile(fixture.Path, CreateExemptions(("formatter\\cleanup.md", "Its tests are written in a follow-up.")));
+
+            // Assert
+            Assert.HasCount(1, findings);
+            Assert.Contains("formatter\\cleanup.md", findings[0]);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that an exemption keyed by the path of an existing spec, nested or at the top level, is not reported
+    /// </summary>
+    [TestMethod]
+    public void ExemptionCheckAcceptsSpecPaths()
+    {
+        // Arrange
+        using (var fixture = new SpecFixtureDirectory())
+        {
+            fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
+            fixture.WriteSpec("top-level.md", "`TopLevel`", "TOP-001");
+
+            // Act
+            var findings = FindExemptionsWithoutSpecFile(fixture.Path,
+                                                         CreateExemptions(("formatter/cleanup.md", "Its tests are written in a follow-up."),
+                                                                          ("top-level.md", "Its tests are written in a follow-up.")));
+
+            // Assert
+            Assert.IsEmpty(findings, DescribeFindings("Unexpected findings", findings));
+        }
+    }
+
+    /// <summary>
+    /// Verifies that every exemption that names no spec file is reported in one run, and an exemption that names one
+    /// is not
+    /// </summary>
+    [TestMethod]
+    public void ExemptionCheckReportsEveryKeyWithoutSpecFile()
+    {
+        // Arrange
+        using (var fixture = new SpecFixtureDirectory())
+        {
+            fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
+
+            // Act
+            var findings = FindExemptionsWithoutSpecFile(fixture.Path,
+                                                         CreateExemptions(("formatter/cleanu.md", "Its tests are written in a follow-up."),
+                                                                          ("formatter/cleanup.md", "Its tests are written in a follow-up."),
+                                                                          ("formatter/", "Its tests are written in a follow-up.")));
+
+            // Assert
+            Assert.HasCount(2, findings, DescribeFindings("Findings", findings));
+            Assert.Contains(finding => finding.StartsWith("formatter/cleanu.md:", StringComparison.Ordinal), findings);
+            Assert.Contains(finding => finding.StartsWith("formatter/:", StringComparison.Ordinal), findings);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that an empty exemption list has no exemption without a spec file
+    /// </summary>
+    [TestMethod]
+    public void ExemptionSpecFileCheckAcceptsEmptyList()
+    {
+        // Arrange
+        using (var fixture = new SpecFixtureDirectory())
+        {
+            fixture.WriteSpec("formatter/cleanup.md", "`CleanupPhase`", "FMT-CLEAN-001");
+
+            // Act
+            var findings = FindExemptionsWithoutSpecFile(fixture.Path, CreateExemptions());
+
+            // Assert
+            Assert.IsEmpty(findings, DescribeFindings("Unexpected findings", findings));
+        }
+    }
+
+    /// <summary>
+    /// Verifies that the report of exempted specs names an exempted spec that has no active requirement, rather than
+    /// stating that no spec is exempted
+    /// </summary>
+    [TestMethod]
+    public void CoverageReportNamesExemptedSpecWithoutActiveRequirement()
+    {
+        // Arrange
+        string report;
+
+        using (var fixture = new SpecFixtureDirectory())
+        {
+            fixture.WriteFile("sdd/specs/formatter/cleanup.md", "### FMT-CLEAN-001 — Title\n\nStatus: Retired — superseded.\n");
+            fixture.WriteSpec("cli/reihitsu-format.md", "`Program`", "CLI-001");
+
+            // Act
+            report = DescribeCoverageOfExemptedSpecs(fixture.Path, CreateExemptions(("formatter/cleanup.md", "Its tests are written in a follow-up.")));
+        }
+
+        // Assert
+        Assert.Contains("formatter/cleanup.md: 0 of 0 uncovered", report);
+        Assert.DoesNotContain("no spec is exempted", report);
+        Assert.DoesNotContain("cli/reihitsu-format.md", report);
+    }
+
+    /// <summary>
+    /// Verifies that the report of exempted specs states that no spec is exempted only when the exemption list is
+    /// empty
+    /// </summary>
+    [TestMethod]
+    public void CoverageReportStatesNoSpecIsExemptedForEmptyList()
+    {
+        // Arrange
+        string report;
+
+        using (var fixture = new SpecFixtureDirectory())
+        {
+            fixture.WriteSpec("cli/reihitsu-format.md", "`Program`", "CLI-001");
+
+            // Act
+            report = DescribeCoverageOfExemptedSpecs(fixture.Path, CreateExemptions());
+        }
+
+        // Assert
+        Assert.Contains("no spec is exempted", report);
+    }
+
     #endregion // Tests
 
     #region Methods
@@ -606,8 +949,8 @@ public sealed class RequirementCoverageTests
     }
 
     /// <summary>
-    /// Finds every active requirement that no test method covers and that is enforced: its spec is not exempted, or it
-    /// belongs to an exempted <c>shared/</c> spec and a spec that is not exempted lists it under <c>Uses</c>
+    /// Finds every active requirement that no test method covers and that is enforced: its spec is not exempted, or a
+    /// spec that is not exempted lists it under <c>Uses</c>
     /// </summary>
     /// <param name="repositoryRoot">Repository root containing <c>sdd/specs</c> and <c>src</c></param>
     /// <param name="exemptedSpecs">Exempted spec files, relative to <c>sdd/specs</c>, mapped to their reasons</param>
@@ -615,9 +958,9 @@ public sealed class RequirementCoverageTests
     private static List<string> FindUncoveredRequirements(string repositoryRoot, IReadOnlyDictionary<string, string> exemptedSpecs)
     {
         var coveredIds = ReadCoveredIds(repositoryRoot);
-        var usedSharedIds = ReadSharedIdsUsedByEnforcedSpecs(repositoryRoot, exemptedSpecs);
+        var usedIds = ReadIdsUsedByEnforcedSpecs(repositoryRoot, exemptedSpecs);
 
-        return ReadActiveRequirements(repositoryRoot).Where(requirement => IsEnforced(requirement, exemptedSpecs, usedSharedIds)
+        return ReadActiveRequirements(repositoryRoot).Where(requirement => IsEnforced(requirement, exemptedSpecs, usedIds)
                                                                            && coveredIds.Contains(requirement.Id) == false)
                                                      .Select(requirement => $"{requirement.Id}: no test covers it ({requirement.SpecPath}:{requirement.Line})")
                                                      .ToList();
@@ -636,6 +979,26 @@ public sealed class RequirementCoverageTests
     }
 
     /// <summary>
+    /// Finds every exemption whose key names no spec file under <c>sdd/specs</c>
+    /// </summary>
+    /// <param name="repositoryRoot">Repository root containing <c>sdd/specs</c></param>
+    /// <param name="exemptedSpecs">Exempted spec files, relative to <c>sdd/specs</c>, mapped to their reasons</param>
+    /// <returns>One message per exemption without a spec file, starting with its key</returns>
+    private static List<string> FindExemptionsWithoutSpecFile(string repositoryRoot, IReadOnlyDictionary<string, string> exemptedSpecs)
+    {
+        var specsDirectory = Path.Combine(repositoryRoot, "sdd", "specs");
+        var specPaths = SpecCatalog.EnumerateSpecFiles(specsDirectory)
+                                   .Select(specFile => Path.GetRelativePath(specsDirectory, specFile).Replace('\\', '/'))
+                                   .ToHashSet(StringComparer.Ordinal);
+
+        return exemptedSpecs.Keys
+                            .Where(key => specPaths.Contains(key) == false)
+                            .OrderBy(key => key, StringComparer.Ordinal)
+                            .Select(key => $"{key}: the exemption names no spec file under sdd/specs")
+                            .ToList();
+    }
+
+    /// <summary>
     /// Describes, per exempted spec, the active requirements no test covers
     /// </summary>
     /// <param name="repositoryRoot">Repository root containing <c>sdd/specs</c> and <c>src</c></param>
@@ -643,23 +1006,28 @@ public sealed class RequirementCoverageTests
     /// <returns>The report, one line per exempted spec</returns>
     private static string DescribeCoverageOfExemptedSpecs(string repositoryRoot, IReadOnlyDictionary<string, string> exemptedSpecs)
     {
+        if (exemptedSpecs.Count == 0)
+        {
+            return "Coverage of exempted specs: no spec is exempted";
+        }
+
         var coveredIds = ReadCoveredIds(repositoryRoot);
-        var lines = ReadActiveRequirements(repositoryRoot).Where(requirement => exemptedSpecs.ContainsKey(requirement.SpecPath))
-                                                          .GroupBy(requirement => requirement.SpecPath, StringComparer.Ordinal)
-                                                          .Select(group =>
-                                                                  {
-                                                                      var uncovered = group.Where(requirement => coveredIds.Contains(requirement.Id) == false)
-                                                                                           .Select(requirement => requirement.Id)
-                                                                                           .ToList();
-                                                                      var detail = uncovered.Count == 0 ? string.Empty : $" ({string.Join(", ", uncovered)})";
+        var activeRequirements = ReadActiveRequirements(repositoryRoot).ToList();
+        var lines = exemptedSpecs.Keys
+                                 .OrderBy(specPath => specPath, StringComparer.Ordinal)
+                                 .Select(specPath =>
+                                         {
+                                             var requirements = activeRequirements.Where(requirement => string.Equals(requirement.SpecPath, specPath, StringComparison.Ordinal))
+                                                                                  .ToList();
+                                             var uncovered = requirements.Where(requirement => coveredIds.Contains(requirement.Id) == false)
+                                                                         .Select(requirement => requirement.Id)
+                                                                         .ToList();
+                                             var detail = uncovered.Count == 0 ? string.Empty : $" ({string.Join(", ", uncovered)})";
 
-                                                                      return $"{group.Key}: {uncovered.Count} of {group.Count()} uncovered{detail}";
-                                                                  })
-                                                          .ToList();
+                                             return $"{specPath}: {uncovered.Count} of {requirements.Count} uncovered{detail}";
+                                         });
 
-        return lines.Count == 0
-                   ? "Coverage of exempted specs: no spec is exempted"
-                   : $"Coverage of exempted specs:{Environment.NewLine}{string.Join(Environment.NewLine, lines)}";
+        return $"Coverage of exempted specs:{Environment.NewLine}{string.Join(Environment.NewLine, lines)}";
     }
 
     /// <summary>
@@ -700,18 +1068,16 @@ public sealed class RequirementCoverageTests
     }
 
     /// <summary>
-    /// Determines whether a requirement is enforced: its spec is not exempted, or it belongs to a <c>shared/</c> spec
-    /// and a spec that is not exempted uses it
+    /// Determines whether a requirement is enforced: its spec is not exempted, or a spec that is not exempted uses it
     /// </summary>
     /// <param name="requirement">Requirement</param>
     /// <param name="exemptedSpecs">Exempted spec files, relative to <c>sdd/specs</c>, mapped to their reasons</param>
-    /// <param name="usedSharedIds">IDs that a spec that is not exempted lists under <c>Uses</c></param>
+    /// <param name="usedIds">IDs that a spec that is not exempted lists under <c>Uses</c></param>
     /// <returns><see langword="true"/> when the requirement is enforced</returns>
-    private static bool IsEnforced(SpecRequirement requirement, IReadOnlyDictionary<string, string> exemptedSpecs, HashSet<string> usedSharedIds)
+    private static bool IsEnforced(SpecRequirement requirement, IReadOnlyDictionary<string, string> exemptedSpecs, HashSet<string> usedIds)
     {
         return exemptedSpecs.ContainsKey(requirement.SpecPath) == false
-               || (requirement.SpecPath.StartsWith(SharedDirectory, StringComparison.Ordinal)
-                   && usedSharedIds.Contains(requirement.Id));
+               || usedIds.Contains(requirement.Id);
     }
 
     /// <summary>
@@ -720,7 +1086,7 @@ public sealed class RequirementCoverageTests
     /// <param name="repositoryRoot">Repository root containing <c>sdd/specs</c></param>
     /// <param name="exemptedSpecs">Exempted spec files, relative to <c>sdd/specs</c>, mapped to their reasons</param>
     /// <returns>The used IDs</returns>
-    private static HashSet<string> ReadSharedIdsUsedByEnforcedSpecs(string repositoryRoot, IReadOnlyDictionary<string, string> exemptedSpecs)
+    private static HashSet<string> ReadIdsUsedByEnforcedSpecs(string repositoryRoot, IReadOnlyDictionary<string, string> exemptedSpecs)
     {
         return SpecCatalog.ReadHeaders(Path.Combine(repositoryRoot, "sdd", "specs"))
                           .Where(header => exemptedSpecs.ContainsKey(header.SpecPath) == false)
