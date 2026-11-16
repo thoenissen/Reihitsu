@@ -113,7 +113,7 @@ It first runs the text-only proof over the same range and prints its line, becau
 | Category | Paths |
 |---|---|
 | Change doc | `sdd/changes/**` |
-| Text | the rest of `sdd/**`, `documentation/**`, issue and PR templates, every Markdown file at the repository root except `AGENTS.md` and `CLAUDE.md`, `LICENSE`, and, outside `src/Reihitsu.Tooling/`, Markdown under `src/` and C# under `src/` when the proof passed |
+| Text | the rest of `sdd/**`, `squad/notes/**`, `documentation/**`, `.github/ISSUE_TEMPLATE/**`, `.github/PULL_REQUEST_TEMPLATE.md`, every Markdown file at the repository root except `AGENTS.md` and `CLAUDE.md`, `LICENSE`, and, outside `src/Reihitsu.Tooling/`, Markdown under `src/` and C# under `src/` when the proof passed |
 | Tooling | `.claude/**`, `squad/**`, `scripts/**`, `.github/**`, `binaries/**`, `src/Reihitsu.Tooling/**`, `AGENTS.md`, `CLAUDE.md`, the solution files, `.gitignore`, `.gitattributes`, and every `*.csproj`, `*.props`, `*.targets`, `*.ruleset`, `.editorconfig` |
 | Test | files of test projects (`src/*.Test/**`, `src/Reihitsu.ArchitectureTests/**`) |
 | Production | every other file under `src/` |
@@ -123,7 +123,7 @@ The narrowest lane that admits every category is the lane the diff needs: produc
 
 Exit codes are `0` when the claim covers the diff, `1` when it does not (the verdict names the lane the diff needs), `2` for a tool or setup error, and `3` when no lane admits the diff — an unknown path, or production next to tooling without a change doc. The single `LANE CHECK: …` line is the quotable evidence the run report records.
 
-This table is the one statement of the classification, and other documents link here instead of listing paths. A path belongs to the first row that names it, so Markdown under `squad/notes/` is text while the rest of `squad/**`, Markdown included, is tooling. The classification lives in `Reihitsu.Tooling` (`LaneClassifier`, `LaneCheckCommand`) with tests in `Reihitsu.Tooling.Test`; `scripts/lane-check/lane-check.cs` is a thin file-based shim over it, like the code-fix runner's.
+This table is the one statement of the classification, and other documents link here instead of listing paths. A path belongs to the first row that names it, whatever its extension: every file under `squad/notes/` is text while the rest of `squad/**` is tooling, the issue and PR templates are text while the rest of `.github/**` is tooling, and a test project's `*.csproj` is tooling rather than a test. The classification lives in `Reihitsu.Tooling` (`LaneClassifier`, `LaneCheckCommand`) with tests in `Reihitsu.Tooling.Test`; `scripts/lane-check/lane-check.cs` is a thin file-based shim over it, like the code-fix runner's.
 
 ## The usage report
 
