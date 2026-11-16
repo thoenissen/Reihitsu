@@ -17,6 +17,7 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 3 | Cleaner | S1125 warning in unchanged `FormatCommandHandler.cs:501`, seen only in the format-script build | Not a follow-up | Not reported by the Release build; unrelated to the run | Internal build warning | – |
 | 2 | Skeptic | Spec examples with union `Value` | Fresh spec author amends examples (original agent large: 61 tool uses) | Examples must compile; no rule output changes | Rename of example identifiers only | 5019e1a |
 | 1 | Claim | Branch name | Use `claude/squad-1766-qkoyls` instead of `claude/issue-1766-<slug>` | The session environment permits pushing only to this branch | Branch name is internal | 81a7af9 |
 
@@ -30,4 +31,5 @@
 - Skeptic done (02-skeptic.md, 2ce1739): premise holds, agrees with A on Q1–5; three spec examples name a union `Value` (CS0542) — amendment done by a fresh spec author (03-spec-author.md, 5019e1a; also fixed RH8035 rule page example, CS0246). Recommends a source polyfill (IUnion, UnionAttribute) for analyzer tests.
 - Batch 1 answered and recorded in the change doc (cd23842); lead set the change doc Accepted (efe4373).
 - Test implementer done (04-test-implementer.md, 8e6503d): new tests for RH4012/RH8035/RH8036, extended RH8030, RH8101–RH8111, RH8203, RH8020/21, RH4105/RH4122; test-only union polyfill assembly `Base/UnionSupport.cs`. 
-- Implementer done (05-implementer.md, 066f383): 4 new rule types on existing bases, union added to DocumentableDeclarationKinds and TypeParameterOwnerKinds, resources, ruleset, sln, package README; full analyzer + architecture tests green in Debug. Next: cleaner (06).
+- Implementer done (05-implementer.md, 066f383): 4 new rule types on existing bases, union added to DocumentableDeclarationKinds and TypeParameterOwnerKinds, resources, ruleset, sln, package README; full analyzer + architecture tests green in Debug. 
+- Cleaner done (06-cleaner.md, 2005af3): clean, Release build 0 warnings. Next: spec checker (07).
