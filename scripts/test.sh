@@ -104,8 +104,9 @@ reihitsu_ensure_dotnet "${install_arguments[@]+"${install_arguments[@]}"}" --qui
 # so the analyzer test host grows to about 9 GiB over a whole-project run and a
 # small machine kills it. A fixed mmap threshold returns large blocks to the
 # system when they are freed, and two arenas bound what the small ones keep.
-# The setting reaches the test host only, through a run setting, and a caller's
-# own GLIBC_TUNABLES wins; scripts/README.md, "Test-host memory", has the
+# The setting reaches the test host and the processes it starts, through a run
+# setting, not the build or dotnet test itself, and a caller's own
+# GLIBC_TUNABLES wins; scripts/README.md, "Test-host memory", has the
 # measurements.
 if [[ "$(uname -s)" == "Linux" && -z "${GLIBC_TUNABLES+set}" ]]; then
     test_host_setting="RunConfiguration.EnvironmentVariables.GLIBC_TUNABLES=glibc.malloc.mmap_threshold=131072:glibc.malloc.arena_max=2"
