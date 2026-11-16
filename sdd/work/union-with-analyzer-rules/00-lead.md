@@ -49,4 +49,4 @@
 
 - Side task (maintainer request): moved #1786 from vNext to milestone 1.4.0; #1781/#1785 left in vNext.
 - Last step: skeptic 02 (output questions Q1-Q4 stand, with adjustments). Spec-author amendment 03 running (decisions 5-7). Output questions Q1 (unions join type rules), Q2 (RH5507/RH5508 on unions), Q3 (RH5418, escalation 5), Q4 (RH2110, escalation 5) asked to the maintainer; waiting.
-- Implementer 08 done (0bb9339; full Debug test run green). Next: cleaner 09.
+- Cleaner 09 clean (edfa9c4). Next: spec checker 10, then auditor 11.
