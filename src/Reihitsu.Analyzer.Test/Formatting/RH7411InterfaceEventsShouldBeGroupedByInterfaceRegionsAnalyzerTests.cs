@@ -976,6 +976,46 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
                      Diagnostics(RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("I")));
     }
 
+    /// <summary>
+    /// Verifies that a union's implementation of an interface event outside the interface's region is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-REGGROUP-001")]
+    [Requirement("RH7411-001")]
+    public async Task UnionInterfaceEventOutsideInterfaceRegionIsReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                public interface INotify
+                                {
+                                    event EventHandler Changed;
+                                }
+
+                                public union U(int, string) : INotify
+                                {
+                                    #region Events
+
+                                    public event EventHandler {|RH7411:Changed|}
+                                    {
+                                        add
+                                        {
+                                        }
+                                        remove
+                                        {
+                                        }
+                                    }
+
+                                    #endregion // Events
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region Methods

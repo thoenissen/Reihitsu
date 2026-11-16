@@ -584,6 +584,46 @@ public class RH7407NonOverrideEventsShouldNotBePlacedInOverrideRegionsAnalyzerTe
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a non-override event in the Object region of a union that overrides ToString is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-REGGROUP-001")]
+    [Requirement("RH7407-001")]
+    public async Task UnionNonOverrideEventInOverrideRegionIsReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                union U(int, string)
+                                {
+                                    #region Object
+
+                                    public override string ToString()
+                                    {
+                                        return "";
+                                    }
+
+                                    public event EventHandler {|RH7407:Changed|}
+                                    {
+                                        add
+                                        {
+                                        }
+                                        remove
+                                        {
+                                        }
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region Methods

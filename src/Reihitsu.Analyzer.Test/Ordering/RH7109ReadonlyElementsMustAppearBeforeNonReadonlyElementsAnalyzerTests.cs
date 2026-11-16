@@ -7020,6 +7020,37 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
         await VerifyNoCodeFixIsOffered(source);
     }
 
+    /// <summary>
+    /// Verifies the union example of RH7109-001: a static readonly field after a static field of the same group in a
+    /// union is reported, and the fix moves it in front of that field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7109-001")]
+    [Requirement("RH7109-005")]
+    public async Task UnionReadonlyFieldAfterFieldIsReportedAndMoved()
+    {
+        const string testCode = """
+                                union U(int, string)
+                                {
+                                    private static int _a;
+                                    private static readonly int {|RH7109:_b|} = 1;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 union U(int, string)
+                                 {
+                                     private static readonly int _b = 1;
+                                     private static int _a;
+                                 }
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, fixedCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region Methods

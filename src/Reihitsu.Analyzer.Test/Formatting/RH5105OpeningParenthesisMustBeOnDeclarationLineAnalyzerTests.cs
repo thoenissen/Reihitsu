@@ -636,6 +636,78 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Batc
         await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the union example of RH5105-001: the opening parenthesis of a union's case-type list below its name is
+    /// reported and joined to the name
+    /// </summary>
+    /// <param name="endOfLine">Line break of the source and the expected result</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5105-001")]
+    [Requirement("RH5105-002")]
+    [Requirement("RH5105-003")]
+    [DataRow("\n", DisplayName = "LF")]
+    [DataRow("\r\n", DisplayName = "CRLF")]
+    public async Task UnionCaseTypeListOpeningParenthesisBelowNameIsReportedAndJoined(string endOfLine)
+    {
+        const string testCode = """
+                                union U
+                                    {|RH5105:(|}int, string);
+
+                                union V(int, string);
+
+                                public class C
+                                {
+                                    union N<T>
+                                        {|RH5105:(|}T, string)
+                                    {
+                                        public int X => 1;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 union U(int, string);
+
+                                 union V(int, string);
+
+                                 public class C
+                                 {
+                                     union N<T>(T, string)
+                                     {
+                                         public int X => 1;
+                                     }
+                                 }
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine), test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies that the opening parenthesis of a union's case-type list is not reported when a comment or a directive
+    /// sits between the name and the parenthesis
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5105-001")]
+    public async Task UnionCaseTypeListOpeningParenthesisBehindCommentOrDirectiveIsNotReported()
+    {
+        const string testCode = """
+                                union U // note
+                                    (int, string);
+
+                                union V
+                                #pragma warning disable CS0168
+                                    (int, string);
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

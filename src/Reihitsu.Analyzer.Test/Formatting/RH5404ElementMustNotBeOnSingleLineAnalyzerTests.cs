@@ -529,10 +529,6 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
     /// test per registered kind, which is the check that fails if a kind is dropped from the registration - a
     /// distinction that matters because <see cref="RecordDeclarationSyntax"/> alone carries two kinds.
     /// </para>
-    /// <para>
-    /// <see cref="UnionDeclarationSyntax"/> appears here but is deliberately not registered; union declarations
-    /// are left out until the language feature is released.
-    /// </para>
     /// </summary>
     [TestMethod]
     public void VerifyBaseTypeDeclarationTypesAreFullyEnumerated()
@@ -887,16 +883,17 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
     }
 
     /// <summary>
-    /// Verifies that the fix of a single-line class lays out a union declared in it as a class: its braces and members start their
-    /// own lines
+    /// Verifies that a single-line union inside a single-line class is reported as well, and that the fix of the class lays out
+    /// the union declared in it as a class: its braces and members start their own lines
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH5404-001")]
     [Requirement("RH5404-003")]
     public async Task VerifyFixLaysOutAUnionInsideTheFixedType()
     {
         const string testData = """
-                                class {|#0:C|} { union U(int, string) { public int X => 1; } }
+                                class {|#0:C|} { union {|#1:U|}(int, string) { public int X => 1; } }
                                 """;
         const string fixedData = """
                                  class C
@@ -909,7 +906,125 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
                                  """;
 
         // The .NET 9 reference assemblies lack the union runtime types (CS0518, CS0656), so compiler diagnostics are not verified
-        await Verify(testData, fixedData, test => test.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+        await Verify(testData, fixedData, test => test.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies the union example of RH5404-001 and RH5404-003: a union whose braces share one line is reported on its
+    /// name, and the fix lays out its body or, when the body is empty, writes the semicolon declaration
+    /// </summary>
+    /// <param name="endOfLine">Line break of the source and the expected result</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5404-001")]
+    [Requirement("RH5404-002")]
+    [Requirement("RH5404-003")]
+    [DataRow("\n", DisplayName = "LF")]
+    [DataRow("\r\n", DisplayName = "CRLF")]
+    public async Task SingleLineUnionIsReportedAndLaidOut(string endOfLine)
+    {
+        const string testCode = """
+                                union {|RH5404:U|}(int, string) { public int X => 1; }
+
+                                union {|RH5404:V|}(int, string) { }
+                                """;
+
+        const string fixedCode = """
+                                 union U(int, string)
+                                 {
+                                     public int X => 1;
+                                 }
+
+                                 union V(int, string);
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine), test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies that a union without a body and a union whose braces are on different lines are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5404-001")]
+    public async Task UnionWithoutBodyOrWithBracesOnDifferentLinesIsNotReported()
+    {
+        const string testCode = """
+                                union V(int, string);
+
+                                union W(int, string)
+                                {
+                                    public int X => 1;
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies that a union nested in a class whose braces share one line is reported and laid out
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5404-001")]
+    [Requirement("RH5404-003")]
+    public async Task NestedSingleLineUnionIsReportedAndLaidOut()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    union {|RH5404:U|}(int, string) { public int X => 1; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     union U(int, string)
+                                     {
+                                         public int X => 1;
+                                     }
+                                 }
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, fixedCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a single-line union formats the whole union through the formatter, so the union's
+    /// attribute list with two attributes is split into one list per attribute as the formatter splits it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5404-003")]
+    public async Task FixOfSingleLineUnionSplitsItsAttributeListAsTheFormatterDoes()
+    {
+        const string testCode = """
+                                using System;
+
+                                [Serializable, Obsolete] union {|RH5404:U|}(int, string) { public int X => 1; }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 [Serializable]
+                                 [Obsolete]
+                                 union U(int, string)
+                                 {
+                                     public int X => 1;
+                                 }
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, fixedCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
     }
 
     #endregion // Tests

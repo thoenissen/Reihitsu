@@ -925,6 +925,45 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : BatchCodeFixTe
         await VerifyCodeFixWithEndOfLine(testData, resultData, "\r\n");
     }
 
+    /// <summary>
+    /// Verifies the with element example of RH5101-001: a first argument of a with element below its opening
+    /// parenthesis is reported and joined, and a with element on one line is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5101-001")]
+    public async Task WithElementFirstArgumentBelowParenthesisIsReportedAndJoined()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        List<int> a = [with(
+                                            {|RH5101:4|}), 1];
+                                        List<int> b = [with(4), 1];
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Collections.Generic;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         List<int> a = [with(4), 1];
+                                         List<int> b = [with(4), 1];
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

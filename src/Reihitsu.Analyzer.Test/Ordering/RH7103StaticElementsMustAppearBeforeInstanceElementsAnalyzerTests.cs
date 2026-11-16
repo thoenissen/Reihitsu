@@ -3251,6 +3251,39 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
         await Verify(source, fixedSource);
     }
 
+    /// <summary>
+    /// Verifies the union example of RH7103-001: a static method after an instance method of the same accessibility in
+    /// a union is reported, and the fix moves it in front of the instance method
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7103-001")]
+    [Requirement("RH7103-006")]
+    public async Task UnionStaticMemberAfterInstanceMemberIsReportedAndMoved()
+    {
+        const string testCode = """
+                                union U(int, string)
+                                {
+                                    public int Get() => 1;
+
+                                    public static int {|RH7103:Create|}() => 2;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 union U(int, string)
+                                 {
+                                     public static int Create() => 2;
+
+                                     public int Get() => 1;
+                                 }
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, fixedCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region Methods

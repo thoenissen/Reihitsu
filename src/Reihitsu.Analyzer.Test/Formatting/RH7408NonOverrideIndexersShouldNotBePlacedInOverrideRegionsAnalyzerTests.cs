@@ -369,6 +369,36 @@ public class RH7408NonOverrideIndexersShouldNotBePlacedInOverrideRegionsAnalyzer
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a non-override indexer in the Object region of a union that overrides ToString is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-REGGROUP-001")]
+    [Requirement("RH7408-001")]
+    public async Task UnionNonOverrideIndexerInOverrideRegionIsReported()
+    {
+        const string testCode = """
+                                union U(int, string)
+                                {
+                                    #region Object
+
+                                    public override string ToString()
+                                    {
+                                        return "";
+                                    }
+
+                                    public int {|RH7408:this|}[int index] => index;
+
+                                    #endregion
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region Methods

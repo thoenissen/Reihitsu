@@ -691,5 +691,22 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
         await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the union example of RH5035-001: a comment inside the case-type list of a union is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5035-001")]
+    public async Task CommentInsideUnionCaseTypeListIsReported()
+    {
+        const string testCode = """
+                                union U(int {|RH5035:/* number */|}, string);
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 }

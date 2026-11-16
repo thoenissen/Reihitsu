@@ -1096,6 +1096,25 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Batch
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies the union example of RH5107-001: a comma of a union's case-type list below the case type in front of it
+    /// is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5107-001")]
+    public async Task UnionCaseTypeListCommaBelowCaseTypeIsReported()
+    {
+        const string testCode = """
+                                union U(int
+                                        {|RH5107:,|} string);
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region Methods

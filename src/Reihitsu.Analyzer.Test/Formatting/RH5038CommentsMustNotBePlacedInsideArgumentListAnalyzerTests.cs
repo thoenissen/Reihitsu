@@ -2060,5 +2060,29 @@ public class RH5038CommentsMustNotBePlacedInsideArgumentListAnalyzerTests : Anal
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5038CommentsMustNotBePlacedInsideArgumentListAnalyzer.DiagnosticId, AnalyzerResources.RH5038MessageFormat, 3));
     }
 
+    /// <summary>
+    /// Verifies the with element example of RH5038-001: a comment inside the argument list of a with element of a
+    /// collection expression is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5038-001")]
+    public async Task CommentInsideWithElementArgumentListIsReported()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        List<int> a = [with({|RH5038:/* capacity */|} 4), 1];
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }

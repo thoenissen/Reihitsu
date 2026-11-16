@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Analyzer.Test.Verifiers;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline;
 using Reihitsu.Formatter.Utilities;
@@ -49,6 +50,21 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     }
 
     /// <summary>
+    /// Verifies that the formatter fixes a rule violation and remains stable on a second pass under LF and CRLF line endings,
+    /// with additional configuration of every analyzer run, such as a reference the source needs to compile
+    /// </summary>
+    /// <param name="source">The source text before formatting, including analyzer-test markup</param>
+    /// <param name="fixedSource">The expected formatted source text</param>
+    /// <param name="onConfigure">Additional configuration of every analyzer run</param>
+    /// <param name="expected">The expected diagnostics before formatting</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    protected static async Task VerifyFormatter(string source, string fixedSource, Action<CSharpAnalyzerVerifierTest<TAnalyzer>> onConfigure, params DiagnosticResult[] expected)
+    {
+        await VerifyFormatter(source, fixedSource, Environment.NewLine, onConfigure, expected);
+        await VerifyFormatter(AlternateLineEndings(source), AlternateLineEndings(fixedSource), AlternateLineEndings(Environment.NewLine), onConfigure, expected);
+    }
+
+    /// <summary>
     /// Creates an expected diagnostic with an explicit span
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
@@ -74,17 +90,34 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     private static async Task VerifyFormatter(string source, string fixedSource, string endOfLine, DiagnosticResult[] expected)
     {
-        fixedSource ??= source;
+        await VerifyFormatter(source, fixedSource, endOfLine, null, expected);
+    }
 
-        await Verify(source, expected);
+    /// <summary>
+    /// Verifies that the formatter fixes a rule violation and remains stable on a second pass under LF and CRLF line endings
+    /// </summary>
+    /// <param name="source">The source text before formatting, including analyzer-test markup</param>
+    /// <param name="fixedSource">The expected formatted source text</param>
+    /// <param name="endOfLine">End of line sequence</param>
+    /// <param name="onConfigure">Additional configuration of every analyzer run, or <see langword="null"/> for none</param>
+    /// <param name="expected">Expected diagnostics</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyFormatter(string source, string fixedSource, string endOfLine, Action<CSharpAnalyzerVerifierTest<TAnalyzer>> onConfigure, DiagnosticResult[] expected)
+    {
+        fixedSource ??= source;
+        onConfigure ??= _ =>
+                        {
+                        };
+
+        await Verify(source, onConfigure, expected ?? []);
 
         var formatted = await VerifyFormatterFixCore(source, fixedSource, null, endOfLine);
 
-        await Verify(formatted);
+        await Verify(formatted, onConfigure);
 
         var reformatted = await VerifyFormatterFixCore(formatted, fixedSource, null, endOfLine);
 
-        await Verify(reformatted);
+        await Verify(reformatted, onConfigure);
     }
 
     /// <summary>

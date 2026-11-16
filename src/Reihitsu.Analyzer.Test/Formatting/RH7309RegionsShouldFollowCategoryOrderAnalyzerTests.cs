@@ -5112,6 +5112,73 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
         Assert.AreEqual(expected, fixedSource);
     }
 
+    /// <summary>
+    /// Verifies the union example of RH7309-002: a custom region after an interface region of a union is reported on
+    /// its region directive, and the fix orders the regions as in a struct
+    /// </summary>
+    /// <param name="endOfLine">Line break of the source and the expected result</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7309-002")]
+    [Requirement("RH7309-003")]
+    [Requirement("RH7309-004")]
+    [DataRow("\n", DisplayName = "LF")]
+    [DataRow("\r\n", DisplayName = "CRLF")]
+    public async Task UnionCustomRegionAfterInterfaceRegionIsReportedAndReordered(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                public union U(int, string) : IComparable
+                                {
+                                    #region IComparable
+
+                                    public int CompareTo(object o)
+                                    {
+                                        return 0;
+                                    }
+
+                                    #endregion // IComparable
+
+                                    {|RH7309:#region Methods|}
+
+                                    public void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 public union U(int, string) : IComparable
+                                 {
+                                     #region Methods
+
+                                     public void M()
+                                     {
+                                     }
+
+                                     #endregion // Methods
+
+                                     #region IComparable
+
+                                     public int CompareTo(object o)
+                                     {
+                                         return 0;
+                                     }
+
+                                     #endregion // IComparable
+                                 }
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine), test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region Methods

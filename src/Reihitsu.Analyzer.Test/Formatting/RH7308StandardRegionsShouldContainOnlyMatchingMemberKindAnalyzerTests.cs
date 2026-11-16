@@ -886,6 +886,64 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies the union example of RH7308-001: a field in a Methods region of a union is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7308-001")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task UnionMemberOfOtherKindInStandardRegionIsReported()
+    {
+        const string testCode = """
+                                union U(int, string)
+                                {
+                                    #region Methods
+
+                                    public static int {|RH7308:Count|};
+
+                                    #endregion
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies that a member of a union nested in a class is judged by the union's own region, not by the class region
+    /// around the union
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7308-001")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task NestedUnionMemberIsJudgedByTheUnionsRegion()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    #region Fields
+
+                                    union N(int, string)
+                                    {
+                                        #region Methods
+
+                                        public int Get() => 1;
+
+                                        #endregion
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region Methods

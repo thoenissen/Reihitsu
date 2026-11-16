@@ -399,6 +399,83 @@ public class RH7110MembersMustBeOrderedByAccessibilityAnalyzerTests : AnalyzerTe
         await Verify(testCode, Diagnostics(RH7110MembersMustBeOrderedByAccessibilityAnalyzer.DiagnosticId, AnalyzerResources.RH7110MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the union example of RH7110-001: a public method after a private method in a union is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7110-001")]
+    public async Task UnionMemberAfterMemberLaterInTheOrderIsReported()
+    {
+        const string testCode = """
+                                union U(int, string)
+                                {
+                                    private int A() => 1;
+
+                                    public int {|RH7110:B|}() => 2;
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies the example of RH7110-001 that compares a member with every earlier member of its group: a member whose
+    /// accessibility comes after the previous member's but before an earlier member's is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7110-001")]
+    public async Task MemberIsComparedWithEveryEarlierMemberOfItsGroup()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    private int _a;
+                                    public int {|RH7110:B|};
+                                    internal int {|RH7110:D|};
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the members of change doc example 3 in a union: each method and field that follows a member of its
+    /// group later in the accessibility order is reported, as in a struct
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7110-001")]
+    public async Task UnionMembersAreOrderedByAccessibilityAsInAStruct()
+    {
+        const string testCode = """
+                                public union U(int, string)
+                                {
+                                    private void A()
+                                    {
+                                    }
+
+                                    public void {|RH7110:B|}()
+                                    {
+                                    }
+
+                                    public static int S;
+                                    public static readonly int RO = 1;
+                                    public const int K = 2;
+                                    public static void {|RH7110:Z|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Diagnostic cases
 
     #region Non-diagnostic cases

@@ -354,6 +354,36 @@ public class RH7406NonOverridePropertiesShouldNotBePlacedInOverrideRegionsAnalyz
                      Diagnostics(RH7406NonOverridePropertiesShouldNotBePlacedInOverrideRegionsAnalyzer.DiagnosticId, CreateMessage("B")));
     }
 
+    /// <summary>
+    /// Verifies that a non-override property in the Object region of a union that overrides ToString is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-REGGROUP-001")]
+    [Requirement("RH7406-001")]
+    public async Task UnionNonOverridePropertyInOverrideRegionIsReported()
+    {
+        const string testCode = """
+                                union U(int, string)
+                                {
+                                    #region Object
+
+                                    public override string ToString()
+                                    {
+                                        return "";
+                                    }
+
+                                    public int {|RH7406:Count|} => 1;
+
+                                    #endregion
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region Methods

@@ -1892,6 +1892,40 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : BatchCodeFi
         await Verify(source, fixedSource, test => test.SolutionTransforms.Add(ApplyPreviewLanguageVersionToTestProject));
     }
 
+    /// <summary>
+    /// Verifies the union example of SHARED-MODORDER-001 for RH7105: the modifiers of a union out of the canonical
+    /// order are reported, and the fix writes the canonical order
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-001")]
+    [Requirement("RH7105-001")]
+    [Requirement("RH7105-004")]
+    public async Task UnionModifiersOutOfOrderAreReportedAndOrdered()
+    {
+        const string testCode = """
+                                {|RH7105:readonly|} public union U(int, string);
+
+                                public class C
+                                {
+                                    {|RH7105:readonly|} private union N(int, string);
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public readonly union U(int, string);
+
+                                 public class C
+                                 {
+                                     private readonly union N(int, string);
+                                 }
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, fixedCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region Methods

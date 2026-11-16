@@ -144,6 +144,55 @@ public class RH5507StructAttributesMustFollowPlacementRulesAnalyzerTests : Batch
                      Diagnostics(RH5507StructAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5507MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the union example of RH5507-001: an attribute list of a union that shares its line with the union is
+    /// reported, and the fix moves the union onto the next line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the source and the expected result</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5507-001")]
+    [Requirement("RH5507-002")]
+    [Requirement("RH5507-003")]
+    [DataRow("\n", DisplayName = "LF")]
+    [DataRow("\r\n", DisplayName = "CRLF")]
+    public async Task UnionAttributeListOnDeclarationLineIsReportedAndMoved(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                {|RH5507:[Serializable]|} union U(int, string);
+
+                                [Serializable]
+                                union V(int, string);
+
+                                public class C
+                                {
+                                    {|RH5507:[type: Serializable]|} union N(int, string);
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 [Serializable]
+                                 union U(int, string);
+
+                                 [Serializable]
+                                 union V(int, string);
+
+                                 public class C
+                                 {
+                                     [type: Serializable]
+                                     union N(int, string);
+                                 }
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine), test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

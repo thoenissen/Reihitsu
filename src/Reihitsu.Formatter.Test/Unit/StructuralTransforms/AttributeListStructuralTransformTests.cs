@@ -46,6 +46,7 @@ public class AttributeListStructuralTransformTests : FormatterTestsBase
     [DataRow("[A, B] struct D\n{\n    int _x;\n}\n", "[A][B]", DisplayName = "Struct")]
     [DataRow("[A, B] interface I\n{\n    void M();\n}\n", "[A][B]", DisplayName = "Interface")]
     [DataRow("[A, B] record R(int X);\n", "[A][B]", DisplayName = "Record")]
+    [DataRow("[A, B] union U(int, string);\n", "[A][B]", DisplayName = "Union")]
     [DataRow("[A, B] enum E\n{\n    X\n}\n", "[A][B]", DisplayName = "Enum")]
     [DataRow("[A, B] delegate void D();\n", "[A][B]", DisplayName = "Delegate")]
     [DataRow("class C\n{\n    [A, B] void M()\n    {\n    }\n}\n", "[A][B]", DisplayName = "Method")]
