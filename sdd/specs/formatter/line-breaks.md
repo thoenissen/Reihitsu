@@ -1796,7 +1796,7 @@ In the whole pipeline, FMT-BLANK keeps the first of these blank lines and remove
 
 Where the phase joins two tokens onto one line, it MUST leave the gap between them without whitespace, unless the two tokens written without whitespace would not read back as the same two tokens — they would read as one token, as another pair of tokens, or as the start of a comment; there it MUST write exactly one space. The phase MUST NOT write, remove, or change whitespace in any other gap between two tokens that are on the same line before and after the phase. The spaces of every gap on one line, a joined gap included, are decided by FMT-SPACE (FMT-SPACE-002).
 
-This holds for every join of the phase: a list element's interior wrap (FMT-BREAK-015), a list, its delimiters, and its separators (FMT-BREAK-011 to FMT-BREAK-014), an assignment's operator and value (FMT-BREAK-016), the branch behind a `?` or `:` that moves to the next line (FMT-BREAK-018), a chain's member names and attached parts (FMT-BREAK-019, FMT-BREAK-020), a binary operator that moves to the start of the next line and the operand behind it (FMT-BREAK-017), an accessor list and its accessors (FMT-BREAK-024), the arrow and expression of a property or indexer (FMT-BREAK-026), a `when` guard (FMT-BREAK-028), a declaration's semicolon (FMT-BREAK-009), and the token behind an attribute list (FMT-BREAK-027).
+This holds for every join of the phase: a list element's interior wrap (FMT-BREAK-015), a list, its delimiters, and its separators (FMT-BREAK-011 to FMT-BREAK-014), an assignment's operator and value (FMT-BREAK-016), the branch behind a `?` or `:` that moves to the next line (FMT-BREAK-018), a chain's member names and attached parts (FMT-BREAK-019, FMT-BREAK-020), an argument list's opening parenthesis and the token in front of it (FMT-BREAK-039), a binary operator that moves to the start of the next line and the operand behind it (FMT-BREAK-017), an accessor list and its accessors (FMT-BREAK-024), the arrow and expression of a property or indexer (FMT-BREAK-026), a `when` guard (FMT-BREAK-028), a declaration's semicolon (FMT-BREAK-009), and the token behind an attribute list (FMT-BREAK-027).
 
 Why: A space chosen by the kind of the joined tokens is a spacing decision, which FMT-SPACE owns; when this phase made it, the same pair was spaced one way when joined and another way when written on one line, and the phase spaced constructs such as a property's arrow even where it joined nothing. Two tokens that would read as one are the exception, because the phase's text has to be its tree (FMT-PIPE-021) and the program must not change (FMT-PIPE-003): `protected` and `internal` joined without a space read as the identifier `protectedinternal`, `-` and `-b` as `--b`, and `/` and `*p` as the start of a comment. The structural transforms follow the same rule for the tokens they create (FMT-STRUCT-026).
 
@@ -2897,3 +2897,171 @@ class C
     }
 }
 ```
+
+### FMT-BREAK-039 — An argument list starts on the line of the code in front of it
+
+When a line break separates the opening parenthesis of an argument list from the token in front of it, the parenthesis MUST be joined onto that token's line. This holds for the argument list of an invocation, whatever expression is invoked (`Foo⏎(4)`, `(f)⏎(1)`, `Make(1)⏎(2)`), of an object creation (`new List<int>⏎(4)`) and an implicit object creation (`new⏎(4)`), of a constructor initializer (`: base⏎(1)`, `: this⏎()`), of a primary-constructor base type (`class E() : B⏎(1)`), and of the `with(…)` element of a collection expression (`[with⏎(4)]`). Blank lines in the gap go with the join (FMT-BREAK-030).
+
+The line break the join removes still counts where FMT-BREAK-022 decides whether a collection expression spans several lines: a collection expression that spans several lines only because of it gets one element per line, as it does when FMT-BREAK-020 rejoins a split inside one of its elements.
+
+This requirement specifies the outcome only for the argument lists it names. It does not decide the gap in front of the `[` of a bracketed argument list, nor in front of the `(` of an attribute argument list.
+
+Why: An argument list belongs to the expression or keyword in front of it; on a line of its own it reads as a parenthesized expression that starts a new line, and no column the indentation phase can give it shows that it belongs to the code above. FMT-BREAK-020 already joins an argument list onto its element in a chain, and FMT-BREAK-015 inside a list element; this requirement makes the same join everywhere else. A collection expression keeps the one-element-per-line layout its author's line breaks give it, as it does for every other join inside an element. No analyzer rule reports such an argument list ([P11](../../README.md#the-formatter-may-do-more-than-the-analyzers-p11)); RH5105 reports the opening parenthesis of a parameter list only.
+
+Example:
+
+```csharp
+using System;
+using System.Collections.Generic;
+
+class B
+{
+    public B(int x)
+    {
+    }
+}
+
+class D : B
+{
+    public D()
+        : base
+        (1)
+    {
+    }
+}
+
+class E() : B
+    (1);
+
+class C
+{
+    void M(Func<int, int> f)
+    {
+        Foo
+        (4);
+
+        var l = new List<int>
+        (4);
+        List<int> k = new
+
+        (4);
+        var r = (f)
+        (1);
+    }
+
+    void Foo(int x)
+    {
+    }
+}
+```
+
+```csharp
+using System;
+using System.Collections.Generic;
+
+class B
+{
+    public B(int x)
+    {
+    }
+}
+
+class D : B
+{
+    public D()
+        : base(1)
+    {
+    }
+}
+
+class E() : B(1);
+
+class C
+{
+    void M(Func<int, int> f)
+    {
+        Foo(4);
+
+        var l = new List<int>(4);
+        List<int> k = new(4);
+        var r = (f)(1);
+    }
+
+    void Foo(int x)
+    {
+    }
+}
+```
+
+Example — the argument list of a `with(…)` element and of an element joins its name; the collection expressions were written over several lines and keep one element per line:
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        HashSet<int> h = [with
+        (4), 1, 2];
+        int[] a = [Bar
+        (4)];
+    }
+
+    int Bar(int x)
+    {
+        return x;
+    }
+}
+```
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        HashSet<int> h = [
+                             with(4),
+                             1,
+                             2
+                         ];
+        int[] a = [
+                      Bar(4)
+                  ];
+    }
+
+    int Bar(int x)
+    {
+        return x;
+    }
+}
+```
+
+Example — a comment, a directive, or disabled text in the gap keeps the parenthesis on its own line (FMT-BREAK-001):
+
+```csharp
+class C
+{
+    void M()
+    {
+        Foo // four
+        (4);
+        Foo /* four */
+        (4);
+        Foo
+#if X
+        (4);
+#else
+        (5);
+#endif
+    }
+
+    void Foo(int x)
+    {
+    }
+}
+```
+
+is left unchanged.
