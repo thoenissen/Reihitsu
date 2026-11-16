@@ -286,8 +286,8 @@ public class RH5020CommentsShouldBePrecededByABlankLineFormatterTests : Formatte
     }
 
     /// <summary>
-    /// Verifies that the formatter leaves no blank line above the first comment behind an opening parenthesis, bracket, or
-    /// <c>&lt;</c>, that RH5020 reports neither the input nor the output, and that a second pass is stable
+    /// Verifies that the formatter leaves no blank line above the first comment behind an opening parenthesis or bracket,
+    /// that RH5020 reports neither the input nor the output, and that a second pass is stable
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -319,12 +319,6 @@ public class RH5020CommentsShouldBePrecededByABlankLineFormatterTests : Formatte
                                      1,
                                      2
                                  ];
-
-                                 void O<
-                                     // first
-                                     T>()
-                                 {
-                                 }
                              }
                              """;
         const string fixedData = """
@@ -351,12 +345,6 @@ public class RH5020CommentsShouldBePrecededByABlankLineFormatterTests : Formatte
                                                    1,
                                                    2
                                                ];
-
-                                     void O<
-                                     // first
-                                     T>()
-                                     {
-                                     }
                                  }
                                  """;
 

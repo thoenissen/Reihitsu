@@ -31,13 +31,12 @@ public class FirstCommentBehindOpeningTokenTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the specification example: a comment that is the first content behind the opening parenthesis of a
-    /// record's parameter list, a union's case-type list, a method's parameter list, and an argument list, behind the
-    /// opening bracket of a collection expression and a list pattern, and behind the <c>&lt;</c> of a type parameter list
-    /// gets no blank line
+    /// record's parameter list, a union's case-type list, a method's parameter list, and an argument list, and behind the
+    /// opening bracket of a collection expression and a list pattern gets no blank line
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-011")]
-    public void SpecExampleFirstCommentBehindOpeningParenthesisBracketOrLessThanGetsNoBlankLine()
+    public void SpecExampleFirstCommentBehindOpeningParenthesisOrBracketGetsNoBlankLine()
     {
         // Arrange
         const string input = """
@@ -78,12 +77,6 @@ public class FirstCommentBehindOpeningTokenTests : FormatterTestsBase
                                          ..
                                      ];
                                  }
-
-                                 void O<
-                                     // first
-                                     T>()
-                                 {
-                                 }
                              }
                              """;
         const string expected = """
@@ -123,12 +116,6 @@ public class FirstCommentBehindOpeningTokenTests : FormatterTestsBase
                                                         1,
                                                         ..
                                                     ];
-                                    }
-
-                                    void O<
-                                    // first
-                                    T>()
-                                    {
                                     }
                                 }
                                 """;
@@ -224,8 +211,7 @@ public class FirstCommentBehindOpeningTokenTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that the first comment behind the opening token of an attribute argument list, an indexer's parameter
-    /// list, a type parameter list, a tuple, an array size, and an element access gets no blank line, and that nothing
-    /// else of the layout changes
+    /// list, a tuple, and an element access gets no blank line, and that nothing else of the layout changes
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-011")]
@@ -244,17 +230,12 @@ public class FirstCommentBehindOpeningTokenTests : FormatterTestsBase
                                      // first
                                      int i] => i;
 
-                                 void M<
-                                     // first
-                                     T>()
+                                 void M(int[] a)
                                  {
                                      var t = (
                                          // first
                                          1,
                                          2);
-                                     var a = new int[
-                                         // first
-                                         3];
                                      _ = a[
                                          // first
                                          0];
@@ -274,17 +255,12 @@ public class FirstCommentBehindOpeningTokenTests : FormatterTestsBase
                                              // first
                                              int i] => i;
 
-                                    void M<
-                                    // first
-                                    T>()
+                                    void M(int[] a)
                                     {
                                         var t = (
                                                  // first
                                                  1,
                                                  2);
-                                        var a = new int[
-                                        // first
-                                        3];
                                         _ = a[
                                               // first
                                               0];
@@ -436,13 +412,13 @@ public class FirstCommentBehindOpeningTokenTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a blank line the author wrote behind an opening parenthesis, bracket, or <c>&lt;</c> is kept, while
-    /// the one behind an opening brace is removed
+    /// Verifies that a blank line the author wrote behind an opening parenthesis or bracket is kept, while the one behind
+    /// an opening brace is removed
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-011")]
     [Requirement("FMT-BLANK-007")]
-    public void AuthorsBlankLineBehindOpeningParenthesisBracketOrLessThanIsKept()
+    public void AuthorsBlankLineBehindOpeningParenthesisOrBracketIsKept()
     {
         // Arrange
         const string input = """
@@ -461,14 +437,11 @@ public class FirstCommentBehindOpeningTokenTests : FormatterTestsBase
                                      2
                                  ];
 
-                                 void O<
-
-                                     // first
-                                     T>()
+                                 void O()
                                  {
 
                                      // first
-                                     O<T>();
+                                     O();
                                  }
                              }
                              """;
@@ -488,13 +461,10 @@ public class FirstCommentBehindOpeningTokenTests : FormatterTestsBase
                                                   2
                                               ];
 
-                                    void O<
-
-                                    // first
-                                    T>()
+                                    void O()
                                     {
                                         // first
-                                        O<T>();
+                                        O();
                                     }
                                 }
                                 """;
@@ -506,8 +476,8 @@ public class FirstCommentBehindOpeningTokenTests : FormatterTestsBase
     /// <summary>
     /// Verifies that the first comment behind the opening parenthesis of a statement header, a cast, a parenthesized
     /// expression, a positional and a parenthesized pattern, and a lambda's parameter list, behind the opening bracket of
-    /// an attribute list and of a nested collection expression, and behind the <c>&lt;</c> of a type argument list and a
-    /// function pointer parameter list gets no blank line
+    /// an attribute list, an array size, and a nested collection expression, and behind the <c>&lt;</c> of a type
+    /// parameter list, a type argument list, and a function pointer parameter list gets no blank line
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-011")]
@@ -557,13 +527,23 @@ public class FirstCommentBehindOpeningTokenTests : FormatterTestsBase
                                              1
                                          ]
                                      ];
+                                     var s = new int[
+                                         // array size
+                                         3];
                                      _ = f;
                                      _ = n;
+                                     _ = s;
 
                                      return null;
                                  }
 
                                  T M<T>(object o) => default;
+
+                                 void O<
+                                     // type parameter
+                                     T>()
+                                 {
+                                 }
 
                                  unsafe void P(delegate*<
                                      // function pointer
@@ -585,7 +565,209 @@ public class FirstCommentBehindOpeningTokenTests : FormatterTestsBase
                               ("// lambda", false),
                               ("// invocation", false),
                               ("// nested", false),
+                              ("// array size", false),
+                              ("// type parameter", false),
                               ("// function pointer", false));
+    }
+
+    /// <summary>
+    /// Verifies that a blank line the author wrote behind the <c>&lt;</c> of a type parameter list is kept
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-011")]
+    public void AuthorsBlankLineBehindLessThanOfTypeParameterListIsKept()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void O<
+
+                                     // first
+                                     T>()
+                                 {
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertBlankLinesAbove(input, ("// first", true));
+    }
+
+    /// <summary>
+    /// Verifies that a blank line the author wrote behind the opening bracket of an empty collection expression is kept
+    /// above the comment that the closing bracket owns, and that none stands between that comment and the closing bracket
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-011")]
+    [Requirement("FMT-BLANK-019")]
+    public void AuthorsBlankLineBehindOpeningBracketOfEmptyCollectionExpressionIsKept()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int[] M()
+                                 {
+                                     int[] e = [
+
+                                         // none yet
+                                     ];
+
+                                     return e;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertBlankLinesAbove(input,
+                              ("// none yet", true),
+                              ("];", false));
+    }
+
+    /// <summary>
+    /// Verifies that a blank line the author wrote behind the opening bracket of an empty list pattern is kept above the
+    /// comment that the closing bracket owns, and that none stands between that comment and the closing bracket
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-011")]
+    [Requirement("FMT-BLANK-019")]
+    public void AuthorsBlankLineBehindOpeningBracketOfEmptyListPatternIsKept()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 bool M(int[] a)
+                                 {
+                                     return a is [
+
+                                         // empty
+                                     ];
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertBlankLinesAbove(input,
+                              ("// empty", true),
+                              ("];", false));
+    }
+
+    /// <summary>
+    /// Verifies that the author's blank line behind the opening bracket of an empty collection expression is kept above
+    /// the comment the closing bracket owns, while the blank line the author wrote between that comment and the closing
+    /// bracket is removed
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-011")]
+    [Requirement("FMT-BLANK-020")]
+    public void AuthorsBlankLineBehindOpeningBracketIsKeptWhileBlankLineBehindCommentBeforeClosingBracketIsRemoved()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int[] M()
+                                 {
+                                     int[] e = [
+
+                                         // none yet
+
+                                     ];
+
+                                     return e;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertBlankLinesAbove(input,
+                              ("// none yet", true),
+                              ("];", false));
+    }
+
+    /// <summary>
+    /// Verifies that the blank line the author wrote behind the opening bracket of an empty collection expression and an
+    /// empty list pattern is removed above a comment glued to the closing bracket, as directly before that bracket
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-011")]
+    [Requirement("FMT-BLANK-018")]
+    public void BlankLineBehindOpeningBracketIsRemovedAboveCommentGluedToClosingBracket()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 bool M(int[] a)
+                                 {
+                                     int[] e = [
+
+                                         /* collection */ ];
+
+                                     return a is [
+
+                                         /* pattern */ ];
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertBlankLinesAbove(input,
+                              ("/* collection */", false),
+                              ("/* pattern */", false));
+    }
+
+    /// <summary>
+    /// Verifies that a blank line the author wrote behind the opening parenthesis of a positional pattern is kept above a
+    /// comment that the opening brace of a property pattern owns
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-011")]
+    public void AuthorsBlankLineBehindOpeningParenthesisIsKeptAboveCommentBeforePropertyPattern()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 bool M((string, int) t)
+                                 {
+                                     return t is (
+
+                                         // text
+                                         { Length: 0 }, 1);
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertBlankLinesAbove(input, ("// text", true));
+    }
+
+    /// <summary>
+    /// Verifies that without a comment, the blank line behind the opening parenthesis of a positional pattern is removed,
+    /// since it stands directly before the opening brace of a property pattern
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BLANK-008")]
+    public void BlankLineBehindOpeningParenthesisIsRemovedDirectlyBeforePropertyPatternWithoutComment()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 bool M((string, int) t)
+                                 {
+                                     return t is (
+
+                                         { Length: 0 }, 1);
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertBlankLinesAbove(input, ("{ Length: 0 }", false));
     }
 
     /// <summary>
