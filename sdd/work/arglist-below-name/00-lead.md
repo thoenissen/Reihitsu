@@ -30,4 +30,5 @@
 
 - Last step: spec author amendment (03, 69fcd5f); change doc accepted by lead pending answers; OQ batch 1–4 (03-spec-author.md) asked to maintainer.
 - Answers received: 1A 2A 3A 4A.
-- Next: spec author status follow-up (04), then test implementer.
+- Last step: spec author 04 (185f42c), change doc Accepted.
+- Next: test implementer (05).
