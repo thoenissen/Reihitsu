@@ -4,7 +4,7 @@
 |---|---|
 | Status | Draft |
 | Date | 2026-11 |
-| Affected requirements | RH2004-001, RH2004-006, RH5105-001, RH5106-001, RH5108-001, RH5110-001, RH5404-001, RH5404-003, RH5507-001, RH5508-001, RH7102-001, RH7103-001, RH7104-001, RH7104-004, RH7109-001, RH7110-001, RH7308-001, RH7309-002, RH7311-001, SHARED-ATTR-001, SHARED-MODORDER-001, SHARED-REGGROUP-001, SHARED-TYPEREGION-001, SHARED-TYPEREGION-002, SHARED-TYPEREGION-006; clarified: SHARED-NESTED-001, RH5035-001, RH5038-001, RH5101-001, RH5102-001, RH5107-001, RH5109-001, RH5203-001, RH5305-002, FMT-STRUCT-028 |
+| Affected requirements | RH2004-001, RH2004-006, RH5105-001, RH5106-001, RH5108-001, RH5110-001, RH5404-001, RH5404-003, RH5507-001, RH5508-001, RH7102-001, RH7103-001, RH7104-001, RH7109-001, RH7110-001, RH7308-001, RH7309-002, RH7311-001, RH7311-002, SHARED-ATTR-001, SHARED-MODORDER-001, SHARED-REGGROUP-001, SHARED-TYPEREGION-001, SHARED-TYPEREGION-002, SHARED-TYPEREGION-006; clarified: SHARED-NESTED-001, RH7104-004, RH5035-001, RH5038-001, RH5101-001, RH5102-001, RH5107-001, RH5109-001, RH5203-001, RH5305-002, FMT-STRUCT-028 |
 | Depends on | [Union declarations are laid out like the other type declarations](union-declaration-layout.md), [No space between `with` and its argument list in a collection expression](with-element-spacing.md) |
 
 ## What
@@ -13,7 +13,7 @@ A C# 15 union declaration (`union Pet(Cat, Dog) { … }`) becomes a type declara
 
 - **RH2004** reports a union without an accessibility modifier; its fix adds `internal` at the top level and `private` in a type. A member declared in a union body is already reported and fixed with `private`; RH2004-006 now says so.
 - **RH5404** reports a union whose braces share one line; its fix lays the union out through the formatter (FMT-BREAK-002, FMT-BREAK-007, FMT-STRUCT-017).
-- **RH7102, RH7103, RH7109, RH7110** order the members of a union body; **RH7104** reports a `partial` union without accessibility, and its fix inserts `private` for a type nested in a union; **RH7105, RH7106** check a union's modifiers (SHARED-MODORDER-001).
+- **RH7102, RH7103, RH7109, RH7110** order the members of a union body; **RH7104** reports a `partial` union without accessibility, and its fix inserts `internal` for a top-level union; **RH7105, RH7106** check a union's modifiers (SHARED-MODORDER-001).
 - **RH7305, RH7305A** check a top-level union with members for regions (SHARED-TYPEREGION-001); **RH7308, RH7309, RH7311** check a union's regions; **RH7401 to RH7412** group a union's overrides and interface implementations by region (SHARED-REGGROUP-001). A region inside a union belongs to the union (SHARED-TYPEREGION-006).
 - **RH5105, RH5106, RH5108** check the parentheses and the first case type of a union's case-type list, which the formatter lays out as a primary constructor's parameter list (FMT-BREAK-011); **RH5110** checks a union's constraint clauses (FMT-BREAK-023).
 - A union's attribute lists resolve to the **struct target** (SHARED-ATTR-001), so **RH5507** and **RH5508** check them, and the formatter's attribute split (FMT-STRUCT-028), which keys on the same target resolution, splits them.
@@ -23,6 +23,9 @@ Clarifications that change no output:
 - RH5035, RH5107, and RH5109 already check the case-type list of a union, and the rules that judge a type body by nesting already treat a union body as one (SHARED-NESTED-001): a class nested in a union is reported by RH2101.
 - RH5101, RH5102, RH5203, and RH5038 already check the argument list of a `with(…)` element; RH5305 already counts a `with(…)` element as an element (FMT-BREAK-022). RH6001 does not check the `with` of such an element, which takes its argument list without a space (FMT-SPACE-028); this is now a non-goal.
 - FMT-STRUCT-028 already names every type; its example now shows a union.
+- RH7104 already reports a `partial` type nested in a union and fixes it with `private`; RH7104-004 now says so.
+- RH7110-001 now states what the rule already does: a member is compared with every earlier member of its group (SHARED-USING-007), not only the previous one.
+- RH2103 does not report the case-type list of a union, which is not a primary constructor, and RH2005 does not report the fields of a union, which is a struct; both are now non-goals.
 
 ## Why
 
@@ -132,11 +135,11 @@ public union V(int, string)
 ```
 
 ```csharp
-// before: not reported (the class `N` in the union: not reported either)
+// before: RH7104 on `N` only; the fix writes `private partial class N`
 ```
 
 ```csharp
-// after: RH7104 on `U` and `N`; the fix gives
+// after: RH7104 on `U` and `N`; the fixes give
 internal partial union U(int, string);
 
 public union V(int, string)
@@ -147,7 +150,7 @@ public union V(int, string)
 }
 ```
 
-`N` is reported today when it is nested in a struct; in a union it was skipped because RH7104 registers no union, and its fix needs the union's default (`private`).
+Only `U` is new: RH7104 already reports a `partial` class nested in a union and fixes it with the union's default, `private`.
 
 **5. RH7105, RH7106 — a union's modifiers are ordered.**
 
