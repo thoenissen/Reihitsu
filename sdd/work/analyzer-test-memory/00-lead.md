@@ -24,4 +24,5 @@ None yet.
 
 ## Worklist / next step
 
-- Next: implementer (`01-implementer.md`).
+- First implementer spawn lost: the container restarted while it was measuring, before it committed anything (cause not established; a memory-exhausted container is one possibility).
+- Next: implementer, fresh spawn (`01-implementer.md`).
