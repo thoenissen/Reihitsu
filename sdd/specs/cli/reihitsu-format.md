@@ -4,7 +4,7 @@
 |---|---|
 | ID prefix | CLI |
 | Status | Active |
-| Code owners | `Program`, `ParseResult`, `FormatCommandHandler`, `ExitCodes`, `GeneratedFileUtilities`, `FileProcessResult`, `DefaultFileSystem`, `DefaultConsoleInput`, `DefaultSourceFormatter`, `DiffGenerator` |
+| Code owners | `Program`, `ParseResult`, `FormatCommandHandler`, `BufferedConsoleOutput`, `ExitCodes`, `GeneratedFileUtilities`, `FileProcessResult`, `DefaultFileSystem`, `DefaultConsoleInput`, `DefaultSourceFormatter`, `DiffGenerator` |
 | Uses | FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-008, FMT-PIPE-033, FMT-UNSUP-001, FMT-UNSUP-002 |
 
 This spec covers the `reihitsu-format` .NET tool: its arguments, which files it selects and skips, how it reads and writes them, the `--check` and `--dry-run` modes, its console output, and its exit codes. What the formatter does to a file's content is specified under `formatter/`.

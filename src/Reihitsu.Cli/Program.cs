@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -20,6 +21,11 @@ internal static class Program
     /// The option that selects the C# language version
     /// </summary>
     private const string LanguageVersionOption = "--lang-version";
+
+    /// <summary>
+    /// The option that sets the maximum number of files processed at the same time
+    /// </summary>
+    private const string MaxParallelismOption = "--max-parallelism";
 
     #endregion // Constants
 
@@ -107,7 +113,7 @@ internal static class Program
                 var diffGenerator = new DefaultDiffGenerator();
 
                 var dependencies = new FormatCommandDependencies(fileSystem, console, consoleInput, formatter, diffGenerator);
-                var handler = new FormatCommandHandler(paths.ToArray(), result.CheckOnly, result.DryRun, result.Verbose, result.Force, result.Utf8Bom, result.LanguageVersion, dependencies, result.SuppressUnsupported);
+                var handler = new FormatCommandHandler(paths.ToArray(), result.CheckOnly, result.DryRun, result.Verbose, result.Force, result.Utf8Bom, result.LanguageVersion, dependencies, result.SuppressUnsupported, result.MaxParallelism);
 
                 return await handler.ExecuteAsync(cancellationTokenSource.Token).ConfigureAwait(false);
             }
@@ -152,9 +158,27 @@ internal static class Program
         string argumentError = null;
         var pathsOnly = false;
         var expectsLanguageVersion = false;
+        var maxParallelism = Environment.ProcessorCount;
+        var expectsMaxParallelism = false;
 
         foreach (var arg in args)
         {
+            if (expectsMaxParallelism)
+            {
+                expectsMaxParallelism = false;
+
+                if (TryParseMaxParallelism(arg, out var requestedParallelism))
+                {
+                    maxParallelism = requestedParallelism;
+                }
+                else
+                {
+                    argumentError ??= $"Invalid value for {MaxParallelismOption}: '{arg}'. Expected a whole number of 1 or more.";
+                }
+
+                continue;
+            }
+
             if (expectsLanguageVersion)
             {
                 expectsLanguageVersion = false;
@@ -243,6 +267,12 @@ internal static class Program
                     }
                     break;
 
+                case MaxParallelismOption:
+                    {
+                        expectsMaxParallelism = true;
+                    }
+                    break;
+
                 default:
                     {
                         if (arg.StartsWith('-'))
@@ -265,7 +295,12 @@ internal static class Program
             argumentError ??= $"Missing value for {LanguageVersionOption}.";
         }
 
-        return new ParseResult(checkOnly, dryRun, verbose, force, utf8Bom, suppressUnsupported, showHelp, showVersion, paths, unknownOption, languageVersion, exceedingLanguageVersion, argumentError);
+        if (expectsMaxParallelism)
+        {
+            argumentError ??= $"Missing value for {MaxParallelismOption}.";
+        }
+
+        return new ParseResult(checkOnly, dryRun, verbose, force, utf8Bom, suppressUnsupported, showHelp, showVersion, paths, unknownOption, languageVersion, exceedingLanguageVersion, argumentError, maxParallelism);
     }
 
     /// <summary>
@@ -291,9 +326,25 @@ internal static class Program
         writer.WriteLine("               C# language version to parse and format for, such as 12, 12.0, latest, or preview (default: latest)");
         writer.WriteLine($"               latest selects {LanguageVersionResolver.MaxSupportedLanguageVersion.ToDisplayString()}, the newest supported version; newer values such as preview are lowered to it");
         writer.WriteLine("               LangVersion from project files is not read");
+        writer.WriteLine("  --max-parallelism <count>");
+        writer.WriteLine("               Maximum number of files processed at the same time (default: the number of logical processors)");
         writer.WriteLine("  --help, -h   Show this help message");
         writer.WriteLine("  --version    Show version information");
         writer.WriteLine("  --           Treat all following arguments as paths");
+    }
+
+    /// <summary>
+    /// Parses a <c>--max-parallelism</c> count: decimal digits <c>0</c>-<c>9</c> only, with a value from 1 to
+    /// <see cref="int.MaxValue"/>; a sign, white space, any other character, and a larger value are rejected (CLI-023)
+    /// </summary>
+    /// <param name="value">The value given to the option</param>
+    /// <param name="count">The parsed count, when the value is accepted</param>
+    /// <returns><see langword="true"/> when the value is accepted; otherwise, <see langword="false"/></returns>
+    private static bool TryParseMaxParallelism(string value, out int count)
+    {
+        // NumberStyles.None accepts the ASCII digits 0-9 only: no sign, white space, separator, or exponent
+        return int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out count)
+               && count >= 1;
     }
 
     /// <summary>
