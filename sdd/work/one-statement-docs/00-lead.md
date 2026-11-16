@@ -47,5 +47,5 @@ None yet.
 
 ## State
 
-- Last step: spec author (09), f6a6e62, carried out decision 8.
-- Next: spec checker; auditor on 62a2512..HEAD repair delta; validator; publish.
+- Last step: auditor (11), 91d31d8; pass, no findings. Audited SHA a5acaf9.
+- Next: validator; lane check; issue manager (S1125 candidate); note; delete sdd/work; trigger; PR.
