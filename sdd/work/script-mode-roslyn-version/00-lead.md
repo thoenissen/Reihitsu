@@ -43,4 +43,5 @@ None.
 - Repair 1: cleaner clean (07), spec checker consistent (08, 4e35f30).
 - Audit 2 on 61cf6e1 (main eb89003): finding #2, architecture finding (09-auditor.md, 797c0b4); decision 7.
 - Decision 7 carried out: 1ef7ef0 (10).
-- Next step: cleaner, spec checker, auditor (that change only).
+- Cleaner clean (11), spec checker consistent (12, 0507eaf).
+- Next step: auditor (decision 7 change only).
