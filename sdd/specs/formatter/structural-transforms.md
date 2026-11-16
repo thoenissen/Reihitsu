@@ -802,7 +802,7 @@ Why: Accessor and get-only member shapes are a separate decision a code fix did 
 
 The formatter MUST replace the empty brace body of a class, struct, or interface with a semicolon from C# 12 on, of a record class from C# 9 on, of a record struct from C# 10 on, and of a union declaration from C# 15 on. An empty enum MUST keep its braces.
 
-Why: `class C;` says "no members" without two lines of braces; the analyzer rules RH5412 to RH5416 report the braced form. Each kind is gated by the version that allows its semicolon form (FMT-PIPE-008); an enum has no such form. A union declaration has a semicolon form from the version that introduces it, C# 15, and its case-type list already says what the type holds, so an empty body adds nothing to it either; no analyzer rule reports the braced union, which the formatter may rewrite all the same (P11).
+Why: `class C;` says "no members" without two lines of braces; the analyzer rules RH5412 to RH5416 and RH5418 report the braced form. Each kind is gated by the version that allows its semicolon form (FMT-PIPE-008); an enum has no such form. A union declaration has a semicolon form from the version that introduces it, C# 15, and its case-type list already says what the type holds, so an empty body adds nothing to it either.
 
 Example:
 
