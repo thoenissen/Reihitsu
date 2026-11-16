@@ -77,7 +77,7 @@ The implementation lives in `Reihitsu.Tooling`, a non-packable project inside `R
 
 ## The self-hosting scans
 
-`Reihitsu.SelfHosting.Test` runs the repository's own analyzers and formatter over the repository's own source: one test row per analyzer, and one row per source file for formatter idempotency and for formatter stability. It is a second safety net rather than a requirement check, and it takes long enough that the default `all` run of `test.sh` leaves it out; every other solution test project is in that run. CI runs it on every pull request, and `scripts/test.sh --project selfhosting` runs it locally, narrowed with `--filter` to one analyzer or one file when needed. A violation fails the row of the analyzer or the file that found it and names the file, the line, and the rule.
+`Reihitsu.SelfHosting.Test` runs the repository's own analyzers and formatter over the repository's own source: one test row per analyzer, and one row per source file for formatter idempotency, for formatter stability, and for the stability of the formatted output under each formatter phase run alone. It is a second safety net rather than a requirement check, and it takes long enough that the default `all` run of `test.sh` leaves it out; every other solution test project is in that run. CI runs it on every pull request, and `scripts/test.sh --project selfhosting` runs it locally, narrowed with `--filter` to one analyzer or one file when needed. A violation fails the row of the analyzer or the file that found it and names the file, the line, and the rule.
 
 ## The text-only proof
 
