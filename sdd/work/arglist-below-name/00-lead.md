@@ -40,4 +40,6 @@
 - Cleaner 07 (8154f04): clean.
 - Spec checker 08 (b71bd82): 1 finding (code owners).
 - Spec author 09 (ba51961): code owners listed.
-- Next: spec checker (10), then auditor.
+- Spec checker 10 (a4e0856): consistent. main up to date; Release build green.
+- Auditor 11 spawned on head a4e0856, main eb89003.
+- Next: act on auditor verdict; then validator, issue manager (F1, F2, F3, F5), note, publish.
