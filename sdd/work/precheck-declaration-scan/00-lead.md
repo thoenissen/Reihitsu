@@ -28,5 +28,5 @@
 ## State
 
 - Audited SHA: –
-- Last step: skeptic (01-skeptic.md, verdict proceed, no output questions).
-- Next: test implementer.
+- Last step: test implementer (02-test-implementer.md, cdfafac, 14 characterization tests).
+- Next: implementer.
