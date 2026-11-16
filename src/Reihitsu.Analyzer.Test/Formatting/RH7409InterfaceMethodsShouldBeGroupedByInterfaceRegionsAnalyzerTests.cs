@@ -1106,6 +1106,49 @@ public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzerTest
                      Diagnostics(RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("I")));
     }
 
+    /// <summary>
+    /// Verifies change doc example 8: a union's implementation of an interface method in a Methods region is reported,
+    /// because it comes from IComparable, and the same implementation in a region named IComparable is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-REGGROUP-001")]
+    [Requirement("RH7409-001")]
+    public async Task UnionInterfaceMethodOutsideInterfaceRegionIsReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                public union U(int, string) : IComparable
+                                {
+                                    #region Methods
+
+                                    public int {|RH7409:CompareTo|}(object o)
+                                    {
+                                        return 0;
+                                    }
+
+                                    #endregion // Methods
+                                }
+
+                                public union V(int, string) : IComparable
+                                {
+                                    #region IComparable
+
+                                    public int CompareTo(object o)
+                                    {
+                                        return 0;
+                                    }
+
+                                    #endregion // IComparable
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region Methods

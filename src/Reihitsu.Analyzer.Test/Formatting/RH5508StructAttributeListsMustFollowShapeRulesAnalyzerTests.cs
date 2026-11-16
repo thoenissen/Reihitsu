@@ -307,6 +307,82 @@ public class RH5508StructAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
         await VerifyNoCodeFixIsOffered(testData);
     }
 
+    /// <summary>
+    /// Verifies the union example of RH5508-001: an attribute list of a union with two attributes is reported, and the
+    /// fix gives each attribute a list of its own
+    /// </summary>
+    /// <param name="endOfLine">Line break of the source and the expected result</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5508-001")]
+    [Requirement("RH5508-002")]
+    [Requirement("RH5508-003")]
+    [DataRow("\n", DisplayName = "LF")]
+    [DataRow("\r\n", DisplayName = "CRLF")]
+    public async Task UnionAttributeListWithSeveralAttributesIsReportedAndSplit(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                {|RH5508:[Serializable, Obsolete]|}
+                                union U(int, string);
+
+                                [Serializable]
+                                [Obsolete]
+                                union V(int, string);
+
+                                public class C
+                                {
+                                    {|RH5508:[type: Serializable, Obsolete]|}
+                                    union N(int, string);
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 [Serializable]
+                                 [Obsolete]
+                                 union U(int, string);
+
+                                 [Serializable]
+                                 [Obsolete]
+                                 union V(int, string);
+
+                                 public class C
+                                 {
+                                     [type: Serializable]
+                                     [type: Obsolete]
+                                     union N(int, string);
+                                 }
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine), test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies that an attribute list of a union with a comment inside is reported and no fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5508-001")]
+    [Requirement("RH5508-004")]
+    public async Task UnionAttributeListWithCommentInsideIsReportedWithoutFix()
+    {
+        const string testCode = """
+                                using System;
+
+                                {|RH5508:[Serializable /* c */, Obsolete]|}
+                                union U(int, string);
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -5,7 +5,7 @@
 | ID prefix | FMT-BREAK |
 | Status | Active |
 | Code owners | `LineBreakPhase`, `LineBreakBlockRewriter`, `LineBreakInitializerRewriter`, `LineBreakContainedBlockRewriter`, `LineBreakAssignmentRewriter`, `DeclarationSemicolonLineBreakRewriter`, `ListElementInteriorJoinRewriter`, `ListElementInteriorUtilities`, `LineBreakListRewriter`, `PropertyLayoutLineBreakRewriter`, `GenericConstraintLineBreakRewriter`, `DeclarationBraceLineBreakRewriter`, `MemberLineStartRewriter`, `AttributeTargetFormattingRewriter`, `AttributeTargetFormattingShared`, `BinaryOperatorLineBreakRewriter`, `ChainLineBreakRewriter`, `TernaryLineBreakRewriter`, `SwitchCaseWhenLineBreakRewriter`, `BracePlacer`, `TokenGapNormalizer`, `AccessorListLayout`, `LineBreakDetection`, `LineBreakTriviaUtilities` |
-| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-010, FMT-PIPE-014, FMT-PIPE-021, FMT-PIPE-025, FMT-PIPE-026, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, FMT-UNSUP-008, FMT-UNSUP-009, SHARED-ATTR-014, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-STMT-001 |
+| Uses | FMT-BLANK-001, FMT-BLANK-002, FMT-BLANK-003, FMT-BLANK-004, FMT-BLANK-005, FMT-BLANK-012, FMT-BLANK-018, FMT-CLEAN-001, FMT-DOC-001, FMT-INDENT-003, FMT-INDENT-012, FMT-INDENT-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-010, FMT-PIPE-014, FMT-PIPE-021, FMT-PIPE-025, FMT-PIPE-026, FMT-SPACE-001, FMT-SPACE-002, FMT-SPACE-003, FMT-SPACE-008, FMT-SPACE-017, FMT-SPACE-022, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-026, FMT-STRUCT-028, FMT-STRUCT-029, FMT-SWITCH-003, FMT-UNSUP-008, FMT-UNSUP-009, SHARED-ATTR-014, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-CHAIN-002, SHARED-CHAIN-003, SHARED-CHAIN-004, SHARED-CHAIN-005, SHARED-CHAIN-006, SHARED-COMMENT-012, SHARED-STMT-001 |
 
 This spec covers `LineBreakPhase`, the phase of the pipeline that decides where lines break (its position in the phase order is FMT-PIPE-001): brace placement, one statement and one member per line, the layout of argument, parameter, attribute, and type-argument lists, initializers and patterns, assignments, operators, conditionals, chains, generic constraints, attribute lists, accessor lists, the lines that switch sections, their labels, and their first statements start, and `case … when` guards. The phase adds and removes line breaks and keeps the blank lines it finds (FMT-BREAK-030), and it changes tokens only where it shapes an accessor's attribute lists (FMT-BREAK-032). The columns the resulting lines start in are decided later by FMT-INDENT, and the spaces between tokens on a line by FMT-SPACE.
 
@@ -51,7 +51,7 @@ is left unchanged.
 
 ### FMT-BREAK-002 — Braces start their own line
 
-The opening and the closing brace of every namespace, type, member body, accessor body, statement block, lambda or anonymous-method block, local function, and switch statement MUST each start their own line, and the first token after an opening brace MUST start a new line. An empty body MUST therefore span two lines. A first statement behind the closing `*/` of a delimited comment that spans several lines is placed as FMT-BREAK-006 states, and the first section of a switch statement there as FMT-BREAK-033 states.
+The opening and the closing brace of every namespace, type — a union declaration included —, member body, accessor body, statement block, lambda or anonymous-method block, local function, and switch statement MUST each start their own line, and the first token after an opening brace MUST start a new line. An empty body MUST therefore span two lines. A first statement behind the closing `*/` of a delimited comment that spans several lines is placed as FMT-BREAK-006 states, and the first section of a switch statement there as FMT-BREAK-033 states.
 
 This holds for the node a node-level entry point formats as it holds for a document: when the target is a member body, a block, or an event's accessor list, its braces are placed, whether the declaration that owns it lies inside the formatted node or not.
 
@@ -112,6 +112,19 @@ class C
 ```
 
 The same holds for the body of a constructor and of a local function, and for the accessor list of an event, each as the target.
+
+Example — a union declaration's braces are placed as a class's are, and its members start their own lines (FMT-BREAK-007):
+
+```csharp
+union U(int, string) { public int X => 1; }
+```
+
+```csharp
+union U(int, string)
+{
+    public int X => 1;
+}
+```
 
 ### FMT-BREAK-003 — A comment behind an opening brace stays there
 
@@ -406,7 +419,7 @@ class C
 
 ### FMT-BREAK-007 — One member per line
 
-Every member of a compilation unit, a namespace, a file-scoped namespace, or a type body MUST start its own line. A comment that trailed the previous member MUST stay on that member's line.
+Every member of a compilation unit, a namespace, a file-scoped namespace, or a type body — the body of a union declaration included — MUST start its own line. A comment that trailed the previous member MUST stay on that member's line.
 
 Why: As with statements, a member that shares a line with another is easily overlooked when reading or reviewing a type.
 
@@ -435,6 +448,23 @@ class C
     void N()
     {
     }
+}
+```
+
+Example — the members of a union declaration:
+
+```csharp
+union U(int, string)
+{
+    public int X => 1; public int Y => 2;
+}
+```
+
+```csharp
+union U(int, string)
+{
+    public int X => 1;
+    public int Y => 2;
 }
 ```
 
@@ -555,7 +585,7 @@ class C
 
 ### FMT-BREAK-011 — Parameter lists hug their declaration
 
-A comma between parameters MUST stay at the end of the previous parameter's line, and the closing parenthesis MUST stay on the line of the last parameter. This holds for every parameter list — methods, constructors, operators, delegates, local functions, records, primary constructors, anonymous methods, parenthesized lambdas, and indexers, whose bracketed parameter list (`this[int a, int b]`) has its brackets in place of the parentheses (FMT-PIPE-014). The opening parenthesis MUST stay on the declaration line for every one of these parameter lists except a parenthesized lambda's; the opening bracket of an indexer's parameter list stays on the line of `this`.
+A comma between parameters MUST stay at the end of the previous parameter's line, and the closing parenthesis MUST stay on the line of the last parameter. This holds for every parameter list — methods, constructors, operators, delegates, local functions, records, primary constructors, the case-type list of a union declaration (`union U(int, string)`), anonymous methods, parenthesized lambdas, and indexers, whose bracketed parameter list (`this[int a, int b]`) has its brackets in place of the parentheses (FMT-PIPE-014). The opening parenthesis MUST stay on the declaration line for every one of these parameter lists except a parenthesized lambda's; the opening bracket of an indexer's parameter list stays on the line of `this`.
 
 The opening parenthesis of a parenthesized lambda is the lambda's first token unless a modifier or a return type stands in front of it, and this requirement does not move it: the requirement that owns the gap in front of the lambda decides it — inside a list element FMT-BREAK-015 joins it, as the first element of a list FMT-BREAK-012 does, and as an assignment's value FMT-BREAK-016 does — and where no requirement joins that gap, the phase leaves its line break and its blank lines as written (FMT-BREAK-030). A line break that another requirement inserts in front of the lambda — in front of an element of an initializer (FMT-BREAK-021) or of a collection expression (FMT-BREAK-022), or of a list element (FMT-BREAK-012) — stays, as in front of any other expression.
 
@@ -619,6 +649,26 @@ class C
 
     int this[string a, string b] => 0;
 }
+```
+
+Example — a union's case-type list is laid out as a primary constructor's parameter list: its opening parenthesis joins the union's name, its commas end their lines, its closing parenthesis joins the last case type, and a wrapped list keeps one case type per line (FMT-BREAK-012), aligned under the first (FMT-INDENT-012):
+
+```csharp
+union U1
+    (int, string);
+
+union U2(int
+         , string
+         , long
+    );
+```
+
+```csharp
+union U1(int, string);
+
+union U2(int,
+         string,
+         long);
 ```
 
 Example — the opening parenthesis of an anonymous method moves onto the `delegate` line; a parenthesized lambda's comma and closing parenthesis are placed like any other, while a lambda argument on its own line keeps that line and the blank line above it:
@@ -1347,7 +1397,9 @@ class C
 
 A collection expression, a list pattern, a property pattern clause, a parenthesized pattern, and a complex element initializer (`{ 1, 2 }` inside a dictionary initializer) written on one line MUST stay on one line. When one of them spans several lines, every element MUST start its own line, the first element MUST start the line after the opening delimiter, and the closing delimiter MUST start its own line. The opening brace of a wrapped property pattern MUST start its own line, except in a pattern introduced directly by a `case` label, where it stays on the label's line. A comma that starts a line in one of them is FMT-BREAK-038's.
 
-Why: These constructs are expressions inside an expression; on one line they read as a value. Once wrapped, the same one-element-per-line rule as for initializers applies. The `case` exception keeps the pattern from being mistaken for the section body. RH5305 and RH5306 report the same shapes.
+A `with(…)` element of a collection expression (`[with(comparer), "a"]`) is an element like any other: in a wrapped collection expression it starts its own line, the first line after the `[`.
+
+Why: These constructs are expressions inside an expression; on one line they read as a value. Once wrapped, the same one-element-per-line rule as for initializers applies. The `case` exception keeps the pattern from being mistaken for the section body. The `with(…)` element passes arguments to the collection's construction rather than adding an item, but it is written in the element list and separated by a comma like an item, so it is laid out like one. RH5305 and RH5306 report the same shapes.
 
 Example:
 
@@ -1387,9 +1439,42 @@ class C
 }
 ```
 
+Example — a wrapped collection expression that starts with a `with(…)` element:
+
+```csharp
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        HashSet<string> s = [with(StringComparer.Ordinal),
+                             "a", "b"];
+    }
+}
+```
+
+```csharp
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    void M()
+    {
+        HashSet<string> s = [
+                                with(StringComparer.Ordinal),
+                                "a",
+                                "b"
+                            ];
+    }
+}
+```
+
 ### FMT-BREAK-023 — Each generic constraint starts its own line
 
-Every `where` clause of a type, method, local function, or delegate MUST start its own line, also on a member without a body.
+Every `where` clause of a type — a union declaration included —, method, local function, or delegate MUST start its own line, also on a member without a body and on a type declared with a semicolon.
 
 Why: Constraints are part of the signature but not of its name or parameters; on their own lines they stay readable when there are several. RH5110 reports the same shape.
 
@@ -1424,6 +1509,29 @@ interface I
 {
     void M<T>()
         where T : class;
+}
+```
+
+Example — the clauses of a union declaration:
+
+```csharp
+union U<T>(T, string)where T : class;
+
+union V<T, S>(T, S) where T : class where S : struct
+{
+    public int X => 1;
+}
+```
+
+```csharp
+union U<T>(T, string)
+    where T : class;
+
+union V<T, S>(T, S)
+    where T : class
+    where S : struct
+{
+    public int X => 1;
 }
 ```
 

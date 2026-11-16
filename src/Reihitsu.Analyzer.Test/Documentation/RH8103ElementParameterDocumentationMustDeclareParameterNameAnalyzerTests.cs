@@ -266,5 +266,27 @@ public class RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer
         await Verify(source, Diagnostics(RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH8103MessageFormat, 5));
     }
 
+    /// <summary>
+    /// Verifies no diagnostic is reported for a <c>&lt;param&gt;</c> element without a name on a union, which is not
+    /// checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8103-001")]
+    public async Task VerifyNoDiagnosticForParamElementWithoutNameOnUnion()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Shape
+                              /// </summary>
+                              /// <param>Circle</param>
+                              public union Shape(int, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 }

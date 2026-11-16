@@ -18,6 +18,24 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 [TestClass]
 public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : BatchCodeFixTestsBase<RH7105DeclarationKeywordsMustFollowOrderAnalyzer, RH7105DeclarationKeywordsMustFollowOrderCodeFixProvider>
 {
+    #region Constants
+
+    /// <summary>
+    /// Declaration of the attribute the compiler emits on a <c>closed</c> class, which the reference assemblies of the
+    /// verifier do not declare
+    /// </summary>
+    private const string IsClosedTypeAttributeSource = """
+                                                       namespace System.Runtime.CompilerServices
+                                                       {
+                                                           [System.AttributeUsage(System.AttributeTargets.Class, Inherited = false)]
+                                                           public sealed class IsClosedTypeAttribute : System.Attribute
+                                                           {
+                                                           }
+                                                       }
+                                                       """;
+
+    #endregion // Constants
+
     #region Tests
 
     /// <summary>
@@ -1367,6 +1385,547 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : BatchCodeFi
         await Verify(source, fixedSource, test => test.SolutionTransforms.Add(DefineDebug));
     }
 
+    /// <summary>
+    /// Verifies that a <c>closed</c> partial class, which writes <c>closed</c> in the position of <c>sealed</c> in front of
+    /// <c>partial</c>, is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-001")]
+    [Requirement("RH7105-002")]
+    public async Task ClosedInFrontOfPartialOnAClassIsNotReported()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Doc
+                              /// </summary>
+                              public closed partial class Gate
+                              {
+                              }
+                              """;
+
+        await Verify(source, ClosedTypes);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>closed</c> partial record is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-002")]
+    public async Task ClosedInFrontOfPartialOnARecordIsNotReported()
+    {
+        const string source = """
+                              public closed partial record R;
+                              """;
+
+        await Verify(source, ClosedTypes);
+    }
+
+    /// <summary>
+    /// Verifies that <c>closed</c> in front of <c>new</c> and <c>partial</c> on a nested class is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-002")]
+    public async Task ClosedInFrontOfNewAndPartialIsNotReported()
+    {
+        const string source = """
+                              public class A
+                              {
+                                  public class N
+                                  {
+                                  }
+                              }
+
+                              public class B : A
+                              {
+                                  public closed new partial class N
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, ClosedTypes);
+    }
+
+    /// <summary>
+    /// Verifies that <c>closed</c> in front of <c>unsafe</c> and <c>partial</c> is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-002")]
+    public async Task ClosedInFrontOfUnsafeAndPartialIsNotReported()
+    {
+        const string source = """
+                              internal closed unsafe partial class U
+                              {
+                              }
+                              """;
+
+        await Verify(source,
+                     test =>
+                     {
+                         AllowUnsafe(test);
+                         ClosedTypes(test);
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that <c>new</c> in front of <c>closed</c> is reported on <c>new</c> and fixed to <c>closed new partial</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-001")]
+    [Requirement("RH7105-003")]
+    [Requirement("RH7105-004")]
+    public async Task NewInFrontOfClosedIsReportedOnNewAndFixed()
+    {
+        const string source = """
+                              public class A
+                              {
+                                  public class N
+                                  {
+                                  }
+                              }
+
+                              public class B : A
+                              {
+                                  public {|RH7105:new|} closed partial class N
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class A
+                                   {
+                                       public class N
+                                       {
+                                       }
+                                   }
+
+                                   public class B : A
+                                   {
+                                       public closed new partial class N
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, ClosedTypesInFix);
+    }
+
+    /// <summary>
+    /// Verifies that <c>unsafe</c> in front of <c>closed</c> is reported on <c>unsafe</c> and fixed to
+    /// <c>closed unsafe partial</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-001")]
+    [Requirement("RH7105-003")]
+    [Requirement("RH7105-004")]
+    public async Task UnsafeInFrontOfClosedIsReportedOnUnsafeAndFixed()
+    {
+        const string source = """
+                              internal {|RH7105:unsafe|} closed partial class U
+                              {
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   internal closed unsafe partial class U
+                                   {
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject);
+                         ClosedTypesInFix(test);
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that <c>closed</c> in front of the accessibility is reported on <c>closed</c> and fixed behind it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-001")]
+    [Requirement("RH7105-003")]
+    [Requirement("RH7105-004")]
+    public async Task ClosedInFrontOfTheAccessibilityIsReportedAndFixed()
+    {
+        const string source = """
+                              {|RH7105:closed|} public class Gate
+                              {
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public closed class Gate
+                                   {
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, ClosedTypesInFix);
+    }
+
+    /// <summary>
+    /// Verifies that <c>closed</c> behind the accessibility on a class, a record class, and a file-local class without
+    /// <c>partial</c> is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-002")]
+    public async Task ClosedBehindTheAccessibilityWithoutPartialIsNotReported()
+    {
+        const string source = """
+                              public closed class A
+                              {
+                              }
+
+                              public closed record class R;
+
+                              file closed class F
+                              {
+                              }
+                              """;
+
+        await Verify(source, ClosedTypes);
+    }
+
+    /// <summary>
+    /// Verifies the RH7105-001 example for <c>closed</c> and the preview <c>safe</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-001")]
+    [Requirement("RH7105-003")]
+    public async Task SpecExampleClosedAndSafeOutOfOrderAreReported()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  public {|RH7105:new|} closed partial class N
+                                  {
+                                  }
+
+                                  public static {|RH7105:safe|} extern void M();
+                              }
+                              """;
+
+        await Verify(source,
+                     test =>
+                     {
+                         PreviewLanguageVersion(test);
+                         ClosedTypes(test);
+                     });
+    }
+
+    /// <summary>
+    /// Verifies the RH7105-002 example for <c>closed</c> and the preview <c>safe</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-002")]
+    public async Task SpecExampleClosedAndSafeInOrderAreNotReported()
+    {
+        const string source = """
+                              public closed partial class A
+                              {
+                                  public closed new partial class N
+                                  {
+                                  }
+                              }
+
+                              internal closed unsafe partial class U
+                              {
+                              }
+
+                              public partial class C
+                              {
+                                  public static extern safe void M();
+
+                                  public safe partial void P();
+
+                                  public safe partial void P()
+                                  {
+                                  }
+
+                                  public safe required int R { get; set; }
+                              }
+
+                              public safe ref struct S
+                              {
+                              }
+                              """;
+
+        await Verify(source,
+                     test =>
+                     {
+                         AllowUnsafe(test);
+                         PreviewLanguageVersion(test);
+                         ClosedTypes(test);
+                     });
+    }
+
+    /// <summary>
+    /// Verifies the RH7105-004 example for <c>closed</c> and the preview <c>safe</c>: both declarations are fixed, and the
+    /// fixed code compiles
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-004")]
+    public async Task SpecExampleClosedAndSafeAreFixed()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  public {|RH7105:new|} closed partial class N
+                                  {
+                                  }
+
+                                  public static {|RH7105:safe|} extern void M();
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       public closed new partial class N
+                                       {
+                                       }
+
+                                       public static extern safe void M();
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         test.SolutionTransforms.Add(ApplyPreviewLanguageVersionToTestProject);
+                         ClosedTypesInFix(test);
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that both parts of a preview <c>safe</c> partial method with <c>safe</c> in front of <c>partial</c> are
+    /// not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-001")]
+    [Requirement("RH7105-002")]
+    public async Task SafeInFrontOfPartialOnAMethodIsNotReported()
+    {
+        const string source = """
+                              public partial class C
+                              {
+                                  public safe partial void P();
+
+                                  public safe partial void P()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, PreviewLanguageVersion);
+    }
+
+    /// <summary>
+    /// Verifies that the preview <c>safe</c> in front of <c>ref</c> on a struct is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-001")]
+    [Requirement("RH7105-002")]
+    public async Task SafeInFrontOfRefOnAStructIsNotReported()
+    {
+        const string source = """
+                              public safe ref struct S
+                              {
+                              }
+                              """;
+
+        await Verify(source, PreviewLanguageVersion);
+    }
+
+    /// <summary>
+    /// Verifies that the preview <c>safe</c> in front of <c>required</c> is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-002")]
+    public async Task SafeInFrontOfRequiredIsNotReported()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  public safe required int R { get; set; }
+                              }
+                              """;
+
+        await Verify(source, PreviewLanguageVersion);
+    }
+
+    /// <summary>
+    /// Verifies that <c>required</c> in front of the preview <c>safe</c> is reported on <c>required</c> and fixed to
+    /// <c>safe required</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-001")]
+    [Requirement("RH7105-003")]
+    [Requirement("RH7105-004")]
+    public async Task RequiredInFrontOfSafeIsReportedOnRequiredAndFixed()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  public {|RH7105:required|} safe int R { get; set; }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       public safe required int R { get; set; }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, test => test.SolutionTransforms.Add(ApplyPreviewLanguageVersionToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that the preview <c>safe</c> in front of <c>extern</c> is reported on <c>safe</c> and fixed behind
+    /// <c>extern</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-001")]
+    [Requirement("RH7105-003")]
+    [Requirement("RH7105-004")]
+    public async Task SafeInFrontOfExternIsReportedOnSafeAndFixed()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  public static {|RH7105:safe|} extern void M();
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       public static extern safe void M();
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, test => test.SolutionTransforms.Add(ApplyPreviewLanguageVersionToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that the preview <c>safe</c> in front of <c>async</c> is reported on <c>safe</c> and fixed behind
+    /// <c>async</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-001")]
+    [Requirement("RH7105-003")]
+    [Requirement("RH7105-004")]
+    public async Task SafeInFrontOfAsyncIsReportedOnSafeAndFixed()
+    {
+        const string source = """
+                              using System.Threading.Tasks;
+
+                              public class C
+                              {
+                                  public {|RH7105:safe|} async Task M()
+                                  {
+                                      await Task.CompletedTask;
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   using System.Threading.Tasks;
+
+                                   public class C
+                                   {
+                                       public async safe Task M()
+                                       {
+                                           await Task.CompletedTask;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, test => test.SolutionTransforms.Add(ApplyPreviewLanguageVersionToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that the preview <c>safe</c> in front of <c>readonly</c> on a ref partial struct is reported on
+    /// <c>safe</c> and fixed to <c>readonly safe ref partial</c>, which compiles
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-001")]
+    [Requirement("RH7105-003")]
+    [Requirement("RH7105-004")]
+    public async Task SafeInFrontOfReadonlyOnARefPartialStructIsReportedAndFixed()
+    {
+        const string source = """
+                              public {|RH7105:safe|} readonly ref partial struct S
+                              {
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public readonly safe ref partial struct S
+                                   {
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, test => test.SolutionTransforms.Add(ApplyPreviewLanguageVersionToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies the union example of SHARED-MODORDER-001 for RH7105: the modifiers of a union out of the canonical
+    /// order are reported, and the fix writes the canonical order
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-001")]
+    [Requirement("RH7105-001")]
+    [Requirement("RH7105-004")]
+    public async Task UnionModifiersOutOfOrderAreReportedAndOrdered()
+    {
+        const string testCode = """
+                                {|RH7105:readonly|} public union U(int, string);
+
+                                public class C
+                                {
+                                    {|RH7105:readonly|} private union N(int, string);
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public readonly union U(int, string);
+
+                                 public class C
+                                 {
+                                     private readonly union N(int, string);
+                                 }
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, fixedCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region Methods
@@ -1391,6 +1950,50 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : BatchCodeFi
     private static void AllowUnsafe(CSharpAnalyzerVerifierTest<RH7105DeclarationKeywordsMustFollowOrderAnalyzer> test)
     {
         test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject);
+    }
+
+    /// <summary>
+    /// Adds the attribute the compiler requires for a <c>closed</c> class, which the verifier's reference assemblies do
+    /// not declare, so declarations using the C# 15 <c>closed</c> modifier compile
+    /// </summary>
+    /// <param name="test">Test</param>
+    private static void ClosedTypes(CSharpAnalyzerVerifierTest<RH7105DeclarationKeywordsMustFollowOrderAnalyzer> test)
+    {
+        test.TestState.Sources.Add(("/0/IsClosedTypeAttribute.cs", IsClosedTypeAttributeSource));
+    }
+
+    /// <summary>
+    /// Adds the attribute the compiler requires for a <c>closed</c> class to the source and to the fixed code, so
+    /// declarations using the C# 15 <c>closed</c> modifier compile before and after the fix
+    /// </summary>
+    /// <param name="test">Test</param>
+    private static void ClosedTypesInFix(CSharpCodeFixVerifierTest<RH7105DeclarationKeywordsMustFollowOrderAnalyzer, RH7105DeclarationKeywordsMustFollowOrderCodeFixProvider> test)
+    {
+        test.TestState.Sources.Add(("/0/IsClosedTypeAttribute.cs", IsClosedTypeAttributeSource));
+        test.FixedState.Sources.Add(("/0/IsClosedTypeAttribute.cs", IsClosedTypeAttributeSource));
+    }
+
+    /// <summary>
+    /// Sets the language version of the verifier's project to preview, so declarations using the preview <c>safe</c>
+    /// modifier compile
+    /// </summary>
+    /// <param name="test">Test</param>
+    private static void PreviewLanguageVersion(CSharpAnalyzerVerifierTest<RH7105DeclarationKeywordsMustFollowOrderAnalyzer> test)
+    {
+        test.SolutionTransforms.Add(ApplyPreviewLanguageVersionToTestProject);
+    }
+
+    /// <summary>
+    /// Sets the language version of the test project to preview
+    /// </summary>
+    /// <param name="solution">Solution</param>
+    /// <param name="projectId">Project ID</param>
+    /// <returns>Solution</returns>
+    private static Solution ApplyPreviewLanguageVersionToTestProject(Solution solution, ProjectId projectId)
+    {
+        return solution.GetProject(projectId)?.ParseOptions is CSharpParseOptions parseOptions
+                   ? solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion.Preview))
+                   : solution;
     }
 
     #endregion // Methods

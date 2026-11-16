@@ -424,6 +424,78 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
         await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5108MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the union example of RH5108-001: the first case type of a union below the opening parenthesis is
+    /// reported and joined to it
+    /// </summary>
+    /// <param name="endOfLine">Line break of the source and the expected result</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5108-001")]
+    [Requirement("RH5108-002")]
+    [Requirement("RH5108-003")]
+    [DataRow("\n", DisplayName = "LF")]
+    [DataRow("\r\n", DisplayName = "CRLF")]
+    public async Task UnionFirstCaseTypeBelowOpeningParenthesisIsReportedAndJoined(string endOfLine)
+    {
+        const string testCode = """
+                                union U(
+                                    {|RH5108:int|}, string);
+
+                                union V(int, string);
+
+                                public class C
+                                {
+                                    union N(
+                                        {|RH5108:int|}, string)
+                                    {
+                                        public int X => 1;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 union U(int, string);
+
+                                 union V(int, string);
+
+                                 public class C
+                                 {
+                                     union N(int, string)
+                                     {
+                                         public int X => 1;
+                                     }
+                                 }
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine), test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies that the first case type of a union is not reported when a comment or a directive sits between it and
+    /// the opening parenthesis
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5108-001")]
+    public async Task UnionFirstCaseTypeBehindCommentOrDirectiveIsNotReported()
+    {
+        const string testCode = """
+                                union U( // note
+                                    int, string);
+
+                                union V(
+                                #pragma warning disable CS0168
+                                    int, string);
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

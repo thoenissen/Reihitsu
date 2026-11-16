@@ -149,6 +149,88 @@ public class RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzerTests :
         await Verify(testCode, fixedCode, Diagnostics(RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5012MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a labeled <c>continue</c> that follows a statement is reported on the <c>continue</c> keyword and
+    /// fixed with a blank line in front of it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5012-001")]
+    [Requirement("RH5012-002")]
+    public async Task VerifyLabeledContinueFollowingAStatementIsReportedAndFixed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[] values, int a)
+                                    {
+                                        outer: foreach (var v in values)
+                                        {
+                                            foreach (var w in values)
+                                            {
+                                                a++;
+                                                {|RH5012:continue|} outer;
+                                            }
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int[] values, int a)
+                                     {
+                                         outer: foreach (var v in values)
+                                         {
+                                             foreach (var w in values)
+                                             {
+                                                 a++;
+
+                                                 continue outer;
+                                             }
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a labeled <c>continue</c> that is the first statement of its block, and one with a blank line in
+    /// front of it, are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5012-001")]
+    public async Task VerifyLabeledContinueFirstInBlockOrAfterBlankLineIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[] values, int a)
+                                    {
+                                        outer: foreach (var v in values)
+                                        {
+                                            foreach (var w in values)
+                                            {
+                                                if (v == w)
+                                                {
+                                                    continue outer;
+                                                }
+
+                                                a++;
+
+                                                continue outer;
+                                            }
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

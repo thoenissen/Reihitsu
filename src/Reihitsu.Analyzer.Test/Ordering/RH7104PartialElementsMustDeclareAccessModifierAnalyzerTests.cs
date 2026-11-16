@@ -570,6 +570,109 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzerTests : Batch
         await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies the union example of RH7104-001 and RH7104-004: a top-level partial union without accessibility is
+    /// reported and gets internal, and a partial class nested in a union gets private
+    /// </summary>
+    /// <param name="endOfLine">Line break of the source and the expected result</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7104-001")]
+    [Requirement("RH7104-003")]
+    [Requirement("RH7104-004")]
+    [DataRow("\n", DisplayName = "LF")]
+    [DataRow("\r\n", DisplayName = "CRLF")]
+    public async Task PartialUnionWithoutAccessibilityIsReportedAndFixed(string endOfLine)
+    {
+        const string testCode = """
+                                partial union {|RH7104:U|}(int, string);
+
+                                public union V(int, string)
+                                {
+                                    partial class {|RH7104:N|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal partial union U(int, string);
+
+                                 public union V(int, string)
+                                 {
+                                     private partial class N
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine), test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies that each part of a partial union is judged on its own, and that the fix of the part without
+    /// accessibility inserts the accessibility the other part states
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7104-001")]
+    [Requirement("RH7104-002")]
+    [Requirement("RH7104-004")]
+    public async Task PartialUnionPartGetsAccessibilityOfOtherPart()
+    {
+        const string testCode = """
+                                public partial union P(int, string);
+
+                                partial union {|RH7104:P|}
+                                {
+                                    public int M() => 1;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public partial union P(int, string);
+
+                                 public partial union P
+                                 {
+                                     public int M() => 1;
+                                 }
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, fixedCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies that a partial union nested in a class is reported and gets private
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7104-001")]
+    [Requirement("RH7104-004")]
+    public async Task NestedPartialUnionGetsPrivate()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    partial union {|RH7104:N|}(int, string);
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     private partial union N(int, string);
+                                 }
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, fixedCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

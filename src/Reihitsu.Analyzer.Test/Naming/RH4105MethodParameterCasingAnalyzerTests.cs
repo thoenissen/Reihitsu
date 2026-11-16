@@ -1843,6 +1843,26 @@ public class RH4105MethodParameterCasingAnalyzerTests : BatchCodeFixTestsBase<RH
         await Verify(testCode, testCode);
     }
 
+    /// <summary>
+    /// Verifies no diagnostic is reported for the case types of a union, which are parameters without names
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForUnionCaseTypes()
+    {
+        const string testCode = """
+                                public class cat
+                                {
+                                }
+
+                                public union Pet(cat, string);
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region Methods

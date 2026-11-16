@@ -151,6 +151,18 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzer : DiagnosticAnalyz
         }
     }
 
+    /// <summary>
+    /// Analyzes union declarations, whose case-type list is laid out as a parameter list
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnUnionDeclaration(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is UnionDeclarationSyntax { ParameterList: { } parameterList })
+        {
+            CheckFirstParameterLine(context, parameterList);
+        }
+    }
+
     #endregion // Methods
 
     #region DiagnosticAnalyzer
@@ -167,6 +179,7 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzer : DiagnosticAnalyz
         context.RegisterSyntaxNodeAction(OnConversionOperatorDeclaration, SyntaxKind.ConversionOperatorDeclaration);
         context.RegisterSyntaxNodeAction(OnDelegateDeclaration, SyntaxKind.DelegateDeclaration);
         context.RegisterSyntaxNodeAction(OnRecordDeclaration, SyntaxKind.RecordDeclaration, SyntaxKind.RecordStructDeclaration);
+        context.RegisterSyntaxNodeAction(OnUnionDeclaration, SyntaxKind.UnionDeclaration);
     }
 
     #endregion // DiagnosticAnalyzer

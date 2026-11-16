@@ -460,5 +460,37 @@ public class RH7305ATypesShouldBeOrganizedWithRegionsForMultipleKindsAnalyzerTes
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a top-level union whose members outside regions are of two kinds is reported, and one of one kind
+    /// is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TYPEREGION-001")]
+    [Requirement("RH7305A-001")]
+    [Requirement("RH7305A-002")]
+    public async Task UnionMixingMemberKindsOutsideRegionsIsReported()
+    {
+        const string testCode = """
+                                public union {|RH7305A:U|}(int, string)
+                                {
+                                    public static int Count;
+
+                                    public int Get() => 1;
+                                }
+
+                                public union V(int, string)
+                                {
+                                    public int Get() => 1;
+
+                                    public int Other() => 2;
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 }

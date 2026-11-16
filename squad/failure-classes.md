@@ -13,6 +13,7 @@ Known ways a change in this repository goes wrong. The skeptic names the classes
 | FC-003 | A changed condition is tested on one side of its boundary only — "no trivia" and "trivia on one line" are two tests | audits |
 | FC-015 | A policy has more than one owner: a private copy next to the shared helper (usually in `Reihitsu.Core`) drifts from it | RC reviews |
 | FC-016 | A fix closes the reported instance while sibling shapes or other private copies keep the same hazard | RC reviews |
+| FC-044 | A guard models a result that the compiler, the Renamer, or another build configuration computes — which members a rename rebinds or which interface member it implements, which elements a documentation expansion binds, which code an `#if` group excludes, which column a later phase writes — so every audit finds the next input the model misses; reading the computed result or refusing the class by a cheap check on its cause ends it (`README.md`, *Architecture findings*) | audits |
 
 ## Trivia and directives
 

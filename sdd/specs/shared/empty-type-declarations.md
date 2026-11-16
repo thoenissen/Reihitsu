@@ -11,7 +11,7 @@ This spec covers the rules that report a type declaration with an empty brace bo
 
 ## Non-goals
 
-- Which kind of type a rule checks and from which C# version — each rule's spec: RH5412 for classes, RH5413 for structs, RH5414 for interfaces, RH5415 for records, RH5416 for record structs.
+- Which kind of type a rule checks and from which C# version — each rule's spec: RH5412 for classes, RH5413 for structs, RH5414 for interfaces, RH5415 for records, RH5416 for record structs, RH5418 for unions.
 - Empty enums. An enum has no semicolon declaration, and no rule reports its empty body.
 - Whether the type is needed at all.
 - How the formatter converts an empty type in a document — FMT-STRUCT-017 and FMT-STRUCT-018.

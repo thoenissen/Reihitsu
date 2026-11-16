@@ -1099,6 +1099,47 @@ public class RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzerTests 
         await Verify(definingPart, test => test.TestState.Sources.Add(("/0/Test1.cs", implementingPart)));
     }
 
+    /// <summary>
+    /// Verifies the union example of SHARED-REGGROUP-001: a union's override of ToString in a Methods region is
+    /// reported, because it comes from Object, and the same override in a region named Object is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-REGGROUP-001")]
+    [Requirement("RH7401-001")]
+    public async Task UnionOverrideOutsideObjectRegionIsReported()
+    {
+        const string testCode = """
+                                union U(int, string)
+                                {
+                                    #region Methods
+
+                                    public override string {|RH7401:ToString|}()
+                                    {
+                                        return "";
+                                    }
+
+                                    #endregion
+                                }
+
+                                union V(int, string)
+                                {
+                                    #region Object
+
+                                    public override string ToString()
+                                    {
+                                        return "";
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region Methods

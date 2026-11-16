@@ -23,7 +23,7 @@ This spec covers the rules that check attribute lists by the target the attribut
 An attribute list without a target specifier, or with the `type:` specifier, MUST resolve to the target of the declaration it is attached to:
 
 - `class`, `record`, and `record class` — the class target;
-- `struct` and `record struct` — the struct target;
+- `struct`, `record struct`, and `union` — the struct target;
 - `interface` — the interface target; `enum` — the enum target; `delegate` — the delegate target;
 - method, operator, conversion operator, destructor, local function, lambda, and accessor — the method target;
 - constructor — the constructor target;
@@ -34,7 +34,7 @@ An attribute list without a target specifier, or with the `type:` specifier, MUS
 
 A rule MUST check only the lists that resolve to its target.
 
-Why: These are the targets the compiler applies such an attribute to, so the rule that checks a list is the one named after what the attribute decorates. A `record` is a class and a `record struct` a struct, so they follow the rules of those declarations. `type:` names the default target of a type declaration; on any other declaration the compiler ignores it, and the list is laid out like every other list of that declaration.
+Why: These are the targets the compiler applies such an attribute to, so the rule that checks a list is the one named after what the attribute decorates. A `record` is a class and a `record struct` a struct, so they follow the rules of those declarations. The compiler emits a `union` as a struct and accepts on it exactly the attributes that are valid on a struct, so a union follows the struct rules too. `type:` names the default target of a type declaration; on any other declaration the compiler ignores it, and the list is laid out like every other list of that declaration.
 
 Example — RH5505, which checks the class target:
 
@@ -46,9 +46,11 @@ Example — RH5505, which checks the class target:
 }
 
 [A] record struct S;
+
+[A] union U(int, string);
 ```
 
-`S` is checked by RH5507, not by RH5505.
+`S` and `U` are checked by RH5507, not by RH5505.
 
 Example — RH5513, which checks the method target:
 

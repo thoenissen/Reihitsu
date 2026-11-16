@@ -464,6 +464,78 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : B
         await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the union example of RH5106-001: the closing parenthesis of a union's case-type list below the last
+    /// case type is reported and joined to it
+    /// </summary>
+    /// <param name="endOfLine">Line break of the source and the expected result</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5106-001")]
+    [Requirement("RH5106-002")]
+    [Requirement("RH5106-003")]
+    [DataRow("\n", DisplayName = "LF")]
+    [DataRow("\r\n", DisplayName = "CRLF")]
+    public async Task UnionCaseTypeListClosingParenthesisBelowLastCaseTypeIsReportedAndJoined(string endOfLine)
+    {
+        const string testCode = """
+                                union U(int, string
+                                    {|RH5106:)|};
+
+                                union V(int, string);
+
+                                public class C
+                                {
+                                    union N(int, string
+                                        {|RH5106:)|}
+                                    {
+                                        public int X => 1;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 union U(int, string);
+
+                                 union V(int, string);
+
+                                 public class C
+                                 {
+                                     union N(int, string)
+                                     {
+                                         public int X => 1;
+                                     }
+                                 }
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine), test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies that the closing parenthesis of a union's case-type list is not reported when a comment or a directive
+    /// sits in front of it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5106-001")]
+    public async Task UnionCaseTypeListClosingParenthesisBehindCommentOrDirectiveIsNotReported()
+    {
+        const string testCode = """
+                                union U(int, string // note
+                                    );
+
+                                union V(int, string
+                                #pragma warning disable CS0168
+                                    );
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

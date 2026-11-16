@@ -953,6 +953,88 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzerTests : Ba
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies the RH5010-002 example of labeled <c>break</c> statements: the one that ends its section is exempt, the
+    /// one inside a block of the section is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5010-002")]
+    public async Task VerifySpecExampleLabeledBreakEndingSectionIsExemptAndLabeledBreakInsideBlockIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int[] items, int choice)
+                                    {
+                                        outer: foreach (var item in items)
+                                        {
+                                            switch (choice)
+                                            {
+                                                case 1:
+                                                    var value = choice;
+                                                    break outer;
+                                                case 2:
+                                                {
+                                                    var other = choice;
+                                                    {|RH5010:break|} outer;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a labeled <c>break</c> that follows a statement in a loop is reported on the <c>break</c> keyword and
+    /// fixed with a blank line in front of it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5010-001")]
+    [Requirement("RH5010-003")]
+    public async Task VerifyLabeledBreakFollowingAStatementIsReportedAndFixed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        outer: while (true)
+                                        {
+                                            while (true)
+                                            {
+                                                a++;
+                                                {|RH5010:break|} outer;
+                                            }
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a)
+                                     {
+                                         outer: while (true)
+                                         {
+                                             while (true)
+                                             {
+                                                 a++;
+
+                                                 break outer;
+                                             }
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

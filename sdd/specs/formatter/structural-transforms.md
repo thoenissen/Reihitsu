@@ -800,9 +800,9 @@ Why: Accessor and get-only member shapes are a separate decision a code fix did 
 
 ### FMT-STRUCT-017 — Empty types use a semicolon declaration
 
-The formatter MUST replace the empty brace body of a class, struct, or interface with a semicolon from C# 12 on, of a record class from C# 9 on, and of a record struct from C# 10 on. An empty enum MUST keep its braces.
+The formatter MUST replace the empty brace body of a class, struct, or interface with a semicolon from C# 12 on, of a record class from C# 9 on, of a record struct from C# 10 on, and of a union declaration from C# 15 on. An empty enum MUST keep its braces.
 
-Why: `class C;` says "no members" without two lines of braces; the analyzer rules RH5412 to RH5416 report the braced form. Each kind is gated by the version that allows its semicolon form (FMT-PIPE-008); an enum has no such form.
+Why: `class C;` says "no members" without two lines of braces; the analyzer rules RH5412 to RH5416 and RH5418 report the braced form. Each kind is gated by the version that allows its semicolon form (FMT-PIPE-008); an enum has no such form. A union declaration has a semicolon form from the version that introduces it, C# 15, and its case-type list already says what the type holds, so an empty body adds nothing to it either.
 
 Example:
 
@@ -849,6 +849,25 @@ enum E
 ```
 
 Under C# 11, only the two records are converted.
+
+Example — a union declaration:
+
+```csharp
+union U(int, string)
+{
+}
+
+union V<T>(T, string) where T : class { }
+```
+
+```csharp
+union U(int, string);
+
+union V<T>(T, string)
+    where T : class;
+```
+
+FMT-STRUCT-018 keeps the braces of a union whose empty body holds a comment or a directive, as it keeps a class's.
 
 ### FMT-STRUCT-018 — An empty body with trivia keeps its braces
 
@@ -1015,7 +1034,7 @@ class C
 
 ### FMT-STRUCT-021 — One field per declaration
 
-The formatter MUST split a field declaration with several declarators in a class, struct, record, or interface into one field declaration per declarator, in source order, each repeating the original attributes, modifiers, and type, and each keeping its own initializer. Event field declarations and local variable declarations MUST NOT be split.
+The formatter MUST split a field declaration with several declarators in a class, struct, record, interface, or union declaration into one field declaration per declarator, in source order, each repeating the original attributes, modifiers, and type, and each keeping its own initializer. Event field declarations and local variable declarations MUST NOT be split.
 
 Why: One field per line keeps each field's attributes, documentation, and diff history separate; the analyzer rule RH7101 reports combined fields. Repeating the attributes and modifiers keeps every field exactly what it was.
 
@@ -1046,6 +1065,23 @@ class C
     private static readonly string _a = "a";
     [NonSerialized]
     private static readonly string _b = "b";
+}
+```
+
+Example — a static field of a union declaration:
+
+```csharp
+union U(int, string)
+{
+    public static int A = 1, B = 2;
+}
+```
+
+```csharp
+union U(int, string)
+{
+    public static int A = 1;
+    public static int B = 2;
 }
 ```
 
@@ -1448,6 +1484,18 @@ class C
 ```
 
 The lists `[A /* c */, B]` and `[unknown: A, B]` on a method stay one list each.
+
+Example — a union declaration is a type, so its list is split as a struct's is:
+
+```csharp
+[A, B] union U(int, string);
+```
+
+```csharp
+[A]
+[B]
+union U(int, string);
+```
 
 Example — the line breaks between two attributes are dropped with the comma, and those behind the original `[` with it:
 

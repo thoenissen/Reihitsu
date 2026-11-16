@@ -19,11 +19,11 @@ This spec covers what the two modifier ordering rules share: which declarations 
 
 ### SHARED-MODORDER-001 — The checked declarations
 
-A modifier ordering rule MUST check the modifier list of every class, struct, interface, record, record struct, delegate, field, constructor, property, event, event field, method, indexer, operator, and conversion operator declaration.
+A modifier ordering rule MUST check the modifier list of every class, struct, interface, record, record struct, union, delegate, field, constructor, property, event, event field, method, indexer, operator, and conversion operator declaration.
 
 Why: Checking the same declarations in both rules keeps them consistent: a declaration whose modifier order one rule checks is checked by the other too.
 
-Example — RH7105 checks a class, a field, an event field, a property, a method, an operator, and a conversion operator:
+Example — RH7105 checks a class, a union, a field, an event field, a property, a method, an operator, and a conversion operator:
 
 ```csharp
 using System;
@@ -31,6 +31,8 @@ using System;
 {|RH7105:static|} public class S
 {
 }
+
+{|RH7105:readonly|} public union U(int, string);
 
 public class C
 {
@@ -56,7 +58,7 @@ public class C
 }
 ```
 
-Example — RH7106 checks a struct, an interface, a record, a record struct, a delegate, a constructor, an event, and an indexer:
+Example — RH7106 checks a struct, an interface, a record, a record struct, a union, a delegate, a constructor, an event, and an indexer:
 
 ```csharp
 using System;
@@ -74,6 +76,8 @@ public class C
     internal {|RH7106:protected|} record R;
 
     internal {|RH7106:protected|} record struct RS;
+
+    internal {|RH7106:protected|} union U(int, string);
 
     internal {|RH7106:protected|} delegate void D();
 

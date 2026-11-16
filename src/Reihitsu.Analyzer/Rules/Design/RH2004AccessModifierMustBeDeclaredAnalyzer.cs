@@ -193,6 +193,7 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzer : DiagnosticAnalyzerBase
                                          SyntaxKind.EnumDeclaration,
                                          SyntaxKind.RecordDeclaration,
                                          SyntaxKind.RecordStructDeclaration,
+                                         SyntaxKind.UnionDeclaration,
                                          SyntaxKind.DelegateDeclaration,
                                          SyntaxKind.MethodDeclaration,
                                          SyntaxKind.PropertyDeclaration,

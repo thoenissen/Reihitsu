@@ -845,6 +845,39 @@ public class RH7405NonOverrideMethodsShouldNotBePlacedInOverrideRegionsAnalyzerT
         await Verify(definingPart, test => test.TestState.Sources.Add(("/0/Test1.cs", implementingPart)));
     }
 
+    /// <summary>
+    /// Verifies that a non-override method in the Object region of a union that overrides ToString is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-REGGROUP-001")]
+    [Requirement("RH7405-001")]
+    public async Task UnionNonOverrideMethodInOverrideRegionIsReported()
+    {
+        const string testCode = """
+                                union U(int, string)
+                                {
+                                    #region Object
+
+                                    public override string ToString()
+                                    {
+                                        return "";
+                                    }
+
+                                    public int {|RH7405:Get|}()
+                                    {
+                                        return 1;
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region Methods

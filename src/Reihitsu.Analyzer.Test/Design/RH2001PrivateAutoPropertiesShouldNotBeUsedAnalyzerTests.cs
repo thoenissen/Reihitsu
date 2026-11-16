@@ -6746,6 +6746,37 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies that the fix for a get-only auto-property with the preview <c>safe</c> modifier writes <c>readonly</c> in
+    /// front of <c>safe</c>, the order RH7105 asks for, and that the field compiles
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-004")]
+    public async Task VerifyPrivateGetOnlySafeAutoPropertyCodeFixWritesReadonlyInFrontOfSafe()
+    {
+        const string testData = """
+                                internal class RH2001
+                                {
+                                    private safe int {|#0:Count|} { get; } = 1;
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH2001
+                                  {
+                                      private readonly safe int _count = 1;
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     test => test.SolutionTransforms.Add((solution, projectId) => solution.GetProject(projectId)?.ParseOptions is Microsoft.CodeAnalysis.CSharp.CSharpParseOptions parseOptions
+                                                                                      ? solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(Microsoft.CodeAnalysis.CSharp.LanguageVersion.Preview))
+                                                                                      : solution),
+                     Diagnostics(RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2001MessageFormat));
+    }
+
     #endregion // Tests
 
     #region Methods

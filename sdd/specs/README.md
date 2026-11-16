@@ -72,6 +72,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH2107.md](analyzer/RH2107.md) | RH2107 | `RH2107NestedEnumsShouldNotBeUsedAnalyzer` |
 | [analyzer/RH2108.md](analyzer/RH2108.md) | RH2108 | `RH2108NestedDelegatesShouldNotBeUsedAnalyzer` |
 | [analyzer/RH2109.md](analyzer/RH2109.md) | RH2109 | `RH2109RazorCodeBlocksShouldNotBeUsedAnalyzer` |
+| [analyzer/RH2110.md](analyzer/RH2110.md) | RH2110 | `RH2110NestedUnionsShouldNotBeUsedAnalyzer` |
 | [analyzer/RH3001.md](analyzer/RH3001.md) | RH3001 | `RH3001NotOperatorShouldNotBeUsedAnalyzer`, `RH3001NotOperatorShouldNotBeUsedCodeFixProvider` |
 | [analyzer/RH3002.md](analyzer/RH3002.md) | RH3002 | `RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer`, `RH3002StatementMustNotUseUnnecessaryParenthesesCodeFixProvider` |
 | [analyzer/RH3003.md](analyzer/RH3003.md) | RH3003 | `RH3003UseStringEmptyForEmptyStringsAnalyzer`, `RH3003UseStringEmptyForEmptyStringsCodeFixProvider` |
@@ -105,6 +106,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH4009.md](analyzer/RH4009.md) | RH4009 | `RH4009NamespaceNotAllowedAnalyzer` |
 | [analyzer/RH4010.md](analyzer/RH4010.md) | RH4010 | `RH4010RecordNameCasingAnalyzer`, `RH4010RecordNameCasingCodeFixProvider` |
 | [analyzer/RH4011.md](analyzer/RH4011.md) | RH4011 | `RH4011RecordStructNameCasingAnalyzer`, `RH4011RecordStructNameCasingCodeFixProvider` |
+| [analyzer/RH4012.md](analyzer/RH4012.md) | RH4012 | `RH4012UnionNameCasingAnalyzer`, `RH4012UnionNameCasingCodeFixProvider` |
 | [analyzer/RH4101.md](analyzer/RH4101.md) | RH4101 | `RH4101EnumMemberCasingAnalyzer`, `RH4101EnumMemberCasingCodeFixProvider` |
 | [analyzer/RH4102.md](analyzer/RH4102.md) | RH4102 | `RH4102EventNameCasingAnalyzer`, `RH4102EventNameCasingCodeFixProvider` |
 | [analyzer/RH4103.md](analyzer/RH4103.md) | RH4103 | `RH4103MethodNameCasingAnalyzer`, `RH4103MethodNameCasingCodeFixProvider` |
@@ -225,6 +227,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH5415.md](analyzer/RH5415.md) | RH5415 | `RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer`, `RH5415EmptyRecordsShouldUseSemicolonDeclarationsCodeFixProvider` |
 | [analyzer/RH5416.md](analyzer/RH5416.md) | RH5416 | `RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer`, `RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsCodeFixProvider` |
 | [analyzer/RH5417.md](analyzer/RH5417.md) | RH5417 | `RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer`, `RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider` |
+| [analyzer/RH5418.md](analyzer/RH5418.md) | RH5418 | `RH5418EmptyUnionsShouldUseSemicolonDeclarationsAnalyzer`, `RH5418EmptyUnionsShouldUseSemicolonDeclarationsCodeFixProvider` |
 | [analyzer/RH5501.md](analyzer/RH5501.md) | RH5501 | `RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer`, `RH5501AssemblyAttributesMustFollowPlacementRulesCodeFixProvider` |
 | [analyzer/RH5502.md](analyzer/RH5502.md) | RH5502 | `RH5502AssemblyAttributeListsMustFollowShapeRulesAnalyzer`, `RH5502AssemblyAttributeListsMustFollowShapeRulesCodeFixProvider` |
 | [analyzer/RH5503.md](analyzer/RH5503.md) | RH5503 | `RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer`, `RH5503ModuleAttributesMustFollowPlacementRulesCodeFixProvider` |
@@ -364,6 +367,8 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH8032.md](analyzer/RH8032.md) | RH8032 | `RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer` |
 | [analyzer/RH8033.md](analyzer/RH8033.md) | RH8033 | `RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer` |
 | [analyzer/RH8034.md](analyzer/RH8034.md) | RH8034 | `RH8034OperatorsMustBeDocumentedAnalyzer` |
+| [analyzer/RH8035.md](analyzer/RH8035.md) | RH8035 | `RH8035NonPrivateUnionsMustBeDocumentedAnalyzer` |
+| [analyzer/RH8036.md](analyzer/RH8036.md) | RH8036 | `RH8036PrivateUnionsMustBeDocumentedAnalyzer` |
 | [analyzer/RH8101.md](analyzer/RH8101.md) | RH8101 | `RH8101ElementParametersMustBeDocumentedAnalyzer` |
 | [analyzer/RH8102.md](analyzer/RH8102.md) | RH8102 | `RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer` |
 | [analyzer/RH8103.md](analyzer/RH8103.md) | RH8103 | `RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer` |

@@ -52,4 +52,6 @@ Verdict: pass | fail | blocked
 <path of the captured output>
 ```
 
+Your handover has no `Follow-up candidates` section: you never diagnose, so every failure goes under `Failures`, and the lead decides whether it is a follow-up.
+
 `blocked` is a toolchain or environment failure that stopped the run — no SDK, no network, a script that could not start. A blocked run is never reported as `fail`, and a `fail` is never softened. Commit your handover with `[skip ci]`.

@@ -172,7 +172,8 @@ public abstract class NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyz
                                          SyntaxKind.ClassDeclaration,
                                          SyntaxKind.StructDeclaration,
                                          SyntaxKind.RecordDeclaration,
-                                         SyntaxKind.RecordStructDeclaration);
+                                         SyntaxKind.RecordStructDeclaration,
+                                         SyntaxKind.UnionDeclaration);
     }
 
     #endregion // DiagnosticAnalyzer

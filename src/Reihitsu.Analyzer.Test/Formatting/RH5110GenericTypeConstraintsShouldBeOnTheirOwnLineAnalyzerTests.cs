@@ -858,6 +858,157 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : B
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies the union example of RH5110-001: a constraint clause of a bodiless union on the line of the case-type
+    /// list is reported and moved onto its own line in front of the semicolon, and a union whose clause stands on its
+    /// own line is not reported
+    /// </summary>
+    /// <param name="endOfLine">Line break of the source and the expected result</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-001")]
+    [Requirement("RH5110-003")]
+    [DataRow("\n", DisplayName = "LF")]
+    [DataRow("\r\n", DisplayName = "CRLF")]
+    public async Task UnionConstraintClauseOnDeclarationLineIsReportedAndMoved(string endOfLine)
+    {
+        const string testCode = """
+                                union U<T>(T, string) {|RH5110:where|} T : class;
+
+                                union V<T>(T, string)
+                                    where T : class
+                                {
+                                    public int X => 1;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 union U<T>(T, string)
+                                     where T : class;
+
+                                 union V<T>(T, string)
+                                     where T : class
+                                 {
+                                     public int X => 1;
+                                 }
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine), test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies that a union with several constraint clauses is reported once, on the first misplaced clause, and that
+    /// the fix puts each clause on its own line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-002")]
+    [Requirement("RH5110-003")]
+    public async Task UnionWithSeveralConstraintClausesIsReportedOnceAndEachClauseMoved()
+    {
+        const string testCode = """
+                                union W<T1, T2>(T1, T2) {|RH5110:where|} T1 : class where T2 : struct;
+                                """;
+
+        const string fixedCode = """
+                                 union W<T1, T2>(T1, T2)
+                                     where T1 : class
+                                     where T2 : struct;
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, fixedCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies that the constraint clause of a union nested in a class is reported and moved onto its own line, four
+    /// spaces right of the union's first token
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-001")]
+    [Requirement("RH5110-003")]
+    public async Task NestedUnionConstraintClauseIsReportedAndMoved()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    union N<T>(T, string) {|RH5110:where|} T : class
+                                    {
+                                        public int X => 1;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     union N<T>(T, string)
+                                         where T : class
+                                     {
+                                         public int X => 1;
+                                     }
+                                 }
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, fixedCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies that a union constraint clause on its own line in the right column is not reported behind an end-of-
+    /// line comment, and is reported in another column
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-001")]
+    public async Task UnionConstraintClauseColumnIsJudgedBehindComment()
+    {
+        const string testCode = """
+                                union U<T>(T, string) // note
+                                    where T : class;
+
+                                union V<T>(T, string)
+                                  {|RH5110:where|} T : class;
+                                """;
+
+        const string fixedCode = """
+                                 union U<T>(T, string) // note
+                                     where T : class;
+
+                                 union V<T>(T, string)
+                                     where T : class;
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, fixedCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies that a union constraint clause on its own line in the right column is not reported behind a directive
+    /// line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5110-001")]
+    public async Task UnionConstraintClauseBehindDirectiveIsNotReported()
+    {
+        const string testCode = """
+                                union U<T>(T, string)
+                                #pragma warning disable CS0168
+                                    where T : class;
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

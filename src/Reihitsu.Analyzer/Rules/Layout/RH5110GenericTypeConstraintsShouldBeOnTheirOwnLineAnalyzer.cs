@@ -177,6 +177,20 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : Diagno
         AnalyzeConstraintClauses(context, structDeclaration, structDeclaration.ConstraintClauses);
     }
 
+    /// <summary>
+    /// Analyzes union declarations
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnUnionDeclaration(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is not UnionDeclarationSyntax unionDeclaration)
+        {
+            return;
+        }
+
+        AnalyzeConstraintClauses(context, unionDeclaration, unionDeclaration.ConstraintClauses);
+    }
+
     #endregion // Methods
 
     #region DiagnosticAnalyzer
@@ -190,6 +204,7 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : Diagno
         context.RegisterSyntaxNodeAction(OnStructDeclaration, SyntaxKind.StructDeclaration);
         context.RegisterSyntaxNodeAction(OnInterfaceDeclaration, SyntaxKind.InterfaceDeclaration);
         context.RegisterSyntaxNodeAction(OnRecordDeclaration, SyntaxKind.RecordDeclaration);
+        context.RegisterSyntaxNodeAction(OnUnionDeclaration, SyntaxKind.UnionDeclaration);
         context.RegisterSyntaxNodeAction(OnMethodDeclaration, SyntaxKind.MethodDeclaration);
         context.RegisterSyntaxNodeAction(OnDelegateDeclaration, SyntaxKind.DelegateDeclaration);
         context.RegisterSyntaxNodeAction(OnLocalFunctionStatement, SyntaxKind.LocalFunctionStatement);

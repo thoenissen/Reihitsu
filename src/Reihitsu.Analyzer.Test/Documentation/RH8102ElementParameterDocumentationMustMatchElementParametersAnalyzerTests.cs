@@ -402,5 +402,47 @@ public class RH8102ElementParameterDocumentationMustMatchElementParametersAnalyz
         await Verify(source, Diagnostics(RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer.DiagnosticId, AnalyzerResources.RH8102MessageFormat, 3));
     }
 
+    /// <summary>
+    /// Verifies no diagnostic is reported for a <c>&lt;param&gt;</c> element on a union, which is not checked, next to a method whose element is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8102-001")]
+    public async Task VerifyNoDiagnosticForParamElementOnUnion()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Shape
+                              /// </summary>
+                              /// <param name="Circle">Circle</param>
+                              public union Shape(int, string);
+
+                              /// <summary>
+                              /// Calculator
+                              /// </summary>
+                              public class Calculator
+                              {
+                                  /// <summary>
+                                  /// Computes
+                                  /// </summary>
+                                  /// {|RH8102:<param name="other">Other</param>|}
+                                  public void Compute(int value)
+                                  {
+                                  }
+                              }
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        // The compiler cannot write the documentation file for a <param> element on a union (CS1569), so the
+        // documentation comments are parsed without the compiler's documentation diagnostics
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject);
+                     });
+    }
+
     #endregion // Tests
 }

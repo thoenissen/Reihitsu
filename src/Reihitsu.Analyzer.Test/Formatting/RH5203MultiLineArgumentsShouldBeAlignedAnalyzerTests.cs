@@ -987,6 +987,32 @@ public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzerTests : BatchCodeFix
     }
 
     /// <summary>
+    /// Verifies the with element example of RH5203-001: a wrapped argument of a with element that is not aligned with
+    /// the first argument is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5203-001")]
+    public async Task WithElementMisalignedArgumentIsReported()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        HashSet<string> a = [with(4,
+                                            {|RH5203:StringComparer.Ordinal|})];
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
     /// Verifies the diagnostics marked in the source and that no code fix is offered, under LF and under CRLF
     /// </summary>
     /// <param name="testCode">The source with markup and LF line endings</param>

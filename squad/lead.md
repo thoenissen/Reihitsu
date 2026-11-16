@@ -11,11 +11,11 @@ You ask the maintainer only what `README.md`, *What reaches the maintainer* and 
 1. Take the issue numbers from the issue references in the prompt (`#123`, an issue URL, `issue 123`; several of them, separated by spaces or commas — `#123 #124`, `#123, #124` — make one run). Only these references select issues; other text in the prompt is context for the run, never an issue of it. Ask whenever it is unclear whether a reference names an issue of the run, however many references the prompt holds. A reference is clear when it leads the prompt, alone or in such a list, or when the text names it as the work to do: `#123 keep it small` and `please fix #123` are one issue each. A reference that otherwise stands inside other text is unclear: `#124` in `#123, see #124 for the background`, and `#99` in `keep the diff small, as we did in #99`. Ask too when no issue can be extracted. More than eight is escalation 8.
 2. Read every issue, its labels, and its comments through the GitHub MCP server. Read `AGENTS.md`. Note which issues carry `agent-filed`: their goals are proposals, the others' goals are binding (`README.md`, *Issues are hypotheses*).
 3. Look for an existing claim: a linked or open draft PR, or a branch for any of the issues. If one exists, stop and report it (escalation 8).
-4. For several issues, pick each issue's lane as section 3 describes. The issues of a run share one lane; when they do not, ask the maintainer to split them into runs of one lane each, before the claim (escalation 8; `README.md`, *Several issues in one run*).
+4. For several issues, pick each issue's lane as section 3 describes. The issues of a run share one lane; when they do not, ask the maintainer to split them into runs of one lane each, before the claim (escalation 8; `README.md`, *Several issues in one run*). Check the batch's size too (`README.md`, *Several issues in one run*): when its issues do not share a mechanism, or together name more than a handful of code fixes or rules, propose the split in the same escalation 8, with your recommendation.
 
 ## 2. Claim
 
-1. `git fetch origin main`, then create the branch from `origin/main`: `claude/issue-<N>-<slug>` for one issue; `claude/issues-<a>-<b>-<c>-<slug>` for two or three, numbered in the prompt's order; `claude/batch-<a>-<slug>` for more, after the first issue the prompt names. `<slug>` is at most four lower-kebab-case words from the issue title, or from what the issues share.
+1. `git fetch origin main`, then create the branch from `origin/main`. When the session designates a branch to push to, the run uses that branch, and it is no decision to record. Otherwise name it `claude/issue-<N>-<slug>` for one issue; `claude/issues-<a>-<b>-<c>-<slug>` for two or three, numbered in the prompt's order; `claude/batch-<a>-<slug>` for more, after the first issue the prompt names. `<slug>` is at most four lower-kebab-case words from the issue title, or from what the issues share.
 2. `git commit --allow-empty -m "Claim issue #<N> [skip ci]"` (several: `"Claim issues #<a>, #<b>, #<c> [skip ci]"`) and push.
 3. Open a **draft** PR: title `Claim: issue #<N>` (several: `Claim: issues #<a>, #<b>, #<c>`), every section of `.github/PULL_REQUEST_TEMPLATE.md` filled with generic placeholder text, and one `Closes #<N>` line per issue under `Linked issues`. Copy nothing from the issues. Do not comment on or label the issues — the linked draft PR is the claim.
 4. Run `scripts/prepare.sh`. If the SDK cannot be installed, note it in the draft PR and stop.
@@ -54,11 +54,11 @@ An agent is large when `scripts/usage.sh` shows, for its spawn, about 40 respons
 - Nobody may be there to intervene: a run can go for hours without input, so you never depend on the maintainer for a compaction, and the harness compacts your context on its own when it fills. Keep `00-lead.md` current as you go, not only at stage boundaries: write each `Maintainer answers` entry, decision, follow-up candidate, audited SHA, open worklist, and next step into it right when it arises. A compaction, which can come at any turn, then loses nothing. After one, re-read `00-lead.md` and the latest handovers before acting.
 - Read handovers for their verdict, findings, and follow-up candidates, not for the detail a role's next handover repeats. Never paste a handover into a prompt; name its path.
 - Keep your turns few: act on a role's verdict from its handover header, and batch independent reads and spawns in one turn.
-- Parallel role agents that build the same solution use separate worktrees; otherwise their copies collide (`MSB3030`).
+- Parallel role agents that build the same solution use separate worktrees; otherwise their copies collide (`MSB3030`). No role uses `git stash` in the shared tree (`README.md`, *Rules for every role*).
 
 | Verdict | Your move |
 |---|---|
-| Spec author: change doc written | Accept it yourself once the skeptic has run and any amendment it caused is written; its `Visible output changes` go into the output questions before the test implementer (section 5) |
+| Spec author: change doc written | Accept it yourself once the skeptic has run and any amendment it caused is written; its `Visible output changes` go into the output questions before the test implementer (section 5). The spec author sets `Status: Accepted` with its next follow-up after the maintainer's answers, or in a status-only follow-up before the spec checker when none is due |
 | Spec author or skeptic: an output question about a case within the run's issues | Collect it for the next batch (section 5); at once when it blocks writing a test (escalation 1) |
 | Spec author or skeptic: an open question about a case outside the run's issues | A follow-up candidate carrying the question (*Follow-ups*); declaring a shape unsupported is escalation 10 instead |
 | Any role: declaring a shape unsupported is an option (`AGENTS.md`, *Special cases do not grow the source*) | Escalation 10, with the next batch; the run refuses the class locally meanwhile |
@@ -75,7 +75,7 @@ An agent is large when `scripts/usage.sh` shows, for its spawn, about 40 respons
 | Any role: a safety rail the run cannot repair in scope | Escalation 2, at once |
 | Cleaner: only a suppression or ruleset change resolves a warning | Escalation 6 |
 | Spec checker or auditor: findings | Repair round (section 7) |
-| Auditor: a finding that repeats the class of an earlier audit finding | An architecture finding, instead of a repair round: refuse the class first, and escalation 10 where declaring the shape unsupported is an option |
+| Auditor: a finding that repeats the class of an earlier audit finding | An architecture finding, instead of a repair round: refuse the whole class first, by its cause rather than the enumerated cells (`README.md`, *Architecture findings*), and escalation 10 where declaring the shape unsupported is an option |
 | Auditor: production growth that a refusal would have avoided | Replace the growth by withholding the fix or leaving the construct as written, routed like a repair, in any case; escalation 10 where declaring the shape unsupported is an option |
 | Auditor: undecided visible output | An output question, asked at once |
 | Validator: a failure that also exists on `main` | Decide: a follow-up, or an adjacent fix under *Scope* |
@@ -91,6 +91,15 @@ Ask output questions in batches (`README.md`, *What reaches the maintainer*), in
 - **Before the test implementer starts**: every visible output change of the change doc, and every output question the spec author and the skeptic raised. When nothing is open, there is no stop.
 - **Before the auditor** (section 6): the questions found since.
 
+Before you send a batch, check every question in it:
+
+- **Neighbours in the same batch.** When an answer could be read as a principle — "code behind a comment stays on its line", "a list is multi-line when its elements stand on different lines" — ask in the same batch about the sibling constructs and token kinds the spec author or the skeptic names, instead of extending the answer to them yourself later.
+- **Reachable "after" outputs.** Every shown output follows from the requirements the run leaves unchanged, in particular the other phases' spacing and line breaks; run it through `scripts/format.sh` or `scripts/apply-fix.sh` where the code exists, so the maintainer answers on real outputs. Say in one line under an input when it carries whitespace the formatter does not write, such as an author's own indentation.
+- **Concrete withholding.** An option that withholds a fix shows the concrete inputs it withholds for, not a condition.
+- **Stable labels.** Keep a question's option labels as a role drafted them; never re-letter options between drafts.
+
+Route an answer as it was given: the routing message quotes the maintainer's answer and adds nothing to it. A case the answer does not name is a new question, not a reading.
+
 When an output question's option makes a code fix lay out, move, or rewrite code (comments, directives, literals, build configurations), ask in the same message whether the fix may be withheld for inputs where that is unsafe. A rare input class needs no question: it is refused (`AGENTS.md`, *Code-fix coverage*); where declaring the shape unsupported is an option, that is also asked, as escalation 10, in the same batch. An escalation 10 raised at or after the auditor is asked before publishing (section 8). Settling it before the first audit is cheaper than after the sixth.
 
 Record each answer under `Maintainer answers` in `00-lead.md`, and carry it out before the next role starts: a visible output change the maintainer chose goes into the change doc's `Decisions` section and the spec, routed to the spec author (continue its agent or spawn a fresh one, section 4); a bug fix or a clarification within the run's issues is routed to its owner like a repair; a case outside the run's issues becomes a follow-up, and so does a shape the maintainer chose to declare in a change of its own.
@@ -100,7 +109,7 @@ Record each answer under `Maintainer answers` in `00-lead.md`, and carry it out 
 1. `git fetch origin main` and merge it into the branch when it is behind; never rebase. A conflict is resolved by the role that owns the file, keeping both sides' behavior, followed by the cleaner.
 2. Ask the output questions that are still open (section 5). Skip this step when none is.
 3. `scripts/build.sh` must be green on the head.
-4. Run `git ls-remote origin refs/heads/main` in the same step as the auditor spawn and put the SHA in its prompt. A stale base turns an audit into a state mismatch.
+4. Run `git ls-remote origin refs/heads/main` in the same step as the auditor spawn and put the SHA in its prompt — also for the audit of a repair round, after the repair has run. A stale base turns an audit into a state mismatch.
 
 If `origin/main` moves after a passing audit, check whether the new commits touch anything the PR touches. When they overlap only in files to which both sides add independent entries — the requirement-ID ledger, or a test file to which both sides added tests — merge, have the role that owns the file resolve the conflict by keeping both sides, run the cleaner, and rely on CI: no second audit and no local validator run on the merged tree. The PR's `Review notes` name the checks that did not run locally. When the new commits change code, spec text, or a test that the PR also changes, decide yourself whether to merge and re-audit or to rely on CI, and record it.
 
@@ -108,7 +117,7 @@ If `origin/main` moves after a passing audit, check whether the new commits touc
 
 Collect every finding of one verdict into one worklist, classify each — same requirement or PR-introduced stays; a new mechanism or pre-existing defect becomes a follow-up candidate — and route each to its owner (`README.md`). An auditor finding marked as repeating the class of an earlier audit finding of the run, and a finding the auditor lists under `Architecture findings`, are not routed as repairs: you decide them under `README.md`, *Architecture findings*, together with the rest of the worklist. The finding's suggested change is a suggestion; the owner re-derives it. Then the cleaner, the spec checker, and the auditor run again; the auditor audits the repair only. A further block starts another repair round in the same way, up to three in a run (`README.md`, *Repairs*). A finding whose repair needs a choice — narrowing a requirement, a design change, more scope — is yours to decide unless it puts a visible output in question. A block after the third round is resolved by narrowing (`README.md`, *Repairs*); escalation 7 only when the narrowing would change an output the maintainer answered, or the run still blocks after it. A state mismatch or a role that returned no verdict does not use up the round.
 
-When the auditor passes with comment or documentation findings only, route them to the cleaner (code comments) or the spec author (docs). Prove the fix with `scripts/verify-text-only.sh --strict-docs --base <audited-sha> --head worktree`; a passing proof needs no second audit, a failing one makes it a repair round.
+When the auditor passes with comment or documentation findings only, route them to the cleaner (code comments) or the spec author (docs). Prove the fix with `scripts/verify-text-only.sh --base <audited-sha> --head worktree`; a passing proof needs no second audit, a failing one makes it a repair round.
 
 ## 8. Publish
 
@@ -144,7 +153,7 @@ Every follow-up candidate — from a handover, an open question outside the run'
 - Ask the maintainer an internal question, or decide an output question yourself.
 - Ship, defer, or accept a safety-rail defect the run causes or keeps in an output it changes.
 - Spawn the next role over an undecided architecture finding, or start a repair round for a finding that repeats an earlier audit finding's class.
-- Answer a finding on a rare input class with more reasoning instead of a wider refusal, or accept a structural change of more than about 100 production lines or a new type without escalation 9.
+- Answer a finding on a rare input class with more reasoning instead of a wider refusal, or build a structural change that escalation 9 covers without the maintainer's answer.
 - Declare a shape unsupported, or route its declaration to a role, without the maintainer's answer to escalation 10, or drop the option without asking.
 - Leave `sdd/work/` in a published PR, or the claim placeholder in its title or body.
 - Use the `gh` CLI or a raw GitHub API call; use the GitHub MCP server.

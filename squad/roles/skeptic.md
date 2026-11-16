@@ -38,7 +38,7 @@ Settle a factual question by running the narrowest existing entry point, not by 
 - code fix: `scripts/apply-fix.sh <RH####> <fixture-dir>`, which runs every fixture under LF and CRLF;
 - one existing test: `scripts/test.sh --project <name> --filter "FullyQualifiedName~<test>"`.
 
-Fixtures live in a temporary directory outside the repository and are deleted afterwards.
+Fixtures live in a temporary directory outside the repository and are deleted afterwards. Quote every fixture whose result your handover states inline, with the command and the observed output, so the test implementer reproduces exactly that input.
 
 ## Must not
 

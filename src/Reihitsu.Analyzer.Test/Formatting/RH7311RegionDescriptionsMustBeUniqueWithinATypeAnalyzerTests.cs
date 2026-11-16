@@ -947,6 +947,106 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies the union example of RH7311-001: a top-level region of a union whose description repeats an earlier one
+    /// is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7311-001")]
+    [Requirement("RH7311-003")]
+    public async Task UnionRepeatedRegionDescriptionIsReported()
+    {
+        const string testCode = """
+                                union U(int, string)
+                                {
+                                    #region Methods
+
+                                    int A() => 1;
+
+                                    #endregion
+
+                                    {|RH7311:#region Methods|}
+
+                                    int B() => 2;
+
+                                    #endregion
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies that a region of a union nested in a class is not compared with a region of the class, and a region of
+    /// the class not with one of the union
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7311-002")]
+    [Requirement("SHARED-TYPEREGION-006")]
+    public async Task NestedUnionRegionIsNotComparedWithRegionsOfTheClass()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    #region Methods
+
+                                    public int A() => 1;
+
+                                    #endregion
+
+                                    union N(int, string)
+                                    {
+                                        #region Methods
+
+                                        public int B() => 2;
+
+                                        #endregion
+                                    }
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies that the regions of two declarations of a partial union are not compared with each other
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7311-002")]
+    public async Task RegionsOfTwoPartsOfPartialUnionAreNotCompared()
+    {
+        const string testCode = """
+                                public partial union U(int, string)
+                                {
+                                    #region Methods
+
+                                    public int A() => 1;
+
+                                    #endregion
+                                }
+
+                                public partial union U
+                                {
+                                    #region Methods
+
+                                    public int B() => 2;
+
+                                    #endregion
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region Methods

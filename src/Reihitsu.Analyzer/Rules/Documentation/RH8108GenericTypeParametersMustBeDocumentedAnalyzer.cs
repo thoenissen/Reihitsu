@@ -46,7 +46,8 @@ public class RH8108GenericTypeParametersMustBeDocumentedAnalyzer : DiagnosticAna
     private void OnDeclaration(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is not MemberDeclarationSyntax declaration
-            || DocumentationAnalysisUtilities.NeedsDocumentation(declaration) == false)
+            || DocumentationAnalysisUtilities.NeedsDocumentation(declaration) == false
+            || DocumentationAnalysisUtilities.IsUnjudgedUnion(declaration, context.SemanticModel, context.CancellationToken))
         {
             return;
         }

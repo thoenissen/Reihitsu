@@ -3283,6 +3283,97 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
         await VerifyCodeFixWithEndOfLine(testData, resultData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies that a combined static field declaration in a union declaration is reported and split by the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task VerifyCombinedStaticFieldInAUnionIsSplit()
+    {
+        const string testData = """
+                                public union U7(int, string)
+                                {
+                                    public static int A = 1, {|#0:B|} = 2;
+                                }
+                                """;
+
+        const string fixedData = """
+                                 public union U7(int, string)
+                                 {
+                                     public static int A = 1;
+                                     public static int B = 2;
+                                 }
+                                 """;
+
+        // The .NET 9 reference assemblies lack the union runtime types (CS0518, CS0656), so compiler diagnostics are not verified
+        await Verify(testData, fixedData, test => test.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix splits a combined static field declaration in a union declaration under CRLF line endings, and that
+    /// the result keeps them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task VerifyCombinedStaticFieldInAUnionIsSplitWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                public union U7(int, string)
+                                {
+                                    public static int A = 1, {|RH7101:B|} = 2;
+                                }
+                                """;
+
+        const string fixedData = """
+                                 public union U7(int, string)
+                                 {
+                                     public static int A = 1;
+                                     public static int B = 2;
+                                 }
+                                 """;
+
+        var source = ConvertEndOfLine(testData, "\r\n");
+        var expected = ConvertEndOfLine(fixedData, "\r\n");
+
+        // The .NET 9 reference assemblies lack the union runtime types (CS0518, CS0656), so compiler diagnostics are not verified
+        await Verify(source, expected, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+
+        Assert.AreEqual(expected, await ApplyCodeFixAsync(RemoveMarkup(source)));
+    }
+
+    /// <summary>
+    /// Verifies that the fix splits a combined static and a combined constant declaration in one union declaration, each through
+    /// its own diagnostic, and that Fix All splits both
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-004")]
+    public async Task VerifyCombinedFieldsInAUnionAreSplitTogether()
+    {
+        const string testData = """
+                                public union U7(int, string)
+                                {
+                                    public static int A = 1, {|#0:B|} = 2;
+                                    public const int C = 3, {|#1:D|} = 4;
+                                }
+                                """;
+
+        const string fixedData = """
+                                 public union U7(int, string)
+                                 {
+                                     public static int A = 1;
+                                     public static int B = 2;
+                                     public const int C = 3;
+                                     public const int D = 4;
+                                 }
+                                 """;
+
+        // The .NET 9 reference assemblies lack the union runtime types (CS0518, CS0656), so compiler diagnostics are not verified
+        await Verify(testData, fixedData, test => test.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat, 2));
+    }
+
     #endregion // Tests
 
     #region Methods

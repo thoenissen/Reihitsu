@@ -42,6 +42,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH2107](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2107.md)| Nested enums should not be used.| ✔| ❌| ❌|
 | [RH2108](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2108.md)| Nested delegates should not be used.| ✔| ❌| ❌|
 | [RH2109](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2109.md)| Razor @code blocks should not be used.| ✔| ❌| ❌|
+| [RH2110](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2110.md)| Nested unions should not be used.| ✔| ❌| ❌|
 || **Clarity**||||
 | [RH3001](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3001.md)| Not operator should not be used.| ✔| ✔| ❌|
 | [RH3002](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3002.md)| Statement must not use unnecessary parentheses.| ✔| ✔| ❌|
@@ -77,6 +78,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH4009](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4009.md)| The given namespace is not allowed.| ✔| ❌| ❌|
 | [RH4010](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4010.md)| Record names should be in PascalCase.| ✔| ✔| ❌|
 | [RH4011](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4011.md)| Record struct names should be in PascalCase.| ✔| ✔| ❌|
+| [RH4012](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4012.md)| Union names should be in PascalCase.| ✔| ✔| ❌|
 | [RH4101](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4101.md)| Enum member names should be in PascalCase.| ✔| ✔| ❌|
 | [RH4102](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4102.md)| Event names should be in PascalCase.| ✔| ✔| ❌|
 | [RH4103](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4103.md)| Method names should be in PascalCase.| ✔| ✔| ❌|
@@ -198,6 +200,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH5415](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5415.md)| Empty records should use semicolon declarations.| ✔| ✔| ✔|
 | [RH5416](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5416.md)| Empty record structs should use semicolon declarations.| ✔| ✔| ✔|
 | [RH5417](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5417.md)| Function and accessor body braces must not share a line.| ✔| ✔| ✔|
+| [RH5418](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5418.md)| Empty unions should use semicolon declarations.| ✔| ✔| ✔|
 | [RH5501](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5501.md)| Assembly attributes must be on their own line.| ✔| ✔| ✔|
 | [RH5502](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5502.md)| Assembly attribute lists must use one attribute per list.| ✔| ✔| ✔|
 | [RH5503](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5503.md)| Module attributes must be on their own line.| ✔| ✔| ✔|
@@ -340,6 +343,8 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH8032](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8032.md)| Extension declaration parameters must be documented.| ✔| ❌| ❌|
 | [RH8033](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8033.md)| Extension declaration type parameters must be documented.| ✔| ❌| ❌|
 | [RH8034](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8034.md)| Operators must be documented.| ✔| ❌| ❌|
+| [RH8035](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8035.md)| Non-private unions must be documented.| ✔| ❌| ❌|
+| [RH8036](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8036.md)| Private unions must be documented.| ✔| ❌| ❌|
 | [RH8101](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8101.md)| Element parameters must be documented.| ✔| ❌| ❌|
 | [RH8102](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8102.md)| Element parameter documentation must match element parameters.| ✔| ❌| ❌|
 | [RH8103](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8103.md)| Element parameter documentation must declare parameter name.| ✔| ❌| ❌|

@@ -39,7 +39,7 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
 
     /// <summary>
     /// Determines whether the transform splits the field declaration: it declares more than one variable, is a member of a
-    /// class, struct, record, or interface, carries no preprocessor directive or disabled text, and has no documentation
+    /// class, struct, record, interface, or union, carries no preprocessor directive or disabled text, and has no documentation
     /// comment (FMT-STRUCT-021, FMT-STRUCT-023, FMT-STRUCT-030). A comment anywhere else in the declaration never reaches
     /// the split, because the precheck refuses every input that holds one (FMT-UNSUP-004)
     /// </summary>
@@ -48,7 +48,7 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     internal static bool Splits(FieldDeclarationSyntax fieldDeclaration)
     {
         return fieldDeclaration.Declaration.Variables.Count > 1
-               && fieldDeclaration.Parent is ClassDeclarationSyntax or StructDeclarationSyntax or RecordDeclarationSyntax or InterfaceDeclarationSyntax
+               && fieldDeclaration.Parent is ClassDeclarationSyntax or StructDeclarationSyntax or RecordDeclarationSyntax or InterfaceDeclarationSyntax or UnionDeclarationSyntax
                && CarriesDirective(fieldDeclaration) == false
                && IsDocumented(fieldDeclaration) == false;
     }
@@ -217,6 +217,21 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
         _cancellationToken.ThrowIfCancellationRequested();
 
         node = (InterfaceDeclarationSyntax)base.VisitInterfaceDeclaration(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        return node.WithMembers(SplitFields(node.Members));
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitUnionDeclaration(UnionDeclarationSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (UnionDeclarationSyntax)base.VisitUnionDeclaration(node);
 
         if (node == null)
         {

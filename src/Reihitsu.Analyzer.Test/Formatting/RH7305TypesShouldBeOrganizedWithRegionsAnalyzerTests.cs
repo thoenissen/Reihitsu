@@ -834,5 +834,99 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies the union example of SHARED-TYPEREGION-001: a top-level union with a member outside every region is
+    /// reported on its name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TYPEREGION-001")]
+    [Requirement("RH7305-001")]
+    public async Task UnionWithMemberOutsideRegionsIsReported()
+    {
+        const string testCode = """
+                                public union {|RH7305:U|}(int, string)
+                                {
+                                    public int Get() => 1;
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies that a union without a body, whose case types are not members it declares, a union whose members are in
+    /// a region, and a union nested in a class are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TYPEREGION-001")]
+    [Requirement("SHARED-TYPEREGION-002")]
+    [Requirement("RH7305-002")]
+    public async Task UnionWithoutMembersOrOrganizedOrNestedIsNotReported()
+    {
+        const string testCode = """
+                                public union U(int, string);
+
+                                public union V(int, string)
+                                {
+                                    #region Methods
+
+                                    public int Get() => 1;
+
+                                    #endregion // Methods
+                                }
+
+                                public class C
+                                {
+                                    #region Unions
+
+                                    union N(int, string)
+                                    {
+                                        public int Get() => 1;
+                                    }
+
+                                    #endregion // Unions
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies that each declaration of a partial union is judged on its own: the part with a member outside every
+    /// region is reported, and the organized part is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TYPEREGION-001")]
+    [Requirement("RH7305-001")]
+    public async Task EachPartOfPartialUnionIsJudgedOnItsOwn()
+    {
+        const string testCode = """
+                                public partial union {|RH7305:U|}(int, string)
+                                {
+                                    public int Get() => 1;
+                                }
+
+                                public partial union U
+                                {
+                                    #region Methods
+
+                                    public int Other() => 2;
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 }

@@ -43,10 +43,10 @@ public class CliLanguageVersionEndToEndTests
     private const string UnionWithOneLineBracesSource = "public class Outer\n{\n    private union Inner(int,string) { public override string ToString() { return \"x\"; } }\n}";
 
     /// <summary>
-    /// The formatted form of <see cref="UnionWithOneLineBracesSource"/> under C# 15, as long as no line-break rule covers a
-    /// union's braces
+    /// The formatted form of <see cref="UnionWithOneLineBracesSource"/> under C# 15: the union's braces and member start their
+    /// own lines, as a class's do
     /// </summary>
-    private const string UnionWithOneLineBracesFormatted = "public class Outer\n{\n    private union Inner(int, string) { public override string ToString()\n        {\n            return \"x\";\n        } }\n}";
+    private const string UnionWithOneLineBracesFormatted = "public class Outer\n{\n    private union Inner(int, string)\n    {\n        public override string ToString()\n        {\n            return \"x\";\n        }\n    }\n}";
 
     /// <summary>
     /// A type named <c>union</c> used as a method's return type, which C# 15 reads as a union declaration
@@ -291,12 +291,14 @@ public class CliLanguageVersionEndToEndTests
     }
 
     /// <summary>
-    /// Verifies that a union whose braces stand on one line keeps them there without <c>--lang-version</c>, also when its member
-    /// gets a block body, and that a check of the result finds nothing to format
+    /// Verifies that a union whose braces stand on one line gets its braces and member on their own lines without
+    /// <c>--lang-version</c>, also when its member gets a block body, and that a check of the result finds nothing to format
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
-    public async Task UnionWithOneLineBracesKeepsThemWithoutLangVersion()
+    [Requirement("FMT-BREAK-002")]
+    [Requirement("FMT-BREAK-007")]
+    public async Task UnionWithOneLineBracesIsLaidOutWithoutLangVersion()
     {
         using (var tempDir = new TemporaryDirectoryFixture())
         {

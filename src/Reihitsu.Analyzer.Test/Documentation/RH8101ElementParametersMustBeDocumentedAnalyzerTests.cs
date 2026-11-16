@@ -642,5 +642,34 @@ public class RH8101ElementParametersMustBeDocumentedAnalyzerTests : AnalyzerTest
         await Verify(source);
     }
 
+    /// <summary>
+    /// Verifies no diagnostic is reported for the case types of a documented union, which have no names and are not
+    /// parameters a <c>&lt;param&gt;</c> element can document
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8101-001")]
+    public async Task VerifyNoDiagnosticForUnionCaseTypes()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Shape
+                              /// </summary>
+                              public union Shape(int, string);
+
+                              /// <summary>
+                              /// Result
+                              /// </summary>
+                              /// <typeparam name="T">Value</typeparam>
+                              public union Result<T>(T, string)
+                              {
+                              }
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 }

@@ -136,5 +136,25 @@ public class RH2104NestedStructsShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase
         await Verify(source, Diagnostics(RH2104NestedStructsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2104MessageFormat, 2));
     }
 
+    /// <summary>
+    /// Verifies that a union nested in a type is not reported as a nested struct, although the compiler emits a union
+    /// as a struct
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NestedUnionIsNotReportedAsNestedStruct()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    union U(int, string);
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 }
