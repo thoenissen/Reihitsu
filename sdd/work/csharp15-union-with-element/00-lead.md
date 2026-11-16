@@ -43,3 +43,4 @@ Batch 1 (before test implementer), all recommended options chosen:
 - Follow-up candidates: (c) extension-block braces/`where` clauses stay glued on main; type-kind list duplicated in seven places — follow-up carrying output question, rec. class-like layout (02-skeptic); (d) stale RH5404 exclusion comment for unions — input for #1767 (02-skeptic); (a) belongs into #1767 as well.
 - Batch-1 answered (1A 2A 3A 4A). 03-spec-author (038aaeb): answers recorded, change docs Accepted (lead accepts). Next: test implementer.
 - 04-test-implementer (9dff24e): 36 failing tests (30 formatter, 5 analyzer, 1 CLI). Union code-fix tests use CompilerDiagnostics.None (CS0518/CS0656, #1766). Next: implementer (narrow fix per decision 2).
+- 05-implementer (5a6d3e1, handover 547aac1): all 36 pass; full formatter/analyzer/CLI/core/arch green in Debug. 8 prod files, +77/-7. Next: cleaner.
