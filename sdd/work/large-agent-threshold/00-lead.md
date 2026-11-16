@@ -6,7 +6,7 @@ Verdict: run started
 
 - Issue: thoenissen/Reihitsu#1792 — `agent-filed` (goals are proposals).
 - Branch: `claude/vibrant-newton-j48usm` (session-designated). Draft PR: thoenissen/Reihitsu#1799.
-- Lane: **tooling** — the issue changes the squad playbook (`squad/lead.md`) and `scripts/usage.sh`, plus a process change doc under `sdd/changes/` (text, admitted by any lane). No shipped source, no visible output surface.
+- Lane: **behavior change** (widened from tooling, decision 3) — the issue changes the squad playbook (`squad/lead.md`) and `scripts/usage.sh`, plus a process change doc under `sdd/changes/` (text, admitted by any lane). No shipped source, no visible output surface.
 
 ## Roles
 
@@ -30,7 +30,8 @@ None yet.
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Start | Who writes the process change doc in the tooling lane? | Spec author, before the implementer | Change docs are the spec author's product; the implementer then implements against it | Process documents and a squad script only | 64cd288 |
-| 2 | Spec author | Accept the change doc (signal: context growth >= ~120k, first->last response, input+cache read+cache write; response count and lifetime average dropped; usage.sh --json prints first/last/growth, Markdown gains a column) | Accept; departs from the issue's suggested 'cache read of the last response' for the cache-expiry reason in the doc | Evidence in 01-spec-author.md from 23 notes / 534 spawns | Squad process and a squad script only | 64cd288 |
+| 2 | Spec author | Accept the change doc (signal: context growth >= ~120k, first->last response, input+cache read+cache write; response count and lifetime average dropped; usage.sh --json prints first/last/growth, Markdown gains a column) | Accept; departs from the issue's suggested 'cache read of the last response' for the cache-expiry reason in the doc | Evidence in 01-spec-author.md from 23 notes / 534 spawns | Squad process and a squad script only | 64cd288, 9522a08 |
+| 3 | Spec author | Lane check: a change doc under sdd/changes/ makes the diff need behavior-change | Widen tooling -> behavior change before the implementer; run the added roles skeptic (premise and change doc) and test implementer (tests where the tool has a test surface) | The lane check decides the claim; widening order tooling -> behavior change | No shipped surface changes; process and squad script only | — |
 
 ## Follow-up candidates
 
@@ -38,4 +39,4 @@ None yet.
 
 ## Open worklist / next step
 
-- Done: spec author (01). Next: spec author status-only -> Accepted; then implementer (02).
+- Done: spec author (01), status Accepted (9522a08). Next: skeptic (02), then test implementer (03), implementer (04).
