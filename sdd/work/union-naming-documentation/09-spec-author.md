@@ -40,3 +40,13 @@ _None._ On `main` no rule judges a union, so the refused inputs are not reported
 ## Follow-up candidates
 
 _None._ Unverified: whether `param` content brought in only by `<include>` also makes the compiler's expansion throw; the auditor did not probe it, and SHARED-DOC-019 leaves it uncovered. If the test implementer can construct it cheaply, a probe settles it; a crash there would be a new member of the same class for the lead to decide.
+
+## Correction (repair round 1, after `11-implementer.md` and lead decision 5)
+
+Commit derived from: 8db42bf.
+
+- `SpecStructureTests.UsesListsExactlyTheReferencedRequirements`: the SHARED-DOC-019 example text no longer cites RH8035-001, RH8036-001, and RH8203-001; it names the rules and what they report instead. Chosen over adding the three IDs to the shared spec's `Uses` row, so the shared spec does not depend on the rule specs that use it. `scripts/test.sh --project architecture` → Passed: 118, Failed: 0.
+- SHARED-DOC-019 — widened (decision 5): for a partial union, every part is left unjudged when the documentation of any one part holds a `param` or `paramref` element; the exclusion "a part of a partial union is not covered" is removed. New example (RH8035 and RH8203): a partial union whose first part carries `<inheritdoc/>` and whose second part carries `<param>` is not reported. All five SHARED-DOC-019 blocks compile (.NET 11, `LangVersion 15`, no documentation file).
+- Change doc: the *What* bullet and the *Decisions* section state the partial-union case. Still no visible output change against `main`; `Status` stays `Accepted`.
+
+Examples for the tests: the new partial-union example, for RH8035 (no report, no AD0001) and RH8203 (no report), each under the default mode with `CompilerDiagnostics.None`, analyzing both parts.

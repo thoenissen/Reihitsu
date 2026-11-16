@@ -17,7 +17,7 @@ A C# 15 union declaration (`union Pet(Cat, Dog);`) becomes a type that the namin
 - **RH8108 to RH8111** check the type parameters of a generic union and its `<typeparam>` elements.
 - **RH8203** reports `<inheritdoc/>` on a union that inherits nothing: a union without a base list.
 - The case types of a union have no names, so **RH8101 to RH8104** do not check a union at all — no `<param>` is required for a case type, and a `<param>` element on a union is not judged.
-- A union whose documentation comment holds a `param` or `paramref` element is not judged by **RH8035, RH8036, RH8108, or RH8203** (SHARED-DOC-019): the rules report nothing for it and do not fail on it.
+- A union whose documentation comment — on any part, for a partial union — holds a `param` or `paramref` element is not judged by **RH8035, RH8036, RH8108, or RH8203** (SHARED-DOC-019): the rules report nothing for it and do not fail on it.
 
 SHARED-DOC-001 and SHARED-DOC-002 name a union where they list the declarations that contain a nested declaration. That writes down what the code already does: a member declared in a union body is checked, and one without an access modifier is in the private group.
 
@@ -200,7 +200,7 @@ Decided by the maintainer (output questions 3, 4, and 5, option A each): RH8030,
 
 ### A union whose documentation holds a parameter element is not judged
 
-Decided in the run (audit finding, repair round 1), as a rare input class refused under *Code-fix coverage* in `AGENTS.md`: RH8035, RH8036, RH8108, and RH8203 judge a union through the compiler's expansion of its documentation, and that expansion throws for a union whose documentation comment holds a `param` or `paramref` element when documentation is diagnosed, so each rule failed with AD0001. SHARED-DOC-019 makes the rules report nothing for such a union, in every documentation mode, and not fail on it. The input is rare: such an element refers to nothing on a union, and the compiler already fails with CS1569 when it writes the documentation file for it. Nothing visible is put in question — on `main` no rule judges a union, so the input is not reported before or after:
+Decided in the run (audit finding, repair round 1), as a rare input class refused under *Code-fix coverage* in `AGENTS.md`: RH8035, RH8036, RH8108, and RH8203 judge a union through the compiler's expansion of its documentation, and that expansion throws for a union whose documentation comment holds a `param` or `paramref` element when documentation is diagnosed, so each rule failed with AD0001. SHARED-DOC-019 makes the rules report nothing for such a union, in every documentation mode, and not fail on it. For a partial union the expansion joins the documentation of every part, so the class covers a partial union where the documentation of any part holds such an element, and none of its parts is judged (decided in the same round). The input is rare: such an element refers to nothing on a union, and the compiler already fails with CS1569 when it writes the documentation file for it. Nothing visible is put in question — on `main` no rule judges a union, so the input is not reported before or after:
 
 ```csharp
 // input
