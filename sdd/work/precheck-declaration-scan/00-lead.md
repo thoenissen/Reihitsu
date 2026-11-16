@@ -28,6 +28,7 @@
 
 ## State
 
-- Audited SHA: –
-- Last step: cleaner (04-cleaner.md, 8546f9f, clean).
-- Next: spec checker.
+- Audited SHA: 8fde9c4 (base main 372daee); audit 06-auditor.md: one finding (test does not reach first-token path).
+- Last step: spec checker (05, consistent); auditor (06, 1 finding).
+- Repair round 1 worklist: auditor finding #1 (PR-introduced test gap) -> test implementer.
+- Next: test implementer repair, then cleaner, spec checker, auditor (repair only), validator.
