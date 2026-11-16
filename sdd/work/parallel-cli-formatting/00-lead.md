@@ -35,6 +35,8 @@ Batch 1 (before test implementer), answer "1a 2a 3a 4a 5a 6a":
 | 2 | skeptic | Reword CLI-006 "selected more than once" to "the same full path" | Accept | States today's behavior precisely | Changes no output | 0a1bd37 |
 | 3 | spec author 03 | Leading zeros in the count (`007`) | Accept as 7 | Follows from answer 6A (digits only, value 1..int.MaxValue) | Covered by answer 6A | 0a1bd37 |
 | 4 | spec author 03 | README sentence "same for every count" not literally true for aliases in write mode | Keep as answered (3A) | Maintainer chose the text; the alias carve-out (5A) is recorded in spec and change doc | Text was answered verbatim | 0a1bd37 |
+| 5 | test impl 04 | Tests require real concurrency above degree 1 although CLI-022 says MAY | Accept | Issue goal (binding) and maintainer decision: files are formatted in parallel | Internal test strictness; output identical | d872a51 |
+| 6 | test impl 04 | Replace `ExecuteAsyncPassesCancellationTokenToFileWrite` by a behavior test | Accept | Contradicts decision 1 / CLI-022 started-write rule | Carries out decision 1 | d872a51 |
 
 ## Follow-up candidates
 
@@ -46,4 +48,4 @@ Batch 1 (before test implementer), answer "1a 2a 3a 4a 5a 6a":
 ## State
 
 - Last step: skeptic 02 (verdict: output question). Batch 1 asked: Q1 name, Q2 default, Q3 docs, Q4 Ctrl+C several in progress, Q5 aliases (skeptic's Q6), Q6 accepted values (skeptic's Q7).
-- Spec author 03 done (0a1bd37, change doc Accepted). Lane check confirmed behavior-change. Next: test implementer 04.
+- Test implementer 04 done (d872a51); tests need `ParseResult.MaxParallelism` and handler ctor param `maxParallelism`. Next: implementer 05.
