@@ -34,6 +34,8 @@ Note: the self-hosting scans are not run by `scripts/test.sh` by default (CI run
 | 4 | Skeptic | How the check is asserted outside `FormatterTestsBase` | One session-free assertion in `PhaseStabilityCheck` with the same failure message as the session check, using the output's detected line ending and the fixture's parse options | One statement of the failure text instead of seven copies | Test code only | — |
 | 5 | Skeptic | Architecture finding: private copies of `FormatterTestsBase.ApplyRule` in three regression classes and `FormattingPipelineTests` | Fix narrowly (call the shared assertion); consolidation becomes a follow-up candidate | Test-only structure, outside the issues' goals | Test code only | — |
 | 6 | Skeptic | #1576 needs `PhaseStabilityCheck` from `Reihitsu.SelfHosting.Test`, which does not reference `Reihitsu.Formatter.Test` | Widen the run's lane tests → tooling; `ProjectReference` SelfHosting.Test → Formatter.Test, call public `FindChangingPhases`; a new test method tagged FMT-PIPE-027; skip outputs the formatter did not format (unsupported, FMT-PIPE-033) | Only way to reach the helper without touching shipped source; tooling adds implementer and auditor | Test/project files only | — |
+| 7 | Implementer | `scripts/README.md` sentence naming the per-phase check in the self-hosting scan | Accept | Keeps the scripts documentation true for the scan it describes | Repository docs only | 5652ed0 |
+| 8 | Implementer | `Reihitsu.Formatter.Test.dll` now in the self-hosting test output; SonarCloud collects coverage per project | Accept without change | Sonar classifies test projects as test code, so the assembly adds no coverage target; each project still runs its tests once | Tooling only | 5652ed0 |
 
 ## Follow-up candidates
 
@@ -44,5 +46,5 @@ Note: the self-hosting scans are not run by `scripts/test.sh` by default (CI run
 ## State
 
 - Lane widened to tooling (decision 6): roles now test implementer → implementer (project reference / anything tests need beyond test code) → cleaner → spec checker → auditor → validator (+ `--project selfhosting`).
-- Last step: test implementer (02) done at 3bff080; formatter suite green; self-hosting test needs the ProjectReference SelfHosting.Test → Formatter.Test.
-- Next: implementer (03).
+- Last step: implementer (03) done at 5652ed0; selfhosting new test green on 1810 rows (+2m22s); only `WorkingDocumentsDirectoryContainsNoFiles` fails while `sdd/work/` exists (expected).
+- Next: cleaner (04).
