@@ -39,4 +39,5 @@
 - Answers recorded (1B, 2B). Lane widened to behavior change (decision 8).
 - Spec author 03 done (e9a6ecf); change doc accepted by the lead; lane check confirmed behavior-change.
 - Test implementer 04 done (159666b): both reproduced.
-- Next: implementer (05).
+- Implementer 05 done (50321f7): tests pass.
+- Next: cleaner (06).
