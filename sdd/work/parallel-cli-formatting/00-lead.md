@@ -37,6 +37,8 @@ Batch 1 (before test implementer), answer "1a 2a 3a 4a 5a 6a":
 | 4 | spec author 03 | README sentence "same for every count" not literally true for aliases in write mode | Keep as answered (3A) | Maintainer chose the text; the alias carve-out (5A) is recorded in spec and change doc | Text was answered verbatim | 0a1bd37 |
 | 5 | test impl 04 | Tests require real concurrency above degree 1 although CLI-022 says MAY | Accept | Issue goal (binding) and maintainer decision: files are formatted in parallel | Internal test strictness; output identical | d872a51 |
 | 6 | test impl 04 | Replace `ExecuteAsyncPassesCancellationTokenToFileWrite` by a behavior test | Accept | Contradicts decision 1 / CLI-022 started-write rule | Carries out decision 1 | d872a51 |
+| 7 | implementer 05 | Ctrl+C after the last file but before the summary now ends with `Operation canceled.`, no summary (main printed the summary in that window) | Accept | CLI-022 "MUST NOT write the summary" on cancellation; answer 4A shows no summary on cancel | Covered by answer 4A and CLI-017/022 | a1d2458 |
+| 8 | implementer 05 | New type `BufferedConsoleOutput` (62 lines) | Accept, not escalation 9 | Part of the issue's own fix | Internal | a1d2458 |
 
 ## Follow-up candidates
 
@@ -48,4 +50,4 @@ Batch 1 (before test implementer), answer "1a 2a 3a 4a 5a 6a":
 ## State
 
 - Last step: skeptic 02 (verdict: output question). Batch 1 asked: Q1 name, Q2 default, Q3 docs, Q4 Ctrl+C several in progress, Q5 aliases (skeptic's Q6), Q6 accepted values (skeptic's Q7).
-- Test implementer 04 done (d872a51); tests need `ParseResult.MaxParallelism` and handler ctor param `maxParallelism`. Next: implementer 05.
+- Implementer 05 done (a1d2458), tests pass. Lane check confirmed. Next: cleaner 06.
