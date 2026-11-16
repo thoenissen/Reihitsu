@@ -24,8 +24,15 @@
 # A "prompt" is one instruction the agent received: a spawn has one, and each SendMessage continuation adds
 # one, so a row with several prompts was resumed. The JSON output breaks every row down per prompt.
 #
+# A response's context is its whole prompt: input + cache read + cache write. Every spawn carries the context of its
+# first and of its latest response, over all its prompts and tiers, and the growth between them, which the lead's
+# continue-or-spawn rule (squad/lead.md, section 4) reads as the agent's size; the Markdown table shows the growth
+# in a "Context growth" column, repeated on each tier row of a spawn.
+#
 # Output is Markdown by default; --json prints every field the transcripts hold (cache writes split
-# by lifetime, thinking tokens, web search and fetch requests, effort levels, first and last message).
+# by lifetime, thinking tokens, web search and fetch requests, effort levels, first and last message), and per
+# spawn first_context_tokens, last_context_tokens, context_growth_tokens, and last_response_at, the time of the
+# spawn's latest response.
 #
 # Requires jq. Exit codes: 0 report printed, 2 bad arguments, missing transcript, or missing jq.
 set -uo pipefail
@@ -111,6 +118,18 @@ turns_of='
     })
   | sort_by(.started)'
 
+# The context of one transcript: a response's context is its whole prompt, input + cache read + cache write. First and
+# last are taken by timestamp over every prompt and model tier; the growth between them is what the transcript added to
+# the context the agent started from. A transcript without a response has no context.
+context_of='
+  [ .[] | select((.message | type) == "object" and (.message.usage | type) == "object" and .message.model != "<synthetic>") ]
+  | group_by(.message.id) | map({ timestamp: (map(.timestamp) | min), usage: (map(.message.usage) | max_by(.output_tokens)) })
+  | map({ timestamp, context: ((.usage.input_tokens // 0) + (.usage.cache_read_input_tokens // 0) + (.usage.cache_creation_input_tokens // 0)) })
+  | sort_by(.timestamp)
+  | if length == 0 then { first_context_tokens: null, last_context_tokens: null, context_growth_tokens: null, last_response_at: null }
+    else { first_context_tokens: .[0].context, last_context_tokens: .[-1].context, context_growth_tokens: (.[-1].context - .[0].context), last_response_at: .[-1].timestamp }
+    end'
+
 # One object per model tier of one transcript: responses counted once per message id.
 summarize='
   def tier: if test("opus") then "large" elif test("sonnet") then "medium" elif test("haiku") then "small" else "other" end;
@@ -134,7 +153,7 @@ summarize='
       web_fetch_requests: (map(.usage.server_tool_use.web_fetch_requests // 0) | add)
     })'
 
-rows="$(jq -n --argjson models "$(jq -s "$summarize" "$main_file")" --argjson turns "$(jq -s "$turns_of" "$main_file")" '{ agent: "lead (main session)", agent_id: null, description: null, models: $models, turns: $turns }')"
+rows="$(jq -n --argjson models "$(jq -s "$summarize" "$main_file")" --argjson turns "$(jq -s "$turns_of" "$main_file")" --argjson context "$(jq -s "$context_of" "$main_file")" '{ agent: "lead (main session)", agent_id: null, description: null } + $context + { models: $models, turns: $turns }')"
 rows="[$rows]"
 
 if [[ -d "$subagent_dir" ]]; then
@@ -150,7 +169,7 @@ if [[ -d "$subagent_dir" ]]; then
             meta_json="$(cat "$meta")"
         fi
 
-        row="$(jq -n --argjson models "$(jq -s "$summarize" "$transcript")" --argjson turns "$(jq -s "$turns_of" "$transcript")" --argjson meta "$meta_json" --arg id "$agent_id" '{ agent: ($meta.agentType // "unknown"), agent_id: $id, description: ($meta.description // null), models: $models, turns: $turns }')"
+        row="$(jq -n --argjson models "$(jq -s "$summarize" "$transcript")" --argjson turns "$(jq -s "$turns_of" "$transcript")" --argjson context "$(jq -s "$context_of" "$transcript")" --argjson meta "$meta_json" --arg id "$agent_id" '{ agent: ($meta.agentType // "unknown"), agent_id: $id, description: ($meta.description // null) } + $context + { models: $models, turns: $turns }')"
         rows="$(printf '%s' "$rows" | jq --argjson row "$row" '. + [$row]')"
     done
 fi
@@ -195,9 +214,9 @@ printf '%s' "$report" | jq -r '
   "",
   "Session `\(.session)`. Responses counted once per message id. Models are named by tier (large, medium, small), as `.claude/agents/README.md` assigns them. Prices are not applied; compute a cost from the tokens and the tier.",
   "",
-  "| Agent | Spawn | Agent ID | Description | Tier | Effort | Prompts | Responses | Input | Output | of which thinking | Cache read | Cache write |",
-  "|---|---|---|---|---|---|---|---|---|---|---|---|---|",
-  (.spawns[] as $s | $s.models[] | "| \($s.agent) | \($s.spawn) | \($s.agent_id // "-") | \($s.description // "-") | \(.model) | \(.efforts | join(", ") | if . == "" then "-" else . end) | \($s.turns | length) \(cols)"),
+  "| Agent | Spawn | Agent ID | Description | Tier | Effort | Prompts | Responses | Input | Output | of which thinking | Cache read | Cache write | Context growth |",
+  "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+  (.spawns[] as $s | $s.models[] | "| \($s.agent) | \($s.spawn) | \($s.agent_id // "-") | \($s.description // "-") | \(.model) | \(.efforts | join(", ") | if . == "" then "-" else . end) | \($s.turns | length) \(cols) \($s.context_growth_tokens | if . == null then "-" else n end) |"),
   "",
   "| Tier | Responses | Input | Output | of which thinking | Cache read | Cache write |",
   "|---|---|---|---|---|---|---|",
