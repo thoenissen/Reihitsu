@@ -40,7 +40,7 @@ Batch 1 (before test implementer), answer "1a 2a 3a 4a 5a 6a":
 | 7 | implementer 05 | Ctrl+C after the last file but before the summary now ends with `Operation canceled.`, no summary (main printed the summary in that window) | Accept | CLI-022 "MUST NOT write the summary" on cancellation; answer 4A shows no summary on cancel | Covered by answer 4A and CLI-017/022 | a1d2458 |
 | 8 | implementer 05 | New type `BufferedConsoleOutput` (62 lines) | Accept, not escalation 9 | Part of the issue's own fix | Internal | a1d2458 |
 | 9 | cleaner 06 | Debug-only S1125 on unchanged lines of FormatCommandHandler.cs | Drop as follow-up | Pre-existing, Release build is warning-free, not reached by the run | Internal | — |
-| 10 | spec checker 07 | Repair round 1: spec index row misses `BufferedConsoleOutput`; cleaner skipped for this round | Route to spec author; then spec checker again | Markdown-only repair, nothing for the cleaner to format or build | Internal | |
+| 10 | spec checker 07 | Repair round 1: spec index row misses `BufferedConsoleOutput`; cleaner skipped for this round | Route to spec author; then spec checker again | Markdown-only repair, nothing for the cleaner to format or build | Internal | b0ae134 |
 
 ## Follow-up candidates
 
@@ -52,4 +52,4 @@ Batch 1 (before test implementer), answer "1a 2a 3a 4a 5a 6a":
 ## State
 
 - Last step: skeptic 02 (verdict: output question). Batch 1 asked: Q1 name, Q2 default, Q3 docs, Q4 Ctrl+C several in progress, Q5 aliases (skeptic's Q6), Q6 accepted values (skeptic's Q7).
-- Implementer 05 done (a1d2458), tests pass. Lane check confirmed. Cleaner 06 clean (df039b2). Spec checker 07: 1 finding (sdd/specs/README.md:399 index row). Repair round 1 open. Next: spec author 08, spec checker 09, then auditor.
+- Implementer 05 done (a1d2458), tests pass. Lane check confirmed. Cleaner 06 clean (df039b2). Spec checker 07: 1 finding (sdd/specs/README.md:399 index row). Repair round 1 open. Spec author 08 repaired (b0ae134). Next: spec checker 09, then merge main/build/auditor 10.
