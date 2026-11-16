@@ -112,6 +112,26 @@ public class ReihitsuFormatterEntryPointTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that the output tree of an input the formatter formats is a new tree, also when formatting changes none of
+    /// its text, so the input tree itself is returned only for an input the formatter does not format; the self-hosting scan
+    /// of the phase-level stability check tells the two apart by that
+    /// </summary>
+    [TestMethod]
+    public void FormatSyntaxTreeReturnsANewTreeForAnInputItFormatsWithoutChangingIt()
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var text = NormalizeLineEndings("class C\n{\n    int _value;\n}", endOfLine);
+            var tree = CSharpSyntaxTree.ParseText(text, cancellationToken: TestContext.CancellationToken);
+
+            var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
+
+            Assert.AreEqual(text, result.ToString(), "The input is already formatted.");
+            Assert.AreNotSame(tree, result);
+        }
+    }
+
+    /// <summary>
     /// Verifies the spec example: <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> returns a document with a missing
     /// semicolon unchanged when the method is the target
     /// </summary>

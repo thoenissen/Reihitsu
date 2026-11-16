@@ -6,9 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline;
-using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Test.Helpers;
 
@@ -60,11 +58,11 @@ public static class ObservedPipeline
     /// <returns>The phases behind the precheck in the order they ran</returns>
     public static IReadOnlyList<ObservedPhase> Run(string input, string endOfLine, CSharpParseOptions parseOptions)
     {
-        var tree = CSharpSyntaxTree.ParseText(input, parseOptions);
-        var context = new FormattingContext(endOfLine, languageVersion: LanguageVersionResolver.Resolve(tree.Options));
+        var (root, context) = SecondPassInput.Create(input, endOfLine, parseOptions);
+
         var phases = new List<ObservedPhase>();
 
-        FormattingPipeline.Execute(tree.GetRoot(),
+        FormattingPipeline.Execute(root,
                                    context,
                                    (phaseName, before, after) => phases.Add(new ObservedPhase(phaseName, before, after)),
                                    CancellationToken.None);
