@@ -9,7 +9,7 @@
 
 ## Maintainer answers
 
-(none yet)
+- OQ batch 1 (questions as in 03-spec-author.md): 1A (join; multi-line collection keeps one element per line), 2A (join constructor initializer and primary-constructor base type), 3A (conditional judged after the join → one line), 4A (dictionary element initializer keeps one element per line).
 
 ## Decisions taken
 
@@ -29,4 +29,5 @@
 ## State
 
 - Last step: spec author amendment (03, 69fcd5f); change doc accepted by lead pending answers; OQ batch 1–4 (03-spec-author.md) asked to maintainer.
-- Next: wait for answers; route to spec author (Status: Accepted, adjust spec), then test implementer.
+- Answers received: 1A 2A 3A 4A.
+- Next: spec author status follow-up (04), then test implementer.
