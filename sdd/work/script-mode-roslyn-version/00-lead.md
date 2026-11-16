@@ -18,13 +18,16 @@ None.
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Start | Do #898 and #1780 share a mechanism, or should the batch be split? | Keep one run | Both are repository-wide invariants over tracked build/script files whose regression guard lives in `Reihitsu.ArchitectureTests`; together they are two small tooling changes, so no handover grows long | Batch shape only | claim |
+| 2 | Tests | Should the #898 guard report Inconclusive instead of failing when git is missing or refuses the tree? | Keep Inconclusive | Matches the existing precedent `ApplyFixWrapperPositionalArgumentTests` (missing bash); CI checks out with git as the owning user, so the guard runs there | Test infrastructure only | f32b2c3 |
+| 3 | Tests | Should the #1780 guard include `Microsoft.CodeAnalysis.Analyzers`? | Include it | It ships on the same version line (5.12.0) and the issue names every non-Testing `Microsoft.CodeAnalysis*` reference | Build configuration only | f32b2c3 |
+| 4 | Tests | Bump or guard the `#:package Microsoft.CodeAnalysis.CSharp@5.6.0` pin in `scripts/proof/verify-text-only.cs`? | Neither in this run; follow-up candidate | It is a standalone file-based script outside `src/`; whether the one-version rule covers the scripts' own pins is a separate decision with its own verification of the text-only proof | Tooling only | — |
 
 ## Follow-up candidates
 
-None yet.
+- Whether the file-based scripts' own Roslyn pins (`scripts/proof/verify-text-only.cs` pins `Microsoft.CodeAnalysis.CSharp@5.6.0`, the projects use 5.12.0) fall under the one-version rule: bump and/or guard them. Named in `01-test-implementer.md`.
 
 ## State
 
 - Audited SHA: —
-- Last step: claim, prepare.
-- Next step: test implementer.
+- Last step: test implementer (f32b2c3; #898 reproduced, #1780 guard written).
+- Next step: implementer.
