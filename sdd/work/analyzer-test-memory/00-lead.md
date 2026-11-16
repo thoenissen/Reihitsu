@@ -31,4 +31,5 @@ None yet.
 
 - First implementer spawn lost: the container restarted while it was measuring, before it committed anything (cause not established; a memory-exhausted container is one possibility).
 - Implementer done: 01-implementer.md, verdict tests pass, commit 9b401f7.
-- Next: spec checker (02) and auditor (03) in parallel, then validator.
+- Spec checker 02: consistent. Auditor 03: pass, text cleanup (audited SHA 579cae86; finding #1: README:86 and test.sh:107 comment say only the test host gets GLIBC_TUNABLES, but its child processes inherit it).
+- Next: cleaner (test.sh comment, 04) and spec author (README, 05) in parallel; test.sh is not provable text-only, so the auditor re-audits the repair; then validator.
