@@ -15,7 +15,7 @@ namespace Reihitsu.Formatter.Test.Unit.Precheck;
 /// Tests for the unsupported shape of a directive or disabled text inside a field declaration with several declarators
 /// (FMT-UNSUP-010): every place in the declaration outside the leading trivia of its first token, every kind of directive, the
 /// declarator count of the build being formatted, every kind of type that can hold the declaration, the excepted leading trivia,
-/// event fields and local declarations, the tie with FMT-UNSUP-009, the order against FMT-UNSUP-004, every documentation mode,
+/// event fields and local declarations, the ties with FMT-UNSUP-009 and FMT-UNSUP-008, the order against FMT-UNSUP-004, every documentation mode,
 /// every entry point, node-level inputs that hold only part of the declaration, and the closure of the formatter's output, each
 /// under LF and CRLF line endings
 /// </summary>
@@ -283,6 +283,62 @@ public class UnsupportedFieldDeclarationDirectiveTests : FormatterTestsBase
                              WrapInClass("    private int _a = 1\n#if X\n        , _b = 2\n#endif\n        , _c;"),
                              "#if X",
                              parseOptions: CSharpParseOptions.Default.WithPreprocessorSymbols("X"));
+    }
+
+    /// <summary>
+    /// Verifies that a directive in front of a comma on a later line that separates no declarators — in an attribute argument
+    /// list, in the declaration's type, or inside a value — is refused under this requirement and under FMT-UNSUP-009, starting
+    /// at the same directive, and gives this requirement's reason and location
+    /// </summary>
+    /// <param name="member">The field declaration, indented by four spaces</param>
+    /// <param name="shape">The text of the first directive</param>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-010")]
+    [Requirement("FMT-UNSUP-009")]
+    [DataRow("    [Obsolete(\"m\"\n#pragma warning disable CS1030\n        , false)]\n    private int _a, _b;", "#pragma warning disable CS1030", DisplayName = "Attribute argument list")]
+    [DataRow("    private (int A\n#pragma warning disable CS0169\n        , int B) _a, _b;", "#pragma warning disable CS0169", DisplayName = "Tuple type")]
+    [DataRow("    private int _a = Math.Max(1\n#pragma warning disable CS0414\n        , 2), _b;", "#pragma warning disable CS0414", DisplayName = "Call in a value")]
+    [DataRow("    private int _a = Math.Max(1\n#if DEBUG\n        , 2\n#else\n        , 3\n#endif\n        ), _b;", "#if DEBUG", DisplayName = "Conditional group in a value")]
+    public void DirectiveInFrontOfAnotherCommaOnALaterLineGivesTheReasonOfThisRequirement(string member, string shape)
+    {
+        AssertUnsupportedFor(FieldDeclarationDirectiveReason, WrapInClass(member), shape);
+    }
+
+    /// <summary>
+    /// Verifies that a directive between an operator of a conditional expression in a value and its branch is refused under this
+    /// requirement and under FMT-UNSUP-008, starting at the same directive, and gives this requirement's reason and location
+    /// </summary>
+    /// <param name="member">The field declaration, indented by four spaces</param>
+    /// <param name="shape">The text of the first directive</param>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-010")]
+    [Requirement("FMT-UNSUP-008")]
+    [DataRow("    private int _a = true ?\n#pragma warning disable CS0162\n        1 : 2, _b;", "#pragma warning disable CS0162", DisplayName = "Behind the question mark")]
+    [DataRow("    private int _a = true ? 1 :\n#pragma warning disable CS0162\n        2, _b;", "#pragma warning disable CS0162", DisplayName = "Behind the colon")]
+    [DataRow("    private int _a = true ?\n#if DEBUG\n        1\n#else\n        2\n#endif\n        : 3, _b;", "#if DEBUG", DisplayName = "Conditional group behind the question mark")]
+    public void DirectiveBetweenAConditionalOperatorAndItsBranchGivesTheReasonOfThisRequirement(string member, string shape)
+    {
+        AssertUnsupportedFor(FieldDeclarationDirectiveReason, WrapInClass(member), shape);
+    }
+
+    /// <summary>
+    /// Verifies the other side of the two ties above: in a field with one declarator, this requirement does not apply, and the
+    /// same directive gives the reason and the location of FMT-UNSUP-009 or FMT-UNSUP-008
+    /// </summary>
+    /// <param name="member">The field declaration, indented by four spaces</param>
+    /// <param name="shape">The text of the first directive</param>
+    /// <param name="reason">The expected reason</param>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-010")]
+    [Requirement("FMT-UNSUP-009")]
+    [Requirement("FMT-UNSUP-008")]
+    [DataRow("    [Obsolete(\"m\"\n#pragma warning disable CS1030\n        , false)]\n    private int _a;", "#pragma warning disable CS1030", ListSeparatorCommentReason, DisplayName = "Attribute argument list")]
+    [DataRow("    private int _a = Math.Max(1\n#pragma warning disable CS0414\n        , 2);", "#pragma warning disable CS0414", ListSeparatorCommentReason, DisplayName = "Call in a value")]
+    [DataRow("    private int _a = true ?\n#pragma warning disable CS0162\n        1 : 2;", "#pragma warning disable CS0162", ConditionalOperatorCommentReason, DisplayName = "Behind the question mark")]
+    [DataRow("    private int _a = true ? 1 :\n#pragma warning disable CS0162\n        2;", "#pragma warning disable CS0162", ConditionalOperatorCommentReason, DisplayName = "Behind the colon")]
+    public void DirectiveAtTheSamePlaceOfAFieldWithOneDeclaratorGivesTheReasonOfTheOtherShape(string member, string shape, string reason)
+    {
+        AssertUnsupportedFor(reason, WrapInClass(member), shape);
     }
 
     /// <summary>
