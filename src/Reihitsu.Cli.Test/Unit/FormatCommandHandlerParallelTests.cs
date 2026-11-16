@@ -165,6 +165,43 @@ public sealed class FormatCommandHandlerParallelTests
     }
 
     /// <summary>
+    /// Creates a formatting hold that blocks the formatting of the given file until the given event or
+    /// <see cref="_holdTimeout"/>, whichever comes first, so that the held file stays unfinished after its read has completed
+    /// </summary>
+    /// <param name="heldPath">The file whose formatting is held</param>
+    /// <param name="heldFor">The event the formatting waits for</param>
+    /// <param name="releasedByEvent">Set when the formatting was released by the event rather than by the timeout</param>
+    /// <returns>The formatting hold</returns>
+    private static Action<string, CancellationToken> HoldUntil(string heldPath, Task heldFor, StrongBox<bool> releasedByEvent)
+    {
+        return (path, _) =>
+               {
+                   if (path != heldPath)
+                   {
+                       return;
+                   }
+
+                   releasedByEvent.Value = heldFor.Wait(_holdTimeout, CancellationToken.None);
+
+                   // Give the file that finished first the time to write its lines, if it writes them on finishing
+                   Task.Delay(100, CancellationToken.None).Wait(CancellationToken.None);
+               };
+    }
+
+    /// <summary>
+    /// A formatting hold that blocks until the run is canceled and then observes the cancellation; it fails when the run is not
+    /// canceled within <see cref="_holdTimeout"/>
+    /// </summary>
+    /// <param name="cancellationToken">The formatting call's token</param>
+    private static void HoldUntilCanceled(CancellationToken cancellationToken)
+    {
+        cancellationToken.WaitHandle.WaitOne(_holdTimeout);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        throw new TimeoutException("A.cs was never canceled.");
+    }
+
+    /// <summary>
     /// Creates a formatter fake that returns <see cref="FormattedCsContent"/> for every file and signals when it has formatted
     /// the given file
     /// </summary>
@@ -172,8 +209,12 @@ public sealed class FormatCommandHandlerParallelTests
     /// <param name="formatted">Completed when the formatter has formatted <paramref name="signalPath"/></param>
     /// <param name="refusedPath">A file the formatter refuses as unsupported at its first character, or <see langword="null"/></param>
     /// <param name="failingPath">A file the formatter throws for, or <see langword="null"/></param>
+    /// <param name="holdFormatting">
+    /// Runs with the file path and the formatting call's token before every file is formatted, or
+    /// <see langword="null"/>
+    /// </param>
     /// <returns>The formatter fake</returns>
-    private static ISourceFormatter CreateFormatter(string signalPath, TaskCompletionSource formatted, string refusedPath = null, string failingPath = null)
+    private static ISourceFormatter CreateFormatter(string signalPath, TaskCompletionSource formatted, string refusedPath = null, string failingPath = null, Action<string, CancellationToken> holdFormatting = null)
     {
         var formatter = Substitute.For<ISourceFormatter>();
 
@@ -181,6 +222,8 @@ public sealed class FormatCommandHandlerParallelTests
                  .Returns(callInfo =>
                           {
                               var syntaxTree = callInfo.Arg<SyntaxTree>();
+
+                              holdFormatting?.Invoke(syntaxTree.FilePath, callInfo.ArgAt<CancellationToken>(1));
 
                               if (syntaxTree.FilePath == failingPath)
                               {
@@ -482,12 +525,11 @@ public sealed class FormatCommandHandlerParallelTests
         var fileSystem = Substitute.For<IFileSystem>();
         var console = new CapturedConsoleOutput();
         var cWritten = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var formatter = CreateFormatter(null, new TaskCompletionSource());
         var releasedByEvent = new StrongBox<bool>();
+        var formatter = CreateFormatter(null, new TaskCompletionSource(), holdFormatting: HoldUntil("/work/A.cs", cWritten.Task, releasedByEvent));
         var writes = new ConcurrentDictionary<string, string>();
 
         SetupFiles(fileSystem, ("/work/A.cs", UnformattedCsContent), ("/work/B.cs", FormattedCsContent), ("/work/C.cs", UnformattedCsContent));
-        HoldRead(fileSystem, "/work/A.cs", UnformattedCsContent, cWritten.Task, releasedByEvent);
         fileSystem.WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>())
                   .Returns(callInfo =>
                            {
@@ -507,7 +549,7 @@ public sealed class FormatCommandHandlerParallelTests
 
         var exitCode = await handler.ExecuteAsync(CancellationToken.None);
 
-        Assert.IsTrue(releasedByEvent.Value, "Precondition: C.cs must have been written while A.cs was still being read.");
+        Assert.IsTrue(releasedByEvent.Value, "Precondition: C.cs must have been written while A.cs was still being formatted.");
         Assert.AreEqual(ExitCodes.Success, exitCode);
         Assert.AreSequenceEqual(StandardOutputLines("Formatted: /work/A.cs",
                                                     "Unchanged: /work/B.cs",
@@ -759,7 +801,7 @@ public sealed class FormatCommandHandlerParallelTests
     #region Cancellation
 
     /// <summary>
-    /// Verifies the specification example: Ctrl+C while <c>A.cs</c> is still being read, <c>B.cs</c> has been written, and the
+    /// Verifies the specification example: Ctrl+C while <c>A.cs</c> is still being processed, <c>B.cs</c> has been written, and the
     /// write of <c>C.cs</c> has started; the write of <c>C.cs</c> completes, <c>B.cs</c> and <c>C.cs</c> are named in selection
     /// order, <c>A.cs</c> is left as it was and not named, no summary is written, and the run ends canceled
     /// </summary>
@@ -771,23 +813,28 @@ public sealed class FormatCommandHandlerParallelTests
     {
         var fileSystem = Substitute.For<IFileSystem>();
         var console = new CapturedConsoleOutput();
-        var formatter = CreateFormatter(null, new TaskCompletionSource());
         var bWritten = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var writes = new ConcurrentDictionary<string, string>();
-        var cWriteObservedB = false;
+        var cFormattingObservedB = false;
+        var formatter = CreateFormatter(null,
+                                        new TaskCompletionSource(),
+                                        holdFormatting: (path, token) =>
+                                                        {
+                                                            if (path == "/work/A.cs")
+                                                            {
+                                                                // A.cs is still being formatted when the run is canceled; its formatting observes its token
+                                                                HoldUntilCanceled(token);
+                                                            }
+                                                            else if (path == "/work/C.cs")
+                                                            {
+                                                                // The write of C.cs starts after B.cs is written
+                                                                cFormattingObservedB = bWritten.Task.Wait(_holdTimeout, CancellationToken.None);
+                                                            }
+                                                        });
 
         using (var cts = new CancellationTokenSource())
         {
             SetupFiles(fileSystem, ("/work/A.cs", UnformattedCsContent), ("/work/B.cs", UnformattedCsContent), ("/work/C.cs", UnformattedCsContent));
-
-            // A.cs is still being read when the run is canceled; its read observes its token
-            fileSystem.ReadFileAsync("/work/A.cs", Arg.Any<CancellationToken>())
-                      .Returns<Task<FileReadResult>>(async callInfo =>
-                                                     {
-                                                         await Task.Delay(_holdTimeout, callInfo.ArgAt<CancellationToken>(1));
-
-                                                         throw new TimeoutException("A.cs was never canceled.");
-                                                     });
             fileSystem.WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>())
                       .Returns(async callInfo =>
                                {
@@ -795,9 +842,7 @@ public sealed class FormatCommandHandlerParallelTests
 
                                    if (path == "/work/C.cs")
                                    {
-                                       // Ctrl+C arrives after B.cs is written and while the write of C.cs is in progress
-                                       cWriteObservedB = await WaitForAsync(bWritten.Task);
-
+                                       // Ctrl+C arrives while the write of C.cs is in progress
                                        await cts.CancelAsync();
                                        await Task.Yield();
                                    }
@@ -814,7 +859,7 @@ public sealed class FormatCommandHandlerParallelTests
 
             await Assert.ThrowsAsync<OperationCanceledException>(() => handler.ExecuteAsync(cts.Token));
 
-            Assert.IsTrue(cWriteObservedB, "Precondition: B.cs must have been written before the write of C.cs was interrupted.");
+            Assert.IsTrue(cFormattingObservedB, "Precondition: B.cs must have been written before the write of C.cs started.");
             Assert.AreSequenceEqual(StandardOutputLines("Formatted: /work/B.cs",
                                                         "Formatted: /work/C.cs"),
                                     console.InterleavedOutput.ToArray());
@@ -825,7 +870,7 @@ public sealed class FormatCommandHandlerParallelTests
     }
 
     /// <summary>
-    /// Verifies that Ctrl+C while <c>A.cs</c> is still being read, <c>C.cs</c> has been written, and the write of <c>B.cs</c>
+    /// Verifies that Ctrl+C while <c>A.cs</c> is still being formatted, <c>C.cs</c> has been written, and the write of <c>B.cs</c>
     /// has started names <c>B.cs</c> before <c>C.cs</c>, in selection order, although <c>C.cs</c> finished first
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
@@ -836,23 +881,30 @@ public sealed class FormatCommandHandlerParallelTests
     {
         var fileSystem = Substitute.For<IFileSystem>();
         var console = new CapturedConsoleOutput();
-        var formatter = CreateFormatter(null, new TaskCompletionSource());
         var cWritten = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var writes = new ConcurrentDictionary<string, string>();
-        var bWriteObservedC = false;
+        var bFormattingObservedC = false;
+        var formatter = CreateFormatter(null,
+                                        new TaskCompletionSource(),
+                                        holdFormatting: (path, token) =>
+                                                        {
+                                                            if (path == "/work/A.cs")
+                                                            {
+                                                                // A.cs is still being formatted when the run is canceled; its formatting observes its token
+                                                                HoldUntilCanceled(token);
+                                                            }
+                                                            else if (path == "/work/B.cs")
+                                                            {
+                                                                // The write of B.cs starts after C.cs is written and has finished
+                                                                bFormattingObservedC = cWritten.Task.Wait(_holdTimeout, CancellationToken.None);
+
+                                                                Task.Delay(100, CancellationToken.None).Wait(CancellationToken.None);
+                                                            }
+                                                        });
 
         using (var cts = new CancellationTokenSource())
         {
             SetupFiles(fileSystem, ("/work/A.cs", UnformattedCsContent), ("/work/B.cs", UnformattedCsContent), ("/work/C.cs", UnformattedCsContent));
-
-            // A.cs is still being read when the run is canceled; its read observes its token
-            fileSystem.ReadFileAsync("/work/A.cs", Arg.Any<CancellationToken>())
-                      .Returns<Task<FileReadResult>>(async callInfo =>
-                                                     {
-                                                         await Task.Delay(_holdTimeout, callInfo.ArgAt<CancellationToken>(1));
-
-                                                         throw new TimeoutException("A.cs was never canceled.");
-                                                     });
             fileSystem.WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>())
                       .Returns(async callInfo =>
                                {
@@ -860,10 +912,7 @@ public sealed class FormatCommandHandlerParallelTests
 
                                    if (path == "/work/B.cs")
                                    {
-                                       // Ctrl+C arrives after C.cs is written and has finished, while the write of B.cs is in progress
-                                       bWriteObservedC = await WaitForAsync(cWritten.Task);
-
-                                       await Task.Delay(100, CancellationToken.None);
+                                       // Ctrl+C arrives while the write of B.cs is in progress
                                        await cts.CancelAsync();
                                        await Task.Yield();
                                    }
@@ -880,7 +929,7 @@ public sealed class FormatCommandHandlerParallelTests
 
             await Assert.ThrowsAsync<OperationCanceledException>(() => handler.ExecuteAsync(cts.Token));
 
-            Assert.IsTrue(bWriteObservedC, "Precondition: C.cs must have been written before the write of B.cs was interrupted.");
+            Assert.IsTrue(bFormattingObservedC, "Precondition: C.cs must have been written before the write of B.cs started.");
             Assert.AreSequenceEqual(StandardOutputLines("Formatted: /work/B.cs",
                                                         "Formatted: /work/C.cs"),
                                     console.InterleavedOutput.ToArray());
