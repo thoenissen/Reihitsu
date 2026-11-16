@@ -37,9 +37,9 @@ None yet.
 
 ## Follow-up candidates
 
-None yet.
+- `src/Reihitsu.Cli/FormatCommandHandler.cs(501,41)` raises S1125 as a warning in the build `format.sh` runs (not in the Release build); pre-existing, outside the run (03-cleaner).
 
 ## State
 
-- Last step: implementer (02), 3b4ac9f + 18da494; all tests pass.
-- Next: cleaner.
+- Last step: cleaner (03), e9801e9; clean.
+- Next: spec checker.
