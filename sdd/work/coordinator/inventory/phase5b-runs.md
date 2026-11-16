@@ -122,3 +122,5 @@ Risks: Q1 lane (if #1736 needs a change doc, run it alone in B2); soft overlap Q
 | B | `/squad #1764 #1765` | RH7105 `closed`/`safe` rank, RH5011 labeled break/continue (bugs) | after #1761 |
 | B | `/squad #1766` | unions in naming/documentation rules (output question) | after #1761; rule set disjoint from #1767 |
 | C | `/squad #1767` | unions/`with(...)` in organization/design/layout rules | after #1755 (RH5102), #1764 (RH7105), #1762 (fixes format unions) |
+
+1.3.0 status 2026-11-16: A merged (#1778, #1779); B merged (#1782, #1783, #1784); C `/squad #1767` next (#1767 extended by #1782: attribute lists on unions, stale RH5404 union comment).
