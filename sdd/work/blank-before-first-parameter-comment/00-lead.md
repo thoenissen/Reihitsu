@@ -9,7 +9,7 @@
 
 ## Maintainer answers
 
-(none yet)
+- Q1 (comment first behind an opener): **C** — no blank line between any opening `(`, `[`, or generic `<` and a comment that is its first content; RH5020 and RH8303 stop reporting exactly there. A comment behind a comma keeps its blank line; an author's blank line behind the opener stays; `/** */`/`///` follow the same answer.
 
 ## Decisions taken
 
@@ -17,7 +17,7 @@
 |---|---|---|---|---|---|---|
 | 1 | Skeptic | Is drafted question 2 (RH5020/RH8303 follow the formatter) open? | Folded into question 1: the rules follow whatever the formatter keeps | SHARED-DIAG-010 and RH5020's mirror of FMT-BLANK-011 decide it | An unchanged requirement demands it | — |
 | 2 | Skeptic | Output-question form | Keep labels A/B/C as drafted; drop path and internal references from *Why*; add the analyzer line to each *After* | lead.md section 5, AGENTS.md *Output questions* | Question form only | — |
-| 3 | Skeptic | Architecture finding: the 'first content behind an opener' rule exists in three copies (BlockStartUtilities.IsFirstInBlock, RH5020 IsFirstCommentInBlock, RH8303 IsFirstInBlock) | Pending the answer: under A or C, give the rule one owner in an existing Reihitsu.Core utility used by all three, keeping the doc-phase `/** */` move narrow; escalation 9 if it needs a new type or >100 lines | A narrow fix would widen three copies identically, which is the drift the finding names | Internal structure | — |
+| 3 | Skeptic | Architecture finding: the 'first content behind an opener' rule exists in three copies (BlockStartUtilities.IsFirstInBlock, RH5020 IsFirstCommentInBlock, RH8303 IsFirstInBlock) | Answer C:  give the rule one owner in an existing Reihitsu.Core utility used by all three, keeping the doc-phase `/** */` move narrow; escalation 9 if it needs a new type or >100 lines | A narrow fix would widen three copies identically, which is the drift the finding names | Internal structure | — |
 
 ## Follow-up candidates
 
@@ -27,5 +27,5 @@
 
 ## State
 
-- Last step: skeptic (035b871). Output question 1 (A/B/C) sent to maintainer.
+- Last step: maintainer answered 1C.
 - Next: route answer to spec author (with skeptic internal choices 1-5), then test implementer.
