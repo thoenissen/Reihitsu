@@ -41,5 +41,5 @@ None yet.
 
 ## State
 
-- Last step: cleaner (03), e9801e9; clean.
-- Next: spec checker.
+- Last step: spec checker (04), 72636ae; consistent.
+- Next: auditor.
