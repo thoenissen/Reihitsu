@@ -37,6 +37,7 @@ Note: the self-hosting scans are not run by `scripts/test.sh` by default (CI run
 | 7 | Implementer | `scripts/README.md` sentence naming the per-phase check in the self-hosting scan | Accept | Keeps the scripts documentation true for the scan it describes | Repository docs only | 5652ed0 |
 | 8 | Implementer | `Reihitsu.Formatter.Test.dll` now in the self-hosting test output; SonarCloud collects coverage per project | Accept without change | Sonar classifies test projects as test code, so the assembly adds no coverage target; each project still runs its tests once | Tooling only | 5652ed0 |
 | 9 | Audit 1 | Repair worklist (06-auditor #1–#5, all PR-introduced, test code) | Repair round 1, one fresh test implementer: #1 make the tree-form test fail when parse options are dropped; #2/#3 limit the summaries/message to what holds; #4 skip on `ReferenceEquals(result.Output, syntaxTree)` (covers all four unchanged-return reasons); #5 collect LF and CRLF failures and fail once, like the sibling methods | All are the run's own test code; #4 by the cause rather than by enumerated reasons | Test code only | — |
+| 10 | Repair 1 | Test implementer added `FormatSyntaxTreeReturnsANewTreeForAnInputItFormatsWithoutChangingIt` to pin the new-tree promise the self-hosting skip (`ReferenceEquals`) relies on | Accept | Protects the skip in decision 9 from silently skipping formatted files | Test code only | 93fc307 |
 
 ## Follow-up candidates
 
@@ -52,4 +53,4 @@ Note: the self-hosting scans are not run by `scripts/test.sh` by default (CI run
 - Implementer (03) at 5652ed0: selfhosting new test green on 1810 rows (+2m22s); only `WorkingDocumentsDirectoryContainsNoFiles` fails while `sdd/work/` exists (expected).
 - Spec checker (05) consistent at 1b8a1bd.
 - Audit 1 on 1b8a1bd (main 372daee): findings #1–#5 → repair round 1 (decision 9).
-- Next: test implementer repair (07), then cleaner, spec checker, auditor (repair only), validator.
+- Repair (07) at 93fc307; next: cleaner, spec checker, auditor (repair only), validator.
