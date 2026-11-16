@@ -1485,6 +1485,18 @@ class C
 
 The lists `[A /* c */, B]` and `[unknown: A, B]` on a method stay one list each.
 
+Example — a union declaration is a type, so its list is split as a struct's is:
+
+```csharp
+[A, B] union U(int, string);
+```
+
+```csharp
+[A]
+[B]
+union U(int, string);
+```
+
 Example — the line breaks between two attributes are dropped with the comma, and those behind the original `[` with it:
 
 ```csharp

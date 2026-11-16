@@ -20,9 +20,9 @@ This spec covers what the region rules share about where a region sits: when a r
 
 ### SHARED-TYPEREGION-001 — Top-level type declarations are checked
 
-A rule MUST check every class, struct, interface, record, and record struct declaration that is not declared inside another type, and each declaration of a `partial` type on its own. It MUST NOT report a type declared inside another type, an enum declaration, or a delegate declaration.
+A rule MUST check every class, struct, interface, record, record struct, and union declaration that is not declared inside another type, and each declaration of a `partial` type on its own. It MUST NOT report a type declared inside another type, an enum declaration, or a delegate declaration.
 
-Why: A nested type is a member of the type around it, so the enclosing type's regions already group it; asking for regions inside it as well would demand a second outline for one entry of the first. An enum's members are values, not a mix of declarations to navigate. Each declaration of a partial type is what the user reads in one file, so it is checked with the members it declares itself.
+Why: A nested type is a member of the type around it, so the enclosing type's regions already group it; asking for regions inside it as well would demand a second outline for one entry of the first. An enum's members are values, not a mix of declarations to navigate. A union's body holds methods, properties, static fields, and nested types like a struct's body, so its outline is read the same way. Each declaration of a partial type is what the user reads in one file, so it is checked with the members it declares itself.
 
 Example — RH7305:
 
@@ -52,9 +52,14 @@ enum E
     A,
     B,
 }
+
+union {|RH7305:U|}(int, string)
+{
+    int Get() => 1;
+}
 ```
 
-`C` is reported because its nested type `D` lies outside every region; `D` and `E` are not reported. For a partial type, only the declaration with a member outside every region is reported:
+`C` is reported because its nested type `D` lies outside every region, and the union `U` because its method lies outside every region; `D` and `E` are not reported. For a partial type, only the declaration with a member outside every region is reported:
 
 ```csharp
 partial class P
@@ -80,7 +85,7 @@ partial class {|RH7305:P|}
 
 A rule MUST count the members the type declaration declares directly: nested types (enums and extension blocks included), delegates, fields, constructors, finalizers, properties, indexers, events in both forms, methods, operators, and conversion operators. It MUST NOT report a type that declares none of them.
 
-A nested declaration counts as one member of the type around it; what it declares itself MUST NOT be counted for the type around it. A region among the members of a nested class, struct, interface, record, or record struct, or among the values of a nested enum, MUST belong to that nested declaration (SHARED-TYPEREGION-006).
+A nested declaration counts as one member of the type around it; what it declares itself MUST NOT be counted for the type around it. A region among the members of a nested class, struct, interface, record, record struct, or union, or among the values of a nested enum, MUST belong to that nested declaration (SHARED-TYPEREGION-006).
 
 Why: These are the declarations a reader navigates by. A type without any — an empty class or a positional record whose members are all generated from its parameter list — has nothing to organize. A nested type or enum is one entry of the outline around it; what lies inside its braces is its own outline.
 
@@ -92,9 +97,11 @@ class C
 }
 
 record R(int X);
+
+union U(int, string);
 ```
 
-is not reported, and neither is a type whose only member is a nested enum in a region, whatever regions the enum has among its values:
+is not reported — a union's case types are not members it declares — and neither is a type whose only member is a nested enum in a region, whatever regions the enum has among its values:
 
 ```csharp
 class C
@@ -226,9 +233,9 @@ namespace N
 
 ### SHARED-TYPEREGION-006 — The top-level regions of a type declaration
 
-When every region directive inside a class, struct, interface, record, or record struct declaration lies inside executable code or between declarations (SHARED-TYPEREGION-005), none lies inside a nested extension block, and no `#region`–`#endregion` pair (FMT-REGION-003) crosses the start or the end of one of the declaration's members, the declaration's top-level regions MUST be the pairs whose two directives lie between its members (SHARED-TYPEREGION-005), inside its braces and outside its nested type and enum declarations, and that are not nested in another such pair. A member MUST count as lying in a top-level region when it lies wholly between the region's `#region` and `#endregion`, also when it lies in a region nested in it. Each declaration of a `partial` type has its own top-level regions.
+When every region directive inside a class, struct, interface, record, record struct, or union declaration lies inside executable code or between declarations (SHARED-TYPEREGION-005), none lies inside a nested extension block, and no `#region`–`#endregion` pair (FMT-REGION-003) crosses the start or the end of one of the declaration's members, the declaration's top-level regions MUST be the pairs whose two directives lie between its members (SHARED-TYPEREGION-005), inside its braces and outside its nested type and enum declarations, and that are not nested in another such pair. A member MUST count as lying in a top-level region when it lies wholly between the region's `#region` and `#endregion`, also when it lies in a region nested in it. Each declaration of a `partial` type has its own top-level regions.
 
-A region MUST belong to the innermost class, struct, interface, record, record struct, or enum declaration whose braces enclose it. A rule MUST NOT compare a region with a region of another declaration, and a code fix MUST NOT move a region or a member from one declaration into another. A rule MUST NOT compare the descriptions of two regions that lie in different branches — `#if`, `#elif`, or `#else` — of one conditional directive. A rule that judges a member by the description of the region it lies in MUST judge it by the innermost region that encloses it; a rule that uses a region only as the scope within which it compares members is not covered by this sentence.
+A region MUST belong to the innermost class, struct, interface, record, record struct, union, or enum declaration whose braces enclose it. A rule MUST NOT compare a region with a region of another declaration, and a code fix MUST NOT move a region or a member from one declaration into another. A rule MUST NOT compare the descriptions of two regions that lie in different branches — `#if`, `#elif`, or `#else` — of one conditional directive. A rule that judges a member by the description of the region it lies in MUST judge it by the innermost region that encloses it; a rule that uses a region only as the scope within which it compares members is not covered by this sentence.
 
 Why: The regions directly in a type's body form the type's outline, and a nested region is a sub-heading of the region around it, so a member belongs to the outline entry of its outer region. A region around the type belongs to the enclosing scope, a region of a nested type or enum to that declaration's outline, and a region in a method body to the method; none of them is an entry of this type's outline. The heading closest to a member is the one that describes it, so a sub-heading, not the heading above it, says what the member should be. No build compiles two branches of one conditional directive, so their regions never appear in one outline, and the same description in both names the same part of the type in two configurations.
 
