@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | RH8030-001, RH8108-001, RH8109-001, RH8110-001, RH8111-001, RH8203-001, SHARED-DOC-001, SHARED-DOC-002; the specs `analyzer/RH4012.md`, `analyzer/RH8035.md`, and `analyzer/RH8036.md` |
+| Affected requirements | RH8030-001, RH8108-001, RH8109-001, RH8110-001, RH8111-001, RH8203-001, SHARED-DOC-001, SHARED-DOC-002, SHARED-DOC-019 (added); the specs `analyzer/RH4012.md`, `analyzer/RH8035.md`, and `analyzer/RH8036.md` |
 | Depends on | [Roslyn 5.12 and C# 15 as the newest supported language version](roslyn-512-csharp-15.md) |
 
 ## What
@@ -17,6 +17,7 @@ A C# 15 union declaration (`union Pet(Cat, Dog);`) becomes a type that the namin
 - **RH8108 to RH8111** check the type parameters of a generic union and its `<typeparam>` elements.
 - **RH8203** reports `<inheritdoc/>` on a union that inherits nothing: a union without a base list.
 - The case types of a union have no names, so **RH8101 to RH8104** do not check a union at all — no `<param>` is required for a case type, and a `<param>` element on a union is not judged.
+- A union whose documentation comment holds a `param` or `paramref` element is not judged by **RH8035, RH8036, RH8108, or RH8203** (SHARED-DOC-019): the rules report nothing for it and do not fail on it.
 
 SHARED-DOC-001 and SHARED-DOC-002 name a union where they list the declarations that contain a nested declaration. That writes down what the code already does: a member declared in a union body is checked, and one without an access modifier is in the private group.
 
@@ -197,6 +198,25 @@ Decided by the maintainer (output question 2, option A): RH8101 to RH8104 do not
 
 Decided by the maintainer (output questions 3, 4, and 5, option A each): RH8030, RH8108 to RH8111, and RH8203 check a union as they check a struct. On RH8203 the maintainer added that `<inheritdoc/>` on a type may be used but is not forced: it is reported only where the type inherits nothing. A union inherits documentation when it has a base list, as a struct does; the interface the compiler adds to every union is not written in its base list, just as a struct's `ValueType` is not, so a union without a base list inherits nothing.
 
+### A union whose documentation holds a parameter element is not judged
+
+Decided in the run (audit finding, repair round 1), as a rare input class refused under *Code-fix coverage* in `AGENTS.md`: RH8035, RH8036, RH8108, and RH8203 judge a union through the compiler's expansion of its documentation, and that expansion throws for a union whose documentation comment holds a `param` or `paramref` element when documentation is diagnosed, so each rule failed with AD0001. SHARED-DOC-019 makes the rules report nothing for such a union, in every documentation mode, and not fail on it. The input is rare: such an element refers to nothing on a union, and the compiler already fails with CS1569 when it writes the documentation file for it. Nothing visible is put in question — on `main` no rule judges a union, so the input is not reported before or after:
+
+```csharp
+// input
+/// <inheritdoc/>
+/// <param name="Circle">Circle</param>
+public union Shape(int, string);
+```
+
+```csharp
+// before: not reported
+```
+
+```csharp
+// after: not reported
+```
+
 ### SHARED-DOC-001 and SHARED-DOC-002 name the union body
 
 A member declared in a union body is already checked, and one without an access modifier is in the private group, because the code treats every type body other than an interface's alike. The two requirements name a union so that their lists say so; this is a clarification and changes no output.
@@ -207,4 +227,5 @@ A member declared in a union body is already checked, and one without an access 
 - **Widen RH4002 and RH8001 (classes)** — rejected for the same reason, and a union is not a class.
 - **One documentation rule for every union, without the private split** — rejected: every other type kind is split by SHARED-DOC-002, and a project that documents only what other code uses could not exempt a nested private union.
 - **Check unions in RH8101 to RH8104 and skip the nameless case types** — rejected, see *A union's case types are not documented*.
+- **Judge a union whose documentation holds a `param` or `paramref` element from its syntax alone**, without the compiler's expansion of its documentation — rejected: the rules decide on the expanded documentation, which also brings in later comments and included files (SHARED-DOC-006, SHARED-DOC-007); a second, syntax-only decision for a rare input that already breaks the documentation build would be more than a cheap check.
 - **Treat the compiler-added union interface as a base type for RH8203** — rejected: `<inheritdoc/>` on such a union would inherit nothing a reader wrote, and a struct's implicit base type is not treated as one either.

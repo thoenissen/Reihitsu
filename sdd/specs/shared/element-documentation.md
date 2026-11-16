@@ -1511,3 +1511,77 @@ public class C
     }
 }
 ```
+
+### SHARED-DOC-019 — A union whose documentation holds a parameter element is not judged
+
+A rule that uses this requirement MUST NOT report anything for a union declaration, written with the `union` keyword, when one of its documentation comments — the one SHARED-DOC-004 defines, or a later one that SHARED-DOC-006 counts — holds an element named `param` or `paramref`, at any depth: neither the union, nor an element of its documentation, nor one of its type parameters. The rule MUST NOT fail with an exception on such a union. This holds in every documentation mode in which the rule runs (SHARED-DOC-008), whatever else the documentation holds. A declaration nested in the union's body is judged on its own, as SHARED-DOC-001 specifies.
+
+This requirement covers elements written in a documentation comment in the source, with the tag name in lower case and without a namespace prefix; an element that only the content of an `<include>` element brings in is not covered. A part of a partial union declared in several parts is not covered.
+
+Why: A union's case types have no names, so a `param` or `paramref` element on a union refers to nothing, and the input is rare: the compiler fails with CS1569 when it writes the documentation file of such a union, and the compiler's own expansion of that union's documentation, which these rules rely on, throws for it. Judging the union's documentation anyway would take more than a cheap syntactic check, so the rules leave it to be corrected by hand and judge nothing about it. A union without such an element is judged as each rule's spec states.
+
+Example — RH8035 and RH8036: with every documentation mode,
+
+```csharp
+/// <param name="Circle">Circle</param>
+public union Shape(int, string);
+
+/// <summary>
+/// Outer
+/// </summary>
+public class Outer
+{
+    /// <remarks>See <paramref name="x"/></remarks>
+    private union Inner(int, string);
+}
+```
+
+is not reported, although neither union has a `<summary>`; without the `param` and `paramref` elements, RH8035 reports `Shape` and RH8036 reports `Inner` (RH8035-001, RH8036-001).
+
+Example — RH8108:
+
+```csharp
+/// <summary>
+/// Result
+/// </summary>
+/// <param name="x">X</param>
+public union Result<T>(T, string);
+```
+
+is not reported, although `T` has no `<typeparam>` element.
+
+Example — RH8203:
+
+```csharp
+/// <inheritdoc/>
+/// <param name="Circle">Circle</param>
+public union Shape(int, string);
+
+/// <summary>
+/// Holder <paramref name="x"/>
+/// </summary>
+/// <inheritdoc/>
+public union Holder(int, string);
+```
+
+is not reported, although neither union has a base list; without the `param` and `paramref` elements, both `<inheritdoc/>` elements are reported (RH8203-001).
+
+Example — a method in the body of such a union is judged on its own; RH8108:
+
+```csharp
+/// <summary>
+/// Holder
+/// </summary>
+/// <param name="x">X</param>
+public union Holder<T>(T, string)
+{
+    /// <summary>
+    /// Runs
+    /// </summary>
+    public void Run<{|RH8108:TItem|}>()
+    {
+    }
+}
+```
+
+`T` is not reported; `TItem` is.
