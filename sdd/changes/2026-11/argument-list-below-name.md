@@ -4,13 +4,13 @@
 |---|---|
 | Status | Draft |
 | Date | 2026-11 |
-| Affected requirements | FMT-BREAK-039 (new), FMT-BREAK-031 |
+| Affected requirements | FMT-BREAK-039 (new), FMT-BREAK-031, FMT-BREAK-020, FMT-BREAK-015 |
 
 ## What
 
-The line-break phase joins the opening parenthesis of an argument list onto the line of the token in front of it when a line break separates the two (FMT-BREAK-039): the argument list of an invocation, of an object creation and an implicit object creation, of a constructor initializer, of a primary-constructor base type, and of the `with(…)` element of a collection expression. A comment, a directive, or disabled text in the gap blocks the join (FMT-BREAK-001), and blank lines in the gap go with it (FMT-BREAK-030). A collection expression that was written over several lines only because of such a line break still counts as spanning several lines and keeps one element per line (FMT-BREAK-022), as it does today when FMT-BREAK-020 rejoins a split inside one of its elements.
+The line-break phase joins the opening parenthesis of an argument list onto the line of the token in front of it when a line break separates the two (FMT-BREAK-039): the argument list of an invocation, of an object creation and an implicit object creation, of a constructor initializer, of a primary-constructor base type, and of the `with(…)` element of a collection expression, wherever the argument list stands. A comment, a directive, or disabled text in the gap blocks the join (FMT-BREAK-001), and blank lines in the gap go with it (FMT-BREAK-030). A collection expression, a complex element initializer, or another construct of FMT-BREAK-022 that was written over several lines only because of such a line break still counts as spanning several lines and keeps one element per line, as it does today when FMT-BREAK-020 rejoins a split inside one of its elements. A list (FMT-BREAK-012) and a conditional expression (FMT-BREAK-018) are judged as the line they become, as they are today after the joins of FMT-BREAK-015 and FMT-BREAK-020.
 
-FMT-BREAK-031 lists the new join among the joins that write the minimal separator; it changes no output of its own.
+FMT-BREAK-039 is the one requirement that owns the gap in front of an argument list's `(`: FMT-BREAK-020, which joined it in a chain, and FMT-BREAK-015, which joined it inside a list element, now point to FMT-BREAK-039 instead of stating the join again. Their output does not change. FMT-BREAK-031 lists the new join among the joins that write the minimal separator; it changes no output of its own.
 
 ## Why
 
@@ -52,7 +52,7 @@ Every *before* below is the output of `main`; every *after* was produced by form
 
 ```csharp
 // input
-void M(Func<int, int> f)
+void M(Func<int, int> f, Func<int, int> g)
 {
     Foo
     (4);
@@ -61,7 +61,7 @@ void M(Func<int, int> f)
     (4);
     List<int> k = new
     (4);
-    var r = (f)
+    var r = (f ?? g)
     (1);
     if (Has
         (1))
@@ -72,7 +72,7 @@ void M(Func<int, int> f)
 
 ```csharp
 // before
-void M(Func<int, int> f)
+void M(Func<int, int> f, Func<int, int> g)
 {
     Foo
     (4);
@@ -81,7 +81,7 @@ void M(Func<int, int> f)
     (4);
     List<int> k = new
     (4);
-    var r = (f)
+    var r = (f ?? g)
     (1);
 
     if (Has
@@ -93,13 +93,13 @@ void M(Func<int, int> f)
 
 ```csharp
 // after
-void M(Func<int, int> f)
+void M(Func<int, int> f, Func<int, int> g)
 {
     Foo(4);
 
     var l = new List<int>(4);
     List<int> k = new(4);
-    var r = (f)(1);
+    var r = (f ?? g)(1);
 
     if (Has(1))
     {
@@ -107,7 +107,7 @@ void M(Func<int, int> f)
 }
 ```
 
-**2. The argument list of a `with(…)` element and of an element of a collection expression joins its name; the collection expression keeps one element per line.**
+**2. The argument list of a `with(…)` element and of an element of a collection expression or a complex element initializer joins its name; the collection expression and the initializer keep one element per line.**
 
 ```csharp
 // input
@@ -115,6 +115,8 @@ HashSet<int> h = [with
 (4), 1, 2];
 int[] a = [Bar
 (4)];
+var e = new Dictionary<int, int> { { Bar
+    (1), 2 } };
 ```
 
 ```csharp
@@ -129,6 +131,14 @@ int[] a = [
               Bar
 (4)
           ];
+var e = new Dictionary<int, int>
+        {
+            {
+                Bar
+(1),
+                2
+            }
+        };
 ```
 
 ```csharp
@@ -141,9 +151,39 @@ HashSet<int> h = [
 int[] a = [
               Bar(4)
           ];
+var e = new Dictionary<int, int>
+        {
+            {
+                Bar(1),
+                2
+            }
+        };
 ```
 
-**3. The argument list of a constructor initializer and of a primary-constructor base type joins its keyword or base type.**
+**3. A conditional expression that spanned several lines only because of such a line break becomes one line.**
+
+```csharp
+// input
+var x = a ? Get
+(1) : 2;
+```
+
+```csharp
+// before
+var x = a
+            ? Get
+(1)
+            : 2;
+```
+
+```csharp
+// after
+var x = a ? Get(1) : 2;
+```
+
+A list that holds such a line break inside an element (`Baz(Get⏎(1), 2)`) already becomes one line on `main` (FMT-BREAK-015); that output does not change.
+
+**4. The argument list of a constructor initializer and of a primary-constructor base type joins its keyword or base type.**
 
 ```csharp
 // input
@@ -188,7 +228,7 @@ class D : B
 class E() : B(1);
 ```
 
-**4. Blank lines between the name and the argument list go with the join.**
+**5. Blank lines between the name and the argument list go with the join.**
 
 ```csharp
 // input
@@ -209,9 +249,9 @@ Get
 Get(4);
 ```
 
-**5. Code fixes that format a node holding such an argument list write the join too.**
+**6. Code fixes that format a node holding such an argument list write the join too.**
 
-The code fixes format their node through the formatter, so the join reaches every fix whose formatted node holds such an argument list other than as the node's first token: among them the fixes of RH3004, RH3208, RH5111, RH5205, RH5206, RH5301, RH5302, RH5303, RH5304, RH5305, RH5308, RH5401, RH5403, and RH7101, whose formatted nodes are expressions, statements, initializers, or declarations that can hold an invocation or an object creation. The fixes of RH5101 and RH5102 format the argument list itself, whose first token is the `(`; that token keeps its line and column (FMT-PIPE-017), so their results do not change. This is a consequence of changes 1 to 4, not a decision of its own. Checked with `scripts/apply-fix.sh` on `main`:
+The code fixes format their node through the formatter, so the join reaches every fix whose formatted node holds such an argument list other than as the node's first token: among them the fixes of RH3004, RH3208, RH5111, RH5205, RH5206, RH5301, RH5302, RH5303, RH5304, RH5305, RH5308, RH5401, RH5403, and RH7101, whose formatted nodes are expressions, statements, initializers, or declarations that can hold an invocation or an object creation. The fixes of RH5101 and RH5102 format the argument list itself, whose first token is the `(`; that token keeps its line and column (FMT-PIPE-017), so their results do not change. This is a consequence of changes 1 to 5, not a decision of its own. Checked with `scripts/apply-fix.sh` on `main`:
 
 ```csharp
 // input
@@ -286,19 +326,24 @@ No rule page changes: no analyzer rule reports an argument list below its name, 
 
 ### The maintainer's answer is pending
 
-Changes 1 to 5 are open output questions; the answer will be recorded here.
+Changes 1 to 5 are open output questions; the answer will be recorded here. Change 6 follows from them.
 
 ### The join is stated by its cause, the gap in front of an argument list's `(`
 
-The requirement names the gap between an argument list's opening parenthesis and the token in front of it, whichever node owns the argument list, instead of listing invocations of names. An invocation of a parenthesized expression or of another invocation (`(f)⏎(1)`, `Make(1)⏎(2)`) is the same gap and gets the same join.
+The requirement names the gap between an argument list's opening parenthesis and the token in front of it, whichever node owns the argument list, instead of listing invocations of names. An invocation of a parenthesized expression or of another invocation (`(f ?? g)⏎(1)`, `Make(1)⏎(2)`) is the same gap and gets the same join. (`(f)⏎(1)` is not one: C# reads it as a cast of `(1)` to the type `f`.)
 
-### A collection expression is judged as written
+### The constructs of FMT-BREAK-022 are judged as written, lists and conditional expressions as joined
 
-FMT-BREAK-022 decides from the author's line breaks whether a collection expression spans several lines, also where a join inside an element removes one of them: `[v.⏎Length, 2]` and `[Get⏎(1).GetHashCode(), 2]` get one element per line on `main`. The new join follows that, so `[with⏎(4), 1, 2]` keeps one element per line rather than becoming `[with(4), 1, 2]`.
+The join counts for a surrounding construct as the phase's other joins inside it count today. FMT-BREAK-022 decides from the author's line breaks whether a collection expression or a complex element initializer spans several lines, also where a join inside an element removes one of them: `[v.⏎Length, 2]`, `[Get⏎(1).GetHashCode(), 2]`, and `{ { v.Equals⏎(1).GetHashCode(), 2 } }` get one element per line on `main`. So `[with⏎(4), 1, 2]` keeps one element per line rather than becoming `[with(4), 1, 2]`. A list and a conditional expression are judged after the joins of FMT-BREAK-015 and FMT-BREAK-020 (`Foo(1, Get⏎(4))` → `Foo(1, Get(4))`, `a ? v.Equals⏎(1).GetHashCode() : 2` → one line on `main`), so `a ? Get⏎(1) : 2` becomes one line too. The precedent differs by construct, and the requirement follows it rather than unifying it.
+
+### One requirement owns the gap in front of an argument list's `(`
+
+FMT-BREAK-039 states the join for every argument list, so FMT-BREAK-020 (in a chain) and FMT-BREAK-015 (inside a list element) no longer state it themselves and point to FMT-BREAK-039. One statement of the join keeps its guards and exceptions from drifting apart, and the implementation has one owner of the gap. No output differs from the three statements it replaces.
 
 ## Alternatives considered
 
 - **Keep the line break (today's output)** — not recommended: the argument list stays on a line of its own at a column that shows nothing about where it belongs, and the CLI and the code fixes keep putting it in different columns (Why). Making those columns agree without the join is the indentation of unowned continuation lines, a separate decided change (thoenissen/Reihitsu#953).
 - **Join, and let a collection expression that spanned several lines only because of the join become one line** (`[with(4), 1, 2]`, as the issue sketched) — not recommended: a collection expression would then lay out differently after this join than after every other join inside an element, and making those agree would change today's output for chain splits inside elements as well.
+- **Judge a conditional expression as written too** (`a ? Get⏎(1) : 2` → one branch per line, `? Get(1)` and `: 2` on lines of their own) — not recommended: a conditional whose only line break was a split inside a branch already becomes one line on `main` after the joins of FMT-BREAK-015 and FMT-BREAK-020, and the new join would lay it out differently from them.
 - **Join only invocations, object creations, and `with(…)` elements, and keep the line break in front of a constructor initializer's and a primary-constructor base type's argument list** — not recommended: the gap is the same, and the line `(1)` gets a column today (the constructor's, or the column after `class E() : `) that shows as little as an invocation's does.
 - **Report the shape with a new analyzer rule** — out of scope: the formatter may do more than the analyzers (P11); a rule for it is a candidate of its own.

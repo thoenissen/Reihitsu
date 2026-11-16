@@ -1037,7 +1037,7 @@ class C<T, U>
 
 ### FMT-BREAK-015 — Wraps inside a list element are joined
 
-A line inside an element of an argument, parameter, attribute argument, tuple, or type-argument list that starts at a token other than the element's first token MUST be joined onto the previous line. A gap whose layout another requirement owns MUST NOT be joined by this rule: list boundaries, the opening parenthesis of a parameter list other than a lambda's, operator wraps of binary, conditional, member-access, postfix, `is`-pattern, and assignment expressions (FMT-BREAK-016 to FMT-BREAK-020), multi-line literals, attribute placement, and every line inside a nested braced, bracketed, or query construct. The `=` of a parameter's default value is not such an operator wrap: the gap in front of it is a wrap inside the element, and this rule joins it, in a bracketed parameter list as in a parenthesized one (FMT-BREAK-016 defers to it there). The gap behind it is not this rule's: FMT-BREAK-016 places the value, as for every equals-value clause.
+A line inside an element of an argument, parameter, attribute argument, tuple, or type-argument list that starts at a token other than the element's first token MUST be joined onto the previous line. A gap whose layout another requirement owns MUST NOT be joined by this rule: list boundaries, the opening parenthesis of a parameter list other than a lambda's, the opening parenthesis of an argument list (FMT-BREAK-039), operator wraps of binary, conditional, member-access, postfix, `is`-pattern, and assignment expressions (FMT-BREAK-016 to FMT-BREAK-020), multi-line literals, attribute placement, and every line inside a nested braced, bracketed, or query construct. The `=` of a parameter's default value is not such an operator wrap: the gap in front of it is a wrap inside the element, and this rule joins it, in a bracketed parameter list as in a parenthesized one (FMT-BREAK-016 defers to it there). The gap behind it is not this rule's: FMT-BREAK-016 places the value, as for every equals-value clause.
 
 Why: A wrap such as `out⏎var value` or `message:⏎"x"` splits one element over two lines without structuring anything. Joining runs before the list layout, so a list that was multi-line only because of such a wrap is laid out as the one-line list it becomes. No analyzer rule reports these wraps; the join is a formatter-only decision.
 
@@ -1283,11 +1283,11 @@ class C
 
 ### FMT-BREAK-020 — Split member names and attached parts are rejoined
 
-A member name separated from its dot by a line break MUST be joined back to the dot, and such a split MUST NOT count as a wrap of the chain. In a chain with at least one link, an attached part (SHARED-CHAIN-001) — an argument list, an element access, a conditional element access — MUST be joined onto the line of the element in front of it.
+A member name separated from its dot by a line break MUST be joined back to the dot, and such a split MUST NOT count as a wrap of the chain. In a chain with at least one link, an element access and a conditional element access, attached parts (SHARED-CHAIN-001), MUST be joined onto the line of the element in front of it. An attached argument list is joined by FMT-BREAK-039, in a chain as everywhere else.
 
 Why: `items.⏎Where` and `Where⏎(x)` split a single step of the chain rather than separating two steps. Treating the trailing dot as a wrap would turn a stray line break into a fully wrapped chain.
 
-Example:
+Example — the argument list behind `Where` in `b` is joined by FMT-BREAK-039:
 
 ```csharp
 class C
@@ -2900,13 +2900,16 @@ class C
 
 ### FMT-BREAK-039 — An argument list starts on the line of the code in front of it
 
-When a line break separates the opening parenthesis of an argument list from the token in front of it, the parenthesis MUST be joined onto that token's line. This holds for the argument list of an invocation, whatever expression is invoked (`Foo⏎(4)`, `(f)⏎(1)`, `Make(1)⏎(2)`), of an object creation (`new List<int>⏎(4)`) and an implicit object creation (`new⏎(4)`), of a constructor initializer (`: base⏎(1)`, `: this⏎()`), of a primary-constructor base type (`class E() : B⏎(1)`), and of the `with(…)` element of a collection expression (`[with⏎(4)]`). Blank lines in the gap go with the join (FMT-BREAK-030).
+When a line break separates the opening parenthesis of an argument list from the token in front of it, the parenthesis MUST be joined onto that token's line. This holds for the argument list of an invocation, whatever expression is invoked (`Foo⏎(4)`, `(f ?? g)⏎(1)`, `Make(1)⏎(2)`), of an object creation (`new List<int>⏎(4)`) and an implicit object creation (`new⏎(4)`), of a constructor initializer (`: base⏎(1)`, `: this⏎()`), of a primary-constructor base type (`class E() : B⏎(1)`), and of the `with(…)` element of a collection expression (`[with⏎(4)]`), wherever the argument list stands: in a chain, inside a list element, inside a lambda's block, and everywhere else. This requirement is the one owner of that gap; FMT-BREAK-020 and FMT-BREAK-015 leave it to it. Blank lines in the gap go with the join (FMT-BREAK-030).
 
-The line break the join removes still counts where FMT-BREAK-022 decides whether a collection expression spans several lines: a collection expression that spans several lines only because of it gets one element per line, as it does when FMT-BREAK-020 rejoins a split inside one of its elements.
+Where a construct around the argument list is laid out by whether it spans several lines, the line break the join removes counts as follows:
+
+- For every construct FMT-BREAK-022 decides — a collection expression, a list pattern, a property pattern clause, a parenthesized pattern, a complex element initializer — it still counts: one that spans several lines only because of it gets one element per line, as it does when FMT-BREAK-020 rejoins a split inside one of its elements.
+- For a list FMT-BREAK-012 lays out and for a conditional expression (FMT-BREAK-018) it does not count: the list or the conditional is judged as the line it becomes, as it is after a join of FMT-BREAK-015 or FMT-BREAK-020 inside it.
 
 This requirement specifies the outcome only for the argument lists it names. It does not decide the gap in front of the `[` of a bracketed argument list, nor in front of the `(` of an attribute argument list.
 
-Why: An argument list belongs to the expression or keyword in front of it; on a line of its own it reads as a parenthesized expression that starts a new line, and no column the indentation phase can give it shows that it belongs to the code above. FMT-BREAK-020 already joins an argument list onto its element in a chain, and FMT-BREAK-015 inside a list element; this requirement makes the same join everywhere else. A collection expression keeps the one-element-per-line layout its author's line breaks give it, as it does for every other join inside an element. No analyzer rule reports such an argument list ([P11](../../README.md#the-formatter-may-do-more-than-the-analyzers-p11)); RH5105 reports the opening parenthesis of a parameter list only.
+Why: An argument list belongs to the expression or keyword in front of it; on a line of its own it reads as a parenthesized expression that starts a new line, and no column the indentation phase can give it shows that it belongs to the code above. The phase already joined such an argument list in a chain (FMT-BREAK-020) and inside a list element (FMT-BREAK-015); this requirement makes the join everywhere and states it once. A surrounding construct counts the removed line break as it counts the phase's other joins inside it: the constructs of FMT-BREAK-022 keep the one-element-per-line layout their author's line breaks give them, as after FMT-BREAK-020 rejoins a split inside an element, and lists and conditional expressions are judged as the line they become, as after the joins of FMT-BREAK-015 and FMT-BREAK-020. No analyzer rule reports such an argument list ([P11](../../README.md#the-formatter-may-do-more-than-the-analyzers-p11)); RH5105 reports the opening parenthesis of a parameter list only.
 
 Example:
 
@@ -2935,7 +2938,7 @@ class E() : B
 
 class C
 {
-    void M(Func<int, int> f)
+    void M(Func<int, int> f, Func<int, int> g)
     {
         Foo
         (4);
@@ -2945,7 +2948,7 @@ class C
         List<int> k = new
 
         (4);
-        var r = (f)
+        var r = (f ?? g)
         (1);
     }
 
@@ -2978,13 +2981,13 @@ class E() : B(1);
 
 class C
 {
-    void M(Func<int, int> f)
+    void M(Func<int, int> f, Func<int, int> g)
     {
         Foo(4);
 
         var l = new List<int>(4);
         List<int> k = new(4);
-        var r = (f)(1);
+        var r = (f ?? g)(1);
     }
 
     void Foo(int x)
@@ -2993,7 +2996,7 @@ class C
 }
 ```
 
-Example — the argument list of a `with(…)` element and of an element joins its name; the collection expressions were written over several lines and keep one element per line:
+Example — the argument list of a `with(…)` element and of an element joins its name; the collection expressions and the complex element initializer were written over several lines and keep one element per line:
 
 ```csharp
 using System.Collections.Generic;
@@ -3006,6 +3009,8 @@ class C
         (4), 1, 2];
         int[] a = [Bar
         (4)];
+        var e = new Dictionary<int, int> { { Bar
+            (1), 2 } };
     }
 
     int Bar(int x)
@@ -3030,6 +3035,63 @@ class C
         int[] a = [
                       Bar(4)
                   ];
+        var e = new Dictionary<int, int>
+                {
+                    {
+                        Bar(1),
+                        2
+                    }
+                };
+    }
+
+    int Bar(int x)
+    {
+        return x;
+    }
+}
+```
+
+Example — an argument list and a conditional expression that spanned several lines only because of the join are judged as the line they become:
+
+```csharp
+class C
+{
+    int M(bool a)
+    {
+        Baz(Bar
+            (1), 2);
+
+        var x = a ? Bar
+        (1) : 2;
+
+        return x;
+    }
+
+    void Baz(int x, int y)
+    {
+    }
+
+    int Bar(int x)
+    {
+        return x;
+    }
+}
+```
+
+```csharp
+class C
+{
+    int M(bool a)
+    {
+        Baz(Bar(1), 2);
+
+        var x = a ? Bar(1) : 2;
+
+        return x;
+    }
+
+    void Baz(int x, int y)
+    {
     }
 
     int Bar(int x)
