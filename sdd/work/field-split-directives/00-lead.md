@@ -45,3 +45,6 @@
 - Repair round 1 done: tests ec05997 (10), text fbf5ac8 (11). Cleaner (12), spec checker (13) clean. Audit 2 (dd41b4e): #2 closed; #1 still open for the declarator-comma candidate list (FMT-UNSUP-010 vs FMT-UNSUP-008 order untested).
 - Repair round 2: test implementer (15) enumerates every tie across both candidate lists; then cleaner, spec checker, auditor on repair.
 - Repair round 2 tests done (f6df1fa, 15). Spec clarification D2 → spec author (16); then cleaner (17), spec checker (18), auditor (19).
+
+- Spec checker 18 consistent. Audit 3 (001a462) PASS both issues. **Audited SHA: 93f8866daa7f053d0b6e534f791e545aeda54ab9.** Repair rounds used: 2.
+- Next: validator (20) and issue manager (21) in parallel; then note, delete sdd/work, trigger commit, PR body.
