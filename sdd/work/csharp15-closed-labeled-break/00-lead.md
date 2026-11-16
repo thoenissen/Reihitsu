@@ -40,4 +40,5 @@
 - Spec author 03 done (e9a6ecf); change doc accepted by the lead; lane check confirmed behavior-change.
 - Test implementer 04 done (159666b): both reproduced.
 - Implementer 05 done (50321f7): tests pass.
-- Next: cleaner (06).
+- Cleaner 06 done (f2e55bd): clean.
+- Next: spec checker (07).
