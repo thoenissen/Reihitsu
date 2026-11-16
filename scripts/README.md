@@ -83,7 +83,7 @@ The implementation lives in `Reihitsu.Tooling`, a non-packable project inside `R
 
 ## Test-host memory
 
-On Linux, `test.sh` passes every test host the glibc malloc setting `GLIBC_TUNABLES=glibc.malloc.mmap_threshold=131072:glibc.malloc.arena_max=2`, as a run setting (`RunConfiguration.EnvironmentVariables`), so neither the build nor any other process sees it. A caller that sets `GLIBC_TUNABLES` itself keeps its own value, and other platforms are not affected.
+On Linux, `test.sh` passes every test host the glibc malloc setting `GLIBC_TUNABLES=glibc.malloc.mmap_threshold=131072:glibc.malloc.arena_max=2`, as a run setting (`RunConfiguration.EnvironmentVariables`), so it reaches the test hosts and the processes they start, but not the build or `dotnet test` itself. A caller that sets `GLIBC_TUNABLES` itself keeps its own value, and other platforms are not affected.
 
 Without it, the analyzer test host grows to about 9 GiB over a whole-project run, and a machine with little more memory than that, such as a cloud sandbox, kills it. The growth is native memory the test host has already freed and glibc keeps in its arenas: calling `malloc_trim(0)` in the running host at 7.0 GiB brought it down to 0.7 GiB, while the managed heap stayed near 250 MiB. It does not depend on the worker count, since one worker grew as fast per test as four. With the setting, the same run peaks at about 4.5 GiB and takes as long as before.
 
