@@ -30,5 +30,5 @@ None yet.
 
 ## State
 
-- Last step: claim and lane written.
-- Next: spawn spec author.
+- Last step: spec author (01) — change doc written, no output questions, no follow-ups.
+- Next: skeptic (02).
