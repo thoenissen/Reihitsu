@@ -44,7 +44,7 @@ The CLI MUST exit with code 2 and touch no file when an argument is invalid, wri
 - an unknown option: `Unknown option: <option>` (the first one);
 - a `--lang-version` value that is not a C# language version: `Invalid value for --lang-version: '<value>'. Expected a C# language version such as 12, 12.0, latest, or preview.`;
 - `--lang-version` as the last argument: `Missing value for --lang-version.`;
-- a `--max-parallelism` value that is not a whole number of at least 1: `Invalid value for --max-parallelism: '<value>'. Expected a whole number of 1 or more.`;
+- a `--max-parallelism` value CLI-023 does not accept: `Invalid value for --max-parallelism: '<value>'. Expected a whole number of 1 or more.`;
 - `--max-parallelism` as the last argument: `Missing value for --max-parallelism.`;
 - `--check` together with `--dry-run`: `Options --check and --dry-run cannot be combined.`
 
@@ -114,11 +114,11 @@ exit code 2.
 
 ### CLI-006 — File selection
 
-The CLI MUST select a given file when its name ends with `.cs` (case-insensitively) and ignore any other given file. For a given directory, it MUST select every `*.cs` file below it, recursively, except files below a directory named `bin` or `obj` inside it; the names are compared with the platform's path case sensitivity, and the given directory itself is never excluded, even when it is named `bin` or `obj`. A file selected more than once — given directly and through a directory — MUST be processed once. When nothing is selected, the CLI MUST print `No .cs files found.` and exit with code 0.
+The CLI MUST select a given file when its name ends with `.cs` (case-insensitively) and ignore any other given file. For a given directory, it MUST select every `*.cs` file below it, recursively, except files below a directory named `bin` or `obj` inside it; the names are compared with the platform's path case sensitivity, and the given directory itself is never excluded, even when it is named `bin` or `obj`. A full path selected more than once — given directly and through a directory — MUST be processed once. Two different full paths are two selections, also when they name one physical file through a symbolic or hard link. When nothing is selected, the CLI MUST print `No .cs files found.` and exit with code 0.
 
 Why: Build output contains generated copies and intermediate files that are not the user's source. A directory the user names explicitly is an explicit choice and is honored.
 
-Example — given `src/` with `A.cs`, `sub/C.cs`, `bin/D.cs`, and `obj/x/E.cs`, the CLI processes `A.cs` and `sub/C.cs`; given `bin/` directly, it processes `bin/G.cs`. On Linux, `src/Bin/F.cs` is processed; on Windows it is excluded.
+Example — given `src/` with `A.cs`, `sub/C.cs`, `bin/D.cs`, and `obj/x/E.cs`, the CLI processes `A.cs` and `sub/C.cs`; given `bin/` directly, it processes `bin/G.cs`. On Linux, `src/Bin/F.cs` is processed; on Windows it is excluded. `reihitsu-format src/A.cs src/` processes `src/A.cs` once; when `src/link` is a symbolic link to `src/sub`, `reihitsu-format src/` processes both `src/sub/C.cs` and `src/link/C.cs`.
 
 ### CLI-007 — Generated files are skipped
 
@@ -268,7 +268,7 @@ The CLI MUST exit with:
 
 - 0 when the run succeeded — in write mode whether or not files changed; with `--check` or `--dry-run` when no file would change; also for `--help`, `--version`, no selected files, and a declined confirmation (CLI-018);
 - 1 when `--check` or `--dry-run` found a file that would change, no file failed, and no file was reported as unsupported with `error:` (CLI-019);
-- 2 for invalid arguments (CLI-002), a missing path (CLI-005), a failed file (CLI-016), a file the formatter refuses as unsupported without `--suppress-unsupported` (CLI-019), a large run that cannot be confirmed (CLI-018), cancellation with Ctrl+C (`Operation canceled.` on standard error), and any unexpected error (`Error: <message>`).
+- 2 for invalid arguments (CLI-002), a missing path (CLI-005), a failed file (CLI-016), a file the formatter refuses as unsupported without `--suppress-unsupported` (CLI-019), a large run that cannot be confirmed (CLI-018), cancellation with Ctrl+C (`Operation canceled.` on standard error, after every file whose write has started is written completely, CLI-022), and any unexpected error (`Error: <message>`).
 
 Why: CI distinguishes "the code needs formatting" from "the tool could not do its job"; only the second is a broken pipeline. A file the tool refuses is one it could not do its job on, and `--suppress-unsupported` is the way to let such a run pass (CLI-020).
 
@@ -412,11 +412,13 @@ The CLI MAY process up to as many selected files at the same time as the degree 
 - the same files written, with the same content and encoding (CLI-009 to CLI-011);
 - the same summary (CLI-014) and the same exit code (CLI-017).
 
+One case is exempt from the same lines and the same summary: in write mode, when two selected paths name one physical file (CLI-006), which of them are named `Formatted:` and which `Unchanged:`, and the count in the summary, MAY differ from one run to the next. The file MUST still hold the formatted text. `--check` and `--dry-run` MUST give the result of one-after-another processing for such paths too.
+
 A file that fails (CLI-016), cannot be decoded (CLI-009), or is refused (CLI-019) MUST NOT stop or change the processing of any other file. The confirmation of a large write run (CLI-018) MUST still be asked, and answered, before any file is read for formatting.
 
-When the run is canceled with Ctrl+C, the CLI MUST start no further file, MUST write the lines of every file it finished, in the order it selected them, and then end as CLI-017 states, with `Operation canceled.` on standard error and exit code 2. It MUST NOT write the summary.
+When the run is canceled with Ctrl+C, the CLI MUST start no further file and MUST NOT interrupt a write to a file that has started: the write completes, the file holds the whole formatted text, and the file counts as finished. The CLI MUST then write the lines of every file it finished, in the order it selected them — also when a file selected before it is unfinished — and end as CLI-017 states, with `Operation canceled.` on standard error and exit code 2. It MUST NOT write the summary. A file not finished at that point — its write, if it needs one, not started — is left as it was and is not named.
 
-Why: Each file is formatted on its own, so files can be formatted on several processor cores at the same time; on code bases of several hundred files that is what makes the run noticeably faster. The run's output is read by people and parsed by CI, and reviewed as a diff in pull requests; it has to be the same whichever file happens to finish first, so a run on many cores reads exactly like a run on one. Naming every finished file on cancellation keeps what one-after-another processing gives: no file is changed without the user being told.
+Why: Each file is formatted on its own, so files can be formatted on several processor cores at the same time; on code bases of several hundred files that is what makes the run noticeably faster. The run's output is read by people and parsed by CI, and reviewed as a diff in pull requests; it has to be the same whichever file happens to finish first, so a run on many cores reads exactly like a run on one. Naming every finished file on cancellation keeps what one-after-another processing gives: no file is changed without the user being told. An interrupted write would leave a truncated source file, which loses user code. Telling two paths of one file apart would need a check of file identity that .NET does not offer on every platform; links inside a source tree are rare, the content is right either way, and the check run of CI does not write.
 
 Example — `A.cs` and `C.cs` hold an unformatted field `int  x;`, and `B.cs` has a syntax error:
 
@@ -435,11 +437,23 @@ Skipped 1 file(s) with syntax errors.
 
 exit code 1 — the same output, in the same order, as with `--max-parallelism 1`, also when `C.cs` finishes before `A.cs`.
 
+Example — Ctrl+C during `reihitsu-format --force --verbose --max-parallelism 4 /work/A.cs /work/B.cs /work/C.cs`, while `A.cs` is still being formatted, `B.cs` has been written, and the write of `C.cs` has started: the write of `C.cs` completes, and the CLI writes
+
+```text
+Formatted: /work/B.cs
+Formatted: /work/C.cs
+Operation canceled.
+```
+
+(the last line on standard error), leaves `A.cs` as it was, and exits with code 2.
+
+Example — in write mode, with `/work/link` a symbolic link to `/work/real` and `/work/real/A.cs` holding `int  x;`, `reihitsu-format --verbose /work` names `/work/real/A.cs` and `/work/link/A.cs` each either `Formatted:` or `Unchanged:`, at least one of them `Formatted:`, and ends with `Formatted 1 of 2 file(s).` or `Formatted 2 of 2 file(s).`; `A.cs` holds `int x;`. `reihitsu-format --check --verbose /work` names both `Not formatted:` and ends with `2 of 2 file(s) need formatting.`, as one after another.
+
 Example — with `u.cs` from CLI-019 between them, `reihitsu-format --check --max-parallelism 4 /work/A.cs /work/u.cs /work/C.cs` writes `Not formatted: /work/A.cs`, then the `error:` line of `u.cs` on standard error, then `Not formatted: /work/C.cs`, then the summary, and exits with code 2.
 
 ### CLI-023 — `--max-parallelism` sets how many files are processed at the same time
 
-With `--max-parallelism <count>`, the CLI MUST process at most `<count>` files at the same time; `<count>` is a whole number of at least 1, and `1` processes one file after another. Without the option, the degree of parallelism MUST be the number of logical processors of the machine (`Environment.ProcessorCount`). A count larger than the number of files or processors MUST be accepted. An invalid or missing count fails as CLI-002 states. When the option is given more than once with valid counts, the last one MUST be used.
+With `--max-parallelism <count>`, the CLI MUST process at most `<count>` files at the same time, and `1` processes one file after another. `<count>` MUST be accepted when it consists of the decimal digits `0`–`9` only and its value is from 1 to 2147483647 (the largest 32-bit integer); every other value — a sign, white space, a decimal point, a letter, `0`, or a larger number — is invalid. Without the option, the degree of parallelism MUST be the number of logical processors of the machine (`Environment.ProcessorCount`). A count larger than the number of files or processors MUST be accepted. An invalid or missing count fails as CLI-002 states. When the option is given more than once with valid counts, the last one MUST be used.
 
 The usage text MUST list the option as
 
@@ -468,4 +482,4 @@ reihitsu-format [options] [--] [<paths>...]
 …
 ```
 
-exit code 2. The same holds for `-1`, `two`, and `1.5`.
+exit code 2. The same holds for `-1`, `+2`, ` 2`, `two`, `1.5`, and `99999999999`. `--max-parallelism 1000` and `--max-parallelism 007` are accepted (1000 and 7); `--max-parallelism 2 --max-parallelism 8` uses 8.
