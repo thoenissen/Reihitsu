@@ -25,7 +25,9 @@ Proposed procedure (asked 2026-11-16 — get my answers to the open questions be
 4. Prioritization per theme: value, cost, risk, dependencies -> proposal for 1.4.0 (2–4 themes), 1.5.0, backlog; I decide.
 5. 1.4.0 run plan: runs (one lane, 3–8 issues, same cause/area) grouped into parallel batches with no shared files.
 
-Open questions to ask me (format of AGENTS.md "Asking the maintainer"):
+DECIDED 2026-11-16 ("1b 2a 3a"): themes live only in coordinator files (no labels, no theme milestones); 1.4.0 = a few complete themes plus the Maintenance issues touching the same code; closures only for done/superseded/duplicate/decided/unreachable (low-value extensions are judged per theme in step 4). Start directly with step 1.
+
+Questions as they were asked:
 - Where themes live: A GitHub labels (`theme:…`, I create them; no MCP tool for labels) / B only in coordinator files / C one milestone per theme.
 - Shape of 1.4.0: A theme-driven (a few complete themes plus the Maintenance issues touching the same code) / B value-ranked top N across themes.
 - Closure scope: A only done/superseded/duplicate/decided/unreachable / B also low-value extensions as "not planned".
