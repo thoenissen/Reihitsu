@@ -2772,6 +2772,59 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies that the fix of a collection initializer whose element's argument list stands on the line below the invoked name
+    /// joins the argument list onto the name
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-BREAK-039")]
+    public async Task VerifyFixJoinsElementArgumentListBelowItsName(string endOfLine)
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var l = {|RH5303:new List<int> { Get
+                                        (4), 2 }|};
+                                    }
+
+                                    private static int Get(int value)
+                                    {
+                                        return value;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Example
+                                 {
+                                     private static void Method()
+                                     {
+                                         var l = new List<int>
+                                                 {
+                                                     Get(4),
+                                                     2
+                                                 };
+                                     }
+
+                                     private static int Get(int value)
+                                     {
+                                         return value;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

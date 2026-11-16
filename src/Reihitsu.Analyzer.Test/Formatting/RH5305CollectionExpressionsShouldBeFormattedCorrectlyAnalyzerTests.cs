@@ -569,6 +569,99 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzerTests 
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies that the fix of a collection expression whose <c>with(…)</c> element's argument list stands on the line below
+    /// <c>with</c> joins the argument list onto <c>with</c> and puts every element on a line of its own
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-BREAK-039")]
+    public async Task VerifyFixJoinsWithElementArgumentListBelowWith(string endOfLine)
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        List<int> a = {|RH5305:[with
+                                        (4), 1, 2]|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Example
+                                 {
+                                     private static void Method()
+                                     {
+                                         List<int> a = [
+                                                           with(4),
+                                                           1,
+                                                           2
+                                                       ];
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that fixing two collection expressions in one document, each with a <c>with(…)</c> element whose argument list
+    /// stands on the line below <c>with</c>, joins both argument lists
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-BREAK-039")]
+    public async Task VerifyFixJoinsWithElementArgumentListsOfTwoCollectionExpressions(string endOfLine)
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        List<int> a = {|RH5305:[with
+                                        (4), 1, 2]|};
+                                        HashSet<int> b = {|RH5305:[with
+                                        (8), 3, 4]|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Example
+                                 {
+                                     private static void Method()
+                                     {
+                                         List<int> a = [
+                                                           with(4),
+                                                           1,
+                                                           2
+                                                       ];
+                                         HashSet<int> b = [
+                                                              with(8),
+                                                              3,
+                                                              4
+                                                          ];
+                                     }
+                                 }
+                                 """;
+
+        await Verify(ConvertEndOfLine(testData, endOfLine), ConvertEndOfLine(fixedData, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

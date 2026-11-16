@@ -833,6 +833,53 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
         await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies that the fix of a logical expression whose right operand's argument list stands on the line below the invoked name
+    /// joins the argument list onto the name
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-BREAK-039")]
+    public async Task VerifyFixJoinsOperandArgumentListBelowItsName(string endOfLine)
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static bool Method(bool a)
+                                    {
+                                        return a {|RH5302:&&|}
+                                            Has
+                                            (1);
+                                    }
+
+                                    private static bool Has(int value)
+                                    {
+                                        return value > 0;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     private static bool Method(bool a)
+                                     {
+                                         return a
+                                                && Has(1);
+                                     }
+
+                                     private static bool Has(int value)
+                                     {
+                                         return value > 0;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
