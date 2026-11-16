@@ -92,9 +92,9 @@ public class RH7101DoNotCombineFieldsCodeFixProvider : ReihitsuCodeFixProviderBa
     /// Gets the field declaration of a diagnostic when the fix is offered for it: only where the formatter splits the
     /// declaration, because the fix splits it only by formatting it, and elsewhere it would change nothing, and only where the
     /// formatter does not refuse the type the fix formats the declaration in. The formatter alone decides both, so a
-    /// declaration it keeps whole — one with a directive or a documentation comment — and a declaration in a type that holds
-    /// a shape the formatter refuses are reported without a fix (FMT-PIPE-031, RH7101-005, RH7101-006, RH7101-007,
-    /// SHARED-FIX-010)
+    /// declaration it keeps whole — one with disabled text in front of it or a documentation comment — and a declaration in a
+    /// type that holds a shape the formatter refuses, such as a directive inside a combined field, are reported without a fix
+    /// (FMT-PIPE-031, RH7101-005, RH7101-006, RH7101-007, SHARED-FIX-010)
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="diagnostic">Diagnostic</param>
