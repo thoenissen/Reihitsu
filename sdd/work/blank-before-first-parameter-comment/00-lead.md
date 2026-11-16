@@ -18,9 +18,9 @@
 
 ## Follow-up candidates
 
-(none yet)
+- First element behind an opener of a type parameter list, statement header, cast, attribute list, array size, or parenthesized pattern lands in the enclosing line's column instead of aligned (01-spec-author.md). Rarity to be judged before the issue manager.
 
 ## State
 
-- Last step: claim, lane claimed.
-- Next: spawn spec author.
+- Last step: spec author (cfb7d41), change doc Draft, output questions 1 (A/B/C) and 2 (A/B) drafted in 01.
+- Next: skeptic, then batch output questions.
