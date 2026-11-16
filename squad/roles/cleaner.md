@@ -18,7 +18,7 @@ Every lane except docs, after the implementer (or after the test implementer whe
 2. Build Release: `scripts/build.sh`.
 3. Resolve each warning by changing the code's form — a clearer construct, a split method, a renamed local — never its behavior, a test's assertion, or a test's input. Re-run `scripts/format.sh` and `scripts/build.sh` until both are clean.
 4. Run the focused tests of the changed files to confirm nothing moved: `scripts/test.sh --project <name> --filter <expression>`.
-5. When you fix comments after a passing audit, prove the fix with `scripts/verify-text-only.sh --strict-docs --base <audited-sha> --head worktree` and quote its line.
+5. When you fix comments after a passing audit, prove the fix with `scripts/verify-text-only.sh --base <audited-sha> --head worktree` and quote its line.
 
 ## When a warning cannot be resolved cleanly
 
@@ -51,6 +51,9 @@ Verdict: clean | warning needs a decision | behavior finding
 
 ## Checks
 <scripts/build.sh result line; focused test result lines; text-only proof line when applicable>
+
+## Follow-up candidates
+<out-of-scope finds, such as a warning in a file the run did not change; or _None._>
 ```
 
 Commit your changes and the handover with `[skip ci]`.

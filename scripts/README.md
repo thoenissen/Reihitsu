@@ -28,7 +28,7 @@ scripts/test.sh --project selfhosting
 scripts/format.sh src/Reihitsu.Formatter/Pipeline/LineBreaks/LineBreakDetection.cs
 scripts/trace.sh samples/Example.cs --passes 3 --no-install
 scripts/apply-fix.sh RH7101 /tmp/sweep
-scripts/verify-text-only.sh --base a1b2c3d --head worktree --strict-docs
+scripts/verify-text-only.sh --base a1b2c3d --head worktree
 scripts/lane-check.sh bug-fix --head worktree
 scripts/usage.sh --json
 ```
@@ -90,7 +90,7 @@ It is syntax-aware rather than line-based, because a `grep` over the diff does n
 - every changed syntax element belongs to an allowed comment, documentation, or layout trivia category;
 - both versions parse without errors, so a malformed comment cannot slip through.
 
-Generated XML-documentation impact is **reported separately** instead of folded into the verdict, because a documentation edit is exactly what a comment-only change is allowed to be. When the caller must also exclude public API documentation — the cleanup after an auditor's `pass, text cleanup` does — pass `--strict-docs` / `-StrictDocs`; a plain exit code `0` does not establish it. Interface members and enum members count as public even though they carry no accessibility modifier.
+Generated XML-documentation impact is **reported separately** instead of folded into the verdict, because a documentation edit is exactly what a comment-only change is allowed to be. No assembly of this repository is a public API (`AGENTS.md`, *Supported inputs*), and the analyzer package ships no XML documentation, so a documentation change never fails the proof, whatever the member's accessibility.
 
 A file that is neither C# nor a known non-compiled text path (Markdown, `.claude/**`, `documentation/**`, issue and PR templates) is reported as carrying behavior. `scripts/**` and `.github/workflows/**` are behavioral regardless of extension: nothing there compiles, but everything there executes. Added, deleted, and renamed files are never text-only.
 

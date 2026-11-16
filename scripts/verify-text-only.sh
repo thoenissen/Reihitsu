@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 # Proves that a change carries no compiled behavior.
 #
-#   scripts/verify-text-only.sh [--base <rev>] [--head <rev>] [--strict-docs]
+#   scripts/verify-text-only.sh [--base <rev>] [--head <rev>]
 #
 # Defaults to the merge base with origin/main and HEAD. Use `--head worktree`
-# to include uncommitted changes, and `--strict-docs` when public API
-# documentation must stay unchanged too — plain exit code 0 does not establish
-# that, because a documentation edit is a legitimate comment-only change.
+# to include uncommitted changes. A documentation edit is a legitimate
+# comment-only change: it is reported, and it never fails the proof.
 #
 # Exit codes: 0 proven text-only, 1 not proven, 2 tool or setup error.
 #

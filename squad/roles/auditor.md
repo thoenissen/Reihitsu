@@ -94,6 +94,9 @@ Verdict: pass | pass, text cleanup | findings | state mismatch
 
 ## Hints
 <or _None._>
+
+## Follow-up candidates
+<pre-existing defects outside the run, each naming its structural cause where it has one; or _None._>
 ```
 
-An empty table gets an explicit `_N/A — <reason>._` line. Finding numbers continue across the run's audits, so `#<n>` names one finding of the run. `Repeats` names the earlier audit finding whose class the finding repeats (`#<n>`), or `–`; the lead decides a repeat and an architecture finding under `README.md`, *Architecture findings*, instead of starting a repair round. `pass, text cleanup` means every finding is confined to comments or documentation and cannot reach compiled behavior, diagnostics, public API documentation, or rule metadata; add why for each. The suggested change is a suggestion — the owner re-derives it. For a finding on a rare input class it is "refuse this class", never more reasoning (`AGENTS.md`, *Code-fix coverage*). Commit your handover with `[skip ci]`.
+An empty table gets an explicit `_N/A — <reason>._` line. Finding numbers continue across the run's audits, so `#<n>` names one finding of the run. `Repeats` names the earlier audit finding whose class the finding repeats (`#<n>`), or `–`; the lead decides a repeat and an architecture finding under `README.md`, *Architecture findings*, instead of starting a repair round. `pass, text cleanup` means every finding is confined to comments or documentation and cannot reach compiled behavior, diagnostics, or rule metadata; add why for each. The suggested change is a suggestion — the owner re-derives it. For a finding on a rare input class it is "refuse this class", never more reasoning (`AGENTS.md`, *Code-fix coverage*). Commit your handover with `[skip ci]`.

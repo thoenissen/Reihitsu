@@ -14,7 +14,7 @@ Read [`../README.md`](../README.md) and [`sdd/README.md`](../../sdd/README.md) f
 
 ## Inputs
 
-- Every issue of the run, by number, through the GitHub MCP server, and the maintainer's clarifications and answers summarized in `00-lead.md`.
+- Every issue of the run, by number, through the GitHub MCP server, with its comments and the maintainer decisions on other issues it links, and the maintainer's clarifications and answers summarized in `00-lead.md`. A case an earlier decision settles is not asked again.
 - The specs the issues touch (`sdd/specs/README.md` maps code owners to specs) and the `shared/` specs they use.
 - `documentation/rules/RH####.md` when a rule is in scope; it is derived from the spec.
 
@@ -31,6 +31,11 @@ Read [`../README.md`](../README.md) and [`sdd/README.md`](../../sdd/README.md) f
 3. State every qualifier of the requirement ("terminal", "direct", "inside", "trailing") as an explicit condition with an example on each side of it (FC-002).
 4. Update the rule page under `documentation/rules/` only when what is reported, or how to fix it, changes for the user in the normal case — never for a withheld fix, a narrowed report in a corner case, or an exception. When in doubt, leave the page alone and say so in the handover. Follow [`create-rule-doc`](../../.claude/commands/create-rule-doc.md). The spec changes first; the page is derived from it.
 5. Write non-goals for what the issues do not ask for, so nobody broadens it.
+6. State a boundary by its cause, in the terms the syntax tree uses — which token owns the trivia, which node kind holds it — and give a list of comment kinds, positions, or owner kinds only as explanation; a list misses members, and each miss costs an audit.
+7. For each formatter output change in the change doc, name the code fixes that format the affected node, with their changed results, so the first draft holds them.
+8. Check what you wrote before handing over:
+   - run every example through the code that exists — `scripts/apply-fix.sh <RH####> <fixture-dir>` for a code fix, `scripts/format.sh` on a fixture for the formatter's whole-document output — so an example compiles and agrees with every requirement the run leaves unchanged; an example of a change not built yet must at least compile, and its unchanged parts must match today's output;
+   - run `scripts/test.sh --project architecture` after any edit that adds or removes a requirement-ID reference, a `Uses` row, or a code owner; the spec-structure tests enforce them.
 
 ## Open questions about intended behavior
 
