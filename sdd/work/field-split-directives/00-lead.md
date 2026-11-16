@@ -18,6 +18,8 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | Spec author | One change doc for both issues; RH7101-005 changed in place; no initializer exception; FMT-UNSUP-009 reason wins at the tie | As recommended | Shared cause; consistent with FMT-UNSUP-004/009 | Internal spec structure; the span was the maintainer's answer | 3b1b782 |
+| 2 | Skeptic | Disabled text in the first token's leading trivia (attribute/modifier of another build) would be split onto the first field only | Keep the declaration whole and withhold the RH7101 fix for that class (today's output) | Rare class; FMT-PIPE-003/FMT-STRUCT-024 forbid the split; one cheap check | Today's output stays for that class; refusing a rare class is not in question | pending (03-spec-author) |
 
 ## Follow-up candidates
 
@@ -26,4 +28,5 @@
 ## State
 
 - Last step: spec author done (3b1b782), change doc `sdd/changes/2026-11/field-declaration-directives.md` Draft; #1586 output question drafted in 01-spec-author.md.
-- Next: skeptic.
+- Skeptic done (d361337): #1728 proceed, #1586 proceed narrower.
+- Next: spec-author amendment (03), then ask #1586 output question with option D (escalation 10), then test implementer.
