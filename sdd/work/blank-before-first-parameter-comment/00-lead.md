@@ -31,5 +31,5 @@
 
 ## State
 
-- Last step: cleaner (4a16b88), clean.
-- Next: cleaner, spec checker, auditor, validator.
+- Last step: spec checker (6b45f17) consistent; audit 1 of 6b45f17 (base eb89003): findings #1 (spec example/tests pin undecided `<`/array-size column) and #2 (cleanup guard untested). Repair round 1.
+- Next: repair round 1: spec author (#1 spec example), test implementer (#1 tests, #2 new tests); then cleaner, spec checker, auditor (repair only), validator.
