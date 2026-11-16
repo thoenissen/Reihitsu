@@ -28,8 +28,9 @@
 
 ## State
 
-- Audited SHA: 8fde9c4 (base main 372daee); audit 06-auditor.md: one finding (test does not reach first-token path).
+- Audited SHA: ec2b862 (repair audit 10-auditor.md: pass; first audit 8fde9c4, 06-auditor.md, one finding closed).
 - Last step: spec checker (05, consistent); auditor (06, 1 finding).
 - Repair round 1 worklist: auditor finding #1 (PR-introduced test gap) -> test implementer.
 - Repair round 1: test implementer (07, bd94601), cleaner (08, clean), spec checker (09, consistent).
-- Next: auditor on repair only, then validator.
+- Auditor repair audit: pass.
+- Next: validator and issue manager (all three follow-up candidates), then note, delete sdd/work, trigger commit, PR.
