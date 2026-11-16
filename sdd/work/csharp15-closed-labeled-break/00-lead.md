@@ -41,4 +41,5 @@
 - Test implementer 04 done (159666b): both reproduced.
 - Implementer 05 done (50321f7): tests pass.
 - Cleaner 06 done (f2e55bd): clean.
-- Next: spec checker (07).
+- Spec checker 07 (da6a450): consistent. Auditor 08 (450249a): pass. Audited SHA da6a450 (base 1d2d29a).
+- Next: validator (09), then publish.
