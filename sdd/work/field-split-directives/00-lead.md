@@ -21,9 +21,9 @@
 
 ## Follow-up candidates
 
-(none yet)
+- Event field / local declaration: a declarator written after an `#endif` loses its continuation indent on `main` (01-spec-author.md).
 
 ## State
 
-- Last step: claim, draft PR, prepare.sh green.
-- Next: spawn spec author.
+- Last step: spec author done (3b1b782), change doc `sdd/changes/2026-11/field-declaration-directives.md` Draft; #1586 output question drafted in 01-spec-author.md.
+- Next: skeptic.
