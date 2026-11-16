@@ -37,4 +37,5 @@
 - Test implementer done (707b6b8 tests, 505948e handover).
 - Implementer done (f5afc3a, handover bb66d1c); tie reason at non-declarator comma / FMT-UNSUP-008 follows FMT-UNSUP-010 text.
 - Cleaner clean (37c1315).
-- Next: spec checker.
+- Spec checker consistent (cce9f0a). Build green. Audit base main=eb89003, head cce9f0a.
+- Next: auditor running.
