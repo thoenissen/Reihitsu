@@ -19,7 +19,7 @@ You need the .NET 11 SDK. The scripts under `scripts/` are the entry points for 
 ```shell
 scripts/prepare.sh   # verify the toolchain
 scripts/build.sh     # build the solution in Release
-scripts/test.sh      # run all test projects except the self-hosting scans, which CI runs
+scripts/test.sh      # the default test run; scripts/README.md states what it covers
 ```
 
 Run a single test project or filter with `scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH3202"`.

@@ -27,7 +27,7 @@ Read [`../README.md`](../README.md) first.
    - when the run declares a shape unsupported, deleting every special case the change doc lists under *Special cases* is part of the implementation, not a follow-up; a further one you find goes under `Disputed tests or scope`, because its spec clause is the spec author's. A throw site needs its requirement and test (`AGENTS.md`, *Special cases do not grow the source*); report a throw site without them under `Disputed tests or scope` instead of adding it.
 4. For every method whose body you changed, re-read its XML summary and inline comments and make them describe the new code (FC-031).
 5. A new rule also needs: its `.resx` strings and wrapper properties ([`add-resource-texts`](../../.claude/commands/add-resource-texts.md)), its rule page under `documentation/rules/` when the spec author has not written it, its row in `src/Reihitsu.Analyzer.Package/README.MD`, and its page in `Reihitsu.sln`.
-6. Run the focused tests of the changed rule or phase, then the test project they belong to. The self-hosting scans (`--project selfhosting`) are not part of a local run; CI runs them on every pull request.
+6. Run the focused tests of the changed rule or phase, then the test project they belong to. A test project the default run leaves out ([`scripts/README.md`](../../scripts/README.md#the-default-test-run)) is not part of a local run.
 
 ## When a test looks wrong
 

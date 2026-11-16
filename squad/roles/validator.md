@@ -16,7 +16,7 @@ scripts/build.sh
 scripts/test.sh --no-build
 ```
 
-The default run covers every test project except `Reihitsu.SelfHosting.Test`, the self-hosting scans of the repository's own source; CI runs them on every pull request, and you do not add them. `--no-build` is valid only because the Release build just above covered this exact tree. Send the full output to a file outside the repository and report its path; put only the failing assertions in the handover.
+[`scripts/README.md`](../../scripts/README.md#the-default-test-run) states which test projects the default run covers; you add none to it. `--no-build` is valid only because the Release build just above covered this exact tree. Send the full output to a file outside the repository and report its path; put only the failing assertions in the handover.
 
 ## Must not
 

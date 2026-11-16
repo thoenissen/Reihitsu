@@ -16,7 +16,7 @@ This file is the process every role follows. The lead's playbook is [`lead.md`](
 | [Cleaner](roles/cleaner.md) | Runs `reihitsu-format`, makes the Release build warning-free | Change behavior, add suppressions or ruleset changes, change assertions |
 | [Spec checker](roles/spec-checker.md) | Verifies specs, change doc, user documentation, and the requirement tags of new tests against the diff | Change anything |
 | [Auditor](roles/auditor.md) | Final quality check of the finished tree against specs and the failure-class catalog | Change anything |
-| [Validator](roles/validator.md) | Builds the solution and runs every test project except the self-hosting scans, which CI runs | Diagnose or fix |
+| [Validator](roles/validator.md) | Builds the solution and runs the default test set ([`scripts/README.md`](../scripts/README.md#the-default-test-run)) | Diagnose or fix |
 | [Issue manager](roles/issue-manager.md) | Manages issues: searches duplicates, creates and extends follow-up issues, labels them `agent-filed`, attaches sub-issues | Touch the repository or the pull request |
 
 Roles are strictly separated. A role that has to re-read everything was given a poor handover; a lead that knows everything has done too much itself.
@@ -35,13 +35,13 @@ The lead claims a lane at the start. The diff's paths decide whether the claim h
 
 Order: spec author → skeptic → test implementer → implementer → cleaner → spec checker → auditor → validator. In every lane, the issue manager runs once before the PR is published, when the run has follow-up candidates ([`lead.md`](lead.md), *Follow-ups*).
 
-What the lane check derives from the paths:
+The lane check sorts every changed path into a category — change doc, text, test, production, or tooling — by the table in [`scripts/README.md`](../scripts/README.md#the-lane-check), the one statement of which path belongs where. The categories decide the lane:
 
-- **Docs** — `sdd/`, `documentation/`, Markdown, issue and PR templates, and C# files when `scripts/verify-text-only.sh` proves the whole diff text-only.
+- **Docs** — text only, and C# files when `scripts/verify-text-only.sh` proves the whole diff text-only.
 - **Tests** — files of test projects, besides text. This is also the lane of a run that writes the spec of an existing rule: the spec's requirements need their covering tests in the same PR (`sdd/README.md`).
 - **Bug fix** — shipped source under `src/` without a change doc.
 - **Behavior change** — shipped source with a change doc under `sdd/changes/`. A claim of this lane without a change doc fails.
-- **Tooling** — `scripts/`, `.github/`, `.claude/`, `squad/`, `AGENTS.md`, `CLAUDE.md`, `Reihitsu.Tooling`, project files, `Directory.Build.props`, rulesets, `.editorconfig`, the solution.
+- **Tooling** — tooling paths, besides text, tests, and a change doc.
 
 A claim may be wider than the diff — a bug that does not reproduce ends in the bug-fix lane with only a test. A narrower claim fails, and so does a diff no lane admits (an unclassified path, or shipped source next to tooling without a change doc). Lanes widen along two orders: docs → tests → bug fix → behavior change, and docs → tests → tooling → behavior change. A docs-lane diff cannot add a requirement to an enforced spec, because the requirement needs a covering test; that run widens to tests.
 
