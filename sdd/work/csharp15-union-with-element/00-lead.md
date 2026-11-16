@@ -49,3 +49,4 @@ Batch 1 (before test implementer), all recommended options chosen:
 - 06-cleaner (51509e3): clean, Release 0 warnings. Next: spec checker.
 - 07-spec-checker (a829d4b): 1 finding #1762 — FMT-PIPE-029 last paragraph lacks "union"; change doc Affected requirements misses FMT-PIPE-029 and RH7101-002. Repair round 1 → spec author (fresh). Cleaner skipped for this round: spec-text-only repair (decision 6). Then spec checker again.
 - 08-spec-author (d1af94b): FMT-PIPE-029 names union; change doc lists FMT-PIPE-029, RH7101-002. Next: spec checker (fresh).
+- 09-spec-checker (f23bbdb): consistent. main not ahead (1d2d29a); build green. Next: auditor at HEAD.
