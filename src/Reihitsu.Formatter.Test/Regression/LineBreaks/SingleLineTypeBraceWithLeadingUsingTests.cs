@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
@@ -117,7 +118,8 @@ public class SingleLineTypeBraceWithLeadingUsingTests
     }
 
     /// <summary>
-    /// Verifies that formatting the already-expanded output is idempotent
+    /// Verifies that formatting the already-expanded output is idempotent, and that no phase run alone changes it
+    /// (FMT-PIPE-027)
     /// </summary>
     [TestMethod]
     public void ExpandedTypeRemainsStableOnSecondPass()
@@ -127,6 +129,8 @@ public class SingleLineTypeBraceWithLeadingUsingTests
         var actual = Format(expected, "\n", TestContext.CancellationToken);
 
         Assert.AreEqual(expected, actual, "Formatting an already-expanded type must be idempotent.");
+
+        PhaseStabilityCheck.AssertNoPhaseChanges(actual, "\n", null);
     }
 
     #endregion // Tests

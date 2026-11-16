@@ -209,8 +209,9 @@ public class ReihitsuFormatterLineEndingIndependenceTests
 
     /// <summary>
     /// Asserts, through <see cref="ReihitsuFormatter.FormatSyntaxTree"/> and <see cref="ReihitsuFormatter.FormatDocumentAsync"/>,
-    /// that the file gets the output of its copy, that this output is the expected text when one is given, and that
-    /// formatting the output again leaves it unchanged
+    /// that the file gets the output of its copy, that this output is the expected text when one is given, that
+    /// formatting the output again leaves it unchanged, and that no phase run alone changes it (FMT-PIPE-027); the outputs
+    /// of both entry points are equal, so one check covers both
     /// </summary>
     /// <param name="file">The file</param>
     /// <param name="copy">The copy whose rewritten line breaks are the detected line ending</param>
@@ -225,7 +226,8 @@ public class ReihitsuFormatterLineEndingIndependenceTests
             Assert.AreEqual(Escape(expected), Escape(copyOutput), "The copy should give the expected output.");
         }
 
-        var treeOutput = FormatTree(file);
+        var treeOutputTree = FormatOutputTree(file);
+        var treeOutput = treeOutputTree.ToString();
 
         Assert.AreEqual(Escape(copyOutput), Escape(treeOutput), "FormatSyntaxTree should give the file the output of its copy.");
         Assert.AreEqual(Escape(treeOutput), Escape(FormatTree(treeOutput)), "FormatSyntaxTree is not idempotent on the file's output.");
@@ -234,6 +236,8 @@ public class ReihitsuFormatterLineEndingIndependenceTests
 
         Assert.AreEqual(Escape(copyOutput), Escape(documentOutput), "FormatDocumentAsync should give the file the output of its copy.");
         Assert.AreEqual(Escape(documentOutput), Escape(await FormatDocument(documentOutput)), "FormatDocumentAsync is not idempotent on the file's output.");
+
+        PhaseStabilityCheck.AssertNoPhaseChanges(treeOutputTree);
     }
 
     /// <summary>
@@ -243,9 +247,19 @@ public class ReihitsuFormatterLineEndingIndependenceTests
     /// <returns>The formatted text</returns>
     private string FormatTree(string text)
     {
+        return FormatOutputTree(text).ToString();
+    }
+
+    /// <summary>
+    /// Formats the text through <see cref="ReihitsuFormatter.FormatSyntaxTree"/> and returns the output tree
+    /// </summary>
+    /// <param name="text">The text</param>
+    /// <returns>The output tree</returns>
+    private SyntaxTree FormatOutputTree(string text)
+    {
         var tree = CSharpSyntaxTree.ParseText(text, cancellationToken: TestContext.CancellationToken);
 
-        return ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output.ToString();
+        return ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
     }
 
     /// <summary>

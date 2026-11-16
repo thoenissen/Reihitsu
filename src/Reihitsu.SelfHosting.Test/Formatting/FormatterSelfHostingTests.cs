@@ -9,14 +9,15 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter;
+using Reihitsu.Formatter.Test.Helpers;
 using Reihitsu.SelfHosting.Test.Utilities;
 
 namespace Reihitsu.SelfHosting.Test.Formatting;
 
 /// <summary>
 /// Self-hosting scans that run the formatter over the solution's own C# source files, one test row per file. They
-/// verify that the formatter changes nothing in correctly formatted code and that formatting is idempotent, each under
-/// both LF and CRLF line endings
+/// verify that the formatter changes nothing in correctly formatted code, that formatting is idempotent, and that no
+/// phase run alone changes the formatted output, each under both LF and CRLF line endings
 /// </summary>
 [TestClass]
 public sealed class FormatterSelfHostingTests
@@ -103,6 +104,36 @@ public sealed class FormatterSelfHostingTests
         if (failures.Count > 0)
         {
             Assert.Fail($"Formatter changed {relativePath}:\n\n{string.Join("\n\n", failures)}");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that every phase of the formatter, run alone on the file's formatted output, leaves that output unchanged,
+    /// so two phases that undo each other's change in every pass cannot hide behind a stable whole-pass output. An output
+    /// the formatter did not format — a file it refuses as unsupported, or one that holds a hiding carrier (FMT-PIPE-033) —
+    /// is not checked, because the requirement covers only the output of an input the formatter formats
+    /// </summary>
+    /// <param name="relativePath">Solution-relative path of the source file</param>
+    [TestMethod]
+    [DynamicData(nameof(SourceFiles))]
+    [Requirement("FMT-PIPE-027")]
+    public void NoPhaseChangesTheFormattedOutputOfSourceFile(string relativePath)
+    {
+        foreach (var (_, syntaxTree) in ParseUnderEachLineEnding(relativePath))
+        {
+            if (ReihitsuFormatter.HoldsHidingCarrier(syntaxTree, TestContext.CancellationToken))
+            {
+                continue;
+            }
+
+            var result = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, TestContext.CancellationToken);
+
+            if (result.Unsupported != null)
+            {
+                continue;
+            }
+
+            PhaseStabilityCheck.AssertNoPhaseChanges(result.Output);
         }
     }
 

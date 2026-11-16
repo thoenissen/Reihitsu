@@ -68,12 +68,11 @@ internal sealed class PhaseStabilitySession
     /// <returns>The failures; empty when no phase changes the output</returns>
     public IReadOnlyList<string> Check(string finalOutput, string endOfLine, CSharpParseOptions parseOptions)
     {
-        var endingName = endOfLine == "\n" ? "LF" : "CRLF";
         var changes = PhaseStabilityCheck.FindChangingPhases(finalOutput, endOfLine, parseOptions, _createPhases());
 
         _checkedFixtures.Add((finalOutput, endOfLine, parseOptions));
 
-        return changes.Select(change => $"{change.Phase} changes the final output under {endingName} line endings when it runs alone (FMT-PIPE-027). {change.Difference}")
+        return changes.Select(change => PhaseStabilityCheck.DescribeFailure(change, endOfLine))
                       .ToList();
     }
 

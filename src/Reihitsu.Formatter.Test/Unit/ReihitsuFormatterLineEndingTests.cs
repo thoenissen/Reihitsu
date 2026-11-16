@@ -152,21 +152,24 @@ public class ReihitsuFormatterLineEndingTests
     }
 
     /// <summary>
-    /// Formats the input with <see cref="ReihitsuFormatter.FormatSyntaxTree"/>, verifies the output byte for byte, and
-    /// verifies that formatting the output again leaves it unchanged
+    /// Formats the input with <see cref="ReihitsuFormatter.FormatSyntaxTree"/>, verifies the output byte for byte, verifies
+    /// that formatting the output again leaves it unchanged, and verifies that no phase run alone changes it (FMT-PIPE-027)
     /// </summary>
     /// <param name="input">The input text</param>
     /// <param name="expected">The expected output</param>
     private void AssertFormatted(string input, string expected)
     {
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var actual = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output.ToString();
+        var output = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken).Output;
+        var actual = output.ToString();
 
         Assert.AreEqual(Escape(expected), Escape(actual));
 
         var secondPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(actual, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken).Output.ToString();
 
         Assert.AreEqual(Escape(actual), Escape(secondPass), "The formatter is not idempotent.");
+
+        PhaseStabilityCheck.AssertNoPhaseChanges(output);
     }
 
     #endregion // Methods

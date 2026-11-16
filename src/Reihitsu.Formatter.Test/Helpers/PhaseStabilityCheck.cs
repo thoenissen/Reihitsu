@@ -2,21 +2,25 @@
 using System.Reflection;
 using System.Threading;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline;
 using Reihitsu.Formatter.Pipeline.Preparation;
+using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Test.Helpers;
 
 /// <summary>
 /// The phase-level stability check (FMT-PIPE-027): every phase of the production pipeline, run alone on the final output
 /// of a fixture, must leave that output unchanged. A final output that two phases change and change back in every pass is
-/// stable as text and still fails this check. The helpers of <see cref="FormatterTestsBase"/> also run it on the output of
-/// an input with syntax errors, which the requirement does not cover; that is stricter than the requirement, so a failure
-/// there is a reversal between phases, not a violation of FMT-PIPE-027
+/// stable as text and still fails this check. The helpers of <see cref="FormatterTestsBase"/> run it through the session
+/// of the current test, also on the output of an input with syntax errors, which the requirement does not cover; that is
+/// stricter than the requirement, so a failure there is a reversal between phases, not a violation of FMT-PIPE-027. Tests
+/// outside that base that assert the idempotency of a full formatter run use <see cref="AssertNoPhaseChanges(string, string, CSharpParseOptions)"/>,
+/// which needs no session and fails with the same text
 /// </summary>
 public static class PhaseStabilityCheck
 {
@@ -71,6 +75,38 @@ public static class PhaseStabilityCheck
     }
 
     /// <summary>
+    /// Runs the check on the final output of a full formatter run, without the session of a <see cref="FormatterTestsBase"/>
+    /// test, and fails on every phase that changes it, with the text the session's check fails with
+    /// </summary>
+    /// <param name="finalOutput">The final output of the formatter run</param>
+    /// <param name="endOfLine">The end-of-line sequence the output was formatted with</param>
+    /// <param name="parseOptions">The parse options the input was parsed with, or <see langword="null"/> for the defaults</param>
+    public static void AssertNoPhaseChanges(string finalOutput, string endOfLine, CSharpParseOptions parseOptions)
+    {
+        var failures = FindChangingPhases(finalOutput, endOfLine, parseOptions).Select(change => DescribeFailure(change, endOfLine))
+                                                                               .ToList();
+
+        if (failures.Count > 0)
+        {
+            Assert.Fail(string.Join(Environment.NewLine, failures));
+        }
+    }
+
+    /// <summary>
+    /// Runs the check on the output tree of <see cref="ReihitsuFormatter.FormatSyntaxTree"/> or of the document of
+    /// <see cref="ReihitsuFormatter.FormatDocumentAsync"/>, as FMT-PIPE-027 states its input: the output's text, parsed with
+    /// the parse options of the tree, with the line ending detected in the output, without the session of a
+    /// <see cref="FormatterTestsBase"/> test
+    /// </summary>
+    /// <param name="outputTree">The output tree of the formatter</param>
+    public static void AssertNoPhaseChanges(SyntaxTree outputTree)
+    {
+        var root = outputTree.GetRoot();
+
+        AssertNoPhaseChanges(root.ToFullString(), ReihitsuFormatterHelpers.DetectEndOfLine(root), (CSharpParseOptions)outputTree.Options);
+    }
+
+    /// <summary>
     /// Returns the fixtures the check ran on in the current test so far
     /// </summary>
     /// <returns>The final output, end-of-line sequence, and parse options of every checked fixture, in the order the check ran</returns>
@@ -116,6 +152,19 @@ public static class PhaseStabilityCheck
         }
 
         return phases;
+    }
+
+    /// <summary>
+    /// Describes the change of a phase that changes a final output when it runs alone, as the check fails with it
+    /// </summary>
+    /// <param name="change">The change</param>
+    /// <param name="endOfLine">The end-of-line sequence the output was formatted with</param>
+    /// <returns>The failure text</returns>
+    internal static string DescribeFailure(PhaseChange change, string endOfLine)
+    {
+        var endingName = endOfLine == "\n" ? "LF" : "CRLF";
+
+        return $"{change.Phase} changes the final output under {endingName} line endings when it runs alone (FMT-PIPE-027). {change.Difference}";
     }
 
     /// <summary>
