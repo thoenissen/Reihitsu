@@ -29,6 +29,7 @@ internal static class DocumentationAnalysisUtilities
                                                                              SyntaxKind.InterfaceDeclaration,
                                                                              SyntaxKind.RecordDeclaration,
                                                                              SyntaxKind.RecordStructDeclaration,
+                                                                             SyntaxKind.UnionDeclaration,
                                                                              SyntaxKind.EnumDeclaration,
                                                                              SyntaxKind.DelegateDeclaration,
                                                                              SyntaxKind.ConstructorDeclaration,
@@ -44,7 +45,8 @@ internal static class DocumentationAnalysisUtilities
                                                                          ];
 
     /// <summary>
-    /// Syntax kinds which can declare parameters
+    /// Syntax kinds which can declare parameters. A union is not one of them: its case types have no names a
+    /// <c>&lt;param&gt;</c> element could document
     /// </summary>
     internal static readonly SyntaxKind[] ParameterOwnerKinds = [
                                                                     SyntaxKind.MethodDeclaration,
@@ -68,6 +70,7 @@ internal static class DocumentationAnalysisUtilities
                                                                         SyntaxKind.InterfaceDeclaration,
                                                                         SyntaxKind.RecordDeclaration,
                                                                         SyntaxKind.RecordStructDeclaration,
+                                                                        SyntaxKind.UnionDeclaration,
                                                                         SyntaxKind.DelegateDeclaration,
                                                                         SyntaxKind.MethodDeclaration
                                                                     ];
