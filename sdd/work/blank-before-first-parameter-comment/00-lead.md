@@ -24,6 +24,7 @@
 
 ## Follow-up candidates
 
+- FMT-BLANK-019 wording contradicts itself for an empty `[⏎⏎]` without a comment (one sentence removes the blank line before the closing token, another keeps it behind the opener); code removes it (10-test-implementer.md).
 - S1125 warnings at `src/Reihitsu.Cli/FormatCommandHandler.cs` lines 479, 490, 501 in the Debug CLI build during `scripts/format.sh` (06-cleaner.md); pre-existing on `main`.
 - A comment first inside a parenthesized pattern makes the formatter put `(` and `)` on own lines and lands comment and pattern in the statement's column (04-test-implementer.md).
 - RH8303 reports `///` behind an argument-list `(`, collection-expression `[`, and type-argument `<`, which RH8303-001 says it does not cover (02-skeptic.md); likely resolved by the run under C.
@@ -33,4 +34,5 @@
 ## State
 
 - Last step: spec checker (6b45f17) consistent; audit 1 of 6b45f17 (base eb89003): findings #1 (spec example/tests pin undecided `<`/array-size column) and #2 (cleanup guard untested). Repair round 1.
-- Next: repair round 1: spec author (#1 spec example), test implementer (#1 tests, #2 new tests); then cleaner, spec checker, auditor (repair only), validator.
+- Repair 1 done: spec author 37af885, test implementer 5a1c21e.
+- Next: cleaner, spec checker, auditor (repair only), validator.
