@@ -873,9 +873,9 @@ class C
 
 ### FMT-BLANK-011 — A comment on its own line is preceded by exactly one blank line
 
-The formatter MUST ensure exactly one blank line before the first comment in a token's leading trivia that is not glued to the token — a comment on its own line, or a documentation comment that starts the token's line, in the positions FMT-BLANK-018 classifies every comment into (SHARED-BLANK-002) — counted as SHARED-BLANK-001 defines it. It MUST NOT insert one when the comment is the first content of a block, a type body, or a switch section, or when a preprocessor directive directly precedes the comment. When the first comment of the gap is glued to the token, whatever that token is, this requirement inserts no blank line in the gap; FMT-BLANK-018 decides the blank lines above that comment. This applies to ordinary and documentation comments alike, including a comment before a closing brace. A comment that leads a using directive of the same group as the directive above it is no exception; the using rules accept the blank line above it (SHARED-USING-011).
+The formatter MUST ensure exactly one blank line before the first comment in a token's leading trivia that is not glued to the token — a comment on its own line, or a documentation comment that starts the token's line, in the positions FMT-BLANK-018 classifies every comment into (SHARED-BLANK-002) — counted as SHARED-BLANK-001 defines it. It MUST NOT insert one when the comment is the first content behind an opening token or the first content of a switch section, or when a preprocessor directive directly precedes the comment. The comment is the first content behind an opening token when the token in front of the token that owns the comment is an opening brace `{` of any construct — a block, a type, namespace, or enum body, an accessor list, an initializer, an anonymous object, a property pattern, a switch expression —, an opening parenthesis `(` or an opening bracket `[` of any construct, or the `<` that opens a type parameter list, a type argument list, or a function pointer parameter list. A `<` that is an operator opens nothing. A comment behind a comma, an operator, or any other token that opens nothing gets the blank line, also inside a parenthesized or bracketed list. This requirement inserts no blank line behind an opening token and removes none: behind an opening brace FMT-BLANK-007 removes the author's, and behind an opening parenthesis, bracket, or `<` the author's blank line is kept. When the first comment of the gap is glued to the token, whatever that token is, this requirement inserts no blank line in the gap; FMT-BLANK-018 decides the blank lines above that comment. This applies to ordinary and documentation comments alike, including a comment before a closing brace. A comment that leads a using directive of the same group as the directive above it is no exception; the using rules accept the blank line above it (SHARED-USING-011).
 
-Why: A comment introduces the code below it; the blank line groups it with that code instead of with the code above. At the start of a block the opening brace or the case label already provides the boundary, and after a directive the comment belongs to the directive's group. The formatter mirrors RH5020 and RH8303.
+Why: A comment introduces the code below it; the blank line groups it with that code instead of with the code above. Behind an opening token nothing stands above the comment within its construct: the opening brace, parenthesis, bracket, or `<`, or the case label, already provides the boundary, and a blank line there would only detach the comment from the element it describes. Behind a comma the comment follows an earlier element of the same list, which the blank line separates it from. After a directive the comment belongs to the directive's group. The formatter mirrors RH5020 and RH8303.
 
 Example:
 
@@ -953,6 +953,207 @@ class C
                 // first in section
                 break;
         }
+    }
+}
+```
+
+First behind the opening brace of an anonymous object, as behind any other opening brace:
+
+```csharp
+class C
+{
+    object M()
+    {
+        return new
+        {
+            // first
+            A = 1,
+        };
+    }
+}
+```
+
+```csharp
+class C
+{
+    object M()
+    {
+        return new
+               {
+                   // first
+                   A = 1,
+               };
+    }
+}
+```
+
+First behind an opening parenthesis, bracket, or `<` — of a record's parameter list, a union's case-type list, a method's parameter list, an argument list, a collection expression, a list pattern, and a type parameter list:
+
+```csharp
+public record R(
+    // first
+    int A,
+    int B);
+
+public union U(
+    // first
+    int,
+    string);
+
+class C
+{
+    int M(
+        // first
+        int a,
+        int b)
+    {
+        return M(
+            // first
+            a,
+            b);
+    }
+
+    int[] F = [
+        // first
+        1,
+        2
+    ];
+
+    bool N(int[] a)
+    {
+        return a is [
+            // first
+            1,
+            ..
+        ];
+    }
+
+    void O<
+        // first
+        T>()
+    {
+    }
+}
+```
+
+```csharp
+public record R(
+                // first
+                int A,
+                int B);
+
+public union U(
+               // first
+               int,
+               string);
+
+class C
+{
+    int M(
+          // first
+          int a,
+          int b)
+    {
+        return M(
+                 // first
+                 a,
+                 b);
+    }
+
+    int[] F = [
+                  // first
+                  1,
+                  2
+              ];
+
+    bool N(int[] a)
+    {
+        return a is [
+                        // first
+                        1,
+                        ..
+                    ];
+    }
+
+    void O<
+    // first
+    T>()
+    {
+    }
+}
+```
+
+The same holds for a documentation comment that is the first content behind an opening token, written on its own line or moved onto one:
+
+```csharp
+public record R(
+    /// <summary>first</summary>
+    int A,
+    int B);
+
+class C
+{
+    void M(/** first */ int a, int b)
+    {
+    }
+}
+```
+
+```csharp
+public record R(
+                /// <summary>
+                /// first
+                /// </summary>
+                int A,
+                int B);
+
+class C
+{
+    void M(
+           /** first */ int a,
+           int b)
+    {
+    }
+}
+```
+
+A comment behind a comma is not the first content behind the opening parenthesis and gets the blank line; a blank line the author wrote behind the opening parenthesis is kept:
+
+```csharp
+class C
+{
+    void M(int a,
+           // second
+           int b)
+    {
+    }
+
+    void N(
+
+           // first
+           int a,
+           int b)
+    {
+    }
+}
+```
+
+```csharp
+class C
+{
+    void M(int a,
+
+           // second
+           int b)
+    {
+    }
+
+    void N(
+
+           // first
+           int a,
+           int b)
+    {
     }
 }
 ```
