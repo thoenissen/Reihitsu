@@ -81,14 +81,15 @@ public sealed class FormatCommandHandlerTests
     /// <param name="utf8Bom">Whether to normalize processed files to UTF-8 with a byte order mark</param>
     /// <param name="languageVersion">The C# language version to parse for, or <see langword="null"/> for the newest supported version</param>
     /// <param name="suppressUnsupported">Whether to report a file the formatter refuses as unsupported as a warning</param>
+    /// <param name="maxParallelism">The maximum number of files processed at the same time; above one by default, so every test also holds when files are processed in parallel (CLI-022)</param>
     /// <returns>A configured <see cref="FormatCommandHandler"/> instance</returns>
-    private static FormatCommandHandler CreateHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, IFileSystem fileSystem, CapturedConsoleOutput console, ISourceFormatter formatter, IDiffGenerator diffGenerator, bool force = false, IConsoleInput consoleInput = null, bool utf8Bom = false, LanguageVersion? languageVersion = null, bool suppressUnsupported = false)
+    private static FormatCommandHandler CreateHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, IFileSystem fileSystem, CapturedConsoleOutput console, ISourceFormatter formatter, IDiffGenerator diffGenerator, bool force = false, IConsoleInput consoleInput = null, bool utf8Bom = false, LanguageVersion? languageVersion = null, bool suppressUnsupported = false, int maxParallelism = 4)
     {
         consoleInput ??= Substitute.For<IConsoleInput>();
 
         var dependencies = new FormatCommandDependencies(fileSystem, console, consoleInput, formatter, diffGenerator);
 
-        return new FormatCommandHandler(paths, checkOnly, dryRun, verbose, force, utf8Bom, languageVersion ?? LanguageVersionResolver.MaxSupportedLanguageVersion, dependencies, suppressUnsupported);
+        return new FormatCommandHandler(paths, checkOnly, dryRun, verbose, force, utf8Bom, languageVersion ?? LanguageVersionResolver.MaxSupportedLanguageVersion, dependencies, suppressUnsupported, maxParallelism: maxParallelism);
     }
 
     /// <summary>
@@ -2263,16 +2264,21 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> passes the cancellation token to file write operations
+    /// Verifies that a write that has started is not interrupted when the run is canceled: the file system receives a token the
+    /// run's cancellation does not cancel, so a write that observes its token, as <see cref="File.WriteAllTextAsync(string, string?, Encoding, CancellationToken)"/>
+    /// does between chunks, completes with the whole formatted text, and the file is named
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
-    public async Task ExecuteAsyncPassesCancellationTokenToFileWrite()
+    [Requirement("CLI-017")]
+    [Requirement("CLI-022")]
+    public async Task ExecuteAsyncStartedWriteCompletesWhenRunIsCanceled()
     {
         var fileSystem = Substitute.For<IFileSystem>();
         var console = new CapturedConsoleOutput();
         var formatter = Substitute.For<ISourceFormatter>();
         var diffGenerator = Substitute.For<IDiffGenerator>();
+        string writtenContent = null;
 
         using (var cts = new CancellationTokenSource())
         {
@@ -2280,6 +2286,19 @@ public sealed class FormatCommandHandlerTests
 
             SetupSingleFile(fileSystem, filePath, UnformattedCsContent);
             SetupFormatter(formatter, FormattedCsContent);
+            fileSystem.WriteAllTextAsync(filePath, Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>())
+                      .Returns(async callInfo =>
+                               {
+                                   var writeToken = callInfo.ArgAt<CancellationToken>(3);
+
+                                   // Ctrl+C arrives after the write has started; the write then checks its token as a chunked write does
+                                   await cts.CancelAsync();
+                                   await Task.Yield();
+
+                                   writeToken.ThrowIfCancellationRequested();
+
+                                   writtenContent = callInfo.ArgAt<string>(1);
+                               });
 
             var handler = CreateHandler([filePath],
                                         checkOnly: false,
@@ -2290,9 +2309,11 @@ public sealed class FormatCommandHandlerTests
                                         formatter,
                                         diffGenerator);
 
-            await handler.ExecuteAsync(cts.Token);
+            await Assert.ThrowsAsync<OperationCanceledException>(() => handler.ExecuteAsync(cts.Token));
 
-            await fileSystem.Received(1).WriteAllTextAsync(filePath, Arg.Any<string>(), Arg.Any<Encoding>(), cts.Token);
+            Assert.AreEqual(FormattedCsContent, writtenContent);
+            Assert.AreSequenceEqual(new[] { $"Formatted: {filePath}" }, console.StandardOutput.ToArray());
+            Assert.IsEmpty(console.ErrorOutput);
         }
     }
 
