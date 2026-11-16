@@ -31,9 +31,9 @@
 | 7 | Skeptic | Record exclusions for RH2103 and RH2005 | Add one-line non-goals; add RH7311-002 to change doc affected list | Meets the issue's "recorded decision" item | Non-goals record unchanged output | b93effb |
 | 8 | Skeptic | Architecture finding: type-declaration kind list duplicated in ~17 registrations, ParameterListParentPolicy, AttributeTargetUtilities, formatter visitors | Fix narrowly (add union kind to each list); file a shared kind set or architecture test as a follow-up | Narrow fix adds no new copy; structural change spans many components | Internal structure | — |
 | 9 | Skeptic | Issue goals "RH2101-RH2107 cover unions" and "a test per RH55xx rule" | Drop to Q4 (nested union) and narrow to RH5507/RH5508 plus one formatter test | Other nested-type/RH55xx rules already see unions or are about other constructs | Remaining visible part is asked as Q2/Q4 | — |
-| 10 | Skeptic | Formatter attribute split for unions | Treat as a bug fix against unchanged FMT-STRUCT-028; not asked | Requirement says "a type" | Unchanged requirement demands it | — || 11 | Skeptic 05 | RH2110-001 example names a union `Value` (CS0542) | Rename (e.g. `Shape`); tests never name a union `Value` | Example must compile | Spec example only | pending 06 |
-| 12 | Skeptic 05 | RH5418-001 C# 14 clause untestable | Option (b): keep clause, example sentence says `union` declares no type below C# 15; no C# 14 test | Uniform with siblings; no caller reaches it | No output differs | pending 06 |
-| 13 | Skeptic 05 | RH5418 non-goal and RH2110 `Why:` wording | Reword as skeptic suggests | Accuracy | Wording only | pending 06 |
+| 10 | Skeptic | Formatter attribute split for unions | Treat as a bug fix against unchanged FMT-STRUCT-028; not asked | Requirement says "a type" | Unchanged requirement demands it | — || 11 | Skeptic 05 | RH2110-001 example names a union `Value` (CS0542) | Rename (e.g. `Shape`); tests never name a union `Value` | Example must compile | Spec example only | 3dd4031 |
+| 12 | Skeptic 05 | RH5418-001 C# 14 clause untestable | Option (b): keep clause, example sentence says `union` declares no type below C# 15; no C# 14 test | Uniform with siblings; no caller reaches it | No output differs | 3dd4031 |
+| 13 | Skeptic 05 | RH5418 non-goal and RH2110 `Why:` wording | Reword as skeptic suggests | Accuracy | Wording only | 3dd4031 |
 | 14 | Skeptic 05 | Pre-existing SHARED-DIAG-008 defect in empty-type base (conditional directive in body reported) | Follow-up (option 3b); RH5418 tests write nothing for conditional-directive cells | Base is not otherwise changed by the run; fix spans five rules outside the issue (*Scope*) | Output of RH5412-RH5416 unchanged in this run | — |
 
 ## Follow-up candidates
@@ -47,4 +47,4 @@
 
 - Side task (maintainer request): moved #1786 from vNext to milestone 1.4.0; #1781/#1785 left in vNext.
 - Last step: skeptic 02 (output questions Q1-Q4 stand, with adjustments). Spec-author amendment 03 running (decisions 5-7). Output questions Q1 (unions join type rules), Q2 (RH5507/RH5508 on unions), Q3 (RH5418, escalation 5), Q4 (RH2110, escalation 5) asked to the maintainer; waiting.
-- Spec author 04 wrote RH5418/RH2110 (2a31a3e); skeptic 05 proceed (ea8f634). Next: spec author 06 small edits (decisions 11-13), then test implementer 07.
+- Spec author 06 done (3dd4031). Change doc accepted by lead. Next: test implementer 07, then implementer 08.
