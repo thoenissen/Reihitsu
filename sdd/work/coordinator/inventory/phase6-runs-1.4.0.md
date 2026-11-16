@@ -55,3 +55,10 @@ Lane of each issue = the lane its own diff would get from the lane check (`squad
 | Batch | Run | Lane | Command | Area/files | Why / order | Output question |
 |---|---|---|---|---|---|---|
 | 5 | 5.1 | (skeptic decides) | `/squad #1788` | ~17 analyzer registrations listing type kinds, `ParameterListParentPolicy`, `AttributeTargetUtilities.TryResolveImplicitTarget`, formatter visitors with kind lists | Touches the registrations of the rules #1759 walks (RH7102-RH7108, RH5412, ...) and formatter visitors of #1781/#1786/#1726 -> alone, after batch 4. Lane doubt: issue says tooling, but a shared kind set that also makes RH5108/RH5110 report primary constructors / `record struct` is a behavior change; a pure refactor is no lane the issue names | Possibly (RH5108/RH5110 newly reporting other kinds) |
+
+## Added 2026-11-16 (maintainer: two new 1.4.0 issues)
+
+| Batch | Run | Lane | Command | Area/files | Why / order | Output question |
+|---|---|---|---|---|---|---|
+| 1 | 1.6 | tooling | `/squad #1792` | `squad/lead.md` §4 (continue-or-spawn size signal), `scripts/usage.sh` (`--json` figure), process change doc | No other run touches `lead.md` or `usage.sh`; premise holds (`squad/lead.md:50` still says ~100k cache read per response, lifetime average) | No |
+| 2 | 2.6 | tooling | `/squad #1791` | `src/Reihitsu.Analyzer.Test/Properties/AssemblyInfo.cs` (`Workers = 0`), `scripts/test.sh`, `scripts/README.md`, `squad/roles/validator.md` | Shares `scripts/test.sh`, `scripts/README.md`, `squad/roles/validator.md` with run 1.1 (#1470) -> after it. Not joined to 1.1: different mechanism (measure memory peak vs. restate a rule) | No |
