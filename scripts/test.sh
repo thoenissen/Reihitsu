@@ -100,6 +100,30 @@ esac
 
 reihitsu_ensure_dotnet "${install_arguments[@]+"${install_arguments[@]}"}" --quiet
 
+# On glibc, the test host keeps the native memory it frees in malloc's arenas,
+# so the analyzer test host grows to about 9 GiB over a whole-project run and a
+# small machine kills it. A fixed mmap threshold returns large blocks to the
+# system when they are freed, and two arenas bound what the small ones keep.
+# The setting reaches the test host only, through a run setting, and a caller's
+# own GLIBC_TUNABLES wins; scripts/README.md, "Test-host memory", has the
+# measurements.
+if [[ "$(uname -s)" == "Linux" && -z "${GLIBC_TUNABLES+set}" ]]; then
+    test_host_setting="RunConfiguration.EnvironmentVariables.GLIBC_TUNABLES=glibc.malloc.mmap_threshold=131072:glibc.malloc.arena_max=2"
+    has_run_settings_separator="false"
+
+    for test_argument in "${test_arguments[@]+"${test_arguments[@]}"}"; do
+        if [[ "$test_argument" == "--" ]]; then
+            has_run_settings_separator="true"
+        fi
+    done
+
+    if [[ "$has_run_settings_separator" == "false" ]]; then
+        test_arguments+=("--")
+    fi
+
+    test_arguments+=("$test_host_setting")
+fi
+
 repository_root="$(reihitsu_repo_root)"
 
 for test_project in "${projects[@]}"; do

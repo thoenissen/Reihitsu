@@ -26,3 +26,8 @@ So the peak does **not** scale with the worker count: one worker reaches 9.5 GiB
 w4c `malloc_info` at VmRSS 7374596 kB: `<total type="rest" count="3666" size="6753070994"/>` (free chunks held by glibc), `<system type="current" size="6781734912"/>`. Right after `malloc_trim(0)` returned 1: VmRSS **742616 kB**. About 6.3 GiB of the 7.0 GiB were memory the test host had already freed and glibc's arenas had not returned to the system.
 
 **Cause.** The peak is glibc malloc retention in the analyzer test host: native allocations that the code frees, kept by the arenas. Not a leak (`malloc_trim` returns it), not the managed heap (≈ 250 MiB committed), not the worker count (one worker grows as fast per test as four).
+| w4_mmap128k | `MALLOC_MMAP_THRESHOLD_=131072 bounded.sh w4_mmap128k 10 scripts/test.sh --project analyzer --no-build` | Passed 10419 | 343 s (Duration 5 m 39 s) | 5105 MiB |
+| w4_mmap_arena2 | `GLIBC_TUNABLES=glibc.malloc.mmap_threshold=131072:glibc.malloc.arena_max=2 bounded.sh w4_mmap_arena2 10 scripts/test.sh --project analyzer --no-build` | Passed 10419 | 330 s (Duration 5 m 27 s) | 4452 MiB, one transient spike at 186 s; otherwise 1.9–3.0 GiB |
+| envprobe | `bounded.sh envprobe 10 scripts/test.sh --project analyzer --no-build --filter "FullyQualifiedName~Formatting" -- RunConfiguration.EnvironmentVariables.GLIBC_TUNABLES=...` | Passed 5709; `/proc/<testhost>/environ` holds `GLIBC_TUNABLES=glibc.malloc.mmap_threshold=131072:glibc.malloc.arena_max=2` | 166 s | 3020 MiB |
+
+Durations of the whole analyzer project without a setting: 6 m 11 s (w4), 5 m 30 s (w4b), 5 m 17 s (w4c); with the settings: 5 m 09 s (arena 2), 5 m 39 s (mmap), 5 m 27 s (both). The spread with and without overlaps.
