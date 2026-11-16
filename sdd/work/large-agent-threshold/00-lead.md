@@ -37,6 +37,8 @@ None yet.
 | 6 | Spec author (03) | Accept the amended change doc (cache-aware rule ~50k cold / ~150k warm, judged when the follow-up is sent; usage.sh --json per spawn: first_context_tokens, last_context_tokens, context_growth_tokens, last_response_at; Markdown: Context growth column) | Accepted | Follows decision 4; figures re-derived in 03-spec-author.md | Process and squad script only | ca9dbea |
 | 7 | Widening | Test implementer, required by the behavior-change lane | Skip | `scripts/usage.sh` is a Bash/jq script with no test project or harness; the only testable claim is its JSON fields, checked by the implementer against the sanity points in 03-spec-author.md and by the auditor | Process and squad script only | — |
 | 8 | Follow-ups | Spec author's cache-expiry candidate | Dropped: absorbed by the cold-cache rule (03-spec-author.md) | — | — | — |
+| 9 | Auditor (07) | Correction to decision 3: the behavior-change verdict came from the intermediate diff (change doc only, no tooling path); with the tooling paths the diff needs only tooling | Keep the wider behavior-change claim (admitted); the skeptic it added paid off (decision 4) | A wider claim is allowed; nothing to undo | Process only | — |
+| 10 | Auditor (07) | Finding #1 (FC-015, response filter copied three times in usage.sh) and the hint on negative growth losing its sign in the Markdown table | Repair round 1: implementer (fresh) repairs #1; the sign hint is taken in as part of the same PR-introduced column | Same PR-introduced change; a few lines | Squad script only | — |
 
 ## Follow-up candidates
 
@@ -44,4 +46,4 @@ None yet.
 
 ## Open worklist / next step
 
-- Done: spec author (01), status Accepted (9522a08). Done: skeptic (02, 8d742a6). Done: spec author amendment (03, ca9dbea), implementer (04, 881055c). Next: cleaner (05), spec checker (06), auditor (07), validator (08).
+- Done: spec author (01), status Accepted (9522a08). Done: skeptic (02, 8d742a6). Done: spec author amendment (03, ca9dbea), implementer (04, 881055c). Cleaner (05, 5c8cc56), spec checker (06, 5ce6f54) consistent, auditor (07, a8619d8) findings on audited SHA 5ce6f54, base 372daee. Repair round 1: implementer (08), cleaner (09), spec checker (10), auditor on repair (11), then validator.
