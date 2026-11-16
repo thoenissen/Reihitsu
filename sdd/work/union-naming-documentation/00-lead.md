@@ -28,4 +28,4 @@
 
 - Spec author done (01-spec-author.md, commit 2a43412): change doc `sdd/changes/2026-11/union-naming-documentation.md`, new RH4012/RH8035/RH8036, 5 output questions. Lane check confirmed behavior-change.
 - Skeptic done (02-skeptic.md, 2ce1739): premise holds, agrees with A on Q1–5; three spec examples name a union `Value` (CS0542) — amendment done by a fresh spec author (03-spec-author.md, 5019e1a; also fixed RH8035 rule page example, CS0246). Recommends a source polyfill (IUnion, UnionAttribute) for analyzer tests.
-- Output-question batch 1 answered: 1A 2A 3A 4A 5A (specs already written on A). Next: spec author records the answers in the change doc's Decisions, then test implementer.
+- Batch 1 answered and recorded in the change doc (cd23842); lead set the change doc Accepted. Next: test implementer (04).

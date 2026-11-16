@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | RH8030-001, RH8108-001, RH8109-001, RH8110-001, RH8111-001, RH8203-001, SHARED-DOC-001, SHARED-DOC-002; the specs `analyzer/RH4012.md`, `analyzer/RH8035.md`, and `analyzer/RH8036.md` |
 | Depends on | [Roslyn 5.12 and C# 15 as the newest supported language version](roslyn-512-csharp-15.md) |
