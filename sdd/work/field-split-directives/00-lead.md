@@ -34,4 +34,5 @@
 - Now: asked #1586 output question with option D (escalation 10), then test implementer. Answers received: 1A, 2A.
 - Change doc Accepted (5fb97e9).
 - Test implementer done (707b6b8 tests, 505948e handover).
-- Next: implementer.
+- Implementer done (f5afc3a, handover bb66d1c); tie reason at non-declarator comma / FMT-UNSUP-008 follows FMT-UNSUP-010 text.
+- Next: cleaner.
