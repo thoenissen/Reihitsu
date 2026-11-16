@@ -29,12 +29,13 @@ None yet.
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
-| 1 | Start | Who writes the process change doc in the tooling lane? | Spec author, before the implementer | Change docs are the spec author's product; the implementer then implements against it | Process documents and a squad script only | — |
+| 1 | Start | Who writes the process change doc in the tooling lane? | Spec author, before the implementer | Change docs are the spec author's product; the implementer then implements against it | Process documents and a squad script only | 64cd288 |
+| 2 | Spec author | Accept the change doc (signal: context growth >= ~120k, first->last response, input+cache read+cache write; response count and lifetime average dropped; usage.sh --json prints first/last/growth, Markdown gains a column) | Accept; departs from the issue's suggested 'cache read of the last response' for the cache-expiry reason in the doc | Evidence in 01-spec-author.md from 23 notes / 534 spawns | Squad process and a squad script only | 64cd288 |
 
 ## Follow-up candidates
 
-None yet.
+- The table's 'continue for the maintainer's answer' row assumes continuing is cheap; with 5-minute subagent caches a late continuation rewrites the whole context. Measure with the new per-prompt figures before changing the table. (01-spec-author.md)
 
 ## Open worklist / next step
 
-- Next: spawn spec author (handover `01-spec-author.md`).
+- Done: spec author (01). Next: spec author status-only -> Accepted; then implementer (02).
