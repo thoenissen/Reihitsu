@@ -9,11 +9,15 @@
 
 ## Maintainer clarifications
 
-None yet.
+- Unions are treated like the other type declarations (for example class or struct) by the rules.
 
 ## Maintainer answers
 
-None yet.
+- Q1 (unions join the type-kind rules RH2004, RH7102-RH7106, RH7109, RH7110, RH7104, RH5404, RH7305/RH7305A, RH7308/RH7309/RH7311, RH7401-RH7412, RH5105/RH5106/RH5108/RH5110): **A** — yes, as for a struct.
+- Q2 (RH5507/RH5508 report a union's attribute lists, struct target): **A** — yes; the formatter split follows FMT-STRUCT-028.
+- Q3 (escalation 5): **A** — new rule RH5418 "Empty unions should use semicolon declarations" (Layout, Warning, enabled, C# 15+, with fix), like RH5412-RH5416.
+- Q4 (escalation 5): **A** — new rule RH2110 "Nested unions should not be used" (Design, Warning, enabled, no fix), like RH2101-RH2108.
+- General: unions are treated like other types such as class or struct.
 
 ## Decisions taken
 
@@ -39,4 +43,4 @@ None yet.
 
 - Side task (maintainer request): moved #1786 from vNext to milestone 1.4.0; #1781/#1785 left in vNext.
 - Last step: skeptic 02 (output questions Q1-Q4 stand, with adjustments). Spec-author amendment 03 running (decisions 5-7). Output questions Q1 (unions join type rules), Q2 (RH5507/RH5508 on unions), Q3 (RH5418, escalation 5), Q4 (RH2110, escalation 5) asked to the maintainer; waiting.
-- Next: record answers, route spec work for answers, then test implementer.
+- Answers received (see Maintainer answers). Next: spec author 04 writes RH5418 and RH2110 specs, rule pages, change-doc Decisions; skeptic 05 on that diff; then test implementer.
