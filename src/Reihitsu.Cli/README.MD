@@ -33,6 +33,7 @@ reihitsu-format [options] [<paths>...]
 | `--utf8-bom` | Normalize processed files to UTF-8 with a byte order mark. Encoding-only changes are reported in `--check` and `--dry-run` modes. |
 | `--suppress-unsupported` | Report a file whose syntax the formatter does not support as a warning instead of an error. Such a file is never changed, and the warning does not change the exit code. |
 | `--lang-version <version>` | C# language version to parse and format for, such as `12`, `12.0`, `latest`, or `preview` (default: `latest`). `latest` selects C# 15.0, the newest version the formatter supports; newer values such as `preview` are lowered to 15.0 with a warning. Version-dependent rules follow it; for example, empty types keep their `{ }` body below C# 12. An invalid value fails with exit code `2`. `LangVersion` from project files is not read. |
+| `--max-parallelism <count>` | Maximum number of files processed at the same time (default: the number of logical processors). Use `1` to process one file after another. The output, its order, and the exit code are the same for every count. A value that is not a whole number of `1` or more fails with exit code `2`. |
 | `--help`    | Show help message.                                                 |
 | `--version` | Show version information.                                          |
 
@@ -86,6 +87,12 @@ Format files and normalize their encoding to UTF-8 with a byte order mark:
 
 ```shell
 reihitsu-format --utf8-bom src/
+```
+
+Check formatting with at most two files processed at the same time, for example on a shared build machine:
+
+```shell
+reihitsu-format --check --max-parallelism 2 src/
 ```
 
 Format a project that targets C# 11:
