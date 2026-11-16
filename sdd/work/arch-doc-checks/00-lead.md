@@ -41,5 +41,5 @@ None yet.
 
 ## State
 
-- Last step: cleaner (04, 5110997): clean, 0 warnings, 153/153 architecture tests.
-- Next: spec checker (05), then validator (06).
+- Last step: spec checker (05, fb13013): consistent; validator (06, 2eeba9f): pass on fb13013. Final tree = fb13013 (no auditor in tests lane).
+- Next: issue manager (07) for the follow-up candidate, then note, delete sdd/work, trigger commit, PR.
