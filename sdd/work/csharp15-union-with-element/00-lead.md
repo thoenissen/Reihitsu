@@ -32,7 +32,12 @@ Batch 1 (before test implementer), all recommended options chosen:
 
 ## Follow-up candidates
 
-(none yet)
+Audited SHA: 0c7c198045012f1875b866828ff2beeb40831aa2 (10-auditor: pass, no findings).
+
+- (a) Attribute lists on a union are not split (`[Serializable, Obsolete] public union U(int, string);`), against FMT-STRUCT-028; cause: Core `AttributeTargetUtilities` / SHARED-ATTR-001 has no union target, and adding one changes which RH55xx attribute rules report. Extend thoenissen/Reihitsu#1767. (01-spec-author, 02-skeptic)
+- (b) An argument list written on the line after its name (`Foo⏎(4)`, `[with⏎(4), ...]`, `[Foo⏎(4), ...]`) lands at the enclosing statement's column; recommendation: join it onto the name's line. For `[with⏎(4)]` the CLI and the RH5305 fix put `(4)` in different columns (read from code, not run on main). Carries an output question. (01-spec-author, 10-auditor hint 3)
+- (c) Extension blocks: braces and `where` clauses stay glued on `main` (`extension(string s) {` … `=> 2; }`, `)where T : class {`); specs do not say whether FMT-BREAK-002/-023 cover them; output question, recommendation class-like layout. Structural cause: the list of type-declaration kinds is stated in seven places (six formatter rewriters + Core `AttributeTargetUtilities`) and has drifted; also spec wording in `sdd/specs/formatter/indentation.md` (base-list paragraph) and RH3202-001, and the summary at `src/Reihitsu.Core/RegionDirectiveUtilities.cs:148`. (02-skeptic, 08-spec-author, 10-auditor hint 1)
+- (d) Stale exclusion comment in `RH5404ElementMustNotBeOnSingleLineAnalyzer.cs:89-91` (union API is not experimental in Roslyn 5.12; unions compile against .NET 11 assemblies). Input for thoenissen/Reihitsu#1767. (02-skeptic)
 
 ## Worklist / next step
 
@@ -49,4 +54,5 @@ Batch 1 (before test implementer), all recommended options chosen:
 - 06-cleaner (51509e3): clean, Release 0 warnings. Next: spec checker.
 - 07-spec-checker (a829d4b): 1 finding #1762 — FMT-PIPE-029 last paragraph lacks "union"; change doc Affected requirements misses FMT-PIPE-029 and RH7101-002. Repair round 1 → spec author (fresh). Cleaner skipped for this round: spec-text-only repair (decision 6). Then spec checker again.
 - 08-spec-author (d1af94b): FMT-PIPE-029 names union; change doc lists FMT-PIPE-029, RH7101-002. Next: spec checker (fresh).
-- 09-spec-checker (f23bbdb): consistent. main not ahead (1d2d29a); build green. Next: auditor at HEAD.
+- 09-spec-checker (f23bbdb): consistent. main not ahead (1d2d29a); build green.
+- 10-auditor (ce6bc24): pass, no findings, audited 0c7c198. Next: validator, then issue manager, note, publish.
