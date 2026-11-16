@@ -19,6 +19,8 @@
 | 2 | skeptic | FMT-BREAK-039's second paragraph names only collection expressions; reason for Q1 A overstated | Cover every construct FMT-BREAK-022 decides (incl. dictionary element initializers); narrow the reason to collection-like constructs | Rewriter order decides these as written | Outputs asked as output questions | 69fcd5f |
 | 3 | skeptic | Architecture finding: argument-list `(` gap demanded by FMT-BREAK-039, -020, -015 | FMT-BREAK-039 owns the gap; FMT-BREAK-020 and -015 point to it instead of restating it; the implementation has one owner of that gap | One statement of a rule (README, Architecture findings); within the component the run changes | Same outputs for every input; spec wording only | 69fcd5f |
 | 4 | skeptic | F4 cast operand below the cast (`(int)⏎(x + 1)`) | Dropped, not a follow-up | Rare input class (AGENTS.md, Code-fix coverage) | No change made | — |
+| 5 | implementer | New type `ArgumentListLineStartRewriter` as the one owner of the gap | Accept | It implements the issue's own fix and decision 3; not a structural change under escalation 9 | Internal structure | 993f700 |
+| 6 | implementer | `AGENTS.md` phase-table edit made by the implementer | Keep; the spec checker verifies it | The table must name the new owner; one-line text change | Repository instructions only | 993f700 |
 
 ## Follow-up candidates
 
@@ -32,4 +34,5 @@
 - Answers received: 1A 2A 3A 4A.
 - Last step: spec author 04 (185f42c), change doc Accepted.
 - Last step: test implementer 05 (856fbf9): 29 formatter + 12 code-fix failures expected.
-- Next: implementer (06).
+- Implementer 06 (993f700, 1e1f7bb): all tests pass (Debug full run green).
+- Next: cleaner (07).
