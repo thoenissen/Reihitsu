@@ -18,9 +18,11 @@
 
 ## Follow-up candidates
 
-(none yet)
+- F1 (01-spec-author): element access outside a chain (`arr⏎[0]`) not joined.
+- F2 (01-spec-author): continuation line no indentation requirement covers gets different columns from CLI vs. code fix (`[() =>⏎1, () => 2]`); related #953.
+- F3 (01-spec-author): candidate new analyzer rule for an argument list's `(` below its name (P11).
 
 ## State
 
-- Last step: claim, lane, 00-lead.md.
-- Next: spawn spec author.
+- Last step: spec author (01, aecc867), change doc Draft.
+- Next: skeptic, then output-question batch.
