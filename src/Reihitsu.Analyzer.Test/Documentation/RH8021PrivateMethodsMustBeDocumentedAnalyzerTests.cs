@@ -388,5 +388,35 @@ public class RH8021PrivateMethodsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
         await Verify(source, Diagnostics(RH8021PrivateMethodsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8021MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies a diagnostic is reported for an undocumented method in the body of a union that has no access modifier
+    /// or is private, and none for a public one
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-002")]
+    public async Task VerifyDiagnosticsForPrivateMethodsInUnionBody()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Holder
+                              /// </summary>
+                              public union Holder(int, string)
+                              {
+                                  int {|RH8021:Implicit|}() => 0;
+
+                                  private int {|RH8021:Explicit|}() => 0;
+
+                                  public int Visible() => 0;
+
+                                  union Nested(int, long);
+                              }
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 }

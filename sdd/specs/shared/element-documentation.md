@@ -20,7 +20,7 @@ This spec covers the rules that require one kind of element to be documented. It
 
 ### SHARED-DOC-001 — Every declaration of the rule's element kind is checked
 
-A rule MUST check the declarations of the element kind it names wherever they are declared — in a namespace, at file level, or nested in a class, struct, interface, record, record struct, enum, or extension block — and MUST decide each declaration on its own: whether a containing declaration is documented MUST NOT change whether a nested one is reported.
+A rule MUST check the declarations of the element kind it names wherever they are declared — in a namespace, at file level, or nested in a class, struct, interface, record, record struct, union, enum, or extension block — and MUST decide each declaration on its own: whether a containing declaration is documented MUST NOT change whether a nested one is reported.
 
 This requirement covers an element with a single declaration; a partial element declared in several parts — a type, constructor, method, property, indexer, or event — is not covered.
 
@@ -47,18 +47,35 @@ public class Documented
 }
 ```
 
+Example — RH8020, in the body of a union:
+
+```csharp
+/// <summary>
+/// Holder
+/// </summary>
+public union Holder(int, string)
+{
+    public int {|RH8020:Count|}() => 0;
+}
+
+public union {|RH8035:Shape|}(int, string)
+{
+    public int {|RH8020:Sides|}() => 0;
+}
+```
+
 ### SHARED-DOC-002 — Private and non-private groups
 
 A declaration MUST belong to exactly one of two groups, decided by its own modifiers and the kind of declaration that directly contains it:
 
-- the private group, when its modifiers include `private` and none of `public`, `internal`, `protected`, and `file`, or when it has none of these five modifiers and is declared directly in a class, struct, record, record struct, or extension block;
+- the private group, when its modifiers include `private` and none of `public`, `internal`, `protected`, and `file`, or when it has none of these five modifiers and is declared directly in a class, struct, record, record struct, union, or extension block;
 - the non-private group otherwise — including a `private protected` declaration, a `file` type, and a declaration without any of these five modifiers in a namespace, at file level, or in an interface.
 
 The accessibility of the containing declarations MUST NOT change the group.
 
 This requirement covers every declaration except a static constructor declared in an interface and a partial type declared in several parts.
 
-Why: The split separates what other code can use from the implementation details of one type, so a project can require documentation for the first and decide separately about the second. A `private protected` element is visible to derived types, so other code builds on it. Without a modifier, C# makes an element declared in a class, struct, record, or extension block private, and one declared in a namespace or an interface internal or public; a partial type declared in several parts is the exception, because it takes the accessibility that any of its parts declares. A static constructor of a class, struct, or record, which takes no access modifier, is private. The group is decided from the declaration as written, so a nested element keeps its rule when its container's accessibility changes.
+Why: The split separates what other code can use from the implementation details of one type, so a project can require documentation for the first and decide separately about the second. A `private protected` element is visible to derived types, so other code builds on it. Without a modifier, C# makes an element declared in a class, struct, record, union, or extension block private, and one declared in a namespace or an interface internal or public; a partial type declared in several parts is the exception, because it takes the accessibility that any of its parts declares. A static constructor of a class, struct, record, or union, which takes no access modifier, is private. The group is decided from the declaration as written, so a nested element keeps its rule when its container's accessibility changes.
 
 Example — RH8001, which checks the non-private group:
 
@@ -157,6 +174,24 @@ public static class Extensions
 
         internal int Assembly() => 0;
     }
+}
+```
+
+Example — RH8021 and RH8036, which check the private group, in the body of a union:
+
+```csharp
+/// <summary>
+/// Holder
+/// </summary>
+public union Holder(int, string)
+{
+    int {|RH8021:Implicit|}() => 0;
+
+    private int {|RH8021:Explicit|}() => 0;
+
+    public int Visible() => 0;
+
+    union {|RH8036:Nested|}(int, long);
 }
 ```
 
@@ -1476,3 +1511,113 @@ public class C
     }
 }
 ```
+
+### SHARED-DOC-019 — A union whose documentation holds a parameter element is not judged
+
+A rule that uses this requirement MUST NOT report anything for a union, written with the `union` keyword, when a documentation comment of one of its declarations — the one SHARED-DOC-004 defines, or a later one that SHARED-DOC-006 counts — holds a parameter element at any depth: neither the union, nor an element of its documentation, nor one of its type parameters. A parameter element is an element whose tag name, without a namespace prefix it may carry, is `param` or `paramref` in any letter case: `<param>`, `<Param>`, `<PARAMREF/>`, and `<x:param/>` are parameter elements. For a partial union declared in several parts, this holds for every part when the documentation of any one part holds such an element. This holds in every documentation mode in which the rule runs (SHARED-DOC-008), whatever else the documentation holds.
+
+Independently of which elements the documentation holds, the rule MUST NOT fail with an exception on any union because the compiler's expansion of the union's documentation fails: when that expansion fails for a union, the rule reports nothing for that union — for a partial union, for none of its parts — as for a union with a parameter element. This covers content that only an `<include>` element brings in as well as any other documentation the compiler cannot expand for a union.
+
+A declaration nested in the union's body is judged on its own, as SHARED-DOC-001 specifies.
+
+Why: A union's case types have no names, so a parameter element on a union refers to nothing, and the input is rare: the compiler fails with CS1569 when it writes the documentation file of such a union, and when documentation comments are diagnosed (documentation mode `Diagnose`, the default), the compiler's own expansion of that union's documentation, which these rules rely on, throws for it — under `Parse` it does not. The refusal of a parameter element is nevertheless independent of the documentation mode, so that the rule's output for this input does not depend on the mode, and it is decided on the comment's syntax alone. Which elements the compiler binds as parameter names is the compiler's decision, so a rule does not rely on predicting it: a failed expansion leaves the union unjudged instead of failing the rule. Judging such a union's documentation anyway would take more than a cheap check, so the rules leave it to be corrected by hand and judge nothing about it. A union without a parameter element, whose documentation the compiler expands, is judged as each rule's spec states.
+
+Example — RH8035 and RH8036: with every documentation mode,
+
+```csharp
+/// <param name="Circle">Circle</param>
+public union Shape(int, string);
+
+/// <summary>
+/// Outer
+/// </summary>
+public class Outer
+{
+    /// <remarks>See <paramref name="x"/></remarks>
+    private union Inner(int, string);
+}
+```
+
+is not reported, although neither union has a `<summary>`; without the `param` and `paramref` elements, RH8035 reports `Shape` and RH8036 reports `Inner`.
+
+Example — RH8108:
+
+```csharp
+/// <summary>
+/// Result
+/// </summary>
+/// <param name="x">X</param>
+public union Result<T>(T, string);
+```
+
+is not reported, although `T` has no `<typeparam>` element.
+
+Example — RH8203:
+
+```csharp
+/// <inheritdoc/>
+/// <param name="Circle">Circle</param>
+public union Shape(int, string);
+
+/// <summary>
+/// Holder <paramref name="x"/>
+/// </summary>
+/// <inheritdoc/>
+public union Holder(int, string);
+```
+
+is not reported, although neither union has a base list; without the `param` and `paramref` elements, both `<inheritdoc/>` elements are reported.
+
+Example — a partial union; RH8035 and RH8203:
+
+```csharp
+/// <inheritdoc/>
+public partial union Shape(int, string);
+
+/// <param name="Circle">Circle</param>
+public partial union Shape;
+```
+
+is not reported, although the union has no base list and no `<summary>`: the second part's `param` element leaves both parts unjudged.
+
+Example — a method in the body of such a union is judged on its own; RH8108:
+
+```csharp
+/// <summary>
+/// Holder
+/// </summary>
+/// <param name="x">X</param>
+public union Holder<T>(T, string)
+{
+    /// <summary>
+    /// Runs
+    /// </summary>
+    public void Run<{|RH8108:TItem|}>()
+    {
+    }
+}
+```
+
+`T` is not reported; `TItem` is.
+
+Example — a tag name in another letter case; RH8035, RH8108, and RH8203: with every documentation mode,
+
+```csharp
+/// <Param name="Circle">Circle</Param>
+public union Shape(int, string);
+
+/// <inheritdoc/>
+/// <summary>
+/// Holder <PARAMREF name="x"/>
+/// </summary>
+public union Holder(int, string);
+
+/// <summary>
+/// Result
+/// </summary>
+/// <typeparam name="T">T</typeparam>
+/// <pAram name="x">X</pAram>
+public union Result<T>(T, string);
+```
+
+is not reported: RH8035 does not report `Shape`, although it has no `<summary>`; RH8203 reports neither `<inheritdoc/>`; RH8108 reports nothing for `Result`. With the tag names in lower case the outcome is the same; without the parameter elements, RH8035 reports `Shape` and RH8203 reports the `<inheritdoc/>` of `Holder`.

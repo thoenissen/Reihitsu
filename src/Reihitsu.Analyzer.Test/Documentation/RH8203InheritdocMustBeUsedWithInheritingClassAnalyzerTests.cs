@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Documentation;
@@ -1780,6 +1781,515 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzerTests : Analyz
                               """;
 
         await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for <c>&lt;inheritdoc/&gt;</c> on a union without a base list, and none on a
+    /// union whose base list names an interface
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("RH8203-002")]
+    public async Task VerifyDiagnosticForInheritdocOnUnionWithoutBaseList()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Contract
+                              /// </summary>
+                              public interface IShape
+                              {
+                              }
+
+                              /// {|#0:<inheritdoc/>|}
+                              public union Shape(int, string);
+
+                              /// <inheritdoc/>
+                              public union Named(int, string) : IShape;
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, AnalyzerResources.RH8203MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for <c>&lt;inheritdoc/&gt;</c> on a private union without a base list, nested
+    /// in a class, and with a body
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    public async Task VerifyDiagnosticForInheritdocOnNestedUnionWithBodyWithoutBaseList()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Outer
+                              /// </summary>
+                              public class Outer
+                              {
+                                  /// {|RH8203:<inheritdoc/>|}
+                                  private union Inner(int, string)
+                                  {
+                                  }
+                              }
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for <c>&lt;inheritdoc cref="..."/&gt;</c> on a union, with or without a base
+    /// list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    public async Task VerifyNoDiagnosticForInheritdocWithCrefOnUnion()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Contract
+                              /// </summary>
+                              public interface IShape
+                              {
+                              }
+
+                              /// <inheritdoc cref="IShape"/>
+                              public union Shape(int, string);
+
+                              /// <inheritdoc cref="IShape"/>
+                              public union Named(int, string) : IShape;
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported and no exception is thrown under the default documentation mode for
+    /// <c>&lt;inheritdoc/&gt;</c> on a union without a base list whose documentation comment holds a
+    /// <c>&lt;param&gt;</c> or a <c>&lt;paramref&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForInheritdocOnUnionWhoseDocumentationHoldsParameterElement()
+    {
+        const string source = """
+                              /// <inheritdoc/>
+                              /// <param name="Circle">Circle</param>
+                              public union Shape(int, string);
+
+                              /// <summary>
+                              /// Holder <paramref name="x"/>
+                              /// </summary>
+                              /// <inheritdoc/>
+                              public union Holder(int, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported under the parse documentation mode for <c>&lt;inheritdoc/&gt;</c> on a union
+    /// without a base list whose documentation comment holds a <c>&lt;param&gt;</c> or a <c>&lt;paramref&gt;</c>
+    /// element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForInheritdocOnUnionWhoseDocumentationHoldsParameterElementInParseMode()
+    {
+        const string source = """
+                              /// <inheritdoc/>
+                              /// <param name="Circle">Circle</param>
+                              public union Shape(int, string);
+
+                              /// <summary>
+                              /// Holder <paramref name="x"/>
+                              /// </summary>
+                              /// <inheritdoc/>
+                              public union Holder(int, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                         test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject);
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for <c>&lt;inheritdoc/&gt;</c> on a private union without a base list when a
+    /// later documentation comment holds the <c>&lt;param&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForInheritdocOnUnionWhoseLaterDocumentationCommentHoldsParamElement()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Outer
+                              /// </summary>
+                              public class Outer
+                              {
+                                  /// <inheritdoc/>
+
+                                  /// <param name="x">X</param>
+                                  private union Inner(int, string)
+                                  {
+                                  }
+                              }
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies <c>&lt;inheritdoc/&gt;</c> is still reported on a union without a base list whose documentation holds
+    /// other elements but no <c>&lt;param&gt;</c> or <c>&lt;paramref&gt;</c> element, and on a member in the body of a
+    /// union whose documentation holds a <c>&lt;param&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyDiagnosticForInheritdocOnUnionWithoutParameterElementAndInBodyOfRefusedUnion()
+    {
+        const string source = """
+                              /// {|RH8203:<inheritdoc/>|}
+                              /// <remarks>See <typeparamref name="T"/></remarks>
+                              public union Shape<T>(T, string);
+
+                              /// <summary>
+                              /// Holder
+                              /// </summary>
+                              /// <param name="x">X</param>
+                              public union Holder(int, string)
+                              {
+                                  /// {|RH8203:<inheritdoc/>|}
+                                  public union Inner(int, string);
+                              }
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported and no exception is thrown under the default documentation mode for
+    /// <c>&lt;inheritdoc/&gt;</c> on a partial union without a base list whose second part's documentation comment
+    /// holds a <c>&lt;param&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForInheritdocOnPartialUnionWhoseOtherPartHoldsParamElement()
+    {
+        const string source = """
+                              /// <inheritdoc/>
+                              public partial union Shape(int, string);
+
+                              /// <param name="Circle">Circle</param>
+                              public partial union Shape;
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for <c>&lt;inheritdoc/&gt;</c> on a partial union without a base list
+    /// declared in two files when the part in the other file holds a <c>&lt;paramref&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForInheritdocOnPartialUnionWhosePartInAnotherFileHoldsParamrefElement()
+    {
+        const string source = """
+                              /// <inheritdoc/>
+                              public partial union Shape(int, string);
+                              """;
+
+        const string otherPart = """
+                                 /// <remarks>See <paramref name="x"/></remarks>
+                                 public partial union Shape;
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherPart));
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for the SHARED-DOC-019 example whose parameter elements are written with
+    /// tag names in another letter case
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForUnionsWhoseParameterElementsAreWrittenInAnotherLetterCase()
+    {
+        const string source = """
+                              /// <Param name="Circle">Circle</Param>
+                              public union Shape(int, string);
+
+                              /// <inheritdoc/>
+                              /// <summary>
+                              /// Holder <PARAMREF name="x"/>
+                              /// </summary>
+                              public union Holder(int, string);
+
+                              /// <summary>
+                              /// Result
+                              /// </summary>
+                              /// <typeparam name="T">T</typeparam>
+                              /// <pAram name="x">X</pAram>
+                              public union Result<T>(T, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for the SHARED-DOC-019 example whose parameter elements are written with
+    /// tag names in another letter case under the parse documentation mode
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForUnionsWhoseParameterElementsAreWrittenInAnotherLetterCaseInParseMode()
+    {
+        const string source = """
+                              /// <Param name="Circle">Circle</Param>
+                              public union Shape(int, string);
+
+                              /// <inheritdoc/>
+                              /// <summary>
+                              /// Holder <PARAMREF name="x"/>
+                              /// </summary>
+                              public union Holder(int, string);
+
+                              /// <summary>
+                              /// Result
+                              /// </summary>
+                              /// <typeparam name="T">T</typeparam>
+                              /// <pAram name="x">X</pAram>
+                              public union Result<T>(T, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                         test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject);
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for <c>&lt;inheritdoc/&gt;</c> on a union without a base list whose documentation
+    /// comment holds a <c>&lt;Param&gt;</c> element in another letter case
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForInheritdocOnUnionWhoseDocumentationHoldsParamElementInAnotherLetterCase()
+    {
+        const string source = """
+                              /// <inheritdoc/>
+                              /// <Param name="Circle">Circle</Param>
+                              public union Shape(int, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for <c>&lt;inheritdoc/&gt;</c> on a partial union whose part in another file
+    /// holds a <c>&lt;Param&gt;</c> element in another letter case
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForInheritdocOnPartialUnionWhosePartInAnotherFileHoldsParamElementInAnotherLetterCase()
+    {
+        const string source = """
+                              /// <inheritdoc/>
+                              public partial union Shape(int, string);
+                              """;
+
+        const string otherPart = """
+                                 /// <Param name="Circle">Circle</Param>
+                                 public partial union Shape;
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherPart));
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies <c>&lt;inheritdoc/&gt;</c> on a union without a base list is reported when its documentation comment holds
+    /// an element whose tag name only starts with <c>Param</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyDiagnosticForInheritdocOnUnionWhoseDocumentationHoldsElementNamedParameter()
+    {
+        const string source = """
+                              /// {|RH8203:<inheritdoc/>|}
+                              /// <Parameter name="Circle">Circle</Parameter>
+                              public union Shape(int, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                     });
+    }
+
+    /// <summary>
+    /// Verifies <c>&lt;inheritdoc/&gt;</c> is not reported and no exception is thrown under the default documentation
+    /// mode on a union declaration without the <c>partial</c> modifier when the documentation comment of its partial
+    /// declaration in another file holds a <c>&lt;param&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForInheritdocOnUnionWithoutPartialModifierWhosePartialDeclarationInAnotherFileHoldsParamElement()
+    {
+        const string source = """
+                              /// <inheritdoc/>
+                              public union Shape;
+                              """;
+
+        const string otherDeclaration = """
+                                        /// <param name="Circle">Circle</param>
+                                        public partial union Shape(int, string);
+                                        """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherDeclaration));
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies <c>&lt;inheritdoc/&gt;</c> is not reported and no exception is thrown under the documentation mode
+    /// Parse on a union declaration without the <c>partial</c> modifier when the documentation comment of its partial
+    /// declaration in another file holds a <c>&lt;param&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForInheritdocOnUnionWithoutPartialModifierWhosePartialDeclarationInAnotherFileHoldsParamElementInParseMode()
+    {
+        const string source = """
+                              /// <inheritdoc/>
+                              public union Shape;
+                              """;
+
+        const string otherDeclaration = """
+                                        /// <param name="Circle">Circle</param>
+                                        public partial union Shape(int, string);
+                                        """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherDeclaration));
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                         test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject);
+                     });
     }
 
     #endregion // Tests

@@ -45,6 +45,33 @@ internal static class XmlDocumentationExpander
     }
 
     /// <summary>
+    /// Determines whether the compiler can expand the documentation of the declaration's symbol without failing
+    /// </summary>
+    /// <param name="declaration">Declaration</param>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="false"/> if the compiler's expansion of the documentation throws</returns>
+    /// <remarks>
+    /// Which documentation the compiler cannot expand is the compiler's decision, so it is observed here instead of
+    /// predicted. Cancellation is not a failure of the expansion and is passed on
+    /// </remarks>
+    internal static bool CanExpandDocumentation(MemberDeclarationSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        var declaredSymbol = GetDeclaredSymbol(declaration, semanticModel, cancellationToken);
+
+        try
+        {
+            declaredSymbol?.GetDocumentationCommentXml(expandIncludes: true, cancellationToken: cancellationToken);
+
+            return true;
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Parses the expanded documentation XML of one part of a partial method, property, indexer, or event: the part's own
     /// documentation comments and the content their <c>&lt;include&gt;</c> elements bring in, never the other part's
     /// </summary>

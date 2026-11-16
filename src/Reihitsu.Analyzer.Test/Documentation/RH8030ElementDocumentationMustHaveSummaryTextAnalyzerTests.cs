@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Documentation;
@@ -684,6 +685,79 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
                               """;
 
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, AnalyzerResources.RH8030MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for the empty summary of a union, and none for a union whose summary has text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8030-001")]
+    [Requirement("RH8030-002")]
+    public async Task VerifyDiagnosticForUnionWithEmptySummary()
+    {
+        const string source = """
+                              /// {|#0:<summary></summary>|}
+                              public union Shape(int, string);
+
+                              /// <summary>
+                              /// Result
+                              /// </summary>
+                              public union Result(int, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, AnalyzerResources.RH8030MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for the empty summary of a private union nested in a class, whatever its accessibility
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8030-001")]
+    public async Task VerifyDiagnosticForNestedPrivateUnionWithEmptySummary()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Outer
+                              /// </summary>
+                              public class Outer
+                              {
+                                  /// {|RH8030:<summary/>|}
+                                  private union Inner(int, string);
+                              }
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies an empty summary is still reported under the default documentation mode on a union whose
+    /// documentation comment holds a <c>&lt;param&gt;</c> element, which this rule judges from the syntax
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8030-001")]
+    public async Task VerifyDiagnosticForUnionWithEmptySummaryWhoseDocumentationHoldsParamElement()
+    {
+        const string source = """
+                              /// {|RH8030:<summary></summary>|}
+                              /// <param name="Circle">Circle</param>
+                              public union Shape(int, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
     }
 
     #endregion // Tests

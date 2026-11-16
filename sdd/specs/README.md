@@ -105,6 +105,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH4009.md](analyzer/RH4009.md) | RH4009 | `RH4009NamespaceNotAllowedAnalyzer` |
 | [analyzer/RH4010.md](analyzer/RH4010.md) | RH4010 | `RH4010RecordNameCasingAnalyzer`, `RH4010RecordNameCasingCodeFixProvider` |
 | [analyzer/RH4011.md](analyzer/RH4011.md) | RH4011 | `RH4011RecordStructNameCasingAnalyzer`, `RH4011RecordStructNameCasingCodeFixProvider` |
+| [analyzer/RH4012.md](analyzer/RH4012.md) | RH4012 | `RH4012UnionNameCasingAnalyzer`, `RH4012UnionNameCasingCodeFixProvider` |
 | [analyzer/RH4101.md](analyzer/RH4101.md) | RH4101 | `RH4101EnumMemberCasingAnalyzer`, `RH4101EnumMemberCasingCodeFixProvider` |
 | [analyzer/RH4102.md](analyzer/RH4102.md) | RH4102 | `RH4102EventNameCasingAnalyzer`, `RH4102EventNameCasingCodeFixProvider` |
 | [analyzer/RH4103.md](analyzer/RH4103.md) | RH4103 | `RH4103MethodNameCasingAnalyzer`, `RH4103MethodNameCasingCodeFixProvider` |
@@ -364,6 +365,8 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH8032.md](analyzer/RH8032.md) | RH8032 | `RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer` |
 | [analyzer/RH8033.md](analyzer/RH8033.md) | RH8033 | `RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer` |
 | [analyzer/RH8034.md](analyzer/RH8034.md) | RH8034 | `RH8034OperatorsMustBeDocumentedAnalyzer` |
+| [analyzer/RH8035.md](analyzer/RH8035.md) | RH8035 | `RH8035NonPrivateUnionsMustBeDocumentedAnalyzer` |
+| [analyzer/RH8036.md](analyzer/RH8036.md) | RH8036 | `RH8036PrivateUnionsMustBeDocumentedAnalyzer` |
 | [analyzer/RH8101.md](analyzer/RH8101.md) | RH8101 | `RH8101ElementParametersMustBeDocumentedAnalyzer` |
 | [analyzer/RH8102.md](analyzer/RH8102.md) | RH8102 | `RH8102ElementParameterDocumentationMustMatchElementParametersAnalyzer` |
 | [analyzer/RH8103.md](analyzer/RH8103.md) | RH8103 | `RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer` |

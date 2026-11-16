@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Documentation;
@@ -214,6 +215,86 @@ public class RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzerTests : 
                               """;
 
         await Verify(source, Diagnostics(RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8111MessageFormat, 4));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for a <c>&lt;typeparam&gt;</c> element without text on a union, and none for a
+    /// union whose element has text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8111-001")]
+    [Requirement("RH8111-002")]
+    public async Task VerifyDiagnosticForUnionTypeParamElementWithoutText()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Result
+                              /// </summary>
+                              /// {|#0:<typeparam name="TValue"></typeparam>|}
+                              public union Result<TValue>(TValue, string);
+
+                              /// <summary>
+                              /// Option
+                              /// </summary>
+                              /// <typeparam name="T">Value</typeparam>
+                              public union Option<T>(T, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH8111MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for a <c>&lt;typeparam&gt;</c> element without text on a union, whether or not
+    /// it names a type parameter of the union
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8111-001")]
+    public async Task VerifyDiagnosticForUnionTypeParamElementWithoutTextNamingAnotherTypeParameter()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Result
+                              /// </summary>
+                              /// <typeparam name="TValue">Value</typeparam>
+                              /// {|RH8111:<typeparam name="TOther"></typeparam>|}
+                              public union Result<TValue, TError>(TValue, TError);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies a type parameter element without text is still reported under the default documentation mode on a union whose
+    /// documentation comment holds a <c>&lt;param&gt;</c> element, which this rule judges from the syntax
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8111-001")]
+    public async Task VerifyDiagnosticForUnionTypeParamElementWithoutTextWhoseDocumentationHoldsParamElement()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Result
+                              /// </summary>
+                              /// {|RH8111:<typeparam name="TValue"></typeparam>|}
+                              /// <param name="x">X</param>
+                              public union Result<TValue>(TValue, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
     }
 
     #endregion // Tests

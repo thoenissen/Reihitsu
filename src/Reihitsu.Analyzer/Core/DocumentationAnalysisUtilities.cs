@@ -29,6 +29,7 @@ internal static class DocumentationAnalysisUtilities
                                                                              SyntaxKind.InterfaceDeclaration,
                                                                              SyntaxKind.RecordDeclaration,
                                                                              SyntaxKind.RecordStructDeclaration,
+                                                                             SyntaxKind.UnionDeclaration,
                                                                              SyntaxKind.EnumDeclaration,
                                                                              SyntaxKind.DelegateDeclaration,
                                                                              SyntaxKind.ConstructorDeclaration,
@@ -44,7 +45,8 @@ internal static class DocumentationAnalysisUtilities
                                                                          ];
 
     /// <summary>
-    /// Syntax kinds which can declare parameters
+    /// Syntax kinds which can declare parameters. A union is not one of them: its case types have no names a
+    /// <c>&lt;param&gt;</c> element could document
     /// </summary>
     internal static readonly SyntaxKind[] ParameterOwnerKinds = [
                                                                     SyntaxKind.MethodDeclaration,
@@ -68,6 +70,7 @@ internal static class DocumentationAnalysisUtilities
                                                                         SyntaxKind.InterfaceDeclaration,
                                                                         SyntaxKind.RecordDeclaration,
                                                                         SyntaxKind.RecordStructDeclaration,
+                                                                        SyntaxKind.UnionDeclaration,
                                                                         SyntaxKind.DelegateDeclaration,
                                                                         SyntaxKind.MethodDeclaration
                                                                     ];
@@ -506,6 +509,44 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
+    /// Determines whether the declaration is a union whose documentation is not judged (SHARED-DOC-019): one of its
+    /// documentation comments holds a <c>param</c> or <c>paramref</c> element at any depth, in any letter case, or the
+    /// compiler's expansion of its documentation fails. A union declared more than once is judged as a whole: every
+    /// declaration is refused when the documentation of any one declaration holds such an element, whatever modifiers the
+    /// declarations carry, because the compiler joins the documentation of every declaration of the union's symbol, and
+    /// the expansion is the joined one of that symbol. A union's case types have no names such an element could refer
+    /// to, so the rules that use the requirement leave the union to be corrected by hand; a failed expansion leaves the
+    /// union unjudged instead of failing the rule
+    /// </summary>
+    /// <param name="declaration">Declaration</param>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> if the declaration is a union whose documentation is not judged</returns>
+    internal static bool IsUnjudgedUnion(MemberDeclarationSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        if (declaration.IsKind(SyntaxKind.UnionDeclaration) == false)
+        {
+            return false;
+        }
+
+        if (HasParameterElement(declaration))
+        {
+            return true;
+        }
+
+        if (semanticModel?.GetDeclaredSymbol(declaration, cancellationToken) is { } unionSymbol
+            && unionSymbol.DeclaringSyntaxReferences
+                          .Select(obj => obj.GetSyntax(cancellationToken))
+                          .Any(obj => obj != declaration && HasParameterElement(obj)))
+        {
+            return true;
+        }
+
+        return semanticModel != null
+               && XmlDocumentationExpander.CanExpandDocumentation(declaration, semanticModel, cancellationToken) == false;
+    }
+
+    /// <summary>
     /// Determines whether the declaration belongs to the requested accessibility group
     /// </summary>
     /// <param name="declaration">Declaration</param>
@@ -606,6 +647,23 @@ internal static class DocumentationAnalysisUtilities
                    XmlElementSyntax or XmlEmptyElementSyntax or XmlCDataSectionSyntax => true,
                    _ => string.IsNullOrWhiteSpace(node.ToString()) == false
                };
+    }
+
+    /// <summary>
+    /// Determines whether a documentation comment of the declaration holds a <c>param</c> or <c>paramref</c> element at
+    /// any depth, with the tag name in any letter case and without a namespace prefix it may carry
+    /// </summary>
+    /// <param name="declaration">Declaration</param>
+    /// <returns><see langword="true"/> if a parameter element is written in the declaration's documentation</returns>
+    /// <remarks>
+    /// <see cref="DirectDocumentationSyntaxChecker.GetTagsIncludingNested"/> returns a match whenever the comment holds
+    /// the tag at any depth, so it is the tag lookup used here
+    /// </remarks>
+    private static bool HasParameterElement(SyntaxNode declaration)
+    {
+        return DirectDocumentationSyntaxChecker.GetDocumentationComments(declaration)
+                                               .Any(obj => DirectDocumentationSyntaxChecker.GetTagsIncludingNested(obj, "param").Length > 0
+                                                           || DirectDocumentationSyntaxChecker.GetTagsIncludingNested(obj, "paramref").Length > 0);
     }
 
     /// <summary>

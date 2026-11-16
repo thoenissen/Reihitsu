@@ -495,6 +495,12 @@
   <data name="RH4011MessageFormat" xml:space="preserve">
     <value>Record struct names should be in PascalCase</value>
   </data>
+  <data name="RH4012Title" xml:space="preserve">
+    <value>Union names should be in PascalCase</value>
+  </data>
+  <data name="RH4012MessageFormat" xml:space="preserve">
+    <value>Union names should be in PascalCase</value>
+  </data>
   <data name="RH4120Title" xml:space="preserve">
     <value>Record primary constructor parameter names should be in PascalCase</value>
   </data>
@@ -1478,6 +1484,18 @@
   </data>
   <data name="RH8034MessageFormat" xml:space="preserve">
     <value>Operators must be documented</value>
+  </data>
+  <data name="RH8035Title" xml:space="preserve">
+    <value>Non-private unions must be documented</value>
+  </data>
+  <data name="RH8035MessageFormat" xml:space="preserve">
+    <value>Non-private unions must be documented</value>
+  </data>
+  <data name="RH8036Title" xml:space="preserve">
+    <value>Private unions must be documented</value>
+  </data>
+  <data name="RH8036MessageFormat" xml:space="preserve">
+    <value>Private unions must be documented</value>
   </data>
   <data name="RH7207Title" xml:space="preserve">
     <value>Using directives should be organized into groups</value>
