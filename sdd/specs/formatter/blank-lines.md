@@ -987,7 +987,7 @@ class C
 }
 ```
 
-First behind an opening parenthesis, bracket, or `<` — of a record's parameter list, a union's case-type list, a method's parameter list, an argument list, a collection expression, a list pattern, and a type parameter list:
+First behind an opening parenthesis or bracket — of a record's parameter list, a union's case-type list, a method's parameter list, an argument list, a collection expression, and a list pattern:
 
 ```csharp
 public record R(
@@ -1026,12 +1026,6 @@ class C
             1,
             ..
         ];
-    }
-
-    void O<
-        // first
-        T>()
-    {
     }
 }
 ```
@@ -1073,12 +1067,6 @@ class C
                         1,
                         ..
                     ];
-    }
-
-    void O<
-    // first
-    T>()
-    {
     }
 }
 ```
