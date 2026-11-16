@@ -568,5 +568,260 @@ public class RH8035NonPrivateUnionsMustBeDocumentedAnalyzerTests : AnalyzerTests
                      });
     }
 
+    /// <summary>
+    /// Verifies no diagnostic is reported for the SHARED-DOC-019 example whose parameter elements are written with
+    /// tag names in another letter case
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8035-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForUnionsWhoseParameterElementsAreWrittenInAnotherLetterCase()
+    {
+        const string source = """
+                              /// <Param name="Circle">Circle</Param>
+                              public union Shape(int, string);
+
+                              /// <inheritdoc/>
+                              /// <summary>
+                              /// Holder <PARAMREF name="x"/>
+                              /// </summary>
+                              public union Holder(int, string);
+
+                              /// <summary>
+                              /// Result
+                              /// </summary>
+                              /// <typeparam name="T">T</typeparam>
+                              /// <pAram name="x">X</pAram>
+                              public union Result<T>(T, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for the SHARED-DOC-019 example whose parameter elements are written with
+    /// tag names in another letter case under the parse documentation mode
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8035-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForUnionsWhoseParameterElementsAreWrittenInAnotherLetterCaseInParseMode()
+    {
+        const string source = """
+                              /// <Param name="Circle">Circle</Param>
+                              public union Shape(int, string);
+
+                              /// <inheritdoc/>
+                              /// <summary>
+                              /// Holder <PARAMREF name="x"/>
+                              /// </summary>
+                              public union Holder(int, string);
+
+                              /// <summary>
+                              /// Result
+                              /// </summary>
+                              /// <typeparam name="T">T</typeparam>
+                              /// <pAram name="x">X</pAram>
+                              public union Result<T>(T, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                         test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject);
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for a union without a <c>&lt;summary&gt;</c> whose documentation comment holds a
+    /// <c>&lt;PARAM&gt;</c> element in upper case
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8035-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForUnionWhoseDocumentationHoldsUpperCaseParamElement()
+    {
+        const string source = """
+                              /// <PARAM name="Circle">Circle</PARAM>
+                              public union Shape(int, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for a union without a <c>&lt;summary&gt;</c> whose documentation comment holds a
+    /// <c>param</c> element with a namespace prefix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8035-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForUnionWhoseDocumentationHoldsPrefixedParamElement()
+    {
+        const string source = """
+                              /// <x:param name="Circle"/>
+                              public union Shape(int, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for a partial union whose part in another file holds a <c>&lt;PARAMREF/&gt;</c>
+    /// element in upper case
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8035-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForPartialUnionWhosePartInAnotherFileHoldsUpperCaseParamrefElement()
+    {
+        const string source = """
+                              /// <remarks>Shape</remarks>
+                              public partial union Shape(int, string);
+                              """;
+
+        const string otherPart = """
+                                 /// <remarks>See <PARAMREF name="x"/></remarks>
+                                 public partial union Shape;
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", otherPart));
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies a union without a <c>&lt;summary&gt;</c> is reported when its documentation comment holds an element whose
+    /// tag name only starts with <c>Param</c>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8035-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyDiagnosticForUnionWhoseDocumentationHoldsElementNamedParameter()
+    {
+        const string source = """
+                              /// <Parameter name="Circle">Circle</Parameter>
+                              public union {|RH8035:Shape|}(int, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                     });
+    }
+
+    /// <summary>
+    /// Verifies the rule neither fails with an exception nor reports a union whose included documentation holds a
+    /// <c>&lt;summary&gt;</c> and a <c>&lt;param&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8035-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForUnionWhoseIncludedDocumentationHoldsSummaryAndParamElement()
+    {
+        const string source = """
+                              /// <include file='docs.xml' path='doc/members/member[@name="Shape"]/*'/>
+                              public union Shape(int, string);
+                              """;
+
+        const string documentation = """
+                                     <doc>
+                                         <members>
+                                             <member name="Shape">
+                                                 <summary>Shape</summary>
+                                                 <param name="Circle">Circle</param>
+                                             </member>
+                                         </members>
+                                     </doc>
+                                     """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                         test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", documentation));
+                     });
+    }
+
+    /// <summary>
+    /// Verifies a union without a <c>&lt;summary&gt;</c> is reported when a <c>param</c> element is brought in only by
+    /// its included documentation, which the compiler expands
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8035-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyDiagnosticForUnionWhoseIncludedDocumentationHoldsOnlyParamElement()
+    {
+        const string source = """
+                              /// <include file='docs.xml' path='doc/members/member[@name="Shape"]/*'/>
+                              public union {|RH8035:Shape|}(int, string);
+                              """;
+
+        const string documentation = """
+                                     <doc>
+                                         <members>
+                                             <member name="Shape">
+                                                 <param name="Circle">Circle</param>
+                                             </member>
+                                         </members>
+                                     </doc>
+                                     """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                         test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", documentation));
+                     });
+    }
+
     #endregion // Documentation holding a parameter element
 }

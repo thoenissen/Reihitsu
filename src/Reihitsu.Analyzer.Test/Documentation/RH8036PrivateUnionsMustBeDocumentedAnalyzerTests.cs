@@ -470,5 +470,99 @@ public class RH8036PrivateUnionsMustBeDocumentedAnalyzerTests : AnalyzerTestsBas
                      });
     }
 
+    /// <summary>
+    /// Verifies no diagnostic is reported for a private union without a <c>&lt;summary&gt;</c> whose documentation comment
+    /// holds a <c>&lt;ParamRef/&gt;</c> element in mixed case
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8036-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForPrivateUnionWhoseDocumentationHoldsMixedCaseParamrefElement()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Outer
+                              /// </summary>
+                              public class Outer
+                              {
+                                  /// <remarks>See <ParamRef name="x"/></remarks>
+                                  private union Inner(int, string);
+                              }
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for a private union without a <c>&lt;summary&gt;</c> whose documentation comment
+    /// holds a <c>&lt;Param&gt;</c> element in another letter case
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8036-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForPrivateUnionWhoseDocumentationHoldsParamElementInAnotherLetterCase()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Outer
+                              /// </summary>
+                              public class Outer
+                              {
+                                  /// <Param name="Circle">Circle</Param>
+                                  private union Inner(int, string);
+                              }
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported under the parse documentation mode for a private union without a
+    /// <c>&lt;summary&gt;</c> whose documentation comment holds a <c>&lt;Param&gt;</c> element in another letter case
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8036-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForPrivateUnionWhoseDocumentationHoldsParamElementInAnotherLetterCaseInParseMode()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Outer
+                              /// </summary>
+                              public class Outer
+                              {
+                                  /// <Param name="Circle">Circle</Param>
+                                  private union Inner(int, string);
+                              }
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                         test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject);
+                     });
+    }
+
     #endregion // Documentation holding a parameter element
 }
