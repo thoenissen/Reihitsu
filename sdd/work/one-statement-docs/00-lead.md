@@ -41,5 +41,5 @@ None yet.
 
 ## State
 
-- Last step: auditor (05), 4bcf6ec; pass with doc finding #1. Audited SHA 62a2512.
-- Next: spec author fixes 05 finding #1; verify-text-only; validator; publish.
+- Last step: spec author repair (06), f2a9122; proof FAIL on scripts/README.md only. Repair round 1 of 3.
+- Next: spec checker, auditor on the repair, validator, publish.
