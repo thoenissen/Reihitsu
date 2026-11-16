@@ -34,5 +34,5 @@
 
 ## State
 
-- Audit 2 (repair 1 of 4ebe340): pass; audited SHA de1f1a5. Repair rounds used: 1.
-- Next: validator, lane check, issue manager (follow-up candidates), note, publish.
+- Audited SHA de1f1a5; validator pass (4d5f7b1, 17078 tests). Lane check confirmed.
+- Next: issue manager (decision 7 candidates), note, publish.
