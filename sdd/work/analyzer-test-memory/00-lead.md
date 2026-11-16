@@ -33,4 +33,5 @@ None yet.
 - Implementer done: 01-implementer.md, verdict tests pass, commit 9b401f7.
 - Spec checker 02: consistent. Auditor 03: pass, text cleanup (audited SHA 579cae86; finding #1: README:86 and test.sh:107 comment say only the test host gets GLIBC_TUNABLES, but its child processes inherit it).
 - Repair round 1: cleaner 04 (test.sh comment, 91d16e16), spec author 05 (README, 0ad136d0). Text-only proof base 579cae86: FAIL (scripts/** is behavioral), so a re-audit is due.
-- Next: spec checker (06) and auditor (07, repair only) in parallel on 0ad136d0, then validator (08).
+- Spec checker 06: consistent. Auditor 07: pass. **Audited SHA: be2f92c5.**
+- Next: validator (08), then lane check, note, publish.
