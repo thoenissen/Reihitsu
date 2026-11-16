@@ -18,6 +18,8 @@
 | 1 | Skeptic | Is drafted question 2 (RH5020/RH8303 follow the formatter) open? | Folded into question 1: the rules follow whatever the formatter keeps | SHARED-DIAG-010 and RH5020's mirror of FMT-BLANK-011 decide it | An unchanged requirement demands it | — |
 | 2 | Skeptic | Output-question form | Keep labels A/B/C as drafted; drop path and internal references from *Why*; add the analyzer line to each *After* | lead.md section 5, AGENTS.md *Output questions* | Question form only | — |
 | 3 | Skeptic | Architecture finding: the 'first content behind an opener' rule exists in three copies (BlockStartUtilities.IsFirstInBlock, RH5020 IsFirstCommentInBlock, RH8303 IsFirstInBlock) | Answer C:  give the rule one owner in an existing Reihitsu.Core utility used by all three, keeping the doc-phase `/** */` move narrow; escalation 9 if it needs a new type or >100 lines | A narrow fix would widen three copies identically, which is the drift the finding names | Internal structure | — |
+| 4 | Implementer | BlankLineTokenCleanupRewriter removed an author's blank line before a comment ahead of `]` once `[` was exempt | Keep the implementer's cheap condition in this run | Fallout of the run's change; covered by the existing empty-collection test | Restores FMT-BLANK-011/019 output that `main` already produces | a730de0 |
+| 5 | Implementer | Own Core.Test case for `SyntaxTriviaUtilities.IsContentOpeningToken` | Not added | The formatter, RH5020 and RH8303 matrices cover generic and operator `<` | Tests only | — |
 
 ## Follow-up candidates
 
@@ -28,5 +30,5 @@
 
 ## State
 
-- Last step: test implementer (9d9df71): 9 formatter + 20 analyzer tests fail for the expected reason.
-- Next: implementer (shared owner per decision 3), then cleaner.
+- Last step: implementer (a730de0), all tests pass.
+- Next: cleaner, spec checker, auditor, validator.
