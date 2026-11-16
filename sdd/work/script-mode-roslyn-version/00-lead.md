@@ -47,4 +47,5 @@ None.
 - Cleaner clean (11), spec checker consistent (12, 0507eaf).
 - Audit 3 on ec2b463 (main eb89003): finding #3, architecture finding (13-auditor.md, e8d0436); decision 8. Audited SHA for the text-only proof: ec2b463.
 - Decision 8 carried out: 06c2364 (14); TEXT-ONLY PROOF: PASS vs ec2b463.
-- Next step: validator, publish.
+- Validator: pass on f0ec035 (15, 16941c0).
+- Next step: publish (lane check, issue manager, note, trigger).
