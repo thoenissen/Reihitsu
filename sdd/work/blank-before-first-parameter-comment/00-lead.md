@@ -21,11 +21,12 @@
 
 ## Follow-up candidates
 
+- A comment first inside a parenthesized pattern makes the formatter put `(` and `)` on own lines and lands comment and pattern in the statement's column (04-test-implementer.md).
 - RH8303 reports `///` behind an argument-list `(`, collection-expression `[`, and type-argument `<`, which RH8303-001 says it does not cover (02-skeptic.md); likely resolved by the run under C.
 - Operator-wrap member of the alignment candidate: `return a <⏎// c⏎b;` (02-skeptic.md).
 - First element behind an opener of a type parameter list, statement header, cast, attribute list, array size, or parenthesized pattern lands in the enclosing line's column instead of aligned (01-spec-author.md). Rarity to be judged before the issue manager.
 
 ## State
 
-- Last step: spec author amendment (3fe7937), change doc Accepted.
-- Next: test implementer, then implementer (shared owner per decision 3).
+- Last step: test implementer (9d9df71): 9 formatter + 20 analyzer tests fail for the expected reason.
+- Next: implementer (shared owner per decision 3), then cleaner.
