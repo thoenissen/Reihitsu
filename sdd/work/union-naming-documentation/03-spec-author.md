@@ -36,3 +36,7 @@ _None._ Questions 1–5 of `01-spec-author.md` stand unchanged.
 ## Follow-up candidates
 
 _None._
+
+## Maintainer answers recorded
+
+The maintainer's answers (`00-lead.md`, *Maintainer answers*: 1A, 2A, 3A, 4A, 5A) are recorded in the change doc's `Decisions` section. Each "Pending the maintainer's answer. Recommended: …" now says which output question and option decided it. Under 5A it also notes the maintainer's addition that `<inheritdoc/>` on a type may be used but is not forced. Nothing else changed: the specs, the visible output changes, and the rule pages already follow option A. `Status` stays `Draft`, because `sdd/README.md` gives setting `Accepted` to the lead.

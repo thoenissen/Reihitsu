@@ -183,19 +183,19 @@ public union Shape(int, string);
 
 ### Unions get their own rule IDs
 
-Pending the maintainer's answer. Recommended: one naming rule (RH4012) and two documentation rules split by group (RH8035, RH8036), as every other type kind has. The issue names only a non-private documentation rule; the private one follows from the split that every documentation rule of a type kind has (SHARED-DOC-002), so that a nested `private union` is reported under the private rule and a project that requires documentation only for what other code uses can turn it off.
+Decided by the maintainer (output question 1, option A): one naming rule (RH4012) and two documentation rules split by group (RH8035, RH8036), as every other type kind has. The issue names only a non-private documentation rule; the private one follows from the split that every documentation rule of a type kind has (SHARED-DOC-002), so that a nested `private union` is reported under the private rule and a project that requires documentation only for what other code uses can turn it off.
 
 ### RH4012 offers the rename fix
 
-Pending the maintainer's answer. Recommended: the fix every type-casing rule offers (SHARED-CASING-006 to SHARED-CASING-010), with Fix All; a union is a named type, and renaming it and its references is the same rename as for a struct.
+Decided by the maintainer (output question 1, option A, which includes the rename fix and Fix All): the fix every type-casing rule offers (SHARED-CASING-006 to SHARED-CASING-010), with Fix All; a union is a named type, and renaming it and its references is the same rename as for a struct.
 
 ### A union's case types are not documented
 
-Pending the maintainer's answer. Recommended: RH8101 to RH8104 do not check a union, so nothing changes for them. A case type has no name, so no `<param>` can document it; checking a union would only add a report for a stray `<param>` on a union, which is rare, and would need the pairing of SHARED-DOC-015 to learn parameters without names.
+Decided by the maintainer (output question 2, option A): RH8101 to RH8104 do not check a union, so nothing changes for them. A case type has no name, so no `<param>` can document it; checking a union would only add a report for a stray `<param>` on a union, which is rare, and would need the pairing of SHARED-DOC-015 to learn parameters without names.
 
 ### Summary text, type parameters, and `<inheritdoc>` on a union are checked like any other type
 
-Pending the maintainer's answer. Recommended: RH8030, RH8108 to RH8111, and RH8203 check a union as they check a struct. A union inherits documentation when it has a base list, as a struct does; the interface the compiler adds to every union is not written in its base list, just as a struct's `ValueType` is not, so a union without a base list inherits nothing.
+Decided by the maintainer (output questions 3, 4, and 5, option A each): RH8030, RH8108 to RH8111, and RH8203 check a union as they check a struct. On RH8203 the maintainer added that `<inheritdoc/>` on a type may be used but is not forced: it is reported only where the type inherits nothing. A union inherits documentation when it has a base list, as a struct does; the interface the compiler adds to every union is not written in its base list, just as a struct's `ValueType` is not, so a union without a base list inherits nothing.
 
 ### SHARED-DOC-001 and SHARED-DOC-002 name the union body
 
