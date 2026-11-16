@@ -25,6 +25,7 @@
 ## Follow-up candidates
 
 - Event field / local declaration: a declarator written after an `#endif` loses its continuation indent on `main` (01-spec-author.md).
+- S1125 warnings in `src/Reihitsu.Cli/FormatCommandHandler.cs` (490, 501, 555) seen in the format script's Debug build, pre-existing on `main` (07-cleaner.md).
 
 ## State
 
@@ -35,4 +36,5 @@
 - Change doc Accepted (5fb97e9).
 - Test implementer done (707b6b8 tests, 505948e handover).
 - Implementer done (f5afc3a, handover bb66d1c); tie reason at non-declarator comma / FMT-UNSUP-008 follows FMT-UNSUP-010 text.
-- Next: cleaner.
+- Cleaner clean (37c1315).
+- Next: spec checker.
