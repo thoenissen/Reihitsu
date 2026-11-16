@@ -511,11 +511,12 @@ internal static class DocumentationAnalysisUtilities
     /// <summary>
     /// Determines whether the declaration is a union whose documentation is not judged (SHARED-DOC-019): one of its
     /// documentation comments holds a <c>param</c> or <c>paramref</c> element at any depth, in any letter case, or the
-    /// compiler's expansion of its documentation fails. A partial union is judged as a whole: every part is refused when
-    /// the documentation of any one part holds such an element, because the compiler joins the documentation of all
-    /// parts, and the expansion is the joined one of the union's symbol. A union's case types have no names such an
-    /// element could refer to, so the rules that use the requirement leave the union to be corrected by hand; a failed
-    /// expansion leaves the union unjudged instead of failing the rule
+    /// compiler's expansion of its documentation fails. A union declared more than once is judged as a whole: every
+    /// declaration is refused when the documentation of any one declaration holds such an element, whatever modifiers the
+    /// declarations carry, because the compiler joins the documentation of every declaration of the union's symbol, and
+    /// the expansion is the joined one of that symbol. A union's case types have no names such an element could refer
+    /// to, so the rules that use the requirement leave the union to be corrected by hand; a failed expansion leaves the
+    /// union unjudged instead of failing the rule
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <param name="semanticModel">Semantic model</param>
@@ -533,8 +534,7 @@ internal static class DocumentationAnalysisUtilities
             return true;
         }
 
-        if (declaration.Modifiers.Any(SyntaxKind.PartialKeyword)
-            && semanticModel?.GetDeclaredSymbol(declaration, cancellationToken) is { } unionSymbol
+        if (semanticModel?.GetDeclaredSymbol(declaration, cancellationToken) is { } unionSymbol
             && unionSymbol.DeclaringSyntaxReferences
                           .Select(obj => obj.GetSyntax(cancellationToken))
                           .Any(obj => obj != declaration && HasParameterElement(obj)))
