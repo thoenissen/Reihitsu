@@ -32,4 +32,5 @@
 - Skeptic done (d361337): #1728 proceed, #1586 proceed narrower.
 - Amendment done (b48ac9c).
 - Now: asked #1586 output question with option D (escalation 10), then test implementer. Answers received: 1A, 2A.
-- Next: spec author status follow-up (Decisions + Accepted), then test implementer.
+- Change doc Accepted (5fb97e9).
+- Next: test implementer.
