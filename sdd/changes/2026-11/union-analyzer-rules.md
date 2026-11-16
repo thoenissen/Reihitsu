@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | RH2004-001, RH2004-006, RH5105-001, RH5106-001, RH5108-001, RH5110-001, RH5404-001, RH5404-003, RH5507-001, RH5508-001, RH7102-001, RH7103-001, RH7104-001, RH7109-001, RH7110-001, RH7308-001, RH7309-002, RH7311-001, RH7311-002, SHARED-ATTR-001, SHARED-MODORDER-001, SHARED-REGGROUP-001, SHARED-TYPEREGION-001, SHARED-TYPEREGION-002, SHARED-TYPEREGION-006; new specs: RH2110 (RH2110-001), RH5418 (RH5418-001); clarified: SHARED-NESTED-001, RH7104-004, RH5035-001, RH5038-001, RH5101-001, RH5102-001, RH5107-001, RH5109-001, RH5203-001, RH5305-002, FMT-STRUCT-017, FMT-STRUCT-028 |
 | Depends on | [Union declarations are laid out like the other type declarations](union-declaration-layout.md), [No space between `with` and its argument list in a collection expression](with-element-spacing.md) |
