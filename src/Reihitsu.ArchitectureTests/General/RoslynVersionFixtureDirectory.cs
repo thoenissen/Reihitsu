@@ -5,7 +5,7 @@ using System.Text;
 namespace Reihitsu.ArchitectureTests.General;
 
 /// <summary>
-/// A temporary repository-like directory holding the fixture project and props files of one
+/// A temporary repository-like directory holding the fixture build files of one
 /// <see cref="RoslynPackageVersionTests"/> test
 /// </summary>
 internal sealed class RoslynVersionFixtureDirectory : IDisposable
@@ -18,9 +18,8 @@ internal sealed class RoslynVersionFixtureDirectory : IDisposable
     public RoslynVersionFixtureDirectory()
     {
         Root = Path.Combine(Path.GetTempPath(), "ReihitsuRoslynVersionTest", Guid.NewGuid().ToString("N"));
-        Source = Path.Combine(Root, "src");
 
-        Directory.CreateDirectory(Source);
+        Directory.CreateDirectory(Root);
     }
 
     #endregion // Constructor
@@ -31,11 +30,6 @@ internal sealed class RoslynVersionFixtureDirectory : IDisposable
     /// Full path of the fixture root
     /// </summary>
     public string Root { get; }
-
-    /// <summary>
-    /// Full path of the fixture's <c>src</c> directory
-    /// </summary>
-    public string Source { get; }
 
     #endregion // Properties
 
