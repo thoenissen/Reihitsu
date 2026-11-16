@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
@@ -178,7 +179,8 @@ public class DocumentationCommentCollapseGuardTests
     }
 
     /// <summary>
-    /// Verifies that formatting a documented accessor list twice produces the same output
+    /// Verifies that formatting a documented accessor list twice produces the same output, and that no phase run alone
+    /// changes the output (FMT-PIPE-027)
     /// </summary>
     [TestMethod]
     public void DocumentedAccessorListFormattingIsIdempotent()
@@ -187,6 +189,8 @@ public class DocumentationCommentCollapseGuardTests
         var second = Format(first, "\n", TestContext.CancellationToken);
 
         Assert.AreEqual(first, second, "The second formatting pass must be a no-op.");
+
+        PhaseStabilityCheck.AssertNoPhaseChanges(first, "\n", null);
     }
 
     /// <summary>
@@ -219,7 +223,8 @@ public class DocumentationCommentCollapseGuardTests
     }
 
     /// <summary>
-    /// Verifies that formatting a documented bracketed argument list twice produces the same output
+    /// Verifies that formatting a documented bracketed argument list twice produces the same output, and that no phase
+    /// run alone changes the output (FMT-PIPE-027)
     /// </summary>
     [TestMethod]
     public void DocumentedBracketedArgumentListFormattingIsIdempotent()
@@ -228,6 +233,8 @@ public class DocumentationCommentCollapseGuardTests
         var second = Format(first, "\n", TestContext.CancellationToken);
 
         Assert.AreEqual(first, second, "The second formatting pass must be a no-op.");
+
+        PhaseStabilityCheck.AssertNoPhaseChanges(first, "\n", null);
     }
 
     /// <summary>
@@ -265,7 +272,8 @@ public class DocumentationCommentCollapseGuardTests
     }
 
     /// <summary>
-    /// Verifies that formatting attribute lists separated by a documentation comment is idempotent
+    /// Verifies that formatting attribute lists separated by a documentation comment is idempotent, and that no phase run
+    /// alone changes the output (FMT-PIPE-027)
     /// </summary>
     [TestMethod]
     public void DocumentedAttributeListFormattingIsIdempotent()
@@ -274,6 +282,8 @@ public class DocumentationCommentCollapseGuardTests
         var second = Format(first, "\n", TestContext.CancellationToken);
 
         Assert.AreEqual(first, second, "The second formatting pass must be a no-op.");
+
+        PhaseStabilityCheck.AssertNoPhaseChanges(first, "\n", null);
     }
 
     /// <summary>
@@ -346,7 +356,8 @@ public class DocumentationCommentCollapseGuardTests
 
     /// <summary>
     /// Verifies that formatting the directive-wrapped shape twice produces the same output. Before the guard
-    /// covered the group boundaries the first pass emitted source the second pass could no longer parse
+    /// covered the group boundaries the first pass emitted source the second pass could no longer parse. No phase run alone
+    /// changes the output (FMT-PIPE-027)
     /// </summary>
     [TestMethod]
     public void DirectiveWrappedAttributeListFormattingIsIdempotent()
@@ -355,6 +366,8 @@ public class DocumentationCommentCollapseGuardTests
         var second = Format(first, "\n", TestContext.CancellationToken);
 
         Assert.AreEqual(first, second, "The second formatting pass must be a no-op.");
+
+        PhaseStabilityCheck.AssertNoPhaseChanges(first, "\n", null);
     }
 
     #endregion // Tests
