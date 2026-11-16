@@ -4,14 +4,14 @@
 |---|---|
 | Status | Draft |
 | Date | 2026-11 |
-| Affected requirements | FMT-UNSUP-010 (added), FMT-UNSUP-009 (changed: the reason at a declarator comma that FMT-UNSUP-010 also refuses), FMT-STRUCT-022 (changed: the leading trivia carries a directive to the first field), FMT-STRUCT-023 (retired), FMT-STRUCT-024 (changed: FMT-STRUCT-023 no longer named), FMT-PIPE-029 (changed: FMT-STRUCT-023 no longer named), FMT-PIPE-031 (changed: no directive condition), SHARED-FIX-011 (changed: example reference), RH7101-005 (changed: withheld through the precheck, not for a directive in front of the declaration) |
+| Affected requirements | FMT-UNSUP-010 (added), FMT-UNSUP-009 (changed: the reason at a declarator comma that FMT-UNSUP-010 also refuses), FMT-STRUCT-022 (changed: the leading trivia carries a directive to the first field; disabled text there keeps the declaration whole), FMT-STRUCT-023 (retired), FMT-STRUCT-024 (changed: FMT-STRUCT-023 no longer named), FMT-PIPE-029 (changed: FMT-STRUCT-023 no longer named), FMT-PIPE-031 (changed: the directive condition narrowed to disabled text in the leading trivia), SHARED-FIX-011 (changed: example reference), RH7101-005 (changed: withheld through the precheck, and for disabled text in front of the declaration, not for a directive in front of it) |
 | Depends on | [The formatter's Unsupported outcome](unsupported-precheck.md), [Declaring a shape unsupported is a refusal](unsupported-shape-as-refusal.md), [A comment or directive in front of a comma on a later line is unsupported](comma-behind-comment-unsupported.md) |
 
 ## What
 
 The formatter declares a new unsupported shape (FMT-UNSUP-010): a preprocessor directive or disabled text in the trivia of a token of a field declaration with more than one declarator, from its first token through its `;`, initializer values included — except the leading trivia of the declaration's first token. Every entry point refuses an input that holds it and reports it with the reason `a directive inside a field declaration with several declarators`; the CLI leaves the file unchanged and reports it (CLI-019); and every code fix whose formatted node holds it is withheld (SHARED-FIX-010).
 
-The field split (FMT-STRUCT-021) loses its directive guard. A field declaration whose only directives and disabled text stand in its leading trivia — a `#region` in front of it, the `#if` or `#else` of a group that holds the whole declaration, the `#endif` and the disabled text of a group in front of it — is no longer kept whole: it is split, and the leading trivia stays on the first field (FMT-STRUCT-022). The RH7101 fix is offered for it and splits it (RH7101-005).
+The field split (FMT-STRUCT-021) loses its directive guard but for one narrow class. A field declaration whose only directives stand in its leading trivia, with no disabled text there — a `#region` in front of it, the `#if` or `#else` of a group that holds the whole declaration, the `#endif` of a group in front of it whose code is all active — is no longer kept whole: it is split, and the leading trivia stays on the first field (FMT-STRUCT-022). The RH7101 fix is offered for it and splits it (RH7101-005). A declaration whose leading trivia holds disabled text stays whole, as on `main`, and the RH7101 fix stays withheld for it: that disabled text can be an attribute list or a modifier of the declaration in another build.
 
 This change covers thoenissen/Reihitsu#1728 (the shape) and thoenissen/Reihitsu#1586 (the declaration with a directive in front of it), which share their cause: the split's one guard for every directive in a field declaration.
 
@@ -20,6 +20,8 @@ This change covers thoenissen/Reihitsu#1728 (the shape) and thoenissen/Reihitsu#
 The split repeats the attributes, modifiers, and type on every field and carries over only the declaration's leading trivia, the declarators with their values, and the trivia behind the `;`. A directive anywhere else would be dropped, would end up guarding a different field, or — for a conditional group that starts in one value and ends in another or in front of the `;` — would put the repeated modifiers and type into another build's text. The split therefore kept every declaration with a directive anywhere in its trivia whole, through `FieldDeclarationSplitTransform.CarriesDirective`, and the RH7101 fix withheld itself by asking for it (FMT-PIPE-031, RH7101-005).
 
 That guard was wider than the danger. The leading trivia of the declaration's first token is the place of a `#region` and of the directives of a group around the declaration, which is common code; the split keeps that trivia on the first field unchanged, so a region still opens in front of the same code and a group around the declaration holds all of its fields. Kept whole there, the declaration carried an RH7101 diagnostic that neither the formatter nor the fix ever corrected (thoenissen/Reihitsu#1586). Everywhere else in the declaration, a directive is rare, and the maintainer decided to refuse it as a shape rather than keep the split's special case (thoenissen/Reihitsu#1728).
+
+The guard was not too wide for disabled text in the leading trivia. Disabled text there is code of another build and can belong to the declaration — an attribute list or a modifier in an inactive `#if` group — and the split would give it to the first field alone, so in that build the attribute or modifier would no longer apply to the other fields (FMT-PIPE-003, FMT-STRUCT-024). The CLI defines no preprocessor symbols, so every `#if DEBUG` group is disabled text there. Telling such a group from one that holds a member of its own needs the disabled text parsed; a combined field directly behind inactive code is rare, so the split keeps every such declaration whole, a check of the trivia kind alone.
 
 ## Visible output changes
 
@@ -178,6 +180,22 @@ class C
 
 The fixes that format the whole type, RH5110 and RH5404, split such a declaration as part of their result, as they already split every other combined field of the type.
 
+Disabled text in front of the declaration changes nothing: in a build that does not define `DEBUG`,
+
+```csharp
+using System.Diagnostics;
+
+class C
+{
+#if DEBUG
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+#endif
+    private int _a, _b;
+}
+```
+
+stays combined before and after (`main`, `scripts/format.sh`), and RH7101 is reported on it without a code fix (`main`, `scripts/apply-fix.sh RH7101`: no fix offered, LF and CRLF).
+
 No rule page changes: `documentation/rules/RH7101.md` says nothing about directives, and the withheld fixes are covered by `documentation/rules/general-notes.md` ("A diagnostic without a code fix").
 
 ## Decisions
@@ -189,6 +207,10 @@ The maintainer decided to declare a directive or disabled text inside a field de
 ### The leading trivia of the first token is not part of the shape
 
 Open: this is the output question of thoenissen/Reihitsu#1586, asked in this run. The spec is written on the recommendation — the leading trivia is excepted and the declaration is split — because the split keeps that trivia on the first field unchanged, and refusing it would refuse every file whose combined field follows a `#region` or ends a conditional group in front of it. The alternatives are recorded below.
+
+### Disabled text in the leading trivia keeps the declaration whole
+
+Decided by the lead on the skeptic's finding, and part of the same open output question: a declaration whose leading trivia holds disabled text is not split, and the RH7101 fix is withheld for it — `main`'s output for that class. The split would give an attribute list or a modifier of another build to the first field alone, which FMT-PIPE-003 and FMT-STRUCT-024 forbid; the class is rare, so it is refused locally by one cheap check of the trivia kind (`AGENTS.md`, *Special cases do not grow the source*). The check is by kind, not by what the disabled text holds or where its group ends: a group holding a whole member of its own, or the declaration's own `#if` branch with the declaration in the active `#else`, keeps it whole as well, because telling them apart needs the disabled text parsed or the directives matched up.
 
 ### No initializer value is excepted
 
@@ -206,8 +228,8 @@ A directive between a declarator and a comma on a later line is refused today un
 
 ### Deleted
 
-- `FieldDeclarationSplitTransform.CarriesDirective` and its operand in `FieldDeclarationSplitTransform.Splits`, with the sentences of their documentation and of `SplitFields` that explain it. Every directive and disabled text it found outside the leading trivia of the first token is in FMT-UNSUP-010's span, and the split never meets a node-level input that holds part of a field declaration: it runs on the member list of a type, so every declaration it splits is in the input whole (FMT-UNSUP-003).
-- The directive condition of `ReihitsuFormatter.SplitsFieldDeclaration` (FMT-PIPE-031), which is `Splits`, and the sentence of its documentation.
+- `FieldDeclarationSplitTransform.CarriesDirective` and its operand in `FieldDeclarationSplitTransform.Splits`, with the sentences of their documentation and of `SplitFields` that explain it — all but the check for disabled text in the leading trivia of the first token, which stays (*Checked and kept*). Every directive and disabled text it found outside that leading trivia is in FMT-UNSUP-010's span, and the split never meets a node-level input that holds part of a field declaration: it runs on the member list of a type, so every declaration it splits is in the input whole (FMT-UNSUP-003).
+- The directive condition of `ReihitsuFormatter.SplitsFieldDeclaration` (FMT-PIPE-031), which is `Splits`, narrowed to that same check, and the sentence of its documentation.
 - FMT-STRUCT-023 (retired) and its mentions in FMT-STRUCT-024, FMT-PIPE-029, FMT-PIPE-031, and SHARED-FIX-011; RH7101-005's own withholding, which now follows from SHARED-FIX-010 through the type the fix already asks about.
 
 ### Checked and kept
@@ -217,12 +239,16 @@ A directive between a declarator and a comma on a later line is refused today un
 - `CreateSplitField`'s dropping of a later declarator's leading trivia and a separator's trailing trivia: no guard; that trivia now provably holds no comment (FMT-UNSUP-004) and no directive or disabled text (FMT-UNSUP-010).
 - FMT-UNSUP-009's refusal of a directive in front of a declarator comma on a later line: it also serves local declarations and every other list.
 - FMT-STRUCT-028's "no split with a comment or a directive between the brackets": it serves attribute lists of every declaration, also of a field with one declarator.
-- The RH7101 fix's call of `SplitsFieldDeclaration` and `FindUnsupportedSyntax` on the type: unchanged; together they now withhold the fix for the shape and offer it for a directive in the leading trivia.
+- The split's check for disabled text in the leading trivia of the declaration's first token (FMT-STRUCT-022), and the same condition in `SplitsFieldDeclaration` (FMT-PIPE-031): that trivia is outside FMT-UNSUP-010's span, and disabled text there can be an attribute list or a modifier of the declaration in another build. Declaring it unsupported as well would delete this check, at the price of refusing whole files; that option is part of the open output question.
+- The RH7101 fix's call of `SplitsFieldDeclaration` and `FindUnsupportedSyntax` on the type: unchanged; together they now withhold the fix for the shape and for disabled text in the leading trivia, and offer it for a directive in the leading trivia.
 
 ## Alternatives considered
 
 - **Keep the guard** — rejected by the maintainer (thoenissen/Reihitsu#1728): the declaration stays unsplit silently, and the split keeps a special case for a rare input.
-- **Refuse the leading trivia too** (thoenissen/Reihitsu#1586, open) — it would refuse every file in which a `#region`, a group around the declaration, or the end of a group in front of it precedes a combined field: common code, refused as a whole, where `main` formats it and only keeps the declaration combined.
+- **Refuse the leading trivia too** (thoenissen/Reihitsu#1586, open) — it would delete the split's check for disabled text in the leading trivia, but refuse every file in which a `#region`, a group around the declaration, or the end of a group in front of it precedes a combined field: common code, refused as a whole, where `main` formats it and only keeps the declaration combined.
+- **Declare disabled text in the leading trivia unsupported** (thoenissen/Reihitsu#1586, open; escalation 10) — the shape would be disabled text in the leading trivia of the first token of a field declaration with several declarators. It would delete the same check, and refuse every file in which inactive conditional code directly precedes a combined field; for the CLI, which defines no symbols, that is every `#if DEBUG` group there. Not recommended: a single construct, for which leaving it as written is enough.
+- **Split disabled text in the leading trivia** (as first drafted) — rejected: an attribute list or a modifier of another build would apply to the first field alone (FMT-PIPE-003, FMT-STRUCT-024).
+- **Keep whole only when an `#endif` follows the disabled text in the leading trivia** — rejected: it reads the order of the directives to split one more rare cell (the declaration in the active `#else` of a group), and a group holding a whole member of its own in front still stays whole.
 - **Keep the declaration whole where a directive leads it** (thoenissen/Reihitsu#1586, open) — keeps a narrowed copy of `CarriesDirective` for the leading trivia, and the RH7101 diagnostic stays without a fix for a common shape, although the split drops and moves nothing there.
 - **Except the inside of an initializer value, as FMT-UNSUP-004 does** — rejected: a conditional group that crosses a comma would reach the split, and recognizing one needs the directives matched up.
 - **Declare it for every variable declaration** — rejected: locals, `for` initializers, and `using` and `fixed` declarations are not split, so the wider shape deletes nothing (`AGENTS.md`: a shape that deletes nothing is not declared).

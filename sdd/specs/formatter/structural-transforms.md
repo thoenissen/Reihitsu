@@ -1091,9 +1091,11 @@ When the formatter splits a field under FMT-STRUCT-021, the declaration's leadin
 
 These are the only places of a split declaration that can hold a comment. The formatter refuses an input with a comment anywhere else in a field declaration — among its attributes and modifiers, in its type, at a declarator's name, at an `=` or in front of a value, at a `,` between declarators, or in front of the `;` (FMT-UNSUP-004) — so no split field carries one there. FMT-UNSUP-004 states which comments around a value count as inside it. A declaration with a documentation comment is not split (FMT-STRUCT-030), so the leading trivia that stays on the first field holds no documentation comment.
 
-The declaration's leading trivia stays on the first field also when it holds a preprocessor directive or disabled text — a `#region`, the `#if` or `#else` of a group that holds the whole declaration, or the `#endif` and the disabled text of a group in front of it. The leading trivia is the only place of a split declaration that can hold a directive or disabled text: the formatter refuses an input with one anywhere else in a field declaration with several declarators, also inside an initializer value (FMT-UNSUP-010), and no directive or disabled text can stand behind the `;`, because it always belongs to the leading trivia of the token behind it.
+The declaration's leading trivia stays on the first field also when it holds a preprocessor directive — a `#region`, the `#if` or `#else` of a group that holds the whole declaration, or the `#endif` of a group in front of it whose code is all active. The leading trivia is the only place of a split declaration that can hold a directive or disabled text: the formatter refuses an input with one anywhere else in a field declaration with several declarators, also inside an initializer value (FMT-UNSUP-010), and no directive or disabled text can stand behind the `;`, because it always belongs to the leading trivia of the token behind it.
 
-Why: Each comment keeps describing the code it was written next to. A comment in front of the declaration stays in front of it, where its first field now begins; a comment in a value stays in the value it describes; and a comment behind the declaration stays behind its end, which is now the last field's. A documentation comment documents every field of the declaration, so keeping it on the first field would leave the others undocumented, and the declaration is not split instead (FMT-STRUCT-030). A directive in front of the declaration stays in front of its first field, so a region still opens in front of the same code, and a conditional group that held the declaration holds all of its fields; a group that ends in front of the declaration still ends there.
+The formatter MUST NOT split a field declaration whose leading trivia — the leading trivia of its first token — holds disabled text, and MUST leave it as written. This holds whatever the disabled text holds: an attribute list or a modifier of the declaration in another build, a whole member of its own, or the declaration's own `#if` branch for another build, where the declaration stands in the active `#else`. A directive in that trivia without disabled text — a region, a group around the declaration, the `#endif` of a group whose code is active — does not stop the split.
+
+Why: Each comment keeps describing the code it was written next to. A comment in front of the declaration stays in front of it, where its first field now begins; a comment in a value stays in the value it describes; and a comment behind the declaration stays behind its end, which is now the last field's. A documentation comment documents every field of the declaration, so keeping it on the first field would leave the others undocumented, and the declaration is not split instead (FMT-STRUCT-030). A directive in front of the declaration stays in front of its first field, so a region still opens in front of the same code, and a conditional group that held the declaration holds all of its fields; a group that ends in front of the declaration still ends there. Disabled text is code of another build, and in front of the declaration it can be part of it: an attribute list or a modifier that another build compiles onto the declaration would, after a split, apply to the first field alone in that build, a change of what the code compiles to that FMT-PIPE-003 and FMT-STRUCT-024 forbid. Telling such disabled text from a whole member of its own needs the disabled text parsed, which is no cheap check; a combined field directly behind inactive code is rare, so every declaration with disabled text in its leading trivia stays whole, and the split decides it from the trivia kind alone.
 
 Example:
 
@@ -1148,9 +1150,58 @@ class C
 }
 ```
 
+Example — disabled text in the declaration's leading trivia keeps it whole; in a build that does not define `DEBUG` and `NETSTANDARD`, each group in front of a declaration is disabled text, while `D` is defined at the top of the file, so the group in front of `_m, _n` holds no disabled text:
+
+```csharp
+#define D
+using System.Diagnostics;
+
+class C
+{
+#if DEBUG
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+#endif
+    private int _a, _b;
+
+#if NETSTANDARD
+    static
+#endif
+    private int _c, _d;
+
+#if D
+    private int _x;
+#endif
+    private int _m, _n;
+}
+```
+
+```csharp
+#define D
+using System.Diagnostics;
+
+class C
+{
+#if DEBUG
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+#endif
+    private int _a, _b;
+
+#if NETSTANDARD
+    static
+#endif
+    private int _c, _d;
+
+#if D
+    private int _x;
+#endif
+    private int _m;
+    private int _n;
+}
+```
+
 ### FMT-STRUCT-023 — A field with directives is not split
 
-Status: Retired — a directive or disabled text inside a field declaration with several declarators, outside the leading trivia of its first token, is a shape the formatter refuses as a whole (FMT-UNSUP-010), so the split never meets it; a directive or disabled text in the leading trivia stays on the first field, and the declaration is split (FMT-STRUCT-022).
+Status: Retired — a directive or disabled text inside a field declaration with several declarators, outside the leading trivia of its first token, is a shape the formatter refuses as a whole (FMT-UNSUP-010), so the split never meets it; a directive in the leading trivia stays on the first field, and the declaration is split, while disabled text in the leading trivia keeps the declaration whole (FMT-STRUCT-022).
 
 ### FMT-STRUCT-024 — A rewrite that cannot be completed safely is not applied
 

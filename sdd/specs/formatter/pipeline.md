@@ -5,7 +5,7 @@
 | ID prefix | FMT-PIPE |
 | Status | Active |
 | Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `PreparationPhase`, `FormattingContext`, `RootConstruct`, `RootConstructExtensions`, `TriviaFact`, `FluentChainBoundary`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities`, `BlockWrapTriviaUtilities` |
-| Uses | CLI-021, PLAY-009, RH3208-003, RH7101-006, RH7201-004, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-COMMENT-012, SHARED-DIAG-001, SHARED-DOC-004, SHARED-FIX-001, SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-006, SHARED-FIX-007, SHARED-FIX-008, SHARED-FIX-010, SHARED-FIX-011, SHARED-FIX-012, SHARED-USING-009, SHARED-USING-010, FMT-BLANK-001, FMT-BLANK-011, FMT-BLANK-012, FMT-BLANK-013, FMT-BLANK-014, FMT-BLANK-018, FMT-BREAK-001, FMT-BREAK-006, FMT-BREAK-007, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-BREAK-033, FMT-BREAK-036, FMT-CLEAN-001, FMT-CLEAN-005, FMT-CLEAN-007, FMT-CLEAN-008, FMT-DOC-001, FMT-DOC-003, FMT-DOC-005, FMT-DOC-008, FMT-DOC-009, FMT-DOC-010, FMT-DOC-011, FMT-DOC-012, FMT-DOC-013, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-018, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-028, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-026, FMT-STRUCT-030, FMT-SWITCH-003, FMT-SWITCH-008, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, FMT-UNSUP-010, FMT-USING-003, FMT-USING-010 |
+| Uses | CLI-021, PLAY-009, RH3208-003, RH7101-006, RH7201-004, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-COMMENT-012, SHARED-DIAG-001, SHARED-DOC-004, SHARED-FIX-001, SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-006, SHARED-FIX-007, SHARED-FIX-008, SHARED-FIX-010, SHARED-FIX-011, SHARED-FIX-012, SHARED-USING-009, SHARED-USING-010, FMT-BLANK-001, FMT-BLANK-011, FMT-BLANK-012, FMT-BLANK-013, FMT-BLANK-014, FMT-BLANK-018, FMT-BREAK-001, FMT-BREAK-006, FMT-BREAK-007, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-BREAK-033, FMT-BREAK-036, FMT-CLEAN-001, FMT-CLEAN-005, FMT-CLEAN-007, FMT-CLEAN-008, FMT-DOC-001, FMT-DOC-003, FMT-DOC-005, FMT-DOC-008, FMT-DOC-009, FMT-DOC-010, FMT-DOC-011, FMT-DOC-012, FMT-DOC-013, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-018, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-028, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-022, FMT-STRUCT-026, FMT-STRUCT-030, FMT-SWITCH-003, FMT-SWITCH-008, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, FMT-UNSUP-010, FMT-USING-003, FMT-USING-010 |
 
 This spec covers what holds for the formatter as a whole: the public entry points, the fixed phase order, and the invariants every phase must keep. What an individual phase decides is specified in that phase's own spec.
 
@@ -1930,11 +1930,11 @@ using System.Linq; class C { } } }
 
 ### FMT-PIPE-031 — The formatter answers whether it splits a field declaration
 
-`SplitsFieldDeclaration` MUST return whether the structural phase splits the field declaration it is given: true exactly when the declaration has more than one declarator, is a member of a class, struct, record, interface, or union declaration (FMT-STRUCT-021), and has no documentation comment when the documentation mode of its syntax tree is `Parse` or `Diagnose` (FMT-STRUCT-030). Whether the formatter refuses the declaration, or the type around it, as unsupported is not part of the answer: `FindUnsupportedSyntax` answers that (FMT-UNSUP-007).
+`SplitsFieldDeclaration` MUST return whether the structural phase splits the field declaration it is given: true exactly when the declaration has more than one declarator, is a member of a class, struct, record, interface, or union declaration (FMT-STRUCT-021), has no disabled text in its leading trivia (FMT-STRUCT-022), and has no documentation comment when the documentation mode of its syntax tree is `Parse` or `Diagnose` (FMT-STRUCT-030). Whether the formatter refuses the declaration, or the type around it, as unsupported is not part of the answer: `FindUnsupportedSyntax` answers that (FMT-UNSUP-007).
 
 This requirement decides the input the RH7101 code fix passes (`AGENTS.md`, *Supported inputs*): the field declaration of a diagnostic.
 
-Why: The RH7101 fix splits a declaration only through formatting it (FMT-PIPE-029), so it must not be offered where formatting does not split it (SHARED-FIX-005); RH7101-006 is the case where formatting does not split a declaration the rule reports. The split states its own applicability once; the fix asks the formatter instead of keeping a copy of the split's conditions, which could drift apart from them. A declaration with a comment that FMT-UNSUP-004 refuses, or with a directive or disabled text that FMT-UNSUP-010 refuses, never reaches the split, because the precheck refuses every input that holds it; a condition for it here would put a guard for a refused shape back into the phase, and would state a second time what SHARED-FIX-010 already decides for the fix through the type it formats.
+Why: The RH7101 fix splits a declaration only through formatting it (FMT-PIPE-029), so it must not be offered where formatting does not split it (SHARED-FIX-005); RH7101-006 is the case where formatting does not split a declaration the rule reports. The split states its own applicability once; the fix asks the formatter instead of keeping a copy of the split's conditions, which could drift apart from them. A declaration with a comment that FMT-UNSUP-004 refuses, or with a directive or disabled text that FMT-UNSUP-010 refuses, never reaches the split, because the precheck refuses every input that holds it; a condition for it here would put a guard for a refused shape back into the phase, and would state a second time what SHARED-FIX-010 already decides for the fix through the type it formats. Disabled text in the declaration's leading trivia is no refused shape: the split itself keeps such a declaration whole, so the answer carries that condition.
 
 Example — in
 
@@ -1951,6 +1951,26 @@ class C
 ```
 
 the method returns true for `_a, _b` and for `_c, _d, _e`; `FindUnsupportedSyntax` returns the directive `#if DEBUG` of `_c, _d, _e` for that declaration and for the class (FMT-UNSUP-010), and null for `_a, _b`.
+
+Example — in a build that does not define `DEBUG`, in
+
+```csharp
+class C
+{
+    #region Fields
+
+    private int _a, _b;
+
+    #endregion // Fields
+
+#if DEBUG
+    [System.Obsolete]
+#endif
+    private int _c, _d;
+}
+```
+
+the method returns true for `_a, _b`, whose leading trivia holds only a directive, and false for `_c, _d`, whose leading trivia holds disabled text (FMT-STRUCT-022); `FindUnsupportedSyntax` returns null for both declarations and for the class.
 
 Example — when the documentation mode is `Parse`, in
 
