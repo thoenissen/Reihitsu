@@ -16,13 +16,17 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | skeptic | Proceed or close the issue as not worth it? | Proceed with the issue's goal (first/last token of each value computed once per declaration) | Cheap, few lines; the skeptic measured large gains on deep spines on the code-fix registration path (e.g. 560 ms to 1.5 ms for a 1000-link chain), negligible on real code (0.03 % of formatting) | Time only; skeptic confirmed identical verdicts on all 1912 `src/` files and every generated input | – |
+| 2 | skeptic | Also remove the nested-declaration re-walk and the per-token `values.Find`? | No, keep the run to the issue's goal | Neither is the issue's goal; the gain is small on real code | Internal | – |
+| 3 | skeptic | Issue goals: "removes most of it" and the nested-lambda benchmark | Adjusted: the PR justifies the change with the deep-spine / code-fix-registration numbers and states the gain on real code is negligible | Skeptic's measurement | No output involved | – |
 
 ## Follow-up candidates
 
-(none yet)
+1. `PrecheckPhase.FindTriviaInFrontOfComma` is quadratic in list length (`GetPreviousToken`/`GetNextToken` per comma); whole cost on code-fix registration for long lists (RH5303, RH5305). Source: 01-skeptic.md.
+2. Later formatter phases slow sharply on long expressions and lists (1000-link chain 183 s, 1000-branch `?:` 109 s, 2000-term concatenation 30 s, 20 000-element array 144 s); phase not traced. Source: 01-skeptic.md.
 
 ## State
 
 - Audited SHA: –
-- Last step: claim, lane, 00-lead.md.
-- Next: skeptic.
+- Last step: skeptic (01-skeptic.md, verdict proceed, no output questions).
+- Next: test implementer.
