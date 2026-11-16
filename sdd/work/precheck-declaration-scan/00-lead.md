@@ -34,3 +34,9 @@
 - Repair round 1: test implementer (07, bd94601), cleaner (08, clean), spec checker (09, consistent).
 - Auditor repair audit: pass.
 - Next: validator and issue manager (all three follow-up candidates), then note, delete sdd/work, trigger commit, PR.
+
+## Follow-up issues
+
+- Candidate 1 -> thoenissen/Reihitsu#1802 (created)
+- Candidate 2 -> thoenissen/Reihitsu#1803 (created)
+- Candidate 3 -> thoenissen/Reihitsu#1801 (existing; comment added)
