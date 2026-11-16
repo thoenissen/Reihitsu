@@ -47,7 +47,7 @@ Batch 1 (before test implementer), answer "1a 2a 3a 4a 5a 6a":
 
 ## Follow-up candidates
 
-- Profile the per-file formatter pipeline and benchmark 1.2.0 vs 1.3.0 on a fixed corpus (issue's other two ideas; no visible output) — 01-spec-author.md, 02-skeptic.md
+- [filed as #1820] Profile the per-file formatter pipeline and benchmark 1.2.0 vs 1.3.0 on a fixed corpus (issue's other two ideas; no visible output) — 01-spec-author.md, 02-skeptic.md
 - LcsComputer (n+1)(m+1) memory per changed file in --dry-run, multiplied by parallel degree — 02-skeptic.md
 - Confirm Windows behavior of concurrent writes to one physical file via aliases — 02-skeptic.md (depends on Q5 answer)
 - Dedupe one physical file reached by several paths — 02-skeptic.md (Q5 answered A)
