@@ -10,7 +10,8 @@
 
 ## Maintainer answers
 
-(none yet)
+- Batch 1 (Q1–Q5 of 01-spec-author.md): Q1 A (new rules RH4012, RH8035, RH8036), Q2 A (parameter rules do not check unions), Q3 A (RH8030 reports an empty union summary), Q4 A (RH8108–RH8111 check union type parameters).
+- Q5 (RH8203 on unions): not answered with an option. The maintainer asked whether `<inheritdoc/>` is meant only for members and stated that a type should carry its own documentation. Asked back with options A (report only without base list), B (not reported), C (report on every union, base list or not); waiting.
 
 ## Decisions taken
 
