@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -49,16 +49,18 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzer : DiagnosticAnal
     }
 
     /// <summary>
-    /// Determines whether the comment starts a block or switch section
+    /// Determines whether the comment is the first content behind an opening token or of a switch section: the token in
+    /// front of its owning token is missing, opens content (<see cref="SyntaxTriviaUtilities.IsContentOpeningToken"/>), or
+    /// is the colon of a switch label (RH5020-002)
     /// </summary>
     /// <param name="commentTrivia">The comment trivia</param>
-    /// <returns><see langword="true"/> if the comment starts a block or switch section</returns>
-    private static bool IsFirstCommentInBlock(SyntaxTrivia commentTrivia)
+    /// <returns><see langword="true"/> if the comment is the first content behind an opening token or of a switch section</returns>
+    private static bool IsFirstCommentBehindOpeningToken(SyntaxTrivia commentTrivia)
     {
         var previousToken = commentTrivia.Token.GetPreviousToken();
 
         return previousToken.RawKind == 0
-               || previousToken.IsKind(SyntaxKind.OpenBraceToken)
+               || SyntaxTriviaUtilities.IsContentOpeningToken(previousToken)
                || (previousToken.IsKind(SyntaxKind.ColonToken)
                    && previousToken.Parent?.Kind() is SyntaxKind.CaseSwitchLabel
                                                    or SyntaxKind.CasePatternSwitchLabel
@@ -125,7 +127,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzer : DiagnosticAnal
             if (previousNonBlankLineIndex < 0
                 || commentLineIndex - previousNonBlankLineIndex > 1
                 || IsPrecededByCommentOrDirective(trivia)
-                || IsFirstCommentInBlock(trivia))
+                || IsFirstCommentBehindOpeningToken(trivia))
             {
                 continue;
             }
