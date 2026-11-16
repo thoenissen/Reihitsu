@@ -41,5 +41,5 @@ None yet.
 
 ## State
 
-- Last step: spec author repair (06), f2a9122; proof FAIL on scripts/README.md only. Repair round 1 of 3.
-- Next: spec checker, auditor on the repair, validator, publish.
+- Last step: repair audit (08), 2a0744f; finding #2 repeats #1 → architecture finding, decision 8.
+- Next: spec author carries out decision 8; spec checker; auditor; validator; publish.
