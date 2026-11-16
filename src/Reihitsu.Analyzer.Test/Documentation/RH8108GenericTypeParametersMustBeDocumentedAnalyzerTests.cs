@@ -325,5 +325,89 @@ public class RH8108GenericTypeParametersMustBeDocumentedAnalyzerTests : Analyzer
         await Verify(source);
     }
 
+    /// <summary>
+    /// Verifies a diagnostic is reported for an undocumented type parameter of a documented union, and none for a
+    /// documented union whose type parameters are documented or for an undocumented union
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8108-001")]
+    [Requirement("RH8108-002")]
+    public async Task VerifyDiagnosticForUndocumentedUnionTypeParameter()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Result
+                              /// </summary>
+                              /// <typeparam name="TValue">Value</typeparam>
+                              public union Result<TValue, {|#0:TError|}>(TValue, TError);
+
+                              /// <summary>
+                              /// Option
+                              /// </summary>
+                              /// <typeparam name="T">Value</typeparam>
+                              public union Option<T>(T, string);
+
+                              public union Undocumented<T>(T, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH8108GenericTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8108MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for the undocumented type parameter of a union whose second
+    /// <c>&lt;typeparam&gt;</c> element names no type parameter of the union
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8108-001")]
+    public async Task VerifyDiagnosticForUnionTypeParameterWhenTypeParamElementNamesAnother()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Result
+                              /// </summary>
+                              /// <typeparam name="TValue">Value</typeparam>
+                              /// <typeparam name="TOther"></typeparam>
+                              public union Result<TValue, {|RH8108:TError|}>(TValue, TError);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for the undocumented type parameter of a union with a constraint clause and
+    /// a body, nested in a class as a private union
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8108-001")]
+    public async Task VerifyDiagnosticForUndocumentedTypeParameterOfConstrainedNestedUnion()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Outer
+                              /// </summary>
+                              public class Outer
+                              {
+                                  /// <summary>
+                                  /// Box
+                                  /// </summary>
+                                  private union Box<{|RH8108:T|}>(T, string)
+                                      where T : class
+                                  {
+                                  }
+                              }
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 }

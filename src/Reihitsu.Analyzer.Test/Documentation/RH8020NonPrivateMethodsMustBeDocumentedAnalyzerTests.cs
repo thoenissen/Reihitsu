@@ -640,5 +640,60 @@ public class RH8020NonPrivateMethodsMustBeDocumentedAnalyzerTests : AnalyzerTest
         await Verify(source, Diagnostics(RH8020NonPrivateMethodsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8020MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies a diagnostic is reported for an undocumented public method declared in the body of a union, whether or
+    /// not the union is documented
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-001")]
+    public async Task VerifyDiagnosticForUndocumentedMethodInUnionBody()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Holder
+                              /// </summary>
+                              public union Holder(int, string)
+                              {
+                                  public int {|RH8020:Count|}() => 0;
+                              }
+
+                              public union Shape(int, string)
+                              {
+                                  public int {|RH8020:Sides|}() => 0;
+                              }
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for an undocumented method without an access modifier in the body of a
+    /// union, which is in the private group
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DOC-002")]
+    public async Task VerifyNoDiagnosticForImplicitlyPrivateMethodInUnionBody()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Holder
+                              /// </summary>
+                              public union Holder(int, string)
+                              {
+                                  int Implicit() => 0;
+
+                                  private int Explicit() => 0;
+                              }
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 }

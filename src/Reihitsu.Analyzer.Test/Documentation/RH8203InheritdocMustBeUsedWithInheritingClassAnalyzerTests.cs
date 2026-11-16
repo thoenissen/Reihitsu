@@ -1782,5 +1782,91 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzerTests : Analyz
         await Verify(source);
     }
 
+    /// <summary>
+    /// Verifies a diagnostic is reported for <c>&lt;inheritdoc/&gt;</c> on a union without a base list, and none on a
+    /// union whose base list names an interface
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    [Requirement("RH8203-002")]
+    public async Task VerifyDiagnosticForInheritdocOnUnionWithoutBaseList()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Contract
+                              /// </summary>
+                              public interface IShape
+                              {
+                              }
+
+                              /// {|#0:<inheritdoc/>|}
+                              public union Shape(int, string);
+
+                              /// <inheritdoc/>
+                              public union Named(int, string) : IShape;
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, AnalyzerResources.RH8203MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for <c>&lt;inheritdoc/&gt;</c> on a private union without a base list, nested
+    /// in a class, and with a body
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    public async Task VerifyDiagnosticForInheritdocOnNestedUnionWithBodyWithoutBaseList()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Outer
+                              /// </summary>
+                              public class Outer
+                              {
+                                  /// {|RH8203:<inheritdoc/>|}
+                                  private union Inner(int, string)
+                                  {
+                                  }
+                              }
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for <c>&lt;inheritdoc cref="..."/&gt;</c> on a union, with or without a base
+    /// list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8203-001")]
+    public async Task VerifyNoDiagnosticForInheritdocWithCrefOnUnion()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Contract
+                              /// </summary>
+                              public interface IShape
+                              {
+                              }
+
+                              /// <inheritdoc cref="IShape"/>
+                              public union Shape(int, string);
+
+                              /// <inheritdoc cref="IShape"/>
+                              public union Named(int, string) : IShape;
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 }

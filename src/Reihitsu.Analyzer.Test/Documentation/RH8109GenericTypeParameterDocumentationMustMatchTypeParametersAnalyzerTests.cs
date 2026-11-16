@@ -279,5 +279,58 @@ public class RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnaly
         await Verify(source, Diagnostics(RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnalyzer.DiagnosticId, AnalyzerResources.RH8109MessageFormat, 3));
     }
 
+    /// <summary>
+    /// Verifies a diagnostic is reported for each <c>&lt;typeparam&gt;</c> element of a union that does not follow the
+    /// order of its type parameters, and none for a union whose elements follow them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8109-001")]
+    [Requirement("RH8109-002")]
+    public async Task VerifyDiagnosticsForUnionTypeParamElementsInWrongOrder()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Result
+                              /// </summary>
+                              /// {|#0:<typeparam name="TError">Error</typeparam>|}
+                              /// {|#1:<typeparam name="TValue">Value</typeparam>|}
+                              public union Result<TValue, TError>(TValue, TError);
+
+                              /// <summary>
+                              /// Option
+                              /// </summary>
+                              /// <typeparam name="T">Value</typeparam>
+                              public union Option<T>(T, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnalyzer.DiagnosticId, AnalyzerResources.RH8109MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for a <c>&lt;typeparam&gt;</c> element of a union that names no type parameter
+    /// at its position
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8109-001")]
+    public async Task VerifyDiagnosticForUnionTypeParamElementNamingAnotherTypeParameter()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Result
+                              /// </summary>
+                              /// <typeparam name="TValue">Value</typeparam>
+                              /// {|RH8109:<typeparam name="TOther"></typeparam>|}
+                              public union Result<TValue, TError>(TValue, TError);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 }

@@ -481,5 +481,28 @@ public class RH4122SingleLetterParameterNamesAnalyzerTests : AnalyzerTestsBase<R
         await Verify(testData, test => test.TestState.Sources.Add(("/0/C.g.cs", "public partial class C\n{\n    public partial C(int a)\n    {\n    }\n}\n")));
     }
 
+    /// <summary>
+    /// Verifies no diagnostic is reported for the case types of a union, which are parameters without names, also
+    /// when a case type has a single-letter name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForUnionCaseTypes()
+    {
+        const string source = """
+                              public class A
+                              {
+                              }
+
+                              public union Pet(A, string);
+
+                              public union Result<T>(T, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 }

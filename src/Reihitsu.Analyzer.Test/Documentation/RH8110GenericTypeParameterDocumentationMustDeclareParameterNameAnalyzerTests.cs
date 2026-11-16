@@ -224,5 +224,34 @@ public class RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnal
         await Verify(source, Diagnostics(RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH8110MessageFormat, 5));
     }
 
+    /// <summary>
+    /// Verifies a diagnostic is reported for a <c>&lt;typeparam&gt;</c> element without a name on a union, and none for
+    /// a union whose element names its type parameter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8110-001")]
+    [Requirement("RH8110-002")]
+    public async Task VerifyDiagnosticForUnionTypeParamElementWithoutName()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Result
+                              /// </summary>
+                              /// {|#0:<typeparam>Value</typeparam>|}
+                              public union Result<TValue>(TValue, string);
+
+                              /// <summary>
+                              /// Option
+                              /// </summary>
+                              /// <typeparam name="T">Value</typeparam>
+                              public union Option<T>(T, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH8110MessageFormat));
+    }
+
     #endregion // Tests
 }
