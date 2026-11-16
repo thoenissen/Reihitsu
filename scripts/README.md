@@ -10,7 +10,7 @@ Paths are resolved against **your** working directory, not the repository root: 
 |---|---|
 | `prepare.sh` | Verify the toolchain, installing the SDK only if needed |
 | `build.sh` | `dotnet build Reihitsu.sln`, in Release unless `--configuration Debug` |
-| `test.sh` | Run one test project or the default set (every project except the self-hosting scans), with an optional focused filter and configuration |
+| `test.sh` | Run one test project or the default set ([The default test run](#the-default-test-run)), with an optional focused filter and configuration |
 | `format.sh` | Format the given paths through `Reihitsu.Cli` |
 | `trace.sh` | Trace source changes at each top-level formatter phase without modifying the input |
 | `apply-fix.sh` | Run one diagnostic's code-fix surface over a fixture directory, under LF and CRLF |
@@ -73,15 +73,17 @@ Convergence is decided by **the diagnostic disappearing**, not by two consecutiv
 
 Exit codes are `0` when every fixture reached a supported end state, `1` when a fixture never stopped reporting the diagnostic (`not-converged` or `no-progress`), and `2` when the command could not run — bad arguments, an unresolvable ID, a missing or fixture-less directory, an unparseable fixture, a fix producing unparseable source, or an analyzer that threw. `no-diagnostic` and `no-fix-offered` deliberately stay at `0`: every negative sweep row depends on "ran, found nothing" being distinguishable from "could not run".
 
-The implementation lives in `Reihitsu.Tooling`, a non-packable project inside `Reihitsu.sln`, with `scripts/apply-fix/apply-fix.cs` as a thin file-based shim over it. Unlike the trace and proof apps it is a real project, because the runner adds classification behavior — fixture selection, target resolution, convergence, exit-code mapping — that needs test coverage; `Reihitsu.Tooling.Test` provides it through `scripts/test.sh --project tooling`. It needs no formatter internals and widens no public API. Both `Reihitsu.ArchitectureTests` and `Reihitsu.Tooling.Test` participate in the default `all` run.
+The implementation lives in `Reihitsu.Tooling`, a non-packable project inside `Reihitsu.sln`, with `scripts/apply-fix/apply-fix.cs` as a thin file-based shim over it. Unlike the trace and proof apps it is a real project, because the runner adds classification behavior — fixture selection, target resolution, convergence, exit-code mapping — that needs test coverage; `Reihitsu.Tooling.Test` provides it through `scripts/test.sh --project tooling`. It needs no formatter internals and widens no public API.
 
-## The self-hosting scans
+## The default test run
 
-`Reihitsu.SelfHosting.Test` runs the repository's own analyzers and formatter over the repository's own source: one test row per analyzer, and one row per source file for formatter idempotency, for formatter stability, and for the stability of the formatted output under each formatter phase run alone. It is a second safety net rather than a requirement check, and it takes long enough that the default `all` run of `test.sh` leaves it out; every other solution test project is in that run. CI runs it on every pull request, and `scripts/test.sh --project selfhosting` runs it locally, narrowed with `--filter` to one analyzer or one file when needed. A violation fails the row of the analyzer or the file that found it and names the file, the line, and the rule.
+`scripts/test.sh` without `--project`, or with `--project all`, is the default run: it runs every test project of the solution except `Reihitsu.SelfHosting.Test`, the self-hosting scans. The `all)` branch of `test.sh` defines the set, and `TestScriptProjectSelectionTests` in `Reihitsu.ArchitectureTests` keeps it equal to the solution's test projects minus the scans. This section is the one statement of what the default run covers; every other document that names the run links here instead of listing its projects.
+
+`Reihitsu.SelfHosting.Test` runs the repository's own analyzers and formatter over the repository's own source: one test row per analyzer, and one row per source file for formatter idempotency, for formatter stability, and for the stability of the formatted output under each formatter phase run alone. It is a second safety net rather than a requirement check, and it takes long enough that the default run leaves it out. CI runs it on every pull request, and `scripts/test.sh --project selfhosting` runs it locally, narrowed with `--filter` to one analyzer or one file when needed. A violation fails the row of the analyzer or the file that found it and names the file, the line, and the rule.
 
 ## The text-only proof
 
-`verify-text-only` answers one question mechanically: **can this change affect compiled behavior?** The squad uses it to admit a comment-only C# change to the docs lane (through `lane-check`) and to prove that a comment cleanup after a passing audit did not invalidate the audit.
+`verify-text-only` answers one question mechanically: **can this change affect compiled behavior?** The squad uses it through `lane-check`, which runs it before classifying a diff ([The lane check](#the-lane-check) says which C# files it can make text), and to prove that a comment cleanup after a passing audit did not invalidate the audit.
 
 It is syntax-aware rather than line-based, because a `grep` over the diff does not recognize every block-comment form and cannot tell a comment apart from a directive or from comment-looking text inside a string literal. For every changed C# file it parses both versions with Roslyn and proves that
 
@@ -111,7 +113,7 @@ It first runs the text-only proof over the same range and prints its line, becau
 | Category | Paths |
 |---|---|
 | Change doc | `sdd/changes/**` |
-| Text | the rest of `sdd/**`, `documentation/**`, issue and PR templates, `README.MD`, `CONTRIBUTING.md`, `LICENSE`, Markdown under `src/`, and C# under `src/` when the proof passed |
+| Text | the rest of `sdd/**`, `squad/notes/**`, `documentation/**`, `.github/ISSUE_TEMPLATE/**`, `.github/PULL_REQUEST_TEMPLATE.md`, every Markdown file at the repository root except `AGENTS.md` and `CLAUDE.md`, `LICENSE`, and, outside `src/Reihitsu.Tooling/`, Markdown under `src/` and C# under `src/` when the proof passed |
 | Tooling | `.claude/**`, `squad/**`, `scripts/**`, `.github/**`, `binaries/**`, `src/Reihitsu.Tooling/**`, `AGENTS.md`, `CLAUDE.md`, the solution files, `.gitignore`, `.gitattributes`, and every `*.csproj`, `*.props`, `*.targets`, `*.ruleset`, `.editorconfig` |
 | Test | files of test projects (`src/*.Test/**`, `src/Reihitsu.ArchitectureTests/**`) |
 | Production | every other file under `src/` |
@@ -121,7 +123,7 @@ The narrowest lane that admits every category is the lane the diff needs: produc
 
 Exit codes are `0` when the claim covers the diff, `1` when it does not (the verdict names the lane the diff needs), `2` for a tool or setup error, and `3` when no lane admits the diff — an unknown path, or production next to tooling without a change doc. The single `LANE CHECK: …` line is the quotable evidence the run report records.
 
-The classification lives in `Reihitsu.Tooling` (`LaneClassifier`, `LaneCheckCommand`) with tests in `Reihitsu.Tooling.Test`; `scripts/lane-check/lane-check.cs` is a thin file-based shim over it, like the code-fix runner's.
+This table is the one statement of the classification, and other documents link here instead of listing paths. A path belongs to the first row that names it, whatever its extension: every file under `squad/notes/` is text while the rest of `squad/**` is tooling, the issue and PR templates are text while the rest of `.github/**` is tooling, and a test project's `*.csproj` is tooling rather than a test. The classification lives in `Reihitsu.Tooling` (`LaneClassifier`, `LaneCheckCommand`) with tests in `Reihitsu.Tooling.Test`; `scripts/lane-check/lane-check.cs` is a thin file-based shim over it, like the code-fix runner's.
 
 ## The usage report
 

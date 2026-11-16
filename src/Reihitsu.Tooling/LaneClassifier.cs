@@ -20,9 +20,9 @@ public static class LaneClassifier
     private static readonly string[] _toolingPrefixes = [".claude/", "squad/", "scripts/", ".github/", "binaries/", "src/Reihitsu.Tooling/"];
 
     /// <summary>
-    /// Individual files that are text
+    /// Individual files that are text, besides the Markdown files at the repository root
     /// </summary>
-    private static readonly string[] _textFiles = ["README.MD", "CONTRIBUTING.md", "LICENSE", ".github/PULL_REQUEST_TEMPLATE.md"];
+    private static readonly string[] _textFiles = ["LICENSE", ".github/PULL_REQUEST_TEMPLATE.md"];
 
     /// <summary>
     /// Root files that are tooling: agent instructions and solution-wide build settings
@@ -52,7 +52,8 @@ public static class LaneClassifier
         }
 
         if (_textPrefixes.Any(prefix => path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-            || _textFiles.Contains(path, StringComparer.OrdinalIgnoreCase))
+            || _textFiles.Contains(path, StringComparer.OrdinalIgnoreCase)
+            || IsRootMarkdownText(path))
         {
             return PathCategory.Text;
         }
@@ -209,6 +210,19 @@ public static class LaneClassifier
                    Lane.Tooling => "tooling",
                    _ => "docs"
                };
+    }
+
+    /// <summary>
+    /// Determines whether a path is a Markdown file at the repository root other than the agent instructions, which
+    /// are tooling
+    /// </summary>
+    /// <param name="path">Repository-relative path with forward slashes</param>
+    /// <returns><see langword="true"/> when the path is root Markdown that is text; otherwise, <see langword="false"/></returns>
+    private static bool IsRootMarkdownText(string path)
+    {
+        return path.Contains('/') == false
+               && path.EndsWith(".md", StringComparison.OrdinalIgnoreCase)
+               && _toolingRootFiles.Contains(path, StringComparer.OrdinalIgnoreCase) == false;
     }
 
     /// <summary>
