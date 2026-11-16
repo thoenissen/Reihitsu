@@ -14,6 +14,8 @@ None. The run is tooling-lane text and repository tooling; no output question an
 
 No stops. One repair round (the first audit's documentation finding: the text-only proof failed because it treats every `scripts/**` path as behavioral, so the doc fix counted as a repair round). The repair audit found one more member of the same class (a document restating the lane classification), handled as an architecture finding and refused by cause: a sweep of every instruction document so that only the lane-check table in `scripts/README.md` says which paths a lane covers. Auditor and spec checker therefore ran three times each, the spec author twice. The validator ran twice: the first run failed only on `SquadNoteReferenceTests`, which flags the run's own handovers under `sdd/work/` that quoted a note path, and `test.sh` stopped before the Tooling and Playground projects; `sdd/work/` was removed before the second run.
 
+After publishing, `main` gained a check of the same rule as the run's new phase-ownership guard-name test (a parallel PR); the merge kept `main`'s check and dropped the run's test, followed by one more validator run.
+
 ## Usage
 
 
