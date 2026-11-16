@@ -20,6 +20,7 @@
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Spec author | One change doc for both issues; RH7101-005 changed in place; no initializer exception; FMT-UNSUP-009 reason wins at the tie | As recommended | Shared cause; consistent with FMT-UNSUP-004/009 | Internal spec structure; the span was the maintainer's answer | 3b1b782 |
+| 3 | Audit 2 | Finding #1 repeats audit 1's class (tie order untested; a missed member) — architecture finding? | Treat under *Architecture findings*: fix narrowly — the test implementer enumerates every tie member of both candidate lists by cause, not the one cell; the auditor's single-list restructuring hint is not taken (cosmetic, adds no safety) | No rare input class to refuse; the code is correct; a test closes the gap without production growth | Reason text is already decided by FMT-UNSUP-010 | pending (15) |
 | 2 | Skeptic | Disabled text in the first token's leading trivia (attribute/modifier of another build) would be split onto the first field only | Keep the declaration whole and withhold the RH7101 fix for that class (today's output) | Rare class; FMT-PIPE-003/FMT-STRUCT-024 forbid the split; one cheap check | Today's output stays for that class; refusing a rare class is not in question | b48ac9c |
 
 ## Follow-up candidates
@@ -40,4 +41,5 @@
 - Spec checker consistent (cce9f0a). Build green. Audit base main=eb89003, head cce9f0a.
 - Audit 1 (e3a5531): #1728 findings (#1 medium: tie-reason order untested; #2 low: AGENTS.md structural row lacks HasDisabledTextInLeadingTrivia); #1586 pass.
 - Repair round 1: #1 → test implementer (10), #2 → spec author (11); then cleaner, spec checker, auditor (repair only), validator.
-- Repair round 1 done: tests ec05997 (10), text fbf5ac8 (11). Next: cleaner (12), spec checker (13), auditor on repair (14).
+- Repair round 1 done: tests ec05997 (10), text fbf5ac8 (11). Cleaner (12), spec checker (13) clean. Audit 2 (dd41b4e): #2 closed; #1 still open for the declarator-comma candidate list (FMT-UNSUP-010 vs FMT-UNSUP-008 order untested).
+- Repair round 2: test implementer (15) enumerates every tie across both candidate lists; then cleaner, spec checker, auditor on repair.
