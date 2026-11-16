@@ -54,4 +54,4 @@
 
 - Side task (maintainer request): moved #1786 from vNext to milestone 1.4.0; #1781/#1785 left in vNext.
 - Last step: skeptic 02 (output questions Q1-Q4 stand, with adjustments). Spec-author amendment 03 running (decisions 5-7). Output questions Q1 (unions join type rules), Q2 (RH5507/RH5508 on unions), Q3 (RH5418, escalation 5), Q4 (RH2110, escalation 5) asked to the maintainer; waiting.
-- Audited head 7a9f5d9 (auditor 13). Repair round 2: tests 14 (848ae0e), RH5106 page 15 (d3e9e46). Next: cleaner 16, spec checker 17, auditor 18 on repair, validator 19.
+- Auditor 18 passed the repair; audited SHA 6b25d32 (handover a58e282). Next: validator 19, then issue manager, note, publish.
