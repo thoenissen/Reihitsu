@@ -12,7 +12,8 @@
 ## Maintainer answers
 
 - Escalation 10 for #1728 (carried by the issue text, which the maintainer filed as the outcome of an earlier run): declare a directive or disabled text inside a multi-declarator field declaration unsupported, in a change of its own (this run). Summarized: "no directives in declarations".
-- #1586 output question: open — to be asked before the test implementer.
+- Q1 (#1586, inputs: region/`#if !RELEASE` in front; inactive `#if DEBUG` attribute in front): answer **A** — split when a directive stands in front; keep whole, fix withheld, when disabled text stands in front. Not declared unsupported (C, D rejected).
+- Q2 (#1728 confirmation): answer **A** — declare a directive or disabled text inside a multi-declarator field declaration unsupported, in this change; CLI reports it, fixes formatting it are withheld.
 
 ## Decisions taken
 
@@ -30,4 +31,5 @@
 - Last step: spec author done (3b1b782), change doc `sdd/changes/2026-11/field-declaration-directives.md` Draft; #1586 output question drafted in 01-spec-author.md.
 - Skeptic done (d361337): #1728 proceed, #1586 proceed narrower.
 - Amendment done (b48ac9c).
-- Now: asked #1586 output question with option D (escalation 10), then test implementer. Waiting for maintainer answers to Q1 (A/B/C/D, from 03-spec-author.md) and Q2 (confirm #1728 refusal output).
+- Now: asked #1586 output question with option D (escalation 10), then test implementer. Answers received: 1A, 2A.
+- Next: spec author status follow-up (Decisions + Accepted), then test implementer.
