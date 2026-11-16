@@ -25,12 +25,17 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | skeptic | Drafted Q5 (write truncated by Ctrl+C) — output question? | Not asked; repaired in this run as an adjacent fix: a started write completes (no cancellation token passed into the write), CLI-022/CLI-017 cancellation text says a file whose write has started is finished and named | Pre-existing on `main`, reproduced by skeptic (02), widened by the change; small, in `FormatCommandHandler`/`DefaultFileSystem`, testable; option B would violate non-destructiveness | Unchanged non-destructiveness requirement demands it; no alternative output is admissible | |
+| 2 | skeptic | Reword CLI-006 "selected more than once" to "the same full path" | Accept | States today's behavior precisely | Changes no output | |
 
 ## Follow-up candidates
 
-- Profile the per-file formatter pipeline and benchmark 1.2.0 vs 1.3.0 on a fixed corpus (issue's other two ideas; no visible output) — 01-spec-author.md
+- Profile the per-file formatter pipeline and benchmark 1.2.0 vs 1.3.0 on a fixed corpus (issue's other two ideas; no visible output) — 01-spec-author.md, 02-skeptic.md
+- LcsComputer (n+1)(m+1) memory per changed file in --dry-run, multiplied by parallel degree — 02-skeptic.md
+- Confirm Windows behavior of concurrent writes to one physical file via aliases — 02-skeptic.md (depends on Q5 answer)
+- Dedupe one physical file reached by several paths — 02-skeptic.md (only if Q5 answered A)
 
 ## State
 
-- Last step: spec author 01 (change doc written, 78a5e30); 5 output questions drafted (Q5 = interrupted write on Ctrl+C, safety rail).
-- Next: skeptic (02), then output-question batch.
+- Last step: skeptic 02 (verdict: output question). Batch 1 asked: Q1 name, Q2 default, Q3 docs, Q4 Ctrl+C several in progress, Q5 aliases (skeptic's Q6), Q6 accepted values (skeptic's Q7).
+- Next: wait for maintainer answers; then route to spec author (answers + decisions 1, 2), set change doc Accepted; then test implementer.
