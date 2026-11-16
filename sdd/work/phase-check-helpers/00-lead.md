@@ -38,10 +38,11 @@ Note: the self-hosting scans are not run by `scripts/test.sh` by default (CI run
 ## Follow-up candidates
 
 - Consolidate the private copies of `FormatterTestsBase.ApplyRule` in three regression test classes and `FormattingPipelineTests` into the base (01-skeptic, architecture finding).
+- `FormattingPipelineTests.ExecuteAlreadyFormattedCodeNoChanges` compares two passes after trimming trailing newlines, weaker than whole-text idempotency (FC-017); fold into the `ApplyRule` consolidation candidate (02-test-implementer).
 - `scripts/trace.sh` is committed with mode 100644, so `scripts/trace.sh` as documented in `AGENTS.md` fails with "Permission denied"; `bash scripts/trace.sh` works (01-skeptic).
 
 ## State
 
 - Lane widened to tooling (decision 6): roles now test implementer → implementer (project reference / anything tests need beyond test code) → cleaner → spec checker → auditor → validator (+ `--project selfhosting`).
-- Last step: skeptic (01) done.
-- Next: test implementer (02).
+- Last step: test implementer (02) done at 3bff080; formatter suite green; self-hosting test needs the ProjectReference SelfHosting.Test → Formatter.Test.
+- Next: implementer (03).
