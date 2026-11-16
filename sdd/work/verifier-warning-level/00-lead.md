@@ -24,11 +24,12 @@
 
 ## Follow-up candidates
 
-(none)
+- S1125 warnings in `src/Reihitsu.Cli/FormatCommandHandler.cs` printed by the build inside `scripts/format.sh` (Release build clean; pre-existing on main) — 03-cleaner.md
 
 ## Worklist / next step
 
 - Skeptic done: proceed narrower (01-skeptic.md).
 - Test implementer done: tests written (02-test-implementer.md), suite 10418 green, no existing outcome changed. Lane check: confirmed tests.
 - Process note: test implementer reports having stashed harness files for its red run (README forbids `git stash` in the shared tree; no damage seen) — record in run note.
-- Next: cleaner (`03-cleaner.md`), then spec checker, validator.
+- Cleaner done: clean (03-cleaner.md, 3b5c780).
+- Next: spec checker (`04-spec-checker.md`) and validator (`05-validator.md`).
