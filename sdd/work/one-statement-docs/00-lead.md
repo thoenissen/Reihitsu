@@ -34,6 +34,12 @@ None yet.
 | 2 | Implementer | #1544: the `LineBreakPhase` keep-rule goal | Dropped; the row already states it on `main` | Issue comment and 02-implementer confirm the text exists | Agent docs only | 3b4ac9f |
 | 3 | Implementer | #1470: `squad/roles/auditor.md` also restated the coverage split, not listed in the issue | Taken in | Same restatement the issue removes; a few lines | Agent docs only | 3b4ac9f |
 | 4 | Implementer | #1471: root Markdown rule (every root `*.md` is text except `AGENTS.md`, `CLAUDE.md`) | Accepted | Meets the issue's "Done when"; keeps the existing tooling assertions | Lane check is repository tooling | 3b4ac9f |
+| 5 | Auditor (05) | Pass with documentation finding #1 (three lane-classification restatements) | Route to the spec author as a text-only fix | lead.md section 7 | Agent docs only | f2a9122 |
+| 6 | Repair | The text-only proof fails on `scripts/README.md` (the proof treats every `scripts/**` path as behavioral) | Treat as repair round 1: spec checker and auditor on the repair; cleaner skipped because the repair changes no C# file | lead.md section 7: a failing proof makes it a repair round | Agent docs only | f2a9122 |
+| 7 | Repair | Spec author also reworded the Tests, Bug fix, Behavior change bullets in `squad/README.md` | Accepted | They disagreed with the classifier too; same finding class; repair audit confirmed them | Agent docs only | f2a9122 |
+| 8 | Repair audit (08) | Finding #2 repeats #1's class (a document restates lane classification that the classifier executes) | Architecture finding, refused by cause: no document outside the `scripts/README.md` lane-check table states which paths count as text/docs, tests, tooling, or production; sweep all instruction docs | squad/README.md *Architecture findings*; does not use up a repair round | Agent docs only | f6a6e62 |
+| 9 | Decision 8 | `sdd/changes/2026-10/introduce-sdd.md` lane table lists paths | Keep unchanged | An accepted change doc is a historical record, not a current statement | Agent docs only | f6a6e62 |
+| 10 | Decision 8 | Architecture test `SquadNoteReferenceTests` flags `sdd/work/one-statement-docs/05-auditor.md` | No action | `sdd/work/` is deleted before publishing (lead.md section 8) | Run working files only | — |
 
 ## Follow-up candidates
 
@@ -41,5 +47,5 @@ None yet.
 
 ## State
 
-- Last step: repair audit (08), 2a0744f; finding #2 repeats #1 → architecture finding, decision 8.
-- Next: spec author carries out decision 8; spec checker; auditor; validator; publish.
+- Last step: spec author (09), f6a6e62, carried out decision 8.
+- Next: spec checker; auditor on 62a2512..HEAD repair delta; validator; publish.
