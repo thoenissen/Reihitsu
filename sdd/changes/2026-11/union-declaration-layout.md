@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | FMT-BREAK-002, FMT-BREAK-007, FMT-BREAK-011, FMT-BREAK-023, FMT-STRUCT-017, FMT-STRUCT-021, FMT-PIPE-031 |
+| Affected requirements | FMT-BREAK-002, FMT-BREAK-007, FMT-BREAK-011, FMT-BREAK-023, FMT-STRUCT-017, FMT-STRUCT-021, FMT-PIPE-029, FMT-PIPE-031, RH7101-002 |
 | Depends on | [Roslyn 5.12 and C# 15 as the newest supported language version](roslyn-512-csharp-15.md) |
 
 ## What
@@ -16,7 +16,7 @@ A C# 15 union declaration (`union U(int, string) { … }`) gets the layout and t
 - its case-type list is laid out as a primary constructor's parameter list: the `(` joins the union's name, the commas end their lines, the `)` joins the last case type, and a wrapped list keeps one case type per line, aligned under the first (FMT-BREAK-011, with FMT-BREAK-012 and FMT-INDENT-012, which already apply);
 - each of its `where` clauses starts its own line, also on a union declared with a semicolon (FMT-BREAK-023);
 - an empty brace body becomes a semicolon, from C# 15 on (FMT-STRUCT-017), unless a comment or a directive in the body keeps the braces (FMT-STRUCT-018, unchanged);
-- a field declaration with several declarators in a union is split into one field per declarator (FMT-STRUCT-021), and `SplitsFieldDeclaration` answers true for it (FMT-PIPE-031), so the RH7101 code fix is offered for such a field.
+- a field declaration with several declarators in a union is split into one field per declarator (FMT-STRUCT-021), and `SplitsFieldDeclaration` answers true for it (FMT-PIPE-031), so the RH7101 code fix is offered for such a field and passes the union declaration as context (FMT-PIPE-029); RH7101-002 names the union among the types whose fields the formatter splits.
 
 The formatter's blank-line, spacing, and indentation phases already treat a union as a type declaration; once its braces and members are on their own lines, its members are indented one level inside its braces, as a class's are.
 
