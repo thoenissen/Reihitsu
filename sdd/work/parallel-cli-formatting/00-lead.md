@@ -28,9 +28,9 @@
 
 ## Follow-up candidates
 
-(none yet)
+- Profile the per-file formatter pipeline and benchmark 1.2.0 vs 1.3.0 on a fixed corpus (issue's other two ideas; no visible output) — 01-spec-author.md
 
 ## State
 
-- Last step: claim, lane claimed, prepare.sh green.
-- Next: spec author (01).
+- Last step: spec author 01 (change doc written, 78a5e30); 5 output questions drafted (Q5 = interrupted write on Ctrl+C, safety rail).
+- Next: skeptic (02), then output-question batch.
