@@ -32,14 +32,14 @@ None yet.
 | 4 | Skeptic | #1507: resolution scope (amends decision 1) | Resolve a name only against `Reihitsu.Formatter` and the projects it references (today `Reihitsu.Core`), or as a Roslyn `SyntaxKind` member; a span with no letter or containing `/` is skipped; any other non-identifier span (e.g. `Foo()`) fails; a name after `Type.A`/`B` is checked as a plain name | Any production project would let the stale `CanRewrite` (declared in an RH3101 code fix) pass; a phase can only call Formatter/Core code | Architecture test only | 4901ff9 |
 | 5 | Skeptic | #1507 goal "resolves to a declaration under `src/`" | Adjusted to "resolves in Formatter or a project it references, or as a `SyntaxKind` member"; PR closes the issue and states the difference | The literal goal fails today on two `SyntaxKind` names and is too wide to catch the issue's own example | agent-filed goal, test-only | — |
 | 6 | Skeptic | #1428: "no spec is exempted" report built from active requirements | Adjacent fix taken in: build the exempted-spec report from the exemption keys, with a test | Same method the run edits; few lines; otherwise the issue's described symptom stays | Test-project only | 4901ff9 |
-| 8 | Test implementer | Stale summary of `SpecFixtureDirectory` (says only `SpecConsistencyTests` uses it) | Adjacent comment fix, routed to the cleaner | Trivial text in the test project the run edits | Comment only | pending |
+| 8 | Test implementer | Stale summary of `SpecFixtureDirectory` (says only `SpecConsistencyTests` uses it) | Adjacent comment fix, routed to the cleaner | Trivial text in the test project the run edits | Comment only | 5110997 |
 | 7 | Skeptic | Delete the exemption mechanism entirely? | No; proceed as the issue asks; not a follow-up | Rulebook change beyond the issue; mechanism is cheap to keep | — | — |
 
 ## Follow-up candidates
 
-None yet.
+- S1125 warnings reported from `src/Reihitsu.Cli/Diagnostics/PipelineTraceCommand.cs` (lines 478, 483, 527) while `scripts/format.sh` builds the CLI; Release solution build is clean. Pre-existing, outside the run. Source: `04-cleaner.md`.
 
 ## State
 
-- Last step: test implementer (03, 4901ff9): tests written for both; architecture project green.
-- Next: cleaner (04), then spec checker (05), validator (06).
+- Last step: cleaner (04, 5110997): clean, 0 warnings, 153/153 architecture tests.
+- Next: spec checker (05), then validator (06).
