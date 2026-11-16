@@ -509,6 +509,24 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
+    /// Determines whether the declaration is a union whose documentation is not judged (SHARED-DOC-019): one of its
+    /// documentation comments holds a <c>param</c> or <c>paramref</c> element at any depth. A union's case types have
+    /// no names such an element could refer to, and the compiler's expansion of that union's documentation fails, so
+    /// the rules that use the requirement leave the union to be corrected by hand
+    /// </summary>
+    /// <param name="declaration">Declaration</param>
+    /// <returns><see langword="true"/> if the declaration is a union whose documentation holds a parameter element</returns>
+    internal static bool IsUnionWithParameterElement(MemberDeclarationSyntax declaration)
+    {
+        return declaration.IsKind(SyntaxKind.UnionDeclaration)
+               && DirectDocumentationSyntaxChecker.GetDocumentationComments(declaration)
+                                                  .SelectMany(obj => obj.DescendantNodes())
+                                                  .OfType<XmlNodeSyntax>()
+                                                  .Select(XmlDocumentationElementOrderingUtilities.GetTagName)
+                                                  .Any(obj => obj is "param" or "paramref");
+    }
+
+    /// <summary>
     /// Determines whether the declaration belongs to the requested accessibility group
     /// </summary>
     /// <param name="declaration">Declaration</param>
