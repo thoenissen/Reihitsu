@@ -50,3 +50,33 @@ _None._
 
 ## Follow-up candidates
 _None._
+
+## Addendum — partial unions (lead decision 5, SHARED-DOC-019 as widened in 97c083f)
+
+Verdict: tests pass. Inputs: the *Correction* section of `09-spec-author.md` and the *Addendum* of `10-test-implementer.md` (a2ac7d9: 7 tests, 6 failing as listed there).
+
+### Changes
+| File | What changed | Requirement |
+|---|---|---|
+| `src/Reihitsu.Analyzer/Core/DocumentationAnalysisUtilities.cs` | `IsUnionWithParameterElement` now takes the semantic model and cancellation token. It checks the analyzed part first. For a union with the `partial` modifier, it then checks the syntax of every other part (`DeclaringSyntaxReferences` of the declared symbol) with the same cheap syntactic test. That test is extracted as the private `HasParameterElement`. The summary states that a partial union is judged as a whole | SHARED-DOC-019 (partial unions) |
+| `SplitElementDocumentationAnalyzerBase.cs`, `RH8108…Analyzer.cs`, `RH8203…Analyzer.cs` | Callers pass `context.SemanticModel` and `context.CancellationToken` | RH8035-001, RH8036-001, RH8108-001, RH8203-001 |
+
+The added work is one `GetDeclaredSymbol` call, made only for a union with `partial`. After it, the check reads the other parts' documentation trivia and never asks for the expanded documentation. Parts in other files are reached through their syntax references, which the RH8035 and RH8203 cross-file tests cover. The note about partial unions under *Disputed tests or scope* above is resolved by decision 5. The spec author fixed the spec-structure failure in 97c083f.
+
+### Production diff size
+`git diff --shortstat origin/main -- src ':(exclude,glob)src/*Test*/**'`: 13 files changed, 284 insertions, 3 deletions. Delta of this step: 4 files, 45 insertions, 13 deletions. No new type, no public member.
+
+### Tests run
+- `scripts/format.sh` over the four changed files → Formatted 0 of 4.
+- `scripts/test.sh --configuration Debug --project analyzer --filter "FullyQualifiedName~PartialUnion|FullyQualifiedName~ParamElement|FullyQualifiedName~ParamrefElement|FullyQualifiedName~ParameterElement"` → Passed: 58, Failed: 0.
+- `scripts/test.sh --configuration Debug --project analyzer` → Passed: 10217, Failed: 0.
+- `scripts/test.sh --configuration Debug --project architecture` → Passed: 118, Failed: 0.
+
+### Disputed tests or scope
+_None._
+
+### Architecture findings
+_None._
+
+### Follow-up candidates
+_None._

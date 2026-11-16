@@ -510,20 +510,37 @@ internal static class DocumentationAnalysisUtilities
 
     /// <summary>
     /// Determines whether the declaration is a union whose documentation is not judged (SHARED-DOC-019): one of its
-    /// documentation comments holds a <c>param</c> or <c>paramref</c> element at any depth. A union's case types have
-    /// no names such an element could refer to, and the compiler's expansion of that union's documentation fails, so
-    /// the rules that use the requirement leave the union to be corrected by hand
+    /// documentation comments holds a <c>param</c> or <c>paramref</c> element at any depth. A partial union is judged
+    /// as a whole: every part is refused when the documentation of any one part holds such an element, because the
+    /// compiler joins the documentation of all parts. A union's case types have no names such an element could refer
+    /// to, and the compiler's expansion of that union's documentation fails, so the rules that use the requirement
+    /// leave the union to be corrected by hand
     /// </summary>
     /// <param name="declaration">Declaration</param>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns><see langword="true"/> if the declaration is a union whose documentation holds a parameter element</returns>
-    internal static bool IsUnionWithParameterElement(MemberDeclarationSyntax declaration)
+    internal static bool IsUnionWithParameterElement(MemberDeclarationSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
-        return declaration.IsKind(SyntaxKind.UnionDeclaration)
-               && DirectDocumentationSyntaxChecker.GetDocumentationComments(declaration)
-                                                  .SelectMany(obj => obj.DescendantNodes())
-                                                  .OfType<XmlNodeSyntax>()
-                                                  .Select(XmlDocumentationElementOrderingUtilities.GetTagName)
-                                                  .Any(obj => obj is "param" or "paramref");
+        if (declaration.IsKind(SyntaxKind.UnionDeclaration) == false)
+        {
+            return false;
+        }
+
+        if (HasParameterElement(declaration))
+        {
+            return true;
+        }
+
+        if (declaration.Modifiers.Any(SyntaxKind.PartialKeyword) == false
+            || semanticModel?.GetDeclaredSymbol(declaration, cancellationToken) is not { } unionSymbol)
+        {
+            return false;
+        }
+
+        return unionSymbol.DeclaringSyntaxReferences
+                          .Select(obj => obj.GetSyntax(cancellationToken))
+                          .Any(obj => obj != declaration && HasParameterElement(obj));
     }
 
     /// <summary>
@@ -627,6 +644,21 @@ internal static class DocumentationAnalysisUtilities
                    XmlElementSyntax or XmlEmptyElementSyntax or XmlCDataSectionSyntax => true,
                    _ => string.IsNullOrWhiteSpace(node.ToString()) == false
                };
+    }
+
+    /// <summary>
+    /// Determines whether a documentation comment of the declaration holds a <c>param</c> or <c>paramref</c> element at
+    /// any depth
+    /// </summary>
+    /// <param name="declaration">Declaration</param>
+    /// <returns><see langword="true"/> if a parameter element is written in the declaration's documentation</returns>
+    private static bool HasParameterElement(SyntaxNode declaration)
+    {
+        return DirectDocumentationSyntaxChecker.GetDocumentationComments(declaration)
+                                               .SelectMany(obj => obj.DescendantNodes())
+                                               .OfType<XmlNodeSyntax>()
+                                               .Select(XmlDocumentationElementOrderingUtilities.GetTagName)
+                                               .Any(obj => obj is "param" or "paramref");
     }
 
     /// <summary>
