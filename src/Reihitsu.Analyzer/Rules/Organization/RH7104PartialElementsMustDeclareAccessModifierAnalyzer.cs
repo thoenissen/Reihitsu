@@ -68,7 +68,8 @@ public class RH7104PartialElementsMustDeclareAccessModifierAnalyzer : Diagnostic
                                          SyntaxKind.StructDeclaration,
                                          SyntaxKind.InterfaceDeclaration,
                                          SyntaxKind.RecordDeclaration,
-                                         SyntaxKind.RecordStructDeclaration);
+                                         SyntaxKind.RecordStructDeclaration,
+                                         SyntaxKind.UnionDeclaration);
     }
 
     #endregion // DiagnosticAnalyzer

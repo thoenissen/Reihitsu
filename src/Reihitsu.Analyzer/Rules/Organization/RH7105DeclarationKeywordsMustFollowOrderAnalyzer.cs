@@ -93,6 +93,7 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzer : DiagnosticAnalyz
                                          SyntaxKind.InterfaceDeclaration,
                                          SyntaxKind.RecordDeclaration,
                                          SyntaxKind.RecordStructDeclaration,
+                                         SyntaxKind.UnionDeclaration,
                                          SyntaxKind.DelegateDeclaration,
                                          SyntaxKind.FieldDeclaration,
                                          SyntaxKind.ConstructorDeclaration,

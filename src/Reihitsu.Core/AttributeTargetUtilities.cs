@@ -480,6 +480,7 @@ public static class AttributeTargetUtilities
                     return true;
                 }
             case StructDeclarationSyntax:
+            case UnionDeclarationSyntax:
                 {
                     target = AttributeTargets.Struct;
 

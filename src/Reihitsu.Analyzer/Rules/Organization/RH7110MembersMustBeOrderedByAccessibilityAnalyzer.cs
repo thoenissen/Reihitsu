@@ -93,7 +93,8 @@ public class RH7110MembersMustBeOrderedByAccessibilityAnalyzer : DiagnosticAnaly
                                          SyntaxKind.StructDeclaration,
                                          SyntaxKind.InterfaceDeclaration,
                                          SyntaxKind.RecordDeclaration,
-                                         SyntaxKind.RecordStructDeclaration);
+                                         SyntaxKind.RecordStructDeclaration,
+                                         SyntaxKind.UnionDeclaration);
     }
 
     #endregion // DiagnosticAnalyzer

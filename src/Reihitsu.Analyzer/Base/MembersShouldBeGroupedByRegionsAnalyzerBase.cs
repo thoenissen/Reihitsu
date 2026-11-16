@@ -118,7 +118,8 @@ public abstract class MembersShouldBeGroupedByRegionsAnalyzerBase : DiagnosticAn
                                          SyntaxKind.ClassDeclaration,
                                          SyntaxKind.StructDeclaration,
                                          SyntaxKind.RecordDeclaration,
-                                         SyntaxKind.RecordStructDeclaration);
+                                         SyntaxKind.RecordStructDeclaration,
+                                         SyntaxKind.UnionDeclaration);
     }
 
     #endregion // DiagnosticAnalyzer

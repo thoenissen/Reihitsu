@@ -36,6 +36,7 @@ internal static class ParameterListParentPolicy
                                     or RecordDeclarationSyntax
                                     or ClassDeclarationSyntax
                                     or StructDeclarationSyntax
+                                    or UnionDeclarationSyntax
                                     or InterfaceDeclarationSyntax
                                     or ExtensionBlockDeclarationSyntax
                                     or ParenthesizedLambdaExpressionSyntax

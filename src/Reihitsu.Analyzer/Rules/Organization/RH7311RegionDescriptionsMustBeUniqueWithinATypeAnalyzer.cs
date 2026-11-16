@@ -97,7 +97,8 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzer : Diagnosti
                                          SyntaxKind.StructDeclaration,
                                          SyntaxKind.InterfaceDeclaration,
                                          SyntaxKind.RecordDeclaration,
-                                         SyntaxKind.RecordStructDeclaration);
+                                         SyntaxKind.RecordStructDeclaration,
+                                         SyntaxKind.UnionDeclaration);
     }
 
     #endregion // DiagnosticAnalyzer

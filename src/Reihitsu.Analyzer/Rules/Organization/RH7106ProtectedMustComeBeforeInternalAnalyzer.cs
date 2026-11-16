@@ -93,6 +93,7 @@ public class RH7106ProtectedMustComeBeforeInternalAnalyzer : DiagnosticAnalyzerB
                                          SyntaxKind.InterfaceDeclaration,
                                          SyntaxKind.RecordDeclaration,
                                          SyntaxKind.RecordStructDeclaration,
+                                         SyntaxKind.UnionDeclaration,
                                          SyntaxKind.DelegateDeclaration,
                                          SyntaxKind.FieldDeclaration,
                                          SyntaxKind.ConstructorDeclaration,

@@ -200,7 +200,8 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : ReihitsuCode
     /// let such a mirror drift out of sync once, so this guard checks parity explicitly rather than assuming it.
     /// Outside every initializer and anonymous object, the guard is also true when the line of the innermost enclosing
     /// opening brace is not indented four spaces per enclosing scope, a tab counted as four spaces: the nesting depth
-    /// matches the formatter's column only where that brace sits at its own depth (SHARED-ATTR-021)
+    /// matches the formatter's column only where that brace sits at its own depth (SHARED-ATTR-021). A type declared
+    /// with a semicolon has no braces, so it is skipped as no scope
     /// </summary>
     /// <param name="attributeList">Attribute list</param>
     /// <returns><see langword="true"/> when an enclosing scope has a missing brace or its innermost brace is off its column</returns>
@@ -222,6 +223,12 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : ReihitsuCode
                              AnonymousObjectCreationExpressionSyntax anonymousObject => (anonymousObject.OpenBraceToken, anonymousObject.CloseBraceToken),
                              _ => default((SyntaxToken Open, SyntaxToken Close)?)
                          };
+
+            // A type declared with a semicolon has no braces and encloses nothing
+            if (braces is { Open.RawKind: (int)SyntaxKind.None })
+            {
+                continue;
+            }
 
             if (braces is { Open.IsMissing: true } or { Close.IsMissing: true })
             {
