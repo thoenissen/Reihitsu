@@ -22,6 +22,11 @@
       <PackageVersion>$(Version)</PackageVersion>
       <InformationalVersion>$(Version)</InformationalVersion>
    </PropertyGroup>
+
+   <PropertyGroup>
+      <!-- The one Roslyn version every non-Testing Microsoft.CodeAnalysis* package reference uses -->
+      <RoslynVersion>5.12.0</RoslynVersion>
+   </PropertyGroup>
    
    <PropertyGroup Condition="'$(Configuration)'=='Debug'">
       <DocumentationFile>bin\Debug\$(MSBuildProjectName).xml</DocumentationFile>
