@@ -45,7 +45,7 @@ Runs (rough; batches are planned at release start):
 
 ### 1.7.0 — line-break ownership, clarity/design rule scope (34)
 
-Issues: #955 (T11, S) #956 (T11, M, OQ) #1442 (T11, M) #1446 (T11, M) #862 (T11, S) #1517 (T11, M) #1519 (T11, M) #1654 (T11, S) #1636 (T11, M, OQ) #1785 (T11, M, OQ) #1639 (T11, S, OQ) #1645 (T11, S, OQ) #1646 (T11, S, OQ) #1648 (T11, S, OQ) #1652 (T11, S, OQ) #1653 (T11, S, OQ) #877 (T7, M) #968 (T7, M) #973 (T7, S) #1278 (T7, M) #1290 (T7, M) #1295 (T7, M) #1296 (T7, M) #1297 (T7, S) #1298 (T7, S) #1299 (T7, M) #1300 (T7, S) #1338 (T7, S) #1350 (T7, S) #1452 (T7, S) #1603 (T7, M) #976 (T15, S) #1723 (T15, S) #1291 (T16, S)
+Issues: #955 (T11, S) #956 (T11, M, OQ) #1442 (T11, M) #1446 (T11, M) #862 (T11, S) #1517 (T11, M) #1519 (T11, M) #1654 (T11, S) #1636 (T11, M, OQ) #1785 (T11, M, OQ) #1639 (T11, S, OQ) #1645 (T11, S, OQ) #1646 (T11, S, OQ) #1648 (T11, S, OQ) #1652 (T11, S, OQ) #1653 (T11, S, OQ) #877 (T7, M) #968 (T7, M) #973 (T7, S) #1278 (T7, M) #1290 (T7, M) #1295 (T7, M) #1296 (T7, M) #1297 (T7, S) #1298 (T7, S) #1299 (T7, M) #1300 (T7, S) #1338 (T7, S) #1350 (T7, S) #1452 (T7, S) #1603 (T7, M) #976 (T15, S) #1723 (T15, S) #1291 (T16, S) #1602 (T7, S, decide)
 
 Runs:
 - **Formatter/LineBreakPhase one-owner refactors, first in their files:** #1517 #1519 #1654 #862.
@@ -59,7 +59,7 @@ Runs:
 
 ### 1.8.0 — code-fix layout equals formatter layout (29)
 
-Issues: #1140 (T1, L, OQ) #1774 (T1, L, OQ) #1521 (T1, L) #1474 (T1, M) #1684 (T1, L) #1773 (T1, M, OQ) #1775 (T1, S, OQ) #1443 (T1, S) #1447 (T1, M, OQ) #1758 (T1, S) #1549 (T11, M, OQ) #1552 (T11, S, OQ) #1554 (T11, S, OQ) #1557 (T11, S) #1131 (T11, S) #1032 (T14, S) #1435 (T14, S) #1436 (T14, S) #1437 (T14, S) #1475 (T14, S) #1582 (T14, S) #1583 (T14, S) #1606 (T14, M, OQ) #1689 (T14, M, OQ) #1740 (T14, S) #1777 (T14, S, OQ) #1789 (T14, S) #1081 (T16, S) #1772 (T16, S)
+Issues: #1140 (T1, L, OQ) #1774 (T1, L, OQ) #1521 (T1, L) #1474 (T1, M) #1684 (T1, L) #1773 (T1, M, OQ) #1775 (T1, S, OQ) #1443 (T1, S) #1447 (T1, M, OQ) #1758 (T1, S) #1549 (T11, M, OQ) #1552 (T11, S, OQ) #1554 (T11, S, OQ) #1557 (T11, S) #1131 (T11, S) #1032 (T14, S) #1435 (T14, S) #1436 (T14, S) #1437 (T14, S) #1475 (T14, S) #1582 (T14, S) #1583 (T14, S) #1606 (T14, M, OQ) #1689 (T14, M, OQ) #1740 (T14, S) #1777 (T14, S, OQ) #1789 (T14, S) #1081 (T16, S) #1772 (T16, S) #1555 (T11, M, decide)
 
 Runs:
 - **Formatter entry point/partial write-back design, first:** #1774 + #1140 remainder (escalation A/B/C; absorbed #1605). Two issues, the design gate of the release.
@@ -72,7 +72,7 @@ Runs:
 
 ### 1.9.0 — comments and blank lines (29)
 
-Issues: #1077 (T10, M) #962 (T10, M, OQ) #961 (T10, M) #1533 (T10, M, OQ) #1563 (T10, S) #1564 (T10, S) #1461 (T10, S) #1097 (T10, M) #1098 (T10, M) #1078 (T10, M) #1160 (T10, M, OQ) #1280 (T10, S) #1571 (T10, S) #1572 (T10, M) #1641 (T10, S) #1440 (T13, M) #1550 (T13, S, OQ) #1556 (T13, S, OQ) #1559 (T13, S, OQ) #1148 (T13, M) #1095 (T13, S) #1562 (T13, S) #1713 (T13, S) #1776 (T13, S) #1518 (T13, M) #1538 (T13, S) #950 (T13, S) #1661 (T16, S) #1690 (T16, S)
+Issues: #1077 (T10, M) #962 (T10, M, OQ) #961 (T10, M) #1533 (T10, M, OQ) #1563 (T10, S) #1564 (T10, S) #1461 (T10, S) #1097 (T10, M) #1098 (T10, M) #1078 (T10, M) #1160 (T10, M, OQ) #1280 (T10, S) #1571 (T10, S) #1572 (T10, M) #1641 (T10, S) #1440 (T13, M) #1550 (T13, S, OQ) #1556 (T13, S, OQ) #1559 (T13, S, OQ) #1148 (T13, M) #1095 (T13, S) #1562 (T13, S) #1713 (T13, S) #1776 (T13, S) #1518 (T13, M) #1538 (T13, S) #950 (T13, S) #1661 (T16, S) #1690 (T16, S) #1537 (T13, M, decide) #1540 (T13, S, OQ, decide) #1659 (T13, S, OQ, decide)
 
 Runs:
 - **"Documents nothing" and FMT-BLANK-011, first:** #1077 #1280 #962 #1148 (#1077 absorbs #957 part 2; #962 decided with #1148).
@@ -97,7 +97,7 @@ Runs:
 
 ### 1.11.0 — documentation-comment rules, regions (30)
 
-Issues: #1091 (T9, L) #1092 (T9, S) #1448 (T9, S) #1053 (T9, S, OQ) #1132 (T9, S) #1293 (T9, S) #1294 (T9, S) #1292 (T9, M) #1341 (T9, L) #1349 (T9, S) #1351 (T9, S) #1352 (T9, M) #1355 (T9, S) #1356 (T9, M, OQ) #1449 (T9, L, OQ) #1450 (T9, S, OQ) #1709 (T9, S, OQ) #1710 (T9, S, OQ) #1711 (T9, M) #1712 (T9, M, OQ) #1460 (T9, S) #1682 (T9, S) #1615 (T9, S) #1083 (T13, S) #1354 (T13, M) #1265 (T13, M) #1444 (T13, M) #1574 (T13, S) #1585 (T15, M, OQ) #1694 (T16, M)
+Issues: #1091 (T9, L) #1092 (T9, S) #1448 (T9, S) #1053 (T9, S, OQ) #1132 (T9, S) #1293 (T9, S) #1294 (T9, S) #1292 (T9, M) #1341 (T9, L) #1349 (T9, S) #1351 (T9, S) #1352 (T9, M) #1355 (T9, S) #1356 (T9, M, OQ) #1449 (T9, L, OQ) #1450 (T9, S, OQ) #1709 (T9, S, OQ) #1710 (T9, S, OQ) #1711 (T9, M) #1712 (T9, M, OQ) #1460 (T9, S) #1682 (T9, S) #1615 (T9, S) #1083 (T13, S) #1354 (T13, M) #1265 (T13, M) #1444 (T13, M) #1574 (T13, S) #1585 (T15, M, OQ) #1694 (T16, M) #1330 (T16, S, decide)
 
 Runs:
 - **Analyzer/documented-ness, decided together first:** #1091 #1092 #1448 (re-decide #1091's merged-parts instance against `documentation-rules-reported-elements.md`).
@@ -135,3 +135,8 @@ Close to this list but planned: #1777 (option B closes it; asked in 1.8.0's roun
 ## 5. Coverage check
 
 Open on GitHub 2026-11-16: vNext 133 + Maintenance 59 = **192** = planned **185** (1.6.0 34 + 1.7.0 34 + 1.8.0 29 + 1.9.0 29 + 1.10.0 29 + 1.11.0 30) + long-term **1** + decide **6**. Mismatch: none (each issue in exactly one place; #1789 was not in the inventory and is planned in 1.8.0/T14).
+
+
+## Decided 2026-11-16 (maintainer "1a 2b")
+
+Roadmap as drafted; decide-list issues planned too and judged in their run (#1602 1.7.0, #1555 1.8.0, #1537 #1540 #1659 1.9.0, #1330 1.11.0). Milestones: 1.6.0=14, 1.7.0=15, 1.8.0=16, 1.9.0=17, 1.10.0=18, 1.11.0=19.
