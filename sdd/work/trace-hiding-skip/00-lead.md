@@ -23,12 +23,15 @@ None yet.
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Lane | behavior-change instead of the issue's "tooling" | Production code plus `scripts/README.md` needs a change doc; see Lane reason | The trace is repository tooling, not `reihitsu-format` | claim |
+| 2 | Skeptic | Architecture finding: the ordered skip checks of whole-document formatting are written out in five callers (formatter's two whole-document entry points, CLI handler, Playground, trace) | Fix narrowly (trace calls the shared `HoldsHidingCarrier` predicate, adds no copy); the single shared "why is this file skipped" query becomes a follow-up candidate | The narrow fix adds no copy of the rule; the structural change touches components outside the run | Internal structure only | — |
+| 3 | Skeptic | Issue goals: "tooling project" and "tooling spec" alternative | Drop the tooling-spec alternative; tests go to `Reihitsu.Cli.Test` | The trace lives in `Reihitsu.Cli` and has no spec (CLI spec lists it as a non-goal) | Trace is repository tooling | — |
+| 4 | Skeptic | Change doc wording corrections (refusal printed once, not every pass; reproduction commit label) | Route to a fresh spec author together with `Status: Accepted` | Change doc lists no visible output change, so it can be accepted now | Wording only | — |
 
 ## Follow-up candidates
 
-None yet.
+- One shared query for why whole-document formatting skips a file, asked by all five callers instead of each writing out the ordered checks (02-skeptic.md, Architecture findings / Follow-up candidates).
 
 ## State
 
-- Last step: spec author (01) — change doc written, no output questions, no follow-ups.
-- Next: skeptic (02).
+- Last step: skeptic (02) — proceed; no output questions.
+- Next: spec author fresh (03) for wording + Accepted, then test implementer.
