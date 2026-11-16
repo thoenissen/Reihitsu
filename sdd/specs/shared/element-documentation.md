@@ -1514,11 +1514,13 @@ public class C
 
 ### SHARED-DOC-019 — A union whose documentation holds a parameter element is not judged
 
-A rule that uses this requirement MUST NOT report anything for a union, written with the `union` keyword, when a documentation comment of one of its declarations — the one SHARED-DOC-004 defines, or a later one that SHARED-DOC-006 counts — holds an element named `param` or `paramref`, at any depth: neither the union, nor an element of its documentation, nor one of its type parameters. For a partial union declared in several parts, this holds for every part when the documentation of any one part holds such an element. The rule MUST NOT fail with an exception on such a union. This holds in every documentation mode in which the rule runs (SHARED-DOC-008), whatever else the documentation holds. A declaration nested in the union's body is judged on its own, as SHARED-DOC-001 specifies.
+A rule that uses this requirement MUST NOT report anything for a union, written with the `union` keyword, when a documentation comment of one of its declarations — the one SHARED-DOC-004 defines, or a later one that SHARED-DOC-006 counts — holds a parameter element at any depth: neither the union, nor an element of its documentation, nor one of its type parameters. A parameter element is an element whose tag name, without a namespace prefix it may carry, is `param` or `paramref` in any letter case: `<param>`, `<Param>`, `<PARAMREF/>`, and `<x:param/>` are parameter elements. For a partial union declared in several parts, this holds for every part when the documentation of any one part holds such an element. This holds in every documentation mode in which the rule runs (SHARED-DOC-008), whatever else the documentation holds.
 
-This requirement covers elements written in a documentation comment in the source, with the tag name in lower case and without a namespace prefix; an element that only the content of an `<include>` element brings in is not covered.
+Independently of which elements the documentation holds, the rule MUST NOT fail with an exception on any union because the compiler's expansion of the union's documentation fails: when that expansion fails for a union, the rule reports nothing for that union — for a partial union, for none of its parts — as for a union with a parameter element. This covers content that only an `<include>` element brings in as well as any other documentation the compiler cannot expand for a union.
 
-Why: A union's case types have no names, so a `param` or `paramref` element on a union refers to nothing, and the input is rare: the compiler fails with CS1569 when it writes the documentation file of such a union, and the compiler's own expansion of that union's documentation, which these rules rely on, throws for it. Judging the union's documentation anyway would take more than a cheap syntactic check, so the rules leave it to be corrected by hand and judge nothing about it. A union without such an element is judged as each rule's spec states.
+A declaration nested in the union's body is judged on its own, as SHARED-DOC-001 specifies.
+
+Why: A union's case types have no names, so a parameter element on a union refers to nothing, and the input is rare: the compiler fails with CS1569 when it writes the documentation file of such a union, and when documentation comments are diagnosed (documentation mode `Diagnose`, the default), the compiler's own expansion of that union's documentation, which these rules rely on, throws for it — under `Parse` it does not. The refusal of a parameter element is nevertheless independent of the documentation mode, so that the rule's output for this input does not depend on the mode, and it is decided on the comment's syntax alone. Which elements the compiler binds as parameter names is the compiler's decision, so a rule does not rely on predicting it: a failed expansion leaves the union unjudged instead of failing the rule. Judging such a union's documentation anyway would take more than a cheap check, so the rules leave it to be corrected by hand and judge nothing about it. A union without a parameter element, whose documentation the compiler expands, is judged as each rule's spec states.
 
 Example — RH8035 and RH8036: with every documentation mode,
 
@@ -1597,3 +1599,25 @@ public union Holder<T>(T, string)
 ```
 
 `T` is not reported; `TItem` is.
+
+Example — a tag name in another letter case; RH8035, RH8108, and RH8203: with every documentation mode,
+
+```csharp
+/// <Param name="Circle">Circle</Param>
+public union Shape(int, string);
+
+/// <inheritdoc/>
+/// <summary>
+/// Holder <PARAMREF name="x"/>
+/// </summary>
+public union Holder(int, string);
+
+/// <summary>
+/// Result
+/// </summary>
+/// <typeparam name="T">T</typeparam>
+/// <pAram name="x">X</pAram>
+public union Result<T>(T, string);
+```
+
+is not reported: RH8035 does not report `Shape`, although it has no `<summary>`; RH8203 reports neither `<inheritdoc/>`; RH8108 reports nothing for `Result`. With the tag names in lower case the outcome is the same; without the parameter elements, RH8035 reports `Shape` and RH8203 reports the `<inheritdoc/>` of `Holder`.
