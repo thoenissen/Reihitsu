@@ -24,6 +24,7 @@
 | 4 | Skeptic | #1764 issue goals | Drop "explicit ranks" (prescribed solution); widen "never behind `partial`" to `ref` too; the reproduction test compiles the fixed code; the spec may state the rule generically with `closed`/`safe` as examples | Skeptic evidence (`public safe ref struct` → CS1585) | Goal edits that change nothing visible beyond what the output questions ask | — |
 | 5 | Skeptic | #1764 architecture finding: RH7105-001 order list contradicts its Why, the rule page, and the code remark | Resolved through output question 1/2; under answer A the order list is aligned with the other three statements | Same rule stated in four places | Settled by the maintainer's answer | — |
 | 6 | Skeptic | #1765 architecture finding: RH5011 analyzer and code fix compute "the token behind the break" differently | Fix in this run: the analyzer derives the gap from the statement's end (its semicolon), as the code fix does, so both agree; whether in the RH5011 override or the base class is the implementer's choice, provided no other consumer of the base class changes output | Two components own one decision; the change is small and within RH5011's components | Restores RH5011-001 behavior; no new visible output | — |
+| 9 | Validator | Full test run aborted by an OOM kill of the analyzer test host (environmental, no assertion failed) | Re-run the validator fresh, one test project at a time, splitting the analyzer project by namespace filter if it still runs out of memory | Same coverage, less concurrent memory | Test execution mode is internal | — |
 | 8 | Maintainer answer | Lane | Widen bug fix → behavior change for the run | Change doc required for RH7105-001's order list (decision 3) | Lane is internal | — |
 | 7 | Skeptic | #1765 issue goals | Drop RH5009 tests (rule only judges `goto`); keep RH5010, RH5012, RH7501 tests; widen "done when" to the fix converging (FC-007) and a formatted labeled-`break` input (FC-013) | Skeptic evidence | Test scope is internal | — |
 
@@ -42,4 +43,5 @@
 - Implementer 05 done (50321f7): tests pass.
 - Cleaner 06 done (f2e55bd): clean.
 - Spec checker 07 (da6a450): consistent. Auditor 08 (450249a): pass. Audited SHA da6a450 (base 1d2d29a).
-- Next: validator (09), then publish.
+- Validator 09 (71e1487): blocked by OOM, environmental (decision 9).
+- Next: validator re-run (10), then publish.
