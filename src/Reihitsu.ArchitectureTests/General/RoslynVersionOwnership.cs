@@ -11,9 +11,11 @@ namespace Reihitsu.ArchitectureTests.General;
 /// Checks the repository's one owner of the Roslyn version by reading the build files as written: every non-testing
 /// <c>Microsoft.CodeAnalysis*</c> <c>PackageReference</c> or <c>PackageVersion</c> item that names a package through
 /// <c>Include</c> or <c>Update</c> states exactly <c>Version="$(RoslynVersion)"</c>, and <c>RoslynVersion</c> is defined
-/// exactly once, without a condition, in the root <c>Directory.Build.props</c>. It does not evaluate MSBuild: any other
-/// form is reported, whatever version MSBuild would compute for it. Every element and attribute name is compared
-/// case-insensitively, as MSBuild compares item types, metadata names, and property names
+/// exactly once, without a condition, in the root <c>Directory.Build.props</c>. It does not evaluate MSBuild: any
+/// other literal form it reads is reported, whatever version MSBuild would compute for it, but deliberate MSBuild
+/// indirection is not seen, such as a package identifier taken from a property or an item, a version set inside a
+/// target, an import of a file with another extension, or a property from a response file. Every element and
+/// attribute name is compared case-insensitively, as MSBuild compares item types, metadata names, and property names
 /// </summary>
 internal static class RoslynVersionOwnership
 {
