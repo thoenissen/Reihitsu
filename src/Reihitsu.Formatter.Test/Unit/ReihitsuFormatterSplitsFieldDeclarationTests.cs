@@ -90,6 +90,39 @@ public class ReihitsuFormatterSplitsFieldDeclarationTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that the method returns true for a combined static and a combined constant declaration in a union declaration
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-031")]
+    public void ReturnsTrueForACombinedDeclarationInAUnion()
+    {
+        const string source = """
+                              union U(int, string)
+                              {
+                                  public static int A = 1, B = 2;
+                                  public const int C = 3, D = 4;
+                              }
+                              """;
+
+        var root = CSharpSyntaxTree.ParseText(source, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp15), cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
+
+        Assert.IsTrue(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "A")));
+        Assert.IsTrue(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "C")));
+    }
+
+    /// <summary>
+    /// Verifies that the method returns false for a declaration with one declarator in a union declaration
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-031")]
+    public void ReturnsFalseForADeclarationWithOneDeclaratorInAUnion()
+    {
+        var root = CSharpSyntaxTree.ParseText("union U(int, string)\n{\n    public static int A = 1;\n}", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp15), cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
+
+        Assert.IsFalse(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "A")));
+    }
+
+    /// <summary>
     /// Verifies that the method returns false for a declaration with one declarator
     /// </summary>
     [TestMethod]

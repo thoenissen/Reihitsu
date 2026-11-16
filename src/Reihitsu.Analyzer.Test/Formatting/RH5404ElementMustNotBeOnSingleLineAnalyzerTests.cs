@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -883,6 +884,32 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : BatchCodeFixTests
                                  """;
 
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a single-line class lays out a union declared in it as a class: its braces and members start their
+    /// own lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5404-003")]
+    public async Task VerifyFixLaysOutAUnionInsideTheFixedType()
+    {
+        const string testData = """
+                                class {|#0:C|} { union U(int, string) { public int X => 1; } }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     union U(int, string)
+                                     {
+                                         public int X => 1;
+                                     }
+                                 }
+                                 """;
+
+        // The .NET 9 reference assemblies lack the union runtime types (CS0518, CS0656), so compiler diagnostics are not verified
+        await Verify(testData, fixedData, test => test.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
     }
 
     #endregion // Tests
