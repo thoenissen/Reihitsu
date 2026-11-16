@@ -17,6 +17,7 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 4 | Audit 1 | AD0001 on a union whose doc comment holds `param`/`paramref` | Refuse the class: the affected rules must not crash and do not judge that union's documentation; recorded in the rule specs; mechanism left to the implementer | Rare input class: the same input already makes the compiler fail with CS1569 when the documentation file is generated (AGENTS.md, Code-fix coverage; README, Architecture findings) | Refusing a rare class puts nothing in question (README, What reaches the maintainer); named under Review notes | – |
 | 3 | Cleaner | S1125 warning in unchanged `FormatCommandHandler.cs:501`, seen only in the format-script build | Not a follow-up | Not reported by the Release build; unrelated to the run | Internal build warning | – |
 | 2 | Skeptic | Spec examples with union `Value` | Fresh spec author amends examples (original agent large: 61 tool uses) | Examples must compile; no rule output changes | Rename of example identifiers only | 5019e1a |
 | 1 | Claim | Branch name | Use `claude/squad-1766-qkoyls` instead of `claude/issue-1766-<slug>` | The session environment permits pushing only to this branch | Branch name is internal | 81a7af9 |
@@ -33,4 +34,5 @@
 - Test implementer done (04-test-implementer.md, 8e6503d): new tests for RH4012/RH8035/RH8036, extended RH8030, RH8101–RH8111, RH8203, RH8020/21, RH4105/RH4122; test-only union polyfill assembly `Base/UnionSupport.cs`. 
 - Implementer done (05-implementer.md, 066f383): 4 new rule types on existing bases, union added to DocumentableDeclarationKinds and TypeParameterOwnerKinds, resources, ruleset, sln, package README; full analyzer + architecture tests green in Debug. 
 - Cleaner done (06-cleaner.md, 2005af3): clean, Release build 0 warnings. 
-- Spec checker done (07-spec-checker.md, 7eafd21): consistent. Next: auditor (08).
+- Spec checker done (07-spec-checker.md, 7eafd21): consistent. - Auditor 1 (08-auditor.md, audited SHA 3ccbe182cd0d6d85f8d92891c0393a169d185d7f, main 1d2d29a): findings — #1 high, PR-introduced: RH8035/RH8036/RH8108/RH8203 throw AD0001 (Roslyn NRE in GetDocumentationCommentXml) when a union's doc comment holds `<param name>`/`<paramref name>` in Diagnose mode.
+- Repair round 1 (of 3): decision 4. Worklist: spec author (09) records the refused class in the affected specs → test implementer (10) default-mode tests → implementer (11) → cleaner → spec checker → auditor (repair only) → validator.
