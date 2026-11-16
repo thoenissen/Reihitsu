@@ -57,7 +57,7 @@ public abstract class SplitElementDocumentationAnalyzerBase : DiagnosticAnalyzer
     {
         if (context.Node is not MemberDeclarationSyntax declaration
             || DocumentationAnalysisUtilities.NeedsDocumentation(declaration) == false
-            || DocumentationAnalysisUtilities.IsUnionWithParameterElement(declaration, context.SemanticModel, context.CancellationToken)
+            || DocumentationAnalysisUtilities.IsUnjudgedUnion(declaration, context.SemanticModel, context.CancellationToken)
             || DocumentationAnalysisUtilities.MatchesAccessibilityGroup(declaration, _accessibilityGroup) == false
             || DocumentationAnalysisUtilities.HasRequiredDocumentation(declaration, context.SemanticModel, context.CancellationToken))
         {

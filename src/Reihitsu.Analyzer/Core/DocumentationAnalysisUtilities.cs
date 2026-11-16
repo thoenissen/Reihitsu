@@ -510,17 +510,18 @@ internal static class DocumentationAnalysisUtilities
 
     /// <summary>
     /// Determines whether the declaration is a union whose documentation is not judged (SHARED-DOC-019): one of its
-    /// documentation comments holds a <c>param</c> or <c>paramref</c> element at any depth. A partial union is judged
-    /// as a whole: every part is refused when the documentation of any one part holds such an element, because the
-    /// compiler joins the documentation of all parts. A union's case types have no names such an element could refer
-    /// to, and the compiler's expansion of that union's documentation fails, so the rules that use the requirement
-    /// leave the union to be corrected by hand
+    /// documentation comments holds a <c>param</c> or <c>paramref</c> element at any depth, in any letter case, or the
+    /// compiler's expansion of its documentation fails. A partial union is judged as a whole: every part is refused when
+    /// the documentation of any one part holds such an element, because the compiler joins the documentation of all
+    /// parts, and the expansion is the joined one of the union's symbol. A union's case types have no names such an
+    /// element could refer to, so the rules that use the requirement leave the union to be corrected by hand; a failed
+    /// expansion leaves the union unjudged instead of failing the rule
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <param name="semanticModel">Semantic model</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns><see langword="true"/> if the declaration is a union whose documentation holds a parameter element</returns>
-    internal static bool IsUnionWithParameterElement(MemberDeclarationSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+    /// <returns><see langword="true"/> if the declaration is a union whose documentation is not judged</returns>
+    internal static bool IsUnjudgedUnion(MemberDeclarationSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
         if (declaration.IsKind(SyntaxKind.UnionDeclaration) == false)
         {
@@ -532,15 +533,17 @@ internal static class DocumentationAnalysisUtilities
             return true;
         }
 
-        if (declaration.Modifiers.Any(SyntaxKind.PartialKeyword) == false
-            || semanticModel?.GetDeclaredSymbol(declaration, cancellationToken) is not { } unionSymbol)
+        if (declaration.Modifiers.Any(SyntaxKind.PartialKeyword)
+            && semanticModel?.GetDeclaredSymbol(declaration, cancellationToken) is { } unionSymbol
+            && unionSymbol.DeclaringSyntaxReferences
+                          .Select(obj => obj.GetSyntax(cancellationToken))
+                          .Any(obj => obj != declaration && HasParameterElement(obj)))
         {
-            return false;
+            return true;
         }
 
-        return unionSymbol.DeclaringSyntaxReferences
-                          .Select(obj => obj.GetSyntax(cancellationToken))
-                          .Any(obj => obj != declaration && HasParameterElement(obj));
+        return semanticModel != null
+               && XmlDocumentationExpander.CanExpandDocumentation(declaration, semanticModel, cancellationToken) == false;
     }
 
     /// <summary>
@@ -648,17 +651,19 @@ internal static class DocumentationAnalysisUtilities
 
     /// <summary>
     /// Determines whether a documentation comment of the declaration holds a <c>param</c> or <c>paramref</c> element at
-    /// any depth
+    /// any depth, with the tag name in any letter case and without a namespace prefix it may carry
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <returns><see langword="true"/> if a parameter element is written in the declaration's documentation</returns>
+    /// <remarks>
+    /// <see cref="DirectDocumentationSyntaxChecker.GetTagsIncludingNested"/> returns a match whenever the comment holds
+    /// the tag at any depth, so it is the tag lookup used here
+    /// </remarks>
     private static bool HasParameterElement(SyntaxNode declaration)
     {
         return DirectDocumentationSyntaxChecker.GetDocumentationComments(declaration)
-                                               .SelectMany(obj => obj.DescendantNodes())
-                                               .OfType<XmlNodeSyntax>()
-                                               .Select(XmlDocumentationElementOrderingUtilities.GetTagName)
-                                               .Any(obj => obj is "param" or "paramref");
+                                               .Any(obj => DirectDocumentationSyntaxChecker.GetTagsIncludingNested(obj, "param").Length > 0
+                                                           || DirectDocumentationSyntaxChecker.GetTagsIncludingNested(obj, "paramref").Length > 0);
     }
 
     /// <summary>

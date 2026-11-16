@@ -47,7 +47,7 @@ public class RH8108GenericTypeParametersMustBeDocumentedAnalyzer : DiagnosticAna
     {
         if (context.Node is not MemberDeclarationSyntax declaration
             || DocumentationAnalysisUtilities.NeedsDocumentation(declaration) == false
-            || DocumentationAnalysisUtilities.IsUnionWithParameterElement(declaration, context.SemanticModel, context.CancellationToken))
+            || DocumentationAnalysisUtilities.IsUnjudgedUnion(declaration, context.SemanticModel, context.CancellationToken))
         {
             return;
         }

@@ -62,7 +62,7 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer : DiagnosticA
     private void OnDeclaration(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is not MemberDeclarationSyntax declaration
-            || DocumentationAnalysisUtilities.IsUnionWithParameterElement(declaration, context.SemanticModel, context.CancellationToken))
+            || DocumentationAnalysisUtilities.IsUnjudgedUnion(declaration, context.SemanticModel, context.CancellationToken))
         {
             return;
         }
