@@ -432,6 +432,169 @@ public sealed class RoslynPackageVersionTests
     }
 
     /// <summary>
+    /// Verifies that item types and version metadata names in another casing, which MSBuild matches case-insensitively, are read as the item and version they are
+    /// </summary>
+    [TestMethod]
+    public void ItemNamesInAnotherCasingNamingTheVersionPropertyAreAccepted()
+    {
+        // Arrange
+        using (var fixture = new RoslynVersionFixtureDirectory())
+        {
+            fixture.Write("Directory.Build.props", RootPropsWithVersion);
+            fixture.Write("src/A/A.csproj", Project("""<packagereference Include="Microsoft.CodeAnalysis.CSharp" version="$(RoslynVersion)" />"""));
+            fixture.Write("Directory.Packages.props", Project("""<PACKAGEVERSION Include="Microsoft.CodeAnalysis.CSharp" VERSION="$(RoslynVersion)" />"""));
+
+            // Act
+            var (items, violations) = RoslynVersionOwnership.Check(fixture.Root);
+
+            // Assert
+            Assert.IsEmpty(violations, string.Join("; ", violations));
+            Assert.HasCount(2, items);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a <c>PackageReference</c> item whose type is written in another casing is read and its literal version reported
+    /// </summary>
+    [TestMethod]
+    public void PackageReferenceItemTypeInAnotherCasingIsReported()
+    {
+        // Arrange
+        using (var fixture = new RoslynVersionFixtureDirectory())
+        {
+            fixture.Write("Directory.Build.props", RootPropsWithVersion);
+            fixture.Write("src/A/A.csproj", Project("""<packagereference Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />"""));
+
+            // Act
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+
+            // Assert
+            AssertSingleViolation(violations, "src/A/A.csproj:1: packagereference Microsoft.CodeAnalysis.CSharp");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a <c>PackageVersion</c> item whose type is written in another casing is read and its literal version reported
+    /// </summary>
+    [TestMethod]
+    public void PackageVersionItemTypeInAnotherCasingIsReported()
+    {
+        // Arrange
+        using (var fixture = new RoslynVersionFixtureDirectory())
+        {
+            fixture.Write("Directory.Build.props", RootPropsWithVersion);
+            fixture.Write("Directory.Packages.props", Project("""<packageversion Include="Microsoft.CodeAnalysis.CSharp" Version="5.6.0" />"""));
+
+            // Act
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+
+            // Assert
+            AssertSingleViolation(violations, "Directory.Packages.props:1: packageversion Microsoft.CodeAnalysis.CSharp");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a version metadata element written in another casing next to the property is reported
+    /// </summary>
+    [TestMethod]
+    public void VersionMetadataElementInAnotherCasingIsReported()
+    {
+        // Arrange
+        using (var fixture = new RoslynVersionFixtureDirectory())
+        {
+            fixture.Write("Directory.Build.props", RootPropsWithVersion);
+            fixture.Write("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)"><version>5.6.0</version></PackageReference>"""));
+
+            // Act
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+
+            // Assert
+            AssertSingleViolation(violations, "src/A/A.csproj:1: PackageReference Microsoft.CodeAnalysis.CSharp");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a version metadata element written in another casing on an <c>Update</c> item next to the property is reported
+    /// </summary>
+    [TestMethod]
+    public void VersionMetadataElementInAnotherCasingOnUpdateItemIsReported()
+    {
+        // Arrange
+        using (var fixture = new RoslynVersionFixtureDirectory())
+        {
+            fixture.Write("Directory.Build.props", RootPropsWithVersion);
+            fixture.Write("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" />"""));
+            fixture.Write("src/B/B.props", Project("""<PackageReference Update="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)"><version>5.6.0</version></PackageReference>"""));
+
+            // Act
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+
+            // Assert
+            AssertSingleViolation(violations, "src/B/B.props:1: PackageReference Microsoft.CodeAnalysis.CSharp");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a <c>VersionOverride</c> attribute written in another casing next to the property is reported
+    /// </summary>
+    [TestMethod]
+    public void VersionOverrideAttributeInAnotherCasingIsReported()
+    {
+        // Arrange
+        using (var fixture = new RoslynVersionFixtureDirectory())
+        {
+            fixture.Write("Directory.Build.props", RootPropsWithVersion);
+            fixture.Write("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" versionoverride="5.6.0" />"""));
+
+            // Act
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+
+            // Assert
+            AssertSingleViolation(violations, "src/A/A.csproj:1: PackageReference Microsoft.CodeAnalysis.CSharp");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a second version attribute written in another casing next to the property, which MSBuild reads as the version, is reported
+    /// </summary>
+    [TestMethod]
+    public void SecondVersionAttributeInAnotherCasingIsReported()
+    {
+        // Arrange
+        using (var fixture = new RoslynVersionFixtureDirectory())
+        {
+            fixture.Write("Directory.Build.props", RootPropsWithVersion);
+            fixture.Write("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="$(RoslynVersion)" version="5.6.0" />"""));
+
+            // Act
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+
+            // Assert
+            AssertSingleViolation(violations, "src/A/A.csproj:1: PackageReference Microsoft.CodeAnalysis.CSharp");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a lone version attribute written in another casing that states a literal version is reported
+    /// </summary>
+    [TestMethod]
+    public void LoneVersionAttributeInAnotherCasingWithLiteralIsReported()
+    {
+        // Arrange
+        using (var fixture = new RoslynVersionFixtureDirectory())
+        {
+            fixture.Write("Directory.Build.props", RootPropsWithVersion);
+            fixture.Write("src/A/A.csproj", Project("""<PackageReference Include="Microsoft.CodeAnalysis.CSharp" version="5.6.0" />"""));
+
+            // Act
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+
+            // Assert
+            AssertSingleViolation(violations, "src/A/A.csproj:1: PackageReference Microsoft.CodeAnalysis.CSharp");
+        }
+    }
+
+    /// <summary>
     /// Verifies that build output and directories whose name starts with a dot are not read
     /// </summary>
     [TestMethod]

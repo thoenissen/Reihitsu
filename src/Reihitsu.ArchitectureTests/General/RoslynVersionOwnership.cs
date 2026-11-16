@@ -12,7 +12,8 @@ namespace Reihitsu.ArchitectureTests.General;
 /// <c>Microsoft.CodeAnalysis*</c> <c>PackageReference</c> or <c>PackageVersion</c> item that names a package through
 /// <c>Include</c> or <c>Update</c> states exactly <c>Version="$(RoslynVersion)"</c>, and <c>RoslynVersion</c> is defined
 /// exactly once, without a condition, in the root <c>Directory.Build.props</c>. It does not evaluate MSBuild: any other
-/// form is reported, whatever version MSBuild would compute for it
+/// form is reported, whatever version MSBuild would compute for it. Every element and attribute name is compared
+/// case-insensitively, as MSBuild compares item types, metadata names, and property names
 /// </summary>
 internal static class RoslynVersionOwnership
 {
@@ -88,12 +89,13 @@ internal static class RoslynVersionOwnership
 
             foreach (var element in document.Descendants())
             {
-                if (_packageItemTypes.Contains(element.Name.LocalName, StringComparer.Ordinal))
+                if (_packageItemTypes.Any(itemType => IsNamed(element, itemType)))
                 {
                     CheckPackageItem(file, element, items, violations);
                 }
-                else if (string.Equals(element.Name.LocalName, VersionPropertyName, StringComparison.OrdinalIgnoreCase)
-                         && element.Parent?.Name.LocalName == "PropertyGroup")
+                else if (IsNamed(element, VersionPropertyName)
+                         && element.Parent != null
+                         && IsNamed(element.Parent, "PropertyGroup"))
                 {
                     definitions.Add((string.Equals(Path.GetFullPath(path), rootProps, StringComparison.Ordinal) ? null : file, element));
                 }
@@ -114,7 +116,7 @@ internal static class RoslynVersionOwnership
     /// <param name="violations">Violations found so far</param>
     private static void CheckPackageItem(string file, XElement element, List<(string File, string Package)> items, List<string> violations)
     {
-        var identity = (string)element.Attribute("Include") ?? (string)element.Attribute("Update");
+        var identity = (string)FindAttributes(element, "Include").FirstOrDefault() ?? (string)FindAttributes(element, "Update").FirstOrDefault();
 
         if (identity == null)
         {
@@ -126,11 +128,12 @@ internal static class RoslynVersionOwnership
         {
             items.Add((file, package));
 
-            var version = (string)element.Attribute("Version");
-            var statesOtherVersion = element.Attribute("VersionOverride") != null
-                                     || element.Elements().Any(child => child.Name.LocalName is "Version" or "VersionOverride");
+            var versions = FindAttributes(element, "Version").ToList();
+            var statesOtherVersion = FindAttributes(element, "VersionOverride").Any()
+                                     || element.Elements().Any(child => IsNamed(child, "Version") || IsNamed(child, "VersionOverride"));
 
-            if (string.Equals(version, VersionPropertyReference, StringComparison.Ordinal) == false
+            if (versions.Count != 1
+                || string.Equals(versions[0].Value, VersionPropertyReference, StringComparison.Ordinal) == false
                 || statesOtherVersion)
             {
                 violations.Add($"{Location(file, element)}: {element.Name.LocalName} {package} must state exactly Version=\"{VersionPropertyReference}\" and nothing else as its version");
@@ -164,8 +167,8 @@ internal static class RoslynVersionOwnership
                 violations.Add($"{Location(file, property)}: {VersionPropertyName} is defined outside the root {RootPropsFileName}");
             }
 
-            if (property.Attribute("Condition") != null
-                || property.Parent.Attribute("Condition") != null
+            if (FindAttributes(property, "Condition").Any()
+                || FindAttributes(property.Parent, "Condition").Any()
                 || property.Parent.Parent != property.Document.Root)
             {
                 violations.Add($"{Location(file ?? RootPropsFileName, property)}: {VersionPropertyName} is defined under a condition");
@@ -204,6 +207,28 @@ internal static class RoslynVersionOwnership
 
         return segments.Take(segments.Length - 1)
                        .Any(segment => segment is "bin" or "obj" || segment.StartsWith('.'));
+    }
+
+    /// <summary>
+    /// Determines whether an element has the given MSBuild name, compared case-insensitively
+    /// </summary>
+    /// <param name="element">The element</param>
+    /// <param name="name">MSBuild name of an item type, metadata, property, or group</param>
+    /// <returns><see langword="true"/> when the local name of the element equals <paramref name="name"/> in any casing</returns>
+    private static bool IsNamed(XElement element, string name)
+    {
+        return string.Equals(element.Name.LocalName, name, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Finds the attributes of an element that have the given MSBuild name, compared case-insensitively
+    /// </summary>
+    /// <param name="element">The element</param>
+    /// <param name="name">MSBuild name of the attribute</param>
+    /// <returns>Every attribute whose local name equals <paramref name="name"/> in any casing</returns>
+    private static IEnumerable<XAttribute> FindAttributes(XElement element, string name)
+    {
+        return element.Attributes().Where(attribute => string.Equals(attribute.Name.LocalName, name, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
