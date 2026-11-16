@@ -33,5 +33,5 @@ None yet.
 
 ## State
 
-- Last step: implementer (05) — tests pass, b0386f5.
-- Next: cleaner (06).
+- Last step: cleaner (06) — clean, Release 0 warnings.
+- Next: spec checker (07).
