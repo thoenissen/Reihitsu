@@ -38,4 +38,5 @@
 - Implementer done (f5afc3a, handover bb66d1c); tie reason at non-declarator comma / FMT-UNSUP-008 follows FMT-UNSUP-010 text.
 - Cleaner clean (37c1315).
 - Spec checker consistent (cce9f0a). Build green. Audit base main=eb89003, head cce9f0a.
-- Next: auditor running.
+- Audit 1 (e3a5531): #1728 findings (#1 medium: tie-reason order untested; #2 low: AGENTS.md structural row lacks HasDisabledTextInLeadingTrivia); #1586 pass.
+- Repair round 1: #1 → test implementer (10), #2 → spec author (11); then cleaner, spec checker, auditor (repair only), validator.
