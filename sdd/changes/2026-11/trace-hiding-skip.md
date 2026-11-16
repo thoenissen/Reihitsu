@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | none — the pipeline trace (`scripts/trace.sh`) is a repository tool that no spec covers; the CLI spec excludes it as a non-goal |
 
@@ -24,7 +24,7 @@ The trace exists to show what the formatter does to a file. It calls the pipelin
 
 The trace already handles the other two inputs whole-document formatting leaves alone — a syntax error (FMT-PIPE-005) and a generated file (FMT-PIPE-006) — by naming them as skipped. A hiding carrier is the third, and FMT-PIPE-033 treats it like those two. Reporting it the same way keeps the trace's picture of which files are formatted identical to the formatter's and the CLI's, with the CLI's wording for the reason.
 
-Reproduced on `main` (e2a1f5f): the trace of the file below prints diffs from `LineBreakPhase`, `HorizontalSpacingPhase`, `IndentationPhase`, and `CleanupPhase` and exits with `0`, while `scripts/format.sh --check --verbose` on the same file prints `Skipped (code hidden in another build configuration): <path>`.
+Reproduced on the run's start commit e2a1f5f, which has no code difference from `main`: the trace of the file below prints diffs from `LineBreakPhase`, `HorizontalSpacingPhase`, `IndentationPhase`, and `CleanupPhase` and exits with `0`, while `scripts/format.sh --check --verbose` on the same file prints `Skipped (code hidden in another build configuration): <path>`.
 
 ```csharp
 class C
@@ -61,7 +61,7 @@ Tracing <path> (maximum passes: 3)
 Skipped (code hidden in another build configuration): <path>
 ```
 
-Exit code `0` in both. A file that holds a hiding carrier and also a shape the formatter refuses as unsupported is now named as skipped instead of reaching the precheck, whose refusal the trace used to print to standard error on every pass; FMT-PIPE-033 applies before the precheck in the formatter and the CLI too (CLI-021).
+Exit code `0` in both. A file that holds a hiding carrier and also a shape the formatter refuses as unsupported is now named as skipped instead of reaching the precheck, whose refusal the trace used to print to standard error once, with the wrong reason; FMT-PIPE-033 applies before the precheck in the formatter and the CLI too (CLI-021).
 
 ## Decisions
 
