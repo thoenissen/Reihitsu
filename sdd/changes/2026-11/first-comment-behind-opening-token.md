@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | FMT-BLANK-011 (changed: the exemption names every opening token; clarified: every opening brace), RH5020-002 (changed: title, token list, and why), RH8303-002 (changed: title, token list, and why) |
+| Affected requirements | FMT-BLANK-011 (changed: the exemption names every opening token; clarified: every opening brace), RH5020-002 (changed: title, token list, and why), RH8303-002 (changed: title, token list — the same opening tokens as FMT-BLANK-011 —, and why) |
 
 ## What
 
@@ -14,7 +14,7 @@ RH5020 and RH8303, which the formatter mirrors, exempt the same comments: RH5020
 
 A comment behind a comma, an operator, or any other token that opens nothing keeps its blank line, inside a list as anywhere else.
 
-This implements thoenissen/Reihitsu#1781, which asked for the exemption behind the opening parenthesis of a parameter list and of a union's case-type list. This draft widens it to every opening parenthesis, bracket, and generic `<`; the maintainer's answer decides the scope (*Decisions*).
+This implements thoenissen/Reihitsu#1781, which asked for the exemption behind the opening parenthesis of a parameter list and of a union's case-type list. The maintainer chose to widen it to every opening parenthesis, bracket, and generic `<` (*Decisions*).
 
 ## Why
 
@@ -43,7 +43,7 @@ int[] F = [
           ];
 ```
 
-A rule keyed on the token kind in front of the comment's token is one cheap check, the same in the formatter and in both analyzers; a rule limited to parameter lists would need the parent kind as well and leave the collection expression as it is.
+The rule rests on consistency, not on cost: it is the rule the formatter and both analyzers already apply behind every opening brace, extended to the other opening tokens, and it reaches the collection expression and the list pattern, which a rule limited to parameter lists would leave as they are. It is a check of the kind of the token in front of the comment's token, plus the parent kind for `<`, which is an opening token only in a type parameter list, a type argument list, or a function pointer parameter list.
 
 ## Visible output changes
 
@@ -484,6 +484,8 @@ class C
 
 `documentation/rules/RH5020.md`, *Exceptions*: the bullet "the first thing inside a block" gains "the first thing behind an opening parenthesis or bracket, such as the first element of a parameter list, an argument list, or a collection expression".
 
+`documentation/rules/RH8303.md`, *Exemptions*: the first of the three positions, "Documentation that opens a block, directly after the opening brace …", becomes "Documentation that is the first thing inside a block, directly after the opening brace of the type, namespace, or member list, or the first thing behind an opening parenthesis or bracket, such as the first element of a parameter list, even when a comment follows that brace, parenthesis, or bracket on its line". The page keeps three positions.
+
 ### Unchanged
 
 - A comment behind a comma or an operator keeps its blank line, and RH5020 and RH8303 keep reporting it without one (entries 5 and 6).
@@ -494,13 +496,19 @@ class C
 
 ## Decisions
 
+### The maintainer's answer to the run's output question
+
+On 2026-11-16 the maintainer chose option C of output question 1 (a comment that is the first content behind an opening parenthesis, bracket, or `<`): no blank line between any opening `(`, `[`, or generic `<` and a comment that is its first content, for every construct — parameter, argument, attribute argument, type parameter, and type argument lists, tuples, collection expressions, list patterns, element access, array sizes, statement headers, casts, and parenthesized expressions and patterns. A comment behind a comma keeps its blank line, an author's blank line behind the opening token stays, and documentation comments (`///`, `/** */`) follow the same answer (visible output changes 1 to 4 and 7). The rejected options were the issue's A (parameter lists only) and B (keep today's output); see *Alternatives considered*.
+
+The spec is written on this answer.
+
 ### Every opening token, not only a parameter list's
 
-The issue's reason — the opening parenthesis already provides the boundary, as a block's brace does — holds for every opening parenthesis, bracket, and generic `<`, and the code already applies it to every opening brace. Limiting the exemption to parameter lists would change output only for comments RH5035 asks the user to remove, and leave the collection expression, where such a comment is commonly written and allowed, with the blank line. Pending the maintainer's answer.
+The issue's reason — the opening parenthesis already provides the boundary, as a block's brace does — holds for every opening parenthesis, bracket, and generic `<`, and the code already applies it to every opening brace. Limiting the exemption to parameter lists would change output only for comments RH5035 asks the user to remove, and leave the collection expression, where such a comment is commonly written and allowed, with the blank line. The generic `<` is included although it is reached only by code RH5046 reports, so that `M<⏎// c⏎T>` and `M(⏎// c⏎a` follow one rule.
 
 ### RH5020 and RH8303 change with the formatter
 
-The formatter mirrors RH5020 and RH8303 (FMT-BLANK-011). Without the same exemption, both rules would report the formatter's output and their fixes would insert the blank line the formatter no longer writes.
+The analyzer change follows from the answer above and was not asked separately: the question's option C states it, and an unchanged requirement decides it. The formatter mirrors RH5020 and RH8303 (FMT-BLANK-011), and SHARED-DIAG-010 forbids a layout rule to report a shape the formatter keeps. RH5020-002 and RH8303-002 therefore name exactly the opening tokens FMT-BLANK-011 names: neither rule reports a comment the formatter leaves without a blank line, their code fixes insert none there, and both keep reporting a comment behind a comma, an operator, or any other token that opens nothing (visible output changes 5, 6, and 8).
 
 ### The author's blank line behind `(`, `[`, or `<` is kept
 
@@ -508,6 +516,6 @@ No requirement removes it today, and FMT-BLANK-019 keeps it behind the opening b
 
 ## Alternatives considered
 
-- **Exempt only a parameter list and a union's case-type list (the issue's option A)** — the same change limited to the `(` of a parameter list, the `[` of an indexer's parameter list, and a union's case-type list; entries 2, 3 (but the indexer), and most of 7 stay as *before*. Rejected in this draft: it changes output only for code RH5035 reports, and it leaves the commonly written collection-expression case unequal to an initializer's brace.
-- **Keep today's output (the issue's option B)** — rejected in this draft: the blank line detaches the comment from the element it describes and separates it from nothing.
+- **Exempt only a parameter list and a union's case-type list (the issue's option A)** — the same change limited to the `(` of a parameter list, the `[` of an indexer's parameter list, and a union's case-type list; entries 2, 3 (but the indexer), and most of 7 stay as *before*. Rejected by the maintainer (option A): it changes output only for code RH5035 reports, and it leaves the commonly written collection-expression case unequal to an initializer's brace.
+- **Keep today's output (the issue's option B)** — rejected by the maintainer (option B): the blank line detaches the comment from the element it describes and separates it from nothing.
 - **One shared requirement for the formatter and both analyzers** — rejected: SHARED-BLANK leaves the comment boundary to RH5020 and FMT-BLANK by its non-goals, and each states it separately today.

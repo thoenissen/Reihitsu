@@ -1083,7 +1083,7 @@ class C
 }
 ```
 
-The same holds for a documentation comment that is the first content behind an opening token, written on its own line or moved onto one:
+The same holds for a documentation comment that starts its line as the first content behind an opening token:
 
 ```csharp
 public record R(
@@ -1093,7 +1093,8 @@ public record R(
 
 class C
 {
-    void M(/** first */ int a, int b)
+    void M(
+        /** first */ int a, int b)
     {
     }
 }
