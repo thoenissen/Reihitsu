@@ -52,4 +52,4 @@ Batch 1 (before test implementer), answer "1a 2a 3a 4a 5a 6a":
 ## State
 
 - Last step: skeptic 02 (verdict: output question). Batch 1 asked: Q1 name, Q2 default, Q3 docs, Q4 Ctrl+C several in progress, Q5 aliases (skeptic's Q6), Q6 accepted values (skeptic's Q7).
-- Implementer 05 done (a1d2458), tests pass. Lane check confirmed. Cleaner 06 clean (df039b2). Spec checker 07: 1 finding (sdd/specs/README.md:399 index row). Repair round 1 open. Spec author 08 repaired (b0ae134). Next: spec checker 09, then merge main/build/auditor 10.
+- Implementer 05 done (a1d2458), tests pass. Lane check confirmed. Cleaner 06 clean (df039b2). Spec checker 07: 1 finding (sdd/specs/README.md:399 index row). Repair round 1 open. Spec author 08 repaired (b0ae134). Spec checker 09 consistent (263a255). main eb89003 not ahead, build green. Next: auditor 10 on HEAD, main eb89003591b8371d91e4a14b8590d764bdf6d605.
