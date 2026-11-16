@@ -37,8 +37,8 @@
 | 14 | Skeptic 05 | Pre-existing SHARED-DIAG-008 defect in empty-type base (conditional directive in body reported) | Follow-up (option 3b); RH5418 tests write nothing for conditional-directive cells | Base is not otherwise changed by the run; fix spans five rules outside the issue (*Scope*) | Output of RH5412-RH5416 unchanged in this run | — |
 | 15 | Test impl. 07 | `[A /* c */, B]` on a union stays on the declaration line, as for a struct | Accept: test asserts union matches struct | Maintainer: unions are treated like structs | Same output as struct, which no answer or requirement changes | a696487 |
 | 16 | Implementer 08 | NRE in `TargetAttributePlacementCodeFixProviderBase.HasUnusableEnclosingScope` for a semicolon-declared type (default open brace) | Accept as adjacent fix (skip a brace pair whose open token is `None`) | Crash the run's RH5507 union test exposes; few lines in a component the run's rules use; covered by test | Fix now offered instead of crashing; brings code to the unchanged RH5507 requirement | 0bb9339 |
-| 17 | Auditor 13 | Decision 16's NRE fix also ends a `main` crash for RH5505/RH5507/RH5521 on any semicolon-declared type after other code | Keep the fix; repair round 2: tests for RH5505, RH5507 (struct/record struct), RH5521; PR names the crash fix | PR-introduced scope; fix requirements unchanged | Crash becomes the fix the unchanged requirements demand | pending |
-| 18 | Auditor 13 | RH5106 rule page does not name the union case-type list | Repair round 2: spec author adds it | Same requirement, Q1 A | Covered by Q1 A | pending |
+| 17 | Auditor 13 | Decision 16's NRE fix also ends a `main` crash for RH5505/RH5507/RH5521 on any semicolon-declared type after other code | Keep the fix; repair round 2: tests for RH5505, RH5507 (struct/record struct), RH5521; PR names the crash fix | PR-introduced scope; fix requirements unchanged | Crash becomes the fix the unchanged requirements demand | 848ae0e / d3e9e46 |
+| 18 | Auditor 13 | RH5106 rule page does not name the union case-type list | Repair round 2: spec author adds it | Same requirement, Q1 A | Covered by Q1 A | 848ae0e / d3e9e46 |
 | 19 | Auditor 13 | Architecture finding: `HasUnusableEnclosingScope` privately copies `SyntaxIndentationUtilities` brace-scope set | Fix narrowly (done); follow-up to call the shared helper | Pre-existing structure, narrow fix restores parity | Internal | — |
 
 ## Follow-up candidates
@@ -54,4 +54,4 @@
 
 - Side task (maintainer request): moved #1786 from vNext to milestone 1.4.0; #1781/#1785 left in vNext.
 - Last step: skeptic 02 (output questions Q1-Q4 stand, with adjustments). Spec-author amendment 03 running (decisions 5-7). Output questions Q1 (unions join type rules), Q2 (RH5507/RH5508 on unions), Q3 (RH5418, escalation 5), Q4 (RH2110, escalation 5) asked to the maintainer; waiting.
-- Auditor 13 (34bab1d, audited head 7a9f5d9): findings #1 (tests for crash fix), #2 (RH5106 page). Repair round 2: test implementer 14 + spec author 15; then cleaner, spec checker, auditor on the repair, validator.
+- Audited head 7a9f5d9 (auditor 13). Repair round 2: tests 14 (848ae0e), RH5106 page 15 (d3e9e46). Next: cleaner 16, spec checker 17, auditor 18 on repair, validator 19.
