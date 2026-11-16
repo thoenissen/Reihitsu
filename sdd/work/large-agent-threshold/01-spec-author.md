@@ -2,7 +2,7 @@ Role: spec author
 Commit: 2c6c668
 Verdict: change doc written
 
-Change doc: `sdd/changes/2026-11/squad-large-agent-by-context-growth.md` (`Status: Draft`, `Affected requirements: none — process change`, visible output changes: none).
+Change doc: `sdd/changes/2026-11/squad-large-agent-by-context-growth.md` (`Status: Accepted` — set in a status-only follow-up after the lead accepted it; was `Draft`, `Affected requirements: none — process change`, visible output changes: none).
 
 ## What the implementer builds against it
 

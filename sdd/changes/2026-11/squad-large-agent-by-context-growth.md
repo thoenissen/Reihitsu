@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | none — process change |
 | Depends on | [The lead chooses between continuing and spawning, and keeps its context small](squad-resume-or-fresh-and-lead-compaction.md) |
