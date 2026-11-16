@@ -49,3 +49,9 @@ Lane of each issue = the lane its own diff would get from the lane check (`squad
 | 2 | 2.5 | behavior-change | `/squad #1781 #1786` | `BlankLinePhase` (FMT-BLANK-011 first comment in a parameter list / union case list), `LineBreakPhase` joins (argument list on the line after its name, incl. `with⏎(`), RH5305 fix tests, `blank-lines.md`, `line-breaks.md`, change doc | Both C# 15 follow-ups of PRs #1779/#1782; formatter phases no batch-2 run touches (#1728 = precheck/structural, #1724 CLI, #898/#1780 tooling, #1693 docs). Before batch 3 (#1726 and #1516 also live in the line-break/blank-line phases) | Yes, both. #1786 was read from code, not run: the skeptic reproduces first (rare shape; may end as characterization) |
 
 #1785 (extension-block layout, C# 14) stays on vNext: not C# 15.
+
+## Added 2026-11-16 (maintainer 1A: #1788 into 1.4.0)
+
+| Batch | Run | Lane | Command | Area/files | Why / order | Output question |
+|---|---|---|---|---|---|---|
+| 5 | 5.1 | (skeptic decides) | `/squad #1788` | ~17 analyzer registrations listing type kinds, `ParameterListParentPolicy`, `AttributeTargetUtilities.TryResolveImplicitTarget`, formatter visitors with kind lists | Touches the registrations of the rules #1759 walks (RH7102-RH7108, RH5412, ...) and formatter visitors of #1781/#1786/#1726 -> alone, after batch 4. Lane doubt: issue says tooling, but a shared kind set that also makes RH5108/RH5110 report primary constructors / `record struct` is a behavior change; a pure refactor is no lane the issue names | Possibly (RH5108/RH5110 newly reporting other kinds) |
