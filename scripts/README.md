@@ -83,7 +83,7 @@ The implementation lives in `Reihitsu.Tooling`, a non-packable project inside `R
 
 ## The text-only proof
 
-`verify-text-only` answers one question mechanically: **can this change affect compiled behavior?** The squad uses it to admit a comment-only C# change to the docs lane (through `lane-check`) and to prove that a comment cleanup after a passing audit did not invalidate the audit.
+`verify-text-only` answers one question mechanically: **can this change affect compiled behavior?** The squad uses it through `lane-check`, which runs it before classifying a diff ([The lane check](#the-lane-check) says which C# files it can make text), and to prove that a comment cleanup after a passing audit did not invalidate the audit.
 
 It is syntax-aware rather than line-based, because a `grep` over the diff does not recognize every block-comment form and cannot tell a comment apart from a directive or from comment-looking text inside a string literal. For every changed C# file it parses both versions with Roslyn and proves that
 
