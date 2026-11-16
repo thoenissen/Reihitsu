@@ -31,8 +31,10 @@ Batch 1 (before test implementer), answer "1a 2a 3a 4a 5a 6a":
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
-| 1 | skeptic | Drafted Q5 (write truncated by Ctrl+C) — output question? | Not asked; repaired in this run as an adjacent fix: a started write completes (no cancellation token passed into the write), CLI-022/CLI-017 cancellation text says a file whose write has started is finished and named | Pre-existing on `main`, reproduced by skeptic (02), widened by the change; small, in `FormatCommandHandler`/`DefaultFileSystem`, testable; option B would violate non-destructiveness | Unchanged non-destructiveness requirement demands it; no alternative output is admissible | |
-| 2 | skeptic | Reword CLI-006 "selected more than once" to "the same full path" | Accept | States today's behavior precisely | Changes no output | |
+| 1 | skeptic | Drafted Q5 (write truncated by Ctrl+C) — output question? | Not asked; repaired in this run as an adjacent fix: a started write completes (no cancellation token passed into the write), CLI-022/CLI-017 cancellation text says a file whose write has started is finished and named | Pre-existing on `main`, reproduced by skeptic (02), widened by the change; small, in `FormatCommandHandler`/`DefaultFileSystem`, testable; option B would violate non-destructiveness | Unchanged non-destructiveness requirement demands it; no alternative output is admissible | 0a1bd37 (spec); code pending |
+| 2 | skeptic | Reword CLI-006 "selected more than once" to "the same full path" | Accept | States today's behavior precisely | Changes no output | 0a1bd37 |
+| 3 | spec author 03 | Leading zeros in the count (`007`) | Accept as 7 | Follows from answer 6A (digits only, value 1..int.MaxValue) | Covered by answer 6A | 0a1bd37 |
+| 4 | spec author 03 | README sentence "same for every count" not literally true for aliases in write mode | Keep as answered (3A) | Maintainer chose the text; the alias carve-out (5A) is recorded in spec and change doc | Text was answered verbatim | 0a1bd37 |
 
 ## Follow-up candidates
 
@@ -44,4 +46,4 @@ Batch 1 (before test implementer), answer "1a 2a 3a 4a 5a 6a":
 ## State
 
 - Last step: skeptic 02 (verdict: output question). Batch 1 asked: Q1 name, Q2 default, Q3 docs, Q4 Ctrl+C several in progress, Q5 aliases (skeptic's Q6), Q6 accepted values (skeptic's Q7).
-- Answers received. Next: spec author 03 (route answers + decisions 1, 2; Status Accepted), lane check, then test implementer 04.
+- Spec author 03 done (0a1bd37, change doc Accepted). Lane check confirmed behavior-change. Next: test implementer 04.
