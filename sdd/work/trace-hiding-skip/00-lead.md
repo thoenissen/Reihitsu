@@ -33,5 +33,5 @@ None yet.
 
 ## State
 
-- Last step: skeptic (02) — proceed; no output questions.
-- Next: spec author fresh (03) for wording + Accepted, then test implementer.
+- Last step: test implementer (04) — 5 red tests for the right reason; spec author (03) accepted change doc.
+- Next: implementer (05).
