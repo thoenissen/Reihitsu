@@ -12,7 +12,11 @@
 
 ## Maintainer answers
 
-(none yet)
+Batch 1 (before test implementer), all recommended options chosen:
+- Q1 wrapped case-type list: A — keep the primary-constructor (aligned) layout.
+- Q2 empty union body: A — `{ }` becomes `;`.
+- Q3 union gets class layout (braces/members on own lines, `(` joins name, each `where` on its own line, combined static field split; RH7101 fix offered; RH5404 fix lays out nested union): A — accepted.
+- Q4 `with(...)` element: A — no space between `with` and `(` (also `with()`); RH5305 fix output follows.
 
 ## Decisions taken
 
@@ -37,4 +41,4 @@
 - Follow-up candidates: (a) attribute lists on unions not split — SHARED-ATTR-001 has no union target (01-spec-author); (b) argument list on the line after its name lands at the statement column (01-spec-author).
 - 02-skeptic done (984dea0): #1762 proceed, #1763 proceed. Callers: CLI; RH7101, RH5404 fixes (#1762); RH5305 fix (#1763). Test `UnionWithOneLineBracesFormatted` (src/Reihitsu.Cli.Test/EndToEnd/CliLanguageVersionEndToEndTests.cs:41-49) must change. Analyzer tests on unions may hit CS0518/CS0656 with .NET 9 refs (#1766).
 - Follow-up candidates: (c) extension-block braces/`where` clauses stay glued on main; type-kind list duplicated in seven places — follow-up carrying output question, rec. class-like layout (02-skeptic); (d) stale RH5404 exclusion comment for unions — input for #1767 (02-skeptic); (a) belongs into #1767 as well.
-- Next: batch-1 output questions Q1–Q4 asked; waiting. Then fresh spec author: record answers + amendments (decision 4), then test implementer.
+- Batch-1 answered (1A 2A 3A 4A). Next: fresh spec author to record answers in change-doc Decisions + amendments (decision 4). Then fresh spec author: record answers + amendments (decision 4), then test implementer.
