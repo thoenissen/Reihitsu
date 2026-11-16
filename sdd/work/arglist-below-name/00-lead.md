@@ -15,9 +15,9 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
-| 1 | skeptic | `(f)⏎(1)` example is a cast and does not compile | Replace with `(f ?? g)⏎(1)` in spec, change doc, Q1 | Skeptic compiled it (CS0118) | Example text only; the output question is asked afterwards | pending |
-| 2 | skeptic | FMT-BREAK-039's second paragraph names only collection expressions; reason for Q1 A overstated | Cover every construct FMT-BREAK-022 decides (incl. dictionary element initializers); narrow the reason to collection-like constructs | Rewriter order decides these as written | Outputs asked as output questions | pending |
-| 3 | skeptic | Architecture finding: argument-list `(` gap demanded by FMT-BREAK-039, -020, -015 | FMT-BREAK-039 owns the gap; FMT-BREAK-020 and -015 point to it instead of restating it; the implementation has one owner of that gap | One statement of a rule (README, Architecture findings); within the component the run changes | Same outputs for every input; spec wording only | pending |
+| 1 | skeptic | `(f)⏎(1)` example is a cast and does not compile | Replace with `(f ?? g)⏎(1)` in spec, change doc, Q1 | Skeptic compiled it (CS0118) | Example text only; the output question is asked afterwards | 69fcd5f |
+| 2 | skeptic | FMT-BREAK-039's second paragraph names only collection expressions; reason for Q1 A overstated | Cover every construct FMT-BREAK-022 decides (incl. dictionary element initializers); narrow the reason to collection-like constructs | Rewriter order decides these as written | Outputs asked as output questions | 69fcd5f |
+| 3 | skeptic | Architecture finding: argument-list `(` gap demanded by FMT-BREAK-039, -020, -015 | FMT-BREAK-039 owns the gap; FMT-BREAK-020 and -015 point to it instead of restating it; the implementation has one owner of that gap | One statement of a rule (README, Architecture findings); within the component the run changes | Same outputs for every input; spec wording only | 69fcd5f |
 | 4 | skeptic | F4 cast operand below the cast (`(int)⏎(x + 1)`) | Dropped, not a follow-up | Rare input class (AGENTS.md, Code-fix coverage) | No change made | — |
 
 ## Follow-up candidates
@@ -28,5 +28,5 @@
 
 ## State
 
-- Last step: skeptic (02, b58aa04): premise holds; corrections D1–D3; extra OQs conditional + dictionary initializer.
-- Next: fresh spec author amendment (03) incl. final OQ drafts, then ask OQ batch.
+- Last step: spec author amendment (03, 69fcd5f); change doc accepted by lead pending answers; OQ batch 1–4 (03-spec-author.md) asked to maintainer.
+- Next: wait for answers; route to spec author (Status: Accepted, adjust spec), then test implementer.
