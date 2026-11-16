@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Documentation;
@@ -732,6 +733,31 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
         var unionSupport = await UnionSupport.GetReferenceAsync();
 
         await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies an empty summary is still reported under the default documentation mode on a union whose
+    /// documentation comment holds a <c>&lt;param&gt;</c> element, which this rule judges from the syntax
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8030-001")]
+    public async Task VerifyDiagnosticForUnionWithEmptySummaryWhoseDocumentationHoldsParamElement()
+    {
+        const string source = """
+                              /// {|RH8030:<summary></summary>|}
+                              /// <param name="Circle">Circle</param>
+                              public union Shape(int, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
     }
 
     #endregion // Tests

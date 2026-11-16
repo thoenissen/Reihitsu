@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Documentation;
@@ -251,6 +252,34 @@ public class RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnal
         var unionSupport = await UnionSupport.GetReferenceAsync();
 
         await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH8110MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a type parameter element without a name is still reported under the default documentation mode on a union whose
+    /// documentation comment holds a <c>&lt;param&gt;</c> element, which this rule judges from the syntax
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8110-001")]
+    public async Task VerifyDiagnosticForUnionTypeParamElementWithoutNameWhoseDocumentationHoldsParamElement()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Result
+                              /// </summary>
+                              /// {|RH8110:<typeparam>Value</typeparam>|}
+                              /// <param name="x">X</param>
+                              public union Result<TValue>(TValue, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
     }
 
     #endregion // Tests

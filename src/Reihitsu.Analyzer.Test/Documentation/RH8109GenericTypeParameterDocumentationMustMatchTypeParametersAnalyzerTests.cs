@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Documentation;
@@ -330,6 +331,35 @@ public class RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnaly
         var unionSupport = await UnionSupport.GetReferenceAsync();
 
         await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies a type parameter element in the wrong order is still reported under the default documentation mode on a union whose
+    /// documentation comment holds a <c>&lt;param&gt;</c> element, which this rule judges from the syntax
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8109-001")]
+    public async Task VerifyDiagnosticsForUnionTypeParamElementsInWrongOrderWhoseDocumentationHoldsParamElement()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Result
+                              /// </summary>
+                              /// {|RH8109:<typeparam name="TError">Error</typeparam>|}
+                              /// {|RH8109:<typeparam name="TValue">Value</typeparam>|}
+                              /// <param name="x">X</param>
+                              public union Result<TValue, TError>(TValue, TError);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
     }
 
     #endregion // Tests

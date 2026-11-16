@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Documentation;
@@ -294,4 +295,191 @@ public class RH8035NonPrivateUnionsMustBeDocumentedAnalyzerTests : AnalyzerTests
     }
 
     #endregion // No-diagnostic cases
+
+    #region Documentation holding a parameter element
+
+    /// <summary>
+    /// Verifies no diagnostic is reported and no exception is thrown under the default documentation mode for a union
+    /// without a <c>&lt;summary&gt;</c> whose documentation comment holds a <c>&lt;param&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8035-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForUnionWhoseDocumentationHoldsParamElement()
+    {
+        const string source = """
+                              /// <param name="Circle">Circle</param>
+                              public union Shape(int, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported under the parse documentation mode for a union without a
+    /// <c>&lt;summary&gt;</c> whose documentation comment holds a <c>&lt;param&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8035-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForUnionWhoseDocumentationHoldsParamElementInParseMode()
+    {
+        const string source = """
+                              /// <param name="Circle">Circle</param>
+                              public union Shape(int, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                         test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject);
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for a union without a <c>&lt;summary&gt;</c> whose documentation comment
+    /// holds a <c>&lt;paramref&gt;</c> element nested in another element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8035-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForUnionWhoseDocumentationHoldsNestedParamrefElement()
+    {
+        const string source = """
+                              /// <remarks>
+                              /// <para>See <paramref name="x"/></para>
+                              /// </remarks>
+                              public union Shape(int, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for a union without a <c>&lt;summary&gt;</c> whose documentation comment
+    /// holds a <c>&lt;param&gt;</c> element without a name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8035-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForUnionWhoseDocumentationHoldsParamElementWithoutName()
+    {
+        const string source = """
+                              /// <param>Circle</param>
+                              public union Shape(int, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for a union without a <c>&lt;summary&gt;</c> when a later documentation
+    /// comment holds the <c>&lt;param&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8035-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForUnionWhoseLaterDocumentationCommentHoldsParamElement()
+    {
+        const string source = """
+                              /// <remarks>
+                              /// First
+                              /// </remarks>
+
+                              /// <param name="Circle">Circle</param>
+                              public union Shape(int, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is still reported for a union without a <c>&lt;summary&gt;</c> whose documentation
+    /// comment holds other elements but no <c>&lt;param&gt;</c> or <c>&lt;paramref&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8035-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyDiagnosticForUnionWhoseDocumentationHoldsNoParameterElement()
+    {
+        const string source = """
+                              /// <remarks>
+                              /// <para>See <typeparamref name="T"/></para>
+                              /// </remarks>
+                              /// <typeparam name="T">Value</typeparam>
+                              public union {|RH8035:Shape|}<T>(T, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies a declaration in the body of a union whose documentation holds a <c>&lt;param&gt;</c> element is
+    /// judged on its own
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8035-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyDiagnosticForUndocumentedUnionInBodyOfUnionWhoseDocumentationHoldsParamElement()
+    {
+        const string source = """
+                              /// <param name="Circle">Circle</param>
+                              public union Shape(int, string)
+                              {
+                                  public union {|RH8035:Inner|}(int, string);
+                              }
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    #endregion // Documentation holding a parameter element
 }

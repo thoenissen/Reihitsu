@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Documentation;
@@ -407,6 +408,128 @@ public class RH8108GenericTypeParametersMustBeDocumentedAnalyzerTests : Analyzer
         var unionSupport = await UnionSupport.GetReferenceAsync();
 
         await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported and no exception is thrown under the default documentation mode for the
+    /// undocumented type parameter of a union whose documentation comment holds a <c>&lt;param&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8108-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForUnionWhoseDocumentationHoldsParamElement()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Result
+                              /// </summary>
+                              /// <param name="x">X</param>
+                              public union Result<T>(T, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported under the parse documentation mode for the undocumented type parameter of a
+    /// union whose documentation comment holds a <c>&lt;param&gt;</c> element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8108-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForUnionWhoseDocumentationHoldsParamElementInParseMode()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Result
+                              /// </summary>
+                              /// <param name="x">X</param>
+                              public union Result<T>(T, string);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                         test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject);
+                     });
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for the undocumented type parameter of a union whose documentation comment
+    /// holds a <c>&lt;typeparam&gt;</c> element for another type parameter and a <c>&lt;paramref&gt;</c> element nested
+    /// in its summary
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8108-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyNoDiagnosticForUnionWhoseSummaryHoldsParamrefElement()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Result <paramref name="x"/>
+                              /// </summary>
+                              /// <typeparam name="TValue">Value</typeparam>
+                              public union Result<TValue, TError>(TValue, TError);
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies a method in the body of a union whose documentation holds a <c>&lt;param&gt;</c> element is judged on
+    /// its own
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8108-001")]
+    [Requirement("SHARED-DOC-019")]
+    public async Task VerifyDiagnosticForMethodInBodyOfUnionWhoseDocumentationHoldsParamElement()
+    {
+        const string source = """
+                              /// <summary>
+                              /// Holder
+                              /// </summary>
+                              /// <param name="x">X</param>
+                              public union Holder<T>(T, string)
+                              {
+                                  /// <summary>
+                                  /// Runs
+                                  /// </summary>
+                                  public void Run<{|RH8108:TItem|}>()
+                                  {
+                                  }
+                              }
+                              """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(source,
+                     test =>
+                     {
+                         test.TestState.AdditionalReferences.Add(unionSupport);
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                     });
     }
 
     #endregion // Tests
