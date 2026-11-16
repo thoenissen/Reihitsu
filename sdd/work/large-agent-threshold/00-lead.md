@@ -34,11 +34,14 @@ None yet.
 | 3 | Spec author | Lane check: a change doc under sdd/changes/ makes the diff need behavior-change | Widen tooling -> behavior change before the implementer; run the added roles skeptic (premise and change doc) and test implementer (tests where the tool has a test surface) | The lane check decides the claim; widening order tooling -> behavior change | No shipped surface changes; process and squad script only | — |
 | 4 | Skeptic | Threshold: 120k growth (C), one cold-cache number ~50k (B), or cache-aware (A: last response older than ~5 min -> large at ~50k growth, otherwise ~150k) | A, plus the change doc's evidence corrections the skeptic lists (growth table, orientation baseline, 56k-prefix sentence, cost bracket, premise statement); last-response time per spawn in usage.sh --json | Skeptic's break-even model: continue rows follow a maintainer answer or another role, so the cache is usually cold; 120k fits neither case | Squad process and squad script only | — |
 | 5 | Skeptic | Change doc was accepted before the skeptic ran | Re-accept after the amendment; the amending spec author keeps Status Accepted | lead.md section 4 | Process text | — |
+| 6 | Spec author (03) | Accept the amended change doc (cache-aware rule ~50k cold / ~150k warm, judged when the follow-up is sent; usage.sh --json per spawn: first_context_tokens, last_context_tokens, context_growth_tokens, last_response_at; Markdown: Context growth column) | Accepted | Follows decision 4; figures re-derived in 03-spec-author.md | Process and squad script only | ca9dbea |
+| 7 | Widening | Test implementer, required by the behavior-change lane | Skip | `scripts/usage.sh` is a Bash/jq script with no test project or harness; the only testable claim is its JSON fields, checked by the implementer against the sanity points in 03-spec-author.md and by the auditor | Process and squad script only | — |
+| 8 | Follow-ups | Spec author's cache-expiry candidate | Dropped: absorbed by the cold-cache rule (03-spec-author.md) | — | — | — |
 
 ## Follow-up candidates
 
-- The table's 'continue for the maintainer's answer' row assumes continuing is cheap; with 5-minute subagent caches a late continuation rewrites the whole context. Measure with the new per-prompt figures before changing the table. (01-spec-author.md) — mostly absorbed by decision 4 (02-skeptic.md); re-check at publish whether anything remains.
+- (dropped, decision 8) The table's 'continue for the maintainer's answer' row assumes continuing is cheap; with 5-minute subagent caches a late continuation rewrites the whole context. Measure with the new per-prompt figures before changing the table. (01-spec-author.md) — mostly absorbed by decision 4 (02-skeptic.md); re-check at publish whether anything remains.
 
 ## Open worklist / next step
 
-- Done: spec author (01), status Accepted (9522a08). Done: skeptic (02, 8d742a6). Next: fresh spec author amendment (03), then test implementer (04), implementer (05).
+- Done: spec author (01), status Accepted (9522a08). Done: skeptic (02, 8d742a6). Done: spec author amendment (03, ca9dbea). Next: implementer (04), cleaner (05), spec checker (06), auditor (07), validator (08).
