@@ -231,7 +231,8 @@ internal sealed class PrecheckPhase : IFormattingPhase
     /// <summary>
     /// Finds the first comment in the span of a variable declaration outside the places FMT-UNSUP-004 excepts: the leading
     /// trivia of the span's first token, the trailing trivia of the <c>;</c> or <c>)</c> that ends it, and the inside of an
-    /// initializer value. A declaration inside a value is a declaration of its own and is not looked at here
+    /// initializer value. The first and last token of each initializer value are taken once per declaration, because finding them
+    /// walks the value's outermost spine. A declaration inside a value is a declaration of its own and is not looked at here
     /// </summary>
     /// <param name="declaration">The variable declaration</param>
     /// <param name="isInputRoot">Whether the declaration is the input itself, so that the statement or member around it is not part of the input</param>
@@ -243,16 +244,17 @@ internal sealed class PrecheckPhase : IFormattingPhase
         var values = declaration.Variables
                                 .Select(static variable => variable.Initializer?.Value)
                                 .Where(static value => value != null)
+                                .Select(static value => (value.Span, FirstToken: value.GetFirstToken(), LastToken: value.GetLastToken()))
                                 .ToList();
         var isFirst = true;
 
         foreach (var token in tokens)
         {
-            var value = values.Find(candidate => candidate.Span.Contains(token.Span));
+            var valueIndex = values.FindIndex(candidate => candidate.Span.Contains(token.Span));
             var checksLeadingTrivia = isFirst == false
-                                      && (value == null || token == value.GetFirstToken());
+                                      && (valueIndex < 0 || token == values[valueIndex].FirstToken);
             var checksTrailingTrivia = token != terminator
-                                       && (value == null || token == value.GetLastToken());
+                                       && (valueIndex < 0 || token == values[valueIndex].LastToken);
 
             isFirst = false;
 
