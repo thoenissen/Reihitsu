@@ -39,4 +39,5 @@ None.
 - Spec checker: consistent (2d4c863).
 - Audit 1 on 2d4c863 (main eb89003): findings, 1 (05-auditor.md). Repair round 1 of 3.
 - Repair 1: test implementer ca374b3 (06).
-- Next step: cleaner, spec checker, auditor (repair only).
+- Repair 1: cleaner clean (07), spec checker consistent (08, 4e35f30).
+- Next step: auditor (repair only).
