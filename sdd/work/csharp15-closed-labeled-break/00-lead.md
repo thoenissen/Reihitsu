@@ -37,4 +37,5 @@
 
 - Last step: spec author (01, commit 87f9643), skeptic (02, commit 8233fbe).
 - Answers recorded (1B, 2B). Lane widened to behavior change (decision 8).
-- Next: spec author writes the change doc and the RH7105 spec change; then test implementer.
+- Spec author 03 done (e9a6ecf); change doc accepted by the lead; lane check confirmed behavior-change.
+- Next: test implementer (04).
