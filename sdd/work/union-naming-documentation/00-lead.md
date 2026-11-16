@@ -32,4 +32,5 @@
 - Batch 1 answered and recorded in the change doc (cd23842); lead set the change doc Accepted (efe4373).
 - Test implementer done (04-test-implementer.md, 8e6503d): new tests for RH4012/RH8035/RH8036, extended RH8030, RH8101–RH8111, RH8203, RH8020/21, RH4105/RH4122; test-only union polyfill assembly `Base/UnionSupport.cs`. 
 - Implementer done (05-implementer.md, 066f383): 4 new rule types on existing bases, union added to DocumentableDeclarationKinds and TypeParameterOwnerKinds, resources, ruleset, sln, package README; full analyzer + architecture tests green in Debug. 
-- Cleaner done (06-cleaner.md, 2005af3): clean, Release build 0 warnings. Next: spec checker (07).
+- Cleaner done (06-cleaner.md, 2005af3): clean, Release build 0 warnings. 
+- Spec checker done (07-spec-checker.md, 7eafd21): consistent. Next: auditor (08).
