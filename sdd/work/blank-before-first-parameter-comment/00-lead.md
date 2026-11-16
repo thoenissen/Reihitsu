@@ -27,5 +27,5 @@
 
 ## State
 
-- Last step: maintainer answered 1C.
-- Next: route answer to spec author (with skeptic internal choices 1-5), then test implementer.
+- Last step: spec author amendment (3fe7937), change doc Accepted.
+- Next: test implementer, then implementer (shared owner per decision 3).
