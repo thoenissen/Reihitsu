@@ -33,5 +33,5 @@ None yet.
 
 ## State
 
-- Last step: cleaner (06) — clean, Release 0 warnings.
-- Next: spec checker (07).
+- Last step: spec checker (07) — consistent, no findings. Branch up to date with main.
+- Next: auditor (08).
