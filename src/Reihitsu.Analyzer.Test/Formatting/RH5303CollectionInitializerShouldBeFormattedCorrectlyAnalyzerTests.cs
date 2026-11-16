@@ -2772,6 +2772,40 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies that the fix of a collection initializer in the value of a field declaration with a directive between its
+    /// declarators is offered: the fix formats the initializer, which holds only part of the declaration, and the formatter does
+    /// not refuse it; the directive and the declarators stay as they are
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-003")]
+    [Requirement("FMT-UNSUP-010")]
+    public async Task FixIsOfferedForAnInitializerInsideACombinedFieldWithADirectiveBetweenItsDeclarators()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              internal class C
+                              {
+                                  private List<int> _a = new List<int>
+                                  {
+                                  1,
+                                      2
+                                  },
+                              #pragma warning disable CS0169
+                                      _b;
+                              #pragma warning restore CS0169
+                              }
+                              """;
+
+        var fixedSource = await TryApplyCodeFixAsync(source);
+
+        Assert.IsNotNull(fixedSource, "The fix of the initializer must be offered.");
+        Assert.AreNotEqual(source, fixedSource, "The fix must change the initializer.");
+        Assert.Contains("},\n#pragma warning disable CS0169\n        _b;\n#pragma warning restore CS0169\n}", fixedSource.Replace("\r\n", "\n"));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

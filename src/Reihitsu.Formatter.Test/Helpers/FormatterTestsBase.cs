@@ -33,6 +33,11 @@ public abstract class FormatterTestsBase
     /// </summary>
     protected const string ListSeparatorCommentReason = "a comment or directive between a list element and the comma behind it";
 
+    /// <summary>
+    /// The reason the formatter gives for a directive inside a field declaration with several declarators (FMT-UNSUP-010)
+    /// </summary>
+    protected const string FieldDeclarationDirectiveReason = "a directive inside a field declaration with several declarators";
+
     #endregion // Constants
 
     #region Fields

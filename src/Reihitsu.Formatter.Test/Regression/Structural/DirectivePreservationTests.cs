@@ -200,12 +200,13 @@ public class DirectivePreservationTests
     }
 
     /// <summary>
-    /// Verifies that a multi-variable field declaration carrying a directive is not split, so the
-    /// <c>#if</c>/<c>#endif</c> around the initializer are not deleted
+    /// Verifies that a multi-variable field declaration with a conditional group around the first initializer value is refused
+    /// as unsupported rather than split, so the <c>#if</c>/<c>#endif</c> around the initializer are neither deleted nor moved:
+    /// the pipeline returns the input unchanged and reports the <c>#if DEBUG</c> directive
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-STRUCT-023")]
-    public void FieldDeclarationSplitKeepsDirectivesInDeclaration()
+    [Requirement("FMT-UNSUP-010")]
+    public void FieldDeclarationWithDirectivesInDeclarationIsRefused()
     {
         const string input = """
                              class C
@@ -218,7 +219,14 @@ public class DirectivePreservationTests
                              }
                              """;
 
-        AssertFormatted(input, NormalizeLineEndings(input));
+        var text = NormalizeLineEndings(input);
+        var tree = CSharpSyntaxTree.ParseText(text, _parseOptions, cancellationToken: TestContext.CancellationToken);
+        var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationToken), new FormattingContext("\n"), TestContext.CancellationToken);
+
+        Assert.AreEqual(text, result.Output.ToFullString(), "The refused input must be returned unchanged.");
+        Assert.IsNotNull(result.Unsupported, "The input must be refused as unsupported.");
+        Assert.AreEqual("a directive inside a field declaration with several declarators", result.Unsupported.Reason);
+        Assert.AreEqual(text.IndexOf("#if DEBUG", System.StringComparison.Ordinal), result.Unsupported.Location.SourceSpan.Start);
     }
 
     #endregion // Tests
