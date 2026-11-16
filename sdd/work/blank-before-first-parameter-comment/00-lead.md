@@ -23,6 +23,7 @@
 
 ## Follow-up candidates
 
+- S1125 warnings at `src/Reihitsu.Cli/FormatCommandHandler.cs` lines 479, 490, 501 in the Debug CLI build during `scripts/format.sh` (06-cleaner.md); pre-existing on `main`.
 - A comment first inside a parenthesized pattern makes the formatter put `(` and `)` on own lines and lands comment and pattern in the statement's column (04-test-implementer.md).
 - RH8303 reports `///` behind an argument-list `(`, collection-expression `[`, and type-argument `<`, which RH8303-001 says it does not cover (02-skeptic.md); likely resolved by the run under C.
 - Operator-wrap member of the alignment candidate: `return a <⏎// c⏎b;` (02-skeptic.md).
@@ -30,5 +31,5 @@
 
 ## State
 
-- Last step: implementer (a730de0), all tests pass.
+- Last step: cleaner (4a16b88), clean.
 - Next: cleaner, spec checker, auditor, validator.
