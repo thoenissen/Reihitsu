@@ -35,6 +35,7 @@
 | 12 | Skeptic 05 | RH5418-001 C# 14 clause untestable | Option (b): keep clause, example sentence says `union` declares no type below C# 15; no C# 14 test | Uniform with siblings; no caller reaches it | No output differs | 3dd4031 |
 | 13 | Skeptic 05 | RH5418 non-goal and RH2110 `Why:` wording | Reword as skeptic suggests | Accuracy | Wording only | 3dd4031 |
 | 14 | Skeptic 05 | Pre-existing SHARED-DIAG-008 defect in empty-type base (conditional directive in body reported) | Follow-up (option 3b); RH5418 tests write nothing for conditional-directive cells | Base is not otherwise changed by the run; fix spans five rules outside the issue (*Scope*) | Output of RH5412-RH5416 unchanged in this run | — |
+| 15 | Test impl. 07 | `[A /* c */, B]` on a union stays on the declaration line, as for a struct | Accept: test asserts union matches struct | Maintainer: unions are treated like structs | Same output as struct, which no answer or requirement changes | a696487 |
 
 ## Follow-up candidates
 
@@ -47,4 +48,4 @@
 
 - Side task (maintainer request): moved #1786 from vNext to milestone 1.4.0; #1781/#1785 left in vNext.
 - Last step: skeptic 02 (output questions Q1-Q4 stand, with adjustments). Spec-author amendment 03 running (decisions 5-7). Output questions Q1 (unions join type rules), Q2 (RH5507/RH5508 on unions), Q3 (RH5418, escalation 5), Q4 (RH2110, escalation 5) asked to the maintainer; waiting.
-- Spec author 06 done (3dd4031). Change doc accepted by lead. Next: test implementer 07, then implementer 08.
+- Test implementer 07 done (a696487; 86 tests, failing as expected; new-rule test files need the new types to compile). Next: implementer 08.
