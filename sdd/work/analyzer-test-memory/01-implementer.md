@@ -17,3 +17,7 @@ Wrapper: `bounded.sh <name> <GiB> <command>` (scratch area) puts the command int
 w4b counters (MiB): working set 4816 → 7175 between 22:20:04 and 22:23:14, while `gc.last_collection.memory.committed_size` stays 235–274, gen2 72 → 124, LOH < 10, `assembly.count` constant at 101, thread-pool threads 10, process threads 28. Gen2 collections run 3–4 per 10 s, so finalizable native memory is reclaimed regularly. The managed heap is about 3 % of the working set.
 
 w4b `/proc/<testhost>/smaps` at 7.6 GiB RSS, grouped by mapping: 7194232 kB in 192 anonymous mappings of 8–64 MiB (the shape of glibc malloc arena heaps, 64 MiB each), 298720 kB in 7 anonymous mappings ≥ 64 MiB (GC regions), 190916 kB memfd (JIT double-mapping). So the growth is native heap (`malloc`), not the managed heap, not loaded assemblies, not threads.
+| w4_arena2 | `MALLOC_ARENA_MAX=2 bounded.sh w4_arena2 10 scripts/test.sh --project analyzer --no-build` | Passed 10419 | 312 s | 4886 MiB (still rising: 3773 at 30 s, 4480 at 155 s, 4848 at 281 s) |
+| w1 | `bounded.sh w1 10 scripts/test.sh --project analyzer --no-build -- MSTest.Parallelize.Workers=1` | **Test host OOM-killed by the 10 GiB cgroup** (`oom_kill 1`) after 3806 passed tests: "The active test run was aborted. Reason: Test host process crashed" | 245 s | 9491 MiB; 4577 at 20 s, 4853 at 81 s, 6659 at 101 s, 7865 at 122 s, 8914 at 224 s |
+
+So the peak does **not** scale with the worker count: one worker reaches 9.5 GiB after 37 % of the tests, faster per test than four workers. It grows with the tests that have run, in jumps.
