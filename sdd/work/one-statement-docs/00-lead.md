@@ -38,5 +38,5 @@ None yet.
 
 ## State
 
-- Last step: claim, draft PR, prepare.sh done.
-- Next: test implementer.
+- Last step: test implementer (01), committed a087501; lane check confirmed tooling.
+- Next: implementer.
