@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-BREAK-039 (new), FMT-BREAK-031, FMT-BREAK-020, FMT-BREAK-015 |
 
@@ -324,9 +324,14 @@ No rule page changes: no analyzer rule reports an argument list below its name, 
 
 ## Decisions
 
-### The maintainer's answer is pending
+### The maintainer chose the join, with collection-like constructs judged as written
 
-Changes 1 to 5 are open output questions; the answer will be recorded here. Change 6 follows from them.
+The maintainer answered the output questions as follows. Change 6 follows from them.
+
+- **Argument list below its name (changes 1, 2, and 5): join.** `Foo⏎(4)`, `new List<int>⏎(4)`, `(f ?? g)⏎(1)`, and `with⏎(4)` join the line in front of them; a collection expression written over several lines keeps one element per line (`[⏎with(4),⏎1,⏎2⏎]`), rather than becoming one line or keeping today's output.
+- **Constructor initializer and primary-constructor base type (change 4): join.** `: base⏎(1)` becomes `: base(1)` and `class E() : B⏎(1);` becomes `class E() : B(1);`, rather than keeping today's output.
+- **Conditional expression (change 3): judged after the join.** `a ? Get⏎(1) : 2` becomes `a ? Get(1) : 2`, rather than one branch per line.
+- **Dictionary element initializer (change 2): one element per line.** `{ { Get⏎(1), 2 } }` keeps its inner braces over several lines with `Get(1)` and `2` on lines of their own, rather than becoming `{ Get(1), 2 }`.
 
 ### The join is stated by its cause, the gap in front of an argument list's `(`
 
