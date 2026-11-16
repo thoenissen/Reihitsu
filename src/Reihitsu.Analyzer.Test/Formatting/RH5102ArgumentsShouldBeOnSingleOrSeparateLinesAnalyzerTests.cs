@@ -1743,6 +1743,34 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
         await Verify(ConvertEndOfLine(testData, endOfLine), ConvertEndOfLine(fixedData, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies the with element example of RH5102-001: the argument list of a with element whose arguments share a
+    /// line while the list spans lines is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    public async Task WithElementArgumentListIsReported()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    static IEqualityComparer<string> Create(bool ignoreCase) => ignoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+
+                                    void M()
+                                    {
+                                        HashSet<string> a = [with{|RH5102:(4, Create(
+                                                                                 true))|}];
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

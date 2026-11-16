@@ -272,6 +272,25 @@ public class RH5413EmptyStructsShouldUseSemicolonDeclarationsAnalyzerTests : Bat
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies that an empty union body is not reported as an empty struct, although the compiler emits a union as a
+    /// struct
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task EmptyUnionIsNotReportedAsEmptyStruct()
+    {
+        const string testCode = """
+                                union U(int, string)
+                                {
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region Methods

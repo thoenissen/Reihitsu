@@ -143,7 +143,8 @@ public abstract class TypesOrganizedWithRegionsAnalyzerBase : DiagnosticAnalyzer
                                          SyntaxKind.StructDeclaration,
                                          SyntaxKind.InterfaceDeclaration,
                                          SyntaxKind.RecordDeclaration,
-                                         SyntaxKind.RecordStructDeclaration);
+                                         SyntaxKind.RecordStructDeclaration,
+                                         SyntaxKind.UnionDeclaration);
     }
 
     #endregion // DiagnosticAnalyzer

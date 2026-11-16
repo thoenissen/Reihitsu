@@ -604,6 +604,36 @@ public class RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzerTes
                      Diagnostics(RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("I")));
     }
 
+    /// <summary>
+    /// Verifies that a union's implementation of an interface indexer outside the interface's region is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-REGGROUP-001")]
+    [Requirement("RH7412-001")]
+    public async Task UnionInterfaceIndexerOutsideInterfaceRegionIsReported()
+    {
+        const string testCode = """
+                                public interface IIndexed
+                                {
+                                    int this[int index] { get; }
+                                }
+
+                                public union U(int, string) : IIndexed
+                                {
+                                    #region Indexers
+
+                                    public int {|RH7412:this|}[int index] => index;
+
+                                    #endregion // Indexers
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region Methods

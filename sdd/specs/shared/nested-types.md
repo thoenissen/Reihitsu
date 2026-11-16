@@ -18,7 +18,7 @@ This spec covers the rules that report a type of one kind declared inside anothe
 
 ### SHARED-NESTED-001 — A nested declaration is declared directly in a type
 
-A rule MUST treat a type or delegate declaration as nested exactly when it is declared directly in the body of a class, struct, interface, record, or record struct declaration, at any depth of nesting. A declaration directly in a namespace, in a file-scoped namespace, or at file level MUST NOT be treated as nested.
+A rule MUST treat a type or delegate declaration as nested exactly when it is declared directly in the body of a class, struct, interface, record, record struct, or union declaration, at any depth of nesting. A declaration directly in a namespace, in a file-scoped namespace, or at file level MUST NOT be treated as nested.
 
 Why: A nested type is reached through its containing type, so it is harder to find, to reuse, and to test on its own, whatever kind of type contains it. A type declared in a namespace stands on its own.
 
@@ -54,6 +54,13 @@ namespace N
     struct S
     {
         class {|RH2101:InStruct|}
+        {
+        }
+    }
+
+    union U(int, string)
+    {
+        class {|RH2101:InUnion|}
         {
         }
     }

@@ -72,6 +72,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH2107.md](analyzer/RH2107.md) | RH2107 | `RH2107NestedEnumsShouldNotBeUsedAnalyzer` |
 | [analyzer/RH2108.md](analyzer/RH2108.md) | RH2108 | `RH2108NestedDelegatesShouldNotBeUsedAnalyzer` |
 | [analyzer/RH2109.md](analyzer/RH2109.md) | RH2109 | `RH2109RazorCodeBlocksShouldNotBeUsedAnalyzer` |
+| [analyzer/RH2110.md](analyzer/RH2110.md) | RH2110 | `RH2110NestedUnionsShouldNotBeUsedAnalyzer` |
 | [analyzer/RH3001.md](analyzer/RH3001.md) | RH3001 | `RH3001NotOperatorShouldNotBeUsedAnalyzer`, `RH3001NotOperatorShouldNotBeUsedCodeFixProvider` |
 | [analyzer/RH3002.md](analyzer/RH3002.md) | RH3002 | `RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer`, `RH3002StatementMustNotUseUnnecessaryParenthesesCodeFixProvider` |
 | [analyzer/RH3003.md](analyzer/RH3003.md) | RH3003 | `RH3003UseStringEmptyForEmptyStringsAnalyzer`, `RH3003UseStringEmptyForEmptyStringsCodeFixProvider` |
@@ -226,6 +227,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH5415.md](analyzer/RH5415.md) | RH5415 | `RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer`, `RH5415EmptyRecordsShouldUseSemicolonDeclarationsCodeFixProvider` |
 | [analyzer/RH5416.md](analyzer/RH5416.md) | RH5416 | `RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer`, `RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsCodeFixProvider` |
 | [analyzer/RH5417.md](analyzer/RH5417.md) | RH5417 | `RH5417FunctionAndAccessorBodyBracesMustNotShareLineAnalyzer`, `RH5417FunctionAndAccessorBodyBracesMustNotShareLineCodeFixProvider` |
+| [analyzer/RH5418.md](analyzer/RH5418.md) | RH5418 | `RH5418EmptyUnionsShouldUseSemicolonDeclarationsAnalyzer`, `RH5418EmptyUnionsShouldUseSemicolonDeclarationsCodeFixProvider` |
 | [analyzer/RH5501.md](analyzer/RH5501.md) | RH5501 | `RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer`, `RH5501AssemblyAttributesMustFollowPlacementRulesCodeFixProvider` |
 | [analyzer/RH5502.md](analyzer/RH5502.md) | RH5502 | `RH5502AssemblyAttributeListsMustFollowShapeRulesAnalyzer`, `RH5502AssemblyAttributeListsMustFollowShapeRulesCodeFixProvider` |
 | [analyzer/RH5503.md](analyzer/RH5503.md) | RH5503 | `RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer`, `RH5503ModuleAttributesMustFollowPlacementRulesCodeFixProvider` |

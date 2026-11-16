@@ -702,6 +702,36 @@ public class RH7106ProtectedMustComeBeforeInternalAnalyzerTests : BatchCodeFixTe
         await Verify(source, fixedSource, test => test.SolutionTransforms.Add(DefineDebug));
     }
 
+    /// <summary>
+    /// Verifies the union example of SHARED-MODORDER-001 for RH7106: internal protected on a union is reported on
+    /// protected, and the fix swaps the two keywords
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-MODORDER-001")]
+    [Requirement("RH7106-001")]
+    [Requirement("RH7106-004")]
+    public async Task UnionInternalProtectedIsReportedAndSwapped()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    internal {|RH7106:protected|} union V(int, string);
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     protected internal union V(int, string);
+                                 }
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, fixedCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region Methods

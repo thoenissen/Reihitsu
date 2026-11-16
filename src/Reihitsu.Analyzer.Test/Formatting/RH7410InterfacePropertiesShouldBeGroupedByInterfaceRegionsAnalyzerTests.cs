@@ -648,6 +648,36 @@ public class RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzerT
                      Diagnostics(RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("I")));
     }
 
+    /// <summary>
+    /// Verifies that a union's implementation of an interface property outside the interface's region is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-REGGROUP-001")]
+    [Requirement("RH7410-001")]
+    public async Task UnionInterfacePropertyOutsideInterfaceRegionIsReported()
+    {
+        const string testCode = """
+                                public interface ICounted
+                                {
+                                    int Count { get; }
+                                }
+
+                                public union U(int, string) : ICounted
+                                {
+                                    #region Properties
+
+                                    public int {|RH7410:Count|} => 1;
+
+                                    #endregion // Properties
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region Methods

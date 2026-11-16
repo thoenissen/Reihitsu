@@ -536,6 +536,39 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzerTests 
                      Diagnostics(RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5305MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the with element example of RH5305-002: a with element counts as an element, so a wrapped collection
+    /// expression whose with element shares a line with another element is reported, and the exploded and the single-
+    /// line forms are not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5305-002")]
+    public async Task WithElementCountsAsAnElement()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        HashSet<string> a = {|RH5305:[with(StringComparer.Ordinal), "a",
+                                                              "b"]|};
+                                        HashSet<string> b = [
+                                                                with(StringComparer.Ordinal),
+                                                                "a",
+                                                                "b"
+                                                            ];
+                                        HashSet<string> c = [with(StringComparer.Ordinal), "a", "b"];
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

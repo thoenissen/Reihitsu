@@ -406,6 +406,91 @@ public class RH5505ClassAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies the example of RH5505-001 with the fix of RH5505-003: the list of a class and the list of a record
+    /// declared with a semicolon behind it are reported and moved, and the lists on their own lines are not reported
+    /// </summary>
+    /// <param name="endOfLine">Line break of the source and the expected result</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5505-001")]
+    [Requirement("RH5505-002")]
+    [Requirement("RH5505-003")]
+    [DataRow("\n", DisplayName = "LF")]
+    [DataRow("\r\n", DisplayName = "CRLF")]
+    public async Task SpecificationExampleIsReportedAndFixed(string endOfLine)
+    {
+        const string testCode = """
+                                {|RH5505:[A]|} class C
+                                {
+                                }
+
+                                {|RH5505:[A]|} record R;
+
+                                [A]
+                                [B]
+                                record class Q;
+
+                                sealed class AAttribute : System.Attribute
+                                {
+                                }
+
+                                sealed class BAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedCode = """
+                                 [A]
+                                 class C
+                                 {
+                                 }
+
+                                 [A]
+                                 record R;
+
+                                 [A]
+                                 [B]
+                                 record class Q;
+
+                                 sealed class AAttribute : System.Attribute
+                                 {
+                                 }
+
+                                 sealed class BAttribute : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the list of a class declared with a semicolon is reported and moved when other code precedes it
+    /// </summary>
+    /// <param name="endOfLine">Line break of the source and the expected result</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5505-001")]
+    [Requirement("RH5505-003")]
+    [DataRow("\n", DisplayName = "LF")]
+    [DataRow("\r\n", DisplayName = "CRLF")]
+    public async Task ClassDeclaredWithSemicolonAfterOtherCodeIsReportedAndMoved(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                {|RH5505:[Serializable]|} internal class Plain;
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 [Serializable]
+                                 internal class Plain;
+                                 """;
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

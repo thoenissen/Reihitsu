@@ -1815,6 +1815,170 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : BatchCodeFixTests
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies the union example of RH2004-001 and RH2004-006: a union without an accessibility modifier, a member of
+    /// a union, and a union nested in a union are reported, and the fix adds internal at the top level and private in
+    /// the union
+    /// </summary>
+    /// <param name="endOfLine">Line break of the source and the expected result</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2004-001")]
+    [Requirement("RH2004-006")]
+    [DataRow("\n", DisplayName = "LF")]
+    [DataRow("\r\n", DisplayName = "CRLF")]
+    public async Task UnionWithoutAccessibilityIsReportedAndFixed(string endOfLine)
+    {
+        const string testCode = """
+                                union {|RH2004:Choice|}(int, string)
+                                {
+                                    int {|RH2004:Get|}() => 1;
+
+                                    union {|RH2004:Inner|}(long, string);
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal union Choice(int, string)
+                                 {
+                                     private int Get() => 1;
+
+                                     private union Inner(long, string);
+                                 }
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(ConvertEndOfLine(testCode, endOfLine), ConvertEndOfLine(fixedCode, endOfLine), test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies that a union nested in a class gets private and a union nested in an interface gets public from the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2004-001")]
+    [Requirement("RH2004-004")]
+    [Requirement("RH2004-006")]
+    public async Task NestedUnionGetsTheDefaultAccessibilityOfItsContainer()
+    {
+        const string testCode = """
+                                public class C
+                                {
+                                    union {|RH2004:InClass|}(int, string);
+                                }
+
+                                public struct S
+                                {
+                                    union {|RH2004:InStruct|}(int, string);
+                                }
+
+                                public record R
+                                {
+                                    union {|RH2004:InRecord|}(int, string);
+                                }
+
+                                public interface I
+                                {
+                                    union {|RH2004:InInterface|}(int, string);
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class C
+                                 {
+                                     private union InClass(int, string);
+                                 }
+
+                                 public struct S
+                                 {
+                                     private union InStruct(int, string);
+                                 }
+
+                                 public record R
+                                 {
+                                     private union InRecord(int, string);
+                                 }
+
+                                 public interface I
+                                 {
+                                     public union InInterface(int, string);
+                                 }
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, fixedCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies that a union with modifiers but no accessibility is reported, and that the fix puts the accessibility
+    /// behind the attribute lists and keeps a leading comment in front of it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2004-001")]
+    [Requirement("RH2004-006")]
+    public async Task UnionWithOtherModifiersAttributesAndCommentGetsAccessibilityInFrontOfFirstToken()
+    {
+        const string testCode = """
+                                using System;
+
+                                readonly union {|RH2004:R|}(int, string);
+
+                                [Serializable]
+                                union {|RH2004:A|}(int, string);
+
+                                // note
+                                union {|RH2004:B|}(int, string);
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 internal readonly union R(int, string);
+
+                                 [Serializable]
+                                 internal union A(int, string);
+
+                                 // note
+                                 internal union B(int, string);
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, fixedCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies that a union that states its accessibility, a file-local union, and a partial union are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2004-001")]
+    [Requirement("RH2004-002")]
+    public async Task UnionWithAccessibilityFileModifierOrPartialIsNotReported()
+    {
+        const string testCode = """
+                                public union P(int, string);
+
+                                file union F(int, string);
+
+                                partial union Q(int, string);
+
+                                public class C
+                                {
+                                    private union N(int, string);
+
+                                    protected internal union M(int, string);
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -17,11 +17,11 @@ This spec covers what the rules that group members by the type they come from sh
 
 ## Requirements
 
-### SHARED-REGGROUP-001 — Class, struct, and record declarations are checked
+### SHARED-REGGROUP-001 — Class, struct, record, and union declarations are checked
 
-A rule MUST check every class, struct, record, and record struct declaration, nested ones included, and each declaration of a `partial` type on its own, against that declaration's own top-level regions and the regions nested in them (SHARED-TYPEREGION-006). A rule MUST judge a member that lies in one of them by the innermost region that encloses it, as SHARED-TYPEREGION-006 states: the top-level region, or the innermost region nested in it that encloses the member. It MUST NOT check an interface declaration.
+A rule MUST check every class, struct, record, record struct, and union declaration, nested ones included, and each declaration of a `partial` type on its own, against that declaration's own top-level regions and the regions nested in them (SHARED-TYPEREGION-006). A rule MUST judge a member that lies in one of them by the innermost region that encloses it, as SHARED-TYPEREGION-006 states: the top-level region, or the innermost region nested in it that encloses the member. It MUST NOT check an interface declaration.
 
-Why: Overrides and interface implementations are members of the types that inherit them, and a nested type has an outline of its own, so a region around the nested type groups the nested type, not its members. Each declaration of a partial type is what the user reads in one file. An interface declares a contract; the outline of its body is not grouped by where its members come from.
+Why: Overrides and interface implementations are members of the types that inherit them, and a nested type has an outline of its own, so a region around the nested type groups the nested type, not its members. Each declaration of a partial type is what the user reads in one file. A union overrides the members of `object` and implements interfaces as a struct does, so its overrides and implementations are grouped the same way. An interface declares a contract; the outline of its body is not grouped by where its members come from.
 
 Example — RH7401, where the nested type `N` has no region of its own and the second declaration of `D` has none either:
 
@@ -67,6 +67,22 @@ partial class D
     public override void {|RH7401:N|}()
     {
     }
+}
+```
+
+A union is checked like a struct; `ToString` overrides a member of `object`, so it belongs in a region named `Object`:
+
+```csharp
+union U(int, string)
+{
+    #region Methods
+
+    public override string {|RH7401:ToString|}()
+    {
+        return "";
+    }
+
+    #endregion
 }
 ```
 

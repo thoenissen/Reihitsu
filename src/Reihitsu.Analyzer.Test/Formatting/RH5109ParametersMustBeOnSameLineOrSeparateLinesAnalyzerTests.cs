@@ -969,6 +969,29 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
         await Verify(ConvertEndOfLine(testData, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies the union example of RH5109-001: a multi-line case-type list whose case types share a line is reported,
+    /// and one case type per line is not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5109-001")]
+    public async Task UnionCaseTypeListWithCaseTypesSharingALineIsReported()
+    {
+        const string testCode = """
+                                union U{|RH5109:(|}int, string,
+                                        long);
+
+                                union V(int,
+                                        string,
+                                        long);
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -244,5 +244,93 @@ public class UnionDeclarationStructuralTests : FormatterTestsBase
         AssertRuleResult(input, expected, _cSharp15);
     }
 
+    /// <summary>
+    /// Verifies the union example of FMT-STRUCT-028: a union declaration is a type, so its attribute list with two attributes
+    /// is split into one list per attribute, each on its own line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-028")]
+    public void UnionAttributeListIsSplit()
+    {
+        const string input = """
+                             [A, B] union U(int, string);
+                             """;
+        const string expected = """
+                                [A]
+                                [B]
+                                union U(int, string);
+                                """;
+
+        AssertRuleResult(input, expected, _cSharp15);
+    }
+
+    /// <summary>
+    /// Verifies that each list split from a union's list keeps the <c>type:</c> specifier
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-028")]
+    public void UnionAttributeListWithTypeSpecifierIsSplitKeepingTheSpecifier()
+    {
+        const string input = """
+                             [type: A, B] union U(int, string);
+                             """;
+        const string expected = """
+                                [type: A]
+                                [type: B]
+                                union U(int, string);
+                                """;
+
+        AssertRuleResult(input, expected, _cSharp15);
+    }
+
+    /// <summary>
+    /// Verifies that the attribute list of a union nested in a class, in front of a union with a body, is split, and that the
+    /// created lists take the union's indentation
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-028")]
+    public void NestedUnionAttributeListIsSplit()
+    {
+        const string input = """
+                             class C
+                             {
+                                 [A, B] union N(int, string)
+                                 {
+                                     public int X => 1;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    [A]
+                                    [B]
+                                    union N(int, string)
+                                    {
+                                        public int X => 1;
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected, _cSharp15);
+    }
+
+    /// <summary>
+    /// Verifies that the attribute list of a union with a comment inside stays one list and stays as written, as a struct's
+    /// does
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-028")]
+    public void UnionAttributeListWithACommentInsideStaysOneList()
+    {
+        const string input = """
+                             [A /* c */, B] struct S;
+
+                             [A /* c */, B] union U(int, string);
+                             """;
+
+        AssertRuleResult(input, null, _cSharp15);
+    }
+
     #endregion // Tests
 }

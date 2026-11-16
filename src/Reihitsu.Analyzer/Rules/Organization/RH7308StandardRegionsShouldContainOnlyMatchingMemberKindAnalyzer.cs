@@ -284,7 +284,8 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer : 
                                          SyntaxKind.StructDeclaration,
                                          SyntaxKind.InterfaceDeclaration,
                                          SyntaxKind.RecordDeclaration,
-                                         SyntaxKind.RecordStructDeclaration);
+                                         SyntaxKind.RecordStructDeclaration,
+                                         SyntaxKind.UnionDeclaration);
     }
 
     #endregion // DiagnosticAnalyzer

@@ -1437,6 +1437,37 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
         await VerifyNoCodeFixIsOffered(source);
     }
 
+    /// <summary>
+    /// Verifies the union example of RH7102-001: a constant after a static field of the same accessibility in a union
+    /// is reported, and the fix moves it in front of the field
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7102-001")]
+    [Requirement("RH7102-005")]
+    public async Task UnionConstantAfterFieldIsReportedAndMoved()
+    {
+        const string testCode = """
+                                union U(int, string)
+                                {
+                                    public static int S;
+                                    public const int {|RH7102:K|} = 1;
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 union U(int, string)
+                                 {
+                                     public const int K = 1;
+                                     public static int S;
+                                 }
+                                 """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, fixedCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 
     #region Methods

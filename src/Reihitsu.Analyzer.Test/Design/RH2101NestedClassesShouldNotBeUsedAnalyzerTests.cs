@@ -393,5 +393,30 @@ public class RH2101NestedClassesShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase
         await Verify(source, test => test.TestState.Sources.Add(("/0/Test1.cs", otherDocument)));
     }
 
+    /// <summary>
+    /// Verifies the union example of SHARED-NESTED-001: a class declared in a union body is nested
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-NESTED-001")]
+    public async Task ClassDeclaredInUnionIsNested()
+    {
+        const string testCode = """
+                                namespace N
+                                {
+                                    union U(int, string)
+                                    {
+                                        class {|RH2101:InUnion|}
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
     #endregion // Tests
 }
