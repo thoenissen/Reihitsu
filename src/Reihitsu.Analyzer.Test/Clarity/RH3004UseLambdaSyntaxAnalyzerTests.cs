@@ -5507,6 +5507,50 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : BatchCodeFixTestsBase<RH3004Us
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifies that the fix of an anonymous method whose parameter list starts with a comment lays the lambda out as the
+    /// formatter does, without a blank line between the opening parenthesis and the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH3004-006")]
+    public async Task FixLeavesNoBlankLineAboveTheFirstCommentOfTheParameterList()
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Func<int, int> f = {|#0:delegate|}(
+                                            // the value
+                                            int a)
+                                        {
+                                            return a;
+                                        };
+                                        _ = f;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         Func<int, int> f = (
+                                                             // the value
+                                                             int a) => a;
+                                         _ = f;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3004UseLambdaSyntaxAnalyzer.DiagnosticId, "Use lambda syntax."));
+    }
+
     #endregion // Tests
 
     #region Methods
