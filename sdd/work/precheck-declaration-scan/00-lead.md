@@ -24,9 +24,10 @@
 
 1. `PrecheckPhase.FindTriviaInFrontOfComma` is quadratic in list length (`GetPreviousToken`/`GetNextToken` per comma); whole cost on code-fix registration for long lists (RH5303, RH5305). Source: 01-skeptic.md.
 2. Later formatter phases slow sharply on long expressions and lists (1000-link chain 183 s, 1000-branch `?:` 109 s, 2000-term concatenation 30 s, 20 000-element array 144 s); phase not traced. Source: 01-skeptic.md.
+3. `src/Reihitsu.Cli/Diagnostics/PipelineTraceCommand.cs(483,29)` raises analyzer warning S1125 in the Debug build that `scripts/format.sh` runs (Release build is clean); exists on `main`. Source: 04-cleaner.md.
 
 ## State
 
 - Audited SHA: –
-- Last step: implementer (03-implementer.md, 222170d, tests pass).
-- Next: cleaner.
+- Last step: cleaner (04-cleaner.md, 8546f9f, clean).
+- Next: spec checker.
