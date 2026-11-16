@@ -647,24 +647,26 @@ public class UnsupportedVariableDeclarationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment in front of a value whose first token lies several levels deep, a concatenation nested to the left,
-    /// refuses the input
+    /// Verifies that a comment on its own line in front of a value whose first token lies several levels deep, a concatenation
+    /// nested to the left, refuses the input: the comment is the leading trivia of the value's first token
     /// </summary>
     [TestMethod]
     [Requirement("FMT-UNSUP-004")]
-    public void CommentInFrontOfTheFirstTokenOfALeftNestedValueIsUnsupported()
+    public void CommentOnItsOwnLineInFrontOfTheFirstTokenOfALeftNestedValueIsUnsupported()
     {
         const string input = """
                              class C
                              {
                                  void M()
                                  {
-                                     string s = /* c */ "x" + "p0" + "p1" + "p2";
+                                     string s =
+                                         // c
+                                         "x" + "p0" + "p1" + "p2";
                                  }
                              }
                              """;
 
-        AssertUnsupported(input, "/* c */");
+        AssertUnsupported(input, "// c");
     }
 
     /// <summary>
