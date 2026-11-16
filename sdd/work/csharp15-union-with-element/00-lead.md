@@ -44,3 +44,4 @@ Batch 1 (before test implementer), all recommended options chosen:
 - Batch-1 answered (1A 2A 3A 4A). 03-spec-author (038aaeb): answers recorded, change docs Accepted (lead accepts). Next: test implementer.
 - 04-test-implementer (9dff24e): 36 failing tests (30 formatter, 5 analyzer, 1 CLI). Union code-fix tests use CompilerDiagnostics.None (CS0518/CS0656, #1766). Next: implementer (narrow fix per decision 2).
 - 05-implementer (5a6d3e1, handover 547aac1): all 36 pass; full formatter/analyzer/CLI/core/arch green in Debug. 8 prod files, +77/-7. Next: cleaner.
+- 06-cleaner (51509e3): clean, Release 0 warnings. Next: spec checker.
