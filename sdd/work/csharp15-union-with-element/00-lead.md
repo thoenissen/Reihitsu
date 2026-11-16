@@ -28,6 +28,7 @@ Batch 1 (before test implementer), all recommended options chosen:
 | 4 | Skeptic | Change-doc amendment: RH5404 fix (union inside a type) and RH5305 fix (`with (4)`) outputs change as a consequence | Shown inside batch-1 questions Q3/Q4; spec author records them in the change docs | Direct consequences of Q3/Q4 | Asked | — |
 | 5 | Skeptic | Declaring a shape unsupported | Not an option: deletes no special case (skeptic) | AGENTS.md: a shape that deletes nothing is not declared | — | — |
 | 6 | Repair 1 | Run cleaner after a spec-text-only repair? | Skip; prove text-only with lane check | Cleaner formats C# and builds; nothing compiled changes | Internal | — |
+| 7 | Repair 1 | Add FMT-PIPE-029 tag to RH7101 union tests; `indentation.md` base-list paragraph and RH3202-001 list only class/struct/record/interface | No extra tag (checker did not require it); spec-wording lists folded into follow-up (c) on the duplicated type-kind lists | Outside run requirements; behavior already kind-independent | Wording only | — |
 
 ## Follow-up candidates
 
@@ -47,3 +48,4 @@ Batch 1 (before test implementer), all recommended options chosen:
 - 05-implementer (5a6d3e1, handover 547aac1): all 36 pass; full formatter/analyzer/CLI/core/arch green in Debug. 8 prod files, +77/-7. Next: cleaner.
 - 06-cleaner (51509e3): clean, Release 0 warnings. Next: spec checker.
 - 07-spec-checker (a829d4b): 1 finding #1762 — FMT-PIPE-029 last paragraph lacks "union"; change doc Affected requirements misses FMT-PIPE-029 and RH7101-002. Repair round 1 → spec author (fresh). Cleaner skipped for this round: spec-text-only repair (decision 6). Then spec checker again.
+- 08-spec-author (d1af94b): FMT-PIPE-029 names union; change doc lists FMT-PIPE-029, RH7101-002. Next: spec checker (fresh).
