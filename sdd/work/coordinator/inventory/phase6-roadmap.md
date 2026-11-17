@@ -146,3 +146,5 @@ Open on GitHub 2026-11-16: vNext 133 + Maintenance 59 = **192** = planned **185*
 ## Decided 2026-11-16 (maintainer "1a 2b")
 
 Roadmap as drafted; decide-list issues planned too and judged in their run (#1602 1.7.0, #1555 1.8.0, #1537 #1540 #1659 1.9.0, #1330 1.11.0). Milestones: 1.6.0=14, 1.7.0=15, 1.8.0=16, 1.9.0=17, 1.10.0=18, 1.11.0=19.
+
+**1.7.0 additions (2026-11-17):** #1829 #1830 join the unowned-joins OQ run (after #953). **1.10.0 additions (2026-11-17):** #1827 (new-rule candidate, counterpart of RH5105).
