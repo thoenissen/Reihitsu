@@ -1036,7 +1036,9 @@ class C
 
 The formatter MUST split a field declaration with several declarators in a class, struct, record, interface, or union declaration into one field declaration per declarator, in source order, each repeating the original attributes, modifiers, and type, and each keeping its own initializer. Event field declarations and local variable declarations MUST NOT be split.
 
-Why: One field per line keeps each field's attributes, documentation, and diff history separate; the analyzer rule RH7101 reports combined fields. Repeating the attributes and modifiers keeps every field exactly what it was.
+Every field MUST repeat the attributes, modifiers, and type together with the whitespace and line breaks the author wrote between them and behind the type, the first field and every later field alike: a line break behind the type, between two modifiers, or between the last modifier and the type stands in every field the split creates. What a field repeats is only this head. A later field does not repeat the trivia that belongs to a token in front of its declarator other than the head — the declaration's leading trivia, which stays on the first field (FMT-STRUCT-022), and the trivia of the `,` in front of the declarator, which the split removes, together with the declarator's own leading trivia — so a line break written behind a `,` stands in no field. Inside a field declaration with several declarators the head holds no comment, directive, or disabled text below its first token's leading trivia (FMT-UNSUP-004, FMT-UNSUP-010), so the trivia it repeats is whitespace and line breaks only. Whether a repeated line break stays is decided by the line-break phase as for a field written alone (FMT-BREAK), and the column of the line it starts by the indentation phase (FMT-INDENT); this requirement decides only that the split carries it to every field.
+
+Why: One field per line keeps each field's attributes, documentation, and diff history separate; the analyzer rule RH7101 reports combined fields. Repeating the attributes and modifiers keeps every field exactly what it was. The head is repeated as written, line breaks included, so that every field keeps the shape the author gave the declaration and is laid out as the same field written on its own: a line break behind a long type is kept for every repetition of that type, and the fields of one declaration do not differ from each other. A line break behind a `,` separated two declarators that are now separate fields, so it has nothing left to separate.
 
 Example:
 
@@ -1065,6 +1067,49 @@ class C
     private static readonly string _a = "a";
     [NonSerialized]
     private static readonly string _b = "b";
+}
+```
+
+Example — line breaks inside and behind the head are repeated in every field, behind the type and between two modifiers; a line break behind a `,` is not. The same output holds under CRLF line endings and for the RH7101 code fix (FMT-PIPE-029); the column of a line that starts with a declarator or a modifier is the indentation phase's, shown here as today's output:
+
+```csharp
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    private Dictionary<string, List<int>>
+        _map1, _map2 = new();
+
+    private static
+        readonly int _g = 1, _h;
+
+    [NonSerialized]
+    private int _x,
+        _y;
+}
+```
+
+```csharp
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    private Dictionary<string, List<int>>
+    _map1;
+    private Dictionary<string, List<int>>
+    _map2 = new();
+
+    private static
+    readonly int _g = 1;
+    private static
+    readonly int _h;
+
+    [NonSerialized]
+    private int _x;
+    [NonSerialized]
+    private int _y;
 }
 ```
 

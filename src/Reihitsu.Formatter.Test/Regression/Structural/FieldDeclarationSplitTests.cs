@@ -317,6 +317,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     /// fix surface, where no later phase runs.
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-STRUCT-021")]
     public void WhitespaceOnlyTriviaBeforeFirstDeclaratorIsUnchanged()
     {
         // Arrange
@@ -334,6 +335,298 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                                     _first;
                                     private int
                                     _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a line break behind the type and a line break between two modifiers are
+    /// repeated in every field the split creates, and a line break behind a <c>,</c> stands in no field
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-021")]
+    public void LineBreaksInsideAndBehindTheHeadAreRepeatedInEveryField()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 private Dictionary<string, List<int>>
+                                     _map1, _map2 = new();
+
+                                 private static
+                                     readonly int _g = 1, _h;
+
+                                 [NonSerialized]
+                                 private int _x,
+                                     _y;
+                             }
+                             """;
+        const string expected = """
+                                using System;
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    private Dictionary<string, List<int>>
+                                    _map1;
+                                    private Dictionary<string, List<int>>
+                                    _map2 = new();
+
+                                    private static
+                                    readonly int _g = 1;
+                                    private static
+                                    readonly int _h;
+
+                                    [NonSerialized]
+                                    private int _x;
+                                    [NonSerialized]
+                                    private int _y;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a line break behind the type of a field with several declarators, with the first declarator on a
+    /// deeper column, is repeated in every field the split creates
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-021")]
+    public void LineBreakBehindTheTypeIsRepeatedInEveryField()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int
+                                     _g, _h;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int
+                                    _g;
+                                    private int
+                                    _h;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a line break behind a generic type is repeated in every field the split creates, and that the
+    /// initializer of the later declarator stays with its field
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-021")]
+    public void LineBreakBehindAGenericTypeIsRepeatedInEveryField()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private Dictionary<string, List<int>>
+                                     _map1, _map2 = new();
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private Dictionary<string, List<int>>
+                                    _map1;
+                                    private Dictionary<string, List<int>>
+                                    _map2 = new();
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a line break behind the type is repeated in every field when several declarators carry
+    /// initializers, and that each field keeps its own initializer
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-021")]
+    public void LineBreakBehindTheTypeIsRepeatedForDeclaratorsWithInitializers()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int
+                                     _g = 1, _h = 2, _i;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int
+                                    _g = 1;
+                                    private int
+                                    _h = 2;
+                                    private int
+                                    _i;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a line break between two modifiers is repeated in every field the split creates
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-021")]
+    public void LineBreakBetweenTwoModifiersIsRepeatedInEveryField()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private static
+                                     readonly int _g = 1, _h;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private static
+                                    readonly int _g = 1;
+                                    private static
+                                    readonly int _h;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a line break between the last modifier and the type is repeated in every field the split creates
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-021")]
+    public void LineBreakBetweenTheLastModifierAndTheTypeIsRepeatedInEveryField()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private static readonly
+                                     int _g, _h;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private static readonly
+                                    int _g;
+                                    private static readonly
+                                    int _h;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a line break behind a <c>,</c> between two declarators stands in no field the split creates, while
+    /// the attribute list on its own line is repeated in every field
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-021")]
+    public void LineBreakBehindACommaStandsInNoField()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 [NonSerialized]
+                                 private int _x,
+                                     _y;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    [NonSerialized]
+                                    private int _x;
+                                    [NonSerialized]
+                                    private int _y;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that in a declaration with a line break behind the type and a line break behind a <c>,</c>, every field
+    /// repeats the line break behind the type and none takes the line break behind the <c>,</c>
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-021")]
+    public void LineBreakBehindTheTypeIsRepeatedAndLineBreakBehindACommaIsNot()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int
+                                     _a,
+                                     _b;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int
+                                    _a;
+                                    private int
+                                    _b;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a field with a single declarator and a line break behind its type, which is not split, is laid out
+    /// as each field the split creates from a declaration with several declarators
+    /// </summary>
+    [TestMethod]
+    public void SingleDeclaratorWithLineBreakBehindTheTypeIsLaidOutAsASplitField()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 private int
+                                     _x;
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    private int
+                                    _x;
                                 }
                                 """;
 
