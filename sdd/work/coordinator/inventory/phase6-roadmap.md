@@ -148,3 +148,5 @@ Open on GitHub 2026-11-16: vNext 133 + Maintenance 59 = **192** = planned **185*
 Roadmap as drafted; decide-list issues planned too and judged in their run (#1602 1.7.0, #1555 1.8.0, #1537 #1540 #1659 1.9.0, #1330 1.11.0). Milestones: 1.6.0=14, 1.7.0=15, 1.8.0=16, 1.9.0=17, 1.10.0=18, 1.11.0=19.
 
 **1.7.0 additions (2026-11-17):** #1829 #1830 join the unowned-joins OQ run (after #953). **1.10.0 additions (2026-11-17):** #1827 (new-rule candidate, counterpart of RH5105).
+
+**Additions 2026-11-17 (b):** #1838 → 1.4.0, joins #1804 (batch 5 command becomes `/squad #1804 #1838`, tests lane). #1836 → 1.6.0, run *Analyzer/SHARED-DIAG-008 follow-ups* (#1240 #1275 #1591 #1836, OQ). #1837 → 1.6.0, run *Code fixes/directive guards* (#1668 #1589 #970 #1837, OQ). #1835 → 1.8.0, run *Node-level write-back after the design* (#1521 #1474 #1684 #1835, after #1774). No duplicates, none closed.
