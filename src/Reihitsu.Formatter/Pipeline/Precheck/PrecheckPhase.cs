@@ -190,35 +190,42 @@ internal sealed class PrecheckPhase : IFormattingPhase
         SyntaxTrivia? firstTrivia = null;
         var hasLineBreak = false;
 
-        void Visit(SyntaxTriviaList triviaList)
-        {
-            foreach (var trivia in triviaList)
-            {
-                var text = trivia.ToFullString();
-
-                hasLineBreak |= text.Contains('\n') || text.Contains('\r');
-
-                if (firstTrivia == null
-                    && (SyntaxTriviaUtilities.IsCommentTrivia(trivia) || SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia)))
-                {
-                    firstTrivia = trivia;
-                }
-            }
-        }
-
-        Visit(previousToken.TrailingTrivia);
+        VisitGapTrivia(previousToken.TrailingTrivia, ref firstTrivia, ref hasLineBreak);
 
         foreach (var token in zeroWidthTokens)
         {
-            Visit(token.LeadingTrivia);
-            Visit(token.TrailingTrivia);
+            VisitGapTrivia(token.LeadingTrivia, ref firstTrivia, ref hasLineBreak);
+            VisitGapTrivia(token.TrailingTrivia, ref firstTrivia, ref hasLineBreak);
         }
 
-        Visit(nextToken.LeadingTrivia);
+        VisitGapTrivia(nextToken.LeadingTrivia, ref firstTrivia, ref hasLineBreak);
 
         return hasLineBreak
                    ? firstTrivia
                    : null;
+    }
+
+    /// <summary>
+    /// Visits one trivia list of a gap between two tokens: records whether its text holds a line break, and the first comment,
+    /// directive, or disabled text when none has been found yet
+    /// </summary>
+    /// <param name="triviaList">The trivia list</param>
+    /// <param name="firstTrivia">The first comment, directive, or disabled text of the gap found so far, or <see langword="null"/></param>
+    /// <param name="hasLineBreak">Whether the gap's text visited so far holds a line break</param>
+    private static void VisitGapTrivia(SyntaxTriviaList triviaList, ref SyntaxTrivia? firstTrivia, ref bool hasLineBreak)
+    {
+        foreach (var trivia in triviaList)
+        {
+            var text = trivia.ToFullString();
+
+            hasLineBreak |= text.Contains('\n') || text.Contains('\r');
+
+            if (firstTrivia == null
+                && (SyntaxTriviaUtilities.IsCommentTrivia(trivia) || SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia)))
+            {
+                firstTrivia = trivia;
+            }
+        }
     }
 
     /// <summary>
