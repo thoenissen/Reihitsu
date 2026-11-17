@@ -5,7 +5,7 @@
 | ID prefix | FMT-UNSUP |
 | Status | Active |
 | Code owners | `PrecheckPhase`, `FormattingResult<T>`, `UnsupportedSyntax`, `SyntaxNotSupportedException` |
-| Uses | FMT-BREAK-001, FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-STRUCT-019, FMT-STRUCT-021, FMT-STRUCT-022, SHARED-BLANK-008, SHARED-FIX-010 |
+| Uses | FMT-BREAK-001, FMT-BREAK-017, FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-STRUCT-019, FMT-STRUCT-021, FMT-STRUCT-022, SHARED-BLANK-008, SHARED-COMMENT-007, SHARED-FIX-010 |
 
 This spec covers the formatter's *Unsupported* outcome: the input shapes the formatter refuses as a whole, the precheck phase that finds them before any other phase runs (FMT-PIPE-001), a phase's refusal of a shape the precheck does not find, what every entry point returns for a refused input, and the query that tells a code fix whether the formatter refuses a node. Each unsupported shape is a requirement of this spec; a shape is declared here so that no phase has to handle it.
 
@@ -601,6 +601,110 @@ class C
 }
 ```
 
+### FMT-UNSUP-011 — Comments and directives between a binary operator and its right operand are unsupported
+
+An input MUST be refused when a comment — `//`, `/* */`, `///`, or `/** */`, in every documentation mode — a preprocessor directive, or disabled text stands between the operator of a binary expression and its right operand: in the trailing trivia of the operator, or in the leading trivia of the right operand's first token.
+
+The conditions, each with both sides:
+
+- **The operator of a binary expression.** The operator is a binary operator as SHARED-COMMENT-007 defines it: an arithmetic, shift, relational, equality, bitwise, logical, or null-coalescing operator, the `is` of a type test, and the `as` of a conversion. `a + /* c */ b`, `o is /* c */ string`, and `o as /* c */ string` are refused. A token that is no such operator is not: the `is` of a pattern match and the operators inside a pattern, such as `and`, `or`, and `>` (`n is > /* c */ 1 or /* c */ 3`), an assignment or compound assignment operator (`n += /* c */ 1`), the `..` of a range, and a conditional expression's `?` and `:`, which FMT-UNSUP-008 decides.
+- **Behind the operator.** Only the gap between the operator and the right operand's first token counts. A comment, a directive, or disabled text in front of the operator — in the trailing trivia of the left operand's last token or in the leading trivia of the operator, such as a comment behind the left operand on its line (`a /* c */ && b`) or on a line above the operator's line — does not refuse the input. Nor does one inside the right operand, behind its first token (`a && (/* c */ b)`, `n + M(/* c */ 1)`), or behind the right operand.
+- **On any line.** Whether the gap holds a line break does not matter: `n * /* scale */ 2` on one line is refused like `a && // c⏎b`.
+- **Every binary expression.** Each binary expression is checked with its own operator and right operand — one in a chain, such as the second `&&` of `a && b && /* c */ c`, one nested in an operand of another, and one inside a lambda, an argument, or any other expression. A token in disabled text is no token of the input: in a build that does not define `X`, the `|` of the disabled text `| B` in `A⏎#if X⏎| B⏎#endif⏎| C` is not checked, and the directives stand in front of the last `|`, so the input is not refused in either build.
+
+A node-level input that holds the right operand but not the binary expression, such as the right operand itself, does not hold the shape (FMT-UNSUP-003).
+
+Where FMT-UNSUP-004 or FMT-UNSUP-010 refuses the same comment, directive, or disabled text, both shapes start at it, and FMT-UNSUP-001's first shape in the text does not decide; the reason and the location are then FMT-UNSUP-004's or FMT-UNSUP-010's:
+
+- **FMT-UNSUP-004** excepts the inside of an initializer value, and the gap behind an operator of a value is always inside it, so the two meet only outside a value, such as in an attribute argument of a declaration: `[Obsolete("old" + /* why */ " API")] private int _e;` gives FMT-UNSUP-004's reason, while `int c = 1 + /* c */ 2;` gives this requirement's.
+- **FMT-UNSUP-010** excepts no initializer value: a directive or disabled text behind an operator anywhere in a field declaration with several declarators, also inside a value, such as the `#if X` of `private int _a = 1 +⏎#if X⏎2⏎#else⏎3⏎#endif⏎, _b;`, gives FMT-UNSUP-010's reason. In a field with one declarator, the same directive gives this requirement's.
+
+The reason the formatter gives for this shape is `a comment or directive between a binary operator and its right operand`, and its location is the span of the first comment, directive, or disabled text in that place.
+
+Why: The line-break phase moves a binary operator at the end of a line to the start of the next line and joins the right operand behind it (FMT-BREAK-017). A comment or a directive behind the operator kept the right operand off the operator's line, so the phase refused the join (FMT-BREAK-001), left the operator at the end of the line, and the right operand started a line that no requirement places, in the column of the enclosing statement; RH5302's fix carried a copy of that refusal. RH5049 already reports a comment behind a binary operator, so the shape is rare, and a comment that explains an operand belongs in front of the operator — on the line above the operator's line or behind the left operand — where the phases carry it as they do for every wrapped operator. Directives and disabled text are part of the shape because the join refuses them alike: with comments alone, the refusal would have to stay. The shape is the same on one line, as it is for a conditional's operators (FMT-UNSUP-008), so the boundary is a place in the syntax tree, not a question of line breaks. The operator and its right operand belong to one binary expression, so a node-level input that holds the operator holds the whole gap, and no phase writes a comment, a directive, or disabled text into that gap: the join carries only whitespace into it (FMT-UNSUP-005). The `is` of a pattern match, the pattern combinators, and the assignment operators are laid out by other requirements, which hold no such refusal, so declaring them would delete nothing. A comment in an attribute argument of a declaration, and a directive in a field declaration with several declarators, were refused under FMT-UNSUP-004 and FMT-UNSUP-010 before this requirement existed, and keep the reason they gave.
+
+Example — each binary expression is refused, and the input that holds it is returned unchanged:
+
+```csharp
+class C
+{
+    bool M(bool a, bool b, int n, object o)
+    {
+        var x = a && // c1
+                b;
+        var y = n
+                + // c2
+                1;
+        var z = n * /* c3 */ 2;
+        var w = a
+                && b
+                ||
+                // c4
+                o is string;
+        var v = o as /* c5 */ string ?? /* c6 */ "";
+
+        return x;
+    }
+}
+```
+
+The location is the span of `// c1`, which starts in line 5, column 22.
+
+Example — directives and disabled text behind an operator refuse the input in every build: where `DEBUG` is defined, `#if DEBUG` stands behind the first `|`; where it is not, `#if DEBUG`, the disabled text, and `#endif` stand behind it:
+
+```csharp
+using System.Text.RegularExpressions;
+
+class C
+{
+    RegexOptions M()
+    {
+        return RegexOptions.Compiled |
+#if DEBUG
+               RegexOptions.IgnoreCase |
+#endif
+               RegexOptions.Multiline;
+    }
+}
+```
+
+Example — the other side: none of these comments and directives refuses the input, and the input is formatted:
+
+```csharp
+using System.Text.RegularExpressions;
+
+class C
+{
+    bool M(bool a, bool b, int n)
+    {
+        var x = a
+                // c1
+                && b;
+        var y = a /* c2 */ && b;
+        var z = n + M2(1) // c3
+                + 2;
+        var w = n is > /* c4 */ 1 or /* c5 */ 3;
+        n += /* c6 */ 1;
+
+        return x && y && z > 0 && w;
+    }
+
+    int M2(int v)
+    {
+        return v;
+    }
+
+    RegexOptions Options()
+    {
+        return RegexOptions.Compiled
+#if DEBUG
+               | RegexOptions.IgnoreCase
+#endif
+               | RegexOptions.Multiline;
+    }
+}
+```
+
 ### FMT-UNSUP-005 — Formatted output is never unsupported
 
 The formatter MUST NOT produce a shape that a requirement of this spec declares unsupported: the output of an input it formats MUST NOT be refused when it is formatted again.
@@ -612,14 +716,14 @@ Example — the field split (FMT-STRUCT-021) keeps a comment inside an initializ
 ```csharp
 class C
 {
-    private int _a = 1 + /* c */ 2, _b;
+    private int _a = 1 /* c */ + 2, _b;
 }
 ```
 
 ```csharp
 class C
 {
-    private int _a = 1 + /* c */ 2;
+    private int _a = 1 /* c */ + 2;
     private int _b;
 }
 ```
