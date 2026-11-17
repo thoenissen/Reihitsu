@@ -40,4 +40,5 @@ None yet.
 - Auditor (05) on 091e588: pass with one comment finding.
 - Repair round 1 worklist: (a) test implementer adds the per-phase check to RH6001 `VerifyFormatterFixesGluedFixedKeyword` (decision 7); (b) cleaner rewords the two summaries (finding #1).
 - (a) done (06-test-implementer), dc6c41f.
-- Next: cleaner (item b) → spec checker → auditor (repair only, base 091e588) → validator.
+- (b) done (07-cleaner), 1931271.
+- Next: spec checker + auditor (repair only, base 091e588) → validator.
