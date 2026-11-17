@@ -17,6 +17,7 @@ None yet.
 |---|---|---|---|---|---|---|
 | 1 | Skeptic | The skeptic shows the attribute-placement loop already observes the token (`AttributeTargetFormattingRewriter.ApplyPlacement`, per pass) and that both guards fail after 30 s with the loop restored — the issue's "Done when" holds on `main`. Implement either remedy the issue proposes? | Drop both remedies (agent-filed goals). Instead make the coupling durable: comment-only edits stating that the two guards' cooperative timeout relies on the per-pass token check, at the two tests and at the token check. | The only real risk is someone removing the token check unaware that the guards depend on it; an outside guard would duplicate what a run-wide hang timeout (follow-up) covers more cheaply. | Tests and a source comment only; no formatter output, diagnostic, fix, rule page, or CLI behavior changes. | — |
 | 2 | Skeptic | `Closes` or `Refs`? Escalation 4? | `Closes #1846`: the issue is a maintenance concern, not an observed bug, and its purpose — guards that fail within their limit on a reintroduced loop — is met and demonstrated. No escalation 4: no reported behavior to reproduce. | The issue's own "Done when" is met. | No visible output. | — |
+| 4 | Spec checker | Validator in the tests lane? | Skipped: the text-only proof passed on the final source diff, so nothing compiled changed; CI builds and tests the PR. | A comment-only diff cannot change a build or test result. | No visible output. | — |
 | 3 | Skeptic | Roles after the narrowing | The diff becomes comment-only: spec author writes the comments (docs-lane text work), spec checker checks, `scripts/verify-text-only.sh` proves it; test implementer, implementer, cleaner, auditor skipped (nothing compiled changes); validator skipped unless the proof fails. The claimed tests lane stays (a claim may be wider than the diff). | Nothing compiled changes. | No visible output. | — |
 
 ## Follow-up candidates
@@ -27,4 +28,5 @@ None yet.
 
 - Done: skeptic (`01-skeptic.md`, verdict: do not make the change).
 - Done: spec author (`02-spec-author.md`, f1a25ee; text-only proof PASS vs d0dd5d5; lane check tests: confirmed, diff needs only docs).
-- Next: spec checker (`03-spec-checker.md`), then issue manager (hang-timeout candidate), note, publish.
+- Done: spec checker (`03-spec-checker.md`, 61339af, consistent, no findings).
+- Next: issue manager (`04-issue-manager.md`), then note, delete sdd/work, CI trigger, publish.
