@@ -25,8 +25,8 @@ Batch 1 (before test implementer), answered `1A 2A 3A 4A 5A 6A`:
 |---|---|---|---|---|---|---|
 | 1 | skeptic | Issue goal "delete RH5401-004's format-and-compare" | Dropped; `CanCollapse` kept | It also decides the wrapped expression and the comment in front of the arrow; the shape behind the arrow is withheld via FindUnsupportedSyntax | RH5401 stays reported, no fix, before and after | 6990dee |
 | 2 | skeptic | Issue goal "column-4 layout stops being reachable" | Corrected: holds only behind the arrow | Skeptic showed the in-front and next-line `return` cases remain | Statement only | — |
-| 3 | skeptic | SHARED-BODY-001 Why sentence stale for the directive clause | Reword it (analyzers keep the predicate; the formatter decides the gap through FMT-UNSUP-012) | Skeptic recommendation, accurate | Spec wording | pending (spec author follow-up) |
-| 4 | skeptic | FMT-UNSUP-012 Why for local functions | Cite RH3208 (and RH3202–RH3207) instead of "no more common" | Skeptic recommendation | Spec wording | pending |
+| 3 | skeptic | SHARED-BODY-001 Why sentence stale for the directive clause | Reword it (analyzers keep the predicate; the formatter decides the gap through FMT-UNSUP-012) | Skeptic recommendation, accurate | Spec wording | e95c126 |
+| 4 | skeptic | FMT-UNSUP-012 Why for local functions | Cite RH3208 (and RH3202–RH3207) instead of "no more common" | Skeptic recommendation | Spec wording | e95c126 |
 | 5 | spec author | `BlocksRewrite` directive check | Keep unchanged | Changing it changes RH3202–RH3208 diagnostics | Nothing changes | 6990dee |
 | 6 | lead | Output question 5 (code fixes withheld) | Folded into question 1 as the declaration's code-fix line | Withholding follows from SHARED-FIX-010 for a declared shape; no real alternative | Shown to the maintainer in question 1 | — |
 
@@ -46,4 +46,5 @@ Batch 1 (before test implementer), answered `1A 2A 3A 4A 5A 6A`:
 - Done: spec author (01, commit 6990dee/bea1289), change doc Draft; lane check confirmed.
 - Done: skeptic (02, b746fed), verdict output question.
 - Batch 1 asked (questions 1–6; 01's Q5 folded into Q1; 01's Q6 reason text = batch Q5; 02's Q7 escalation 10 = batch Q6). Waiting for answers.
-- Answers received. Next: fresh spec author (03) for answers + decisions 3,4 + Status Accepted; then test implementer (04).
+- Done: spec author 03 (e95c126), change doc Accepted; decisions 3,4 carried out.
+- Next: test implementer (04).
