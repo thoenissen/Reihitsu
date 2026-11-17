@@ -49,4 +49,5 @@ Batch 1 (before test implementer), answered `1A 2A 3A 4A 5A 6A`:
 - Batch 1 asked (questions 1–6; 01's Q5 folded into Q1; 01's Q6 reason text = batch Q5; 02's Q7 escalation 10 = batch Q6). Waiting for answers.
 - Done: spec author 03 (e95c126), change doc Accepted; decisions 3,4 carried out.
 - Done: test implementer 04 (b1efb29): 138 formatter, 8 CLI, 23 analyzer failing as expected.
-- Next: implementer (05) and, in parallel, spec author 06 for the RH5401-004 example member name (CS0542; test uses `D`).
+- Done: spec author 06 (bb95f71); implementer 05 (4680af8), all default projects pass in Debug, 4 production files, +70/-118.
+- Next: cleaner (07), then spec checker (08).
