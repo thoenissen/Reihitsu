@@ -129,6 +129,147 @@ public sealed class SquadNoteReferenceTests
         }
     }
 
+    /// <summary>
+    /// Verifies that the scan accepts a run handover under <c>sdd/work/</c> that names a note, since the run's
+    /// working folder is deleted before its pull request is merged
+    /// </summary>
+    [TestMethod]
+    public void ScanIgnoresNoteReferenceInRunHandover()
+    {
+        // Arrange
+        var root = Directory.CreateTempSubdirectory("ReihitsuSquadNoteTest").FullName;
+
+        try
+        {
+            WriteFile(Path.Combine(root, "sdd", "work", "sample-run"), "01-test-implementer.md", $"The run's note will be `{NotesFolder}2026-01-01-sample-run.md`.\n");
+
+            // Act
+            var findings = ScanForNoteReferences(root);
+
+            // Assert
+            Assert.IsEmpty(findings);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that the scan accepts note references anywhere below <c>sdd/work/</c>: directly in the folder,
+    /// one level deeper than a run's folder, and in another scanned file type
+    /// </summary>
+    [TestMethod]
+    public void ScanIgnoresNoteReferencesAnywhereBelowSddWork()
+    {
+        // Arrange
+        var root = Directory.CreateTempSubdirectory("ReihitsuSquadNoteTest").FullName;
+
+        try
+        {
+            WriteFile(Path.Combine(root, "sdd", "work"), "overview.md", $"`{NotesFolder}2026-01-01-run.md`\n");
+            WriteFile(Path.Combine(root, "sdd", "work", "sample-run", "scratch"), "Probe.cs", $"// ../../../../squad/{NotesSegment}/2026-01-01-run.md\n");
+
+            // Act
+            var findings = ScanForNoteReferences(root);
+
+            // Assert
+            Assert.IsEmpty(findings);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a note reference in a permanent file still fails the scan while a run handover under
+    /// <c>sdd/work/</c> names a note at the same time, and that only the permanent files are reported
+    /// </summary>
+    [TestMethod]
+    public void ScanDetectsNoteReferenceInPermanentFilesBesideRunHandover()
+    {
+        // Arrange
+        var root = Directory.CreateTempSubdirectory("ReihitsuSquadNoteTest").FullName;
+
+        try
+        {
+            WriteFile(Path.Combine(root, "sdd", "work", "sample-run"), "00-lead.md", $"`{NotesFolder}2026-01-01-sample-run.md`\n");
+            WriteFile(Path.Combine(root, "sdd"), "README.md", $"See `{NotesFolder}2026-01-01-sample-run.md`.\n");
+            WriteFile(root, "AGENTS.md", $"See `{NotesFolder}2026-01-01-sample-run.md`.\n");
+
+            // Act
+            var findings = ScanForNoteReferences(root);
+
+            // Assert
+            Assert.HasCount(2, findings);
+            Assert.Contains(finding => finding.StartsWith("sdd/README.md:1:", StringComparison.Ordinal), findings);
+            Assert.Contains(finding => finding.StartsWith("AGENTS.md:1:", StringComparison.Ordinal), findings);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that the scan reports note references in paths that only share the text prefix
+    /// <c>sdd/work</c> without lying in the folder <c>sdd/work/</c>
+    /// </summary>
+    [TestMethod]
+    public void ScanDetectsNoteReferenceInPathsSharingSddWorkPrefix()
+    {
+        // Arrange
+        var root = Directory.CreateTempSubdirectory("ReihitsuSquadNoteTest").FullName;
+
+        try
+        {
+            WriteFile(Path.Combine(root, "sdd"), "workflow.md", $"`{NotesFolder}2026-01-01-run.md`\n");
+            WriteFile(Path.Combine(root, "sdd", "work-archive"), "run.md", $"`{NotesFolder}2026-01-01-run.md`\n");
+
+            // Act
+            var findings = ScanForNoteReferences(root);
+
+            // Assert
+            Assert.HasCount(2, findings);
+            Assert.Contains(finding => finding.StartsWith("sdd/workflow.md:1:", StringComparison.Ordinal), findings);
+            Assert.Contains(finding => finding.StartsWith("sdd/work-archive/run.md:1:", StringComparison.Ordinal), findings);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that the scan reports note references in a folder named <c>work</c> that is not the
+    /// repository's <c>sdd/work/</c>: one outside <c>sdd</c>, and one below a nested <c>sdd</c> folder
+    /// </summary>
+    [TestMethod]
+    public void ScanDetectsNoteReferenceInWorkFolderOutsideRepositorySddWork()
+    {
+        // Arrange
+        var root = Directory.CreateTempSubdirectory("ReihitsuSquadNoteTest").FullName;
+
+        try
+        {
+            WriteFile(Path.Combine(root, "src", "Sample", "work"), "Sample.md", $"`{NotesFolder}2026-01-01-run.md`\n");
+            WriteFile(Path.Combine(root, "documentation", "sdd", "work"), "page.md", $"`{NotesFolder}2026-01-01-run.md`\n");
+
+            // Act
+            var findings = ScanForNoteReferences(root);
+
+            // Assert
+            Assert.HasCount(2, findings);
+            Assert.Contains(finding => finding.StartsWith("src/Sample/work/Sample.md:1:", StringComparison.Ordinal), findings);
+            Assert.Contains(finding => finding.StartsWith("documentation/sdd/work/page.md:1:", StringComparison.Ordinal), findings);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
     #endregion // Tests
 
     #region Methods
