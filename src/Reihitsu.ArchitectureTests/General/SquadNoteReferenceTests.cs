@@ -12,7 +12,9 @@ namespace Reihitsu.ArchitectureTests.General;
 /// Guards that no file outside the squad's notes folder names a note in it. Notes are temporary input for
 /// improving the squad and are deleted once folded into a rule, so a reference to one would point at a file
 /// that is going away; a rule states its reason itself, in a process change doc. The folder's own
-/// <c>README.md</c> describes the folder and is permanent, so it may be referenced
+/// <c>README.md</c> describes the folder and is permanent, so it may be referenced. A squad run's working
+/// folder under <c>sdd/work/</c> is deleted before its pull request is merged, so its handovers may name the
+/// run's note
 /// </summary>
 [TestClass]
 public sealed class SquadNoteReferenceTests
@@ -34,6 +36,12 @@ public sealed class SquadNoteReferenceTests
     /// The permanent description of the notes folder, which may be referenced
     /// </summary>
     private const string NotesReadme = "README.md";
+
+    /// <summary>
+    /// The folder of the squad runs' temporary working docs relative to the repository root, which the scan
+    /// skips because it is deleted before a run's pull request is merged
+    /// </summary>
+    private const string RunWorkFolder = "sdd/work/";
 
     /// <summary>
     /// Extensions of the text files the scan reads
@@ -275,7 +283,8 @@ public sealed class SquadNoteReferenceTests
     #region Methods
 
     /// <summary>
-    /// Scans every text file under <paramref name="root"/> outside the notes folder for references to a note
+    /// Scans every text file under <paramref name="root"/> outside the notes folder and the runs' working folder
+    /// for references to a note
     /// </summary>
     /// <param name="root">Directory to scan</param>
     /// <returns>One <c>path:line: reference</c> entry per reference, with the path relative to <paramref name="root"/></returns>
@@ -287,7 +296,8 @@ public sealed class SquadNoteReferenceTests
         {
             var relativePath = Path.GetRelativePath(root, filePath).Replace('\\', '/');
 
-            if (relativePath.StartsWith(NotesFolder, StringComparison.Ordinal))
+            if (relativePath.StartsWith(NotesFolder, StringComparison.Ordinal)
+                || relativePath.StartsWith(RunWorkFolder, StringComparison.Ordinal))
             {
                 continue;
             }
