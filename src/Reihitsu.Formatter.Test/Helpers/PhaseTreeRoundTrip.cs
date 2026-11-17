@@ -22,15 +22,17 @@ internal static class PhaseTreeRoundTrip
 
     /// <summary>
     /// Runs the production pipeline on the root with an observer and describes every phase whose returned tree differs from
-    /// the tree its text parses back to
+    /// the tree its text parses back to, and, when the root carries no elastic trivia, every phase whose returned tree
+    /// carries some (FMT-PIPE-034): a phase that keeps none from its input and returns some has added it
     /// </summary>
     /// <param name="root">The root of the tree the formatter was given</param>
     /// <param name="context">The formatting context</param>
     /// <param name="parseOptions">The parse options of the tree the formatter was given</param>
-    /// <returns>The final output of the pipeline and one description per phase that does not round-trip</returns>
+    /// <returns>The final output of the pipeline and one description per phase that does not round-trip or adds elastic trivia</returns>
     public static (SyntaxNode Result, IReadOnlyList<string> Failures) ExecuteAndCompare(SyntaxNode root, FormattingContext context, CSharpParseOptions parseOptions)
     {
         var failures = new List<string>();
+        var checksElasticTrivia = FindElasticTrivia(root) == null;
 
         var result = FormattingPipeline.Execute(root,
                                                 context,
@@ -42,10 +44,37 @@ internal static class PhaseTreeRoundTrip
                                                     {
                                                         failures.Add($"The output of {phaseName} does not parse back to its tree (FMT-PIPE-021): {difference}");
                                                     }
+
+                                                    var elastic = checksElasticTrivia
+                                                                      ? FindElasticTrivia(after)
+                                                                      : null;
+
+                                                    if (elastic != null)
+                                                    {
+                                                        failures.Add($"The output of {phaseName} carries elastic trivia its input did not carry (FMT-PIPE-034): {elastic}");
+                                                    }
                                                 },
                                                 CancellationToken.None).Output;
 
         return (result, failures);
+    }
+
+    /// <summary>
+    /// Describes every trivia Roslyn marks as elastic in the tree, on every token, also on a token inside a directive or a
+    /// documentation comment
+    /// </summary>
+    /// <param name="root">The root of the tree</param>
+    /// <returns>One line per elastic trivia, or <see langword="null"/> when the tree carries none</returns>
+    public static string FindElasticTrivia(SyntaxNode root)
+    {
+        var elastic = root.DescendantTrivia(_ => true, descendIntoTrivia: true)
+                          .Where(trivia => trivia.HasAnnotation(SyntaxAnnotation.ElasticAnnotation))
+                          .Select(trivia => $"{(trivia.Token.LeadingTrivia.Contains(trivia) ? "leading" : "trailing")} {(SyntaxKind)trivia.RawKind} of token {trivia.Token.Kind()} '{trivia.Token.Text}' at {trivia.Token.SpanStart}")
+                          .ToList();
+
+        return elastic.Count == 0
+                   ? null
+                   : string.Join(Environment.NewLine, elastic);
     }
 
     /// <summary>

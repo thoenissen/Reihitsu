@@ -1653,6 +1653,55 @@ public class RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
         await Verify(ConvertEndOfLine(testData, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies that the code fix keeps the comma the first list already holds and writes the merged attributes behind it, each
+    /// comma followed by one space
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-018")]
+    public async Task VerifyCodeFixMergesIntoAFirstListThatAlreadyHoldsAComma()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M([A, B] {|#0:[D]|} int a)
+                                    {
+                                    }
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                sealed class D : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M([A, B, D] int a)
+                                     {
+                                     }
+                                 }
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 sealed class D : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5524MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
