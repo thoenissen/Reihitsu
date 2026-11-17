@@ -387,31 +387,39 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     }
 
     /// <summary>
-    /// Verifies that the fix is not offered when the combined field carries a preprocessor directive, because the
-    /// formatter leaves directive-bearing fields intact and the fix would otherwise be a no-op
+    /// Verifies that the fix is offered for a combined field inside an active conditional group and splits it: the
+    /// <c>#if</c> directive in the declaration's leading trivia stays in front of the first field, and the group holds both
+    /// fields
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyFixIsNotOfferedWhenFieldCarriesDirective()
+    [Requirement("RH7101-005")]
+    [Requirement("RH7101-004")]
+    public async Task VerifyFixSplitsAFieldInsideAnActiveConditionalGroup()
     {
         const string testData = """
                                 internal class TestClass
                                 {
                                 #if DEBUG
-                                    private int firstField, secondField;
+                                    private int firstField, {|#0:secondField|};
                                 #endif
                                 }
                                 """;
 
-        var actions = await GetCodeFixActionsAsync(testData,
-                                                   RH7101DoNotCombineFieldsAnalyzer.DiagnosticId,
-                                                   root => root.DescendantNodes()
-                                                               .OfType<FieldDeclarationSyntax>()
-                                                               .Single()
-                                                               .GetLocation(),
-                                                   "DEBUG");
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                 #if DEBUG
+                                     private int firstField;
+                                     private int secondField;
+                                 #endif
+                                 }
+                                 """;
 
-        Assert.IsEmpty(actions);
+        await Verify(testData,
+                     fixedData,
+                     test => test.SolutionTransforms.Add(DefineDebug),
+                     Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
     }
 
     /// <summary>
@@ -549,13 +557,62 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     }
 
     /// <summary>
-    /// Verifies the specification example: a region directive in the declaration's trivia withholds the fix, and the
-    /// diagnostic is still reported
+    /// Verifies the specification example: a region in front of one declaration and a conditional group around another do not
+    /// withhold the fix, which splits both declarations and keeps each directive in front of the first field
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-005")]
+    [Requirement("RH7101-004")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task SpecExampleDirectiveInFrontOfTheDeclarationDoesNotWithholdTheFix(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  #region Fields
+
+                                  private int _x, {|RH7101:_y|};
+
+                                  #endregion // Fields
+
+                              #if !RELEASE
+                                  private int _p, {|RH7101:_q|} = 1;
+                              #endif
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       #region Fields
+
+                                       private int _x;
+                                       private int _y;
+
+                                       #endregion // Fields
+
+                                   #if !RELEASE
+                                       private int _p;
+                                       private int _q = 1;
+                                   #endif
+                                   }
+                                   """;
+
+        await Verify(ConvertEndOfLine(source, endOfLine), ConvertEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a region whose directives stand directly in front of and behind the declaration does not withhold the fix,
+    /// and the fix leaves both directives where they are
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7101-005")]
-    public async Task RegionDirectiveInTheDeclarationWithholdsTheFix()
+    [Requirement("RH7101-004")]
+    public async Task RegionDirectiveDirectlyInFrontOfTheDeclarationDoesNotWithholdTheFix()
     {
         const string source = """
                               class C
@@ -566,7 +623,17 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                               }
                               """;
 
-        await VerifyNoCodeFixIsOffered(source);
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       #region Fields
+                                       private int _a;
+                                       private int _b;
+                                       #endregion
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
     }
 
     /// <summary>
@@ -3372,6 +3439,240 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
 
         // The .NET 9 reference assemblies lack the union runtime types (CS0518, CS0656), so compiler diagnostics are not verified
         await Verify(testData, fixedData, test => test.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a declaration with a directive between its declarators, which the formatter refuses,
+    /// withholds the fix of another declaration of the same type as well, and both stay reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-005")]
+    [Requirement("SHARED-FIX-010")]
+    public async Task SpecExampleDirectiveInsideAnotherDeclarationOfTheTypeWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p, {|RH7101:_q|};
+
+                                  private int _a,
+                              #pragma warning disable CS0169
+                                              {|RH7101:_b|};
+                              #pragma warning restore CS0169
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: in a build that does not define <c>DEBUG</c>, disabled text in front of the
+    /// declaration withholds the fix, and the diagnostic is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-005")]
+    public async Task SpecExampleDisabledTextInFrontOfTheDeclarationWithholdsTheFix()
+    {
+        const string source = """
+                              using System.Diagnostics;
+
+                              class C
+                              {
+                              #if DEBUG
+                                  [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+                              #endif
+                                  private int _a, {|RH7101:_b|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that disabled text in front of the declaration withholds the fix whatever it holds: a modifier, attribute lists
+    /// in two branches, a member of its own, the declaration's own branch for another build, or an attribute list in a fully
+    /// inactive group
+    /// </summary>
+    /// <param name="source">The source text with markup for the expected diagnostic</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-005")]
+    [DataRow("class C\n{\n#if NETSTANDARD\n    static\n#endif\n    private int _a, {|RH7101:_b|};\n}", DisplayName = "Disabled modifier")]
+    [DataRow("using System;\n\nclass C\n{\n#if DEBUG\n    [Obsolete]\n#elif TRACE\n    [NonSerialized]\n#endif\n    private int _a, {|RH7101:_b|};\n}", DisplayName = "Disabled attribute lists in two branches")]
+    [DataRow("class C\n{\n#if DEBUG\n    private int _dbg;\n#endif\n    private int _a, {|RH7101:_b|};\n}", DisplayName = "Disabled member of its own")]
+    [DataRow("class C\n{\n#if X\n    private long _a, _b;\n#else\n    private int _a, {|RH7101:_b|};\n#endif\n}", DisplayName = "Declaration in the active else branch")]
+    [DataRow("using System;\n\nclass C\n{\n#if false\n    [Obsolete]\n#endif\n    private int _a, {|RH7101:_b|};\n}", DisplayName = "Fully inactive group")]
+    public async Task DisabledTextInFrontOfTheDeclarationWithholdsTheFix(string source)
+    {
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a directive inside the declaration outside its leading trivia withholds the fix: between a modifier and the
+    /// type, and inside the value of the last declarator, where the rule still reports the declaration
+    /// </summary>
+    /// <param name="source">The source text with markup for the expected diagnostic</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-005")]
+    [DataRow("class C\n{\n    private\n#pragma warning disable CS0169\n    int _a, {|RH7101:_b|};\n#pragma warning restore CS0169\n}", DisplayName = "Pragma directive between a modifier and the type")]
+    [DataRow("using System;\n\nclass C\n{\n    private Func<int> _a, {|RH7101:_b|} = () =>\n    {\n#if DEBUG\n        return 1;\n#else\n        return 2;\n#endif\n    };\n}", DisplayName = "Conditional group inside the value of the last declarator")]
+    public async Task DirectiveInsideTheDeclarationWithholdsTheFix(string source)
+    {
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a directive inside a declaration of a nested type withholds the fix of a declaration of the outer type, whose
+    /// context holds the nested type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-005")]
+    public async Task DirectiveInANestedTypeWithholdsTheFixOfADeclarationOfTheOuterType()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _p, {|RH7101:_q|};
+
+                                  class D
+                                  {
+                                      private int _a,
+                              #pragma warning disable CS0169
+                                                  {|RH7101:_b|};
+                              #pragma warning restore CS0169
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a directive inside a declaration of the outer type does not withhold the fix of a declaration of a nested
+    /// type: the fix formats the declaration in the nested type, which holds no such directive
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-005")]
+    [Requirement("SHARED-FIX-010")]
+    public async Task DirectiveInTheOuterTypeDoesNotWithholdTheFixOfADeclarationOfANestedType()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a,
+                              #pragma warning disable CS0169
+                                              {|RH7101:_b|};
+                              #pragma warning restore CS0169
+
+                                  class D
+                                  {
+                                      private int _x, {|RH7101:_y|};
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _a,
+                                   #pragma warning disable CS0169
+                                                   {|RH7101:_b|};
+                                   #pragma warning restore CS0169
+
+                                       class D
+                                       {
+                                           private int _x;
+                                           private int _y;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
+    }
+
+    /// <summary>
+    /// Verifies that Fix All splits the declarations of a type whose directives stand only in front of its declarations, and
+    /// leaves the declarations of a type with a directive between declarators reported without a fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-005")]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("SHARED-FIX-002")]
+    public async Task FixAllSplitsTheDeclarationsBehindDirectivesAndLeavesTheTypeWithADirectiveInsideADeclaration()
+    {
+        const string source = """
+                              class A
+                              {
+                                  private int _a, {|RH7101:_b|};
+
+                                  private int _c,
+                              #pragma warning disable CS0169
+                                              {|RH7101:_d|};
+                              #pragma warning restore CS0169
+                              }
+
+                              class B
+                              {
+                                  #region Fields
+
+                                  private int _e, {|RH7101:_f|};
+
+                                  #endregion // Fields
+
+                              #if !RELEASE
+                                  private int _g, {|RH7101:_h|};
+                              #endif
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class A
+                                   {
+                                       private int _a, {|RH7101:_b|};
+
+                                       private int _c,
+                                   #pragma warning disable CS0169
+                                                   {|RH7101:_d|};
+                                   #pragma warning restore CS0169
+                                   }
+
+                                   class B
+                                   {
+                                       #region Fields
+
+                                       private int _e;
+                                       private int _f;
+
+                                       #endregion // Fields
+
+                                   #if !RELEASE
+                                       private int _g;
+                                       private int _h;
+                                   #endif
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         // The diagnostics whose fixes are withheld stay and are marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
     }
 
     #endregion // Tests

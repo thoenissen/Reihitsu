@@ -629,6 +629,30 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies that the fix is withheld for a field declaration with several declarators and a directive between them, a shape
+    /// the formatter refuses, although the gap in front of the semicolon holds no directive
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-010")]
+    public async Task NoFixIsOfferedForACombinedFieldWithADirectiveBetweenItsDeclarators()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _a,
+                                #pragma warning disable CS0169
+                                        _b
+                                        {|RH5113:;|}
+                                #pragma warning restore CS0169
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

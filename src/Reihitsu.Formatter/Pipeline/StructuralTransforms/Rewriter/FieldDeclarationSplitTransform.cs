@@ -39,9 +39,10 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
 
     /// <summary>
     /// Determines whether the transform splits the field declaration: it declares more than one variable, is a member of a
-    /// class, struct, record, interface, or union, carries no preprocessor directive or disabled text, and has no documentation
-    /// comment (FMT-STRUCT-021, FMT-STRUCT-023, FMT-STRUCT-030). A comment anywhere else in the declaration never reaches
-    /// the split, because the precheck refuses every input that holds one (FMT-UNSUP-004)
+    /// class, struct, record, interface, or union, has no disabled text in its leading trivia, and has no documentation
+    /// comment (FMT-STRUCT-021, FMT-STRUCT-022, FMT-STRUCT-030). A comment anywhere else in the declaration, and a directive or
+    /// disabled text outside its leading trivia, never reach the split, because the precheck refuses every input that holds
+    /// one (FMT-UNSUP-004, FMT-UNSUP-010)
     /// </summary>
     /// <param name="fieldDeclaration">The field declaration to inspect</param>
     /// <returns><see langword="true"/> if the transform splits the declaration; otherwise, <see langword="false"/></returns>
@@ -49,7 +50,7 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     {
         return fieldDeclaration.Declaration.Variables.Count > 1
                && fieldDeclaration.Parent is ClassDeclarationSyntax or StructDeclarationSyntax or RecordDeclarationSyntax or InterfaceDeclarationSyntax or UnionDeclarationSyntax
-               && CarriesDirective(fieldDeclaration) == false
+               && HasDisabledTextInLeadingTrivia(fieldDeclaration) == false
                && IsDocumented(fieldDeclaration) == false;
     }
 
@@ -67,15 +68,16 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether a field declaration carries a preprocessor directive or disabled text
-    /// anywhere in its trivia, which the split would otherwise drop
+    /// Determines whether the leading trivia of a field declaration's first token holds disabled text. The split keeps that
+    /// trivia on the first generated field only, and disabled text there can be an attribute list or a modifier that another
+    /// build compiles onto the whole declaration, so the declaration is kept whole whatever the disabled text holds. A
+    /// directive there without disabled text stays in front of the first field and does not stop the split (FMT-STRUCT-022)
     /// </summary>
     /// <param name="fieldDeclaration">The field declaration to inspect</param>
-    /// <returns><see langword="true"/> if the declaration carries a directive or disabled text; otherwise, <see langword="false"/></returns>
-    private static bool CarriesDirective(FieldDeclarationSyntax fieldDeclaration)
+    /// <returns><see langword="true"/> if the leading trivia holds disabled text; otherwise, <see langword="false"/></returns>
+    private static bool HasDisabledTextInLeadingTrivia(FieldDeclarationSyntax fieldDeclaration)
     {
-        return fieldDeclaration.DescendantTrivia(descendIntoTrivia: true)
-                               .Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia);
+        return fieldDeclaration.GetLeadingTrivia().Any(static trivia => trivia.IsKind(SyntaxKind.DisabledTextTrivia));
     }
 
     /// <summary>
@@ -93,7 +95,8 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     /// <summary>
     /// Creates the generated field for one declarator. The first field keeps the declaration's leading trivia, the last its
     /// trailing trivia; a later declarator's leading trivia and a separator's trailing trivia hold no comment
-    /// (FMT-UNSUP-004) and are dropped, and no field gets a separator in front of it (FMT-STRUCT-022, FMT-STRUCT-026)
+    /// (FMT-UNSUP-004) and no directive or disabled text (FMT-UNSUP-010) and are dropped, and no field gets a separator in
+    /// front of it (FMT-STRUCT-022, FMT-STRUCT-026)
     /// </summary>
     /// <param name="fieldDeclaration">Original field declaration</param>
     /// <param name="variableIndex">Index of the declarator to emit</param>
@@ -146,8 +149,6 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            // Splitting drops the trivia of the separators and of every later declarator's name. A preprocessor directive
-            // or disabled text there would be dropped with it, so Splits leaves directive-bearing declarations intact.
             if (member is FieldDeclarationSyntax fieldDeclaration
                 && Splits(fieldDeclaration))
             {
