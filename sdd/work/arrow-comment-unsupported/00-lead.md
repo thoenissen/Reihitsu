@@ -43,6 +43,7 @@ Batch 1 (before test implementer), answered `1A 2A 3A 4A 5A 6A`:
 ## Audited SHA
 
 - Audit 1: a23ec37 (base 71a89ec) — findings (1 medium, test strength).
+- Audit 2 (repair round 1): d52b770 (base 71a89ec) — pass. Audited SHA for publishing: d52b770.
 
 ## Open worklist / next step
 
@@ -59,4 +60,5 @@ Batch 1 (before test implementer), answered `1A 2A 3A 4A 5A 6A`:
 - Done: test implementer 10 (43267e0, f6660e6).
 - Done: cleaner 11 (10f9c61), clean.
 - Done: spec checker 12 (4fee1b8), consistent.
-- Next: auditor 13 (repair only), validator 14.
+- Done: auditor 13 (54926bb), pass.
+- Next: validator 14, then publish (lane check, issue manager 15, note, delete sdd/work, trigger).
