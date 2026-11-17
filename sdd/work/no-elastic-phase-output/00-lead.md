@@ -39,4 +39,5 @@
 - Done: skeptic (02), commit 7ba84bc, verdict proceed; no output questions, no escalation 10.
 - Done: spec author amendment (03), bf9462d; change doc Accepted.
 - Batch point before test implementer: no output questions open, no stop.
-- Next: test implementer (04).
+- Done: test implementer (04), 35b2e85: 17 new tests fail + 5 existing round-trip failures, all elastic commas from LineBreakPhase accessor merge.
+- Next: implementer (05).
