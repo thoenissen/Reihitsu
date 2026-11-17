@@ -38,4 +38,4 @@
 
 ## Open worklist / next step
 
-- Spec author done (01, c920452): FMT-UNSUP-011, change doc Draft. Skeptic done (02, 8ab8f07): proceed narrower. Batch 1 answered (all A). Spec author amendment done (03, ab1a268), change doc Accepted, lane check confirmed. Test implementer done (04, 1f749e7): 86 formatter, 22 analyzer, 3 CLI red as expected. Implementer done (05, e676781 prod, 8e998db handover): all green in Debug. Cleaner done (06, 86941cf): clean. Next: spec checker (07).
+- Spec author done (01, c920452): FMT-UNSUP-011, change doc Draft. Skeptic done (02, 8ab8f07): proceed narrower. Batch 1 answered (all A). Spec author amendment done (03, ab1a268), change doc Accepted, lane check confirmed. Test implementer done (04, 1f749e7): 86 formatter, 22 analyzer, 3 CLI red as expected. Implementer done (05, e676781 prod, 8e998db handover): all green in Debug. Cleaner done (06, 86941cf): clean. Spec checker done (07, 229afb0): consistent. Merged origin/main (0edc279, scripts only) at 11276fa; Release build green. Next: auditor (08).
