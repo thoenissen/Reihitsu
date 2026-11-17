@@ -137,83 +137,94 @@ internal sealed class PrecheckPhase : IFormattingPhase
     /// Finds the first comment, directive, or disabled text between a comma token of a node and the token in front of it, where
     /// the comma stands on a later line of the text than the line that token ends on (FMT-UNSUP-009). The gap starts behind the
     /// last token with text in front of the comma, so an omitted element without text belongs to it, and a line break counts
-    /// wherever it stands in the gap's text, also inside a multi-line comment
+    /// wherever it stands in the gap's text, also inside a multi-line comment. The node's tokens are walked once in text order,
+    /// carrying the last token with text and the tokens without text behind it, so the cost grows linearly with the number of
+    /// tokens. A comma with no token with text in front of it inside the node is skipped, because the node alone does not decide
+    /// its gap
     /// </summary>
     /// <param name="node">The node</param>
     /// <returns>The first such trivia, or <see langword="null"/>, and whether its comma separates two declarators of a variable declaration</returns>
     private static (SyntaxTrivia? Trivia, bool IsDeclaratorComma) FindTriviaInFrontOfComma(SyntaxNode node)
     {
-        foreach (var comma in node.DescendantTokens())
+        SyntaxToken? previousToken = null;
+        var zeroWidthTokens = new List<SyntaxToken>();
+
+        foreach (var token in node.DescendantTokens())
         {
-            if (comma.IsKind(SyntaxKind.CommaToken) == false)
+            if (token.Span.IsEmpty)
             {
+                zeroWidthTokens.Add(token);
+
                 continue;
             }
 
-            var previousToken = comma.GetPreviousToken();
-
-            if (previousToken == default
-                || previousToken.SpanStart < node.FullSpan.Start)
+            if (token.IsKind(SyntaxKind.CommaToken)
+                && previousToken != null)
             {
-                continue;
-            }
+                var firstTrivia = FindTriviaInGap(previousToken.Value, zeroWidthTokens, token);
 
-            SyntaxTrivia? firstTrivia = null;
-            var hasLineBreak = false;
-
-            foreach (var trivia in EnumerateGapTrivia(previousToken, comma))
-            {
-                var text = trivia.ToFullString();
-
-                hasLineBreak |= text.Contains('\n') || text.Contains('\r');
-
-                if (firstTrivia == null
-                    && (SyntaxTriviaUtilities.IsCommentTrivia(trivia) || SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia)))
+                if (firstTrivia != null)
                 {
-                    firstTrivia = trivia;
+                    return (firstTrivia, token.Parent is VariableDeclarationSyntax);
                 }
             }
 
-            if (firstTrivia != null
-                && hasLineBreak)
-            {
-                return (firstTrivia, comma.Parent is VariableDeclarationSyntax);
-            }
+            previousToken = token;
+            zeroWidthTokens.Clear();
         }
 
         return (null, false);
     }
 
     /// <summary>
-    /// Gets the trivia between two tokens in text order: the trailing trivia of the first, the trivia of every token without
-    /// text between them, and the leading trivia of the second
+    /// Finds the first comment, directive, or disabled text in the gap between two tokens, when the gap's text holds a line break.
+    /// The gap is the trailing trivia of the first token, the trivia of every token without text between them, and the leading
+    /// trivia of the second, in text order
     /// </summary>
     /// <param name="previousToken">The token in front of the gap</param>
+    /// <param name="zeroWidthTokens">The tokens without text between the two tokens, in text order</param>
     /// <param name="nextToken">The token behind the gap</param>
-    /// <returns>The trivia of the gap</returns>
-    private static IEnumerable<SyntaxTrivia> EnumerateGapTrivia(SyntaxToken previousToken, SyntaxToken nextToken)
+    /// <returns>The first such trivia, or <see langword="null"/> when there is none or the gap holds no line break</returns>
+    private static SyntaxTrivia? FindTriviaInGap(SyntaxToken previousToken, List<SyntaxToken> zeroWidthTokens, SyntaxToken nextToken)
     {
-        foreach (var trivia in previousToken.TrailingTrivia)
+        SyntaxTrivia? firstTrivia = null;
+        var hasLineBreak = false;
+
+        VisitGapTrivia(previousToken.TrailingTrivia, ref firstTrivia, ref hasLineBreak);
+
+        foreach (var token in zeroWidthTokens)
         {
-            yield return trivia;
+            VisitGapTrivia(token.LeadingTrivia, ref firstTrivia, ref hasLineBreak);
+            VisitGapTrivia(token.TrailingTrivia, ref firstTrivia, ref hasLineBreak);
         }
 
-        for (var token = previousToken.GetNextToken(includeZeroWidth: true); token != nextToken && token != default; token = token.GetNextToken(includeZeroWidth: true))
-        {
-            foreach (var trivia in token.LeadingTrivia)
-            {
-                yield return trivia;
-            }
+        VisitGapTrivia(nextToken.LeadingTrivia, ref firstTrivia, ref hasLineBreak);
 
-            foreach (var trivia in token.TrailingTrivia)
-            {
-                yield return trivia;
-            }
-        }
+        return hasLineBreak
+                   ? firstTrivia
+                   : null;
+    }
 
-        foreach (var trivia in nextToken.LeadingTrivia)
+    /// <summary>
+    /// Visits one trivia list of a gap between two tokens: records whether its text holds a line break, and the first comment,
+    /// directive, or disabled text when none has been found yet
+    /// </summary>
+    /// <param name="triviaList">The trivia list</param>
+    /// <param name="firstTrivia">The first comment, directive, or disabled text of the gap found so far, or <see langword="null"/></param>
+    /// <param name="hasLineBreak">Whether the gap's text visited so far holds a line break</param>
+    private static void VisitGapTrivia(SyntaxTriviaList triviaList, ref SyntaxTrivia? firstTrivia, ref bool hasLineBreak)
+    {
+        foreach (var trivia in triviaList)
         {
-            yield return trivia;
+            var text = trivia.ToFullString();
+
+            hasLineBreak |= text.Contains('\n') || text.Contains('\r');
+
+            if (firstTrivia == null
+                && (SyntaxTriviaUtilities.IsCommentTrivia(trivia) || SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia)))
+            {
+                firstTrivia = trivia;
+            }
         }
     }
 
