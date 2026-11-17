@@ -40,4 +40,6 @@
 - Done: skeptic (02, commit 50c6bb7) — verdict output question; drops C from this run (fields would become the odd one out; type/name break kept on every declaration but parameters), adds D (join head on every split field incl. first), recommends A. Declaring unsupported is not an option (deletes nothing). If A: lane narrows to tests.
 - Maintainer answered A.
 - Lane narrowed to **tests** (decision 3): roles now spec author (clarification) → test implementer → cleaner → spec checker → validator. Implementer and auditor skipped (no production change).
-- Next: spec author (03, fresh) writes the FMT-STRUCT-021 clarification; then test implementer.
+- Done: spec author (03, commit b91639c) — FMT-STRUCT-021 clarified with a new example (break behind long generic type, between modifiers repeated; break behind a `,` not repeated). Lane check: confirmed tests.
+- Running: test implementer (04).
+- Next: cleaner → spec checker → validator → issue manager (2 follow-up candidates) → publish.
