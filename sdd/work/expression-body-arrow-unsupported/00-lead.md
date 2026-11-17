@@ -25,6 +25,7 @@
 | 2 | skeptic | Spec author's Q3 (one-line `int A /* c */ => 1;`) as a separate question | Not asked separately; it is inside the span the maintainer answered and listed in the change doc's visible output changes | The issue's span is two trivia lists with no line-break condition | Covered by the maintainer's escalation-10 answer | — |
 | 3 | skeptic | FMT-UNSUP-013 / change doc *Why* name accessors for the join refusal | Reword to name only properties and indexers (skeptic internal 1) | FMT-BREAK-026 joins properties and indexers only | Spec wording | pending |
 | 4 | skeptic | SHARED-BODY-001 leaves a conditional group in front of `=>` unspecified | Specify the observed cases (reported, fix withheld) with an example (skeptic internal 2) | Lets the analyzer tests be tagged; reporting unchanged | Reporting unchanged; fix withholding follows from FMT-UNSUP-013 | pending |
+| 6 | before test implementer | Ask change doc visible output changes 1–11 again | Not asked: each is a refusal, or a withheld fix, inside the span the maintainer already declared in #1851 (both trivia lists, comments and directives, all listed owners). Asked: change 12 (`#if` group around signature/constraint, unlisted in the issue, formatted well today) and the reason wording | Escalation 10 already answered for this span | Covered by the maintainer's answer | — |
 | 5 | skeptic | Accessor `=>` on own line without a comment lands in accessor column | Follow-up candidate, carrying the skeptic's drafted output question | Outside #1851: no comment involved | Not changed in this run | — |
 
 ## Follow-up candidates
@@ -33,5 +34,6 @@
 
 ## State
 
-- Last step: skeptic done (02-skeptic.md, proceed). Skeptic found a visible case missing from the change doc: `#if` group around the signature or a constraint clause in front of a shared `=>` (d1/d2), formatted/fixed today, refused after.
-- Next: fresh spec author amendment (decisions 3, 4; add d1/d2 case to visible output changes), lane check, then output-question batch: CLI reason wording (spec author Q2), d1/d2 case, and the change doc's visible output changes.
+- Last step: spec author amendment done (03-spec-author.md, f722970); lane check confirmed.
+- Waiting: output-question batch posted to the maintainer — 1: change 12 (`#if` group around signature / constraint clause / property type in front of a shared `=>`), 2: CLI reason wording (spec author's Q2).
+- Next after answers: route to spec author (Decisions + Status: Accepted), then test implementer.
