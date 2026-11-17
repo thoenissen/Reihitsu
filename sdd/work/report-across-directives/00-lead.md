@@ -40,4 +40,5 @@ Batch 1 (before test implementer), answered 1A 2A 3A 4A 5A 6A:
 - Skeptic done (00547ae, verdict output question).
 - Batch 1 answered.
 - Spec author follow-up done (f3b78d5), change doc Accepted.
-- Next step: test implementer. (was: batch 1: Q1 the newly reported rules (change doc), Q2 trailing commas, Q3 RH5111, Q4 RH7311, Q5 RH8201, Q6 escalation 10 (trailing-comma shape, recommend not declaring). Then route answers + decision 5 to spec author (Status Accepted), then test implementer.
+- Test implementer done (dcbc177): 185 failing tests, all expected under-reporting.
+- Next step: implementer. (was: batch 1: Q1 the newly reported rules (change doc), Q2 trailing commas, Q3 RH5111, Q4 RH7311, Q5 RH8201, Q6 escalation 10 (trailing-comma shape, recommend not declaring). Then route answers + decision 5 to spec author (Status Accepted), then test implementer.
