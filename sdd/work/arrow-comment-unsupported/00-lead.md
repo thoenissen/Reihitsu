@@ -50,4 +50,5 @@ Batch 1 (before test implementer), answered `1A 2A 3A 4A 5A 6A`:
 - Done: spec author 03 (e95c126), change doc Accepted; decisions 3,4 carried out.
 - Done: test implementer 04 (b1efb29): 138 formatter, 8 CLI, 23 analyzer failing as expected.
 - Done: spec author 06 (bb95f71); implementer 05 (4680af8), all default projects pass in Debug, 4 production files, +70/-118.
-- Next: cleaner (07), then spec checker (08).
+- Done: cleaner 07 (ffd85d3), clean.
+- Next: spec checker (08), then auditor (09).
