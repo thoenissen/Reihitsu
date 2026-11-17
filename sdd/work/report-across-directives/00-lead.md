@@ -27,6 +27,8 @@ Batch 1 (before test implementer), answered 1A 2A 3A 4A 5A 6A:
 | 4 | Skeptic | "Code fixes keep withholding as today" is false for trailing commas and RH8201 | Fix providers gain the analyzer's existing guard (spec already requires the fix withheld) | Otherwise the fixes become unsafe (SHARED-FIX-003) | Spec requirement already demands the withheld fix | — |
 | 5 | Skeptic | general-notes.md moved sentence lost its antecedent | Route to spec author: keep the #region sentence at the end of the first paragraph | Wording | Text placement only | — |
 | 6 | Skeptic | Test scope | "Reported, no fix" tests only where the output changes, with the skeptic's shape matrix and Fix All contrast | Avoid redundant tests | Tests only | — |
+| 7 | Implementer | 19 Fix All / fixed-state tests mark a remaining diagnostic without allowing markup in the fixed state | Test defect; route to test implementer to fix so the marked diagnostic is checked (no assertion meaning changes) | Implementer showed the marked diagnostic is the one found | Test harness only | — |
+| 8 | Implementer | RH7102 example (change doc, RH7102-001, test) does not compile in the DEBUG build (CS8983) | Spec author makes the example compile in both builds; test implementer follows the spec | Example must be valid in every build it is run in | Reported output for the example unchanged (RH7102 reported, no fix) | — |
 
 ## Follow-up candidates
 
@@ -41,4 +43,5 @@ Batch 1 (before test implementer), answered 1A 2A 3A 4A 5A 6A:
 - Batch 1 answered.
 - Spec author follow-up done (f3b78d5), change doc Accepted.
 - Test implementer done (dcbc177): 185 failing tests, all expected under-reporting.
-- Next step: implementer. (was: batch 1: Q1 the newly reported rules (change doc), Q2 trailing commas, Q3 RH5111, Q4 RH7311, Q5 RH8201, Q6 escalation 10 (trailing-comma shape, recommend not declaring). Then route answers + decision 5 to spec author (Status Accepted), then test implementer.
+- Implementer done (233dfda, handover 4702026): verdict test disputed, 21 failing tests.
+- Next step: spec author (decision 8), then test implementer (decisions 7, 8), then cleaner. (was: batch 1: Q1 the newly reported rules (change doc), Q2 trailing commas, Q3 RH5111, Q4 RH7311, Q5 RH8201, Q6 escalation 10 (trailing-comma shape, recommend not declaring). Then route answers + decision 5 to spec author (Status Accepted), then test implementer.
