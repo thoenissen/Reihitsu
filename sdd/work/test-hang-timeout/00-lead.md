@@ -19,6 +19,7 @@ None yet.
 | 2 | Claim | `sdd/work/precheck-comma-linear-scan/` left on `main` by an earlier PR | Superseded by row 5 | — | — | — |
 | 3 | Implementer | Follow-up: `release.yml`, `deploy-pages.yml`, `pr-labels.yml` have no `timeout-minutes` | Dropped | None of them runs tests, so the issue's failure (a hanging test) cannot occur there | Tooling only | — |
 | 4 | Implementer | Follow-up: a caller passing its own `--blame-hang-timeout` to `test.sh` doubles the option | Dropped | No caller does this (`AGENTS.md`, *Supported inputs*) | Tooling only | — |
+| 6 | Auditor | Text finding in `scripts/README.md:86` (hang-timeout wording for parallel projects) | Routed to the spec author, proven with verify-text-only; no second audit | `lead.md` section 7 | Text only | — |
 | 5 | Implementer | `WorkingDocumentsDirectoryContainsNoFiles` fails on `main` because PR #1840 left `sdd/work/precheck-comma-linear-scan/` | Adjacent fix: the lead deletes that directory in the publish commit together with this run's `sdd/work/` | A failure on `main` that this PR's CI would otherwise inherit; a delete-only commit of `sdd/work/` is the lead's to write; that PR is merged | Text only, no surface | — |
 
 ## Follow-up candidates
@@ -27,8 +28,8 @@ None yet.
 
 ## Audited SHA
 
-—
+b08b083 (against main dc6d942)
 
 ## Next step
 
-Implementer done (01, d6bb4d8, tests pass). Cleaner done (02, e1d0230, clean). Spec checker done (03, 9643278, consistent). Merged origin/main dc6d942 (no overlap). Next: auditor.
+Implementer done (01, d6bb4d8, tests pass). Cleaner done (02, e1d0230, clean). Spec checker done (03, 9643278, consistent). Merged origin/main dc6d942 (no overlap). Auditor done (04, 059c8a6, pass with one text finding in scripts/README.md:86). Audited SHA: b08b083. Next: spec author text fix, verify-text-only, validator, publish.
