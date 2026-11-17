@@ -49,10 +49,11 @@ internal static class FluentChainCodeFixHelper
 
     /// <summary>
     /// Formats a chain the way formatting the document lays it out, and changes nothing but the chain (SHARED-CHAIN-009). A
-    /// chain usually starts in the middle of a line, so the statement or member that starts the chain's line is formatted
-    /// as positional context and only the chain is written back: the chain's first token keeps its line and its column in
-    /// the document, and the chain's other lines are laid out from that column (FMT-PIPE-017), so the code around the chain
-    /// stays as written (SHARED-FIX-006)
+    /// chain usually starts in the middle of a line, so the statement or member that starts the chain's line is passed to
+    /// the formatter as context and only the chain is written back: the chain's first token keeps its line and its column in
+    /// the document, which the formatter takes as a fact and lays the chain's other lines out from (FMT-PIPE-017), so the
+    /// code around the chain stays as written (SHARED-FIX-006). The same context decides which code the refusal check of
+    /// <see cref="IsFormattingRefused"/> inspects
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="chainNode">The outermost node of the chain</param>
@@ -69,8 +70,8 @@ internal static class FluentChainCodeFixHelper
     }
 
     /// <summary>
-    /// Gets the statement or member that starts the chain's line, which <see cref="FormatChainAsync"/> formats as positional
-    /// context
+    /// Gets the statement or member that starts the chain's line, which <see cref="FormatChainAsync"/> passes to the
+    /// formatter as context and which <see cref="IsFormattingRefused"/> checks for unsupported syntax
     /// </summary>
     /// <param name="chainNode">The outermost node of the chain</param>
     /// <returns>The context, or <see langword="null"/> when no statement or member starts the chain's line</returns>
