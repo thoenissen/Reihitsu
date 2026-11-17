@@ -169,6 +169,8 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
     {
         while (true)
         {
+            // Checked on every pass: the non-termination guards in CommentJoinTests use a cooperative timeout,
+            // which stops a loop that never ends only through this check
             _cancellationToken.ThrowIfCancellationRequested();
 
             var changed = false;
