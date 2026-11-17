@@ -24,6 +24,7 @@ None yet.
 ## Follow-up candidates
 
 - Whole-document formatting is quadratic in the length of one list (no comment: 2.9 s at 2 500, 9.9 s at 5 000, 40.5 s at 10 000 elements); the precheck is ~5 % of it. Performance, no output question. Source: 01-skeptic.md.
+- `CommentJoinTests.cs:203` and `:228` rely on a cooperative `[Timeout]` to catch an endless loop; on MSTest 4.5.3 a cooperative timeout does not stop code that never checks the token, so those tests would hang rather than fail unless the code under test observes cancellation (unchecked). Source: 02-test-implementer.md.
 
 ## Audited SHA
 
@@ -32,4 +33,5 @@ None yet.
 ## Open worklist / next step
 
 - Done: skeptic (proceed).
-- Next: test implementer (reproduction).
+- Done: test implementer (reproduced; 5 tests in `LongListPrecheckCostTests`, red only on a 3 s Stopwatch limit), commit 34094d6.
+- Next: implementer.
