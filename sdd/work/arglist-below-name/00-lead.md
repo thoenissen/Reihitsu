@@ -45,4 +45,5 @@
 - Spec checker 10 (a4e0856): consistent. main up to date; Release build green.
 - Auditor 11 spawned on head a4e0856, main eb89003.
 - Auditor 11 (86552ab): 1 finding, undecided output (list collapsing to one line when the only break was an argument-list gap inside an interpolation hole / query clause / array or stackalloc initializer). Asked as OQ 5 (A one line = branch, B one argument per line = main for chain member).
-- Answer: 5A. Spec author 12 (d8c5fb6) done. Repair round 1 (audit) in progress, next test implementer 13: spec author (doc + false statements), test implementer (lock answer), implementer if B; cleaner, spec checker, auditor on repair; then validator, issue manager (F1, F2, F3, F5), note, publish.
+- Answer: 5A. Repair round 1 (audit): spec author 12 (d8c5fb6), test implementer 13 (e23344a, tests pass, no implementer needed). Merged origin/main 1102aa5 (773d38a; test conflicts resolved by test implementer 14).
+- Next: cleaner 15, spec checker 16, auditor 17 on the repair (+ merge); then validator, issue manager (F1, F2, F3, F5), note, publish.
