@@ -13,6 +13,9 @@ permissions:
 jobs:
   sonarcloud:
     runs-on: ubuntu-latest
+    # A backstop far above a normal run of about 45 minutes; a hung test already fails
+    # within the hang timeout of the test steps (scripts/README.md, "Hang timeout").
+    timeout-minutes: 120
     env:
       # Pull requests from forks do not receive repository secrets, so the Sonar steps are skipped there.
       SONAR_ENABLED: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
@@ -51,11 +54,12 @@ jobs:
       - name: Build
         run: dotnet build --no-incremental --configuration Release
 
+      # The hang timeout and dump type match scripts/test.sh (scripts/README.md, "Hang timeout").
       - name: Test
         if: env.SONAR_ENABLED == 'true'
         run: |
           for project in Reihitsu.Analyzer.Test Reihitsu.Formatter.Test Reihitsu.Core.Test Reihitsu.Cli.Test Reihitsu.Tooling.Test Reihitsu.Playground.Test Reihitsu.SelfHosting.Test; do
-            dotnet-coverage collect "dotnet test src/$project/$project.csproj --no-build --configuration Release -m" -f xml -o "coverage-$project.xml"
+            dotnet-coverage collect "dotnet test src/$project/$project.csproj --no-build --configuration Release -m --blame-hang-timeout 10min --blame-hang-dump-type none" -f xml -o "coverage-$project.xml"
           done
           dotnet-coverage merge coverage-*.xml -f xml -o coverage.xml --remove-input-files
 
@@ -67,4 +71,4 @@ jobs:
 
       - name: Test (without Sonar)
         if: env.SONAR_ENABLED != 'true'
-        run: dotnet test --no-build --configuration Release -m
+        run: dotnet test --no-build --configuration Release -m --blame-hang-timeout 10min --blame-hang-dump-type none

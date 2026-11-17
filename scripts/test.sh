@@ -12,6 +12,10 @@
 # "all" is the default run; the all) branch below defines its projects, and
 # scripts/README.md, "The default test run", states what it covers and why.
 #
+# Every test host runs under a hang timeout: when no test starts or finishes
+# for that long, the host is ended and the run fails, whatever the hung code
+# checks; scripts/README.md, "Hang timeout", states the limit and why.
+#
 # Test projects are addressed by absolute path, so the caller's working
 # directory is never changed and relative arguments keep their meaning.
 #
@@ -127,12 +131,17 @@ fi
 
 repository_root="$(reihitsu_repo_root)"
 
+# The limit is the blame collector's inactivity time, so it bounds a hang, not
+# a run. No dump is written, so the run needs no dump tool and leaves no large
+# file behind.
+hang_arguments=(--blame-hang-timeout 10min --blame-hang-dump-type none)
+
 for test_project in "${projects[@]}"; do
     echo "==> $test_project"
 
     if [[ -n "$filter" ]]; then
-        dotnet test "$repository_root/$test_project" -c "$configuration" --verbosity minimal --filter "$filter" "${test_arguments[@]+"${test_arguments[@]}"}"
+        dotnet test "$repository_root/$test_project" -c "$configuration" --verbosity minimal "${hang_arguments[@]}" --filter "$filter" "${test_arguments[@]+"${test_arguments[@]}"}"
     else
-        dotnet test "$repository_root/$test_project" -c "$configuration" --verbosity minimal "${test_arguments[@]+"${test_arguments[@]}"}"
+        dotnet test "$repository_root/$test_project" -c "$configuration" --verbosity minimal "${hang_arguments[@]}" "${test_arguments[@]+"${test_arguments[@]}"}"
     fi
 done

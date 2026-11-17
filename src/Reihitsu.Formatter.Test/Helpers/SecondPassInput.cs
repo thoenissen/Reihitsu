@@ -9,7 +9,8 @@ namespace Reihitsu.Formatter.Test.Helpers;
 /// <summary>
 /// Parses a fixture's text the way a formatter pass sees it: with the fixture's parse options, and with the formatting
 /// context of the fixture's line ending and of the language version those options resolve to. The formatter passes of
-/// <see cref="FormatterTestsBase"/>, the passes <see cref="ObservedPipeline"/> observes, the phases the phase-level
+/// <see cref="FormatterPass"/>, which <see cref="FormatterTestsBase"/> and the analyzer tests' formatter-parity helpers run,
+/// the passes <see cref="ObservedPipeline"/> observes, the phases the phase-level
 /// stability check runs alone, and the fixed-point assertion of the check's own tests take their input from here, so a
 /// fixture is formatted, observed, and checked under one rule, and the check sees exactly what a second pass of those
 /// helpers sees
