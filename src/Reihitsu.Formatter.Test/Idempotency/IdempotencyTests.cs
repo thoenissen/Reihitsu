@@ -573,7 +573,9 @@ public class IdempotencyTests : FormatterTestsBase
     private const string ExpressionBodiedCommentTestData = """
                                                            internal class ExpressionBodiedCommentTestData
                                                            {
-                                                               public int TrailingArrowComment() => /* keep me */ 42;
+                                                               public int LeadingArrowComment()
+                                                                   // keep me
+                                                                   => 42;
 
                                                                public int LeadingSemicolonComment() => 42
                                                                    // keep me

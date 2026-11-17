@@ -154,17 +154,18 @@ public class CommentJoinTests
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied property is not collapsed into a trailing comment
+    /// Verifies that the arrow of an expression-bodied property is not collapsed into a trailing comment behind the property's
+    /// name. A comment behind the arrow is refused as unsupported before this phase runs (FMT-UNSUP-012)
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-001")]
-    public void ExpressionBodiedPropertyIsNotCollapsedIntoTrailingComment()
+    public void ExpressionBodiedPropertyArrowIsNotCollapsedIntoTrailingComment()
     {
         const string input = """
                              class C
                              {
-                                 int X => // note
-                                     1;
+                                 int X // note
+                                     => 1;
                              }
                              """;
 
@@ -196,7 +197,9 @@ public class CommentJoinTests
     /// loop forever. The single-line placement wants to collapse the parameter onto the attribute line,
     /// but the comment on the following token forbids the join, so the placement must report no change
     /// and the phase must terminate leaving the shape untouched. The timeout guards the non-termination
-    /// regression (the placement loop previously spun forever because it reported a change unconditionally)
+    /// regression (the placement loop previously spun forever because it reported a change unconditionally).
+    /// The timeout is cooperative, so it stops a reintroduced loop only because the placement loop checks the
+    /// cancellation token on every pass
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-001")]
@@ -221,7 +224,8 @@ public class CommentJoinTests
     /// Verifies that a single-line-mode parameter attribute list followed by a preprocessor directive does
     /// not loop forever. As with the comment case, the directive forbids the single-line join (removing its
     /// terminating line break would invalidate the directive), so the placement must report no change and
-    /// leave the shape untouched. The timeout guards the non-termination regression
+    /// leave the shape untouched. The timeout guards the non-termination regression. The timeout is cooperative,
+    /// so it stops a reintroduced loop only because the placement loop checks the cancellation token on every pass
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-001")]

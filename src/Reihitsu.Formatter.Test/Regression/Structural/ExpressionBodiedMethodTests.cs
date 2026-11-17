@@ -316,12 +316,13 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment trailing the arrow token is preserved during conversion instead of being
-    /// silently dropped. The expression is flush left; an indented expression on the next line is covered by
+    /// Verifies that a comment trailing the arrow token refuses the input as unsupported instead of being carried onto the new
+    /// opening brace. The expression is flush left; an indented expression on the next line is covered by
     /// <see cref="ExpressionBodyNextLineExpressionTests"/>
     /// </summary>
     [TestMethod]
-    public void PreservesCommentAfterArrow()
+    [Requirement("FMT-UNSUP-012")]
+    public void CommentAfterArrowIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -331,18 +332,9 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
                              42;
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    int M()
-                                    {// why
-                                        return 42;
-                                    }
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(ExpressionBodyArrowCommentReason, input, "// why");
     }
 
     /// <summary>

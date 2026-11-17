@@ -6,8 +6,8 @@ namespace Reihitsu.Formatter.Test.Regression.Structural;
 
 /// <summary>
 /// Regression tests for expression bodies whose expression starts on the line after the arrow. A converted
-/// <c>return</c> statement must already read <c>return expression;</c> after a single formatter pass, and the
-/// gaps that carry a blank line or a comment must keep their current layout
+/// <c>return</c> statement must already read <c>return expression;</c> after a single formatter pass, a gap that carries a
+/// blank line must keep its current layout, and a gap that carries a comment is refused as unsupported
 /// </summary>
 [TestClass]
 public class ExpressionBodyNextLineExpressionTests : FormatterTestsBase
@@ -159,10 +159,11 @@ public class ExpressionBodyNextLineExpressionTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a line comment trailing the arrow stays on the open brace while the next-line expression joins the return keyword in one pass
+    /// Verifies that a line comment trailing the arrow in front of a next-line expression refuses the input as unsupported
     /// </summary>
     [TestMethod]
-    public void LineCommentTrailingArrowWithExpressionOnNextLineConvertsInOnePass()
+    [Requirement("FMT-UNSUP-012")]
+    public void LineCommentTrailingArrowWithExpressionOnNextLineIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -172,25 +173,17 @@ public class ExpressionBodyNextLineExpressionTests : FormatterTestsBase
                                      42;
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    int M()
-                                    {// why
-                                        return 42;
-                                    }
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(ExpressionBodyArrowCommentReason, input, "// why");
     }
 
     /// <summary>
-    /// Verifies that a block comment ending the arrow line stays on the open brace while the next-line expression joins the return keyword in one pass
+    /// Verifies that a block comment ending the arrow line in front of a next-line expression refuses the input as unsupported
     /// </summary>
     [TestMethod]
-    public void BlockCommentTrailingArrowWithExpressionOnNextLineConvertsInOnePass()
+    [Requirement("FMT-UNSUP-012")]
+    public void BlockCommentTrailingArrowWithExpressionOnNextLineIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -200,18 +193,9 @@ public class ExpressionBodyNextLineExpressionTests : FormatterTestsBase
                                      42;
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    int M()
-                                    {/* why */
-                                        return 42;
-                                    }
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(ExpressionBodyArrowCommentReason, input, "/* why */");
     }
 
     /// <summary>
@@ -510,12 +494,11 @@ public class ExpressionBodyNextLineExpressionTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a block comment leading the next-line expression on its line stays directly in front of the
-    /// expression, which joins the return keyword together with it
+    /// Verifies that a block comment leading the next-line expression on its line refuses the input as unsupported
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-STRUCT-006")]
-    public void BlockCommentLeadingNextLineExpressionJoinsReturnKeyword()
+    [Requirement("FMT-UNSUP-012")]
+    public void BlockCommentLeadingNextLineExpressionIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -525,27 +508,17 @@ public class ExpressionBodyNextLineExpressionTests : FormatterTestsBase
                                      /* c */ 42;
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    int M()
-                                    {
-                                        return /* c */ 42;
-                                    }
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(ExpressionBodyArrowCommentReason, input, "/* c */");
     }
 
     /// <summary>
-    /// Verifies that a line comment between the arrow and the expression keeps its own line in front of the
-    /// created statement, and the expression joins the return keyword
+    /// Verifies that a line comment on a line of its own between the arrow and the next-line expression refuses the input as unsupported
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-STRUCT-006")]
-    public void LineCommentBeforeNextLineExpressionKeepsOwnLine()
+    [Requirement("FMT-UNSUP-012")]
+    public void LineCommentBeforeNextLineExpressionIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -556,19 +529,9 @@ public class ExpressionBodyNextLineExpressionTests : FormatterTestsBase
                                      42;
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    int M()
-                                    {
-                                        // c
-                                        return 42;
-                                    }
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(ExpressionBodyArrowCommentReason, input, "// c");
     }
 
     #endregion // Methods

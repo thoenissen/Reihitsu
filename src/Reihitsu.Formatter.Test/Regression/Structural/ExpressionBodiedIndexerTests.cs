@@ -136,10 +136,11 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an inline comment between the arrow and the expression stays in place
+    /// Verifies that an inline comment between the arrow and the expression refuses the input as unsupported
     /// </summary>
     [TestMethod]
-    public void InlineCommentAfterArrowRemainsInPlace()
+    [Requirement("FMT-UNSUP-012")]
+    public void InlineCommentAfterArrowIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -152,7 +153,7 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
                              """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertUnsupportedFor(ExpressionBodyArrowCommentReason, input, "/* inline */");
     }
 
     /// <summary>
@@ -311,10 +312,12 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a directive between the arrow and the expression keeps the expression on its own line, exactly like the expression-bodied property counterpart
+    /// Verifies that a directive between the arrow and the expression refuses the input as unsupported, exactly like the
+    /// expression-bodied property counterpart
     /// </summary>
     [TestMethod]
-    public void DirectiveAfterArrowKeepsExpressionOnOwnLine()
+    [Requirement("FMT-UNSUP-012")]
+    public void DirectiveAfterArrowIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -328,19 +331,8 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = """
-                                class C
-                                {
-                                    private readonly int[] _items = [1, 2, 3];
-
-                                    public int this[int index] =>
-                                #pragma warning disable CS0618
-                                    _items[index];
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(ExpressionBodyArrowCommentReason, input, "#pragma warning disable CS0618");
     }
 
     #endregion // Methods

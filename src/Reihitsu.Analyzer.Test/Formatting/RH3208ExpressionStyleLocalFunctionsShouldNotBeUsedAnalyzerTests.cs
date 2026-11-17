@@ -776,23 +776,20 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
     }
 
     /// <summary>
-    /// Verifying that a comment trailing the arrow and a comment trailing the semicolon both survive the fix
+    /// Verifies that a comment trailing the semicolon survives the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCommentsAroundExpressionBodySurviveFix()
+    public async Task VerifyCommentTrailingTheSemicolonSurvivesFix()
     {
         const string testData = """
                                 internal class RH3208
                                 {
                                     public int Calculate()
                                     {
-                                        return Double(1) + Triple(1);
+                                        return Triple(1);
 
-                                        int Double(int x) {|#0:=> // why
-                                            x * 2|};
-
-                                        int Triple(int x) {|#1:=> x * 3|}; // because
+                                        int Triple(int x) {|#0:=> x * 3|}; // because
                                     }
                                 }
                                 """;
@@ -802,12 +799,7 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
                                   {
                                       public int Calculate()
                                       {
-                                          return Double(1) + Triple(1);
-
-                                          int Double(int x)
-                                          {// why
-                                              return x * 2;
-                                          }
+                                          return Triple(1);
 
                                           int Triple(int x)
                                           {
@@ -817,7 +809,36 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat, 2));
+        await Verify(testData, resultData, Diagnostics(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3208MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment trailing the arrow withholds the fix, because the formatter refuses the member it would format,
+    /// while the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-001")]
+    [Requirement("SHARED-FIX-010")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentTrailingTheArrow(string endOfLine)
+    {
+        const string source = """
+                              internal class RH3208
+                              {
+                                  public int Calculate()
+                                  {
+                                      return Double(1);
+
+                                      int Double(int x) {|RH3208:=> // why
+                                          x * 2|};
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
     }
 
     /// <summary>

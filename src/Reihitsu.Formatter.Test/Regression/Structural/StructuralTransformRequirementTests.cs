@@ -1,4 +1,8 @@
+using System;
+using System.Linq;
+
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
@@ -522,28 +526,40 @@ public class StructuralTransformRequirementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an expression body whose conversion would put a directive directly behind the created
-    /// <c>return</c>, where it does not parse, is left as it was written
+    /// Verifies the specified example: a conditional group whose <c>#if</c> stands in front of the member and whose <c>#else</c>
+    /// stands between the arrow and the semicolon would be split by the conversion, so <c>M</c> keeps its expression body, in
+    /// every build
     /// </summary>
+    /// <param name="defineDebug">Whether <c>DEBUG</c> is defined</param>
     [TestMethod]
     [Requirement("FMT-STRUCT-024")]
-    public void ExpressionBodyWhoseConversionWouldNotCompileIsLeftUnchanged()
+    [DataRow(false, DisplayName = "DEBUG not defined")]
+    [DataRow(true, DisplayName = "DEBUG defined")]
+    public void ExpressionBodyWhoseConversionWouldSplitAConditionalGroupIsKept(bool defineDebug)
     {
         // Arrange
         const string input = """
                              class C
                              {
-                                 int M() =>
                              #if DEBUG
-                                     1;
+                                 int M() => 1
                              #else
-                                 0;
+                                 int M() => 0
                              #endif
+                                     ;
                              }
                              """;
 
-        // Act & Assert
-        AssertRuleResult(input);
+        var parseOptions = defineDebug ? CSharpParseOptions.Default.WithPreprocessorSymbols("DEBUG") : CSharpParseOptions.Default;
+
+        // Act
+        var output = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, parseOptions, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken).Output;
+        var method = output.GetRoot(TestContext.CancellationToken).DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+
+        // Assert
+        Assert.IsNotNull(method.ExpressionBody, $"M must keep its expression body:{Environment.NewLine}{output}");
+        Assert.IsNull(method.Body, $"M must not be converted:{Environment.NewLine}{output}");
+        AssertSecondPassIsStable(input, parseOptions);
     }
 
     /// <summary>

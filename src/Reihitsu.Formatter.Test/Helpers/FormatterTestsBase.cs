@@ -43,6 +43,12 @@ public abstract class FormatterTestsBase
     /// </summary>
     protected const string BinaryOperatorCommentReason = "a comment or directive between a binary operator and its right operand";
 
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive between the arrow of an expression body and its expression
+    /// (FMT-UNSUP-012)
+    /// </summary>
+    protected const string ExpressionBodyArrowCommentReason = "a comment or directive between the arrow of an expression body and its expression";
+
     #endregion // Constants
 
     #region Fields

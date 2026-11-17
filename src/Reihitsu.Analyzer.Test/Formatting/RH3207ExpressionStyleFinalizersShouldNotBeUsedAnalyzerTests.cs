@@ -213,34 +213,20 @@ public class RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzerTests : Batch
     }
 
     /// <summary>
-    /// Verifying that a comment trailing the arrow and a comment trailing the semicolon both survive the fix
+    /// Verifies that a comment trailing the semicolon survives the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCommentsAroundExpressionBodySurviveFix()
+    public async Task VerifyCommentTrailingTheSemicolonSurvivesFix()
     {
         const string testData = """
-                                internal class RH3207First
-                                {
-                                    ~RH3207First() {|#0:=> // why
-                                        System.GC.KeepAlive(this)|};
-                                }
-
                                 internal class RH3207Second
                                 {
-                                    ~RH3207Second() {|#1:=> System.GC.KeepAlive(this)|}; // because
+                                    ~RH3207Second() {|#0:=> System.GC.KeepAlive(this)|}; // because
                                 }
                                 """;
 
         const string resultData = """
-                                  internal class RH3207First
-                                  {
-                                      ~RH3207First()
-                                      {// why
-                                          System.GC.KeepAlive(this);
-                                      }
-                                  }
-
                                   internal class RH3207Second
                                   {
                                       ~RH3207Second()
@@ -250,7 +236,31 @@ public class RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzerTests : Batch
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3207MessageFormat, 2));
+        await Verify(testData, resultData, Diagnostics(RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3207MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment trailing the arrow withholds the fix, because the formatter refuses the member it would format,
+    /// while the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-001")]
+    [Requirement("SHARED-FIX-010")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentTrailingTheArrow(string endOfLine)
+    {
+        const string source = """
+                              internal class RH3207First
+                              {
+                                  ~RH3207First() {|RH3207:=> // why
+                                      System.GC.KeepAlive(this)|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
     }
 
     /// <summary>

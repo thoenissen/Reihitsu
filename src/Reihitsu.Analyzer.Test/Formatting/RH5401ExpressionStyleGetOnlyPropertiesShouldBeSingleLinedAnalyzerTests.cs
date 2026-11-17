@@ -323,8 +323,9 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
     }
 
     /// <summary>
-    /// Verifies that the fix is withheld, while the diagnostic stays, when the expression stays wrapped or a comment
-    /// keeps the arrow on a later line
+    /// Verifies the specification example: the fix is withheld, while the diagnostic stays, when the expression stays wrapped,
+    /// when a comment in front of the arrow keeps it on a later line, and when a comment behind the arrow makes the formatter
+    /// refuse the property
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -340,6 +341,9 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
 
                                     {|RH5401:int B // note
                                         => 1;|}
+
+                                    {|RH5401:int D => // note
+                                        1;|}
                                 }
                                 """;
 

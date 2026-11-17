@@ -17,6 +17,32 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Bat
     #region Tests
 
     /// <summary>
+    /// Verifies the change example: a comment trailing the arrow of a constructor withholds the fix, because the formatter refuses
+    /// the constructor it would format, while the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-001")]
+    [Requirement("SHARED-FIX-010")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentTrailingTheArrow(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _v;
+
+                                  public C(int v) {|RH3203:=> // c
+                                      _v = v|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
     /// Verifying that an expression-bodied constructor is detected and fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

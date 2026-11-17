@@ -258,30 +258,22 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzerTest
     }
 
     /// <summary>
-    /// Verifying that a comment trailing the arrow and a comment trailing the semicolon both survive the fix
+    /// Verifies that a comment trailing the semicolon survives the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCommentsAroundExpressionBodySurviveFix()
+    public async Task VerifyCommentTrailingTheSemicolonSurvivesFix()
     {
         const string testData = """
                                 internal class RH3206
                                 {
-                                    public static implicit operator int(RH3206 instance) {|#0:=> // why
-                                        0|};
-
-                                    public static explicit operator RH3206(int value) {|#1:=> new RH3206()|}; // because
+                                    public static explicit operator RH3206(int value) {|#0:=> new RH3206()|}; // because
                                 }
                                 """;
 
         const string resultData = """
                                   internal class RH3206
                                   {
-                                      public static implicit operator int(RH3206 instance)
-                                      {// why
-                                          return 0;
-                                      }
-
                                       public static explicit operator RH3206(int value)
                                       {
                                           return new RH3206();
@@ -289,7 +281,31 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzerTest
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3206MessageFormat, 2));
+        await Verify(testData, resultData, Diagnostics(RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3206MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a comment trailing the arrow withholds the fix, because the formatter refuses the member it would format,
+    /// while the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-001")]
+    [Requirement("SHARED-FIX-010")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentTrailingTheArrow(string endOfLine)
+    {
+        const string source = """
+                              internal class RH3206
+                              {
+                                  public static implicit operator int(RH3206 instance) {|RH3206:=> // why
+                                      0|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
     }
 
     /// <summary>

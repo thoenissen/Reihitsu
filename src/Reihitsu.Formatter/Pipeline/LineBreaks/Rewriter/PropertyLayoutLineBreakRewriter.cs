@@ -50,8 +50,9 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
     /// Moves the arrow of an expression-bodied property or indexer and the first token of its expression onto the
     /// line of the token that precedes the arrow — the property name or the indexer's closing bracket. Each join writes
     /// the minimal separator (FMT-BREAK-031), and a gap that is already on one line keeps its whitespace: the spaces
-    /// around the arrow are the horizontal-spacing phase's (FMT-SPACE-017). The layout is kept when either join would
-    /// cross a comment, a directive, or disabled text
+    /// around the arrow are the horizontal-spacing phase's (FMT-SPACE-017). The layout is kept when the join of the arrow
+    /// would cross a comment, a directive, or disabled text in front of it; the gap behind the arrow holds none, because the
+    /// precheck refuses an input that holds one there (FMT-UNSUP-012)
     /// </summary>
     /// <typeparam name="TNode">The declaration type</typeparam>
     /// <param name="node">The property or indexer declaration</param>
@@ -67,8 +68,7 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(expressionBody.ArrowToken.GetPreviousToken(), expressionBody.ArrowToken)
-            || LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(expressionBody.ArrowToken, expressionBody.Expression.GetFirstToken()))
+        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(expressionBody.ArrowToken.GetPreviousToken(), expressionBody.ArrowToken))
         {
             return node;
         }

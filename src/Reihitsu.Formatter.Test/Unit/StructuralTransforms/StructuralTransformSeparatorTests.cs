@@ -74,52 +74,6 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a block comment that starts the line after the arrow without whitespace in front of it follows the created
-    /// <c>return</c> without a space, because the author wrote none in front of it
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void CreatedReturnInFrontOfACommentAtColumnZeroGetsNoSpace()
-    {
-        const string input = """
-                             class C
-                             {
-                                 int Get() =>
-                             /* c */ 42;
-                             }
-                             """;
-
-        ForEachLineEnding(input,
-                          (output, _, description) =>
-                          {
-                              Assert.Contains("return/* c */ 42;", output.ToFullString(), description);
-                          });
-    }
-
-    /// <summary>
-    /// Verifies that a block comment that starts an indented line after the arrow follows the created <c>return</c> with the
-    /// eight spaces the author wrote in front of it
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void CreatedReturnInFrontOfAnIndentedCommentKeepsTheAuthorsWhitespace()
-    {
-        const string input = """
-                             class C
-                             {
-                                 int Get() =>
-                                     /* c */ 42;
-                             }
-                             """;
-
-        ForEachLineEnding(input,
-                          (output, _, description) =>
-                          {
-                              Assert.Contains("return        /* c */ 42;", output.ToFullString(), description);
-                          });
-    }
-
-    /// <summary>
     /// Verifies that the created <c>}</c> of a converted expression body takes the trailing trivia of the replaced <c>;</c>,
     /// its comment, the whitespace in front of it, and its line break included
     /// </summary>
@@ -145,9 +99,9 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a single-line comment that leads the converted expression on a line of its own is followed by a line
-    /// break in front of the created <c>return</c>, and is preceded by one behind the inserted <c>{</c>, so the comment keeps
-    /// leading the created statement
+    /// Verifies that a single-line comment on a line of its own in front of the arrow, which the conversion moves in front of the
+    /// created <c>return</c>, is followed by a line break in front of it, and is preceded by one behind the inserted <c>{</c>, so
+    /// the comment keeps leading the created statement
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-026")]
@@ -156,9 +110,9 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 int Get() =>
+                                 int Get()
                                      // c
-                                     42;
+                                     => 42;
                              }
                              """;
 
@@ -735,9 +689,9 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
 
                                  void Run() => Get();
 
-                                 int Other() =>
+                                 int Other()
                                      // c
-                                     42;
+                                     => 42;
                              }
                              """;
 
@@ -952,135 +906,6 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
     public void CreatedReturnInFrontOfAStringGetsNoSpace()
     {
         AssertCreatedReturnStatement("""string F() => "s";""", """return"s";""");
-    }
-
-    /// <summary>
-    /// Verifies the at-arrow example of FMT-STRUCT-026 for a block comment that leads the expression on the line behind
-    /// <c>=&gt; // c</c>: a line break stands between the created <c>return</c> and <c>/* d */</c>, which keeps leading the
-    /// expression
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void BlockCommentLeadingTheExpressionBehindAnAtArrowCommentKeepsLeadingIt()
-    {
-        AssertLineBreakBehindCreatedReturn("""
-                                           class C
-                                           {
-                                               int Get() => // c
-                                                   /* d */ 42;
-                                           }
-                                           """,
-                                           "/* d */");
-    }
-
-    /// <summary>
-    /// Verifies the at-arrow example of FMT-STRUCT-026 for a single-line comment on a line of its own between the arrow's line
-    /// and the expression
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void OwnLineCommentLeadingTheExpressionBehindAnAtArrowCommentKeepsLeadingIt()
-    {
-        AssertLineBreakBehindCreatedReturn("""
-                                           class C
-                                           {
-                                               int Get() => // c
-                                                   // d
-                                                   42;
-                                           }
-                                           """,
-                                           "// d");
-    }
-
-    /// <summary>
-    /// Verifies the at-arrow example of FMT-STRUCT-026 for a comment that precedes the arrow on its line
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void BlockCommentLeadingTheExpressionBehindACommentInFrontOfTheArrowKeepsLeadingIt()
-    {
-        AssertLineBreakBehindCreatedReturn("""
-                                           class C
-                                           {
-                                               int Get()
-                                                   /* c */ =>
-                                                   /* d */ 42;
-                                           }
-                                           """,
-                                           "/* d */");
-    }
-
-    /// <summary>
-    /// Verifies the at-arrow example of FMT-STRUCT-026 for a local function
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void LocalFunctionCommentLeadingTheExpressionBehindAnAtArrowCommentKeepsLeadingIt()
-    {
-        AssertLineBreakBehindCreatedReturn("""
-                                           class C
-                                           {
-                                               void M()
-                                               {
-                                                   int L() => // c
-                                                       /* d */ 42;
-                                               }
-                                           }
-                                           """,
-                                           "/* d */");
-    }
-
-    /// <summary>
-    /// Verifies the at-arrow example of FMT-STRUCT-026 for an operator
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void OperatorCommentLeadingTheExpressionBehindAnAtArrowCommentKeepsLeadingIt()
-    {
-        AssertLineBreakBehindCreatedReturn("""
-                                           class C
-                                           {
-                                               public static C operator +(C x, C y) => // c
-                                                   /* d */ x;
-                                           }
-                                           """,
-                                           "/* d */");
-    }
-
-    /// <summary>
-    /// Verifies the at-arrow example of FMT-STRUCT-026 for a conversion operator
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void ConversionCommentLeadingTheExpressionBehindAnAtArrowCommentKeepsLeadingIt()
-    {
-        AssertLineBreakBehindCreatedReturn("""
-                                           class C
-                                           {
-                                               public static implicit operator int(C c) => // c
-                                                   /* d */ 0;
-                                           }
-                                           """,
-                                           "/* d */");
-    }
-
-    /// <summary>
-    /// Verifies that a converted expression statement behind a comment at the arrow keeps the comment that leads it as its
-    /// leading trivia, with no created token in front of it
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void ExpressionStatementBehindAnAtArrowCommentKeepsItsLeadingComment()
-    {
-        const string input = """
-                             class C
-                             {
-                                 void Run() => // c
-                                     /* d */ Foo();
-                             }
-                             """;
-
-        ForEachLineEnding(input, (output, _, description) => AssertSameTree(output, description));
     }
 
     /// <summary>
@@ -1419,24 +1244,6 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
                               var statement = output.DescendantNodes().OfType<ReturnStatementSyntax>().Single();
 
                               Assert.AreEqual(expectedStatement, statement.ToString(), description);
-                              AssertSameTree(output, description);
-                          });
-    }
-
-    /// <summary>
-    /// Asserts that a line break stands between the created <c>return</c> and the comment that leads its expression in the
-    /// phase output, and that the output parses back to its tree
-    /// </summary>
-    /// <param name="input">The input with LF line endings</param>
-    /// <param name="comment">The comment that leads the expression</param>
-    private static void AssertLineBreakBehindCreatedReturn(string input, string comment)
-    {
-        ForEachLineEnding(input,
-                          (output, _, description) =>
-                          {
-                              var statement = output.DescendantNodes().OfType<ReturnStatementSyntax>().Single();
-
-                              AssertLineBreakBefore(GetGap(output, statement.ReturnKeyword, statement.Expression.GetFirstToken()), comment, description);
                               AssertSameTree(output, description);
                           });
     }

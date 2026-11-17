@@ -14,7 +14,8 @@ namespace Reihitsu.Cli.Test.EndToEnd;
 /// names them as skipped, and they do not affect the exit code; and for a file with a comment between a conditional operator
 /// and its branch, which the formatter refuses as unsupported (FMT-UNSUP-008); and for files with directives inside and in front of
 /// combined field declarations (FMT-UNSUP-010, FMT-STRUCT-022); and for files with a comment or directive between a binary operator
-/// and its right operand (FMT-UNSUP-011)
+/// and its right operand (FMT-UNSUP-011); and for files with a comment or directive between the arrow of an expression body and its
+/// expression (FMT-UNSUP-012)
 /// </summary>
 [TestClass]
 [DoNotParallelize]
@@ -69,6 +70,54 @@ public class CliHiddenCodeEndToEndTests
     /// <c>#if DEBUG</c> starts in line 8, column 1
     /// </summary>
     private const string BinaryOperatorDirectiveSource = "using System.Text.RegularExpressions;\n\nclass C\n{\n    RegexOptions M()\n    {\n        return RegexOptions.Compiled |\n#if DEBUG\n               RegexOptions.IgnoreCase |\n#endif\n               RegexOptions.Multiline;\n    }\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-012 change's first visible output example: a property with a line comment behind its arrow, which
+    /// starts in line 3, column 14
+    /// </summary>
+    private const string PropertyArrowCommentSource = "class C\n{\n    int A => // c\n        1;\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-012 change's example of an indexer with a block comment behind its arrow on one line, which starts
+    /// in line 3, column 24, and a property with a comment line behind its arrow
+    /// </summary>
+    private const string IndexerAndPropertyArrowCommentSource = "class C\n{\n    int this[int i] => /* c */ i;\n\n    int B =>\n        // c\n        1;\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-012 change's example of a method with a line comment behind its arrow, which starts in line 3,
+    /// column 18
+    /// </summary>
+    private const string MethodArrowCommentSource = "class C\n{\n    int Get() => // c\n        42;\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-012 change's example of methods with a comment line behind the arrow, which starts in line 4,
+    /// column 9, and a block comment in front of the expression on its line
+    /// </summary>
+    private const string MethodOwnLineArrowCommentSource = "class C\n{\n    int Other() =>\n        // after arrow\n        42;\n\n    int Value() =>\n        /* c */ 42;\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-012 change's example of a block comment behind the arrow on one line, which starts in line 2,
+    /// column 18, in a file whose <c>class C{</c> the formatter would otherwise correct
+    /// </summary>
+    private const string SameLineArrowCommentSource = "class C{\n    int Get() => /* c */ 42;\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-012 change's example of accessors with a comment behind the arrow, the first of which starts in
+    /// line 7, column 16
+    /// </summary>
+    private const string AccessorArrowCommentSource = "class C\n{\n    private int _v;\n\n    int A\n    {\n        get => // c\n            _v;\n        set => /* c */ _v = value;\n    }\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-012 change's example of local functions with a comment behind the arrow, the first of which starts
+    /// in line 5, column 24
+    /// </summary>
+    private const string LocalFunctionArrowCommentSource = "class C\n{\n    void M()\n    {\n        int Local() => /* c */ 1;\n\n        int Other() =>\n            // c\n            1;\n\n        Local();\n        Other();\n    }\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-012 change's example of a conditional group behind the arrow of a property and of a method, whose
+    /// first <c>#if DEBUG</c> starts in line 4, column 1
+    /// </summary>
+    private const string ArrowDirectiveSource = "class C\n{\n    int A =>\n#if DEBUG\n        1;\n#else\n        2;\n#endif\n\n    int M() =>\n#if DEBUG\n        1;\n#else\n        0;\n#endif\n}\n";
 
     /// <summary>
     /// A formatted file
@@ -336,6 +385,41 @@ public class CliHiddenCodeEndToEndTests
 
             Assert.AreEqual(ExitCodes.Error, exitCode);
             Assert.AreSequenceEqual(new[] { $"error: {Path.GetFullPath(filePath)}({line},{column}): unsupported syntax: a comment or directive between a binary operator and its right operand. The file was left unchanged." }, Lines(error));
+            Assert.AreEqual(source, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
+        }
+    }
+
+    /// <summary>
+    /// Verifies the visible output examples of FMT-UNSUP-012: files with a comment or a conditional group between the arrow of an
+    /// expression body and its expression — of a property, an indexer, a method, an accessor, and a local function, behind the arrow
+    /// on its line, on a line of its own, in front of the expression on its line, and on one line beside code the formatter would
+    /// correct — are each left unchanged, reported with the reason and the first comment's or directive's line and column, and the
+    /// run exits with code 2
+    /// </summary>
+    /// <param name="source">The file's text</param>
+    /// <param name="line">The reported line</param>
+    /// <param name="column">The reported column</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-012")]
+    [DataRow(PropertyArrowCommentSource, 3, 14, DisplayName = "Line comment behind the arrow of a property")]
+    [DataRow(IndexerAndPropertyArrowCommentSource, 3, 24, DisplayName = "Block comment behind the arrow of an indexer on one line")]
+    [DataRow(MethodArrowCommentSource, 3, 18, DisplayName = "Line comment behind the arrow of a method")]
+    [DataRow(MethodOwnLineArrowCommentSource, 4, 9, DisplayName = "Comment line behind the arrow of a method")]
+    [DataRow(SameLineArrowCommentSource, 2, 18, DisplayName = "Block comment behind the arrow on one line")]
+    [DataRow(AccessorArrowCommentSource, 7, 16, DisplayName = "Comments behind the arrows of accessors")]
+    [DataRow(LocalFunctionArrowCommentSource, 5, 24, DisplayName = "Comments behind the arrows of local functions")]
+    [DataRow(ArrowDirectiveSource, 4, 1, DisplayName = "Conditional group behind the arrow")]
+    public async Task CommentOrDirectiveBehindTheArrowOfAnExpressionBodyIsReportedAsUnsupported(string source, int line, int column)
+    {
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile("e.cs", source);
+
+            var (exitCode, _, error) = await Run([filePath]);
+
+            Assert.AreEqual(ExitCodes.Error, exitCode);
+            Assert.AreSequenceEqual(new[] { $"error: {Path.GetFullPath(filePath)}({line},{column}): unsupported syntax: a comment or directive between the arrow of an expression body and its expression. The file was left unchanged." }, Lines(error));
             Assert.AreEqual(source, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
         }
     }
