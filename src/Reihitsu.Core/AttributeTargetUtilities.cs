@@ -262,10 +262,12 @@ public static class AttributeTargetUtilities
     /// what follows it, would otherwise leave the old line indentation of the next token behind as a run of spaces
     /// on the merged line, and a blank line in front of that token would leave the merged line ending in the space
     /// before it. So the token's leading whitespace and line breaks are dropped whenever the token no longer starts a
-    /// line. With <see cref="AttributeListMergeSeparators.Spaced"/>, the merged list's attributes are separated by
-    /// commas with elastic trivia, one space follows the merged list, and a single space is added after the token before
-    /// a joined token when that token would otherwise touch it. With <see cref="AttributeListMergeSeparators.None"/>, the
-    /// merge writes no whitespace and no elastic trivia. A line break directly behind the first member's opening bracket
+    /// line. With <see cref="AttributeListMergeSeparators.Spaced"/> and
+    /// <see cref="AttributeListMergeSeparators.SpacedBehindList"/>, one space follows the merged list, and a single space
+    /// is added after the token before a joined token when that token would otherwise touch it; the merged list's
+    /// attributes are separated by commas with elastic trivia with <see cref="AttributeListMergeSeparators.Spaced"/>, and
+    /// by commas without any trivia otherwise. With <see cref="AttributeListMergeSeparators.None"/>, the merge writes no
+    /// whitespace and no elastic trivia. A line break directly behind the first member's opening bracket
     /// stays there, with that bracket. Otherwise, when the author wrote a line break anywhere between the first member's
     /// opening bracket and the token behind the last member — inside the first member included, whose attributes and
     /// commas the merge rebuilds — and the merge leaves none between the merged list and that token, the first such line
@@ -304,11 +306,12 @@ public static class AttributeTargetUtilities
                                            .Select(attribute => attribute.WithLeadingTrivia(SyntaxFactory.TriviaList())
                                                                          .WithTrailingTrivia(SyntaxFactory.TriviaList()))
                                            .ToArray();
-        var mergedList = separators == AttributeListMergeSeparators.Spaced
-                             ? firstList.WithAttributes(SyntaxFactory.SeparatedList(mergedAttributes))
-                                        .WithTrailingTrivia(SyntaxFactory.Space)
-                             : firstList.WithAttributes(SyntaxFactory.SeparatedList(mergedAttributes, mergedAttributes.Skip(1).Select(_ => SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.CommaToken, SyntaxFactory.TriviaList()))))
-                                        .WithTrailingTrivia(SyntaxFactory.TriviaList());
+        var spacesBehindList = separators != AttributeListMergeSeparators.None;
+        var mergedAttributeList = separators == AttributeListMergeSeparators.Spaced
+                                      ? SyntaxFactory.SeparatedList(mergedAttributes)
+                                      : SyntaxFactory.SeparatedList(mergedAttributes, mergedAttributes.Skip(1).Select(_ => SyntaxFactory.Token(SyntaxFactory.TriviaList(), SyntaxKind.CommaToken, SyntaxFactory.TriviaList())));
+        var mergedList = firstList.WithAttributes(mergedAttributeList)
+                                  .WithTrailingTrivia(spacesBehindList ? SyntaxFactory.TriviaList(SyntaxFactory.Space) : SyntaxFactory.TriviaList());
         var updatedLists = lists.Where((_, index) => index == groupIndices[0] || groupIndices.Contains(index) == false)
                                 .Select(list => ReferenceEquals(list, firstList) ? mergedList : list);
 
@@ -320,7 +323,7 @@ public static class AttributeTargetUtilities
                                                 && token.LeadingTrivia.All(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)
                                                                                      || trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
                                 .ToArray();
-        var unseparatedTokens = separators == AttributeListMergeSeparators.Spaced
+        var unseparatedTokens = spacesBehindList
                                     ? joinedTokens.Select(token => token.GetPreviousToken())
                                                   .Where(token => token.TrailingTrivia.Count == 0)
                                                   .ToArray()

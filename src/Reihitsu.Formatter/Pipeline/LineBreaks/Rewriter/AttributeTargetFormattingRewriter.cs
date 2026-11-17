@@ -110,8 +110,9 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
     /// Shapes the attribute lists of an accessor by the layout of its accessor list. On the property's single line every
     /// list has the merged-list shape; on lines of their own a list has it only when it has it on any owner
     /// (<see cref="AttributeListShapeUtilities.UsesMergedListShape"/>, a <c>param:</c> or <c>typevar:</c> list). The lists
-    /// without that shape are split into one list per attribute, and the lists of one target with it are merged, with the
-    /// separators the code fixes write. The structural transforms already shaped the lists of every other owner
+    /// without that shape are split into one list per attribute, and the lists of one target with it are merged: the merge
+    /// writes one space behind the merged list and behind a token it leaves touching a joined token, and every comma of
+    /// the merged list without trivia, which leaves the space behind it to the horizontal-spacing phase. The structural transforms already shaped the lists of every other owner
     /// </summary>
     /// <param name="owner">Owner node</param>
     /// <param name="keepAccessorListsSingleLine">Whether the owner's attribute lists must stay single-line</param>
@@ -132,7 +133,7 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
 
         owner = AttributeListShapeUtilities.SplitAttributeLists(owner, UsesMergedListShape);
 
-        return AttributeListShapeUtilities.MergeAttributeLists(owner, UsesMergedListShape, AttributeListMergeSeparators.Spaced);
+        return AttributeListShapeUtilities.MergeAttributeLists(owner, UsesMergedListShape, AttributeListMergeSeparators.SpacedBehindList);
     }
 
     /// <summary>
