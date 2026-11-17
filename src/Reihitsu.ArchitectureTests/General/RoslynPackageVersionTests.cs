@@ -35,7 +35,7 @@ public sealed class RoslynPackageVersionTests
     #region Methods
 
     /// <summary>
-    /// Verifies that the repository's build files name the Roslyn version only through the one property
+    /// Verifies that the repository's build files and file-based programs name the Roslyn version only through the one property
     /// </summary>
     [TestMethod]
     public void EveryRoslynPackageItemUsesTheRepositoryVersionProperty()
