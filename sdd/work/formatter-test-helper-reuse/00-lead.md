@@ -33,5 +33,5 @@ None yet.
 ## State
 
 - Audited SHA: n/a (no auditor in this lane)
-- Last step: test implementer (`02-test-implementer.md`, 92cf930): tests written; lane check confirmed tests.
-- Next step: cleaner, then spec checker, then validator.
+- Last step: cleaner (`03-cleaner.md`, 035402f): clean.
+- Next step: spec checker, then validator.
