@@ -31,4 +31,5 @@ None yet.
 ## State
 
 - Last step: skeptic (`01-skeptic.md`, 312bc82): #889 proceed narrower, #1476 proceed; no output questions.
-- Next: test implementer, then cleaner (incl. decision 3).
+- Test implementer: `02-test-implementer.md` (62009c4), tests written, lane check confirmed tests. Corrects one #1476 formatter output quoted by the skeptic; tests use measured output.
+- Next: cleaner (incl. decision 3), then spec checker, validator.
