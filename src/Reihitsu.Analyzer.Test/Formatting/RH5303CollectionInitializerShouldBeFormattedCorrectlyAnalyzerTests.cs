@@ -2773,6 +2773,59 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     }
 
     /// <summary>
+    /// Verifies that the fix of a collection initializer whose element's argument list stands on the line below the invoked name
+    /// joins the argument list onto the name
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-BREAK-039")]
+    public async Task VerifyFixJoinsElementArgumentListBelowItsName(string endOfLine)
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var l = {|RH5303:new List<int> { Get
+                                        (4), 2 }|};
+                                    }
+
+                                    private static int Get(int value)
+                                    {
+                                        return value;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Example
+                                 {
+                                     private static void Method()
+                                     {
+                                         var l = new List<int>
+                                                 {
+                                                     Get(4),
+                                                     2
+                                                 };
+                                     }
+
+                                     private static int Get(int value)
+                                     {
+                                         return value;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
     /// Verifies that the fix of a collection initializer in the value of a field declaration with a directive between its
     /// declarators is offered: the fix formats the initializer, which holds only part of the declaration, and the formatter does
     /// not refuse it; the directive and the declarators stay as they are

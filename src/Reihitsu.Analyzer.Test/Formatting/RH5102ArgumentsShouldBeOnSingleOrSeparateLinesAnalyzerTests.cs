@@ -1771,6 +1771,53 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies that the fix of an argument list whose opening parenthesis stands on the line below the invoked name keeps the
+    /// parenthesis on its line: the fix formats the argument list, whose first token keeps its line and column
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-PIPE-017")]
+    public async Task VerifyFixKeepsOpeningParenthesisBelowTheInvokedName(string endOfLine)
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        Foo
+                                        {|RH5102:(1, 2,
+                                            3)|};
+                                    }
+
+                                    private static void Foo(int a, int b, int c)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     private static void Method()
+                                     {
+                                         Foo
+                                         (1,
+                                          2,
+                                          3);
+                                     }
+
+                                     private static void Foo(int a, int b, int c)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
