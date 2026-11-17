@@ -8,9 +8,9 @@
 
 ## What
 
-The line-break phase joins the opening parenthesis of an argument list onto the line of the token in front of it when a line break separates the two (FMT-BREAK-039): the argument list of an invocation, of an object creation and an implicit object creation, of a constructor initializer, of a primary-constructor base type, and of the `with(…)` element of a collection expression, wherever the argument list stands. A comment, a directive, or disabled text in the gap blocks the join (FMT-BREAK-001), and blank lines in the gap go with it (FMT-BREAK-030). A collection expression, a complex element initializer, or another construct of FMT-BREAK-022 that was written over several lines only because of such a line break still counts as spanning several lines and keeps one element per line, as it does today when FMT-BREAK-020 rejoins a split inside one of its elements. A list (FMT-BREAK-012) and a conditional expression (FMT-BREAK-018) are judged as the line they become, as they are today after the joins of FMT-BREAK-015 and FMT-BREAK-020.
+The line-break phase joins the opening parenthesis of an argument list onto the line of the token in front of it when a line break separates the two (FMT-BREAK-039): the argument list of an invocation, of an object creation and an implicit object creation, of a constructor initializer, of a primary-constructor base type, and of the `with(…)` element of a collection expression, wherever the argument list stands. A comment, a directive, or disabled text in the gap blocks the join (FMT-BREAK-001), and blank lines in the gap go with it (FMT-BREAK-030). A collection expression, a complex element initializer, or another construct of FMT-BREAK-022 that was written over several lines only because of such a line break still counts as spanning several lines and keeps one element per line, as it does today when FMT-BREAK-020 rejoins a split inside one of its elements. A list (FMT-BREAK-012) and a conditional expression (FMT-BREAK-018) are judged as the line they become, as a list is today after the join of FMT-BREAK-015 and a conditional expression after the joins of FMT-BREAK-015 and FMT-BREAK-020. A list is judged so also where the argument list stands inside an interpolation hole, a query clause after the first, or an array or `stackalloc` initializer of one of its elements, which FMT-BREAK-015 does not join into (change 7).
 
-FMT-BREAK-039 is the one requirement that owns the gap in front of an argument list's `(`: FMT-BREAK-020, which joined it in a chain, and FMT-BREAK-015, which joined it inside a list element, now point to FMT-BREAK-039 instead of stating the join again. Their output does not change. FMT-BREAK-031 lists the new join among the joins that write the minimal separator; it changes no output of its own.
+FMT-BREAK-039 is the one requirement that owns the gap in front of an argument list's `(`: FMT-BREAK-020, which joined it in a chain, and FMT-BREAK-015, which joined it inside a list element, now point to FMT-BREAK-039 instead of stating the join again. FMT-BREAK-015's output does not change. FMT-BREAK-020's output changes in one case: today it joins an argument list in a chain only after the list around it is laid out, so a list whose only line break was such a gap inside an interpolation hole, a query clause, or an array or `stackalloc` initializer of an element gets one argument per line; it now becomes one line (change 7). FMT-BREAK-031 lists the new join among the joins that write the minimal separator; it changes no output of its own.
 
 ## Why
 
@@ -181,7 +181,7 @@ var x = a
 var x = a ? Get(1) : 2;
 ```
 
-A list that holds such a line break inside an element (`Baz(Get⏎(1), 2)`) already becomes one line on `main` (FMT-BREAK-015); that output does not change.
+A list that holds such a line break directly in an element (`Baz(Get⏎(1), 2)`) already becomes one line on `main` (FMT-BREAK-015); that output does not change. A list that holds it inside a construct nested in an element is change 7.
 
 **4. The argument list of a constructor initializer and of a primary-constructor base type joins its keyword or base type.**
 
@@ -320,6 +320,75 @@ return a
            : 2;
 ```
 
+**7. A list whose only line break was such a gap inside an interpolation hole, a query clause, or an array initializer of an element becomes one line, in a chain or not.**
+
+FMT-BREAK-015 does not join lines inside these constructs. On `main` the gap was joined there only in a chain, by FMT-BREAK-020, after the list was laid out, and outside a chain not at all; either way the list got one argument per line. The same holds for a `stackalloc` initializer.
+
+```csharp
+// input
+void M(object x, List<int> list)
+{
+    Baz($"{x.ToString
+    ()}", 2);
+    Baz($"{Bar
+    (1)}", 2);
+    Baz(from v in list select Bar
+    (v), 2);
+    Baz(new[] { x.GetHashCode
+    () }, 2);
+}
+```
+
+```csharp
+// before
+void M(object x, List<int> list)
+{
+    Baz($"{x.ToString()}",
+        2);
+    Baz($"{Bar
+    (1)}",
+        2);
+    Baz(from v in list select Bar
+        (v),
+        2);
+    Baz(new[] { x.GetHashCode() },
+        2);
+}
+```
+
+```csharp
+// after
+void M(object x, List<int> list)
+{
+    Baz($"{x.ToString()}", 2);
+    Baz($"{Bar(1)}", 2);
+    Baz(from v in list select Bar(v), 2);
+    Baz(new[] { x.GetHashCode() }, 2);
+}
+```
+
+As in change 6, every code fix whose formatted node holds such a list writes the new layout. Checked with `scripts/apply-fix.sh` on `main` and on the branch:
+
+```csharp
+// input
+return a &&
+    Has($"{x.ToString
+    ()}", 2);                                // RH5302
+```
+
+```csharp
+// before
+return a
+       && Has($"{x.ToString()}",
+              2);
+```
+
+```csharp
+// after
+return a
+       && Has($"{x.ToString()}", 2);
+```
+
 No rule page changes: no analyzer rule reports an argument list below its name, and what RH5305 and the other rules report does not change.
 
 ## Decisions
@@ -332,6 +401,7 @@ The maintainer answered the output questions as follows. Change 6 follows from t
 - **Constructor initializer and primary-constructor base type (change 4): join.** `: base⏎(1)` becomes `: base(1)` and `class E() : B⏎(1);` becomes `class E() : B(1);`, rather than keeping today's output.
 - **Conditional expression (change 3): judged after the join.** `a ? Get⏎(1) : 2` becomes `a ? Get(1) : 2`, rather than one branch per line.
 - **Dictionary element initializer (change 2): one element per line.** `{ { Get⏎(1), 2 } }` keeps its inner braces over several lines with `Get(1)` and `2` on lines of their own, rather than becoming `{ Get(1), 2 }`.
+- **List around an argument list inside an interpolation hole, a query clause, or an array or `stackalloc` initializer (change 7): one line.** `Baz($"{x.ToString⏎()}", 2)` and `Baz($"{Bar⏎(1)}", 2)` become `Baz($"{x.ToString()}", 2)` and `Baz($"{Bar(1)}", 2)`, in a chain or not, rather than one argument per line as on `main`.
 
 ### The join is stated by its cause, the gap in front of an argument list's `(`
 
@@ -339,11 +409,11 @@ The requirement names the gap between an argument list's opening parenthesis and
 
 ### The constructs of FMT-BREAK-022 are judged as written, lists and conditional expressions as joined
 
-The join counts for a surrounding construct as the phase's other joins inside it count today. FMT-BREAK-022 decides from the author's line breaks whether a collection expression or a complex element initializer spans several lines, also where a join inside an element removes one of them: `[v.⏎Length, 2]`, `[Get⏎(1).GetHashCode(), 2]`, and `{ { v.Equals⏎(1).GetHashCode(), 2 } }` get one element per line on `main`. So `[with⏎(4), 1, 2]` keeps one element per line rather than becoming `[with(4), 1, 2]`. A list and a conditional expression are judged after the joins of FMT-BREAK-015 and FMT-BREAK-020 (`Foo(1, Get⏎(4))` → `Foo(1, Get(4))`, `a ? v.Equals⏎(1).GetHashCode() : 2` → one line on `main`), so `a ? Get⏎(1) : 2` becomes one line too. The precedent differs by construct, and the requirement follows it rather than unifying it.
+The join counts for a surrounding construct as the phase's other joins inside it count today. FMT-BREAK-022 decides from the author's line breaks whether a collection expression or a complex element initializer spans several lines, also where a join inside an element removes one of them: `[v.⏎Length, 2]`, `[Get⏎(1).GetHashCode(), 2]`, and `{ { v.Equals⏎(1).GetHashCode(), 2 } }` get one element per line on `main`. So `[with⏎(4), 1, 2]` keeps one element per line rather than becoming `[with(4), 1, 2]`. A list is judged after the join of FMT-BREAK-015 (`Foo(1, Get⏎(4))` → `Foo(1, Get(4))` on `main`) and a conditional expression after the joins of FMT-BREAK-015 and FMT-BREAK-020 (`a ? v.Equals⏎(1).GetHashCode() : 2` → one line on `main`), so `a ? Get⏎(1) : 2` becomes one line too. A list is judged after the join also where the argument list stands inside a construct nested in an element (change 7), which is the maintainer's answer, not a precedent: on `main` a chain's argument list there was joined only after the list was laid out. The precedent differs by construct, and the requirement follows it rather than unifying it.
 
 ### One requirement owns the gap in front of an argument list's `(`
 
-FMT-BREAK-039 states the join for every argument list, so FMT-BREAK-020 (in a chain) and FMT-BREAK-015 (inside a list element) no longer state it themselves and point to FMT-BREAK-039. One statement of the join keeps its guards and exceptions from drifting apart, and the implementation has one owner of the gap. No output differs from the three statements it replaces.
+FMT-BREAK-039 states the join for every argument list, so FMT-BREAK-020 (in a chain) and FMT-BREAK-015 (inside a list element) no longer state it themselves and point to FMT-BREAK-039. One statement of the join keeps its guards and exceptions from drifting apart, and the implementation has one owner of the gap. The output differs from the three statements it replaces in one case: FMT-BREAK-020 joined an argument list in a chain after the list around it was laid out, so inside an interpolation hole, a query clause, or an array or `stackalloc` initializer of a list element the list kept one argument per line. The one owner joins every such gap before the list is laid out, and the maintainer chose the resulting one-line list (change 7).
 
 ## Alternatives considered
 
@@ -351,4 +421,5 @@ FMT-BREAK-039 states the join for every argument list, so FMT-BREAK-020 (in a ch
 - **Join, and let a collection expression that spanned several lines only because of the join become one line** (`[with(4), 1, 2]`, as the issue sketched) — not recommended: a collection expression would then lay out differently after this join than after every other join inside an element, and making those agree would change today's output for chain splits inside elements as well.
 - **Judge a conditional expression as written too** (`a ? Get⏎(1) : 2` → one branch per line, `? Get(1)` and `: 2` on lines of their own) — not recommended: a conditional whose only line break was a split inside a branch already becomes one line on `main` after the joins of FMT-BREAK-015 and FMT-BREAK-020, and the new join would lay it out differently from them.
 - **Join only invocations, object creations, and `with(…)` elements, and keep the line break in front of a constructor initializer's and a primary-constructor base type's argument list** — not recommended: the gap is the same, and the line `(1)` gets a column today (the constructor's, or the column after `class E() : `) that shows as little as an invocation's does.
+- **Keep one argument per line for a list whose only line break was the gap inside an interpolation hole, a query clause, or an array or `stackalloc` initializer** (change 7 as on `main` for a chain's argument list) — not chosen by the maintainer: the list would then depend on whether its element's argument list was written below its name, which the join removes, and outside a chain `main` gave such a list one argument per line only because the gap was never joined.
 - **Report the shape with a new analyzer rule** — out of scope: the formatter may do more than the analyzers (P11); a rule for it is a candidate of its own.

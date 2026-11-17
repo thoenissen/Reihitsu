@@ -2905,11 +2905,11 @@ When a line break separates the opening parenthesis of an argument list from the
 Where a construct around the argument list is laid out by whether it spans several lines, the line break the join removes counts as follows:
 
 - For every construct FMT-BREAK-022 decides — a collection expression, a list pattern, a property pattern clause, a parenthesized pattern, a complex element initializer — it still counts: one that spans several lines only because of it gets one element per line, as it does when FMT-BREAK-020 rejoins a split inside one of its elements.
-- For a list FMT-BREAK-012 lays out and for a conditional expression (FMT-BREAK-018) it does not count: the list or the conditional is judged as the line it becomes, as it is after a join of FMT-BREAK-015 or FMT-BREAK-020 inside it.
+- For a list FMT-BREAK-012 lays out and for a conditional expression (FMT-BREAK-018) it does not count: the list or the conditional is judged as the line it becomes. For a list this holds wherever the argument list stands inside an element: directly in the element, and also inside a construct nested in the element whose lines FMT-BREAK-015 does not join, such as an interpolation hole, a query clause after the first, or an array or `stackalloc` initializer (`Baz($"{Bar⏎(1)}", 2)` becomes `Baz($"{Bar(1)}", 2)`), in a chain or not. The constructs of the first bullet are the other side: a collection expression nested in an element is judged as written.
 
 This requirement specifies the outcome only for the argument lists it names. It does not decide the gap in front of the `[` of a bracketed argument list, nor in front of the `(` of an attribute argument list.
 
-Why: An argument list belongs to the expression or keyword in front of it; on a line of its own it reads as a parenthesized expression that starts a new line, and no column the indentation phase can give it shows that it belongs to the code above. The phase already joined such an argument list in a chain (FMT-BREAK-020) and inside a list element (FMT-BREAK-015); this requirement makes the join everywhere and states it once. A surrounding construct counts the removed line break as it counts the phase's other joins inside it: the constructs of FMT-BREAK-022 keep the one-element-per-line layout their author's line breaks give them, as after FMT-BREAK-020 rejoins a split inside an element, and lists and conditional expressions are judged as the line they become, as after the joins of FMT-BREAK-015 and FMT-BREAK-020. No analyzer rule reports such an argument list ([P11](../../README.md#the-formatter-may-do-more-than-the-analyzers-p11)); RH5105 reports the opening parenthesis of a parameter list only.
+Why: An argument list belongs to the expression or keyword in front of it; on a line of its own it reads as a parenthesized expression that starts a new line, and no column the indentation phase can give it shows that it belongs to the code above. The phase already joined such an argument list in a chain (FMT-BREAK-020) and inside a list element (FMT-BREAK-015); this requirement makes the join everywhere and states it once. A surrounding construct counts the removed line break as it counts the phase's other joins inside it: the constructs of FMT-BREAK-022 keep the one-element-per-line layout their author's line breaks give them, as after FMT-BREAK-020 rejoins a split inside an element, and lists and conditional expressions are judged as the line they become, as after a join of FMT-BREAK-015 inside a list and the joins of FMT-BREAK-015 and FMT-BREAK-020 inside a conditional expression. A list is judged so wherever the argument list stands in an element, so whether a joined argument list was written below its name never decides the list's layout, also where it stands inside an interpolation hole, a query clause, or an initializer of the element. No analyzer rule reports such an argument list ([P11](../../README.md#the-formatter-may-do-more-than-the-analyzers-p11)); RH5105 reports the opening parenthesis of a parameter list only.
 
 Example:
 
@@ -3091,6 +3091,62 @@ class C
     }
 
     void Baz(int x, int y)
+    {
+    }
+
+    int Bar(int x)
+    {
+        return x;
+    }
+}
+```
+
+Example — an argument list inside an interpolation hole, a query clause, or an array initializer of a list element joins its name, in a chain or not, and the list is judged as the line it becomes:
+
+```csharp
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M(object x, List<int> list)
+    {
+        Baz($"{x.ToString
+        ()}", 2);
+        Baz($"{Bar
+        (1)}", 2);
+        Baz(from v in list select Bar
+        (v), 2);
+        Baz(new[] { x.GetHashCode
+        () }, 2);
+    }
+
+    void Baz(object a, int b)
+    {
+    }
+
+    int Bar(int x)
+    {
+        return x;
+    }
+}
+```
+
+```csharp
+using System.Collections.Generic;
+using System.Linq;
+
+class C
+{
+    void M(object x, List<int> list)
+    {
+        Baz($"{x.ToString()}", 2);
+        Baz($"{Bar(1)}", 2);
+        Baz(from v in list select Bar(v), 2);
+        Baz(new[] { x.GetHashCode() }, 2);
+    }
+
+    void Baz(object a, int b)
     {
     }
 
