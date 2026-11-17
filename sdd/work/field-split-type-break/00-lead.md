@@ -14,13 +14,15 @@
 
 ## Maintainer answers
 
-(none yet)
+1. Output question 1 (field split, line break written inside the head of a multi-declarator field; options A keep as written / B later fields one-line head / D all split fields one-line head): **A** — every split field repeats the head as written, line breaks included (today's output, written into the spec).
 
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Output questions | Keep option C (join type/declarator break on all fields) in the question? | No; C becomes follow-up candidate 1 | Skeptic measured the break is kept on every declaration kind; a field-only join is a different construct outside this issue | C's output is not decided here; it goes to a follow-up that carries its own output question | — |
+| 3 | After answer | Lane after answer A | Narrow from behavior change to tests: no change doc, no production change | A is today's output; a behavior-change claim requires a change doc | Output unchanged from main; the maintainer answered it | — |
+| 4 | After answer | Continue spec author agent or fresh | Fresh | Its cache is cold and its context exceeds ~50k growth | Internal | — |
 | 2 | Output questions | Issue goal "a test for this input" names the comment variant, now refused (FMT-UNSUP-004) | Test the comment-free input instead | The comment input never reaches the split | The refused input's output (unchanged + reported) is not touched | — |
 
 ## Follow-up candidates
@@ -36,5 +38,6 @@
 
 - Done: spec author (01, commit 1ea832b) — verdict open question: what the repeated head of a split field carries when a line break is written inside it (A keep as written = today, B later fields one-line head, C join type/declarator break everywhere — C would be its own change). No spec edit yet.
 - Done: skeptic (02, commit 50c6bb7) — verdict output question; drops C from this run (fields would become the odd one out; type/name break kept on every declaration but parameters), adds D (join head on every split field incl. first), recommends A. Declaring unsupported is not an option (deletes nothing). If A: lane narrows to tests.
-- Waiting: maintainer answer to output question 1 (A/B/D), sent in chat.
-- Next: route answer to spec author (fresh or continued), then test implementer.
+- Maintainer answered A.
+- Lane narrowed to **tests** (decision 3): roles now spec author (clarification) → test implementer → cleaner → spec checker → validator. Implementer and auditor skipped (no production change).
+- Next: spec author (03, fresh) writes the FMT-STRUCT-021 clarification; then test implementer.
