@@ -18,7 +18,9 @@ Process(first, // the primary input
 
 ## Code excluded by `#if`
 
-Only the code that is active for the current build configuration is analyzed. Code inside an `#if` branch whose condition is false is not checked, because it is not part of the compilation. It is checked when you build the configuration that includes it. The `#region` and `#endregion` directives inside such a branch are an exception: the compiler still reads them, so several of the region rules check them there as well.
+Only the code that is active for the current build configuration is analyzed. Code inside an `#if` branch whose condition is false is not checked, because it is not part of the compilation. It is checked when you build the configuration that includes it.
+
+A rule judges the code as the current build configuration compiles it, also when an `#if` block sits inside the code the rule checks. For example, a class whose only member lies inside `#if DEBUG` is reported as empty in a build without `DEBUG`. A code fix is not offered where it would have to change code that another build configuration compiles differently; correct such code by hand so that every configuration stays correct. The `#region` and `#endregion` directives inside such a branch are an exception: the compiler still reads them, so several of the region rules check them there as well.
 
 ## Generated code
 

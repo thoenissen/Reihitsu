@@ -5,7 +5,7 @@
 | ID prefix | SHARED-MODORDER |
 | Status | Active |
 | Code owners | `ModifierOrderingUtilities`, `ModifierOrderingCodeFixProviderBase` |
-| Uses | — |
+| Uses | SHARED-DIAG-008 |
 
 This spec covers what the two modifier ordering rules share: which declarations they check, what their code fixes write into the modifier list, and when the fixes are withheld. It applies to RH7105 (declaration keyword order) and RH7106 (`protected` before `internal`, `private` before `protected`). Which order each rule enforces, which modifier it reports, and where the fix puts each keyword is that rule's own spec.
 
@@ -124,7 +124,7 @@ class C
 
 ### SHARED-MODORDER-003 — A comment or directive between the modifiers withholds the fix
 
-The code fix MUST NOT be offered when a comment follows a modifier on that modifier's line, when a comment or a directive other than `#if`, `#elif`, `#else`, and `#endif` precedes any modifier but the first, or when a comment, or a directive of any kind, a conditional directive included, stands between the last modifier and the token after it. The diagnostic is still reported. A comment or directive in front of the first modifier does not withhold the fix (SHARED-MODORDER-002).
+The code fix MUST NOT be offered when a comment follows a modifier on that modifier's line, when a comment or a directive of any kind, a conditional directive included (SHARED-DIAG-008), precedes any modifier but the first, or when a comment, or a directive of any kind, a conditional directive included, stands between the last modifier and the token after it. The diagnostic is still reported. A comment or directive in front of the first modifier does not withhold the fix (SHARED-MODORDER-002).
 
 Why: The fix writes each modifier with a single space after it, so trivia between the modifiers would be dropped, and a comment written next to one keyword cannot be placed next to the same keyword in the new order. A directive behind the last modifier would end up on the line of the modifiers, where it does not parse, and a comment there could not keep its line without the fix changing the layout around it. A reported diagnostic without a fix is a supported end state.
 
