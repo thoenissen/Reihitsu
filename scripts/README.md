@@ -10,7 +10,7 @@ Paths are resolved against **your** working directory, not the repository root: 
 |---|---|
 | `prepare.sh` | Verify the toolchain, installing the SDK only if needed |
 | `build.sh` | `dotnet build Reihitsu.sln`, in Release unless `--configuration Debug` |
-| `test.sh` | Run one test project or the default set ([The default test run](#the-default-test-run)), with an optional focused filter and configuration |
+| `test.sh` | Run one test project or the default set ([The default test run](#the-default-test-run)), with an optional focused filter and configuration, under a [hang timeout](#hang-timeout) |
 | `format.sh` | Format the given paths through `Reihitsu.Cli` |
 | `trace.sh` | Trace source changes at each top-level formatter phase without modifying the input |
 | `apply-fix.sh` | Run one diagnostic's code-fix surface over a fixture directory, under LF and CRLF |
@@ -80,6 +80,12 @@ The implementation lives in `Reihitsu.Tooling`, a non-packable project inside `R
 `scripts/test.sh` without `--project`, or with `--project all`, is the default run: it runs every test project of the solution except `Reihitsu.SelfHosting.Test`, the self-hosting scans. The `all)` branch of `test.sh` defines the set, and `TestScriptProjectSelectionTests` in `Reihitsu.ArchitectureTests` keeps it equal to the solution's test projects minus the scans. This section is the one statement of what the default run covers; every other document that names the run links here instead of listing its projects.
 
 `Reihitsu.SelfHosting.Test` runs the repository's own analyzers and formatter over the repository's own source: one test row per analyzer, and one row per source file for formatter idempotency, for formatter stability, and for the stability of the formatted output under each formatter phase run alone. It is a second safety net rather than a requirement check, and it takes long enough that the default run leaves it out. CI runs it on every pull request, and `scripts/test.sh --project selfhosting` runs it locally, narrowed with `--filter` to one analyzer or one file when needed. A violation fails the row of the analyzer or the file that found it and names the file, the line, and the rule.
+
+## Hang timeout
+
+`test.sh` runs every test host under a hang timeout of **10 minutes**: when no test in a host starts or finishes for that long, the host is ended and its project fails with `The active Test Run was aborted`, naming the test that was running. A test that blocks forever therefore fails the run about 10 minutes after the last test before it finished, whatever the blocked code checks; a test's own `[Timeout]` with cooperative cancellation stops only code that observes its token. No dump is written. The limit is the VSTest blame collector's (`--blame-hang-timeout 10min --blame-hang-dump-type none`), so it bounds a hang, not the length of a run, and it sits far above the longest single test, the self-hosting rows included.
+
+CI applies the same limit: the build workflow runs `test.sh`, and the SonarCloud workflow, which calls `dotnet test` itself to collect coverage, passes the same two arguments to it. Each job also carries a `timeout-minutes` backstop well above its normal duration, for a hang outside a test host.
 
 ## Test-host memory
 
