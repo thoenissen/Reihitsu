@@ -43,4 +43,6 @@
 - Done: test implementer (04), 35b2e85: 17 new tests fail + 5 existing round-trip failures, all elastic commas from LineBreakPhase accessor merge.
 - Done: implementer (05), abacf27 + 17c4f92; all suites green in Debug.
 - Done: cleaner (06), 01f899f, clean. S1125 printed by format.sh for untouched Cli/FormatCommandHandler.cs, absent in Release build: not in scope, not filed.
-- Next: spec checker (07).
+- Done: spec checker (07), f250232, consistent.
+- Merged origin/main (abe1313, #1813) — conflict in line-breaks.md header resolved by spec author (08), merge a0bb969, handover b6a3cb9.
+- Next: cleaner (09) after merge, build, auditor (10).
