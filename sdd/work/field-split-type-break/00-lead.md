@@ -23,6 +23,7 @@
 | 1 | Output questions | Keep option C (join type/declarator break on all fields) in the question? | No; C becomes follow-up candidate 1 | Skeptic measured the break is kept on every declaration kind; a field-only join is a different construct outside this issue | C's output is not decided here; it goes to a follow-up that carries its own output question | — |
 | 3 | After answer | Lane after answer A | Narrow from behavior change to tests: no change doc, no production change | A is today's output; a behavior-change claim requires a change doc | Output unchanged from main; the maintainer answered it | — |
 | 4 | After answer | Continue spec author agent or fresh | Fresh | Its cache is cold and its context exceeds ~50k growth | Internal | — |
+| 5 | Before validator | origin/main moved (5 commits incl. formatter changes) | Merge before the validator; no auditor in tests lane | Validator must run on the final tree | Internal | merge commit |
 | 2 | Output questions | Issue goal "a test for this input" names the comment variant, now refused (FMT-UNSUP-004) | Test the comment-free input instead | The comment input never reaches the split | The refused input's output (unchanged + reported) is not touched | — |
 
 ## Follow-up candidates
@@ -44,5 +45,8 @@
 - Done: spec author (03, commit b91639c) — FMT-STRUCT-021 clarified with a new example (break behind long generic type, between modifiers repeated; break behind a `,` not repeated). Lane check: confirmed tests.
 - Done: test implementer (04, commit bf7e0d2) — 8 new formatter tests + tag on existing, 2 RH7101 fix tests, 1 parity test; all green on unchanged code. Lane check: confirmed tests.
 - Done: cleaner (05, commit dc6497d) — clean; 0 warnings Release.
-- Running: spec checker (06).
+- Done: spec checker (06, commit 06018ec) — consistent, no findings.
+- Merged origin/main (41d0c6a) cleanly; auditor skipped (tests lane).
+- Running: validator (07) on merged tree; issue manager (08) with follow-up candidates 1–3.
+- Next: lane check, usage, note, delete sdd/work, CI trigger, PR body, ready.
 - Next: cleaner → spec checker → validator → issue manager (2 follow-up candidates) → publish.
