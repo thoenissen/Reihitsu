@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-UNSUP-012 (added), FMT-STRUCT-006 (changed: no comment between the arrow and the expression to place), FMT-STRUCT-007 (changed: a directive behind the arrow is refused instead), FMT-STRUCT-015 (changed: a comment behind the getter's arrow is refused instead), FMT-STRUCT-024 (changed: example), FMT-STRUCT-026 (changed: the examples of comments behind the arrow are removed), SHARED-BODY-001 (changed: names the directive behind the arrow itself), RH5401-004 (changed: a comment behind the arrow withholds the fix through the precheck), RH7101-007 (changed: FMT-UNSUP-012 withholds the fix as well) |
 | Depends on | [The formatter's Unsupported outcome](unsupported-precheck.md), [Declaring a shape unsupported is a refusal](unsupported-shape-as-refusal.md) |
@@ -13,7 +13,7 @@ The formatter declares a new unsupported shape (FMT-UNSUP-012): a comment, a pre
 
 Not refused: a comment in front of the `=>` — behind the signature on its line, on a line of its own above the `=>`, or in front of the `=>` on its line — a comment inside the expression behind its first token, and a comment behind the expression or the `;`.
 
-The conversion of an expression body into a block (FMT-STRUCT-004, FMT-STRUCT-005) loses every case it had for a comment behind the arrow (FMT-STRUCT-006); the line-break phase loses its refusal to join a property's or indexer's expression onto the arrow's line; the lift of a get-only accessor list to the member loses its check of the getter's arrow gap (*Special cases*). The layout of an expression that a comment behind the arrow kept on the next line — in the member's own column — is no longer reachable and needs no repair.
+The conversion of an expression body into a block (FMT-STRUCT-004, FMT-STRUCT-005) loses every case it had for a comment behind the arrow (FMT-STRUCT-006); the line-break phase loses its refusal to join a property's or indexer's expression onto the arrow's line; the lift of a get-only accessor list to the member loses its check of the getter's arrow gap (*Special cases*). The layout of an expression that a comment or directive behind the arrow kept on the next line — in the member's own column — is no longer reachable there and needs no repair. The same column remains reachable by other inputs this change does not touch: a comment or directive in front of the arrow, which puts the `=>` line in the member's column, and the value of a `return` written on the line after it, which lands in the statement's column.
 
 ## Why
 
@@ -23,9 +23,9 @@ A comment behind the arrow has no good place once the formatter acts on the memb
 - For a property or an indexer, which keeps its expression body (FMT-STRUCT-008), the line-break phase refused the join that FMT-BREAK-026 asks for (FMT-BREAK-001), and the expression then started a line that no requirement places, in the member's own column; with a comment on a line of its own, a blank line was written in front of it as well. RH5401 reports such a property and could offer no fix.
 - For an accessor, the expression was likewise left in the accessor's column, and the lift of a get-only accessor list to the member kept the list.
 
-RH5040 already reports a comment directly before or after the arrow of a member or accessor, so the comment is rare by the repository's definition. A local function's arrow is outside RH5040 (RH5040-002), but a comment behind it is no more common, and its conversion runs through the same code as a method's; leaving it out would keep every case of FMT-STRUCT-006 alive for it alone. A directive or disabled text behind the arrow is rarer still, the conversion already refused it, and with comments alone the refusal of the line-break join would have to stay. A comment that describes the body belongs above the member, where the phases carry it as they carry every member's comment.
+RH5040 already reports a comment directly before or after the arrow of a member or accessor, and RH3202, RH3203, and RH3205–RH3208 report every expression-bodied method, constructor, operator, conversion operator, finalizer, and local function as a whole, so a comment behind the arrow is rare by the repository's definition, also behind a local function's arrow, which RH5040 leaves alone (RH5040-002). A local function's conversion runs through the same code as a method's; leaving it out would keep every case of FMT-STRUCT-006 alive for it alone. A directive or disabled text behind the arrow is not rare by that definition for every owner: a method whose expression a conditional group chooses behind the arrow is reported by no rule (SHARED-BODY-001). It is part of the shape all the same, because the conversion already refused it, the formatter already moved the active line of a property or accessor to the member's column, and with comments alone the refusal of the line-break join would have to stay. A comment that describes the body belongs above the member, where the phases carry it as they carry every member's comment.
 
-The maintainer decided on 2026-11-14 to declare this shape unsupported, in a change of its own, with the same boundary as for the conditional operator (FMT-UNSUP-008) and the binary operator (FMT-UNSUP-011): comments above the member stay supported, only the position behind the `=>` is refused. The decision was recorded in the issue text only, so this change asks it again with the visible changes below.
+The maintainer decided on 2026-11-14 to declare this shape unsupported, in a change of its own, with the same boundary as for the conditional operator (FMT-UNSUP-008) and the binary operator (FMT-UNSUP-011): comments above the member stay supported, only the position behind the `=>` is refused. The decision was recorded in the issue text only, so this change asked it again with the visible changes below, and the maintainer confirmed it, with every boundary this change draws (*Decisions*).
 
 ## Visible output changes
 
@@ -377,9 +377,11 @@ No rule page changes: the fixes above lose their action only for the refused sha
 
 ## Decisions
 
-### Declare the shape, in this change (maintainer, escalation 10; pending confirmation)
+### Declare the shape, in this change (maintainer, escalation 10)
 
-The maintainer decided before this run to declare a comment or directive between the `=>` of an expression-bodied member and its expression unsupported, in a change of its own. The issue carrying that answer is `agent-filed`, so the run asks it again with the visible changes above.
+The maintainer decided before this run to declare a comment or directive between the `=>` of an expression-bodied member and its expression unsupported, in a change of its own. The issue carrying that answer is `agent-filed`, so the run asked it again with the visible changes above, and the maintainer confirmed the declaration in this change, for properties, indexers, and the converted members alike (changes 1–4), with the code fixes that format such a member withheld and their diagnostics kept, and RH5401 reported without a fix (changes 9 and 10).
+
+The maintainer also chose, each as recommended: accessors and local functions belong to the shape (changes 6 and 7); directives and disabled text belong to it, refused in every build (change 8); a block comment behind the arrow on one line is refused as well (change 5); and the reason the CLI reports is `a comment or directive between the arrow of an expression body and its expression`, not the issue's wording ``a comment or directive between the `=>` of an expression-bodied member and its expression``, because no other reason uses code markup and "expression body" covers accessors and local functions, which "member" does not.
 
 ### Every expression body, also an accessor's and a local function's
 
@@ -403,11 +405,11 @@ A directive behind the arrow of a local function inside an initializer value of 
 
 ### The analyzers of the expression-body rules keep their decision for a directive
 
-`ExpressionBodyRewriteUtilities.BlocksRewrite` is the predicate by which both the formatter's conversions and the analyzers of RH3202–RH3208 decide (SHARED-BODY-001). Its check of a directive between the arrow and the expression is no longer needed by the formatter, which refuses such an input before any conversion, but the analyzers still decide by it not to report the member. It is kept so that their diagnostics do not change; SHARED-BODY-001 now names the case itself instead of reaching it through FMT-STRUCT-007.
+`ExpressionBodyRewriteUtilities.BlocksRewrite` is the predicate by which both the formatter's conversions and the analyzers of RH3202–RH3208 decide (SHARED-BODY-001). Its check of a directive between the arrow and the expression is no longer needed by the formatter, which refuses such an input before any conversion, but the analyzers still decide by it not to report the member. It is kept so that their diagnostics do not change; SHARED-BODY-001 now names the case itself instead of reaching it through FMT-STRUCT-007, and its reason states that the analyzers keep the predicate for that place while the formatter decides it through FMT-UNSUP-012.
 
 ### RH5401-004 changed in place
 
-RH5401's fix still formats the property and compares (`CanCollapse`), because that decides the cases the formatter keeps on several lines: a wrapped expression and a comment in front of the arrow. For a comment behind the arrow, the fix is now withheld because the formatter refuses the property, which the fix already asks (SHARED-FIX-010). The requirement names both reasons; the visible result does not change.
+RH5401's fix still formats the property and compares (`CanCollapse`), because that decides the cases the formatter keeps on several lines: a wrapped expression and a comment in front of the arrow. For a comment behind the arrow, the fix is now withheld because the formatter refuses the property, which the fix already asks (SHARED-FIX-010). The requirement names both reasons; the visible result does not change. The issue's goal of deleting RH5401-004's format-and-compare for a comment behind the arrow is therefore dropped: the format-and-compare is not specific to that comment.
 
 ## Special cases
 
@@ -437,5 +439,5 @@ RH5401's fix still formats the property and compares (`CanCollapse`), because th
 - **Only a gap with a line break** — rejected: the conversion's transfer of a same-line comment onto the opening brace would stay, and the boundary would differ from FMT-UNSUP-008 and FMT-UNSUP-011.
 - **Members and accessors only, as RH5040 reports, not local functions** — rejected: the conversion of a local function runs through the same code, which would keep every case of FMT-STRUCT-006 for it.
 - **Also the arrow of a lambda and of a switch-expression arm** — rejected: nothing would be deleted for them.
-- **Also a comment in front of the arrow** — not offered: the maintainer's decision names only the position behind the arrow, and a comment in front of it is placed by FMT-STRUCT-006 and the join refusal that stays.
+- **Also a comment or directive in front of the arrow** — not in this change: the maintainer decided to declare it unsupported in a change of its own (escalation 10). Until then a comment in front of the arrow is placed by FMT-STRUCT-006, and the join refusal for it stays.
 - **Delete `BlocksRewrite`'s directive check and let RH3202–RH3208 report such a member, with no fix** — not chosen: it changes diagnostics the issue does not ask about; it remains possible as a change of its own.
