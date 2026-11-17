@@ -12,12 +12,15 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Analyzer.Test.Verifiers;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Pipeline;
+using Reihitsu.Formatter.Test.Helpers;
 using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Analyzer.Test.Base;
 
 /// <summary>
-/// Base class for formatter validation tests that assert the formatter clears analyzer diagnostics
+/// Base class for formatter validation tests that assert the formatter clears analyzer diagnostics. Every output the formatter
+/// gives is also run through the phase-level stability check (FMT-PIPE-027) of <see cref="PhaseStabilityCheck"/>, under the
+/// line ending and parse options it was formatted with, unless the formatter refused the input as unsupported
 /// </summary>
 /// <typeparam name="TAnalyzer">Type of the analyzer</typeparam>
 public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyzer>
@@ -94,7 +97,8 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     }
 
     /// <summary>
-    /// Verifies that the formatter fixes a rule violation and remains stable on a second pass under LF and CRLF line endings
+    /// Verifies that the formatter fixes a rule violation under the given line ending, that a second pass leaves the output unchanged,
+    /// and, unless the formatter refused the input as unsupported, that no formatter phase run alone changes the output
     /// </summary>
     /// <param name="source">The source text before formatting, including analyzer-test markup</param>
     /// <param name="fixedSource">The expected formatted source text</param>
@@ -111,13 +115,18 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
 
         await Verify(source, onConfigure, expected ?? []);
 
-        var formatted = await VerifyFormatterFixCore(source, fixedSource, null, endOfLine);
+        var (formatted, _, _) = await VerifyFormatterFixCore(source, fixedSource, null, endOfLine);
 
         await Verify(formatted, onConfigure);
 
-        var reformatted = await VerifyFormatterFixCore(formatted, fixedSource, null, endOfLine);
+        var (reformatted, parseOptions, isRefused) = await VerifyFormatterFixCore(formatted, fixedSource, null, endOfLine);
 
         await Verify(reformatted, onConfigure);
+
+        if (isRefused == false)
+        {
+            PhaseStabilityCheck.AssertNoPhaseChanges(reformatted, endOfLine, parseOptions);
+        }
     }
 
     /// <summary>
@@ -160,27 +169,28 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     }
 
     /// <summary>
-    /// Runs the formatter, verifies the fixed output, and asserts that no analyzer diagnostics remain
+    /// Runs the formatter and asserts that its output equals the expected fixed text
     /// </summary>
     /// <param name="source">The source text before formatting, including analyzer-test markup</param>
     /// <param name="fixed">The expected formatted source text</param>
     /// <param name="transformParseOptions">Optional parse-option transformation</param>
     /// <param name="endOfLine">Optional line-ending sequence for the formatting context</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    private static async Task<string> VerifyFormatterFixCore(string source,
-                                                             string @fixed,
-                                                             Func<CSharpParseOptions, CSharpParseOptions> transformParseOptions,
-                                                             string endOfLine)
+    /// <returns>The formatted text, the parse options it was parsed with, and whether the formatter refused it as unsupported</returns>
+    private static async Task<(string Formatted, CSharpParseOptions ParseOptions, bool IsRefused)> VerifyFormatterFixCore(string source,
+                                                                                                                          string @fixed,
+                                                                                                                          Func<CSharpParseOptions, CSharpParseOptions> transformParseOptions,
+                                                                                                                          string endOfLine)
     {
         var input = StripMarkup(source);
         var parseOptions = transformParseOptions?.Invoke(CSharpParseOptions.Default) ?? CSharpParseOptions.Default;
         var tree = CSharpSyntaxTree.ParseText(input, parseOptions);
         var context = new FormattingContext(endOfLine, languageVersion: LanguageVersionResolver.Resolve(tree.Options));
-        var formatted = FormattingPipeline.Execute(await tree.GetRootAsync(), context, CancellationToken.None).Output.ToFullString();
+        var result = FormattingPipeline.Execute(await tree.GetRootAsync(), context, CancellationToken.None);
+        var formatted = result.Output.ToFullString();
 
         Assert.AreEqual(@fixed, formatted, "Formatter output should match the expected fixed code.");
 
-        return formatted;
+        return (formatted, parseOptions, result.Unsupported != null);
     }
 
     #endregion // Methods
