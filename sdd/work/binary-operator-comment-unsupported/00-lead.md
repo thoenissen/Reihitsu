@@ -26,4 +26,4 @@
 
 ## Open worklist / next step
 
-- Next: spawn spec author (01).
+- Spec author done (01, c920452): FMT-UNSUP-011, change doc Draft. Next: skeptic (02).
