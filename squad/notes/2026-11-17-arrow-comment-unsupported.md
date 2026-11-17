@@ -53,7 +53,7 @@ Session `8b02d2ba-5679-51fb-a977-65a9ce97362c`. Responses counted once per messa
 
 ## Decisions taken
 
-Nine. Worth a look: dropping the issue's goal of deleting RH5401-004's format-and-compare (it also decides the wrapped expression and the comment in front of the arrow), and keeping `BlocksRewrite`'s directive check so RH3202–RH3208 diagnostics do not change.
+Ten. The tenth: `main` gained #1849 after the audit; it overlaps a test file this run changes (`CommentJoinTests.cs`) but only in comments, so it was merged without a second audit or local validator run, relying on CI. Worth a look: dropping the issue's goal of deleting RH5401-004's format-and-compare (it also decides the wrapped expression and the comment in front of the arrow), and keeping `BlocksRewrite`'s directive check so RH3202–RH3208 diagnostics do not change.
 
 ## Suggestions
 
