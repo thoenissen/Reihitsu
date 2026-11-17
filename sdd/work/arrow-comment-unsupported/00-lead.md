@@ -61,4 +61,5 @@ Batch 1 (before test implementer), answered `1A 2A 3A 4A 5A 6A`:
 - Done: cleaner 11 (10f9c61), clean.
 - Done: spec checker 12 (4fee1b8), consistent.
 - Done: auditor 13 (54926bb), pass.
-- Next: validator 14, then publish (lane check, issue manager 15, note, delete sdd/work, trigger).
+- Done: issue manager 15 (b7f7821): created #1851 (in-front shape declaration) and #1852 (return value column).
+- Waiting: validator 14. Then publish.
