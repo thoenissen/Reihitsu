@@ -3,7 +3,7 @@
 - Issue: thoenissen/Reihitsu#1805 — FMT-PIPE-027 per-phase stability check in the analyzer and CLI full-run idempotency tests. Label `agent-filed`: its goals are proposals.
 - Slug: `phase-check-shared`
 - Branch: `claude/intelligent-hopper-li5bmz` (session-designated); draft PR thoenissen/Reihitsu#1824.
-- Lane: **tests** — the issue adds a check to tests of existing behavior (FMT-PIPE-027); no production behavior changes. The issue's own wiring needs a `.csproj` change (a reference or a shared project), which the lane check classifies as tooling; expect a widening to `tooling` once that path is in the diff.
+- Lane: **tooling** (claimed tests, widened, decision 5) — — the issue adds a check to tests of existing behavior (FMT-PIPE-027); no production behavior changes. The issue's own wiring needs a `.csproj` change (a reference or a shared project), which the lane check classifies as tooling; expect a widening to `tooling` once that path is in the diff.
 - Roles (tests lane): skeptic (premise, reachability, and the reference-vs-shared-project structure), test implementer, cleaner, spec checker, validator. Spec author skipped: the run adds no spec unless the skeptic finds a spec gap. Implementer and auditor skipped in the tests lane; a widening to tooling adds them.
 - Maintainer clarifications: none.
 
@@ -19,13 +19,16 @@ None yet.
 | 2 | Skeptic | Reference vs. shared test-support project | `ProjectReference` from `Reihitsu.Analyzer.Test` to `Reihitsu.Formatter.Test` | Precedent of `Reihitsu.SelfHosting.Test`; a shared project needs a new `InternalsVisibleTo` in production code; failure text keeps its one owner | Test wiring only | – |
 | 3 | Skeptic | How the base runs the check | Text overload with the line ending and parse options the base formatted with; check the output under both line endings; skip when the precheck refused the input; still check generated/hidden-code output | Skeptic's recommendations 1–3 | Test-only | – |
 | 4 | Skeptic | Adjacent: RH5604 `VerifyFormatterEntryPointsAndIdempotency` | Take it in if it is the one-line call the skeptic describes | Same mechanism, same file set, gets the check | Test-only | – |
+| 5 | Test implementer | Lane check: tests → tooling (the analyzer test `.csproj`) | Widen to tooling; roles added: implementer, auditor. Implementer skipped: the test implementer wrote the whole change as test code and every test passes, so the implementer has nothing to make pass | Widening order tests → tooling | Test wiring only | 44b2ecb |
+| 6 | Test implementer | Also check `AssertExemptInteriorsSurviveNormalization` in RH5604 | Keep it | Same shape as decision 4; covers a detected line ending on a mixed file | Test-only | 44b2ecb |
 
 ## Follow-up candidates
 
-None yet.
+- Other analyzer formatter tests that call `FormatSyntaxTree` directly (RH5021, RH5029, RH5030, RH5104, RH5111, RH5201, RH5412–RH5416, RH6001) may assert full-run idempotency without the per-phase check (02-test-implementer).
 
 ## Worklist / next step
 
 - Claimed (commit "Claim issue #1805"), prepare.sh green.
 - Skeptic done (01-skeptic.md): proceed narrower.
-- Next: test implementer; then lane check (expect widening to tooling for the .csproj).
+- Test implementer done (02): lane widened to tooling.
+- Next: cleaner → spec checker → auditor → validator.
