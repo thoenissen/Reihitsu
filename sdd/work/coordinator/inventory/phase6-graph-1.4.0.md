@@ -72,6 +72,8 @@ Critical path: #1786 → #1726 → #1732 → {#1802, #1804}; second chain #1786 
 
 Answer format for the maintainer: `ok` — apply all; or e.g. `ok, #1817 own run` / `ok, #1820 → 1.4.0`.
 
+**Decided 2026-11-17 (maintainer):** applied as recommended — #1816 → 1.7.0 (one run `/squad #1816 #1723`), #1817 → 1.4.0 (joins #1808), #1818 → 1.6.0 (with the continuation-indent work around #953), #1819 → 1.9.0 with label `maintenance`, #1820 → 1.5.0 (before #1803). Milestones and comments set on GitHub. The start-now run is `/squad #1808 #1817`.
+
 ## 6. Findings
 
 - **#1813 blocks all three T3/T2 heavyweights.** `AGENTS.md` (`LineBreakPhase` row) blocks #1726 and #1732; the RH5302 test file (+94 lines) blocks #1726 in addition; the RH5102 test file (+47) blocks #1759. The plan's earlier "#1786 rename watch on `AGENTS.md`" became real: #1813 edits the row.

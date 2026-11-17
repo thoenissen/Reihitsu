@@ -20,7 +20,13 @@ Notation: `#n (theme, size, OQ)` — `OQ` = needs an output question. `M`/`v` = 
 
 Long-term (no release): 1 (#122). Decide instead of plan: 6.
 
-**1.5.0 additions:** #1803 (Maintenance, bug-fix, phases super-linear on long fluent chains and `?:` lists; maintainer 2026-11-16, own run next to the T4 chain runs). Otherwise none proposed. Checked: #862 (auto-property accessor-list predicate) and #1519 (property/indexer accessor-list braces) touch accessor-list code near T5, but neither is about the get-only/expression-body rules or chains; they stay in 1.7.0 with the other line-break one-owner refactors. If the T5 runs (#849/#850) find themselves adding a sixth copy of the auto-property predicate, #862 can be pulled into that run.
+**1.5.0 additions:** #1803 (Maintenance, bug-fix, phases super-linear on long fluent chains and `?:` lists; maintainer 2026-11-16, own run next to the T4 chain runs). #1820 (Maintenance, tooling, benchmark 1.2.0 vs 1.3.0 and per-phase profile; maintainer 2026-11-17, runs before #1803, which it feeds; needs NuGet access for the released 1.2.0 and 1.3.0 tools). Otherwise none proposed. Checked: #862 (auto-property accessor-list predicate) and #1519 (property/indexer accessor-list braces) touch accessor-list code near T5, but neither is about the get-only/expression-body rules or chains; they stay in 1.7.0 with the other line-break one-owner refactors. If the T5 runs (#849/#850) find themselves adding a sixth copy of the auto-property predicate, #862 can be pulled into that run.
+
+**1.6.0 additions:** #1818 (Extension, declarator behind `#endif` in an event field / local declaration loses continuation indent; maintainer 2026-11-17, planned with the continuation-indent work around #953; its output question is asked in that run).
+
+**1.7.0 additions:** #1816 (Maintenance, one query for why whole-document formatting leaves a file alone; maintainer 2026-11-17, one run `/squad #1816 #1723`, since #1816 covers #1723; the new public formatter member is decided in that run).
+
+**1.9.0 additions:** #1819 (Maintenance, FMT-BLANK-019 contradicts itself for `[⏎⏎]`; label `maintenance` added; maintainer 2026-11-17, docs-lane specs run).
 
 **Output-question rounds.** Two releases exceed ten questions:
 - 1.8.0 (11): #1774 is a design escalation (A/B/C) that has to be answered before #1140, #1773 and #1775 can be asked as outputs, so the release has two rounds by construction — round 1 at start (#1774, #1447, #1549, #1552, #1554, #1606, #1689, #1777), round 2 after the design (#1140, #1773, #1775).
