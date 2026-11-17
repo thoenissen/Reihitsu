@@ -15,12 +15,20 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | skeptic | #1640: how the chain's joins compose with its line-break insertions | Every layout decision keeps reading the tree before the joins; tokens are never found again by text or position (no two-pass re-resolution, FC-026). The implementer picks the mechanism within that (e.g. `JoinGaps` composing with edits it does not make), and the `JoinGaps` summary must state its real precondition | Skeptic cells J, K, H, I; FC-026 | Pure refactor; existing formatter tests lock the output | — |
+| 2 | skeptic | #1640 "Done when" grep is not checkable | Replace with: `ChainLineBreakRewriter` keeps no join bookkeeping of its own, its joins go through `JoinGaps`, formatter output unchanged | Agent-filed goal; grep hits single joins that are not batch loops | No output involved | — |
+| 3 | skeptic | #1651 goal "no rewriter carries a private copy" | Narrowed: chain, list and constraint sites write the break through `EndLineInFrontOf` where the helper's decision is theirs; the chain's comment-tail branch (FMT-BREAK-019 ¶2, SHARED-COMMENT-012) stays chain-only; the list's split flag stays; the prepend family is out of scope. Issue's stale second list site already shared (`c6d199c`) | Skeptic: comment-tail branch is not a copy; moving it into the helper would change binary/ternary output | Final output unchanged at every site |
+| 4 | skeptic | #1651 whitespace in front of the inserted break | Option a: the helper stays as it is; migrated sites keep the whitespace in the phase's output, cleanup removes it (FMT-BREAK-029, FMT-CLEAN-001). Phase-level tests that lock stripped text may change; final output may not | Matches FMT-BREAK-029's single owner of trailing whitespace | Final formatter output unchanged; phase output is internal | — |
+| 5 | skeptic | #1651 architecture/unit test | Keep a unit test of `EndLineInFrontOf`'s branches (and `JoinGaps`, which has none either); drop the architecture-test idea | A source-pattern ban is grep-like and defeated by a rename | Tests only | — |
+| 6 | skeptic | Architecture finding: comment-tail class (SHARED-COMMENT-012) fails in every non-chain rewriter | Not a finding of this run: decision 3 keeps the chain branch, so the run neither depends on nor exposes it. Follow-up bug (it violates unchanged requirements and leaves RH5302/RH5308 fixes without progress on formatter output), carrying the FMT-BREAK-037 output question for cell F. Escalation 10 asked now | `squad/README.md`, Architecture findings: unrelated structural defect → follow-up | No output change in this run | — |
+| 7 | skeptic | #1651 fact evaluated twice at the list site | Accept; pure predicate | Skeptic recommendation | Internal | — |
 
 ## Follow-up candidates
 
-(none yet)
+1. Bug: tokens behind a multi-line comment's closing line are not broken onto their own line (cells C, U, D, R, E, P, Q, S, T; SHARED-COMMENT-012 with FMT-BREAK-012/017/018/022/023; RH5302/RH5308 fixes make no progress on formatter output, RH5203 reports it). Carries the FMT-BREAK-037 output question for cell F. — `01-skeptic.md`, #1651 Follow-up candidates 1 and 2. (Text of the escalation-10 answer to be added.)
 
 ## State
 
-- Last step: claim, prepare.sh green.
-- Next: skeptic.
+- Last step: skeptic (`01-skeptic.md`, f206305): #1640 proceed; #1651 proceed narrower.
+- Waiting: escalation 10 (declare comment-tail shape unsupported?) asked in chat before the test implementer.
+- Next: test implementer.
