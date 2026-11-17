@@ -41,4 +41,5 @@ None yet.
 - Repair round 1 worklist: (a) test implementer adds the per-phase check to RH6001 `VerifyFormatterFixesGluedFixedKeyword` (decision 7); (b) cleaner rewords the two summaries (finding #1).
 - (a) done (06-test-implementer), dc6c41f.
 - (b) done (07-cleaner), 1931271.
-- Next: spec checker + auditor (repair only, base 091e588) → validator.
+- Spec checker (08) consistent; repair audit (09) pass on e20a302. **Audited SHA: e20a302.**
+- Next: validator → issue manager (S1125 candidate) → note → publish.
