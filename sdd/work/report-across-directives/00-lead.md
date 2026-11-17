@@ -31,6 +31,7 @@ Batch 1 (before test implementer), answered 1A 2A 3A 4A 5A 6A:
 ## Follow-up candidates
 
 - SHARED-USING-009 keeps RH7201–RH7207 silent on a using block holding any directive; not a build-configuration reason, outside #1759 (01-spec-author.md).
+- Narrower trailing-comma fix guard: offer the fix when no `#if` stands between the comma and the brace, with the formatter following (02-skeptic.md, optional, low value).
 
 ## State
 
@@ -38,4 +39,5 @@ Batch 1 (before test implementer), answered 1A 2A 3A 4A 5A 6A:
 - Last step: spec author done (3d85973), lane check confirmed behavior-change.
 - Skeptic done (00547ae, verdict output question).
 - Batch 1 answered.
-- Next step: spec author follow-up (Status Accepted, Decisions, decision 5), then test implementer. (was: batch 1: Q1 the newly reported rules (change doc), Q2 trailing commas, Q3 RH5111, Q4 RH7311, Q5 RH8201, Q6 escalation 10 (trailing-comma shape, recommend not declaring). Then route answers + decision 5 to spec author (Status Accepted), then test implementer.
+- Spec author follow-up done (f3b78d5), change doc Accepted.
+- Next step: test implementer. (was: batch 1: Q1 the newly reported rules (change doc), Q2 trailing commas, Q3 RH5111, Q4 RH7311, Q5 RH8201, Q6 escalation 10 (trailing-comma shape, recommend not declaring). Then route answers + decision 5 to spec author (Status Accepted), then test implementer.
