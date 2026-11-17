@@ -24,6 +24,7 @@
 | 6 | Skeptic | Follow-up candidate: merge code fixes rely on Roslyn post-processing for the comma space | Dropped, no issue | Nothing visible is wrong; no defect | Outputs correct today | — |
 | 7 | Lead | Continue or fresh spec author for the amendment | Fresh (context growth 94k, cache cold) | Section 4 table | — | — |
 | 8 | Spec author (03) | A comma the first list already held, with a space in the input | Written without whitespace too, like every comma of the merged list (FMT-BREAK-032) | One rule for every comma; the merge already rebuilds it today | Spacing phase writes the space back; final output identical | bf9462d |
+| 9 | Implementer | New enum value `AttributeListMergeSeparators.SpacedBehindList` vs a second parameter on `MergeAttributeListGroup` | Keep the enum value | One switch over a closed set of separator shapes; smaller than a parameter threaded through three consumers; no new type, 3 files +28/-16 | Code-fix path keeps `Spaced` unchanged; all analyzer tests green | abacf27 |
 
 ## Follow-up candidates
 
@@ -40,4 +41,5 @@
 - Done: spec author amendment (03), bf9462d; change doc Accepted.
 - Batch point before test implementer: no output questions open, no stop.
 - Done: test implementer (04), 35b2e85: 17 new tests fail + 5 existing round-trip failures, all elastic commas from LineBreakPhase accessor merge.
-- Next: implementer (05).
+- Done: implementer (05), abacf27 + 17c4f92; all suites green in Debug.
+- Next: cleaner (06).
