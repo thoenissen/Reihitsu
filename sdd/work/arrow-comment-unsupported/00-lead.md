@@ -51,4 +51,5 @@ Batch 1 (before test implementer), answered `1A 2A 3A 4A 5A 6A`:
 - Done: test implementer 04 (b1efb29): 138 formatter, 8 CLI, 23 analyzer failing as expected.
 - Done: spec author 06 (bb95f71); implementer 05 (4680af8), all default projects pass in Debug, 4 production files, +70/-118.
 - Done: cleaner 07 (ffd85d3), clean.
-- Next: spec checker (08), then auditor (09).
+- Done: spec checker 08 (c320618), consistent. Merged origin/main 71a89ec cleanly (incl. #1840 precheck comma change, #1842 test helper routing); Release build green.
+- Next: auditor (09).
