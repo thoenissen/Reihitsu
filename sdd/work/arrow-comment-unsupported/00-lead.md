@@ -29,6 +29,7 @@ Batch 1 (before test implementer), answered `1A 2A 3A 4A 5A 6A`:
 | 4 | skeptic | FMT-UNSUP-012 Why for local functions | Cite RH3208 (and RH3202–RH3207) instead of "no more common" | Skeptic recommendation | Spec wording | e95c126 |
 | 5 | spec author | `BlocksRewrite` directive check | Keep unchanged | Changing it changes RH3202–RH3208 diagnostics | Nothing changes | 6990dee |
 | 6 | lead | Output question 5 (code fixes withheld) | Folded into question 1 as the declaration's code-fix line | Withholding follows from SHARED-FIX-010 for a declared shape; no real alternative | Shown to the maintainer in question 1 | — |
+| 7 | test implementer | RH5401-004 spec example `int C` inside `class C` does not compile | Spec author renames it to match the test (`D`) | Spec defect within the run | Example text only | pending |
 
 ## Follow-up candidates
 
@@ -47,4 +48,5 @@ Batch 1 (before test implementer), answered `1A 2A 3A 4A 5A 6A`:
 - Done: skeptic (02, b746fed), verdict output question.
 - Batch 1 asked (questions 1–6; 01's Q5 folded into Q1; 01's Q6 reason text = batch Q5; 02's Q7 escalation 10 = batch Q6). Waiting for answers.
 - Done: spec author 03 (e95c126), change doc Accepted; decisions 3,4 carried out.
-- Next: test implementer (04).
+- Done: test implementer 04 (b1efb29): 138 formatter, 8 CLI, 23 analyzer failing as expected.
+- Next: implementer (05) and, in parallel, spec author 06 for the RH5401-004 example member name (CS0542; test uses `D`).
