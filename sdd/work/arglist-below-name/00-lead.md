@@ -48,4 +48,5 @@
 - Answer: 5A. Repair round 1 (audit): spec author 12 (d8c5fb6), test implementer 13 (e23344a, tests pass, no implementer needed). Merged origin/main 1102aa5 (773d38a; test conflicts resolved by test implementer 14).
 - Cleaner 15 clean, spec checker 16 consistent; Release build green; auditor 17 spawned on head 1287283, main 1102aa5.
 - Auditor 17 (3439a34): pass, text cleanup (finding 2: FMT-BREAK-039 Why wording; "query clause after the first" in change doc). Audited SHA 1287283.
-- Next: spec author 18 text fix, verify-text-only vs 1287283; then validator, issue manager (F1, F2, F3, F5), note, publish.
+- Spec author 18 (98b18eb) text fix; TEXT-ONLY PROOF PASS vs 1287283 (no second audit).
+- Next: validator 19; then, issue manager (F1, F2, F3, F5), note, publish.
