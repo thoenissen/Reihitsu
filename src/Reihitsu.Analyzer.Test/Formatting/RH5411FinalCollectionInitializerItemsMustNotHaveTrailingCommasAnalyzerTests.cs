@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -322,7 +323,14 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
                                  }
                                  """;
 
-        await Verify(testData, fixedData);
+        await Verify(testData,
+                     fixedData,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
     }
 
     /// <summary>

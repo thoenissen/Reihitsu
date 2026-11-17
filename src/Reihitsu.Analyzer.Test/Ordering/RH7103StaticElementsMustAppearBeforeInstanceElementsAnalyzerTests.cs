@@ -2010,7 +2010,14 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                                    }
                                    """;
 
-        await Verify(source, fixedSource);
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
     }
 
     /// <summary>

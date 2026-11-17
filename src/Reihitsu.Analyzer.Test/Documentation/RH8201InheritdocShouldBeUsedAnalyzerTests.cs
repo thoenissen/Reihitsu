@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
@@ -3454,7 +3455,15 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat));
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     },
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat));
     }
 
     /// <summary>

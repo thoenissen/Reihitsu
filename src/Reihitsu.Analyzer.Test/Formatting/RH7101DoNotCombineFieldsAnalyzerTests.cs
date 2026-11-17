@@ -3415,7 +3415,14 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                  }
                                  """;
 
-        await Verify(testData, fixedData);
+        await Verify(testData,
+                     fixedData,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
     }
 
     /// <summary>

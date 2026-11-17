@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -1032,7 +1033,14 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
                                  }
                                  """;
 
-        await Verify(testData, fixedData);
+        await Verify(testData,
+                     fixedData,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
     }
 
     /// <summary>
@@ -1180,7 +1188,14 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
                                  }
                                  """;
 
-        await Verify(testData, fixedData);
+        await Verify(testData,
+                     fixedData,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
     }
 
     /// <summary>

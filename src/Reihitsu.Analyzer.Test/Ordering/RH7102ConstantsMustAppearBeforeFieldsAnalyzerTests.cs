@@ -1014,7 +1014,7 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
     /// <summary>
     /// Verifying the specification example: a constant whose <c>const</c> modifier an <c>#if</c> splits is reported
     /// without a fix in a build that compiles it as a constant, and nothing is reported in a build with <c>DEBUG</c>,
-    /// which compiles it as an instance field of the struct
+    /// which compiles it as a readonly instance field of the class
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1026,7 +1026,7 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
     public async Task ConstantWhoseModifiersAnIfSplitsIntoAnInstanceFieldIsReportedWithoutFix(string endOfLine)
     {
         const string source = """
-                              public struct S
+                              public class S
                               {
                                   private int _x;
                                   private
@@ -1129,7 +1129,14 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
                                    }
                                    """;
 
-        await Verify(source, fixedSource);
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
     }
 
     /// <summary>
