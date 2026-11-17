@@ -31,4 +31,4 @@ None yet.
 
 ## Next step
 
-Implementer done (01-implementer.md, commit d6bb4d8, verdict: tests pass). Next: cleaner.
+Implementer done (01, d6bb4d8, tests pass). Cleaner done (02, e1d0230, clean). Next: spec checker.
