@@ -1411,6 +1411,64 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : Ba
         await VerifyCodeFixIsWithheldOrProducesOneOf(ConvertEndOfLine(testData, endOfLine), true, ConvertEndOfLine(fixedData, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies that the fix of an object initializer whose assigned value's argument list stands on the line below the invoked
+    /// name joins the argument list onto the name
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-BREAK-039")]
+    public async Task VerifyFixJoinsAssignedValueArgumentListBelowItsName(string endOfLine)
+    {
+        const string testData = """
+                                internal class P
+                                {
+                                    public int X { get; set; }
+                                }
+
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var p = {|RH5301:new P { X = Get
+                                        (4) }|};
+                                    }
+
+                                    private static int Get(int value)
+                                    {
+                                        return value;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class P
+                                 {
+                                     public int X { get; set; }
+                                 }
+
+                                 internal class Example
+                                 {
+                                     private static void Method()
+                                     {
+                                         var p = new P
+                                                 {
+                                                     X = Get(4)
+                                                 };
+                                     }
+
+                                     private static int Get(int value)
+                                     {
+                                         return value;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

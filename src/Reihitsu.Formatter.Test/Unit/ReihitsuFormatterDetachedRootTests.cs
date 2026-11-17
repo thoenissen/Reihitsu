@@ -58,6 +58,19 @@ public class ReihitsuFormatterDetachedRootTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> on a statement whose argument list stands on the line below the
+    /// invoked name joins the argument list onto the name's line, as document-level formatting does
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-039")]
+    public void FormatNodeOnStatementJoinsArgumentListBelowItsName()
+    {
+        const string input = "class C\n{\n    void M()\n    {\n        Call\n        (1,⇥2);\n    }\n}";
+
+        AssertFormatNode(input, "        Call(1, 2);", SelectCall, 2);
+    }
+
+    /// <summary>
     /// Verifies the spec example: <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> with a statement behind a blank line
     /// keeps the blank line and returns the document as it is, the tab replaced by one space
     /// </summary>

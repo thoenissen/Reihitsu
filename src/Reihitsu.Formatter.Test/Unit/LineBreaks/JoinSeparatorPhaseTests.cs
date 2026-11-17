@@ -377,6 +377,60 @@ public class JoinSeparatorPhaseTests
     }
 
     /// <summary>
+    /// Verifies that the phase itself joins the opening parenthesis of an invocation's, an implicit object creation's, a
+    /// constructor initializer's, and a primary-constructor base type's argument list onto the token in front of it, and writes
+    /// no whitespace there, because the joined tokens stay two tokens without it
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-039")]
+    [Requirement("FMT-BREAK-031")]
+    public void ArgumentListJoinsWriteNoWhitespace()
+    {
+        const string input = """
+                             class B
+                             {
+                                 public B(int x)
+                                 {
+                                 }
+                             }
+
+                             class D : B
+                             {
+                                 public D()
+                                     : base
+                                     (1)
+                                 {
+                                 }
+                             }
+
+                             class E() : B
+                                 (2);
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     Foo
+                                     (3);
+                                     B k = new
+                                     (4);
+                                 }
+                             }
+                             """;
+
+        foreach (var endOfLine in new[] { "\n", "\r\n" })
+        {
+            var result = ExecuteLineBreakPhase(input, endOfLine);
+
+            Assert.Contains(": base(1)", result);
+            Assert.Contains("class E() : B(2);", result);
+            Assert.Contains("Foo(3);", result);
+            Assert.Contains("B k = new(4);", result);
+            AssertSameTokens(input, result);
+        }
+    }
+
+    /// <summary>
     /// Verifies that a comment in the gap still refuses the join of a property arrow, a <c>case</c> guard, an assignment value, a
     /// binary operand, and a named argument's value, after the separator change; a comment behind a conditional operator is
     /// refused as unsupported before this phase (FMT-UNSUP-008)
