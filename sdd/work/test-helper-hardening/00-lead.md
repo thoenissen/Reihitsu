@@ -36,4 +36,5 @@
 - Done: skeptic (`01-skeptic.md`, b9752e5): #1804 proceed wider, #1838 proceed narrower; no output questions.
 - Done: test implementer (`02-test-implementer.md`, 13b99aa + 1e7549c): both issues written; formatter 101/101, analyzer 488/488 focused.
 - Done: cleaner (`03-cleaner.md`, 6d05979): clean, no change.
-- Next: spec checker (`04-spec-checker.md`).
+- Done: spec checker (`04-spec-checker.md`, 733c2a9): consistent, no findings.
+- Next: validator (`05-validator.md`).
