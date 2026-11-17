@@ -52,6 +52,8 @@ public sealed class RoslynPackageVersionTests
             Assert.Contains(shippedProject, files, $"The guard found no Roslyn package item in {shippedProject}.");
         }
 
+        Assert.Contains("scripts/proof/verify-text-only.cs", files, "The guard found no Roslyn #:package directive in scripts/proof/verify-text-only.cs.");
+
         Assert.IsEmpty(violations, $"Roslyn versions not owned by {RoslynVersionOwnership.VersionPropertyName}: {string.Join("; ", violations)}");
     }
 
@@ -618,6 +620,244 @@ public sealed class RoslynPackageVersionTests
     }
 
     /// <summary>
+    /// Verifies that a file-based program whose <c>#:package</c> directive pins a Roslyn package at the repository's Roslyn version is accepted and read
+    /// </summary>
+    [TestMethod]
+    public void PackageDirectiveAtTheRepositoryVersionIsAccepted()
+    {
+        // Arrange
+        using (var fixture = new RoslynVersionFixtureDirectory())
+        {
+            fixture.Write("Directory.Build.props", RootPropsWithVersion);
+            fixture.Write("scripts/proof/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.12.0"));
+
+            // Act
+            var (items, violations) = RoslynVersionOwnership.Check(fixture.Root);
+
+            // Assert
+            Assert.IsEmpty(violations, string.Join("; ", violations));
+            Assert.Contains(("scripts/proof/Tool.cs", "Microsoft.CodeAnalysis.CSharp"), items);
+            Assert.HasCount(1, items);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a file-based program whose <c>#:package</c> directive pins a Roslyn package at another version is reported
+    /// </summary>
+    [TestMethod]
+    public void PackageDirectiveWithAnotherVersionIsReported()
+    {
+        // Arrange
+        using (var fixture = new RoslynVersionFixtureDirectory())
+        {
+            fixture.Write("Directory.Build.props", RootPropsWithVersion);
+            fixture.Write("scripts/proof/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.6.0"));
+
+            // Act
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+
+            // Assert
+            AssertSingleViolation(violations, "scripts/proof/Tool.cs:1: #:package Microsoft.CodeAnalysis.CSharp");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that the pin is compared with the version the root props file defines, not with a fixed version
+    /// </summary>
+    [TestMethod]
+    public void PackageDirectiveIsComparedWithTheDefinedVersion()
+    {
+        // Arrange
+        using (var fixture = new RoslynVersionFixtureDirectory())
+        {
+            fixture.Write("Directory.Build.props",
+                          """
+                          <Project>
+                            <PropertyGroup>
+                              <RoslynVersion>5.6.0</RoslynVersion>
+                            </PropertyGroup>
+                          </Project>
+                          """);
+            fixture.Write("scripts/A.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.6.0"));
+            fixture.Write("scripts/B.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.12.0"));
+
+            // Act
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+
+            // Assert
+            AssertSingleViolation(violations, "scripts/B.cs:1: #:package Microsoft.CodeAnalysis.CSharp");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a pin with a floating version, which does not state the repository's version, is reported
+    /// </summary>
+    [TestMethod]
+    public void PackageDirectiveWithFloatingVersionIsReported()
+    {
+        // Arrange
+        using (var fixture = new RoslynVersionFixtureDirectory())
+        {
+            fixture.Write("Directory.Build.props", RootPropsWithVersion);
+            fixture.Write("scripts/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.*"));
+
+            // Act
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+
+            // Assert
+            AssertSingleViolation(violations, "scripts/Tool.cs:1: #:package Microsoft.CodeAnalysis.CSharp");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a pin whose version only starts like the repository's version is reported
+    /// </summary>
+    [TestMethod]
+    public void PackageDirectiveWithLongerVersionIsReported()
+    {
+        // Arrange
+        using (var fixture = new RoslynVersionFixtureDirectory())
+        {
+            fixture.Write("Directory.Build.props", RootPropsWithVersion);
+            fixture.Write("scripts/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.12.0-beta1"));
+
+            // Act
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+
+            // Assert
+            AssertSingleViolation(violations, "scripts/Tool.cs:1: #:package Microsoft.CodeAnalysis.CSharp");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that every Roslyn package of a program is checked, and that the reported line is the directive's line behind a shebang and other directives
+    /// </summary>
+    [TestMethod]
+    public void EveryPackageDirectiveOfAProgramIsCheckedOnItsLine()
+    {
+        // Arrange
+        using (var fixture = new RoslynVersionFixtureDirectory())
+        {
+            fixture.Write("Directory.Build.props", RootPropsWithVersion);
+            fixture.Write("scripts/Tool.cs",
+                          FileBasedProgram("""
+                                           #!/usr/bin/env dotnet
+                                           #:sdk Microsoft.NET.Sdk
+                                           #:property LangVersion=preview
+                                           #:package Microsoft.CodeAnalysis.CSharp@5.12.0
+                                           #:package Microsoft.CodeAnalysis.Workspaces.Common@5.6.0
+                                           """));
+
+            // Act
+            var (items, violations) = RoslynVersionOwnership.Check(fixture.Root);
+
+            // Assert
+            AssertSingleViolation(violations, "scripts/Tool.cs:5: #:package Microsoft.CodeAnalysis.Workspaces.Common");
+            Assert.HasCount(2, items);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a pin whose package identifier is written in another casing, which NuGet matches case-insensitively, is read and its version reported
+    /// </summary>
+    [TestMethod]
+    public void PackageDirectiveInAnotherCasingIsReported()
+    {
+        // Arrange
+        using (var fixture = new RoslynVersionFixtureDirectory())
+        {
+            fixture.Write("Directory.Build.props", RootPropsWithVersion);
+            fixture.Write("scripts/Tool.cs", FileBasedProgram("#:package microsoft.codeanalysis.csharp@5.6.0"));
+
+            // Act
+            var (_, violations) = RoslynVersionOwnership.Check(fixture.Root);
+
+            // Assert
+            AssertSingleViolation(violations, "scripts/Tool.cs:1: #:package microsoft.codeanalysis.csharp");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that pins of the Roslyn testing packages and of packages outside Roslyn keep their own versions
+    /// </summary>
+    [TestMethod]
+    public void PackageDirectivesOutsideTheRoslynVersionLineAreAccepted()
+    {
+        // Arrange
+        using (var fixture = new RoslynVersionFixtureDirectory())
+        {
+            fixture.Write("Directory.Build.props", RootPropsWithVersion);
+            fixture.Write("scripts/Tool.cs",
+                          FileBasedProgram("""
+                                           #:package Microsoft.CodeAnalysis.CSharp.Analyzer.Testing@1.1.4
+                                           #:package Microsoft.CodeAnalysisExtras@1.0.0
+                                           #:package SonarAnalyzer.CSharp@10.36.0.15337
+                                           """));
+
+            // Act
+            var (items, violations) = RoslynVersionOwnership.Check(fixture.Root);
+
+            // Assert
+            Assert.IsEmpty(violations, string.Join("; ", violations));
+            Assert.IsEmpty(items);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that text that looks like a <c>#:package</c> directive after the first token of a file, such as a line of a string literal, is not read as a directive
+    /// </summary>
+    [TestMethod]
+    public void PackageDirectiveTextAfterTheFirstTokenIsNotRead()
+    {
+        // Arrange
+        using (var fixture = new RoslynVersionFixtureDirectory())
+        {
+            fixture.Write("Directory.Build.props", RootPropsWithVersion);
+            fixture.Write("src/A/Fixture.cs",
+                          """"
+                          namespace A;
+
+                          internal static class Fixture
+                          {
+                              internal const string Text = """
+                          #:package Microsoft.CodeAnalysis.CSharp@5.6.0
+                          """;
+                          }
+                          """");
+
+            // Act
+            var (items, violations) = RoslynVersionOwnership.Check(fixture.Root);
+
+            // Assert
+            Assert.IsEmpty(violations, string.Join("; ", violations));
+            Assert.IsEmpty(items);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that file-based programs in build output and in directories whose name starts with a dot are not read
+    /// </summary>
+    [TestMethod]
+    public void PackageDirectivesInBuildOutputAndDotDirectoriesAreSkipped()
+    {
+        // Arrange
+        using (var fixture = new RoslynVersionFixtureDirectory())
+        {
+            fixture.Write("Directory.Build.props", RootPropsWithVersion);
+            fixture.Write("scripts/obj/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.6.0"));
+            fixture.Write("scripts/bin/Release/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.6.0"));
+            fixture.Write(".tools/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp@5.6.0"));
+
+            // Act
+            var (items, violations) = RoslynVersionOwnership.Check(fixture.Root);
+
+            // Assert
+            Assert.IsEmpty(violations, string.Join("; ", violations));
+            Assert.IsEmpty(items);
+        }
+    }
+
+    /// <summary>
     /// Asserts that exactly one violation is reported and that it starts with the expected text
     /// </summary>
     /// <param name="violations">Reported violations</param>
@@ -636,6 +876,16 @@ public sealed class RoslynPackageVersionTests
     private static string Project(string items)
     {
         return $"<Project><ItemGroup>{items}</ItemGroup></Project>";
+    }
+
+    /// <summary>
+    /// Builds a minimal file-based program that starts with the given directives
+    /// </summary>
+    /// <param name="directives">Directive lines at the start of the file</param>
+    /// <returns>The program text</returns>
+    private static string FileBasedProgram(string directives)
+    {
+        return $"{directives}\n\nSystem.Console.WriteLine();\n";
     }
 
     /// <summary>
