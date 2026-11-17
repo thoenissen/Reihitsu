@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
@@ -5,12 +6,10 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.Structural;
 
 /// <summary>
-/// Regression tests for expression-bodied members carrying a preprocessor directive between the
-/// arrow and the expression. Converting such a member to a block body re-hosted the directive
-/// directly after the generated <c>return</c>, where a directive cannot sit because it must start
-/// its own line, so source that parsed cleanly became source that no longer compiles. The transform
-/// is refused for those members. A directive that follows the expression travels inside the
-/// generated statement and is still converted
+/// Regression tests for expression-bodied members carrying a preprocessor directive. A directive between the arrow and the
+/// expression refuses the input as unsupported, because a converted member would host it directly after the generated
+/// <c>return</c>, where a directive cannot sit. A directive that follows the expression travels inside the generated statement
+/// and is still converted, and a region around the arrow or behind the expression keeps the expression body
 /// </summary>
 [TestClass]
 public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
@@ -18,280 +17,52 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies that a method whose expression body carries a directive before the expression is left alone
+    /// Verifies that a directive between the arrow and the expression of each kind of member the formatter converts, and of an
+    /// indexer, refuses the input as unsupported in every build, instead of keeping the expression body: the input is returned
+    /// unchanged, and the directive is reported
     /// </summary>
+    /// <param name="members">The members of the class</param>
+    /// <param name="directive">The directive that is reported</param>
     [TestMethod]
-    [Requirement("FMT-STRUCT-007")]
-    [Requirement("FMT-STRUCT-024")]
-    public void MethodWithDirectiveBeforeExpressionIsNotConverted()
+    [Requirement("FMT-UNSUP-012")]
+    [DataRow("    public int M() =>\n#if DEBUG\n        1;\n#else\n    0;\n#endif", "#if DEBUG", DisplayName = "Method")]
+    [DataRow("    private readonly int[] _items = [1, 2, 3];\n\n    public int this[int index] =>\n#if DEBUG\n        1;\n#else\n    0;\n#endif", "#if DEBUG", DisplayName = "Indexer")]
+    [DataRow("    private int _value;\n\n    public C() =>\n#if DEBUG\n        _value = 1;\n#else\n    _value = 0;\n#endif", "#if DEBUG", DisplayName = "Constructor")]
+    [DataRow("    public static C operator +(C left, C right) =>\n#if DEBUG\n        left;\n#else\n    right;\n#endif", "#if DEBUG", DisplayName = "Operator")]
+    [DataRow("    public static implicit operator int(C value) =>\n#if DEBUG\n        1;\n#else\n    0;\n#endif", "#if DEBUG", DisplayName = "Conversion operator")]
+    [DataRow("    private int _value;\n\n    ~C() =>\n#if DEBUG\n        _value = 1;\n#else\n    _value = 0;\n#endif", "#if DEBUG", DisplayName = "Finalizer")]
+    [DataRow("    public void M()\n    {\n        int Inner() =>\n#if DEBUG\n            1;\n#else\n        0;\n#endif\n\n        Inner();\n    }", "#if DEBUG", DisplayName = "Local function")]
+    [DataRow("    public int M() =>\n#pragma warning disable CS0618\n    1;\n#pragma warning restore CS0618", "#pragma warning disable CS0618", DisplayName = "Pragma directive")]
+    [DataRow("    public string M() =>\n#nullable disable\n    null;\n#nullable restore", "#nullable disable", DisplayName = "Nullable directive")]
+    [DataRow("    public int M() =>\n#line 200\n    1;\n#line default", "#line 200", DisplayName = "Line directive")]
+    [DataRow("    public int M() =>\n\n    #region Body\n\n    1;\n\n    #endregion // Body", "#region Body", DisplayName = "Region directive")]
+    public void DirectiveBetweenTheArrowAndTheExpressionIsUnsupported(string members, string directive)
     {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 public int M() =>
-                             #if DEBUG
-                                     1;
-                             #else
-                                 0;
-                             #endif
-                             }
-                             """;
+        var input = $"class C\n{{\n{members}\n}}";
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertUnsupportedFor(ExpressionBodyArrowCommentReason, input, directive);
+        AssertUnsupportedFor(ExpressionBodyArrowCommentReason, input, directive, parseOptions: CSharpParseOptions.Default.WithPreprocessorSymbols("DEBUG"));
     }
 
     /// <summary>
-    /// Verifies that an indexer whose expression body carries a directive before the expression is left alone
+    /// Verifies that a block comment between the arrow and the expression refuses the input as unsupported as well, so the
+    /// member is not converted with the comment on its new opening brace
     /// </summary>
     [TestMethod]
-    public void IndexerWithDirectiveBeforeExpressionIsNotConverted()
+    [Requirement("FMT-UNSUP-012")]
+    public void MethodWithInlineCommentBehindTheArrowIsUnsupported()
     {
         // Arrange
         const string input = """
                              class C
                              {
-                                 public int this[int index] =>
-                             #if DEBUG
-                                     1;
-                             #else
-                                 0;
-                             #endif
+                                 public int M() => /* inline */ 1;
                              }
                              """;
 
         // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that a constructor whose expression body carries a directive before the expression is left alone
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-007")]
-    [Requirement("FMT-STRUCT-024")]
-    public void ConstructorWithDirectiveBeforeExpressionIsNotConverted()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 private int _value;
-
-                                 public C() =>
-                             #if DEBUG
-                                     _value = 1;
-                             #else
-                                 _value = 0;
-                             #endif
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that an operator whose expression body carries a directive before the expression is left alone
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-007")]
-    [Requirement("FMT-STRUCT-024")]
-    public void OperatorWithDirectiveBeforeExpressionIsNotConverted()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 public static C operator +(C left, C right) =>
-                             #if DEBUG
-                                     left;
-                             #else
-                                 right;
-                             #endif
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that a conversion operator whose expression body is split by a conditional directive
-    /// is left alone
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-007")]
-    [Requirement("FMT-STRUCT-024")]
-    public void ConversionOperatorWithDirectiveBeforeExpressionIsNotConverted()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 public static implicit operator int(C value) =>
-                             #if DEBUG
-                                     1;
-                             #else
-                                 0;
-                             #endif
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that a finalizer whose expression body carries a directive before the expression is left alone
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-007")]
-    [Requirement("FMT-STRUCT-024")]
-    public void FinalizerWithDirectiveBeforeExpressionIsNotConverted()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 private int _value;
-
-                                 ~C() =>
-                             #if DEBUG
-                                     _value = 1;
-                             #else
-                                 _value = 0;
-                             #endif
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that a local function whose expression body is split by a conditional directive is
-    /// left alone
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-007")]
-    [Requirement("FMT-STRUCT-024")]
-    public void LocalFunctionWithDirectiveBeforeExpressionIsNotConverted()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 public void M()
-                                 {
-                                     int Inner() =>
-                             #if DEBUG
-                                         1;
-                             #else
-                                     0;
-                             #endif
-
-                                     Inner();
-                                 }
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that a pragma directive before the expression is refused, so the guard is not limited
-    /// to conditional directives
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-007")]
-    public void MethodWithPragmaBeforeExpressionIsNotConverted()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 public int M() =>
-                             #pragma warning disable CS0618
-                                 1;
-                             #pragma warning restore CS0618
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that a nullable directive before the expression is refused
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-007")]
-    public void MethodWithNullableDirectiveBeforeExpressionIsNotConverted()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 public string M() =>
-                             #nullable disable
-                                 null;
-                             #nullable restore
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that a line directive before the expression is refused
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-007")]
-    public void MethodWithLineDirectiveBeforeExpressionIsNotConverted()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 public int M() =>
-                             #line 200
-                                 1;
-                             #line default
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that a region directive before the expression is refused. Converting it would glue
-    /// the directive onto the declaration line instead of preserving its required standalone line
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-007")]
-    public void MethodWithRegionDirectiveBeforeExpressionIsNotConverted()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 public int M() =>
-
-                                 #region Body
-
-                                 1;
-
-                                 #endregion // Body
-                             }
-                             """;
-
-        // Act & Assert
-        AssertRuleResult(input);
+        AssertUnsupportedFor(ExpressionBodyArrowCommentReason, input, "/* inline */");
     }
 
     /// <summary>
@@ -420,34 +191,6 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
 
         // Act & Assert
         AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that an expression-bodied member carrying only a comment is still converted, so the
-    /// guard stays limited to directives
-    /// </summary>
-    [TestMethod]
-    public void MethodWithInlineCommentIsStillConverted()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 public int M() => /* inline */ 1;
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    public int M()
-                                    {/* inline */
-                                        return 1;
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
     }
 
     #endregion // Methods

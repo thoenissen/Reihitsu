@@ -284,62 +284,6 @@ public class StructuralTransformSeparatorFinalOutputTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the fourth example of FMT-STRUCT-026 for an indented line: the block comment moved behind <c>return</c> ends up
-    /// one space behind it
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void IndentedCommentMovedBehindReturnEndsUpOneSpaceBehindIt()
-    {
-        const string input = """
-                             class C
-                             {
-                                 int Get() =>
-                                     /* c */ 42;
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    int Get()
-                                    {
-                                        return /* c */ 42;
-                                    }
-                                }
-                                """;
-
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies the fourth example of FMT-STRUCT-026 for a line that is not indented: the block comment moved behind
-    /// <c>return</c> follows it without a space, as the author wrote none in front of it
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void CommentAtColumnZeroMovedBehindReturnFollowsItWithoutASpace()
-    {
-        const string input = """
-                             class C
-                             {
-                                 int Get() =>
-                             /* c */ 42;
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    int Get()
-                                    {
-                                        return/* c */ 42;
-                                    }
-                                }
-                                """;
-
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
     /// Verifies that accessors and a get-only property written without whitespace keep the final output they have, now that
     /// the transforms write no space around the arrow they create
     /// </summary>
@@ -490,36 +434,27 @@ public class StructuralTransformSeparatorFinalOutputTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the members of the at-arrow example of FMT-STRUCT-026, whose final layout FMT-STRUCT-006 leaves
-    /// unspecified, reach a fixed point in which every phase's tree parses back to itself
+    /// Verifies that the inputs of the removed examples of FMT-STRUCT-026 that start from a comment behind the arrow, a comment
+    /// moved behind the created <c>return</c> and a comment directly at the arrow, are refused as unsupported: the input is
+    /// returned unchanged, and the first comment behind an arrow is reported
     /// </summary>
+    /// <param name="members">The members of the class</param>
+    /// <param name="comment">The comment that is reported</param>
     [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void MembersWithACommentAtTheArrowReachAStableOutput()
+    [Requirement("FMT-UNSUP-012")]
+    [DataRow("    int Get() =>\n        /* c */ 42;", "/* c */", DisplayName = "Indented block comment in front of the expression")]
+    [DataRow("    int Get() =>\n/* c */ 42;", "/* c */", DisplayName = "Block comment in front of the expression at the start of its line")]
+    [DataRow("    int Get() => // c\n        /* d */ 42;", "// c", DisplayName = "Line comment behind the arrow and a block comment in front of the expression")]
+    [DataRow("    int Get2() => // c\n        // d\n        42;", "// c", DisplayName = "Line comment behind the arrow and a comment line")]
+    [DataRow("    int Get3()\n        /* c */ =>\n        /* d */ 42;", "/* d */", DisplayName = "Comment in front of the arrow and a block comment in front of the expression")]
+    [DataRow("    void M()\n    {\n        int L() => // c\n            /* d */ 42;\n    }", "// c", DisplayName = "Local function")]
+    [DataRow("    public static C operator +(C x, C y) => // c\n        /* d */ x;", "// c", DisplayName = "Operator")]
+    [DataRow("    public static implicit operator int(C c) => // c\n        /* d */ 0;", "// c", DisplayName = "Conversion operator")]
+    [DataRow("    void Run() => // c\n        /* d */ Foo();", "// c", DisplayName = "Converted expression statement")]
+    [DataRow("    int Get() =>\n        // c\n        42;", "// c", DisplayName = "Comment line moved in front of the created return")]
+    public void CommentsBehindTheArrowOfTheRemovedExamplesAreUnsupported(string members, string comment)
     {
-        const string input = """
-                             class C
-                             {
-                                 int Get() => // c
-                                     /* d */ 42;
-
-                                 int Get2() => // c
-                                     // d
-                                     42;
-
-                                 int Get3()
-                                     /* c */ =>
-                                     /* d */ 42;
-
-                                 void M()
-                                 {
-                                     int L() => // c
-                                         /* d */ 42;
-                                 }
-                             }
-                             """;
-
-        AssertSecondPassIsStable(input);
+        AssertUnsupportedFor(ExpressionBodyArrowCommentReason, $"class C\n{{\n{members}\n}}", comment);
     }
 
     #endregion // Tests

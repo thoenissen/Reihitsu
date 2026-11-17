@@ -1,5 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -16,6 +19,76 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCodeFixTestsBase<RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer, RH3202ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider>
 {
     #region Tests
+
+    /// <summary>
+    /// Verifies the change example: the fix formats the method it converts, the formatter refuses a method with a comment between
+    /// its arrow and its expression, so no fix is offered for either method and both diagnostics stay
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-001")]
+    [Requirement("SHARED-FIX-010")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentBehindTheArrow(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  int Get() {|RH3202:=> // c
+                                      42|};
+
+                                  int Other() {|RH3202:=>
+                                      // after arrow
+                                      42|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a block comment behind the arrow on one line withholds the fix, while the diagnostic stays
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-001")]
+    [Requirement("SHARED-FIX-010")]
+    public async Task VerifyNoFixIsOfferedForABlockCommentBehindTheArrowOnOneLine()
+    {
+        const string source = """
+                              class C
+                              {
+                                  int Get() {|RH3202:=> /* c */ 42|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that the fix asks the formatter about the method it converts only: of two methods on one line, the one with a
+    /// comment behind its arrow gets no fix, and the one beside it does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    public async Task VerifyFixIsOfferedForAMethodBesideAMethodWithACommentBehindItsArrow()
+    {
+        const string source = """
+                              class C
+                              {
+                                  int A() => 1; int B() => /* c */ 2;
+                              }
+                              """;
+
+        var clean = await GetCodeFixActionsAsync(source, RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, root => FindArrow(root, "A").GetLocation());
+        var refused = await GetCodeFixActionsAsync(source, RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, root => FindArrow(root, "B").GetLocation());
+
+        Assert.IsNotEmpty(clean, "The fix must be offered for the method without the comment.");
+        Assert.IsEmpty(refused, "The fix must not be offered for the method with the comment behind its arrow.");
+    }
 
     /// <summary>
     /// Verifies the change example: the fix formats the method it builds, the formatter refuses a method that holds a comment behind a
@@ -563,37 +636,25 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     }
 
     /// <summary>
-    /// Verifies that the fix carries a comment on its own line after the arrow into the block, in front of the created
-    /// statement, as the formatter does
+    /// Verifies that a comment on its own line between the arrow and the expression withholds the fix, because the formatter
+    /// refuses the method it would format, while the diagnostic stays
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-BODY-003")]
-    public async Task VerifyCommentAfterArrowLeadsTheCreatedStatement()
+    [Requirement("SHARED-BODY-001")]
+    [Requirement("SHARED-FIX-010")]
+    public async Task VerifyNoFixIsOfferedForACommentLineBehindTheArrow()
     {
         const string testData = """
                                 internal class RH3202
                                 {
-                                    public int GetValue() {|#0:=>
+                                    public int GetValue() {|RH3202:=>
                                         // why
                                         42|};
                                 }
                                 """;
 
-        const string resultData = """
-                                  internal class RH3202
-                                  {
-                                      public int GetValue()
-                                      {
-                                          // why
-                                          return 42;
-                                      }
-                                  }
-                                  """;
-
-        await Verify(testData.Replace("\r\n", "\n"),
-                     resultData.Replace("\r\n", "\n"),
-                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>
@@ -631,37 +692,29 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     }
 
     /// <summary>
-    /// Verifies that the fix keeps the own-line comment before the arrow out of the block, and both comments in their
-    /// source order, when the arrow's line carries a comment, under LF and CRLF
+    /// Verifies that a comment behind the arrow withholds the fix also when a comment on its own line stands in front of the
+    /// arrow, under LF and CRLF, while the diagnostic stays
     /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    [Requirement("SHARED-BODY-003")]
-    public async Task VerifyFixKeepsCommentOrderWhenTheArrowLineCarriesAComment()
+    [Requirement("SHARED-BODY-001")]
+    [Requirement("SHARED-FIX-010")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedWhenTheArrowLineCarriesAComment(string endOfLine)
     {
         const string source = """
                               internal class RH3202
                               {
                                   public int GetValue()
                                       // a
-                                      => // b
-                                      42;
+                                      {|RH3202:=> // b
+                                      42|};
                               }
                               """;
 
-        foreach (var text in new[] { source.Replace("\r\n", "\n"), NormalizeToCarriageReturnLineFeed(source) })
-        {
-            var actual = await ApplyCodeFixAsync(text);
-            var ownLineIndex = actual.IndexOf("// a", System.StringComparison.Ordinal);
-            var arrowLineIndex = actual.IndexOf("// b", System.StringComparison.Ordinal);
-            var statementIndex = actual.IndexOf("return 42;", System.StringComparison.Ordinal);
-
-            Assert.IsGreaterThanOrEqualTo(0, statementIndex, "The fix must convert the method.");
-            Assert.IsGreaterThanOrEqualTo(0, ownLineIndex, "The own-line comment must survive the fix.");
-            Assert.IsLessThan(arrowLineIndex, ownLineIndex, "The comments must keep their source order.");
-            Assert.IsLessThan(statementIndex, arrowLineIndex, "The arrow-line comment must stay in front of the statement.");
-            Assert.IsLessThanOrEqualTo(actual.LastIndexOf('{', statementIndex), ownLineIndex, "The own-line comment must not be moved between the opening brace and the created statement.");
-        }
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
     }
 
     /// <summary>
@@ -1723,6 +1776,21 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     }
 
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Finds the arrow clause of the method with the given name
+    /// </summary>
+    /// <param name="root">The root to search</param>
+    /// <param name="name">The method's name</param>
+    /// <returns>The arrow clause</returns>
+    private static ArrowExpressionClauseSyntax FindArrow(SyntaxNode root, string name)
+    {
+        return root.DescendantNodes().OfType<MethodDeclarationSyntax>().Single(method => method.Identifier.ValueText == name).ExpressionBody;
+    }
+
+    #endregion // Methods
 
     #region BatchCodeFixTestsBase
 

@@ -376,42 +376,6 @@ public class ExpressionBodiedLocalFunctionTransformTests : FormatterPhaseTestsBa
     }
 
     /// <summary>
-    /// Verifies that a comment trailing the arrow token of an expression-bodied local function survives conversion.
-    /// </summary>
-    [TestMethod]
-    public void PreservesCommentTrailingArrowInLocalFunction()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void M()
-                                 {
-                                     int Add(int a, int b) => // why
-                                         a + b;
-                                 }
-                             }
-                             """;
-
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        int Add(int a, int b) {// why
-                                return a + b;}
-                                    }
-                                }
-                                """;
-
-        // Act
-        var actual = ApplyPhase(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
-    }
-
-    /// <summary>
     /// Verifies that a comment leading the semicolon token of an expression-bodied local function survives conversion.
     /// </summary>
     [TestMethod]
