@@ -28,8 +28,8 @@ internal static class PhaseTreeRoundTrip
     /// <param name="root">The root of the tree the formatter was given</param>
     /// <param name="context">The formatting context</param>
     /// <param name="parseOptions">The parse options of the tree the formatter was given</param>
-    /// <returns>The final output of the pipeline and one description per phase that does not round-trip or adds elastic trivia</returns>
-    public static (SyntaxNode Result, IReadOnlyList<string> Failures) ExecuteAndCompare(SyntaxNode root, FormattingContext context, CSharpParseOptions parseOptions)
+    /// <returns>The result of the pipeline, with its final output or its refusal, and one description per phase that does not round-trip or adds elastic trivia</returns>
+    public static (FormattingResult<SyntaxNode> Result, IReadOnlyList<string> Failures) ExecuteAndCompare(SyntaxNode root, FormattingContext context, CSharpParseOptions parseOptions)
     {
         var failures = new List<string>();
         var checksElasticTrivia = FindElasticTrivia(root) == null;
@@ -54,7 +54,7 @@ internal static class PhaseTreeRoundTrip
                                                         failures.Add($"The output of {phaseName} carries elastic trivia its input did not carry (FMT-PIPE-034): {elastic}");
                                                     }
                                                 },
-                                                CancellationToken.None).Output;
+                                                CancellationToken.None);
 
         return (result, failures);
     }
