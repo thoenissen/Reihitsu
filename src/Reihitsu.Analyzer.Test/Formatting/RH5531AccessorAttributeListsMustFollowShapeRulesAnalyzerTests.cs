@@ -727,6 +727,51 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzerTests : Bat
         await Verify(ConvertEndOfLine(testData, endOfLine));
     }
 
+    /// <summary>
+    /// Verifies that the code fix merges the lists of an inline auto-property accessor into a first list that already holds a
+    /// comma, each comma of the merged list followed by one space
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-ATTR-018")]
+    public async Task VerifyCodeFixMergesInlineAccessorListsIntoAFirstListThatAlreadyHoldsAComma()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int Q { [A, B] {|#0:[D]|} get; set; }
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                sealed class D : System.Attribute
+                                {
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     int Q { [A, B, D] get; set; }
+                                 }
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 sealed class D : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5531MessageFormat));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

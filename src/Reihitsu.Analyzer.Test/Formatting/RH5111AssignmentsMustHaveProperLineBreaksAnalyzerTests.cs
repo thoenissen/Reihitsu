@@ -5350,6 +5350,45 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     }
 
     /// <summary>
+    /// Verifies that the fix, which formats the property through the formatter, joins the initializer of a property whose
+    /// setter carries two <c>param:</c> lists, and that the lists come back merged with one space behind the comma, under LF
+    /// and CRLF line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixForPropertyWithMergedSetterParamListsKeepsTheCommaSpace()
+    {
+        const string testData = """
+                                class TestClass
+                                {
+                                    {|#0:int Property { get; [param: A] [param: B] set; }
+                                        = 1;|}
+                                }
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class TestClass
+                                 {
+                                     int Property { get; [param: A, B] set; } = 1;
+                                 }
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await VerifyUnderBothLineEndings(testData, fixedData);
+    }
+
+    /// <summary>
     /// Verifies the one diagnostic marked in the source and the fix result under LF and under CRLF
     /// </summary>
     /// <param name="testData">The source with LF line endings</param>

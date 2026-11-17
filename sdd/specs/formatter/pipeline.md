@@ -5,7 +5,7 @@
 | ID prefix | FMT-PIPE |
 | Status | Active |
 | Code owners | `ReihitsuFormatter`, `FormattingPipeline`, `IFormattingPhase`, `PreparationPhase`, `FormattingContext`, `RootConstruct`, `RootConstructExtensions`, `TriviaFact`, `FluentChainBoundary`, `ReihitsuFormatterHelpers`, `LanguageVersionResolver`, `LineEndingUtilities`, `BlockWrapTriviaUtilities` |
-| Uses | CLI-021, PLAY-009, RH3208-003, RH7101-006, RH7201-004, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-COMMENT-012, SHARED-DIAG-001, SHARED-DOC-004, SHARED-FIX-001, SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-006, SHARED-FIX-007, SHARED-FIX-008, SHARED-FIX-010, SHARED-FIX-011, SHARED-FIX-012, SHARED-USING-009, SHARED-USING-010, FMT-BLANK-001, FMT-BLANK-011, FMT-BLANK-012, FMT-BLANK-013, FMT-BLANK-014, FMT-BLANK-018, FMT-BREAK-001, FMT-BREAK-006, FMT-BREAK-007, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-BREAK-033, FMT-BREAK-036, FMT-CLEAN-001, FMT-CLEAN-005, FMT-CLEAN-007, FMT-CLEAN-008, FMT-DOC-001, FMT-DOC-003, FMT-DOC-005, FMT-DOC-008, FMT-DOC-009, FMT-DOC-010, FMT-DOC-011, FMT-DOC-012, FMT-DOC-013, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-018, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-028, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-022, FMT-STRUCT-026, FMT-STRUCT-030, FMT-SWITCH-003, FMT-SWITCH-008, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, FMT-UNSUP-010, FMT-USING-003, FMT-USING-010 |
+| Uses | CLI-021, PLAY-009, RH3208-003, RH7101-006, RH7201-004, SHARED-ATTR-018, SHARED-BLANK-002, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-COMMENT-012, SHARED-DIAG-001, SHARED-DOC-004, SHARED-FIX-001, SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-006, SHARED-FIX-007, SHARED-FIX-008, SHARED-FIX-010, SHARED-FIX-011, SHARED-FIX-012, SHARED-USING-009, SHARED-USING-010, FMT-BLANK-001, FMT-BLANK-011, FMT-BLANK-012, FMT-BLANK-013, FMT-BLANK-014, FMT-BLANK-018, FMT-BREAK-001, FMT-BREAK-006, FMT-BREAK-007, FMT-BREAK-011, FMT-BREAK-012, FMT-BREAK-014, FMT-BREAK-016, FMT-BREAK-021, FMT-BREAK-022, FMT-BREAK-026, FMT-BREAK-029, FMT-BREAK-032, FMT-BREAK-033, FMT-BREAK-036, FMT-CLEAN-001, FMT-CLEAN-005, FMT-CLEAN-007, FMT-CLEAN-008, FMT-DOC-001, FMT-DOC-003, FMT-DOC-005, FMT-DOC-008, FMT-DOC-009, FMT-DOC-010, FMT-DOC-011, FMT-DOC-012, FMT-DOC-013, FMT-EOL-001, FMT-EOL-002, FMT-EOL-003, FMT-EOL-004, FMT-INDENT-002, FMT-INDENT-003, FMT-INDENT-004, FMT-INDENT-007, FMT-INDENT-008, FMT-INDENT-012, FMT-INDENT-018, FMT-INDENT-022, FMT-INDENT-024, FMT-INDENT-028, FMT-INDENT-030, FMT-RAW-001, FMT-RAW-005, FMT-RAW-007, FMT-SPACE-002, FMT-SPACE-008, FMT-STRUCT-001, FMT-STRUCT-004, FMT-STRUCT-017, FMT-STRUCT-021, FMT-STRUCT-022, FMT-STRUCT-026, FMT-STRUCT-030, FMT-SWITCH-003, FMT-SWITCH-008, FMT-TAB-001, FMT-TAB-002, FMT-TAB-003, FMT-UNSUP-001, FMT-UNSUP-002, FMT-UNSUP-003, FMT-UNSUP-004, FMT-UNSUP-007, FMT-UNSUP-010, FMT-USING-003, FMT-USING-010 |
 
 This spec covers what holds for the formatter as a whole: the public entry points, the fixed phase order, and the invariants every phase must keep. What an individual phase decides is specified in that phase's own spec.
 
@@ -15,6 +15,7 @@ This spec covers what holds for the formatter as a whole: the public entry point
 - File and directory walking, skipped file names, `--check`, `--dry-run`, and exit codes — those belong to the CLI specs.
 - Configuration. The formatter applies one fixed style and reads no `.editorconfig`, rule set, or option.
 - Formatting of code with syntax errors or of generated code (see FMT-PIPE-005 and FMT-PIPE-006).
+- Elastic trivia that a node passed to a node-level entry point already carries: whether a phase keeps or drops it is not decided (FMT-PIPE-034 decides only that no phase adds any).
 - Node-level inputs that none of the repository's own callers passes (`AGENTS.md`, *Supported inputs*). The node-level requirements decide the nodes a code fix passes. Their examples call the entry points directly with such nodes, and a node no caller passes is decided only as far as a requirement names it.
 
 ## Requirements
@@ -1288,6 +1289,46 @@ The phase's output MUST NOT read `int Get(){return42;}`, where `return42` parses
 Example — the same tree where the parser gives the whitespace and the line break to the other token: the line-break phase moves the `{` of `if (a) {` onto its own line by writing the line break in front of `{`, behind the space that ends `if (a) `; parsed again, the space and the line break are both trivia of `)`. The tree is the same. A tree in which `// leading` stands behind an inserted `{` on the brace's line, as leading trivia of the statement after it, is not the same: parsed again, the comment trails the brace.
 
 Example — a token's value: in `var s = $"""`, followed by the lines `a {Call(1,`, `2)} b`, and `""";`, each starting in column 0, the closing quotes strip no indentation, and the text token in front of the hole stands for `a `. When the indentation phase moves the literal's lines under its opening quotes, every line gains the same indentation, the closing line included, and the moved text token still stands for `a `, as its new text does when it is parsed again; a token that kept its new text, indentation included, as its value would not be the same token.
+
+### FMT-PIPE-034 — No phase adds elastic trivia
+
+Every phase, each sub-phase of the preparation phase included, MUST NOT add elastic trivia — the trivia Roslyn marks as elastic: the zero-width markers it gives a token built without explicit trivia, and whitespace or a line break built as elastic. Elastic trivia stands in a phase's output only where the phase keeps trivia its input carries that is already elastic. This holds for everything the phase builds: a token it creates, such as an inserted brace, a token a list builder creates on its own, such as the comma between two elements of a separated list built from the elements alone, a token it rebuilds with new text, a node or trivia it creates, and a token inside a directive or a documentation comment it rewrites. It holds for every entry point.
+
+For every input this repository's callers pass to `FormatDocumentAsync` and `FormatSyntaxTree` (`AGENTS.md`, *Supported inputs*), the tree these entry points pass through the phases is parsed from text and carries no elastic trivia, so no phase output of these two entry points carries any for such an input, on any token, also on a token inside a directive or a documentation comment. A node that `FormatNode`, `FormatNodeInDocumentAsync`, or `FormatNodeInDocumentWithContextAsync` receives may already carry elastic trivia, such as a node a code fix built through `SyntaxFactory`; this requirement decides only that the phases add none to it, not whether they keep or drop the elastic trivia the node brings along.
+
+Why: An elastic marker is whitespace to the spacing phase but no character of the text, so a tree that carries one is spaced differently from its own text wherever no spacing rule decides the gap (FMT-SPACE-002): the spacing phase collapses the marker as whitespace and writes a space the text does not hold. That is the difference between a phase's tree and its text that FMT-PIPE-021 rules out, and that its comparison, which does not compare whitespace, cannot see. Every phase after the one that wrote a tree, the documentation phase, which reads the text, and the trace, which prints the text and parses it again, have to see the same program and the same layout. FMT-STRUCT-026 states the rule for the tokens the structural transforms create; this requirement states it for every phase. Whether an elastic marker changes the output depends on whether a spacing rule happens to cover its gap, so a phase that adds one gives correct output only by luck.
+
+Example — the line-break phase merges the two `param:` lists of each setter, in an accessor list on the declaration's line and in one over several lines (FMT-BREAK-032):
+
+```csharp
+class C
+{
+    int P { get; [param: A] [param: B] set; }
+
+    int Q
+    {
+        get; [param: A]
+        [param: B] set;
+    }
+}
+```
+
+The comma the merge writes between `A` and `B`, and every other token and trivia the phase builds, carries no elastic trivia, and neither does any phase output after it. The output is unchanged: the spacing phase writes the space behind each comma (FMT-SPACE-008).
+
+```csharp
+class C
+{
+    int P { get; [param: A, B] set; }
+
+    int Q
+    {
+        get;
+        [param: A, B] set;
+    }
+}
+```
+
+The attribute-list code fixes merge lists with the same shared merge without running a phase (SHARED-ATTR-018); a merge a code fix writes is no phase output, and this requirement does not decide its trivia.
 
 ### FMT-PIPE-022 — Every phase keeps the annotations it does not own
 

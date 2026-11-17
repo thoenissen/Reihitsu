@@ -24,8 +24,9 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 /// <item><description>A member name split from its dot is rejoined; such a split is no wrap.</description></item>
 /// <item>
 /// <description>
-/// In a chain with at least one link, an attached part joins the element in front of it; a chain without links only
-/// joins its conditional element accesses.
+/// In a chain with at least one link, an element access and a conditional element access join the element in front
+/// of it; a chain without links only joins its conditional element accesses. The gap in front of an argument list is
+/// <see cref="ArgumentListLineStartRewriter"/>'s.
 /// </description>
 /// </item>
 /// <item><description>A link operator is never split: a line break inside it moves in front of its first token.</description></item>
@@ -328,7 +329,8 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
         var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
 
         // A member name split from its dot is rejoined, and an attached part joins the element in front of it. Neither
-        // gap is a wrap, so a line break that blocking trivia keeps there does not affect the chain's layout.
+        // gap is a wrap, so a line break that blocking trivia keeps there does not affect the chain's layout. The gap in
+        // front of an argument list is ArgumentListLineStartRewriter's, which has joined it before this rewriter runs.
         foreach (var link in chain.Links)
         {
             CloseGap(link.DotToken, link.Name.GetFirstToken(), replacements);
@@ -336,6 +338,11 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
 
         foreach (var attachedPart in chain.AttachedParts)
         {
+            if (attachedPart.Kind == FluentChainAttachedPartKind.ArgumentList)
+            {
+                continue;
+            }
+
             CloseGap(attachedPart.FirstToken.GetPreviousToken(), attachedPart.FirstToken, replacements);
             CloseInnerGaps(attachedPart.Tokens, replacements);
         }

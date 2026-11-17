@@ -8,6 +8,8 @@ using Reihitsu.Analyzer.Rules.Spacing;
 using Reihitsu.Analyzer.Test.Base;
 using Reihitsu.Formatter;
 
+using PhaseStabilityCheck = Reihitsu.Formatter.Test.Helpers.PhaseStabilityCheck;
+
 namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 
 /// <summary>
@@ -105,8 +107,8 @@ public class RH6001KeywordsMustBeSpacedCorrectlyFormatterTests : FormatterTestsB
 
     /// <summary>
     /// Verifies that the formatter puts one space behind a <c>fixed</c> keyword glued to its parenthesis, which clears the
-    /// diagnostic, and that formatting its output again changes nothing, under LF and CRLF line endings. The fixture needs
-    /// an <c>unsafe</c> compilation, so it is checked here rather than through <see cref="FormatterTestsBase{TAnalyzer}.VerifyFormatter(string, string, Microsoft.CodeAnalysis.Testing.DiagnosticResult[])"/>
+    /// diagnostic, that formatting its output again changes nothing, and that no formatter phase run alone changes that
+    /// output, under LF and CRLF line endings. The fixture needs an <c>unsafe</c> compilation, so it is checked here rather than through <see cref="FormatterTestsBase{TAnalyzer}.VerifyFormatter(string, string, Microsoft.CodeAnalysis.Testing.DiagnosticResult[])"/>
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -158,6 +160,8 @@ public class RH6001KeywordsMustBeSpacedCorrectlyFormatterTests : FormatterTestsB
 
             Assert.AreEqual(expected, firstPass, $"Unexpected formatter output under {(endOfLine == "\n" ? "LF" : "CRLF")} line endings.");
             Assert.AreEqual(firstPass, Format(firstPass), $"The second pass must not change the output under {(endOfLine == "\n" ? "LF" : "CRLF")} line endings.");
+
+            PhaseStabilityCheck.AssertNoPhaseChanges(firstPass, endOfLine, CSharpParseOptions.Default);
 
             await Verify(firstPass, test => test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject));
         }

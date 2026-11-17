@@ -1134,7 +1134,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     /// Verifies that a wrapped argument list joins its member name
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-020")]
+    [Requirement("FMT-BREAK-039")]
     public void ArgumentListJoinsItsElement()
     {
         // Arrange
@@ -1169,6 +1169,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     /// Verifies that a wrapped argument list joins a generic member name
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-039")]
     public void ArgumentListJoinsGenericMemberName()
     {
         // Arrange
@@ -1499,7 +1500,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     /// Verifies that a wrapped argument list of the root joins inside a member chain
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-020")]
+    [Requirement("FMT-BREAK-039")]
     public void ArgumentListOfRootJoinsInMemberChain()
     {
         // Arrange
@@ -1562,10 +1563,11 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an argument list outside a member chain keeps the user's break and today's indentation
+    /// Verifies that an argument list outside a member chain joins its name as it does inside one
     /// </summary>
     [TestMethod]
-    public void ArgumentListWithoutMemberAccessKeepsItsBreak()
+    [Requirement("FMT-BREAK-039")]
+    public void ArgumentListWithoutMemberAccessJoinsItsName()
     {
         // Arrange
         const string input = """
@@ -1584,8 +1586,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
                                 {
                                     public void M()
                                     {
-                                        var r = Foo
-                                        (1);
+                                        var r = Foo(1);
                                     }
                                 }
                                 """;

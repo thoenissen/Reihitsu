@@ -1,4 +1,13 @@
 <Project>
+   <!--
+      The SDK defaults Configuration to Debug only after this file is imported, so a build that names
+      no configuration (dotnet run, or dotnet build without -c) would otherwise skip the
+      configuration-specific properties below, including the ruleset. Apply the same default here.
+   -->
+   <PropertyGroup>
+      <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+   </PropertyGroup>
+
    <PropertyGroup>
       <LangVersion>latest</LangVersion>
 
