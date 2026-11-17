@@ -3343,37 +3343,74 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
 
     /// <summary>
     /// Verifies that a field declaration with a conditional directive around a declarator between its other declarators
-    /// is not reported, whether the symbol is defined or not
+    /// is reported on the second declarator the analyzed build compiles, whether the symbol is defined or not, and no
+    /// code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7101-001")]
     [Requirement("SHARED-DIAG-008")]
-    public async Task FieldDeclarationWithAConditionalDeclaratorBetweenItsDeclaratorsIsNotReported()
+    public async Task FieldDeclarationWithAConditionalDeclaratorBetweenItsDeclaratorsIsReportedOnTheSecondCompiledDeclarator()
     {
-        const string testData = """
-                                internal class TestClass
-                                {
-                                    private int _a,
-                                #if DEBUG
-                                        _debug,
-                                #endif
-                                        _b;
-                                }
-                                """;
+        const string withoutSymbol = """
+                                     internal class TestClass
+                                     {
+                                         private int _a,
+                                     #if DEBUG
+                                             _debug,
+                                     #endif
+                                             {|RH7101:_b|};
+                                     }
+                                     """;
 
-        await Verify(testData);
-        await Verify(testData, test => test.SolutionTransforms.Add(DefineDebug));
+        const string withSymbol = """
+                                  internal class TestClass
+                                  {
+                                      private int _a,
+                                  #if DEBUG
+                                          {|RH7101:_debug|},
+                                  #endif
+                                          _b;
+                                  }
+                                  """;
+
+        await VerifyNoCodeFixIsOffered(withoutSymbol);
+        await VerifyNoCodeFixIsOffered(withSymbol, DocumentationMode.Parse, "DEBUG");
     }
 
     /// <summary>
-    /// Verifies that a field declaration with an empty conditional directive pair between its declarators is not
-    /// reported
+    /// Verifies the specification example: in a build that does not define <c>DEBUG</c>, the declaration has the
+    /// declarators <c>_a</c> and <c>_c</c>, is reported on <c>_c</c>, and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7101-001")]
-    public async Task FieldDeclarationWithAnEmptyConditionalDirectivePairBetweenItsDeclaratorsIsNotReported()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task SpecificationExampleConditionalDeclaratorIsReportedOnTheSecondCompiledDeclaratorWithoutFix()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int _a,
+                                #if DEBUG
+                                                _b,
+                                #endif
+                                                {|RH7101:_c|};
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a field declaration with an empty conditional directive pair between its declarators is reported,
+    /// and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-001")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task FieldDeclarationWithAnEmptyConditionalDirectivePairBetweenItsDeclaratorsIsReportedWithoutFix()
     {
         const string testData = """
                                 internal class TestClass
@@ -3381,21 +3418,22 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                     private int _a,
                                 #if DEBUG
                                 #endif
-                                        _b;
+                                        {|RH7101:_b|};
                                 }
                                 """;
 
-        await Verify(testData);
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>
     /// Verifies that a field declaration with a conditional directive in the initializer of a declarator that is not
-    /// the last one is not reported, because the directive stands between its declarators
+    /// the last one is reported, and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7101-001")]
-    public async Task FieldDeclarationWithAConditionalDirectiveInTheInitializerOfANonLastDeclaratorIsNotReported()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task FieldDeclarationWithAConditionalDirectiveInTheInitializerOfANonLastDeclaratorIsReportedWithoutFix()
     {
         const string testData = """
                                 internal class TestClass
@@ -3404,11 +3442,103 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                 #if DEBUG
                                         + 1
                                 #endif
-                                        , _b;
+                                        , {|RH7101:_b|};
                                 }
                                 """;
 
-        await Verify(testData);
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a field declaration is reported on the second declarator the analyzed build compiles, and no code
+    /// fix is offered, for every shape of conditional directive between its declarators
+    /// </summary>
+    /// <param name="directives">The conditional directives, and the declarators they hold, between <c>_a,</c> and the last declarator</param>
+    /// <param name="lastDeclarator">The last declarator, with the markup of the expected diagnostic where it is reported</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("#if FEATURE\n#endif", "{|RH7101:_d|}", DisplayName = "Empty block")]
+    [DataRow("#if NEVER\n        _b,\n#endif", "{|RH7101:_d|}", DisplayName = "Excluded declarator")]
+    [DataRow("#if !NEVER\n        {|RH7101:_b|},\n#endif", "_d", DisplayName = "Active declarator")]
+    [DataRow("#if NEVER\n        _b,\n#else\n        {|RH7101:_c|},\n#endif", "_d", DisplayName = "If and else")]
+    [DataRow("#if NEVER\n        _b,\n#elif !NEVER\n        {|RH7101:_c|},\n#endif", "_d", DisplayName = "If and elif")]
+    [DataRow("#if false\n        _b,\n#endif", "{|RH7101:_d|}", DisplayName = "If false")]
+    [Requirement("RH7101-001")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task EveryShapeOfConditionalDirectiveBetweenTheDeclaratorsKeepsTheReportAndWithholdsTheFix(string directives, string lastDeclarator)
+    {
+        var testData = $$"""
+                         internal class TestClass
+                         {
+                             private int _a,
+                         {{directives}}
+                                 {{lastDeclarator}};
+                         }
+                         """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All splits the declarations without a conditional directive between their declarators and
+    /// leaves the one with such a directive reported and unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-001")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task FixAllSplitsOnlyTheDeclarationsWithoutAConditionalDirectiveBetweenTheirDeclarators()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int _a,
+                                #if FEATURE
+                                #endif
+                                        {|RH7101:_b|};
+                                }
+
+                                internal class D
+                                {
+                                    private int _c, {|RH7101:_d|};
+                                }
+
+                                internal class E
+                                {
+                                    private int _e, {|RH7101:_f|};
+                                }
+                                """;
+
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     private int _a,
+                                 #if FEATURE
+                                 #endif
+                                         {|RH7101:_b|};
+                                 }
+
+                                 internal class D
+                                 {
+                                     private int _c;
+                                     private int _d;
+                                 }
+
+                                 internal class E
+                                 {
+                                     private int _e;
+                                     private int _f;
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
     }
 
     /// <summary>

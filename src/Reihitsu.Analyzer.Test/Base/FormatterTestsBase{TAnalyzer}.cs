@@ -68,6 +68,18 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     }
 
     /// <summary>
+    /// Verifies that the formatter keeps a shape the analyzer reports as written, under LF and CRLF line endings: the
+    /// analyzer reports exactly the diagnostics marked in the source, and formatting the source changes nothing
+    /// </summary>
+    /// <param name="source">The source text, with markup for every expected diagnostic</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    protected static async Task VerifyFormatterKeepsReportedShape(string source)
+    {
+        await VerifyFormatterKeepsReportedShape(source, Environment.NewLine);
+        await VerifyFormatterKeepsReportedShape(AlternateLineEndings(source), AlternateLineEndings(Environment.NewLine));
+    }
+
+    /// <summary>
     /// Creates an expected diagnostic with an explicit span
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
@@ -126,6 +138,26 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
         if (isRefused == false)
         {
             PhaseStabilityCheck.AssertNoPhaseChanges(reformatted, endOfLine, parseOptions);
+        }
+    }
+
+    /// <summary>
+    /// Verifies under the given line ending that the analyzer reports exactly the diagnostics marked in the source, that
+    /// formatting the source changes nothing, and, unless the formatter refused the input as unsupported, that no
+    /// formatter phase run alone changes it
+    /// </summary>
+    /// <param name="source">The source text, with markup for every expected diagnostic</param>
+    /// <param name="endOfLine">End of line sequence</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyFormatterKeepsReportedShape(string source, string endOfLine)
+    {
+        await Verify(source);
+
+        var (formatted, parseOptions, isRefused) = await VerifyFormatterFixCore(source, StripMarkup(source), null, endOfLine);
+
+        if (isRefused == false)
+        {
+            PhaseStabilityCheck.AssertNoPhaseChanges(formatted, endOfLine, parseOptions);
         }
     }
 

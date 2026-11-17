@@ -640,13 +640,15 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifies the specification example in which the regions of an <c>#if</c> and an <c>#else</c> branch, and a region
-    /// in a branch and one outside every branch, are not compared
+    /// Verifies the specification example in which the regions of an <c>#if</c> and an <c>#else</c> branch are not
+    /// compared with each other, and the region of the branch the build compiles is compared with the region outside
+    /// every branch, with and without the symbol defined
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7311-001")]
-    public async Task RegionsInBranchesAndARegionOutsideEveryBranchAreNotCompared()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task RegionOfTheCompiledBranchIsComparedWithARegionOutsideEveryBranch()
     {
         const string testData = """
                                 class C
@@ -665,7 +667,7 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
                                     #endregion
                                 #endif
 
-                                    #region Fields
+                                    {|RH7311:#region Fields|}
 
                                     int _c;
 
@@ -674,15 +676,91 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
                                 """;
 
         await Verify(testData);
+        await Verify(testData, test => test.SolutionTransforms.Add(DefineDebug));
     }
 
     /// <summary>
-    /// Verifies that two regions outside every branch are still compared when a conditional directive with a region of
-    /// the same description stands between them
+    /// Verifies that a region in a branch the build excludes is not compared with a region outside every branch, for an
+    /// <c>#if</c> whose symbol is not defined and for <c>#if false</c>
+    /// </summary>
+    /// <param name="condition">The condition of the <c>#if</c> that excludes the branch</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("NEVER", DisplayName = "Undefined symbol")]
+    [DataRow("false", DisplayName = "If false")]
+    [Requirement("RH7311-001")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task RegionInAnExcludedBranchIsNotComparedWithARegionOutsideEveryBranch(string condition)
+    {
+        var testData = $$"""
+                         class C
+                         {
+                             #region Fields
+
+                             int _a;
+
+                             #endregion
+
+                         #if {{condition}}
+                             #region Fields
+
+                             int _b;
+
+                             #endregion
+                         #endif
+                         }
+                         """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a region in the compiled branch of an <c>#elif</c> is compared with a region outside every branch,
+    /// and the region of the excluded <c>#if</c> branch is not
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7311-001")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task RegionOfTheCompiledElifBranchIsComparedWithARegionOutsideEveryBranch()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    #region Fields
+
+                                    int _a;
+
+                                    #endregion
+
+                                #if NEVER
+                                    #region Fields
+
+                                    int _b;
+
+                                    #endregion
+                                #elif !NEVER
+                                    {|RH7311:#region Fields|}
+
+                                    int _c;
+
+                                    #endregion
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that two regions outside every branch are still compared when a conditional directive with a region of
+    /// the same description stands between them, and that the region in the branch is compared as well where the build
+    /// compiles it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7311-001")]
+    [Requirement("SHARED-DIAG-008")]
     public async Task RegionsOutsideEveryBranchAreComparedAcrossAConditionalDirective()
     {
         const string testData = """
@@ -710,7 +788,33 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
                                 }
                                 """;
 
+        const string withSymbol = """
+                                  class C
+                                  {
+                                      #region Fields
+
+                                      int _a;
+
+                                      #endregion
+
+                                  #if DEBUG
+                                      {|RH7311:#region Fields|}
+
+                                      int _b;
+
+                                      #endregion
+                                  #endif
+
+                                      {|RH7311:#region Fields|}
+
+                                      int _c;
+
+                                      #endregion
+                                  }
+                                  """;
+
         await Verify(testData);
+        await Verify(withSymbol, test => test.SolutionTransforms.Add(DefineDebug));
     }
 
     /// <summary>
@@ -876,13 +980,14 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifies that two regions in one branch of a conditional directive that starts inside the declaration are not
-    /// compared, also when the branch is the one the configuration compiles
+    /// Verifies that two regions in the compiled branch of a conditional directive that starts inside the declaration
+    /// are compared
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7311-001")]
-    public async Task RegionsInABranchThatStartsInsideTheDeclarationAreNotCompared()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task RegionsInACompiledBranchThatStartsInsideTheDeclarationAreCompared()
     {
         const string testData = """
                                 class C
@@ -896,7 +1001,7 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
 
                                     #endregion
 
-                                    #region Methods
+                                    {|RH7311:#region Methods|}
 
                                     void B()
                                     {
@@ -911,13 +1016,14 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifies that a region in a branch that starts inside the declaration is not compared, also when another
+    /// Verifies that a region in a compiled branch that starts inside the declaration is compared, also when another
     /// conditional directive encloses the whole declaration
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7311-001")]
-    public async Task RegionInABranchInsideADeclarationThatAConditionalDirectiveEnclosesIsNotCompared()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task RegionInACompiledBranchInsideADeclarationThatAConditionalDirectiveEnclosesIsCompared()
     {
         const string testData = """
                                 #if !NEVER
@@ -932,7 +1038,7 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
                                     #endregion
 
                                 #if !NEVER
-                                    #region Methods
+                                    {|RH7311:#region Methods|}
 
                                     void B()
                                     {

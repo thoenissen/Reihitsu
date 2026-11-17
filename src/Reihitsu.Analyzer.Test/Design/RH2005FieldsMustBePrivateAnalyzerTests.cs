@@ -1563,6 +1563,32 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     }
 
     /// <summary>
+    /// Verifies the specification example of RH2005-001: in a build that does not define <c>NEVER</c>, the field is
+    /// <c>static</c> and not <c>readonly</c>, so an <c>#if</c> block among its modifiers does not keep it from being
+    /// reported, and no code fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2005-001")]
+    [Requirement("RH2005-005")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyConditionalDirectiveAmongTheModifiersDoesNotKeepTheFieldFromBeingReported()
+    {
+        const string testData = """
+                                public class C
+                                {
+                                    static public
+                                #if NEVER
+                                        readonly
+                                #endif
+                                        int {|RH2005:Total|};
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
     /// Verifies the specification example of a <see langword="public"/> behind another modifier that ends its line: <see langword="private"/> takes the place of <c>static</c>, <c>static</c> ends the line, and <see langword="int"/> keeps its line and column
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

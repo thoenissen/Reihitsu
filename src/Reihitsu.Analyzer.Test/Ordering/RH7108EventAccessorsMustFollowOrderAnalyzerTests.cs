@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -78,14 +79,16 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
     }
 
     /// <summary>
-    /// Verifies that an accessor list with a conditional directive around the misordered remove accessor is not
-    /// reported where the symbol is defined
+    /// Verifies that an accessor list with a conditional directive around the misordered remove accessor is reported
+    /// where the symbol is defined, and no code fix is offered, because the <c>#endif</c> in front of the add accessor
+    /// would leave its <c>#if</c> behind
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7108-001")]
+    [Requirement("RH7108-005")]
     [Requirement("SHARED-DIAG-008")]
-    public async Task ConditionalDirectiveAroundTheRemoveAccessorKeepsTheAddAccessorFromBeingReported()
+    public async Task ConditionalDirectiveAroundTheRemoveAccessorKeepsTheReportAndWithholdsTheFix()
     {
         const string testData = """
                                 using System;
@@ -102,7 +105,7 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
                                             _changed -= value;
                                         }
                                 #endif
-                                        add
+                                        {|RH7108:add|}
                                         {
                                             _changed += value;
                                         }
@@ -110,18 +113,19 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
                                 }
                                 """;
 
-        await Verify(testData, test => test.SolutionTransforms.Add(DefineDebug));
+        await VerifyNoCodeFixIsOffered(testData, DocumentationMode.Parse, "DEBUG");
     }
 
     /// <summary>
     /// Verifies that an accessor list with a conditional directive between the attribute list and the keyword of the
-    /// add accessor is not reported
+    /// add accessor is reported, and no code fix is offered, because the <c>#if</c> would move without its <c>#endif</c>
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7108-001")]
+    [Requirement("RH7108-005")]
     [Requirement("SHARED-DIAG-008")]
-    public async Task ConditionalDirectiveBehindTheAttributeListOfTheAddAccessorKeepsItFromBeingReported()
+    public async Task ConditionalDirectiveBehindTheAttributeListOfTheAddAccessorKeepsTheReportAndWithholdsTheFix()
     {
         const string testData = """
                                 using System;
@@ -139,7 +143,7 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
 
                                         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
                                 #if DEBUG
-                                        add
+                                        {|RH7108:add|}
                                         {
                                             _changed += value;
                                         }
@@ -148,7 +152,7 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
                                 }
                                 """;
 
-        await Verify(testData, test => test.SolutionTransforms.Add(DefineDebug));
+        await VerifyNoCodeFixIsOffered(testData, DocumentationMode.Parse, "DEBUG");
     }
 
     /// <summary>
@@ -623,13 +627,16 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
     }
 
     /// <summary>
-    /// Verifies the specification example in which a conditional directive between the accessors keeps the add accessor
-    /// from being reported, and one inside an accessor body does not
+    /// Verifies the specification example in which neither a conditional directive between the accessors nor one inside
+    /// an accessor body keeps the add accessor from being reported; the fix is withheld for <c>A</c>, whose <c>#endif</c>
+    /// in front of <c>add</c> would leave its <c>#if</c> behind, and offered for <c>B</c>
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7108-001")]
-    public async Task ConditionalDirectiveBetweenTheAccessorsButNotInsideABodyKeepsTheAddAccessorFromBeingReported()
+    [Requirement("RH7108-005")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task ConditionalDirectiveBetweenTheAccessorsOrInsideABodyDoesNotKeepTheAddAccessorFromBeingReported()
     {
         const string testData = """
                                 using System;
@@ -643,7 +650,7 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
                                 #if !NEVER
                                         remove { _handlers -= value; }
                                 #endif
-                                        add { _handlers += value; }
+                                        {|RH7108:add|} { _handlers += value; }
                                     }
 
                                     public event Action B
@@ -664,17 +671,145 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
                                 }
                                 """;
 
-        await Verify(testData);
+        const string fixedData = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     private Action _handlers;
+
+                                     public event Action A
+                                     {
+                                 #if !NEVER
+                                         remove { _handlers -= value; }
+                                 #endif
+                                         {|RH7108:add|} { _handlers += value; }
+                                     }
+
+                                     public event Action B
+                                     {
+                                         add
+                                         {
+                                             _handlers += value;
+                                         }
+
+                                         remove
+                                         {
+                                 #if DEBUG
+                                             Console.WriteLine();
+                                 #endif
+                                             _handlers -= value;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
     }
 
     /// <summary>
-    /// Verifies that an accessor list with an empty conditional directive pair between the accessors is not reported
+    /// Verifies that a balanced conditional directive pair in the leading trivia of the add accessor, empty or holding
+    /// excluded code, does not keep it from being reported, and that the fix moves the pair with it
+    /// </summary>
+    /// <param name="directives">The balanced conditional directive pair, and the code it holds, in front of <c>add</c></param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("#if DEBUG\n#endif", DisplayName = "Empty block")]
+    [DataRow("#if NEVER\n        add { }\n#endif", DisplayName = "Excluded accessor")]
+    [DataRow("#if false\n        add { }\n#endif", DisplayName = "If false")]
+    [Requirement("RH7108-001")]
+    [Requirement("RH7108-005")]
+    [Requirement("SHARED-DIAG-008")]
+    [Requirement("SHARED-ORDER-006")]
+    public async Task BalancedConditionalDirectivePairInFrontOfTheAddAccessorIsReportedAndMovesWithIt(string directives)
+    {
+        var testData = $$"""
+                         using System;
+
+                         class C
+                         {
+                             private Action _handlers;
+
+                             public event Action A
+                             {
+                                 remove { _handlers -= value; }
+                         {{directives}}
+                                 {|RH7108:add|} { _handlers += value; }
+                             }
+                         }
+                         """;
+
+        var fixedData = $$"""
+                          using System;
+
+                          class C
+                          {
+                              private Action _handlers;
+
+                              public event Action A
+                              {
+                          {{directives}}
+                                  add { _handlers += value; }
+                                  remove { _handlers -= value; }
+                              }
+                          }
+                          """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional group whose <c>#if</c> stands in front of the crossed remove accessor and whose
+    /// <c>#endif</c> stands in front of the add accessor does not keep the add accessor from being reported, and that no
+    /// code fix is offered, for every shape of the group
+    /// </summary>
+    /// <param name="directives">The conditional group, and the remove accessor it holds, in front of <c>add</c></param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("#if !NEVER\n        remove { _handlers -= value; }\n#endif", DisplayName = "Active accessor")]
+    [DataRow("#if NEVER\n        remove { }\n#else\n        remove { _handlers -= value; }\n#endif", DisplayName = "If and else")]
+    [DataRow("#if NEVER\n        remove { }\n#elif !NEVER\n        remove { _handlers -= value; }\n#endif", DisplayName = "If and elif")]
+    [Requirement("RH7108-001")]
+    [Requirement("RH7108-005")]
+    [Requirement("SHARED-DIAG-008")]
+    [Requirement("SHARED-ORDER-003")]
+    public async Task ConditionalGroupAroundTheCrossedRemoveAccessorKeepsTheReportAndWithholdsTheFix(string directives)
+    {
+        var testData = $$"""
+                         using System;
+
+                         class C
+                         {
+                             private Action _handlers;
+
+                             public event Action A
+                             {
+                         {{directives}}
+                                 {|RH7108:add|} { _handlers += value; }
+                             }
+                         }
+                         """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All moves the add accessors whose move is safe and leaves the one whose <c>#endif</c> would be
+    /// torn from its <c>#if</c> reported and in place
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7108-001")]
+    [Requirement("RH7108-005")]
     [Requirement("SHARED-DIAG-008")]
-    public async Task EmptyConditionalDirectivePairBetweenTheAccessorsKeepsTheAddAccessorFromBeingReported()
+    public async Task FixAllMovesOnlyTheAddAccessorsWhoseMoveKeepsTheirDirectivesPaired()
     {
         const string testData = """
                                 using System;
@@ -685,15 +820,63 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
 
                                     public event Action A
                                     {
+                                #if !NEVER
                                         remove { _handlers -= value; }
-                                #if DEBUG
                                 #endif
-                                        add { _handlers += value; }
+                                        {|RH7108:add|} { _handlers += value; }
+                                    }
+
+                                    public event Action B
+                                    {
+                                        remove { _handlers -= value; }
+                                        {|RH7108:add|} { _handlers += value; }
+                                    }
+
+                                    public event Action D
+                                    {
+                                        remove { _handlers -= value; }
+                                        {|RH7108:add|} { _handlers += value; }
                                     }
                                 }
                                 """;
 
-        await Verify(testData);
+        const string fixedData = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     private Action _handlers;
+
+                                     public event Action A
+                                     {
+                                 #if !NEVER
+                                         remove { _handlers -= value; }
+                                 #endif
+                                         {|RH7108:add|} { _handlers += value; }
+                                     }
+
+                                     public event Action B
+                                     {
+                                         add { _handlers += value; }
+                                         remove { _handlers -= value; }
+                                     }
+
+                                     public event Action D
+                                     {
+                                         add { _handlers += value; }
+                                         remove { _handlers -= value; }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
     }
 
     /// <summary>
@@ -805,23 +988,6 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
     }
 
     #endregion // Tests
-
-    #region Methods
-
-    /// <summary>
-    /// Defines the preprocessor symbol <c>DEBUG</c> for the test project
-    /// </summary>
-    /// <param name="solution">Solution</param>
-    /// <param name="projectId">Project ID</param>
-    /// <returns>Solution</returns>
-    private static Solution DefineDebug(Solution solution, ProjectId projectId)
-    {
-        return solution.GetProject(projectId)?.ParseOptions is CSharpParseOptions parseOptions
-                   ? solution.WithProjectParseOptions(projectId, parseOptions.WithPreprocessorSymbols("DEBUG"))
-                   : solution;
-    }
-
-    #endregion // Methods
 
     #region BatchCodeFixTestsBase
 

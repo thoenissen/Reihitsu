@@ -5,7 +5,7 @@
 | ID prefix | SHARED-EMPTY |
 | Status | Active |
 | Code owners | `EmptyTypeDeclarationShouldUseSemicolonAnalyzerBase`, `EmptyTypeDeclarationShouldUseSemicolonCodeFixProviderBase`, `EmptyTypeDeclarationSemicolonAnalysisUtilities` |
-| Uses | FMT-STRUCT-017, FMT-STRUCT-018 |
+| Uses | FMT-STRUCT-017, FMT-STRUCT-018, SHARED-DIAG-008 |
 
 This spec covers the rules that report a type declaration with an empty brace body: which declarations are reported, what the code fix produces, and when it is withheld. Each rule that uses this spec names the kind of type it checks and the C# version from which that kind has a semicolon declaration. The formatter's counterparts are FMT-STRUCT-017 and FMT-STRUCT-018.
 
@@ -20,7 +20,7 @@ This spec covers the rules that report a type declaration with an empty brace bo
 
 ### SHARED-EMPTY-001 — A brace body without members is reported
 
-A rule that uses this spec MUST report a declaration of its kind whose braces enclose nothing but whitespace, line breaks, and comments, and that ends with its closing brace, when the project's C# version is at least the version the rule names. It MUST report one diagnostic per declaration, located on the declaration's name. A comment after the declaration's header, around the opening brace, or before the closing brace MUST NOT keep the declaration from being reported.
+A rule that uses this spec MUST report a declaration of its kind whose braces enclose no member that the analyzed build compiles — nothing but whitespace, line breaks, comments, preprocessor directives, and code that a conditional directive excludes — and that ends with its closing brace, when the project's C# version is at least the version the rule names. It MUST report one diagnostic per declaration, located on the declaration's name. A comment after the declaration's header, around the opening brace, or before the closing brace MUST NOT keep the declaration from being reported, and neither MUST a directive or excluded code in the body: the rule judges the members the analyzed build compiles (SHARED-DIAG-008).
 
 Why: A type without members says everything on its declaration line. The two braces add lines but no information, and the semicolon declaration states "no members" directly. A comment does not make the type less empty; SHARED-EMPTY-004 decides what it means for the fix.
 
@@ -47,6 +47,25 @@ class {|RH5412:E|}
 ```
 
 `C` has the member `D` and is not reported.
+
+Example — RH5412, in a build that does not define `DEBUG`:
+
+```csharp
+class {|RH5412:A|}
+{
+#if DEBUG
+    int _x;
+#endif
+}
+
+class {|RH5412:B|}
+{
+    #region R
+    #endregion
+}
+```
+
+is reported, and no code fix is offered (SHARED-EMPTY-004). In a build that defines `DEBUG`, `A` has the member `_x` and is not reported.
 
 ### SHARED-EMPTY-002 — A declaration with members or a semicolon is not reported
 

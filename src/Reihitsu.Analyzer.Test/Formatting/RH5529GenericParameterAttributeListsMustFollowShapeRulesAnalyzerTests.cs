@@ -484,22 +484,23 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
     }
 
     /// <summary>
-    /// Verifies that a type parameter attribute list behind a conditional directive between the lists of its target is not reported, under LF and CRLF line endings
+    /// Verifies that a list behind a conditional directive between the lists of its target is reported without a code fix, under LF and CRLF line endings
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-ATTR-020")]
+    [Requirement("SHARED-DIAG-008")]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    public async Task VerifyNoDiagnosticWhenConditionalDirectiveIsBetweenTheLists(string endOfLine)
+    public async Task VerifyDiagnosticWithoutCodeFixWhenConditionalDirectiveIsBetweenTheLists(string endOfLine)
     {
         const string testData = """
                                 class C<[A]
                                 #if DEBUG
                                         [B]
                                 #endif
-                                        [D] T>
+                                        {|RH5529:[D]|} T>
                                 {
                                 }
 
@@ -517,7 +518,7 @@ public class RH5529GenericParameterAttributeListsMustFollowShapeRulesAnalyzerTes
                                 }
                                 """;
 
-        await Verify(ConvertEndOfLine(testData, endOfLine));
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
     }
 
     #endregion // Tests

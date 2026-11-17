@@ -80,13 +80,15 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasFormatterT
     }
 
     /// <summary>
-    /// Verifies that the trailing comma before a conditional-compilation block carrying a further element stays
-    /// analyzer-clean and formatter-stable under LF and CRLF, since the formatter and the analyzer withhold in
-    /// lock-step
+    /// Verifies that the trailing comma before a conditional-compilation block carrying a further element is reported,
+    /// and that the formatter keeps it as written under LF and CRLF, since another build can need it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyArrayWithConditionalBlockAfterFinalItemIsFormatterStable()
+    [Requirement("SHARED-TRAIL-002")]
+    [Requirement("SHARED-DIAG-008")]
+    [Requirement("FMT-STRUCT-020")]
+    public async Task VerifyArrayWithConditionalBlockAfterFinalItemIsReportedAndKeptByTheFormatter()
     {
         const string input = """
                              internal class Example
@@ -95,7 +97,7 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasFormatterT
                                  {
                                      var values = new[]
                                                   {
-                                                      1,
+                                                      1{|RH5410:,|}
                              #if SYMBOL
                                          2,
                              #endif
@@ -104,7 +106,7 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasFormatterT
                              }
                              """;
 
-        await VerifyFormatter(input);
+        await VerifyFormatterKeepsReportedShape(input);
     }
 
     #endregion // Tests

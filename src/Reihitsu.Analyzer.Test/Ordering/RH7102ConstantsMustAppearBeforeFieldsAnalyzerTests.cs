@@ -975,8 +975,9 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
     }
 
     /// <summary>
-    /// Verifying that a constant whose <c>const</c> modifier an <c>#if</c> splits, and that is a static initialized field
-    /// in a build with <c>DEBUG</c>, is not reported
+    /// Verifying that a constant whose <c>const</c> modifier an <c>#if</c> splits is reported without a fix in a build
+    /// that compiles it as a constant, and that nothing is reported in a build with <c>DEBUG</c>, which compiles it as a
+    /// static initialized field
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -985,7 +986,7 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
     [DataRow("\r\n")]
     [Requirement("RH7102-001")]
     [Requirement("SHARED-DIAG-008")]
-    public async Task ConstantWhoseModifiersAnIfSplitsIntoAStaticFieldIsNotReported(string endOfLine)
+    public async Task ConstantWhoseModifiersAnIfSplitsIntoAStaticFieldIsReportedWithoutFix(string endOfLine)
     {
         const string source = """
                               public class C
@@ -997,7 +998,7 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
                               #else
                                       const
                               #endif
-                                      int K = 1;
+                                      int {|RH7102:K|} = 1;
 
                                   private static int Log(string name)
                                   {
@@ -1006,12 +1007,14 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
                               }
                               """;
 
-        await Verify(WithEndOfLine(source, endOfLine));
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+        await VerifyWithPreprocessorSymbols(WithEndOfLine(RemoveMarkup(source), endOfLine), "DEBUG");
     }
 
     /// <summary>
-    /// Verifying that a constant whose <c>const</c> modifier an <c>#if</c> splits, and that is an instance field of a
-    /// struct in a build with <c>DEBUG</c>, is not reported
+    /// Verifying the specification example: a constant whose <c>const</c> modifier an <c>#if</c> splits is reported
+    /// without a fix in a build that compiles it as a constant, and nothing is reported in a build with <c>DEBUG</c>,
+    /// which compiles it as a readonly instance field of the class
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1020,10 +1023,10 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
     [DataRow("\r\n")]
     [Requirement("RH7102-001")]
     [Requirement("SHARED-DIAG-008")]
-    public async Task ConstantWhoseModifiersAnIfSplitsIntoAnInstanceFieldIsNotReported(string endOfLine)
+    public async Task ConstantWhoseModifiersAnIfSplitsIntoAnInstanceFieldIsReportedWithoutFix(string endOfLine)
     {
         const string source = """
-                              public struct S
+                              public class S
                               {
                                   private int _x;
                                   private
@@ -1032,11 +1035,108 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : BatchCodeFixTe
                               #else
                                       const
                               #endif
-                                      int K = 1;
+                                      int {|RH7102:K|} = 1;
                               }
                               """;
 
-        await Verify(WithEndOfLine(source, endOfLine));
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+        await VerifyWithPreprocessorSymbols(WithEndOfLine(RemoveMarkup(source), endOfLine), "DEBUG");
+    }
+
+    /// <summary>
+    /// Verifying that a constant is reported, and no code fix is offered, for every shape of conditional directive in
+    /// its modifier list: the analyzer judges the modifiers the analyzed build compiles
+    /// </summary>
+    /// <param name="directives">The conditional directives, and the code they hold, between <c>private</c> and the type</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("#if FEATURE\n#endif\n        const", DisplayName = "Empty block")]
+    [DataRow("#if NEVER\n        static\n#endif\n        const", DisplayName = "Excluded modifier")]
+    [DataRow("#if !NEVER\n        const\n#endif", DisplayName = "Active modifier")]
+    [DataRow("#if NEVER\n        static\n#else\n        const\n#endif", DisplayName = "If and else")]
+    [DataRow("#if NEVER\n        static\n#elif !NEVER\n        const\n#endif", DisplayName = "If and elif")]
+    [DataRow("#if false\n        static\n#endif\n        const", DisplayName = "If false")]
+    [Requirement("RH7102-001")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task ConditionalDirectiveInTheModifierListOfAConstantKeepsTheReportAndWithholdsTheFix(string directives)
+    {
+        var source = $$"""
+                       public class C
+                       {
+                           private int _x;
+                           private
+                       {{directives}}
+                               int {|RH7102:K|} = 1;
+                       }
+                       """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that Fix All moves the constant without a conditional directive in its modifier list and leaves the
+    /// constant with one reported and in place
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7102-001")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task FixAllMovesOnlyTheConstantWithoutAConditionalDirectiveInItsModifierList()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _x;
+                                  private
+                              #if FEATURE
+                              #endif
+                                      const int {|RH7102:K|} = 1;
+                              }
+
+                              public class D
+                              {
+                                  private int _y;
+                                  private const int {|RH7102:L|} = 2;
+                              }
+
+                              public class E
+                              {
+                                  private int _z;
+                                  private const int {|RH7102:M|} = 3;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private int _x;
+                                       private
+                                   #if FEATURE
+                                   #endif
+                                           const int {|RH7102:K|} = 1;
+                                   }
+
+                                   public class D
+                                   {
+                                       private const int L = 2;
+                                       private int _y;
+                                   }
+
+                                   public class E
+                                   {
+                                       private const int M = 3;
+                                       private int _z;
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
     }
 
     /// <summary>

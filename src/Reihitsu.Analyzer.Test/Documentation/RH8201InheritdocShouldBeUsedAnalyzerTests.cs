@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
@@ -2652,12 +2653,13 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     }
 
     /// <summary>
-    /// Verifies that a documented implicit interface implementation is not reported when the interface list of its type is conditionally compiled
+    /// Verifies that a documented implicit interface implementation is reported without a code fix when the interface list of its type is conditionally compiled
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH8201-003")]
-    public async Task VerifyNoDiagnosticForImplicitImplementationWhenInterfaceListIsConditional()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyDiagnosticWithoutCodeFixForImplicitImplementationWhenInterfaceListIsConditional()
     {
         const string testData = """
                                 using System;
@@ -2667,23 +2669,25 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                     : IDisposable
                                 #endif
                                 {
-                                    /// <summary>Implementation documentation</summary>
-                                    public void Dispose()
+                                    ///{|RH8201: <summary>Implementation documentation</summary>
+                                |}    public void Dispose()
                                     {
                                     }
                                 }
                                 """;
 
-        await Verify(testData);
+        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyWithPreprocessorSymbols(RemoveMarkup(testData), "FEATURE");
     }
 
     /// <summary>
-    /// Verifies that a documented implicit interface implementation is not reported when the interface list of its type contains disabled text
+    /// Verifies that a documented implicit interface implementation is reported without a code fix when the interface list of its type contains disabled text
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH8201-003")]
-    public async Task VerifyNoDiagnosticForImplicitImplementationWhenAnotherInterfaceIsDisabled()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyDiagnosticWithoutCodeFixForImplicitImplementationWhenAnotherInterfaceIsDisabled()
     {
         const string testData = """
                                 using System;
@@ -2693,23 +2697,24 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                     , ICloneable
                                 #endif
                                 {
-                                    /// <summary>Implementation documentation</summary>
-                                    public void Dispose()
+                                    ///{|RH8201: <summary>Implementation documentation</summary>
+                                |}    public void Dispose()
                                     {
                                     }
                                 }
                                 """;
 
-        await Verify(testData);
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>
-    /// Verifies that a documented implicit interface implementation is not reported when another partial declaration of its type has a conditionally compiled interface list
+    /// Verifies that a documented implicit interface implementation is reported without a code fix when another partial declaration of its type has a conditionally compiled interface list
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH8201-003")]
-    public async Task VerifyNoDiagnosticForImplicitImplementationWhenOtherPartialDeclarationIsConditional()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyDiagnosticWithoutCodeFixForImplicitImplementationWhenOtherPartialDeclarationIsConditional()
     {
         const string testData = """
                                 using System;
@@ -2723,23 +2728,24 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
                                 internal partial class TestImplementation
                                 {
-                                    /// <summary>Implementation documentation</summary>
-                                    public void Dispose()
+                                    ///{|RH8201: <summary>Implementation documentation</summary>
+                                |}    public void Dispose()
                                     {
                                     }
                                 }
                                 """;
 
-        await Verify(testData);
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>
-    /// Verifies that a documented field-like event implementing an interface event is not reported when the interface list of its type is conditionally compiled
+    /// Verifies that a documented field-like event implementing an interface event is reported without a code fix when the interface list of its type is conditionally compiled
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH8201-003")]
-    public async Task VerifyNoDiagnosticForFieldLikeEventWhenInterfaceListIsConditional()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyDiagnosticWithoutCodeFixForFieldLikeEventWhenInterfaceListIsConditional()
     {
         const string testData = """
                                 using System;
@@ -2754,12 +2760,12 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                     : ITest
                                 #endif
                                 {
-                                    /// <summary>Implementation documentation</summary>
-                                    public event EventHandler TestEvent;
+                                    ///{|RH8201: <summary>Implementation documentation</summary>
+                                |}    public event EventHandler TestEvent;
                                 }
                                 """;
 
-        await Verify(testData);
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>
@@ -2900,20 +2906,21 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     }
 
     /// <summary>
-    /// Verifies that a documented implicit interface implementation is not reported when a conditional region encloses the partial declaration that lists the interface
+    /// Verifies that a documented implicit interface implementation is reported without a code fix when a conditional region encloses the partial declaration that lists the interface
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH8201-003")]
-    public async Task VerifyNoDiagnosticWhenConditionalRegionEnclosesPartialDeclaration()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyDiagnosticWithoutCodeFixWhenConditionalRegionEnclosesPartialDeclaration()
     {
         const string testData = """
                                 using System;
 
                                 internal partial class TestImplementation
                                 {
-                                    /// <summary>Implementation documentation</summary>
-                                    public void Dispose()
+                                    ///{|RH8201: <summary>Implementation documentation</summary>
+                                |}    public void Dispose()
                                     {
                                     }
                                 }
@@ -2925,16 +2932,17 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                 #endif
                                 """;
 
-        await Verify(testData);
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>
-    /// Verifies that a documented implicit interface implementation is not reported when conditional regions supply alternative headers for its type
+    /// Verifies that a documented implicit interface implementation is reported without a code fix when conditional regions supply alternative headers for its type
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH8201-003")]
-    public async Task VerifyNoDiagnosticWhenConditionalRegionSuppliesAlternativeHeaders()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyDiagnosticWithoutCodeFixWhenConditionalRegionSuppliesAlternativeHeaders()
     {
         const string testData = """
                                 using System;
@@ -2946,23 +2954,24 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                 internal class TestImplementation
                                 {
                                 #endif
-                                    /// <summary>Implementation documentation</summary>
-                                    public void Dispose()
+                                    ///{|RH8201: <summary>Implementation documentation</summary>
+                                |}    public void Dispose()
                                     {
                                     }
                                 }
                                 """;
 
-        await Verify(testData);
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>
-    /// Verifies that a documented implicit interface implementation is not reported when the implemented interface member is conditionally compiled
+    /// Verifies that a documented implicit interface implementation is reported without a code fix when the implemented interface member is conditionally compiled
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH8201-003")]
-    public async Task VerifyNoDiagnosticWhenInterfaceMemberIsConditional()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyDiagnosticWithoutCodeFixWhenInterfaceMemberIsConditional()
     {
         const string testData = """
                                 internal interface ITest
@@ -2974,23 +2983,24 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
                                 internal class TestImplementation : ITest
                                 {
-                                    /// <summary>Implementation documentation</summary>
-                                    public void TestMethod()
+                                    ///{|RH8201: <summary>Implementation documentation</summary>
+                                |}    public void TestMethod()
                                     {
                                     }
                                 }
                                 """;
 
-        await Verify(testData);
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>
-    /// Verifies that a documented implicit interface implementation is not reported when the base list of an implemented interface is conditionally compiled
+    /// Verifies that a documented implicit interface implementation is reported without a code fix when the base list of an implemented interface is conditionally compiled
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH8201-003")]
-    public async Task VerifyNoDiagnosticWhenInterfaceBaseListIsConditional()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyDiagnosticWithoutCodeFixWhenInterfaceBaseListIsConditional()
     {
         const string testData = """
                                 internal interface IBase
@@ -3007,31 +3017,32 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
                                 internal class TestImplementation : IDerived
                                 {
-                                    /// <summary>Implementation documentation</summary>
-                                    public void TestMethod()
+                                    ///{|RH8201: <summary>Implementation documentation</summary>
+                                |}    public void TestMethod()
                                     {
                                     }
                                 }
                                 """;
 
-        await Verify(testData);
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>
-    /// Verifies that a documented implicit interface implementation is not reported when the file declaring its type contains any conditional region
+    /// Verifies that a documented implicit interface implementation is reported without a code fix when the file declaring its type contains any conditional region
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH8201-003")]
-    public async Task VerifyNoDiagnosticWhenFileOfTypeContainsUnrelatedConditionalRegion()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyDiagnosticWithoutCodeFixWhenFileOfTypeContainsUnrelatedConditionalRegion()
     {
         const string testData = """
                                 using System;
 
                                 internal class TestImplementation : IDisposable
                                 {
-                                    /// <summary>Implementation documentation</summary>
-                                    public void Dispose()
+                                    ///{|RH8201: <summary>Implementation documentation</summary>
+                                |}    public void Dispose()
                                     {
                                 #if DEBUG
                                         Console.WriteLine();
@@ -3040,7 +3051,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                 }
                                 """;
 
-        await Verify(testData);
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>
@@ -3085,19 +3096,20 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     }
 
     /// <summary>
-    /// Verifies that a documented implicit interface implementation is not reported when the file declaring the
+    /// Verifies that a documented implicit interface implementation is reported without a code fix when the file declaring the
     /// implemented interface contains a conditional region, even though the file declaring the type contains none
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH8201-003")]
-    public async Task VerifyNoDiagnosticWhenInterfaceFileContainsConditionalRegion()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyDiagnosticWithoutCodeFixWhenInterfaceFileContainsConditionalRegion()
     {
         const string testData = """
                                 internal class TestImplementation : ITest
                                 {
-                                    /// <summary>Implementation documentation</summary>
-                                    public void TestMethod()
+                                    ///{|RH8201: <summary>Implementation documentation</summary>
+                                |}    public void TestMethod()
                                     {
                                     }
                                 }
@@ -3113,7 +3125,13 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                      }
                                      """;
 
-        await Verify(testData, test => test.TestState.Sources.Add(("/0/Test1.cs", interfaceData)));
+        await Verify(testData,
+                     testData,
+                     test =>
+                     {
+                         test.TestState.Sources.Add(("/0/Test1.cs", interfaceData));
+                         test.FixedState.Sources.Add(("/0/Test1.cs", interfaceData));
+                     });
     }
 
     /// <summary>
@@ -3344,13 +3362,16 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     }
 
     /// <summary>
-    /// Verifies the specification example: with an #if in the file of the type, the override is still reported while the implicit implementation is not
+    /// Verifies the specification example: with an #if in the file of the type, the override and the implicit
+    /// implementation are both reported; the fix replaces the documentation of the override and is withheld for the
+    /// implicit implementation
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH8201-003")]
     [Requirement("RH8201-004")]
-    public async Task VerifySpecificationExampleConditionalInterfaceListSuppressesOnlyImplicitImplementations()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifySpecificationExampleConditionalInterfaceListWithholdsTheFixOnlyForImplicitImplementations()
     {
         const string source = """
                               using System;
@@ -3379,10 +3400,10 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                   {
                                   }
 
-                                  /// <summary>
+                                  ///{|RH8201: <summary>
                                   /// Disposes
                                   /// </summary>
-                                  public void Dispose()
+                              |}    public void Dispose()
                                   {
                                   }
 
@@ -3393,7 +3414,56 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat));
+        const string fixedSource = """
+                                   using System;
+
+                                   /// <summary>
+                                   /// Base
+                                   /// </summary>
+                                   public abstract class B
+                                   {
+                                       /// <summary>
+                                       /// Runs
+                                       /// </summary>
+                                       public abstract void Run();
+                                   }
+
+                                   /// <summary>
+                                   /// Service
+                                   /// </summary>
+                                   public class C : B, IDisposable
+                                   #if FEATURE
+                                       , ICloneable
+                                   #endif
+                                   {
+                                       /// <inheritdoc/>
+                                       public override void Run()
+                                       {
+                                       }
+
+                                       ///{|RH8201: <summary>
+                                       /// Disposes
+                                       /// </summary>
+                                   |}    public void Dispose()
+                                       {
+                                       }
+
+                                   #if FEATURE
+                                       /// <inheritdoc/>
+                                       public object Clone() => this;
+                                   #endif
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     },
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat));
     }
 
     /// <summary>

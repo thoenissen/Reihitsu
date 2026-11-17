@@ -113,6 +113,21 @@ public abstract class AnalyzerTestsBase<TAnalyzer>
     }
 
     /// <summary>
+    /// Verifies the analyzer reports exactly the diagnostics marked in the source when the source is parsed with the given
+    /// preprocessor symbols defined, which selects the build configuration the analyzer judges
+    /// </summary>
+    /// <param name="source">The source text to test, which may include markup syntax</param>
+    /// <param name="preprocessorSymbols">Preprocessor symbols to define for parsing</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    protected static async Task VerifyWithPreprocessorSymbols(string source, params string[] preprocessorSymbols)
+    {
+        await Verify(source,
+                     test => test.SolutionTransforms.Add((solution, projectId) => solution.GetProject(projectId)?.ParseOptions is CSharpParseOptions parseOptions
+                                                                                      ? solution.WithProjectParseOptions(projectId, parseOptions.WithPreprocessorSymbols(preprocessorSymbols))
+                                                                                      : solution));
+    }
+
+    /// <summary>
     /// Applies <see cref="DocumentationMode.None"/> to the test project parse options
     /// </summary>
     /// <param name="solution">Solution</param>

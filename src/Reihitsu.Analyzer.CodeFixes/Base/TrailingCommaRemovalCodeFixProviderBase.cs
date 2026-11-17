@@ -58,17 +58,29 @@ public abstract class TrailingCommaRemovalCodeFixProviderBase : ReihitsuCodeFixP
     #region ReihitsuCodeFixProviderBase
 
     /// <inheritdoc/>
-    protected sealed override Task RegisterCodeFixesCoreAsync(CodeFixContext context)
+    protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
+        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return;
+        }
+
         foreach (var diagnostic in context.Diagnostics)
         {
+            // Another build can compile an element behind a conditional directive or excluded code between the comma and
+            // the closing brace, and that element needs the comma, so the fix is withheld there (SHARED-TRAIL-002)
+            if (TrailingCommaCodeFixHelper.CommaPrecedesConditionalCompilationBoundary(root, diagnostic.Location.SourceSpan))
+            {
+                continue;
+            }
+
             context.RegisterCodeFix(CodeAction.Create(_title,
                                                       token => TrailingCommaCodeFixHelper.RemoveTrailingCommaAsync(context.Document, diagnostic.Location.SourceSpan, token),
                                                       GetType().Name),
                                     diagnostic);
         }
-
-        return Task.CompletedTask;
     }
 
     #endregion // ReihitsuCodeFixProviderBase

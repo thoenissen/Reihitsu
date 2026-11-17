@@ -46,10 +46,9 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer : Diagnostic
     {
         var argumentList = (ArgumentListSyntax)context.Node;
 
-        // A conditional directive in a gap of the list lets another build configuration compile other arguments
-        // (RH5102-004, SHARED-DIAG-008)
-        if (argumentList.Arguments.Count < 2
-            || SyntaxTriviaUtilities.ContainsConditionalCompilationBoundaryInElementGaps(argumentList.Arguments.GetWithSeparators(), argumentList.CloseParenToken))
+        // The arguments are judged as the analyzed build compiles them; a conditional directive in a gap of the list does
+        // not keep it from being reported, and the fix withholds itself there (RH5102-004, SHARED-DIAG-008)
+        if (argumentList.Arguments.Count < 2)
         {
             return;
         }

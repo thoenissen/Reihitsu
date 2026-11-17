@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -240,22 +241,23 @@ public class RH5508StructAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
     }
 
     /// <summary>
-    /// Verifies that the attribute list of a struct with a conditional directive between its attributes is not reported, under LF and CRLF line endings
+    /// Verifies that a list with a conditional directive between its attributes is reported without a code fix, with and without the symbol defined, under LF and CRLF line endings
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-ATTR-019")]
+    [Requirement("SHARED-DIAG-008")]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    public async Task VerifyNoDiagnosticWhenConditionalDirectiveIsBetweenTheAttributes(string endOfLine)
+    public async Task VerifyDiagnosticWithoutCodeFixWhenConditionalDirectiveIsBetweenTheAttributes(string endOfLine)
     {
         const string testData = """
-                                [A,
+                                {|RH5508:[A,
                                 #if DEBUG
                                  B,
                                 #endif
-                                 C1]
+                                 C1]|}
                                 struct S
                                 {
                                 }
@@ -271,7 +273,8 @@ public class RH5508StructAttributeListsMustFollowShapeRulesAnalyzerTests : Batch
                                 }
                                 """;
 
-        await Verify(ConvertEndOfLine(testData, endOfLine));
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine), DocumentationMode.Parse, "DEBUG");
     }
 
     /// <summary>

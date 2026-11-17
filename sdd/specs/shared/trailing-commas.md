@@ -5,9 +5,9 @@
 | ID prefix | SHARED-TRAIL |
 | Status | Active |
 | Code owners | `TrailingCommaAnalyzerBase<TNode>`, `TrailingCommaRemovalCodeFixProviderBase`, `TrailingCommaCodeFixHelper` |
-| Uses | FMT-STRUCT-019, FMT-STRUCT-020 |
+| Uses | FMT-STRUCT-019, FMT-STRUCT-020, SHARED-DIAG-008, SHARED-FIX-009 |
 
-This spec covers the rules that report a comma after the last element of a brace-delimited list: which comma is reported, when a conditional directive keeps it from being reported, and what the code fix removes. Each rule that uses this spec names the kind of list it checks. The formatter's counterparts are FMT-STRUCT-019 and FMT-STRUCT-020.
+This spec covers the rules that report a comma after the last element of a brace-delimited list: which comma is reported, when a conditional directive withholds the fix, and what the code fix removes. Each rule that uses this spec names the kind of list it checks. The formatter's counterparts are FMT-STRUCT-019 and FMT-STRUCT-020.
 
 ## Non-goals
 
@@ -46,18 +46,18 @@ enum G
 
 Only the comma after `B` in `E` is reported.
 
-### SHARED-TRAIL-002 — A comma in front of a conditional directive is not reported
+### SHARED-TRAIL-002 — A comma in front of a conditional directive is reported without a fix
 
-A rule that uses this spec MUST NOT report the comma after the last element when a conditional directive — `#if`, `#elif`, `#else`, or `#endif` — or code that such a directive excludes lies between the comma and the closing brace. Any other directive there, such as `#region` or `#pragma`, MUST NOT keep the comma from being reported. FMT-STRUCT-019 and FMT-STRUCT-020 keep the comma in the same case.
+A rule that uses this spec MUST judge the elements that the analyzed build compiles (SHARED-DIAG-008): a conditional directive — `#if`, `#elif`, `#else`, or `#endif` — or code that such a directive excludes, between the comma after the last element and the closing brace MUST NOT keep the comma from being reported, and the code fix MUST NOT be offered for it (SHARED-DIAG-008). Any other directive there, such as `#region` or `#pragma`, MUST NOT keep the comma from being reported either, and the fix stays offered (SHARED-TRAIL-003). FMT-STRUCT-019 and FMT-STRUCT-020 keep the comma in the conditional case.
 
-Why: Behind a conditional directive, another build configuration can have a further element, which then needs the comma. A `#region` or `#pragma` directive never adds an element, so the comma in front of it is a trailing comma in every configuration.
+Why: In the analyzed build, the element in front of the comma is the last one, so the comma is a trailing comma there; another build is judged when it is analyzed. Another build can compile a further element behind the directive, which then needs the comma, so removing it could break that build, and finding out would mean working out that build (SHARED-FIX-009); the author decides by hand, for example by writing the comma inside the branch, in front of the element that needs it. A `#region` or `#pragma` directive never adds an element, so the comma in front of it is a trailing comma in every configuration, and removing it keeps every build intact.
 
-Example — RH5409:
+Example — RH5409, in a build that does not define `DEBUG`:
 
 ```csharp
 enum E
 {
-    A,
+    A{|RH5409:,|}
 #if DEBUG
     B,
 #endif
@@ -72,7 +72,31 @@ enum F
 }
 ```
 
-The comma after `B` in `F` is reported; no comma in `E` is.
+Both commas are reported. No code fix is offered for the comma in `E`; the fix removes the comma in `F`.
+
+Example — the same enum `E` in a build that defines `DEBUG`: `B` is the last member, and the `#endif` lies between its comma and the brace, so that comma is reported, and no code fix is offered; the comma behind `A` is not a trailing comma in this build:
+
+```csharp
+enum E
+{
+    A,
+#if DEBUG
+    B{|RH5409:,|}
+#endif
+}
+```
+
+Example — the comma written inside the branch, in front of the element that needs it, is not reported in a build with or without `DEBUG`:
+
+```csharp
+enum E
+{
+    A
+#if DEBUG
+    , B
+#endif
+}
+```
 
 ### SHARED-TRAIL-003 — The fix removes the comma
 

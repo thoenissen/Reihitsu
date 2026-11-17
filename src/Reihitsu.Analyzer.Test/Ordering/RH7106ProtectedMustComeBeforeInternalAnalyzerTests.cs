@@ -53,13 +53,13 @@ public class RH7106ProtectedMustComeBeforeInternalAnalyzerTests : BatchCodeFixTe
 
     /// <summary>
     /// Verifies that a misordered compound access modifier with an empty conditional directive between its two
-    /// modifiers is not reported
+    /// modifiers is reported, with and without the symbol defined, and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7106-001")]
     [Requirement("SHARED-DIAG-008")]
-    public async Task MisorderedCompoundAccessModifiersSplitByAConditionalDirectiveAreNotReported()
+    public async Task MisorderedCompoundAccessModifiersSplitByAConditionalDirectiveAreReportedWithoutFix()
     {
         const string testData = """
                                 public class TestClass
@@ -67,14 +67,92 @@ public class RH7106ProtectedMustComeBeforeInternalAnalyzerTests : BatchCodeFixTe
                                     internal
                                 #if FEATURE
                                 #endif
-                                    protected void Execute()
+                                    {|RH7106:protected|} void Execute()
                                     {
                                     }
                                 }
                                 """;
 
-        await Verify(testData);
-        await Verify(testData, test => test.SolutionTransforms.Add(DefineDebug));
+        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyNoCodeFixIsOffered(testData, DocumentationMode.Parse, "FEATURE");
+    }
+
+    /// <summary>
+    /// Verifies that a misordered compound access modifier is reported, and no code fix is offered, for every shape of
+    /// conditional directive between its two keywords: the analyzer judges the modifiers the analyzed build compiles
+    /// </summary>
+    /// <param name="directives">The conditional directives, and the code they hold, between <c>internal</c> and the type</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("#if FEATURE\n#endif\n    {|RH7106:protected|}", DisplayName = "Empty block")]
+    [DataRow("#if NEVER\n    static\n#endif\n    {|RH7106:protected|}", DisplayName = "Excluded modifier")]
+    [DataRow("#if !NEVER\n    {|RH7106:protected|}\n#endif", DisplayName = "Active modifier")]
+    [DataRow("#if NEVER\n    static\n#else\n    {|RH7106:protected|}\n#endif", DisplayName = "If and else")]
+    [DataRow("#if NEVER\n    static\n#elif !NEVER\n    {|RH7106:protected|}\n#endif", DisplayName = "If and elif")]
+    [DataRow("#if false\n    static\n#endif\n    {|RH7106:protected|}", DisplayName = "If false")]
+    [Requirement("RH7106-001")]
+    [Requirement("SHARED-DIAG-008")]
+    [Requirement("SHARED-MODORDER-003")]
+    public async Task ConditionalDirectiveBetweenTheKeywordsKeepsTheReportAndWithholdsTheFix(string directives)
+    {
+        var testData = $$"""
+                         class C
+                         {
+                             internal
+                         {{directives}}
+                             int _a;
+                         }
+                         """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All corrects the declaration without a conditional directive between its modifiers and leaves
+    /// the one with such a directive reported and unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7106-001")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task FixAllCorrectsOnlyTheDeclarationWithoutAConditionalDirectiveBetweenItsModifiers()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    internal
+                                #if FEATURE
+                                #endif
+                                    {|RH7106:protected|} int _a;
+
+                                    internal {|RH7106:protected|} int _b;
+
+                                    internal {|RH7106:protected|} int _c;
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     internal
+                                 #if FEATURE
+                                 #endif
+                                     {|RH7106:protected|} int _a;
+
+                                     protected internal int _b;
+
+                                     protected internal int _c;
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
     }
 
     /// <summary>
@@ -491,12 +569,13 @@ public class RH7106ProtectedMustComeBeforeInternalAnalyzerTests : BatchCodeFixTe
     }
 
     /// <summary>
-    /// Verifies the specification example in which a conditional directive between two modifiers keeps the declaration
-    /// from being reported, while one behind the last modifier does not, and no code fix is offered for it
+    /// Verifies the specification example in which neither a conditional directive between two modifiers nor one behind
+    /// the last modifier keeps the declaration from being reported, and no code fix is offered for either
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7106-001")]
+    [Requirement("SHARED-DIAG-008")]
     [Requirement("SHARED-MODORDER-003")]
     public async Task ConditionalDirectiveBehindTheLastModifierDoesNotKeepTheDeclarationFromBeingReported()
     {
@@ -506,7 +585,7 @@ public class RH7106ProtectedMustComeBeforeInternalAnalyzerTests : BatchCodeFixTe
                                     internal
                                 #if FEATURE
                                 #endif
-                                    protected int A;
+                                    {|RH7106:protected|} int A;
 
                                     internal {|RH7106:protected|}
                                 #if DEBUG
@@ -521,17 +600,18 @@ public class RH7106ProtectedMustComeBeforeInternalAnalyzerTests : BatchCodeFixTe
 
     /// <summary>
     /// Verifies that a declaration whose conditional directive stands between two modifiers once the symbol is defined
-    /// is not reported
+    /// is reported in that build, and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7106-001")]
-    public async Task ConditionalDirectiveThatStandsBetweenModifiersWhereTheSymbolIsDefinedKeepsTheDeclarationFromBeingReported()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task ConditionalDirectiveThatStandsBetweenModifiersWhereTheSymbolIsDefinedKeepsTheReportAndWithholdsTheFix()
     {
         const string testData = """
                                 class C
                                 {
-                                    internal protected
+                                    internal {|RH7106:protected|}
                                 #if DEBUG
                                     static
                                 #endif
@@ -539,7 +619,7 @@ public class RH7106ProtectedMustComeBeforeInternalAnalyzerTests : BatchCodeFixTe
                                 }
                                 """;
 
-        await Verify(testData, test => test.SolutionTransforms.Add(DefineDebug));
+        await VerifyNoCodeFixIsOffered(testData, DocumentationMode.Parse, "DEBUG");
     }
 
     /// <summary>
