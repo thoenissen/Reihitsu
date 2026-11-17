@@ -17,13 +17,18 @@ None yet.
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Where does the report go, given "Done when" asks for it in the issue and only the issue manager writes to the tracker? | The implementer writes the timings and the per-phase profile into its handover; the issue manager posts them as a comment on #1820 and files one follow-up per hot spot. The PR summarizes the result. | Keeps the tracker write with its owner; `sdd/work/` is deleted before publishing. | Measurement only; no formatter, analyzer, or CLI output changes. | — |
+| 3 | Implementer | Issue premise says the CLI formats in parallel; 1.2.0 and 1.3.0 do not | Comparison runs at degree 1 without the option for these versions; goal otherwise kept | Implementer's finding | Measurement only | 8548a3a |
 | 2 | Claim | Keep a benchmark script? | Yes, a repeatable benchmark under `scripts/` is the run's tooling change, so the comparison can be repeated (it feeds #1803). | The issue names `scripts/` as its home; a one-off measurement cannot be re-run. | Tooling only. | — |
 
 ## Follow-up candidates
 
-None yet.
+1. Indentation and cleanup phases each rewrite every token with one whole-tree `ReplaceTokens`, quadratic in token count (~75% of pipeline time; `IndentationRewriter.cs:39`, `CleanupPhase.cs:33`). Source: `01-implementer.md`. Follows up #1795; no output change.
+
+## Report for #1820
+
+The issue manager posts the measurements and profile of `01-implementer.md` as a comment on #1820 (decision 1).
 
 ## State
 
-- Last step: claim, lane, `00-lead.md`.
-- Next: spawn implementer.
+- Last step: implementer (8548a3a): no per-file regression 1.2.0 vs 1.3.0; one hot spot. Test implementer stays skipped: the tool is a script plus a file-based app outside any test project.
+- Next: cleaner.
