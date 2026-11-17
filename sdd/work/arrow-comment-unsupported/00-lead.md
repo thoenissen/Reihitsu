@@ -11,7 +11,13 @@
 
 ## Maintainer answers
 
-(none yet)
+Batch 1 (before test implementer), answered `1A 2A 3A 4A 5A 6A`:
+1. Declare a comment/directive behind `=>` of property/indexer/method unsupported, in this change (confirms the issue's decision); RH3202/3203/3205–3208/RH7101 and other formatter-delegating fixes withheld on such code, diagnostics stay, RH5401 reported without a fix — A.
+2. Accessors and local functions belong to the shape — A.
+3. Directives and disabled text belong to the shape (refused in every build) — A.
+4. Also a block comment on one line (`int Get() => /* c */ 42;`) — A.
+5. CLI reason text: `a comment or directive between the arrow of an expression body and its expression` — A.
+6. Escalation 10: declare a comment/directive in front of the `=>` unsupported too — A, **declared in a change of its own** → follow-up issue carrying this answer.
 
 ## Decisions taken
 
@@ -26,6 +32,8 @@
 
 ## Follow-up candidates
 
+- **Declare a comment or directive between an expression body's `=>` and the code in front of it unsupported** (maintainer answer, batch 1 Q6 = A, in a change of its own). Absorbs: 01-spec-author's `/* c */ {` follow-up and 02-skeptic follow-ups 1 and 2. Carries the question/answer and the special cases it deletes (02-skeptic, Output questions 7).
+
 - Comment directly in front of the arrow on its own line (`int B()` / `/* c */ => 1;`) formats as `/* c */ {` in front of the new brace; FMT-STRUCT-006 leaves the placement unspecified; carries an open output question with three readings (01-spec-author.md). May be absorbed by batch-1 question 6 (escalation 10, in-front shape).
 - 02-skeptic follow-ups 1–4: (1) RH5401 reports `int B // note` / `=> 1;` — SHARED-DIAG-010 conflict; (2) in-front comment/directive puts arrow line in member's column (twin of #1731); (3) `return` value on the next line lands in `return`'s column, blank line between arrow and expression reads two ways in FMT-STRUCT-006; (4) `return // c` / `_v;` in a getter — same column class as (3). 1, 2 may be absorbed by batch-1 question 6.
 
@@ -38,4 +46,4 @@
 - Done: spec author (01, commit 6990dee/bea1289), change doc Draft; lane check confirmed.
 - Done: skeptic (02, b746fed), verdict output question.
 - Batch 1 asked (questions 1–6; 01's Q5 folded into Q1; 01's Q6 reason text = batch Q5; 02's Q7 escalation 10 = batch Q6). Waiting for answers.
-- Then: route answers + decisions 3,4 to the spec author; spec author sets Status: Accepted; then test implementer.
+- Answers received. Next: fresh spec author (03) for answers + decisions 3,4 + Status Accepted; then test implementer (04).
