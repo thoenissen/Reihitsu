@@ -9,8 +9,9 @@
 # at the commit tagged v1.2.0, with every "private " turned into "private  " so most files
 # need rewriting. Each version formats a fresh copy of the corpus one file at a time, and the
 # report gives total and per-file times. --roll-forward runs every version on the newest
-# installed runtime instead of the one it targets. The repository is only read; the corpus, the
-# installed tools, and the raw per-file CSV live in the work directory.
+# installed runtime instead of the one it targets. The working tree is only read; a commit missing
+# from the clone is fetched into it. The corpus, the installed tools, and the raw per-file CSV live
+# in the work directory, a new private temporary directory unless --work names one.
 #
 # Exit codes: 0 the benchmark ran, 2 invalid arguments or a tool, network, or setup failure.
 set -euo pipefail

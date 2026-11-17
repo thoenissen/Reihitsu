@@ -15,10 +15,14 @@
 // tool's verbose line for that file and the line before it; the first file's gap starts
 // at process start and therefore includes startup and the first JIT compilation.
 //
-// Versions run interleaved (A, B, A, B, ...) after one untimed warm-up run each, so a
-// drift of the machine over time does not land on one version only. Each version runs on the
-// runtime it targets, installed next to the SDK when it is missing; --roll-forward runs every
-// version on the newest installed runtime instead, which separates the code from the runtime.
+// Versions run interleaved (A, B, A, B, ...) after the untimed warm-up runs (--warmups, one
+// by default), so a drift of the machine over time does not land on one version only. Each
+// version runs on the runtime it targets, installed next to the SDK through
+// scripts/lib/dotnet-env.sh when it is missing; --roll-forward runs every version on the newest
+// installed runtime instead, which separates the code from the runtime.
+//
+// Without --work, the work directory is a new temporary directory with a random name that only
+// the current user can open; it is kept after the run for the raw per-file timings.
 
 using System.Diagnostics;
 using System.Globalization;
@@ -185,7 +189,7 @@ internal static class Benchmark
     private static async Task<int> ExecuteAsync(Options options)
     {
         var repositoryRoot = Environment.GetEnvironmentVariable("REIHITSU_REPO_ROOT") ?? (await RunAsync("git", ["rev-parse", "--show-toplevel"], null)).Trim();
-        var work = options.WorkDirectory ?? Path.Combine(Path.GetTempPath(), $"reihitsu-benchmark-{Environment.ProcessId}");
+        var work = options.WorkDirectory ?? Directory.CreateTempSubdirectory("reihitsu-benchmark-").FullName;
 
         Directory.CreateDirectory(work);
 
@@ -199,7 +203,7 @@ internal static class Benchmark
 
         foreach (var version in options.Versions)
         {
-            tools[version] = await InstallToolAsync(work, version, options);
+            tools[version] = await InstallToolAsync(repositoryRoot, work, version, options);
         }
 
         Console.WriteLine($"Corpus: {string.Join(", ", options.Paths)} at {commit}, {fileCount} C# file(s), {(options.Perturb ? "every 'private ' turned into 'private  '" : "unchanged")}");
@@ -247,7 +251,7 @@ internal static class Benchmark
         }
         catch (BenchmarkException)
         {
-            // A shallow clone lacks the pinned commit: fetch just that commit
+            // A commit missing from the clone, such as the pinned one in a shallow clone: fetch just that commit
             await RunAsync("git", ["-C", repositoryRoot, "fetch", "--quiet", "--depth", "1", "origin", commit], null);
 
             return (await RunAsync("git", ["-C", repositoryRoot, "rev-parse", "--verify", "FETCH_HEAD^{commit}"], null)).Trim();
@@ -285,7 +289,7 @@ internal static class Benchmark
                 if (ReferenceEquals(text, perturbed) == false)
                 {
                     var hasBom = bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF;
-                    var content = hasBom ? perturbed.TrimStart('﻿') : perturbed;
+                    var content = hasBom ? perturbed.TrimStart('\uFEFF') : perturbed;
 
                     await File.WriteAllTextAsync(file, content, new UTF8Encoding(hasBom));
                 }
@@ -295,7 +299,7 @@ internal static class Benchmark
 
     private sealed record ToolInstallation(string Executable, string Runtime, bool RollForward, string? DotnetRoot, string[] Arguments);
 
-    private static async Task<ToolInstallation> InstallToolAsync(string work, string version, Options options)
+    private static async Task<ToolInstallation> InstallToolAsync(string repositoryRoot, string work, string version, Options options)
     {
         var toolPath = Path.Combine(work, "tools", version);
         var executable = Path.Combine(toolPath, OperatingSystem.IsWindows() ? "reihitsu-format.exe" : "reihitsu-format");
@@ -324,7 +328,7 @@ internal static class Benchmark
         {
             if (options.AllowInstall)
             {
-                dotnetRoot = await InstallRuntimeAsync(major);
+                dotnetRoot = await InstallRuntimeAsync(repositoryRoot, major);
             }
             else
             {
@@ -343,22 +347,23 @@ internal static class Benchmark
         return new ToolInstallation(executable, rollForward ? $"{runtime} on {runtimes.Split('\n').Last(line => line.StartsWith("Microsoft.NETCore.App ", StringComparison.Ordinal)).Split(' ')[1]}" : runtime, rollForward, dotnetRoot, arguments.ToArray());
     }
 
-    private static async Task<string> InstallRuntimeAsync(string major)
+    /// <summary>
+    /// Installs the runtime of the given major version through the repository's shared .NET helper,
+    /// which owns downloading and running dotnet-install.sh and the install root
+    /// </summary>
+    /// <param name="repositoryRoot">Root of the repository that holds scripts/lib/dotnet-env.sh</param>
+    /// <param name="major">Major version of the runtime</param>
+    /// <returns>The directory the runtime was installed into, to be used as DOTNET_ROOT</returns>
+    private static async Task<string> InstallRuntimeAsync(string repositoryRoot, string major)
     {
-        var root = Environment.GetEnvironmentVariable("REIHITSU_DOTNET_ROOT") ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".dotnet");
-        var installer = Path.Combine(Path.GetTempPath(), $"dotnet-install-{Environment.ProcessId}.sh");
+        var helper = Path.Combine(repositoryRoot, "scripts", "lib", "dotnet-env.sh");
 
-        Console.WriteLine($"Installing the .NET {major} runtime into {root}");
+        Console.WriteLine($"Installing the .NET {major} runtime next to the SDK");
 
-        try
-        {
-            await RunAsync("curl", ["-sSL", "--proto", "=https", "--proto-redir", "=https", "https://dot.net/v1/dotnet-install.sh", "-o", installer], null);
-            await RunAsync("bash", [installer, "--runtime", "dotnet", "--channel", $"{major}.0", "--install-dir", root], null);
-        }
-        finally
-        {
-            File.Delete(installer);
-        }
+        // The helper's progress goes to standard error, so standard output carries only the install root
+        var root = await RunAsync("bash", ["-c", ". \"$1\" && reihitsu_install_dotnet_runtime \"$2\" >&2 && printf '%s' \"$REIHITSU_DOTNET_ROOT\"", "dotnet-env", helper, major], null);
+
+        Console.WriteLine($"Installed the .NET {major} runtime into {root}");
 
         return root;
     }
