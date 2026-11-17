@@ -27,10 +27,12 @@ None yet.
 
 ## Report for #1820
 
-The issue manager posts the measurements and profile of `01-implementer.md` as a comment on #1820 (decision 1).
+The issue manager posts the corrected report section of `05-implementer.md` (audited as postable in `08-auditor.md`) as a comment on #1820 (decision 1).
 
 ## State
 
 - Last step: implementer (8548a3a): no per-file regression 1.2.0 vs 1.3.0; one hot spot. Test implementer stays skipped: the tool is a script plus a file-based app outside any test project.
 - Cleaner 106b50d clean; spec checker 746358d consistent; audit 1 of 746358d (main 074661f) → findings, a6fb087.
-- Next: repair round 1 (implementer → cleaner → spec checker → auditor on repair).
+- Repair round 1: implementer 9bd96da/83fb150, cleaner 9fb6b6e clean, spec checker 322b9d4 consistent, audit 2 of 322b9d4 (main 074661f) → pass, f03d2ec.
+- **Audited SHA: 322b9d4.**
+- Next: validator; issue manager (follow-up 1, and the report section of `05-implementer.md` as a comment on #1820); note; publish.
