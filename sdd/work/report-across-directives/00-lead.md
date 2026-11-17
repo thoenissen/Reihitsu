@@ -48,4 +48,5 @@ Batch 1 (before test implementer), answered 1A 2A 3A 4A 5A 6A:
 - Spec author repair done (1c988a4).
 - Test implementer repair done (b06bebd): affected classes green.
 - Cleaner done (01c4749): clean.
-- Next step: spec checker, then auditor. (was: batch 1: Q1 the newly reported rules (change doc), Q2 trailing commas, Q3 RH5111, Q4 RH7311, Q5 RH8201, Q6 escalation 10 (trailing-comma shape, recommend not declaring). Then route answers + decision 5 to spec author (Status Accepted), then test implementer.
+- Spec checker consistent (55a42ef). Merged origin/main fe1d122 (131a7c3), conflicts in RH2001/RH7101 Uses rows resolved by spec author; cleaner clean after merge (dea1e49).
+- Next step: auditor. (was: batch 1: Q1 the newly reported rules (change doc), Q2 trailing commas, Q3 RH5111, Q4 RH7311, Q5 RH8201, Q6 escalation 10 (trailing-comma shape, recommend not declaring). Then route answers + decision 5 to spec author (Status Accepted), then test implementer.
