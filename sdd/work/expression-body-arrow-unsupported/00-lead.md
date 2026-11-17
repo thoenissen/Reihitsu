@@ -28,5 +28,6 @@
 
 ## State
 
-- Last step: claim, lane, prepare done.
-- Next: spawn spec author.
+- Last step: spec author done (01-spec-author.md, change doc Draft, FMT-UNSUP-013); lane check confirmed at 7845b7e.
+- Open output questions from spec author: 1 RH5401 report kept without fix (recommend A, unchanged), 2 CLI reason wording, 3 one-line case. Plus change doc's visible output changes 1-11.
+- Next: skeptic, then batch output questions before the test implementer.
