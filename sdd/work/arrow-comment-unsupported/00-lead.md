@@ -29,7 +29,7 @@ Batch 1 (before test implementer), answered `1A 2A 3A 4A 5A 6A`:
 | 4 | skeptic | FMT-UNSUP-012 Why for local functions | Cite RH3208 (and RH3202–RH3207) instead of "no more common" | Skeptic recommendation | Spec wording | e95c126 |
 | 5 | spec author | `BlocksRewrite` directive check | Keep unchanged | Changing it changes RH3202–RH3208 diagnostics | Nothing changes | 6990dee |
 | 6 | lead | Output question 5 (code fixes withheld) | Folded into question 1 as the declaration's code-fix line | Withholding follows from SHARED-FIX-010 for a declared shape; no real alternative | Shown to the maintainer in question 1 | — |
-| 7 | test implementer | RH5401-004 spec example `int C` inside `class C` does not compile | Spec author renames it to match the test (`D`) | Spec defect within the run | Example text only | pending |
+| 7 | test implementer | RH5401-004 spec example `int C` inside `class C` does not compile | Spec author renames it to match the test (`D`) | Spec defect within the run | Example text only | bb95f71 |
 
 ## Follow-up candidates
 
