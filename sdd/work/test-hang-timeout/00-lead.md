@@ -32,4 +32,4 @@ b08b083 (against main dc6d942)
 
 ## Next step
 
-Implementer done (01, d6bb4d8, tests pass). Cleaner done (02, e1d0230, clean). Spec checker done (03, 9643278, consistent). Merged origin/main dc6d942 (no overlap). Auditor done (04, 059c8a6, pass with one text finding in scripts/README.md:86). Audited SHA: b08b083. Next: spec author text fix, verify-text-only, validator, publish.
+Implementer done (01, d6bb4d8, tests pass). Cleaner done (02, e1d0230, clean). Spec checker done (03, 9643278, consistent). Merged origin/main dc6d942 (no overlap). Auditor done (04, 059c8a6, pass with one text finding in scripts/README.md:86). Audited SHA: b08b083. Spec author text fix done (05, 8922862); TEXT-ONLY PROOF PASS b08b083..8922862. Next: validator, publish.
