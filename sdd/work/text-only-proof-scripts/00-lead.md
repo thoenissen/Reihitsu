@@ -46,4 +46,5 @@ Roles: test implementer (for #1817 the Roslyn-version guard is a test; for #1808
 - Done: claim, lane, prepare.
 - Done: test implementer, `01-test-implementer.md` at `816e7e4` (8 failing guard tests for #1817; nothing for #1808).
 - Done: implementer, `02-implementer.md` at `7d2ecd5`.
-- Next: test implementer amendment (`03-test-implementer.md`), then cleaner.
+- Done: test implementer amendment, `03-test-implementer.md` at `6931294`.
+- Next: cleaner (`04-cleaner.md`).
