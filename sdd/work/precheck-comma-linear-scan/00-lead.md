@@ -19,6 +19,7 @@ None yet.
 | 1 | Skeptic | Proceed with #1802? | Proceed: reproduced in the CLI and in code-fix registration; reachable | 01-skeptic.md measurements | Time only; verdicts, reasons, locations unchanged | — |
 | 2 | Skeptic | Keep the issue's prescribed single-walk solution as a requirement? | Dropped as a requirement; the implementer chooses the mechanism | Proposal of an `agent-filed` issue | Internal mechanism | — |
 | 3 | Skeptic | Keep "verdicts identical on the repository's own sources" as a done-criterion? | Dropped; the existing precheck tests passing unchanged is the proof | Formatted sources all answer "nothing unsupported", so the sweep proves little | No visible output changes | — |
+| 5 | Auditor | The new walk no longer treats a parser-inserted missing comma as a gap end | No action | No caller reaches syntax-error input: every entry point returns on syntax errors and the formatting code fixes register nothing there (SHARED-FIX-011) | Unreachable | — |
 | 4 | Skeptic | How to test a cost? | One regression test with a generous wall-clock budget on a long single list; the test implementer confirms how a timeout fails since the precheck does not observe cancellation | Linearity cannot be asserted robustly | Test only | — |
 
 ## Follow-up candidates
@@ -28,7 +29,7 @@ None yet.
 
 ## Audited SHA
 
-None yet.
+6af1ef208486f45c551af81666ecab4b999f090d (audit pass, handover 5ffff93)
 
 ## Open worklist / next step
 
@@ -37,4 +38,5 @@ None yet.
 - Done: implementer (tests pass), commit 2a56548.
 - Done: cleaner (clean), commit 15d7528.
 - Done: spec checker (consistent), commit 461c203.
-- Next: auditor.
+- Done: auditor (pass).
+- Next: validator, then issue manager (2 follow-up candidates), note, publish.
