@@ -9,7 +9,13 @@
 
 ## Maintainer answers
 
-(none yet)
+Batch 1 (before test implementer), answered 1A 2A 3A 4A 5A 6A:
+1. Rules that start reporting across a conditional directive (RH7105/7106, RH7102/7103, RH7107/7108, RH5102/5109, RH7101, attribute-list shape rules SHARED-ATTR-019/020): A — reported, no fix offered.
+2. RH5409/5410/5411 trailing comma in front of an `#if` block: A — reported (in both builds, as shown), never with a fix; formatter keeps the comma.
+3. RH5111 conditional directive around `=`: A — reported, no fix; extends RH5111's exception to SHARED-DIAG-010.
+4. RH7311: A — the compiled branch's region is compared with regions outside the group; branches never compared with each other.
+5. RH8201 implicit implementation in a file with `#if`: A — reported, no fix.
+6. Escalation 10, conditional directive between last comma and closing brace: A — not declared unsupported.
 
 ## Decisions taken
 
@@ -31,4 +37,5 @@
 - Audited SHA: —
 - Last step: spec author done (3d85973), lane check confirmed behavior-change.
 - Skeptic done (00547ae, verdict output question).
-- Next step: WAITING on maintainer for batch 1: Q1 the newly reported rules (change doc), Q2 trailing commas, Q3 RH5111, Q4 RH7311, Q5 RH8201, Q6 escalation 10 (trailing-comma shape, recommend not declaring). Then route answers + decision 5 to spec author (Status Accepted), then test implementer.
+- Batch 1 answered.
+- Next step: spec author follow-up (Status Accepted, Decisions, decision 5), then test implementer. (was: batch 1: Q1 the newly reported rules (change doc), Q2 trailing commas, Q3 RH5111, Q4 RH7311, Q5 RH8201, Q6 escalation 10 (trailing-comma shape, recommend not declaring). Then route answers + decision 5 to spec author (Status Accepted), then test implementer.
