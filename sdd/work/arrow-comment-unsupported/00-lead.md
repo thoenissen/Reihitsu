@@ -57,4 +57,5 @@ Batch 1 (before test implementer), answered `1A 2A 3A 4A 5A 6A`:
 - Done: auditor 09 (b80ab0b): finding #1 (RH3202 neighbour test too weak, PR-introduced) → repair round 1.
 - Repair round 1 worklist: (a) test implementer 10 — strengthen `VerifyFixIsOfferedForAMethodBesideAMethodWithACommentBehindItsArrow` (09 #1); (b) same agent — delete the phase-level test `ExpressionBodiedTransformTests.KeepsCommentTrailingArrowInIndexer` (decision 8).
 - Done: test implementer 10 (43267e0, f6660e6).
-- Next: cleaner 11, spec checker 12, auditor 13 (repair only), validator 14.
+- Done: cleaner 11 (10f9c61), clean.
+- Next: spec checker 12, auditor 13 (repair only), validator 14.
