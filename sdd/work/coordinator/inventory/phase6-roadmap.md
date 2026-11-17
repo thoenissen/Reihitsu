@@ -150,3 +150,5 @@ Roadmap as drafted; decide-list issues planned too and judged in their run (#160
 **1.7.0 additions (2026-11-17):** #1829 #1830 join the unowned-joins OQ run (after #953). **1.10.0 additions (2026-11-17):** #1827 (new-rule candidate, counterpart of RH5105).
 
 **Additions 2026-11-17 (b):** #1838 → 1.4.0, joins #1804 (batch 5 command becomes `/squad #1804 #1838`, tests lane). #1836 → 1.6.0, run *Analyzer/SHARED-DIAG-008 follow-ups* (#1240 #1275 #1591 #1836, OQ). #1837 → 1.6.0, run *Code fixes/directive guards* (#1668 #1589 #970 #1837, OQ). #1835 → 1.8.0, run *Node-level write-back after the design* (#1521 #1474 #1684 #1835, after #1774). No duplicates, none closed.
+
+**Additions 2026-11-17 (c):** 1.10.0 #1843 #1844 (one run, OQ); 1.7.0 #1845 (extension-blocks run); 1.4.0 #1846 (own run), #1847 #1848 (one run after #1732).
