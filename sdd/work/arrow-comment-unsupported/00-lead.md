@@ -29,6 +29,8 @@ Batch 1 (before test implementer), answered `1A 2A 3A 4A 5A 6A`:
 | 4 | skeptic | FMT-UNSUP-012 Why for local functions | Cite RH3208 (and RH3202–RH3207) instead of "no more common" | Skeptic recommendation | Spec wording | e95c126 |
 | 5 | spec author | `BlocksRewrite` directive check | Keep unchanged | Changing it changes RH3202–RH3208 diagnostics | Nothing changes | 6990dee |
 | 6 | lead | Output question 5 (code fixes withheld) | Folded into question 1 as the declaration's code-fix line | Withholding follows from SHARED-FIX-010 for a declared shape; no real alternative | Shown to the maintainer in question 1 | — |
+| 8 | auditor | Hint: `KeepsCommentTrailingArrowInIndexer` feeds the structural phase a refused input | Delete it in repair round 1, like the other phase-level tests 04 deleted | Consistency; no caller passes that input | Test only | pending |
+| 9 | auditor | Hint: lambda `[A] /* h */ [B]` attribute lists split behind a property arrow | Dropped, not a follow-up | Not the run's code, output stable, not shown to be a defect against a spec | Nothing changes | — |
 | 7 | test implementer | RH5401-004 spec example `int C` inside `class C` does not compile | Spec author renames it to match the test (`D`) | Spec defect within the run | Example text only | bb95f71 |
 
 ## Follow-up candidates
@@ -40,7 +42,7 @@ Batch 1 (before test implementer), answered `1A 2A 3A 4A 5A 6A`:
 
 ## Audited SHA
 
-(none yet)
+- Audit 1: a23ec37 (base 71a89ec) — findings (1 medium, test strength).
 
 ## Open worklist / next step
 
@@ -52,4 +54,6 @@ Batch 1 (before test implementer), answered `1A 2A 3A 4A 5A 6A`:
 - Done: spec author 06 (bb95f71); implementer 05 (4680af8), all default projects pass in Debug, 4 production files, +70/-118.
 - Done: cleaner 07 (ffd85d3), clean.
 - Done: spec checker 08 (c320618), consistent. Merged origin/main 71a89ec cleanly (incl. #1840 precheck comma change, #1842 test helper routing); Release build green.
-- Next: auditor (09).
+- Done: auditor 09 (b80ab0b): finding #1 (RH3202 neighbour test too weak, PR-introduced) → repair round 1.
+- Repair round 1 worklist: (a) test implementer 10 — strengthen `VerifyFixIsOfferedForAMethodBesideAMethodWithACommentBehindItsArrow` (09 #1); (b) same agent — delete the phase-level test `ExpressionBodiedTransformTests.KeepsCommentTrailingArrowInIndexer` (decision 8).
+- Then: cleaner 11, spec checker 12, auditor 13 (repair only), validator 14.
