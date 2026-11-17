@@ -26,4 +26,5 @@ None yet.
 ## Worklist / next step
 
 - Done: skeptic (`01-skeptic.md`, verdict: do not make the change).
-- Next: spec author writes the comment-only edits (`02-spec-author.md`), then verify-text-only, spec checker.
+- Done: spec author (`02-spec-author.md`, f1a25ee; text-only proof PASS vs d0dd5d5; lane check tests: confirmed, diff needs only docs).
+- Next: spec checker (`03-spec-checker.md`), then issue manager (hang-timeout candidate), note, publish.
