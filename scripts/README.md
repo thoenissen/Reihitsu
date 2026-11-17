@@ -13,6 +13,7 @@ Paths are resolved against **your** working directory, not the repository root: 
 | `test.sh` | Run one test project or the default set ([The default test run](#the-default-test-run)), with an optional focused filter and configuration, under a [hang timeout](#hang-timeout) |
 | `format.sh` | Format the given paths through `Reihitsu.Cli` |
 | `trace.sh` | Trace source changes at each top-level formatter phase without modifying the input |
+| `benchmark.sh` | Time released `reihitsu-format` versions from NuGet on a fixed corpus, in total and per file |
 | `apply-fix.sh` | Run one diagnostic's code-fix surface over a fixture directory, under LF and CRLF |
 | `verify-text-only.sh` | Prove that a change carries no compiled behavior |
 | `lane-check.sh` | Confirm the squad lane a run claimed against the paths its diff changes |
@@ -27,6 +28,7 @@ scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH3204"
 scripts/test.sh --project selfhosting
 scripts/format.sh src/Reihitsu.Formatter/Pipeline/LineBreaks/LineBreakDetection.cs
 scripts/trace.sh samples/Example.cs --passes 3 --no-install
+scripts/benchmark.sh --version 1.2.0 --version 1.3.0 --repetitions 5
 scripts/apply-fix.sh RH7101 /tmp/sweep
 scripts/verify-text-only.sh --base a1b2c3d --head worktree
 scripts/lane-check.sh bug-fix --head worktree
@@ -42,6 +44,20 @@ The trace defaults to at most three passes and requires a positive pass count. I
 Exit codes are `0` when formatting stabilizes or the input is legitimately skipped, `1` when the source is still changing after the requested pass count, and `2` for invalid arguments, missing files, unavailable tooling, or execution failures. Execution errors identify the active pass and, when available, the active phase.
 
 The implementation lives in `trace/trace.cs` as a [.NET 11 file-based app](https://learn.microsoft.com/en-us/dotnet/core/sdk/file-based-apps) with a repository-only project reference to `Reihitsu.Cli`. Like the text-only proof app, it is outside `Reihitsu.sln`; its local `Directory.Build.props` isolates it from solution packaging and analyzer settings.
+
+## The CLI benchmark
+
+`benchmark.sh [--version <v>]... [--commit <rev>] [--path <repo-path>]... [--repetitions N] [--warmups N] [--top N] [--work <dir>] [--no-perturb] [--roll-forward] [--no-install]` times released `reihitsu-format` versions, installed from NuGet with `dotnet tool install --tool-path`, on one fixed corpus, so a per-file regression between releases can be told apart from a larger file count or slower I/O.
+
+The corpus is the given paths at the given commit, extracted with `git archive`, C# files only; a shallow clone fetches the commit. The defaults are `src/Reihitsu.Formatter` and `src/Reihitsu.Analyzer` at the commit tagged `v1.2.0`, versions `1.2.0` and `1.3.0`, one warm-up and three timed repetitions. Unless `--no-perturb` is given, every `private ` in the corpus becomes `private  `, so most files need rewriting.
+
+Every run formats a fresh copy of the corpus in write mode with `--force --verbose`, one file at a time: a version that offers `--max-parallelism` gets `--max-parallelism 1`, and released versions without it already work sequentially. The versions run interleaved, one repetition of each in turn, so drift of the machine does not land on one version. A file's time is the gap between the tool's verbose line for it and the line before; the first file's gap starts at process start and carries start-up and JIT, so per-file statistics leave it out and report it on its own.
+
+The report gives each version's total (median, minimum, maximum), its start-up plus first file, the sum and median of its per-file medians, the per-file ratio of each version against the first, and the slowest files. The raw per-file timings of every repetition are written to `per-file.csv` in the work directory, a temporary directory unless `--work` names one; the repository is only read.
+
+Each version runs on the runtime it targets, installed next to the SDK when it is missing and `--no-install` is not given. `--roll-forward` runs every version on the newest installed runtime instead, which separates a change in the code from a change of runtime. Exit codes are `0` when the benchmark ran and `2` for invalid arguments or a tool, network, or setup failure.
+
+The implementation lives in `benchmark/benchmark.cs`, a standalone file-based app outside `Reihitsu.sln` with no project reference, isolated by its local `Directory.Build.props` like the trace app.
 
 ## The code-fix fixture runner
 
