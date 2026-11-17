@@ -19,11 +19,19 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | skeptic | #1804 names 4 copy classes; there are 8, plus `ExecuteAppliesAllRules` and `ExecutePhaseOrderStructuralBeforeIndentation` in `FormattingPipelineTests` | Cover all 8 classes and both extra tests; helpers that call the public `ReihitsuFormatter` methods or a single phase stay | The issue's "Done when" (no class restates the steps) is only met with all of them; agent-filed scope | Test code only; E2/E3 show every copy passes `ApplyRule`'s checks unchanged | |
+| 2 | skeptic | Copies that assert one property only (`DocumentationCommentCollapseGuardTests`, `ElseKeywordClosingBraceAuditFanOutTests`) | Keep their partial assertions; only route the formatting through the shared helper | Turning them into exact-output tests would lock layout no requirement of theirs decides | Test code only | |
+| 3 | skeptic | `ExecuteAlreadyFormattedCodeNoChanges`: stale trim comment, and first pass == input never asserted though its doc comment claims it | Compare full texts of both passes, drop the stale comment, assert first pass == input | Matches the test's own documented intent; holds under LF and CRLF (skeptic) | Test code only | |
+| 4 | skeptic | Architecture finding: analyzer-test `VerifyFormatterFixCore` is a cross-project copy of the parse-and-run steps; reuse needs `internal` helpers of another test project | Fix narrowly: leave it as is in this run; file the shared-helper question as a follow-up | Reuse across test projects needs a visibility / shared-project decision outside both issues; the run adds no new copy | Test code only | |
+| 5 | skeptic | #1838 opt-out parameter has zero callers (no parity test uses a refused input; 485/485 pass with the assertion) | Drop the opt-out parameter; assert non-refusal unconditionally in `VerifyFormatterKeepsReportedShape` and `VerifyFormatter` | A parameter without callers is dead code; a future refused-on-purpose test adds it with its first caller | Test code only | |
+| 6 | skeptic | Same refusal gap in Formatter.Test `ApplyRule` (`AssertRuleResult` without expected text, `AssertSecondPassIsStable`, `AssertBlankLinesAbove`) | Follow-up, not an adjacent fix | Draft #1839 (#1732) is in flight and declares a shape many formatter fixtures hold; pulling the check in now couples two concurrent runs | Test code only | |
 
 ## Follow-up candidates
 
-(none yet)
+- Refusal check for Formatter.Test `ApplyRule` assertions (`AssertRuleResult` without expected text / expected == input, `AssertSecondPassIsStable`, `AssertBlankLinesAbove`) — `01-skeptic.md`, #1838 Follow-up candidates; coordinate with #1732.
+- Analyzer-test `VerifyFormatterFixCore` restates the formatter test project's parse-and-run steps (`SecondPassInput`, `PhaseTreeRoundTrip` are `internal` there) — `01-skeptic.md`, #1804 Architecture findings.
 
 ## Worklist / next step
 
-- Next: skeptic (`01-skeptic.md`).
+- Done: skeptic (`01-skeptic.md`, b9752e5): #1804 proceed wider, #1838 proceed narrower; no output questions.
+- Next: test implementer (`02-test-implementer.md`).
