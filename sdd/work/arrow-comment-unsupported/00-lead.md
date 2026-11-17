@@ -20,7 +20,7 @@
 
 ## Follow-up candidates
 
-(none yet)
+- Comment directly in front of the arrow on its own line (`int B()` / `/* c */ => 1;`) formats as `/* c */ {` in front of the new brace; FMT-STRUCT-006 leaves the placement unspecified; carries an open output question with three readings (01-spec-author.md).
 
 ## Audited SHA
 
@@ -28,4 +28,5 @@
 
 ## Open worklist / next step
 
-- Next: spawn spec author (01).
+- Done: spec author (01, commit 6990dee/bea1289), change doc Draft; lane check confirmed.
+- Next: skeptic (02), then the first output-question batch (6 questions from 01 plus any from 02).
