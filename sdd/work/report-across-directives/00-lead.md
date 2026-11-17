@@ -35,10 +35,12 @@ Batch 1 (before test implementer), answered 1A 2A 3A 4A 5A 6A:
 - SHARED-USING-009 keeps RH7201–RH7207 silent on a using block holding any directive; not a build-configuration reason, outside #1759 (01-spec-author.md).
 - Narrower trailing-comma fix guard: offer the fix when no `#if` stands between the comma and the brace, with the formatter following (02-skeptic.md, optional, low value).
 - RH2001 spec example (`#if !RELEASE` around `Value`, used outside the group) fails to compile (CS0103) in a RELEASE build (06-spec-author.md).
+- `VerifyFormatterKeepsReportedShape` and the existing `VerifyFormatter` (analyzer test base) would pass if the formatter refused the input as unsupported; assert it is not refused (12-auditor.md hint 1).
+- `general-notes.md`, *Code excluded by `#if`*, first paragraph says several region rules check regions in excluded branches; verify against the region rules and correct (12-auditor.md hint 2).
 
 ## State
 
-- Audited SHA: —
+- Audited SHA: e6621499ee79ba874c7628ef689ad83b6554efa6 (auditor pass, handover 34f337f)
 - Last step: spec author done (3d85973), lane check confirmed behavior-change.
 - Skeptic done (00547ae, verdict output question).
 - Batch 1 answered.
@@ -49,4 +51,5 @@ Batch 1 (before test implementer), answered 1A 2A 3A 4A 5A 6A:
 - Test implementer repair done (b06bebd): affected classes green.
 - Cleaner done (01c4749): clean.
 - Spec checker consistent (55a42ef). Merged origin/main fe1d122 (131a7c3), conflicts in RH2001/RH7101 Uses rows resolved by spec author; cleaner clean after merge (dea1e49).
-- Next step: auditor. (was: batch 1: Q1 the newly reported rules (change doc), Q2 trailing commas, Q3 RH5111, Q4 RH7311, Q5 RH8201, Q6 escalation 10 (trailing-comma shape, recommend not declaring). Then route answers + decision 5 to spec author (Status Accepted), then test implementer.
+- Auditor pass, no findings.
+- Next step: validator, then issue manager, note, publish. (was: batch 1: Q1 the newly reported rules (change doc), Q2 trailing commas, Q3 RH5111, Q4 RH7311, Q5 RH8201, Q6 escalation 10 (trailing-comma shape, recommend not declaring). Then route answers + decision 5 to spec author (Status Accepted), then test implementer.
