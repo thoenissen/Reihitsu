@@ -42,4 +42,5 @@ None yet.
 - (a) done (06-test-implementer), dc6c41f.
 - (b) done (07-cleaner), 1931271.
 - Spec checker (08) consistent; repair audit (09) pass on e20a302. **Audited SHA: e20a302.**
-- Next: validator → issue manager (S1125 candidate) → note → publish.
+- Validator (10) pass on 57d0720.
+- Next: issue manager (S1125 candidate) → note → publish.
