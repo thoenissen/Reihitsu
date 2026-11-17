@@ -31,4 +31,6 @@
 
 ## Open worklist / next step
 
-- Next: spawn spec author (01).
+- Done: spec author (01, commit 1ea832b) — verdict open question: what the repeated head of a split field carries when a line break is written inside it (A keep as written = today, B later fields one-line head, C join type/declarator break everywhere — C would be its own change). No spec edit yet.
+- Running: skeptic (02).
+- Next: send output-question batch to maintainer, then route answer to spec author.
