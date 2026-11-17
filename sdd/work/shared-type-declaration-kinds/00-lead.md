@@ -30,4 +30,4 @@ From `01-skeptic.md` (each carries an output question, written there):
 
 ## Worklist / next step
 
-- Skeptic done (01, a070ff2). Test implementer done (02, e6c97ce). Implementer skipped (decision 4). Lane check: confirmed — claimed bug-fix, diff needs only tests. Cleaner clean (03). Spec checker consistent (04). Auditor pass (05) on audited SHA 4e7be9f1d0d5c340f538422456c440c03a198f2c. Next: validator and issue manager (4 follow-ups).
+- Skeptic done (01, a070ff2). Test implementer done (02, e6c97ce). Implementer skipped (decision 4). Lane check: confirmed — claimed bug-fix, diff needs only tests. Cleaner clean (03). Spec checker consistent (04). Auditor pass (05) on audited SHA 4e7be9f1d0d5c340f538422456c440c03a198f2c. Issue manager (07): created #1843, #1844, #1845; extended #1785. Next: validator, then note + publish.
