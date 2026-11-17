@@ -21,13 +21,17 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | skeptic | Issue goal "RH5401 stops reporting a member whose arrow follows a comment" | Drop; RH5401 keeps reporting with no fix (spec author's Q1 option A) | SHARED-DIAG-010's last sentence already demands the report for a refused shape; option B would need a spec exception | Today's output is kept unchanged | — |
+| 2 | skeptic | Spec author's Q3 (one-line `int A /* c */ => 1;`) as a separate question | Not asked separately; it is inside the span the maintainer answered and listed in the change doc's visible output changes | The issue's span is two trivia lists with no line-break condition | Covered by the maintainer's escalation-10 answer | — |
+| 3 | skeptic | FMT-UNSUP-013 / change doc *Why* name accessors for the join refusal | Reword to name only properties and indexers (skeptic internal 1) | FMT-BREAK-026 joins properties and indexers only | Spec wording | pending |
+| 4 | skeptic | SHARED-BODY-001 leaves a conditional group in front of `=>` unspecified | Specify the observed cases (reported, fix withheld) with an example (skeptic internal 2) | Lets the analyzer tests be tagged; reporting unchanged | Reporting unchanged; fix withholding follows from FMT-UNSUP-013 | pending |
+| 5 | skeptic | Accessor `=>` on own line without a comment lands in accessor column | Follow-up candidate, carrying the skeptic's drafted output question | Outside #1851: no comment involved | Not changed in this run | — |
 
 ## Follow-up candidates
 
-(none yet)
+- Accessor's `=>` on a line of its own (no comment) lands in the accessor's column; output question drafted in 02-skeptic.md *Follow-up candidates* 1 (recommend joining onto the keyword's line).
 
 ## State
 
-- Last step: spec author done (01-spec-author.md, change doc Draft, FMT-UNSUP-013); lane check confirmed at 7845b7e.
-- Open output questions from spec author: 1 RH5401 report kept without fix (recommend A, unchanged), 2 CLI reason wording, 3 one-line case. Plus change doc's visible output changes 1-11.
-- Next: skeptic, then batch output questions before the test implementer.
+- Last step: skeptic done (02-skeptic.md, proceed). Skeptic found a visible case missing from the change doc: `#if` group around the signature or a constraint clause in front of a shared `=>` (d1/d2), formatted/fixed today, refused after.
+- Next: fresh spec author amendment (decisions 3, 4; add d1/d2 case to visible output changes), lane check, then output-question batch: CLI reason wording (spec author Q2), d1/d2 case, and the change doc's visible output changes.
