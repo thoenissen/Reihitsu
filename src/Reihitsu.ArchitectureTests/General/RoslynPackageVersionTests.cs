@@ -8,9 +8,11 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Reihitsu.ArchitectureTests.General;
 
 /// <summary>
-/// Guards that every project compiles and runs against one Roslyn version, owned by one property: every non-testing
-/// <c>Microsoft.CodeAnalysis*</c> package item in the repository's build files states <c>Version="$(RoslynVersion)"</c>,
-/// and the root <c>Directory.Build.props</c> defines <c>RoslynVersion</c> once, without a condition
+/// Guards that every project and every file-based program compiles and runs against one Roslyn version, owned by one
+/// property: every non-testing <c>Microsoft.CodeAnalysis*</c> package item in the repository's build files states
+/// <c>Version="$(RoslynVersion)"</c>, every non-testing <c>Microsoft.CodeAnalysis*</c> <c>#:package</c> directive in front of
+/// the first token of a C# file states exactly the value of <c>RoslynVersion</c> as its version, and the root
+/// <c>Directory.Build.props</c> defines <c>RoslynVersion</c> once, without a condition
 /// </summary>
 [TestClass]
 public sealed class RoslynPackageVersionTests
@@ -726,6 +728,52 @@ public sealed class RoslynPackageVersionTests
 
             // Assert
             AssertSingleViolation(violations, "scripts/Tool.cs:1: #:package Microsoft.CodeAnalysis.CSharp");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a Roslyn pin without a version, which floats like a floating version, is reported
+    /// </summary>
+    [TestMethod]
+    public void PackageDirectiveWithoutVersionIsReported()
+    {
+        // Arrange
+        using (var fixture = new RoslynVersionFixtureDirectory())
+        {
+            fixture.Write("Directory.Build.props", RootPropsWithVersion);
+            fixture.Write("scripts/Tool.cs", FileBasedProgram("#:package Microsoft.CodeAnalysis.CSharp"));
+
+            // Act
+            var (items, violations) = RoslynVersionOwnership.Check(fixture.Root);
+
+            // Assert
+            AssertSingleViolation(violations, "scripts/Tool.cs:1: #:package Microsoft.CodeAnalysis.CSharp");
+            Assert.HasCount(1, items);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a pin without a version of a package outside the Roslyn version line is accepted
+    /// </summary>
+    [TestMethod]
+    public void PackageDirectiveWithoutVersionOutsideTheRoslynVersionLineIsAccepted()
+    {
+        // Arrange
+        using (var fixture = new RoslynVersionFixtureDirectory())
+        {
+            fixture.Write("Directory.Build.props", RootPropsWithVersion);
+            fixture.Write("scripts/Tool.cs",
+                          FileBasedProgram("""
+                                           #:package SonarAnalyzer.CSharp
+                                           #:package Microsoft.CodeAnalysis.CSharp.Analyzer.Testing
+                                           """));
+
+            // Act
+            var (items, violations) = RoslynVersionOwnership.Check(fixture.Root);
+
+            // Assert
+            Assert.IsEmpty(violations, string.Join("; ", violations));
+            Assert.IsEmpty(items);
         }
     }
 
