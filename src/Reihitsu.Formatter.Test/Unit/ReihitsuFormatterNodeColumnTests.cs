@@ -887,6 +887,53 @@ public class ReihitsuFormatterNodeColumnTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a statement target whose argument list stands on the line below the invoked name joins the argument list
+    /// onto the name's line, as document-level formatting does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-039")]
+    public async Task StatementTargetJoinsArgumentListBelowItsName()
+    {
+        const string input = "class C\n{\n    void M()\n    {\n        Foo\n        (4);\n    }\n\n    void Foo(int x)\n    {\n    }\n}";
+        const string expected = "class C\n{\n    void M()\n    {\n        Foo(4);\n    }\n\n    void Foo(int x)\n    {\n    }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectSingle<ExpressionStatementSyntax>);
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a collection expression target whose <c>with(…)</c> element's argument list stands on the line below
+    /// <c>with</c> joins it, and the collection expression, written over several lines, keeps one element per line under its
+    /// opening bracket, so no line is left whose column differs from the one document-level formatting gives
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-BREAK-039")]
+    public async Task CollectionExpressionTargetJoinsWithElementArgumentListBelowWith()
+    {
+        const string input = "using System.Collections.Generic;\n\nclass C\n{\n    void M()\n    {\n        List<int> a = [with\n        (4), 1, 2];\n    }\n}";
+        const string expected = "using System.Collections.Generic;\n\nclass C\n{\n    void M()\n    {\n        List<int> a = [\n                          with(4),\n                          1,\n                          2\n                      ];\n    }\n}";
+
+        await AssertFormatsTarget(input, expected, SelectSingle<CollectionExpressionSyntax>);
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an argument list target whose opening parenthesis stands on the line below the invoked name keeps that
+    /// parenthesis on its line and in its column: the gap in front of it is outside the target
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    [Requirement("FMT-PIPE-017")]
+    public async Task ArgumentListTargetBelowItsNameKeepsItsOpeningParenthesisInPlace()
+    {
+        const string input = "class C\n{\n    void M()\n    {\n        Foo\n        (4);\n    }\n\n    void Foo(int x)\n    {\n    }\n}";
+
+        await AssertFormatsTarget(input, input, SelectSingle<ArgumentListSyntax>);
+    }
+
+    /// <summary>
     /// Selects the only node of the given type in the root
     /// </summary>
     /// <typeparam name="TNode">Type of the node</typeparam>
