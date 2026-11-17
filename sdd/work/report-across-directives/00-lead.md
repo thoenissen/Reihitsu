@@ -15,13 +15,15 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | Spec author | Bound the fix half by the part of the span a fix rewrites, not every fix when a directive is anywhere in the span | Accept the spec author's bound | Blanket withholding removes RH2005's safe fix and contradicts SHARED-ORDER-006 | Keeps today's offered fixes; the newly reported cases are asked as output questions | 3d85973 |
+| 2 | Spec author | Change SHARED-TRAIL-002, SHARED-ATTR-019/020, RH8201-003 in place vs. retire | In place | References keep resolving | Spec structure only | 3d85973 |
 
 ## Follow-up candidates
 
-(none yet)
+- SHARED-USING-009 keeps RH7201–RH7207 silent on a using block holding any directive; not a build-configuration reason, outside #1759 (01-spec-author.md).
 
 ## State
 
 - Audited SHA: —
-- Last step: claim, prepare.sh green (SDK 11.0.100 installed).
-- Next step: spawn spec author.
+- Last step: spec author done (3d85973), lane check confirmed behavior-change.
+- Next step: skeptic running; then output-question batch (change doc's visible changes + spec author's 3 questions: trailing commas, RH7311, RH8201).
