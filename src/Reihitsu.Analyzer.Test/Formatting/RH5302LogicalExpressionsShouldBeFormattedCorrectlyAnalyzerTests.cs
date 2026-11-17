@@ -880,6 +880,53 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies that the fix of a logical expression whose right operand's argument list holds, inside an interpolation hole, an argument
+    /// list below its name joins that argument list onto the name and lays out the operand's argument list as the one line it becomes
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("FMT-BREAK-039")]
+    public async Task VerifyFixJoinsArgumentListInInterpolationHoleAndKeepsOperandListOnOneLine(string endOfLine)
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static bool Method(bool a, object x)
+                                    {
+                                        return a {|RH5302:&&|}
+                                            Has($"{x.ToString
+                                            ()}", 2);
+                                    }
+
+                                    private static bool Has(string text, int value)
+                                    {
+                                        return value > text.Length;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     private static bool Method(bool a, object x)
+                                     {
+                                         return a
+                                                && Has($"{x.ToString()}", 2);
+                                     }
+
+                                     private static bool Has(string text, int value)
+                                     {
+                                         return value > text.Length;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

@@ -822,6 +822,417 @@ public class ArgumentListLineStartTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies the requirement's example of an argument list inside an interpolation hole, a query clause, or an array initializer of a
+    /// list element: the argument list joins its name, in a chain or not, and the list around it is laid out as the one line it becomes
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-039")]
+    public void RequirementExampleJudgesListAsTheLineItBecomesAroundArgumentListInNestedConstruct()
+    {
+        // Arrange
+        const string input = """
+                             using System.Collections.Generic;
+                             using System.Linq;
+
+                             class C
+                             {
+                                 void M(object x, List<int> list)
+                                 {
+                                     Baz($"{x.ToString
+                                     ()}", 2);
+                                     Baz($"{Bar
+                                     (1)}", 2);
+                                     Baz(from v in list select Bar
+                                     (v), 2);
+                                     Baz(new[] { x.GetHashCode
+                                     () }, 2);
+                                 }
+
+                                 void Baz(object a, int b)
+                                 {
+                                 }
+
+                                 int Bar(int x)
+                                 {
+                                     return x;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                class C
+                                {
+                                    void M(object x, List<int> list)
+                                    {
+                                        Baz($"{x.ToString()}", 2);
+                                        Baz($"{Bar(1)}", 2);
+                                        Baz(from v in list select Bar(v), 2);
+                                        Baz(new[] { x.GetHashCode() }, 2);
+                                    }
+
+                                    void Baz(object a, int b)
+                                    {
+                                    }
+
+                                    int Bar(int x)
+                                    {
+                                        return x;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a chain's argument list below its name inside an interpolation hole of a later argument joins the name, and the
+    /// list whose only line break it was becomes one line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-039")]
+    public void ChainArgumentListInInterpolationHoleOfLaterArgumentLeavesListOnOneLine()
+    {
+        // Arrange
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 void M(object x, List<int> list)
+                                 {
+                                     Baz(2, $"{x.ToString
+                                     ()}");
+                                 }
+
+                                 void Baz(object a, object b)
+                                 {
+                                 }
+
+                                 int Bar(int x)
+                                 {
+                                     return x;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M(object x, List<int> list)
+                                    {
+                                        Baz(2, $"{x.ToString()}");
+                                    }
+
+                                    void Baz(object a, object b)
+                                    {
+                                    }
+
+                                    int Bar(int x)
+                                    {
+                                        return x;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a chain's argument list below its name inside a query clause after the first joins the name, and the list whose
+    /// only line break it was becomes one line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-039")]
+    public void ChainArgumentListInQueryClauseLeavesListOnOneLine()
+    {
+        // Arrange
+        const string input = """
+                             using System.Collections.Generic;
+                             using System.Linq;
+
+                             class C
+                             {
+                                 void M(object x, List<int> list)
+                                 {
+                                     Baz(from v in list select v.ToString
+                                     (), 2);
+                                 }
+
+                                 void Baz(object a, object b)
+                                 {
+                                 }
+
+                                 int Bar(int x)
+                                 {
+                                     return x;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                class C
+                                {
+                                    void M(object x, List<int> list)
+                                    {
+                                        Baz(from v in list select v.ToString(), 2);
+                                    }
+
+                                    void Baz(object a, object b)
+                                    {
+                                    }
+
+                                    int Bar(int x)
+                                    {
+                                        return x;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an argument list below its name, outside a chain, inside an array initializer of a list element joins the name, and
+    /// the list whose only line break it was becomes one line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-039")]
+    public void ArgumentListInArrayInitializerLeavesListOnOneLine()
+    {
+        // Arrange
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 void M(object x, List<int> list)
+                                 {
+                                     Baz(new[] { Bar
+                                     (1) }, 2);
+                                 }
+
+                                 void Baz(object a, object b)
+                                 {
+                                 }
+
+                                 int Bar(int x)
+                                 {
+                                     return x;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M(object x, List<int> list)
+                                    {
+                                        Baz(new[] { Bar(1) }, 2);
+                                    }
+
+                                    void Baz(object a, object b)
+                                    {
+                                    }
+
+                                    int Bar(int x)
+                                    {
+                                        return x;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a chain's argument list below its name inside a stackalloc initializer of a list element joins the name, and the
+    /// list whose only line break it was becomes one line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-039")]
+    public void ChainArgumentListInStackallocInitializerLeavesListOnOneLine()
+    {
+        // Arrange
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 void M(object x, List<int> list)
+                                 {
+                                     Baz(stackalloc int[] { x.GetHashCode
+                                     () }.Length, 2);
+                                 }
+
+                                 void Baz(object a, object b)
+                                 {
+                                 }
+
+                                 int Bar(int x)
+                                 {
+                                     return x;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M(object x, List<int> list)
+                                    {
+                                        Baz(stackalloc int[] { x.GetHashCode() }.Length, 2);
+                                    }
+
+                                    void Baz(object a, object b)
+                                    {
+                                    }
+
+                                    int Bar(int x)
+                                    {
+                                        return x;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a list that also holds a line break between its arguments keeps one argument per line when an argument list below
+    /// its name inside an interpolation hole of an element joins the name
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-039")]
+    public void ListWithLineBreakBetweenArgumentsKeepsOneArgumentPerLineAroundJoinedInterpolationHole()
+    {
+        // Arrange
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 void M(object x, List<int> list)
+                                 {
+                                     Baz($"{Bar
+                                     (1)}",
+                                     2);
+                                 }
+
+                                 void Baz(object a, object b)
+                                 {
+                                 }
+
+                                 int Bar(int x)
+                                 {
+                                     return x;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M(object x, List<int> list)
+                                    {
+                                        Baz($"{Bar(1)}",
+                                            2);
+                                    }
+
+                                    void Baz(object a, object b)
+                                    {
+                                    }
+
+                                    int Bar(int x)
+                                    {
+                                        return x;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a collection expression in a list element that spanned several lines only because of the line break in front of
+    /// an argument list keeps one element per line, and the list around it keeps one argument per line
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-BREAK-039")]
+    public void CollectionExpressionInListElementIsJudgedAsWrittenAroundJoinedArgumentList()
+    {
+        // Arrange
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 void M(object x, List<int> list)
+                                 {
+                                     Baz([Bar
+                                     (1), 2], 3);
+                                 }
+
+                                 void Baz(object a, object b)
+                                 {
+                                 }
+
+                                 int Bar(int x)
+                                 {
+                                     return x;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    void M(object x, List<int> list)
+                                    {
+                                        Baz([
+                                                Bar(1),
+                                                2
+                                            ],
+                                            3);
+                                    }
+
+                                    void Baz(object a, object b)
+                                    {
+                                    }
+
+                                    int Bar(int x)
+                                    {
+                                        return x;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that an argument list below its name in a switch expression arm joins the name in front of it
     /// </summary>
     [TestMethod]
