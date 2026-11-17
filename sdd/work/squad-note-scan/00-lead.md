@@ -16,6 +16,7 @@ None.
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Lane | Which lane | Tooling | Guard behavior change in a test project; implementer needed | Architecture tests are internal | claim |
+| 2 | Cleaner | Follow-up for S1125 at `FormatCommandHandler.cs:568` | Dropped | `== false` is the repository's deliberate style; Release build reports no warning | Nothing changes | — |
 
 ## Follow-up candidates
 
@@ -24,4 +25,5 @@ None.
 ## Worklist / next step
 
 - 01 test implementer: reproduced (a4358fe).
-- 02 implementer: tests pass (8430458). Next: cleaner (03).
+- 02 implementer: tests pass (8430458). 
+- 03 cleaner: clean (6b1bae2). Next: spec checker (04).
