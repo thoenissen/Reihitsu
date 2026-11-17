@@ -19,11 +19,12 @@ None yet.
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
-| 1 | skeptic | #1847: which `ApplyRule` paths get the non-refusal check | Both `ApplyRule` branches (round-trip and syntax-error) and `FormatWithPipeline`, beyond the issue's list | The skeptic showed all five helpers pass silently on a refused canonical input on `main` | Test code only | |
-| 2 | skeptic | #1847: demonstration fixture and the goal to move refusing fixtures to `AssertUnsupportedFor` | Demonstrate on a canonical refused input (skeptic's `private int /* comment */ _value;` class), not the fixed-buffer fixture; drop the move goal | The fixed-buffer fixture already fails on `main` via FMT-PIPE-027; no `ApplyRule` fixture is refused today (5738/5738 with the check) | Test code only | |
-| 3 | skeptic | #1848: how the analyzer test project reuses the parse-and-run and round-trip steps | Option B': a `public` entry in `Reihitsu.Formatter.Test` whose signature names no internal type (like `PhaseStabilityCheck`), owning parse, run, round-trip checks and the non-refusal check once; fall back to option A (`InternalsVisibleTo` in the test project's `AssemblyInfo.cs`) only if B' cannot be built without exposing internal types | Matches the existing public-entry convention, keeps the grant surface narrow, stays in the tests lane; C and D widen the lane to tooling for nothing | Test code only | |
-| 4 | skeptic | #1848: dead `transformParseOptions` parameter of `VerifyFormatterFixCore` | Remove it as part of the restatement cleanup | `null` at every call site; the run rewrites that method anyway | Test code only | |
-| 5 | skeptic | Order of work | One owner for parse-run-check (#1848) carries the non-refusal check once; the analyzer side's own `Assert.IsNull(result.Unsupported)` goes away when the shared entry covers it | One statement of the rule | Test code only | |
+| 1 | skeptic | #1847: which `ApplyRule` paths get the non-refusal check | Both `ApplyRule` branches (round-trip and syntax-error) and `FormatWithPipeline`, beyond the issue's list | The skeptic showed all five helpers pass silently on a refused canonical input on `main` | Test code only | 92cf930 |
+| 2 | skeptic | #1847: demonstration fixture and the goal to move refusing fixtures to `AssertUnsupportedFor` | Demonstrate on a canonical refused input (skeptic's `private int /* comment */ _value;` class), not the fixed-buffer fixture; drop the move goal | The fixed-buffer fixture already fails on `main` via FMT-PIPE-027; no `ApplyRule` fixture is refused today (5738/5738 with the check) | Test code only | 92cf930 |
+| 3 | skeptic | #1848: how the analyzer test project reuses the parse-and-run and round-trip steps | Option B': a `public` entry in `Reihitsu.Formatter.Test` whose signature names no internal type (like `PhaseStabilityCheck`), owning parse, run, round-trip checks and the non-refusal check once; fall back to option A (`InternalsVisibleTo` in the test project's `AssemblyInfo.cs`) only if B' cannot be built without exposing internal types | Matches the existing public-entry convention, keeps the grant surface narrow, stays in the tests lane; C and D widen the lane to tooling for nothing | Test code only | 92cf930 |
+| 4 | skeptic | #1848: dead `transformParseOptions` parameter of `VerifyFormatterFixCore` | Remove it as part of the restatement cleanup | `null` at every call site; the run rewrites that method anyway | Test code only | 92cf930 |
+| 5 | skeptic | Order of work | One owner for parse-run-check (#1848) carries the non-refusal check once; the analyzer side's own `Assert.IsNull(result.Unsupported)` goes away when the shared entry covers it | One statement of the rule | Test code only | 92cf930 |
+| 6 | test implementer | `PhaseTreeRoundTripTests.AssertEveryPhaseParsesBack` builds its parse and context by hand | Leave it; no follow-up | It is the round-trip check's own test, outside both issues' surfaces; not a defect | Test code only | 92cf930 |
 
 ## Follow-up candidates
 
@@ -32,5 +33,5 @@ None yet.
 ## State
 
 - Audited SHA: n/a (no auditor in this lane)
-- Last step: skeptic (`01-skeptic.md`): #1847 proceed narrower, #1848 proceed; no output questions, no follow-up candidates.
-- Next step: test implementer.
+- Last step: test implementer (`02-test-implementer.md`, 92cf930): tests written; lane check confirmed tests.
+- Next step: cleaner, then spec checker, then validator.
