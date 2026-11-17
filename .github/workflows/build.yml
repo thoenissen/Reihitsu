@@ -13,6 +13,9 @@ permissions:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    # A backstop far above a normal run of about three minutes; a hung test already fails
+    # within the hang timeout scripts/test.sh passes (scripts/README.md, "Hang timeout").
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v7
