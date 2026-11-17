@@ -28,7 +28,7 @@ trace_app="$(reihitsu_repo_root)/scripts/trace/trace.cs"
 
 runner_exit_code=0
 
-dotnet run "$trace_app" --verbosity quiet --property NoWarn=RH0002 -- "${trace_arguments[@]+"${trace_arguments[@]}"}" || runner_exit_code=$?
+dotnet run "$trace_app" --verbosity quiet -- "${trace_arguments[@]+"${trace_arguments[@]}"}" || runner_exit_code=$?
 
 case "$runner_exit_code" in
     0) exit 0 ;;
