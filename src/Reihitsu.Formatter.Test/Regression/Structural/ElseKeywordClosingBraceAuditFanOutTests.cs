@@ -1,13 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Threading;
 
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Data;
-using Reihitsu.Formatter.Pipeline;
 using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Regression.Structural;
@@ -20,24 +16,6 @@ namespace Reihitsu.Formatter.Test.Regression.Structural;
 [TestClass]
 public class ElseKeywordClosingBraceAuditFanOutTests : FormatterTestsBase
 {
-    #region Methods
-
-    /// <summary>
-    /// Formats the given source with the requested line ending
-    /// </summary>
-    /// <param name="input">The source text</param>
-    /// <param name="endOfLine">The end-of-line sequence</param>
-    /// <returns>The formatted source text</returns>
-    private static string Format(string input, string endOfLine)
-    {
-        var tree = CSharpSyntaxTree.ParseText(input);
-        var context = new FormattingContext(endOfLine);
-
-        return FormattingPipeline.Execute(tree.GetRoot(), context, CancellationToken.None).Output.ToFullString();
-    }
-
-    #endregion // Methods
-
     #region Tests
 
     /// <summary>
@@ -208,9 +186,8 @@ public class ElseKeywordClosingBraceAuditFanOutTests : FormatterTestsBase
             foreach (var endOfLine in _lineEndings)
             {
                 var endingName = DescribeLineEnding(endOfLine);
-                var input = NormalizeLineEndings(fixture.Value, endOfLine);
-                var formatted = Format(input, endOfLine);
-                var secondPass = Format(formatted, endOfLine);
+                var formatted = FormatWithPipeline(fixture.Value, endOfLine);
+                var secondPass = FormatWithPipeline(formatted, endOfLine);
 
                 if (glue.IsMatch(formatted))
                 {

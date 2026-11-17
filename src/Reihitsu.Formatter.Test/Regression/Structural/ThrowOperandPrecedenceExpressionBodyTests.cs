@@ -1,12 +1,6 @@
-﻿using System.Threading;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-using Reihitsu.Formatter.Data;
-using Reihitsu.Formatter.Pipeline;
 using Reihitsu.Formatter.Test.Helpers;
-using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Test.Regression.Structural;
 
@@ -1023,7 +1017,7 @@ public class ThrowOperandPrecedenceExpressionBodyTests : FormatterTestsBase
                                 """;
 
         // Act & Assert
-        AssertRuleResult(input, Format(authored));
+        AssertRuleResult(input, FormatWithPipeline(authored, "\n"));
     }
 
     /// <summary>
@@ -1074,25 +1068,11 @@ public class ThrowOperandPrecedenceExpressionBodyTests : FormatterTestsBase
                                     }
                                 }
                                 """;
-        var expected = Format(authored);
+        var expected = FormatWithPipeline(authored, "\n");
 
         // Act & Assert
         Assert.Contains("public int X => throw (_condition", expected);
         AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Formats the source with LF line endings, so a test can compare a bare operand against the formatter's own
-    /// output for the same operand written with parentheses
-    /// </summary>
-    /// <param name="source">The source text to format</param>
-    /// <returns>The formatted source text</returns>
-    private static string Format(string source)
-    {
-        var tree = CSharpSyntaxTree.ParseText(NormalizeLineEndings(source, "\n"), cancellationToken: CancellationToken.None);
-        var context = new FormattingContext("\n", languageVersion: LanguageVersionResolver.Resolve(tree.Options));
-
-        return FormattingPipeline.Execute(tree.GetRoot(CancellationToken.None), context, CancellationToken.None).Output.ToFullString();
     }
 
     #endregion // Methods
