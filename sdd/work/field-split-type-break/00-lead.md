@@ -41,5 +41,6 @@
 - Maintainer answered A.
 - Lane narrowed to **tests** (decision 3): roles now spec author (clarification) → test implementer → cleaner → spec checker → validator. Implementer and auditor skipped (no production change).
 - Done: spec author (03, commit b91639c) — FMT-STRUCT-021 clarified with a new example (break behind long generic type, between modifiers repeated; break behind a `,` not repeated). Lane check: confirmed tests.
-- Running: test implementer (04).
+- Done: test implementer (04, commit bf7e0d2) — 8 new formatter tests + tag on existing, 2 RH7101 fix tests, 1 parity test; all green on unchanged code. Lane check: confirmed tests.
+- Running: cleaner (05).
 - Next: cleaner → spec checker → validator → issue manager (2 follow-up candidates) → publish.
