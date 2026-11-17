@@ -77,7 +77,7 @@ class C
 ### Member order — RH7102, RH7103
 
 ```csharp
-public struct S
+public class S
 {
     private int _x;
     private
@@ -105,7 +105,7 @@ Before: not reported.
 After: reported, and no code fix is offered.
 
 ```csharp
-public struct S
+public class S
 {
     private int _x;
     private
@@ -461,6 +461,11 @@ public class C : IDisposable
     public void Dispose()
     {
     }
+
+#if FEATURE
+    /// <inheritdoc/>
+    public object Clone() => this;
+#endif
 }
 ```
 
@@ -483,6 +488,11 @@ public class C : IDisposable
 |}    public void Dispose()
     {
     }
+
+#if FEATURE
+    /// <inheritdoc/>
+    public object Clone() => this;
+#endif
 }
 ```
 
