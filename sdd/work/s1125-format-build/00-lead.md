@@ -31,12 +31,13 @@
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Lane | Who reproduces in the tooling lane without a test implementer? | The implementer reproduces with `scripts/format.sh` on an unchanged tree first and returns `blocked`/not reproduced if no S1125 appears | Build configuration has no test project; reproduction is a command run | Build warnings of the repository's own scripts are internal | — |
+| 2 | Implementer | Pull in the `--property NoWarn=RH0002` cleanup in `scripts/trace.sh` that the implementer suspects is now redundant? | No; follow-up candidate | Not established why the flag exists (the Debug-passing scripts carry it too); not a defect | Script flags are internal | — |
 
 ## Follow-up candidates
 
-(none)
+- `scripts/trace.sh` (and possibly `apply-fix.sh`, `lane-check.sh`) pass `--property NoWarn=RH0002`, which may have worked around the missing default configuration fixed here; check whether it is still needed. Source: `01-implementer.md`.
 
 ## State
 
-- Last step: claim, prepare, 00-lead written.
-- Next: spawn implementer.
+- Last step: implementer reproduced and fixed (7c8bd87, Directory.Build.props default Configuration). Lane check confirmed tooling.
+- Next: cleaner, then spec checker, auditor, validator.
