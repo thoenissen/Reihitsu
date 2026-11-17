@@ -30,9 +30,6 @@
 
 (none yet)
 
-## Audited SHA
-
-(none yet)
 
 ## Open worklist / next step
 
@@ -45,4 +42,10 @@
 - Done: cleaner (06), 01f899f, clean. S1125 printed by format.sh for untouched Cli/FormatCommandHandler.cs, absent in Release build: not in scope, not filed.
 - Done: spec checker (07), f250232, consistent.
 - Merged origin/main (abe1313, #1813) — conflict in line-breaks.md header resolved by spec author (08), merge a0bb969, handover b6a3cb9.
-- Next: cleaner (09) after merge, build, auditor (10).
+- Done: cleaner (09) 2889c01 clean; build green; auditor (10) 10ffed5: PASS with one text finding (XML summary line 177 chars, AttributeTargetFormattingRewriter.cs:116).
+
+## Audited SHA
+
+2889c013b6183eb121062e04d4e21d6224b5767a (main abe1313)
+
+- Next: cleaner (11) re-wraps the summary; prove with verify-text-only --base 2889c01; then validator (12), publish.
