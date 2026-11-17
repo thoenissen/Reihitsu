@@ -37,4 +37,5 @@
 - Done: test implementer (`02-test-implementer.md`, 13b99aa + 1e7549c): both issues written; formatter 101/101, analyzer 488/488 focused.
 - Done: cleaner (`03-cleaner.md`, 6d05979): clean, no change.
 - Done: spec checker (`04-spec-checker.md`, 733c2a9): consistent, no findings.
-- Next: validator (`05-validator.md`).
+- Done: validator (`05-validator.md`, 065b81a, validated e32ba32): pass, all suites green.
+- Next: issue manager (`06-issue-manager.md`) with the two follow-up candidates, then note + publish.
