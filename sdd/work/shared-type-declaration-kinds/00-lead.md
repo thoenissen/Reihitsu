@@ -30,4 +30,4 @@ From `01-skeptic.md` (each carries an output question, written there):
 
 ## Worklist / next step
 
-- Skeptic done (01, a070ff2). Next: test implementer (canary).
+- Skeptic done (01, a070ff2). Test implementer done (02, e6c97ce). Implementer skipped (decision 4). Lane check: confirmed — claimed bug-fix, diff needs only tests. Next: cleaner.
