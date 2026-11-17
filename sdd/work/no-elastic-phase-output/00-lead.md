@@ -42,4 +42,5 @@
 - Batch point before test implementer: no output questions open, no stop.
 - Done: test implementer (04), 35b2e85: 17 new tests fail + 5 existing round-trip failures, all elastic commas from LineBreakPhase accessor merge.
 - Done: implementer (05), abacf27 + 17c4f92; all suites green in Debug.
-- Next: cleaner (06).
+- Done: cleaner (06), 01f899f, clean. S1125 printed by format.sh for untouched Cli/FormatCommandHandler.cs, absent in Release build: not in scope, not filed.
+- Next: spec checker (07).
