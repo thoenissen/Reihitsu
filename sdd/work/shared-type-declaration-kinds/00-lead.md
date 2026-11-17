@@ -16,8 +16,8 @@ None yet.
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Claim | Lane, given the issue says tooling | Bug fix | Named paths are production/test, not tooling; no output change planned | Lane choice is internal | claim |
-| 2 | Skeptic | Which option of the issue to build | Neither: drop the shared-set goal, the "one edit" goal, and the exclusion-table architecture test; build one canary test in `Reihitsu.ArchitectureTests` that pins every type-declaration syntax type and its SyntaxKinds as Roslyn has them, keeping RH5404's existing canary | Skeptic 01: no single kind set exists (at least six different sets, each matching its spec); an exclusion table would repeat every spec's list a third time; the canary catches the event that caused the issue (a Roslyn bump adding a kind, also on an existing type) | Test-only; no production, spec, or rule-doc change | tbd |
-| 3 | Skeptic | PR link | `Closes #1788`, with the departure from the issue stated in the Summary | The issue's purpose — a new type-declaration kind does not slip through unnoticed — is met by the canary | Internal | tbd |
+| 2 | Skeptic | Which option of the issue to build | Neither: drop the shared-set goal, the "one edit" goal, and the exclusion-table architecture test; build one canary test in `Reihitsu.ArchitectureTests` that pins every type-declaration syntax type and its SyntaxKinds as Roslyn has them, keeping RH5404's existing canary | Skeptic 01: no single kind set exists (at least six different sets, each matching its spec); an exclusion table would repeat every spec's list a third time; the canary catches the event that caused the issue (a Roslyn bump adding a kind, also on an existing type) | Test-only; no production, spec, or rule-doc change | e6c97ce |
+| 3 | Skeptic | PR link | `Closes #1788`, with the departure from the issue stated in the Summary | The issue's purpose — a new type-declaration kind does not slip through unnoticed — is met by the canary | Internal | e6c97ce |
 | 4 | Skeptic | Implementer and spec author | Skipped: the diff is test-only and covers existing behavior; no spec clarification needed | Lane bug fix admits a tests diff | Internal | — |
 
 ## Follow-up candidates
@@ -30,4 +30,4 @@ From `01-skeptic.md` (each carries an output question, written there):
 
 ## Worklist / next step
 
-- Skeptic done (01, a070ff2). Test implementer done (02, e6c97ce). Implementer skipped (decision 4). Lane check: confirmed — claimed bug-fix, diff needs only tests. Next: cleaner.
+- Skeptic done (01, a070ff2). Test implementer done (02, e6c97ce). Implementer skipped (decision 4). Lane check: confirmed — claimed bug-fix, diff needs only tests. Cleaner clean (03). Spec checker consistent (04). Next: auditor.
