@@ -17,6 +17,7 @@ None.
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Lane | Run the test implementer? | Skip | No test covers wrapper-script build flags; evidence is a clean-tree run recorded in the handover | Scripts are repository tooling, not a user surface | claim |
+| 2 | Implementer | Follow-up: global `NoWarn` replaces project `NoWarn` | Drop | No script passes `NoWarn` any more, so no caller reaches it | Tooling only | 0be6478 |
 
 ## Follow-up candidates
 
@@ -24,5 +25,5 @@ None yet.
 
 ## State
 
-- Last step: claim + 00-lead.md.
-- Next: implementer (01).
+- Last step: implementer 01 (tests pass, all five flags removed, 0be6478); lane check confirmed tooling.
+- Next: cleaner (02).
