@@ -74,6 +74,30 @@ enum F
 
 Both commas are reported. No code fix is offered for the comma in `E`; the fix removes the comma in `F`.
 
+Example — the same enum `E` in a build that defines `DEBUG`: `B` is the last member, and the `#endif` lies between its comma and the brace, so that comma is reported, and no code fix is offered; the comma behind `A` is not a trailing comma in this build:
+
+```csharp
+enum E
+{
+    A,
+#if DEBUG
+    B{|RH5409:,|}
+#endif
+}
+```
+
+Example — the comma written inside the branch, in front of the element that needs it, is not reported in a build with or without `DEBUG`:
+
+```csharp
+enum E
+{
+    A
+#if DEBUG
+    , B
+#endif
+}
+```
+
 ### SHARED-TRAIL-003 — The fix removes the comma
 
 The code fix MUST remove the reported comma and keep every element, comment, and directive next to it on the line it is on. When the comma is the only thing on its line besides whitespace, the fix MUST remove that whole line.

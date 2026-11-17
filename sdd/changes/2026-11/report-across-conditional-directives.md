@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | SHARED-DIAG-008, SHARED-DIAG-010, SHARED-ATTR-019, SHARED-ATTR-020, SHARED-EMPTY-001, SHARED-MODORDER-003, SHARED-TRAIL-002, RH2001-007, RH2005-001, RH3002-010, RH5102-004, RH5109-004, RH5111-005, RH7003-001, RH7101-001, RH7102-001, RH7102-006, RH7103-001, RH7105-001, RH7106-001, RH7107-001, RH7107-005, RH7108-001, RH7108-005, RH7311-001, RH8201-003 |
 
@@ -253,7 +253,7 @@ class C
 
 Before: not reported.
 
-After: reported, and no code fix is offered — as for a `#pragma` in the same gap today.
+After: reported, and no code fix is offered — as for a `#pragma` in the same gap today. `reihitsu-format` keeps the line break around `=`, so formatting never clears this diagnostic: RH5111's exception to SHARED-DIAG-010, which covered a comment, `#region`, `#endregion`, and `#pragma` there, now covers a directive of any kind.
 
 ```csharp
 class C
@@ -360,17 +360,31 @@ enum E
 
 Before: not reported.
 
-After: reported, and no code fix is offered: removing the comma would break a build that defines `DEBUG`. The author can write the comma inside the branch instead, in front of `B`.
+After: reported in both builds, and no code fix is offered in either. In a build without `DEBUG`, `A` is the last member and the `#if` block lies between its comma and the brace; removing that comma would break a build that defines `DEBUG`. In a build with `DEBUG`, `B` is the last member and the `#endif` lies between its comma and the brace. `reihitsu-format` keeps both commas.
 
 ```csharp
 enum E
 {
-    A{|RH5409:,|}
+    A{|RH5409:,|}  // reported in a build without DEBUG
 #if DEBUG
-    B,
+    B{|RH5409:,|}  // reported in a build with DEBUG
 #endif
 }
 ```
+
+The shape that no build reports writes the comma inside the branch, in front of the element that needs it:
+
+```csharp
+enum E
+{
+    A
+#if DEBUG
+    , B
+#endif
+}
+```
+
+RH5410 and RH5411 behave the same for an array or collection initializer.
 
 The rule pages RH5409, RH5410, and RH5411 lose their *Exceptions* section, which stated the old silence.
 
@@ -484,6 +498,21 @@ RH3002, RH7003, RH2005, RH2001, and the empty-type rules RH5412–RH5416 and RH5
 
 ## Decisions
 
+### Maintainer answers (batch 1, 2026-11-17)
+
+The maintainer answered the run's first batch of output questions with A, as recommended, for each:
+
+1. The rules that start reporting across a conditional directive — RH7105, RH7106, RH7102, RH7103, RH7107, RH7108, RH5102, RH5109, RH7101, and the attribute-list shape rules of SHARED-ATTR-019 and SHARED-ATTR-020 — report the inputs under *Visible output changes*, and no code fix is offered for them.
+2. RH5409, RH5410, and RH5411 report a comma in front of a conditional directive, in every build in which that comma is the last one, and never offer a fix for it; the formatter keeps the comma (FMT-STRUCT-019, FMT-STRUCT-020). The comma written inside the branch is the shape that no build reports.
+3. RH5111 reports a conditional directive around `=` without a fix, although the formatter keeps that gap: its exception to SHARED-DIAG-010 now covers a directive of any kind.
+4. RH7311 compares the region of the branch the build compiles with the regions outside the conditional directive; the regions of two branches of one conditional directive are never compared with each other.
+5. RH8201 reports an implicit implementation in a file that holds `#if`, without a fix.
+6. A conditional directive or excluded code between the comma after the last element and the closing brace of an enum member list, an array initializer, or a collection initializer is not declared unsupported (escalation 10). Declaring it would delete only the formatter's keep-the-comma check in its two trailing-comma transforms, and the new withheld trailing-comma fix would simply become a withheld fix under SHARED-FIX-010; it would refuse every file with an `#if` block at the end of an enum or an initializer, which is common code.
+
+### Two fixes that relied on their analyzer's silence withhold themselves
+
+The trailing-comma fix of RH5409, RH5410, and RH5411 and the fix of RH8201 were safe for these inputs only because the analyzer never reported them. Now that the analyzer reports them, SHARED-TRAIL-002 and RH8201-003 require the fix itself to be withheld: for a conditional directive or excluded code between the comma and the closing brace, and for an implicit implementation when an `#if` appears in a file that declares the type or one of its interfaces. Fix All withholds the same diagnostics. Every other fix this change reaches already refuses the new inputs, because the requirement that withholds it for a comment or a directive of any kind already covers a conditional directive: the ordering requirements (SHARED-ORDER-003, SHARED-ORDER-007, SHARED-ORDER-008) for RH7102, RH7103, RH7107, and RH7108; RH5102-004, RH5109-004, and RH5111-005; SHARED-MODORDER-003 for RH7105 and RH7106; SHARED-ATTR-019 and SHARED-ATTR-020; SHARED-FIX-010 for RH7101 (FMT-UNSUP-010); and SHARED-EMPTY-004 for the empty-type rules.
+
 ### The fix half keeps every build intact, by the part it rewrites
 
 A fix that rewrites or moves the part of the judged span that holds a directive or excluded code is withheld, as before for `#region`, `#endregion`, and `#pragma`. A fix that leaves them in place stays offered only where it keeps every build intact; removing the comma in front of a conditional directive does not, because another build's element can need it, so SHARED-TRAIL-002 withholds it. Stating the boundary by the part the fix rewrites keeps RH2005's fix, which replaces `public` and leaves an excluded modifier in front of the first modifier where it is, and lets the ordering requirements decide RH7107's and RH7108's moves as they decide every other move.
@@ -504,5 +533,9 @@ The empty-type rules share SHARED-EMPTY-001, so the clarification is stated ther
 ## Alternatives considered
 
 - **Withhold every fix whenever a conditional directive lies in the judged span** — rejected: it would withdraw RH2005's fix for an excluded modifier in front of the first modifier, which is offered today and keeps every build intact, and it would add a guard the ordering requirements make unnecessary for RH7107 and RH7108.
-- **Keep the silence for trailing commas, where the comma usually exists for another build's element** — rejected: it is the same reason the decision overruled for every other rule; the diagnostic without a fix tells the author that the analyzed build has a trailing comma.
+- **Keep the silence for trailing commas, where the comma usually exists for another build's element** (question 2, B) — rejected by the maintainer: it is the same reason the decision overruled for every other rule; the diagnostic without a fix tells the author that the analyzed build has a trailing comma.
+- **Declare a conditional directive between the last comma and the closing brace unsupported** (escalation 10, B) — rejected by the maintainer: it deletes one formatter check and refuses common code.
+- **Keep RH5111 silent on a conditional directive around `=`, as SHARED-DIAG-010 would without the exception** (question 3, B) — rejected by the maintainer: the exception's reason, that a directive between a target and its `=` is syntax the author should move, holds for a conditional directive unchanged.
+- **Keep RH7311 comparing only regions outside every branch** (question 4, B) — rejected by the maintainer: the outline of the analyzed build holds the compiled branch's region, and RH7309 already judges the build's regions.
+- **Keep RH8201 silent for an implicit implementation in a file with `#if`** (question 5, B) — rejected by the maintainer: the same reason the decision overruled for every other rule.
 - **Reverse only the rules that cite SHARED-DIAG-008** — rejected: RH7311 and RH8201 stay silent for the same reason without citing it, and leaving them would keep two readings of one rule.
