@@ -231,15 +231,16 @@ public class LoneOperatorJoinBlankLineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a lone operator followed by a comment keeps its line and gains no blank line
+    /// Verifies that a lone operator followed by a comment is a comment between a binary operator and its right operand: the
+    /// input is refused as unsupported, and the comment is reported
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-030")]
-    public void LoneOperatorFollowedByCommentGainsNoBlankLine()
+    [Requirement("FMT-UNSUP-011")]
+    public void LoneOperatorFollowedByCommentIsUnsupported()
     {
         var input = InMethod("        var p = a\n                && // c\n                b;");
 
-        AssertBlankLinesAbove(input, ("&& // c", false), ("b;", false));
+        AssertUnsupportedFor(BinaryOperatorCommentReason, input, "// c");
     }
 
     /// <summary>

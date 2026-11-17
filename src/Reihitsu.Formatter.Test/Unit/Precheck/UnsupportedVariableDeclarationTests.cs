@@ -496,7 +496,8 @@ public class UnsupportedVariableDeclarationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a comment in the leading trivia of the last token of a value of several tokens does not refuse the
-    /// input: it is inside the value
+    /// input: it is inside the value. The token in front of it is a unary operator, because a comment behind a binary operator
+    /// is refused under FMT-UNSUP-011
     /// </summary>
     [TestMethod]
     [Requirement("FMT-UNSUP-004")]
@@ -507,7 +508,7 @@ public class UnsupportedVariableDeclarationTests : FormatterTestsBase
                              {
                                  void M()
                                  {
-                                     int a = 1 + /* c */ 2;
+                                     int a = - /* c */ 2;
                                  }
                              }
                              """;
@@ -604,7 +605,8 @@ public class UnsupportedVariableDeclarationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a comment on its own line in front of the last token of a value of several tokens that is not the declaration's
-    /// first value does not refuse the input: it is inside that value
+    /// first value does not refuse the input: it is inside that value. The token in front of it is a unary operator, because a
+    /// comment behind a binary operator is refused under FMT-UNSUP-011
     /// </summary>
     [TestMethod]
     [Requirement("FMT-UNSUP-004")]
@@ -615,7 +617,7 @@ public class UnsupportedVariableDeclarationTests : FormatterTestsBase
                              {
                                  void M()
                                  {
-                                     int a = x + y, b = p +
+                                     int a = x + y, b = -
                                          // c
                                          q;
                                  }
@@ -713,7 +715,8 @@ public class UnsupportedVariableDeclarationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a comment on its own line in front of the last token of a value whose last token lies several levels deep, a
-    /// conditional chain nested to the right, does not refuse the input: it is inside the value
+    /// conditional chain nested to the right, does not refuse the input: it is inside the value. The token in front of it is a
+    /// unary operator, because a comment behind a binary operator is refused under FMT-UNSUP-011
     /// </summary>
     [TestMethod]
     [Requirement("FMT-UNSUP-004")]
@@ -724,7 +727,7 @@ public class UnsupportedVariableDeclarationTests : FormatterTestsBase
                              {
                                  void M()
                                  {
-                                     int r = k == 0 ? 0 : k == 1 ? 1 : k == 2 ? 2 : 3 +
+                                     int r = k == 0 ? 0 : k == 1 ? 1 : k == 2 ? 2 : -
                                          // c
                                          4;
                                  }

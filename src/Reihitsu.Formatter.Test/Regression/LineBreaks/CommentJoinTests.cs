@@ -74,21 +74,6 @@ public class CommentJoinTests
     }
 
     /// <summary>
-    /// Verifies that a binary operator is not collapsed into a trailing comment
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-001")]
-    public void BinaryOperatorIsNotCollapsedIntoTrailingComment()
-    {
-        const string input = """
-                             var x = a + // note
-                                 b;
-                             """;
-
-        AssertUnchanged(input);
-    }
-
-    /// <summary>
     /// Verifies that an assignment value is not collapsed into a trailing comment after the operator
     /// </summary>
     [TestMethod]
