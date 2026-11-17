@@ -21,10 +21,12 @@ None yet.
 | 4 | Skeptic | Adjacent: RH5604 `VerifyFormatterEntryPointsAndIdempotency` | Take it in if it is the one-line call the skeptic describes | Same mechanism, same file set, gets the check | Test-only | – |
 | 5 | Test implementer | Lane check: tests → tooling (the analyzer test `.csproj`) | Widen to tooling; roles added: implementer, auditor. Implementer skipped: the test implementer wrote the whole change as test code and every test passes, so the implementer has nothing to make pass | Widening order tests → tooling | Test wiring only | 44b2ecb |
 | 6 | Test implementer | Also check `AssertExemptInteriorsSurviveNormalization` in RH5604 | Keep it | Same shape as decision 4; covers a detected line ending on a mixed file | Test-only | 44b2ecb |
+| 7 | Auditor | Follow-up list of direct `FormatSyntaxTree` idempotency tests | Drop all members but RH6001; take `RH6001...VerifyFormatterFixesGluedFixedKeyword` into the run as an adjacent fix (same one-line shape as decision 4) | Auditor showed the others assert no idempotency or are already covered; one line, same mechanism, cheaper here than a run of its own | Test-only | – |
+| 8 | Auditor | Finding #1 (stale XML summaries in the base class) | Repair round 1: cleaner rewords both summaries; together with decision 7, the auditor re-audits the repair | Comment-only, PR-introduced | Test-only | – |
 
 ## Follow-up candidates
 
-- Other analyzer formatter tests that call `FormatSyntaxTree` directly (RH5021, RH5029, RH5030, RH5104, RH5111, RH5201, RH5412–RH5416, RH6001) may assert full-run idempotency without the per-phase check (02-test-implementer).
+- ~~Other direct `FormatSyntaxTree` tests~~ — dropped / taken in, decision 7 (02-test-implementer, 05-auditor).
 - `scripts/format.sh` prints S1125 warnings for `src/Reihitsu.Cli/FormatCommandHandler.cs` (lines 647, 658, 712) while building the CLI; the Release build reports none; file untouched by this run (03-cleaner).
 
 ## Worklist / next step
@@ -35,4 +37,6 @@ None yet.
 - Cleaner done (03): clean, bb2f598.
 - Spec checker done (04): consistent, no findings.
 - Merged origin/main abe1313 (clean, build green) as ec74419.
-- Next: auditor (main SHA abe1313) → validator.
+- Auditor (05) on 091e588: pass with one comment finding.
+- Repair round 1 worklist: (a) test implementer adds the per-phase check to RH6001 `VerifyFormatterFixesGluedFixedKeyword` (decision 7); (b) cleaner rewords the two summaries (finding #1).
+- Next: test implementer → cleaner → spec checker → auditor (repair only) → validator.
