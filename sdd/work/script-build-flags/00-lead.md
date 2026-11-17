@@ -25,5 +25,5 @@ None yet.
 
 ## State
 
-- Last step: implementer 01 (tests pass, all five flags removed, 0be6478); lane check confirmed tooling.
-- Next: cleaner (02).
+- Last step: auditor 04 passed (audited SHA e368703, handover 080a56b).
+- Next: validator (05), then publish.
