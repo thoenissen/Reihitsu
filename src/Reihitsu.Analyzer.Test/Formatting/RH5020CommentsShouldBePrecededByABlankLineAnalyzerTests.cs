@@ -725,6 +725,435 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
         await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies the specification example: the first comment behind the opening parenthesis of a record's parameter list,
+    /// a method's parameter list, and an argument list, behind the opening bracket of a collection expression, and behind
+    /// the <c>&lt;</c> of a type parameter list is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5020-002")]
+    public async Task SpecExampleFirstCommentBehindOpeningParenthesisBracketOrLessThanIsNotReported()
+    {
+        const string testCode = """
+                                public record R(
+                                    // first
+                                    int A,
+                                    int B);
+
+                                class C
+                                {
+                                    int M(
+                                        // first
+                                        int a,
+                                        int b)
+                                    {
+                                        return M(
+                                            // first
+                                            a,
+                                            b);
+                                    }
+
+                                    int[] F =
+                                    [
+                                        // first
+                                        1,
+                                    ];
+
+                                    void O<
+                                        // first
+                                        T>()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies the specification example under CRLF line endings: the first comment behind an opening parenthesis,
+    /// bracket, or <c>&lt;</c> is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5020-002")]
+    public async Task SpecExampleFirstCommentBehindOpeningParenthesisBracketOrLessThanIsNotReportedWithCarriageReturnLineFeed()
+    {
+        const string testCode = """
+                                public record R(
+                                    // first
+                                    int A,
+                                    int B);
+
+                                class C
+                                {
+                                    int[] F =
+                                    [
+                                        // first
+                                        1,
+                                    ];
+
+                                    void O<
+                                        // first
+                                        T>()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testCode));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a comment behind a comma of a parameter list is reported, and the fix inserts
+    /// the blank line above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5020-001")]
+    [Requirement("RH5020-002")]
+    public async Task SpecExampleCommentBehindCommaOfParameterListIsReportedAndFixed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a,
+                                           {|RH5020:// second|}
+                                           int b)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(int a,
+
+                                            // second
+                                            int b)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies both sides of the boundary in one list: the first comment behind the opening parenthesis or bracket is not
+    /// reported, a comment behind a comma of the same list is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5020-001")]
+    [Requirement("RH5020-002")]
+    public async Task FirstCommentBehindOpeningTokenIsNotReportedWhileCommentBehindCommaIsReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(
+                                        // first
+                                        int a,
+                                        {|RH5020:// second|}
+                                        int b)
+                                    {
+                                    }
+
+                                    int[] F =
+                                    [
+                                        /* first */
+                                        1,
+                                        {|RH5020:/* second */|}
+                                        2,
+                                    ];
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(
+                                         // first
+                                         int a,
+
+                                         // second
+                                         int b)
+                                     {
+                                     }
+
+                                     int[] F =
+                                     [
+                                         /* first */
+                                         1,
+
+                                         /* second */
+                                         2,
+                                     ];
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that the first comment behind the opening token of an attribute list, an attribute argument list, an
+    /// indexer's parameter list, a statement header, a cast, a parenthesized expression, a tuple, an array size, an element
+    /// access, a positional, parenthesized, and list pattern, a lambda's parameter list, and a type argument list is not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5020-002")]
+    public async Task FirstCommentBehindEveryOtherOpeningTokenIsNotReported()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    [
+                                        // attribute
+                                        Obsolete]
+                                    int this[
+                                        // indexer
+                                        int i] => i;
+
+                                    [Obsolete(
+                                        // attribute argument
+                                        "x")]
+                                    List<
+                                        // return type
+                                        int> M(object o, int a, (int, int) p, int[] l)
+                                    {
+                                        if (
+                                            // header
+                                            a > 0)
+                                        {
+                                            a = (
+                                                // cast
+                                                int)o;
+                                        }
+
+                                        a = (
+                                            // parenthesized
+                                            a + 1) * 2;
+                                        var t = (
+                                            /* tuple */
+                                            1,
+                                            2);
+                                        var s = new int[
+                                            // array size
+                                            3];
+                                        _ = s[
+                                            // element access
+                                            0];
+                                        _ = p is (
+                                            // positional
+                                            1, 2);
+                                        _ = a is (
+                                            // parenthesized pattern
+                                            > 0);
+                                        _ = l is [
+                                            // list pattern
+                                            1,
+                                            ..
+                                        ];
+                                        Func<int, int> f = (
+                                            // lambda
+                                            int x) => x;
+                                        _ = N<
+                                            // type argument
+                                            int>();
+                                        _ = t;
+                                        _ = f;
+
+                                        return null;
+                                    }
+
+                                    T N<T>() => default;
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the first comment behind the opening parenthesis of a union's case-type list is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5020-002")]
+    public async Task FirstCommentInUnionCaseTypeListIsNotReported()
+    {
+        const string testCode = """
+                                public union U(
+                                    // first
+                                    int,
+                                    string);
+                                """;
+
+        var unionSupport = await UnionSupport.GetReferenceAsync();
+
+        await Verify(testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
+    }
+
+    /// <summary>
+    /// Verifies that the first comment behind the <c>&lt;</c> of a function pointer parameter list is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5020-002")]
+    public async Task FirstCommentInFunctionPointerParameterListIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    unsafe void P(delegate*<
+                                        // function pointer
+                                        int, void> f)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, test => test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind a <c>&lt;</c> that is a binary operator or a relational pattern is reported and
+    /// fixed, since such a <c>&lt;</c> opens nothing
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5020-001")]
+    [Requirement("RH5020-002")]
+    public async Task CommentBehindLessThanOperatorIsReportedAndFixed()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool N(int a, int b)
+                                    {
+                                        return a <
+                                            {|RH5020:// compared|}
+                                            b;
+                                    }
+
+                                    bool P(int a)
+                                    {
+                                        return a is <
+                                            {|RH5020:// bound|}
+                                            5;
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     bool N(int a, int b)
+                                     {
+                                         return a <
+
+                                             // compared
+                                             b;
+                                     }
+
+                                     bool P(int a)
+                                     {
+                                         return a is <
+
+                                             // bound
+                                             5;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
+    /// <summary>
+    /// Verifies that a comment in an empty parameter list or collection expression, which the closing token owns, is not
+    /// reported behind the opening token
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5020-002")]
+    public async Task CommentInEmptyListBehindOpeningTokenIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(
+                                        // no parameters yet
+                                        )
+                                    {
+                                        int[] a = [
+                                            // no elements yet
+                                        ];
+                                        _ = a;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that the first comment on its own line below an opening parenthesis whose line a trailing comment ends is
+    /// not reported, since the token in front of it is the opening parenthesis
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5020-002")]
+    [Requirement("RH5020-003")]
+    public async Task FirstCommentBelowTrailingCommentOfOpeningParenthesisIsNotReported()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(int a)
+                                    {
+                                        M( // note
+                                            // first
+                                            a);
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that under documentation mode <c>None</c>, where <c>///</c> is an ordinary comment, the first one behind an
+    /// opening parenthesis is not reported and one behind a comma is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5020-001")]
+    [Requirement("RH5020-002")]
+    public async Task TripleSlashCommentWithoutDocumentationParsingFollowsTheOpeningTokenRule()
+    {
+        const string testCode = """
+                                public record R(
+                                    /// first
+                                    int A,
+                                    {|RH5020:/// second|}
+                                    int B);
+                                """;
+        const string fixedCode = """
+                                 public record R(
+                                     /// first
+                                     int A,
+
+                                     /// second
+                                     int B);
+                                 """;
+
+        await Verify(testCode, fixedCode, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

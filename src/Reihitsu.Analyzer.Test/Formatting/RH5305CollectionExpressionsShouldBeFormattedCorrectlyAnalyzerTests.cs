@@ -569,6 +569,37 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzerTests 
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies that the fix of a collection expression whose first element is preceded by a comment leaves no blank line
+    /// between the opening bracket and the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5305-004")]
+    public async Task VerifyFixLeavesNoBlankLineAboveTheFirstCommentOfTheCollectionExpression()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    int[] _a = {|RH5305:[
+                                        // first
+                                        1, 2]|};
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     int[] _a = [
+                                                    // first
+                                                    1,
+                                                    2
+                                                ];
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
