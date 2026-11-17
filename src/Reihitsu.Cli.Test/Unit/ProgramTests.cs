@@ -568,5 +568,156 @@ public class ProgramTests
         Assert.AreEqual("--lang-version", result.Paths[0]);
     }
 
+    /// <summary>
+    /// Verifies that without <c>--max-parallelism</c> the degree of parallelism is the number of logical processors
+    /// </summary>
+    [TestMethod]
+    [Requirement("CLI-023")]
+    public void ParseArgumentsWithoutMaxParallelismUsesProcessorCount()
+    {
+        var result = Program.ParseArguments(["--check", "src"]);
+
+        Assert.AreEqual(Environment.ProcessorCount, result.MaxParallelism);
+        Assert.IsNull(result.ArgumentError);
+    }
+
+    /// <summary>
+    /// Verifies that <c>--max-parallelism</c> is accepted among options and paths and sets the degree of parallelism
+    /// </summary>
+    [TestMethod]
+    [Requirement("CLI-001")]
+    [Requirement("CLI-023")]
+    public void ParseArgumentsMaxParallelismMixesWithPathsAndOptions()
+    {
+        var result = Program.ParseArguments(["src", "--max-parallelism", "3", "--check", "tests"]);
+
+        Assert.AreEqual(3, result.MaxParallelism);
+        Assert.IsTrue(result.CheckOnly);
+        Assert.AreSequenceEqual(new[] { "src", "tests" }, result.Paths.ToArray());
+        Assert.IsNull(result.UnknownOption);
+        Assert.IsNull(result.ArgumentError);
+    }
+
+    /// <summary>
+    /// Verifies that the accepted counts of the specification are used as given: <c>1</c>, <c>2</c>, <c>1000</c>, the largest
+    /// 32-bit integer, and <c>007</c> as seven
+    /// </summary>
+    /// <param name="value">The value given to the option</param>
+    /// <param name="expected">The degree of parallelism the value selects</param>
+    [TestMethod]
+    [Requirement("CLI-023")]
+    [DataRow("1", 1)]
+    [DataRow("2", 2)]
+    [DataRow("1000", 1000)]
+    [DataRow("2147483647", int.MaxValue)]
+    [DataRow("007", 7)]
+    public void ParseArgumentsMaxParallelismAcceptsDecimalCount(string value, int expected)
+    {
+        var result = Program.ParseArguments(["--max-parallelism", value]);
+
+        Assert.AreEqual(expected, result.MaxParallelism);
+        Assert.IsNull(result.ArgumentError);
+        Assert.IsNull(result.UnknownOption);
+        Assert.IsEmpty(result.Paths);
+    }
+
+    /// <summary>
+    /// Verifies that every value that is not decimal digits from 1 to 2147483647 is invalid and gives the error message of the
+    /// specification; <c>\u0663</c> is ARABIC-INDIC DIGIT THREE, a digit to <see cref="char.IsDigit(char)"/> but not a decimal digit
+    /// <c>0</c>-<c>9</c>
+    /// </summary>
+    /// <param name="value">The value given to the option</param>
+    [TestMethod]
+    [Requirement("CLI-002")]
+    [Requirement("CLI-023")]
+    [DataRow("0")]
+    [DataRow("0000")]
+    [DataRow("-1")]
+    [DataRow("+2")]
+    [DataRow(" 2")]
+    [DataRow("2 ")]
+    [DataRow("two")]
+    [DataRow("1.5")]
+    [DataRow("1,000")]
+    [DataRow("1e3")]
+    [DataRow("0x10")]
+    [DataRow("99999999999")]
+    [DataRow("2147483648")]
+    [DataRow("\u0663")]
+    [DataRow("")]
+    public void ParseArgumentsMaxParallelismInvalidValueReturnsArgumentError(string value)
+    {
+        var result = Program.ParseArguments(["--max-parallelism", value, "src"]);
+
+        Assert.AreEqual($"Invalid value for --max-parallelism: '{value}'. Expected a whole number of 1 or more.", result.ArgumentError);
+        Assert.IsNull(result.UnknownOption);
+    }
+
+    /// <summary>
+    /// Verifies that <c>--max-parallelism</c> as the last argument gives the missing-value error
+    /// </summary>
+    [TestMethod]
+    [Requirement("CLI-002")]
+    public void ParseArgumentsMaxParallelismWithoutValueReturnsArgumentError()
+    {
+        var result = Program.ParseArguments(["--check", "src", "--max-parallelism"]);
+
+        Assert.AreEqual("Missing value for --max-parallelism.", result.ArgumentError);
+    }
+
+    /// <summary>
+    /// Verifies that the argument after <c>--max-parallelism</c> is its value even when it looks like an option, so
+    /// <c>--max-parallelism --check</c> is an invalid count and does not select check mode
+    /// </summary>
+    [TestMethod]
+    [Requirement("CLI-002")]
+    [Requirement("CLI-023")]
+    public void ParseArgumentsMaxParallelismConsumesFollowingOptionAsValue()
+    {
+        var result = Program.ParseArguments(["--max-parallelism", "--check", "src"]);
+
+        Assert.AreEqual("Invalid value for --max-parallelism: '--check'. Expected a whole number of 1 or more.", result.ArgumentError);
+        Assert.IsFalse(result.CheckOnly);
+    }
+
+    /// <summary>
+    /// Verifies that the last valid count wins when <c>--max-parallelism</c> is repeated
+    /// </summary>
+    [TestMethod]
+    [Requirement("CLI-023")]
+    public void ParseArgumentsRepeatedMaxParallelismUsesLastValue()
+    {
+        var result = Program.ParseArguments(["--max-parallelism", "2", "--max-parallelism", "8"]);
+
+        Assert.AreEqual(8, result.MaxParallelism);
+        Assert.IsNull(result.ArgumentError);
+    }
+
+    /// <summary>
+    /// Verifies that an invalid count stays an error when a valid count follows it
+    /// </summary>
+    [TestMethod]
+    [Requirement("CLI-002")]
+    public void ParseArgumentsInvalidMaxParallelismFollowedByValidCountReturnsArgumentError()
+    {
+        var result = Program.ParseArguments(["--max-parallelism", "0", "--max-parallelism", "4"]);
+
+        Assert.AreEqual("Invalid value for --max-parallelism: '0'. Expected a whole number of 1 or more.", result.ArgumentError);
+    }
+
+    /// <summary>
+    /// Verifies that <c>--max-parallelism</c> after the <c>--</c> separator is a path
+    /// </summary>
+    [TestMethod]
+    [Requirement("CLI-001")]
+    public void ParseArgumentsMaxParallelismAfterSeparatorIsPath()
+    {
+        var result = Program.ParseArguments(["--", "--max-parallelism", "2"]);
+
+        Assert.AreEqual(Environment.ProcessorCount, result.MaxParallelism);
+        Assert.AreSequenceEqual(new[] { "--max-parallelism", "2" }, result.Paths.ToArray());
+        Assert.IsNull(result.ArgumentError);
+    }
+
     #endregion // Methods
 }
