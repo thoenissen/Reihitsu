@@ -38,6 +38,11 @@ public abstract class FormatterTestsBase
     /// </summary>
     protected const string FieldDeclarationDirectiveReason = "a directive inside a field declaration with several declarators";
 
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive between a binary operator and its right operand (FMT-UNSUP-011)
+    /// </summary>
+    protected const string BinaryOperatorCommentReason = "a comment or directive between a binary operator and its right operand";
+
     #endregion // Constants
 
     #region Fields

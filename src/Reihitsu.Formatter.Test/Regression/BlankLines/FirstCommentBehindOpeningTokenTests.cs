@@ -771,8 +771,8 @@ public class FirstCommentBehindOpeningTokenTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment behind a <c>&lt;</c> that is an operator, binary or relational pattern, gets a blank line,
-    /// since such a <c>&lt;</c> opens nothing
+    /// Verifies that a comment behind a <c>&lt;</c> of a relational pattern gets a blank line, since such a <c>&lt;</c> opens
+    /// nothing; a comment behind a binary <c>&lt;</c> is refused as unsupported (FMT-UNSUP-011)
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BLANK-011")]
@@ -782,13 +782,6 @@ public class FirstCommentBehindOpeningTokenTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 bool N(int a, int b)
-                                 {
-                                     return a <
-                                         // compared
-                                         b;
-                                 }
-
                                  bool P(int a)
                                  {
                                      return a is <
@@ -799,9 +792,7 @@ public class FirstCommentBehindOpeningTokenTests : FormatterTestsBase
                              """;
 
         // Act & Assert
-        AssertBlankLinesAbove(input,
-                              ("// compared", true),
-                              ("// bound", true));
+        AssertBlankLinesAbove(input, ("// bound", true));
     }
 
     /// <summary>

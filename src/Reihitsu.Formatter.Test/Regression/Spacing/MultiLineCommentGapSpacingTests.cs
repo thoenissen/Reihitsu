@@ -154,31 +154,31 @@ public class MultiLineCommentGapSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the space behind a multi-line comment in front of the right operand of a binary operator stays one
-    /// space, and that the run of spaces in front of the comment collapses, as behind and in front of a single-line comment
+    /// Verifies that the space behind a multi-line comment in front of a binary operator becomes one space, and that the run of
+    /// spaces in front of the comment collapses, as behind and in front of a single-line comment
     /// </summary>
     [TestMethod]
     [Requirement("FMT-SPACE-001")]
     [Requirement("FMT-SPACE-013")]
-    public void SpaceBehindMultiLineCommentInFrontOfBinaryOperandStaysAsBehindSingleLineComment()
+    public void SpaceBehindMultiLineCommentInFrontOfBinaryOperatorBecomesOneSpaceAsBehindSingleLineComment()
     {
         // Arrange
         const string input = """
                              class C
                              {
-                                 int y = 1 +  /* a
-                                     b */ 2;
+                                 int y = 1  /* a
+                                     b */  + 2;
 
-                                 int z = 1 +  /* a b */ 2;
+                                 int z = 1  /* a b */  + 2;
                              }
                              """;
         const string expected = """
                                 class C
                                 {
-                                    int y = 1 + /* a
-                                        b */ 2;
+                                    int y = 1 /* a
+                                        b */ + 2;
 
-                                    int z = 1 + /* a b */ 2;
+                                    int z = 1 /* a b */ + 2;
                                 }
                                 """;
 
@@ -187,8 +187,8 @@ public class MultiLineCommentGapSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the space a binary operator demands behind it is inserted behind a multi-line comment, and that the gap in
-    /// front of the comment keeps its width, as at a single-line comment
+    /// Verifies that the space a binary operator demands in front of it is inserted behind a multi-line comment, and that the gap
+    /// in front of the comment keeps its width, as at a single-line comment
     /// </summary>
     [TestMethod]
     [Requirement("FMT-SPACE-001")]
@@ -199,19 +199,19 @@ public class MultiLineCommentGapSpacingTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 int y = 1 +/* a
-                                     b */2;
+                                 int y = 1/* a
+                                     b */+ 2;
 
-                                 int z = 1 +/* a b */2;
+                                 int z = 1/* a b */+ 2;
                              }
                              """;
         const string expected = """
                                 class C
                                 {
-                                    int y = 1 +/* a
-                                        b */ 2;
+                                    int y = 1/* a
+                                        b */ + 2;
 
-                                    int z = 1 +/* a b */ 2;
+                                    int z = 1/* a b */ + 2;
                                 }
                                 """;
 
