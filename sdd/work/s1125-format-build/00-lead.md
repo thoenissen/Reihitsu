@@ -41,4 +41,5 @@
 
 - Last step: implementer reproduced and fixed (7c8bd87, Directory.Build.props default Configuration). Lane check confirmed tooling.
 - Cleaner clean, spec checker consistent, auditor pass. Audited SHA: 0b5b660 (base 1102aa5).
-- Next: validator + issue manager, then note, delete sdd/work, trigger commit, publish PR #1823.
+- Issue manager: follow-up #1828 created.
+- Next: validator result, then note, delete sdd/work, trigger commit, publish PR #1823.
