@@ -81,6 +81,12 @@ The implementation lives in `Reihitsu.Tooling`, a non-packable project inside `R
 
 `Reihitsu.SelfHosting.Test` runs the repository's own analyzers and formatter over the repository's own source: one test row per analyzer, and one row per source file for formatter idempotency, for formatter stability, and for the stability of the formatted output under each formatter phase run alone. It is a second safety net rather than a requirement check, and it takes long enough that the default run leaves it out. CI runs it on every pull request, and `scripts/test.sh --project selfhosting` runs it locally, narrowed with `--filter` to one analyzer or one file when needed. A violation fails the row of the analyzer or the file that found it and names the file, the line, and the rule.
 
+## Test-host memory
+
+On Linux, `test.sh` passes every test host the glibc malloc setting `GLIBC_TUNABLES=glibc.malloc.mmap_threshold=131072:glibc.malloc.arena_max=2`, as a run setting (`RunConfiguration.EnvironmentVariables`), so it reaches the test hosts and the processes they start, but not the build or `dotnet test` itself. A caller that sets `GLIBC_TUNABLES` itself keeps its own value, and other platforms are not affected.
+
+Without it, the analyzer test host grows to about 9 GiB over a whole-project run, and a machine with little more memory than that, such as a cloud sandbox, kills it. The growth is native memory the test host has already freed and glibc keeps in its arenas: calling `malloc_trim(0)` in the running host at 7.0 GiB brought it down to 0.7 GiB, while the managed heap stayed near 250 MiB. It does not depend on the worker count, since one worker grew as fast per test as four. With the setting, the same run peaks at about 4.5 GiB and takes as long as before.
+
 ## The text-only proof
 
 `verify-text-only` answers one question mechanically: **can this change affect compiled behavior?** The squad uses it through `lane-check`, which runs it before classifying a diff ([The lane check](#the-lane-check) says which C# files it can make text), and to prove that a comment cleanup after a passing audit did not invalidate the audit.
