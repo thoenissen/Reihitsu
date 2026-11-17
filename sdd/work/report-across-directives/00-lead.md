@@ -46,4 +46,5 @@ Batch 1 (before test implementer), answered 1A 2A 3A 4A 5A 6A:
 - Test implementer done (dcbc177): 185 failing tests, all expected under-reporting.
 - Implementer done (233dfda, handover 4702026): verdict test disputed, 21 failing tests.
 - Spec author repair done (1c988a4).
-- Next step: test implementer (decisions 7, 8), then cleaner. (was: batch 1: Q1 the newly reported rules (change doc), Q2 trailing commas, Q3 RH5111, Q4 RH7311, Q5 RH8201, Q6 escalation 10 (trailing-comma shape, recommend not declaring). Then route answers + decision 5 to spec author (Status Accepted), then test implementer.
+- Test implementer repair done (b06bebd): affected classes green.
+- Next step: cleaner, then spec checker, then auditor. (was: batch 1: Q1 the newly reported rules (change doc), Q2 trailing commas, Q3 RH5111, Q4 RH7311, Q5 RH8201, Q6 escalation 10 (trailing-comma shape, recommend not declaring). Then route answers + decision 5 to spec author (Status Accepted), then test implementer.
