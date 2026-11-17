@@ -29,6 +29,7 @@
 
 1. Type-to-name line break is kept on every declaration head except parameters (FMT-BREAK-015); whether a general declaration-head join is wanted (02-skeptic, option C generalized). Carries an output question.
 2. Property accessor list expands when the type is followed by a line break: `public int⏎    P { get; set; }` → accessor list broken onto separate lines; FMT-BREAK-024 reads two ways (02-skeptic). Carries an output question.
+3. S1125 warnings in `Reihitsu.Cli` (`FormatCommandHandler.cs`, `DiffGenerator.cs`, `EditScriptBuilder.cs`) shown in the build `scripts/format.sh` runs, not in the Release build; files untouched by this run (05-cleaner).
 
 ## Audited SHA
 
@@ -42,5 +43,6 @@
 - Lane narrowed to **tests** (decision 3): roles now spec author (clarification) → test implementer → cleaner → spec checker → validator. Implementer and auditor skipped (no production change).
 - Done: spec author (03, commit b91639c) — FMT-STRUCT-021 clarified with a new example (break behind long generic type, between modifiers repeated; break behind a `,` not repeated). Lane check: confirmed tests.
 - Done: test implementer (04, commit bf7e0d2) — 8 new formatter tests + tag on existing, 2 RH7101 fix tests, 1 parity test; all green on unchanged code. Lane check: confirmed tests.
-- Running: cleaner (05).
+- Done: cleaner (05, commit dc6497d) — clean; 0 warnings Release.
+- Running: spec checker (06).
 - Next: cleaner → spec checker → validator → issue manager (2 follow-up candidates) → publish.
