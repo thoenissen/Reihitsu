@@ -1,5 +1,5 @@
 Role: implementer
-Commit: <filled after commit>
+Commit: 1f3f7b0
 Verdict: tests pass
 
 No test-implementer handover exists for this run (tooling lane, no test project covers `scripts/test.sh` or the workflows). The "Done when" demonstration was performed here with a temporary, uncommitted blocking test; its file is deleted and is not in any commit.
