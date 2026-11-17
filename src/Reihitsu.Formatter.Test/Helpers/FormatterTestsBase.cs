@@ -1,13 +1,7 @@
-﻿using System.Threading;
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-using Reihitsu.Formatter.Data;
-using Reihitsu.Formatter.Pipeline;
-using Reihitsu.Formatter.Utilities;
 
 namespace Reihitsu.Formatter.Test.Helpers;
 
@@ -118,11 +112,11 @@ public abstract class FormatterTestsBase
         foreach (var endOfLine in _lineEndings)
         {
             var endingName = DescribeLineEnding(endOfLine);
-            var firstPass = ApplyRule(NormalizeLineEndings(input, endOfLine), endOfLine, parseOptions);
+            var firstPass = FormatterPass.Format(NormalizeLineEndings(input, endOfLine), endOfLine, parseOptions);
 
             AssertUsesLineEnding(firstPass, endOfLine);
 
-            var secondPass = ApplyRule(firstPass, endOfLine, parseOptions);
+            var secondPass = FormatterPass.Format(firstPass, endOfLine, parseOptions);
 
             Assert.AreEqual(firstPass, secondPass, $"Formatter is not idempotent under {endingName} line endings.");
 
@@ -142,7 +136,7 @@ public abstract class FormatterTestsBase
         foreach (var endOfLine in _lineEndings)
         {
             var endingName = DescribeLineEnding(endOfLine);
-            var output = ApplyRule(NormalizeLineEndings(input, endOfLine), endOfLine);
+            var output = FormatterPass.Format(NormalizeLineEndings(input, endOfLine), endOfLine, null);
             var lines = output.Split(endOfLine);
 
             foreach (var (lineStart, isBlankAbove) in expectations)
@@ -159,8 +153,8 @@ public abstract class FormatterTestsBase
 
     /// <summary>
     /// Formats the input once through the formatting pipeline exactly as every assertion of this base does: the input is
-    /// normalized to the requested line ending and parsed with the given parse options, and every phase's tree has to parse
-    /// back to itself (FMT-PIPE-021). Used where a test asserts only a property of the output rather than its exact text;
+    /// normalized to the requested line ending and parsed with the given parse options, the formatter must not refuse it as
+    /// unsupported, and every phase's tree has to parse back to itself (FMT-PIPE-021). Used where a test asserts only a property of the output rather than its exact text;
     /// a test that knows the exact output uses <see cref="AssertRuleResult(string, string, CSharpParseOptions)"/>, and one
     /// that needs only a fixed point uses <see cref="AssertSecondPassIsStable"/>
     /// </summary>
@@ -170,7 +164,7 @@ public abstract class FormatterTestsBase
     /// <returns>The formatted source text</returns>
     protected static string FormatWithPipeline(string input, string endOfLine, CSharpParseOptions parseOptions = null)
     {
-        return ApplyRule(NormalizeLineEndings(input, endOfLine), endOfLine, parseOptions);
+        return FormatterPass.Format(NormalizeLineEndings(input, endOfLine), endOfLine, parseOptions);
     }
 
     /// <summary>
@@ -333,7 +327,7 @@ public abstract class FormatterTestsBase
 
         if (string.IsNullOrEmpty(expected))
         {
-            var actual = ApplyRule(normalizedInput, endOfLine, parseOptions);
+            var actual = FormatterPass.Format(normalizedInput, endOfLine, parseOptions);
 
             Assert.AreEqual(normalizedInput, actual, $"Formatter changed already-formatted source under {endingName} line endings.");
             AssertUsesLineEnding(actual, endOfLine);
@@ -343,48 +337,17 @@ public abstract class FormatterTestsBase
         else
         {
             var normalizedExpected = NormalizeLineEndings(expected, endOfLine);
-            var actual = ApplyRule(normalizedInput, endOfLine, parseOptions);
+            var actual = FormatterPass.Format(normalizedInput, endOfLine, parseOptions);
 
             Assert.AreEqual(normalizedExpected, actual, $"Formatter output mismatch under {endingName} line endings.");
             AssertUsesLineEnding(actual, endOfLine);
 
-            var actualSecondPass = ApplyRule(actual, endOfLine, parseOptions);
+            var actualSecondPass = FormatterPass.Format(actual, endOfLine, parseOptions);
 
             Assert.AreEqual(normalizedExpected, actualSecondPass, $"Formatter is not idempotent under {endingName} line endings.");
 
             PhaseStabilityCheck.Verify(actualSecondPass, endOfLine, parseOptions);
         }
-    }
-
-    /// <summary>
-    /// Applies the formatter rule with the requested end-of-line sequence and parse options. Fixtures
-    /// whose source carries conditional compilation pass the symbols they need here, so the
-    /// line-ending policy stays in this base instead of being restated per test class
-    /// </summary>
-    /// <param name="input">The source text to format</param>
-    /// <param name="endOfLine">The end-of-line sequence to format with</param>
-    /// <param name="parseOptions">The parse options to use, or <see langword="null"/> for the defaults</param>
-    /// <returns>The formatted source text</returns>
-    private static string ApplyRule(string input, string endOfLine, CSharpParseOptions parseOptions = null)
-    {
-        var (root, context) = SecondPassInput.Create(input, endOfLine, parseOptions);
-
-        if (root.ContainsDiagnostics
-            && root.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
-        {
-            return FormattingPipeline.Execute(root, context, CancellationToken.None).Output.ToFullString();
-        }
-
-        // Every phase's tree has to parse back to itself with the fixture's parse options (FMT-PIPE-021), so every
-        // fixture of the formatter tests checks it on each pass
-        var (result, failures) = PhaseTreeRoundTrip.ExecuteAndCompare(root, context, (CSharpParseOptions)root.SyntaxTree.Options);
-
-        if (failures.Count > 0)
-        {
-            Assert.Fail(string.Join(Environment.NewLine, failures));
-        }
-
-        return result.ToFullString();
     }
 
     #endregion // Methods
