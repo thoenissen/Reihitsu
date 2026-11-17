@@ -18,6 +18,29 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     #region Tests
 
     /// <summary>
+    /// Verifies the change example: the fix formats the method it builds, the formatter refuses a method that holds a comment behind a
+    /// binary operator, so no fix is offered and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentBehindABinaryOperator(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  int M(int a, int b) {|RH3202:=> a + // c
+                                                         b|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
     /// Verifies that the fix, which lays out its result through the formatter, is not offered in a file with a syntax error,
     /// while the diagnostic is still reported, and that it is offered once the syntax error is gone
     /// </summary>

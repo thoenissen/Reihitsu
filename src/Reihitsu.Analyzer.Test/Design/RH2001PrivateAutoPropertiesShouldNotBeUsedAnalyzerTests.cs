@@ -2048,13 +2048,55 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
     }
 
     /// <summary>
-    /// Verifies that a comment inside the initializer's value, between its first and its last token, does not withhold
-    /// the fix, and stays inside the value of the field
+    /// Verifies the specification example: a comment inside the initializer's value that stands behind no binary operator does not
+    /// withhold the fix, and stays inside the value of the field
     /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH2001-007")]
-    public async Task VerifyFixIsOfferedForACommentInsideTheInitializerValue()
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyFixIsOfferedForACommentInsideTheInitializerValue(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Value|} { get; set; } = 2 /* two */ + Offset(/* three */ 3);
+
+                                    private static int Offset(int value)
+                                    {
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      private int _value = 2 /* two */ + Offset(/* three */3);
+
+                                      private static int Offset(int value)
+                                      {
+                                          return value;
+                                      }
+                                  }
+                                  """;
+
+        await VerifyCodeFixWithEndOfLine(testData, resultData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a comment behind a binary operator of the initializer's value withholds the fix, because
+    /// the formatter refuses the field the fix builds, and the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentBehindAnOperatorOfTheInitializerValue(string endOfLine)
     {
         const string testData = """
                                 class C
@@ -2063,14 +2105,26 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : BatchCode
                                 }
                                 """;
 
-        const string resultData = """
-                                  class C
-                                  {
-                                      private int _value = 2 + /* three */ 3;
-                                  }
-                                  """;
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
+    }
 
-        await Verify(testData, resultData);
+    /// <summary>
+    /// Verifies that a line comment behind a binary operator at the end of a line of the initializer's value withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH2001-007")]
+    public async Task VerifyNoFixIsOfferedForALineCommentBehindAnOperatorOfTheInitializerValue()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    private int {|RH2001:Value|} { get; set; } = 2 + // three
+                                                                                     3;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>

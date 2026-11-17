@@ -25,13 +25,13 @@ public class UnsupportedSyntaxClosureTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 private int _a = 1 + /* c */ 2, _b;
+                                 private int _a = 1 /* c */ + 2, _b;
                              }
                              """;
         const string expected = """
                                 class C
                                 {
-                                    private int _a = 1 + /* c */ 2;
+                                    private int _a = 1 /* c */ + 2;
                                     private int _b;
                                 }
                                 """;

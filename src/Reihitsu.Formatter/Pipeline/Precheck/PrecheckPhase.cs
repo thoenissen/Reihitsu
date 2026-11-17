@@ -40,6 +40,11 @@ internal sealed class PrecheckPhase : IFormattingPhase
     /// </summary>
     internal const string FieldDeclarationDirectiveReason = "a directive inside a field declaration with several declarators";
 
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text between a binary operator and its right operand (FMT-UNSUP-011)
+    /// </summary>
+    internal const string BinaryOperatorCommentReason = "a comment or directive between a binary operator and its right operand";
+
     #endregion // Constants
 
     #region Methods
@@ -55,6 +60,7 @@ internal sealed class PrecheckPhase : IFormattingPhase
         SyntaxTrivia? firstComment = null;
         SyntaxTrivia? firstOperatorTrivia = null;
         SyntaxTrivia? firstFieldDirective = null;
+        SyntaxTrivia? firstBinaryOperatorTrivia = null;
 
         foreach (var descendant in node.DescendantNodesAndSelf())
         {
@@ -77,6 +83,12 @@ internal sealed class PrecheckPhase : IFormattingPhase
                         firstFieldDirective = SelectFirst(firstFieldDirective, FindDirectiveInFieldDeclaration(fieldDeclaration));
                     }
                     break;
+
+                case BinaryExpressionSyntax binary:
+                    {
+                        firstBinaryOperatorTrivia = SelectFirst(firstBinaryOperatorTrivia, FindTriviaBehindBinaryOperator(binary));
+                    }
+                    break;
             }
         }
 
@@ -85,21 +97,24 @@ internal sealed class PrecheckPhase : IFormattingPhase
         // Of two shapes that start at the same trivia, the one listed first wins: FMT-UNSUP-004 keeps its reason for a comment,
         // and FMT-UNSUP-009 for a directive, in front of a comma between two declarators; FMT-UNSUP-009 gives its own for a
         // comment in front of every other comma inside a variable declaration, and FMT-UNSUP-010 gives its own for every other
-        // directive inside a field declaration with several declarators
+        // directive inside a field declaration with several declarators. FMT-UNSUP-011 is listed last, so FMT-UNSUP-004 and
+        // FMT-UNSUP-010 keep their reason for a comment or directive behind a binary operator that they refuse as well
         var candidates = isDeclaratorComma
                              ? new List<(SyntaxTrivia? Trivia, string Reason)>
                                {
                                    (firstComment, VariableDeclarationCommentReason),
                                    (firstSeparatorTrivia, ListSeparatorCommentReason),
                                    (firstFieldDirective, FieldDeclarationDirectiveReason),
-                                   (firstOperatorTrivia, ConditionalOperatorCommentReason)
+                                   (firstOperatorTrivia, ConditionalOperatorCommentReason),
+                                   (firstBinaryOperatorTrivia, BinaryOperatorCommentReason)
                                }
                              : new List<(SyntaxTrivia? Trivia, string Reason)>
                                {
                                    (firstFieldDirective, FieldDeclarationDirectiveReason),
                                    (firstSeparatorTrivia, ListSeparatorCommentReason),
                                    (firstComment, VariableDeclarationCommentReason),
-                                   (firstOperatorTrivia, ConditionalOperatorCommentReason)
+                                   (firstOperatorTrivia, ConditionalOperatorCommentReason),
+                                   (firstBinaryOperatorTrivia, BinaryOperatorCommentReason)
                                };
 
         (SyntaxTrivia? Trivia, string Reason) first = (null, null);
@@ -229,6 +244,20 @@ internal sealed class PrecheckPhase : IFormattingPhase
                    ?? FindFirstUnsupportedOperatorTrivia(conditional.WhenTrue.GetFirstToken().LeadingTrivia)
                    ?? FindFirstUnsupportedOperatorTrivia(conditional.ColonToken.TrailingTrivia)
                    ?? FindFirstUnsupportedOperatorTrivia(conditional.WhenFalse.GetFirstToken().LeadingTrivia);
+    }
+
+    /// <summary>
+    /// Finds the first comment, directive, or disabled text between the operator of a binary expression and its right operand: in
+    /// the trailing trivia of the operator, or in the leading trivia of the right operand's first token (FMT-UNSUP-011). The
+    /// syntax tree decides what a binary expression is, so an <c>is</c> the parser reads as a type test counts, and a pattern
+    /// match, an assignment, or a range does not
+    /// </summary>
+    /// <param name="binary">The binary expression</param>
+    /// <returns>The first such trivia, or <see langword="null"/></returns>
+    private static SyntaxTrivia? FindTriviaBehindBinaryOperator(BinaryExpressionSyntax binary)
+    {
+        return FindFirstUnsupportedOperatorTrivia(binary.OperatorToken.TrailingTrivia)
+                   ?? FindFirstUnsupportedOperatorTrivia(binary.Right.GetFirstToken().LeadingTrivia);
     }
 
     /// <summary>

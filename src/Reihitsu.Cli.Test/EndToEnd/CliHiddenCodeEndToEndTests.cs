@@ -13,7 +13,8 @@ namespace Reihitsu.Cli.Test.EndToEnd;
 /// End-to-end tests for files whose text another build compiles as code (CLI-021): the CLI leaves them unchanged in every mode,
 /// names them as skipped, and they do not affect the exit code; and for a file with a comment between a conditional operator
 /// and its branch, which the formatter refuses as unsupported (FMT-UNSUP-008); and for files with directives inside and in front of
-/// combined field declarations (FMT-UNSUP-010, FMT-STRUCT-022)
+/// combined field declarations (FMT-UNSUP-010, FMT-STRUCT-022); and for files with a comment or directive between a binary operator
+/// and its right operand (FMT-UNSUP-011)
 /// </summary>
 [TestClass]
 [DoNotParallelize]
@@ -50,6 +51,24 @@ public class CliHiddenCodeEndToEndTests
     /// commas behind them, whose first comment starts in line 3, column 21
     /// </summary>
     private const string ListSeparatorCommentSource = "class C\n{\n    void M<T>(int a // first\n              , int b)\n        where T : class // k\n            , new()\n    {\n        Foo(1 // first\n            , 2);\n        var e = new D { X = 3 // k\n            , Y = 4 };\n        Foo(a, b\n#if DEBUG\n            , c\n#else\n            , d\n#endif\n            );\n        int[] g = new[] { 1,\n            2 /* two */\n            , };\n    }\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-011 change's first visible output example: a comment behind a logical operator at the end of a line,
+    /// which starts in line 5, column 22
+    /// </summary>
+    private const string BinaryOperatorCommentSource = "class C\n{\n    bool M(bool a, bool b)\n    {\n        var x = a && // note\n                b;\n\n        return x;\n    }\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-011 change's example of block comments behind operators on one line, in a file whose
+    /// <c>class C{</c> the formatter would otherwise correct; the first comment starts in line 4, column 21
+    /// </summary>
+    private const string SameLineBinaryOperatorCommentSource = "class C{\n    string M(int x, object o)\n    {\n        int z = x * /* scale */ 2;\n\n        return o as /* text */ string ?? z.ToString();\n    }\n}\n";
+
+    /// <summary>
+    /// The file of the FMT-UNSUP-011 change's example of a conditional operand behind a trailing operator, whose
+    /// <c>#if DEBUG</c> starts in line 8, column 1
+    /// </summary>
+    private const string BinaryOperatorDirectiveSource = "using System.Text.RegularExpressions;\n\nclass C\n{\n    RegexOptions M()\n    {\n        return RegexOptions.Compiled |\n#if DEBUG\n               RegexOptions.IgnoreCase |\n#endif\n               RegexOptions.Multiline;\n    }\n}\n";
 
     /// <summary>
     /// A formatted file
@@ -289,6 +308,35 @@ public class CliHiddenCodeEndToEndTests
             Assert.AreEqual(ExitCodes.Error, exitCode);
             Assert.AreSequenceEqual(new[] { $"error: {Path.GetFullPath(filePath)}(3,21): unsupported syntax: a comment or directive between a list element and the comma behind it. The file was left unchanged." }, Lines(error));
             Assert.AreEqual(ListSeparatorCommentSource, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
+        }
+    }
+
+    /// <summary>
+    /// Verifies the visible output examples of FMT-UNSUP-011: a file with a comment behind a binary operator, a file with block
+    /// comments behind operators on one line beside code the formatter would correct, and a file with a conditional operand behind
+    /// a trailing operator are each left unchanged, reported with the reason and the first comment's or directive's line and
+    /// column, and the run exits with code 2
+    /// </summary>
+    /// <param name="source">The file's text</param>
+    /// <param name="line">The reported line</param>
+    /// <param name="column">The reported column</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-011")]
+    [DataRow(BinaryOperatorCommentSource, 5, 22, DisplayName = "Comment behind a logical operator")]
+    [DataRow(SameLineBinaryOperatorCommentSource, 4, 21, DisplayName = "Block comments behind operators on one line")]
+    [DataRow(BinaryOperatorDirectiveSource, 8, 1, DisplayName = "Conditional operand behind a trailing operator")]
+    public async Task CommentOrDirectiveBehindABinaryOperatorIsReportedAsUnsupported(string source, int line, int column)
+    {
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile("b.cs", source);
+
+            var (exitCode, _, error) = await Run([filePath]);
+
+            Assert.AreEqual(ExitCodes.Error, exitCode);
+            Assert.AreSequenceEqual(new[] { $"error: {Path.GetFullPath(filePath)}({line},{column}): unsupported syntax: a comment or directive between a binary operator and its right operand. The file was left unchanged." }, Lines(error));
+            Assert.AreEqual(source, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
         }
     }
 

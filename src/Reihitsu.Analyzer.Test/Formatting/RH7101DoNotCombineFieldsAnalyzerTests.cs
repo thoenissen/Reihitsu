@@ -337,6 +337,122 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     }
 
     /// <summary>
+    /// Verifies the specification example: a comment behind a binary operator, in an initializer value or elsewhere in the type,
+    /// withholds the fix for every combined declaration of the type
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task SpecExampleCommentBehindABinaryOperatorWithholdsTheFix(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a = 1 + /* c */ 2, {|RH7101:_b|};
+
+                                  private int _x, {|RH7101:_y|};
+
+                                  int M(int value)
+                                  {
+                                      return value + /* c */ 1;
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind a binary operator in an initializer value of the declaration withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    public async Task CommentBehindABinaryOperatorInAnInitializerValueWithholdsTheFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a = 1 + /* c */ 2, {|RH7101:_b|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind a binary operator in a method of the type, far from the declaration, withholds the fix, also
+    /// in a nested type
+    /// </summary>
+    /// <param name="source">The source text with markup</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    int M(int value)\n    {\n        return value + /* c */ 1;\n    }\n}", DisplayName = "In a method of the type")]
+    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    class D\n    {\n        bool M(bool a, bool b)\n        {\n            return a &&\n                // c\n                b;\n        }\n    }\n}", DisplayName = "In a nested type")]
+    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    int M(int value)\n    {\n        return value +\n#pragma warning disable CS0001\n            1;\n    }\n}", DisplayName = "Directive in a method of the type")]
+    public async Task CommentBehindABinaryOperatorElsewhereInTheTypeWithholdsTheFix(string source)
+    {
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind a conditional expression's operator, or between a list element and a comma on a later line,
+    /// elsewhere in the type withholds the fix
+    /// </summary>
+    /// <param name="source">The source text with markup</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    int M(bool b)\n    {\n        return b ? /* c */ 1 : 2;\n    }\n}", DisplayName = "Behind a conditional operator")]
+    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    void M()\n    {\n        N(1 // c\n          , 2);\n    }\n\n    void N(int a, int b)\n    {\n    }\n}", DisplayName = "In front of a comma on a later line")]
+    public async Task CommentOfAnotherRefusedShapeElsewhereInTheTypeWithholdsTheFix(string source)
+    {
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a comment in front of a binary operator elsewhere in the type does not withhold the fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CommentInFrontOfABinaryOperatorElsewhereInTheTypeDoesNotWithholdTheFix(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _x, {|RH7101:_y|};
+
+                                  int M(int value)
+                                  {
+                                      return value /* c */ + 1;
+                                  }
+                              }
+                              """;
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _x;
+                                       private int _y;
+
+                                       int M(int value)
+                                       {
+                                           return value /* c */ + 1;
+                                       }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
     /// Verifies that a comment written at column zero in front of the first declarator's name, on a later line than the type,
     /// withholds the fix
     /// </summary>

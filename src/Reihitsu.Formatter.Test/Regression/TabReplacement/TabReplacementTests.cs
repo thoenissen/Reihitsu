@@ -139,39 +139,6 @@ public class TabReplacementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a binary operand behind a tab and a delimited documentation comment is formatted as it is when the tab is
-    /// written as four spaces
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-TAB-001")]
-    public void BinaryOperandBehindTabAndDelimitedDocumentationCommentFormatsLikeFourSpaces()
-    {
-        const string source = """
-                              class C
-                              {
-                                  void M()
-                                  {
-                                      var x = a +→/** c */ b;
-                                  }
-                              }
-                              """;
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        var x = a +
-
-                                        /** c */ b;
-                                    }
-                                }
-                                """;
-
-        AssertRuleResult(source.Replace("→", "\t"), expected);
-        AssertRuleResult(source.Replace("→", "    "), expected);
-    }
-
-    /// <summary>
     /// Verifies that an initializer element behind a tab and a delimited documentation comment is formatted as it is when the
     /// tab is written as four spaces
     /// </summary>

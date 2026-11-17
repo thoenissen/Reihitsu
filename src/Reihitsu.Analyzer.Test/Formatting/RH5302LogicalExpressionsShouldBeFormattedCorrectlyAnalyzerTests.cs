@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -361,50 +362,33 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
     }
 
     /// <summary>
-    /// Verifying that an own-line comment above an operand does not block the fix for a sibling operator whose
-    /// own gap is clean, while an operator whose own gap genuinely contains that comment is correctly left
-    /// reported — moving its right operand up would relocate the comment, which the formatting pipeline's own
-    /// join-safety check already refuses regardless of this fix
+    /// Verifies that an own-line comment in front of the right operand of one operator of a chain withholds the fix for every
+    /// operator of the chain: the formatter refuses the chain the fix formats
     /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5302-005")]
-    public async Task VerifyOwnLineCommentAboveOperandLeavesOnlyItsOwnGapUnfixed()
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyOwnLineCommentAboveOperandWithholdsTheFixForTheWholeChain(string endOfLine)
     {
         const string testData = """
                                 internal class RH5302
                                 {
                                     void Run(bool a, bool b, bool c)
                                     {
-                                        if (a &&
+                                        if (a {|RH5302:&&|}
                                             // note
-                                            b ||
+                                            b {|RH5302:|||}
                                             c)
                                         {
                                         }
                                     }
                                 }
                                 """;
-        const string expectedFixedText = """
-                                         internal class RH5302
-                                         {
-                                             void Run(bool a, bool b, bool c)
-                                             {
-                                                 if (a &&
 
-                                                     // note
-                                                     b
-                                                     || c)
-                                                 {
-                                                 }
-                                             }
-                                         }
-                                         """;
-
-        var fixedText = await ApplyCodeFixAsync(testData);
-
-        Assert.AreEqual(expectedFixedText, fixedText, "The outer || operator should move while the inner && stays, since its own gap to \"b\" genuinely contains the comment.");
-        await Verify(fixedText, Diagnostic(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId).WithSpan(5, 15, 5, 17).WithMessage(AnalyzerResources.RH5302MessageFormat));
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
     }
 
     /// <summary>
@@ -769,6 +753,250 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
                                  """;
 
         await Verify(NormalizeToCarriageReturnLineFeed(testCode), NormalizeToCarriageReturnLineFeed(fixedCode));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: each operator is reported, and no code fix is offered for any of them, because each
+    /// chain holds a comment behind an operator — a reported operator at the end of its line, a misaligned operator at the start
+    /// of its line, another operator of the chain, and an arithmetic operator inside an operand of the chain
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5302-005")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifySpecExampleCommentBehindAnOperatorOfTheChainWithholdsTheFix(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(bool a, bool b, bool c, int n)
+                                    {
+                                        var x = a {|RH5302:&&|} // note
+                                                b;
+                                        var y = a
+                                            {|RH5302:&&|} /* note */ b;
+
+                                        if (a {|RH5302:&&|}
+                                            b {|RH5302:&&|} // note
+                                            c)
+                                        {
+                                        }
+
+                                        if (n + /* note */ 1 > 2 {|RH5302:&&|}
+                                            b)
+                                        {
+                                        }
+
+                                        return x && y;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind a misaligned operator at the start of its line withholds the fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5302-005")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyCommentBehindMisalignedLeadingOperatorWithholdsFix(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(bool a, bool b)
+                                    {
+                                        var y = a
+                                            {|RH5302:&&|} /* note */ b;
+
+                                        return y;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind another operator of the chain, which is not the reported one, withholds the fix for the
+    /// reported operator too
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5302-005")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyCommentBehindAnotherOperatorOfTheChainWithholdsFix(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, bool b, bool c)
+                                    {
+                                        if (a {|RH5302:&&|}
+                                            b {|RH5302:&&|} // note
+                                            c)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind an operator at the start of its line, which is aligned and not reported, withholds the fix
+    /// for a reported operator of the same chain
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5302-005")]
+    public async Task VerifyCommentBehindAnAlignedLeadingOperatorOfTheChainWithholdsFix()
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    bool M(bool a, bool b, bool c)
+                                    {
+                                        var x = a
+                                                && /* note */ b {|RH5302:&&|}
+                                                c;
+
+                                        return x;
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a comment behind an arithmetic operator inside an operand of the chain withholds the fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5302-005")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyCommentBehindAnArithmeticOperatorInsideAnOperandWithholdsFix(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool b, int n)
+                                    {
+                                        if (n + /* note */ 1 > 2 {|RH5302:&&|}
+                                            b)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testCode, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a conditional operand behind a reported operator withholds the fix in both builds: in the build that defines
+    /// <c>DEBUG</c> the directive stands behind the first operator, and in the other the directive and the disabled text do
+    /// </summary>
+    /// <param name="defineDebug">Whether the build defines <c>DEBUG</c></param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5302-005")]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task VerifyDisabledTextBehindAnOperatorWithholdsFixInEveryBuild(bool defineDebug)
+    {
+        const string withoutDebug = """
+                                    class C
+                                    {
+                                        bool M(bool a, bool b, bool c)
+                                        {
+                                            return a {|RH5302:&&|}
+                                    #if DEBUG
+                                                   b &&
+                                    #endif
+                                                   c;
+                                        }
+                                    }
+                                    """;
+        const string withDebug = """
+                                 class C
+                                 {
+                                     bool M(bool a, bool b, bool c)
+                                     {
+                                         return a {|RH5302:&&|}
+                                 #if DEBUG
+                                                b {|RH5302:&&|}
+                                 #endif
+                                                c;
+                                     }
+                                 }
+                                 """;
+
+        if (defineDebug)
+        {
+            await VerifyNoCodeFixIsOffered(withDebug, DocumentationMode.Parse, "DEBUG");
+        }
+        else
+        {
+            await VerifyNoCodeFixIsOffered(withoutDebug, DocumentationMode.Parse);
+        }
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a comment behind an operator outside the chain the fix formats, in another argument,
+    /// does not withhold the fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5302-005")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifySpecExampleCommentBehindAnOperatorOutsideTheChainDoesNotWithholdFix(string endOfLine)
+    {
+        const string testCode = """
+                                class C
+                                {
+                                    void M(bool a, bool b, int n)
+                                    {
+                                        N(a {|RH5302:&&|}
+                                          b, n + /* note */ 1);
+                                    }
+
+                                    void N(bool v, int w)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 class C
+                                 {
+                                     void M(bool a, bool b, int n)
+                                     {
+                                         N(a
+                                           && b, n + /* note */ 1);
+                                     }
+
+                                     void N(bool v, int w)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
     }
 
     /// <summary>

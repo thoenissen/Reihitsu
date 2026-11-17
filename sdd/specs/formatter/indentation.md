@@ -16,7 +16,7 @@ This spec covers the indentation phase: the column at which every line that star
 - Blank lines — FMT-BLANK.
 - How the content lines and the closing marker of a multi-line raw string literal, and the lines inside its interpolation holes that no alignment inside the hole places, are moved — FMT-RAW, which specifies that part of this phase.
 - The text of documentation comments other than the column of their `///` markers — FMT-DOC.
-- The column of a continuation line that no requirement below owns — for example the right operand of a wrapped binary expression, the expression after `=>` or `=` that stays on its own line, or the content of a parenthesized pattern that is not a property pattern. Such lines currently take the block column of the enclosing statement or declaration; indenting them one level deeper is a decided behavior change, tracked in thoenissen/Reihitsu#953.
+- The column of a continuation line that no requirement below owns — for example the expression after `=>` or `=` that stays on its own line, or the content of a parenthesized pattern that is not a property pattern. Such lines currently take the block column of the enclosing statement or declaration; indenting them one level deeper is a decided behavior change, tracked in thoenissen/Reihitsu#953.
 - The column of a comma that starts a line between the arms of a switch expression, in a positional pattern, or in a base list. In initializers, collection expressions, list patterns, and property patterns no line starts with a comma: FMT-BREAK-038 moves every such comma behind the element in front of it.
 - Configuration. The indentation unit is fixed; no option or `.editorconfig` setting is read.
 
