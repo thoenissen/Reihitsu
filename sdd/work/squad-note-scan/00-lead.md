@@ -26,4 +26,6 @@ None.
 
 - 01 test implementer: reproduced (a4358fe).
 - 02 implementer: tests pass (8430458). 
-- 03 cleaner: clean (6b1bae2). Next: spec checker (04).
+- 03 cleaner: clean (6b1bae2). 
+- 04 spec checker: consistent (b78e195).
+- 05 auditor: pass, text cleanup (audited SHA b78e195, main 1102aa52). Finding 1: `squad/notes/README.md:11` does not name the `sdd/work/` exception. Next: spec author (06) for the text fix, then verify-text-only against b78e195, then validator (07).
