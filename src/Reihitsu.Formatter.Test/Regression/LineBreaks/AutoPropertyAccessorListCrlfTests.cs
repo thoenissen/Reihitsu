@@ -1,10 +1,6 @@
-﻿using System.Threading;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-using Reihitsu.Formatter.Data;
-using Reihitsu.Formatter.Pipeline;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 
@@ -13,7 +9,7 @@ namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 /// when the source uses CRLF line endings and enough content precedes the property
 /// </summary>
 [TestClass]
-public class AutoPropertyAccessorListCrlfTests
+public class AutoPropertyAccessorListCrlfTests : FormatterTestsBase
 {
     #region Constants
 
@@ -40,59 +36,16 @@ public class AutoPropertyAccessorListCrlfTests
 
     #endregion // Constants
 
-    #region Properties
-
-    /// <summary>
-    /// Test context for the current test
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
-
-    #region Methods
-
-    /// <summary>
-    /// Formats the given source through the full pipeline using the requested end-of-line sequence
-    /// </summary>
-    /// <param name="input">The C# source text</param>
-    /// <param name="endOfLine">The end-of-line sequence to use</param>
-    /// <param name="cancellationToken">The cancellation token</param>
-    /// <returns>The formatted source text</returns>
-    private static string Format(string input, string endOfLine, CancellationToken cancellationToken)
-    {
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: cancellationToken);
-        var context = new FormattingContext(endOfLine);
-        var result = FormattingPipeline.Execute(tree.GetRoot(cancellationToken), context, cancellationToken).Output;
-
-        return result.ToFullString();
-    }
-
-    /// <summary>
-    /// Normalizes every line break in the given text to CRLF regardless of the source line endings
-    /// </summary>
-    /// <param name="text">The text to normalize</param>
-    /// <returns>The text using CRLF line endings</returns>
-    private static string ToCrlf(string text)
-    {
-        return text.Replace("\r\n", "\n").Replace("\n", "\r\n");
-    }
-
-    #endregion // Methods
-
     #region Tests
 
     /// <summary>
-    /// Verifies that a CRLF auto-property preceded by a long using directive and file-scoped
-    /// namespace keeps its accessor list on the property line
+    /// Verifies that an auto-property preceded by a long using directive and file-scoped namespace keeps its accessor
+    /// list on the property line, under CRLF as well as LF line endings
     /// </summary>
     [TestMethod]
     public void AutoPropertyAccessorListStaysOnPropertyLineWithCrlf()
     {
-        var input = ToCrlf(TestData);
-
-        var actual = Format(input, "\r\n", TestContext.CancellationToken);
-
-        Assert.AreEqual(input, actual, "The single-line auto-property accessor list must not be wrapped onto its own line.");
+        AssertRuleResult(TestData);
     }
 
     #endregion // Tests

@@ -19,17 +19,8 @@ namespace Reihitsu.Formatter.Test.Unit.Pipeline;
 /// Tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/>
 /// </summary>
 [TestClass]
-public class FormattingPipelineTests
+public class FormattingPipelineTests : FormatterTestsBase
 {
-    #region Properties
-
-    /// <summary>
-    /// Test context for the current test
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
-
     #region Methods
 
     /// <summary>
@@ -67,13 +58,8 @@ public class FormattingPipelineTests
                        }
                        """;
 
-        // Act
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var context = new FormattingContext(Environment.NewLine);
-        var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken).Output;
-        var actual = result.ToFullString();
-
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -124,13 +110,14 @@ public class FormattingPipelineTests
     }
 
     /// <summary>
-    /// Verifies that already well-formatted code passes through the pipeline without any
-    /// modifications, and that no phase run alone changes it (FMT-PIPE-027)
+    /// Verifies that already well-formatted code passes through the pipeline without any modifications under LF and CRLF
+    /// line endings, compared as whole texts including the final line break, so formatting it again is a no-op as well, and
+    /// that no phase run alone changes it (FMT-PIPE-027)
     /// </summary>
     [TestMethod]
     public void ExecuteAlreadyFormattedCodeNoChanges()
     {
-        // Arrange - format once to get the canonical form
+        // Arrange
         var input = """
                     class Foo
                     {
@@ -141,21 +128,8 @@ public class FormattingPipelineTests
                     }
                     """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var context = new FormattingContext(Environment.NewLine);
-        var firstPass = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken).Output;
-        var canonical = firstPass.ToFullString();
-
-        // Act - format the already-formatted output a second time
-        var secondTree = CSharpSyntaxTree.ParseText(canonical, cancellationToken: TestContext.CancellationToken);
-        var secondPass = FormattingPipeline.Execute(secondTree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken).Output;
-        var actual = secondPass.ToFullString();
-
-        // Assert - second pass must produce identical output, ignoring trailing newline
-        // differences introduced by the cleanup phase
-        Assert.AreEqual(canonical.TrimEnd('\n'), actual.TrimEnd('\n'), "Formatted code should not change when formatted again.");
-
-        PhaseStabilityCheck.AssertNoPhaseChanges(canonical, context.EndOfLine, null);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -523,13 +497,8 @@ public class FormattingPipelineTests
                        }
                        """;
 
-        // Act
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var context = new FormattingContext(Environment.NewLine);
-        var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken).Output;
-        var actual = result.ToFullString();
-
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     #endregion // Methods
