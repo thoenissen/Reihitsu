@@ -35,9 +35,10 @@
 
 ## Follow-up candidates
 
-- `scripts/trace.sh` (and possibly `apply-fix.sh`, `lane-check.sh`) pass `--property NoWarn=RH0002`, which may have worked around the missing default configuration fixed here; check whether it is still needed. Source: `01-implementer.md`.
+- `scripts/trace.sh` (and possibly `apply-fix.sh`, `lane-check.sh`) pass `--property NoWarn=RH0002`, which may have worked around the missing default configuration fixed here; check whether it is still needed. Source: `01-implementer.md`. Extended by `04-auditor.md`: the `--property Configuration=Debug` in `scripts/apply-fix.sh:51` and `scripts/lane-check.sh:107` may now repeat the default. One combined cleanup candidate.
 
 ## State
 
 - Last step: implementer reproduced and fixed (7c8bd87, Directory.Build.props default Configuration). Lane check confirmed tooling.
-- Next: cleaner, then spec checker, auditor, validator.
+- Cleaner clean, spec checker consistent, auditor pass. Audited SHA: 0b5b660 (base 1102aa5).
+- Next: validator + issue manager, then note, delete sdd/work, trigger commit, publish PR #1823.
