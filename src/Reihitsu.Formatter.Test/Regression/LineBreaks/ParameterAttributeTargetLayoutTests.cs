@@ -1,10 +1,5 @@
-﻿using System.Threading;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-using Reihitsu.Formatter.Data;
-using Reihitsu.Formatter.Pipeline;
 using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
@@ -671,15 +666,15 @@ public class ParameterAttributeTargetLayoutTests : FormatterTestsBase
         foreach (var endOfLine in _lineEndings)
         {
             // Act
-            var firstPass = Format(NormalizeLineEndings(input, endOfLine), endOfLine);
-            var secondPass = Format(firstPass, endOfLine);
+            var firstPass = FormatWithPipeline(input, endOfLine);
 
             // Assert
-            Assert.AreEqual(firstPass, secondPass, $"Formatter is not idempotent under {DescribeLineEnding(endOfLine)} line endings.");
             Assert.Contains("[property: Obsolete] [property: CLSCompliant(false)]" + endOfLine, firstPass);
             Assert.Contains("/* keep */ int Id);", firstPass);
             AssertUsesLineEnding(firstPass, endOfLine);
         }
+
+        AssertSecondPassIsStable(input);
     }
 
     /// <summary>
@@ -711,21 +706,4 @@ public class ParameterAttributeTargetLayoutTests : FormatterTestsBase
     }
 
     #endregion // Methods
-
-    #region Helpers
-
-    /// <summary>
-    /// Runs the complete formatting pipeline once
-    /// </summary>
-    /// <param name="input">The source text to format</param>
-    /// <param name="endOfLine">The end-of-line sequence to format with</param>
-    /// <returns>The formatted source text</returns>
-    private static string Format(string input, string endOfLine)
-    {
-        var tree = CSharpSyntaxTree.ParseText(input);
-
-        return FormattingPipeline.Execute(tree.GetRoot(), new FormattingContext(endOfLine), CancellationToken.None).Output.ToFullString();
-    }
-
-    #endregion // Helpers
 }

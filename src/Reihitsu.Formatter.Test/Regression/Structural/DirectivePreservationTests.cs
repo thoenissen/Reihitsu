@@ -1,6 +1,4 @@
-﻿using System.Threading;
-
-using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
@@ -16,7 +14,7 @@ namespace Reihitsu.Formatter.Test.Regression.Structural;
 /// when a directive is entangled with the trivia it would rebuild, leaving the directive intact
 /// </summary>
 [TestClass]
-public class DirectivePreservationTests
+public class DirectivePreservationTests : FormatterTestsBase
 {
     #region Fields
 
@@ -26,65 +24,6 @@ public class DirectivePreservationTests
     private static readonly CSharpParseOptions _parseOptions = new(preprocessorSymbols: ["DEBUG"]);
 
     #endregion // Fields
-
-    #region Properties
-
-    /// <summary>
-    /// Test context for the current test
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
-
-    #region Methods
-
-    /// <summary>
-    /// Formats the source through the full pipeline, parsing with <c>DEBUG</c> defined so the
-    /// conditional branch stays active
-    /// </summary>
-    /// <param name="input">The C# source text</param>
-    /// <param name="cancellationToken">The cancellation token</param>
-    /// <returns>The formatted source text</returns>
-    private static string Format(string input, CancellationToken cancellationToken)
-    {
-        var tree = CSharpSyntaxTree.ParseText(input, _parseOptions, cancellationToken: cancellationToken);
-        var context = new FormattingContext("\n");
-        var result = FormattingPipeline.Execute(tree.GetRoot(cancellationToken), context, cancellationToken).Output;
-
-        return result.ToFullString();
-    }
-
-    /// <summary>
-    /// Normalizes raw string literals to the line ending used by <see cref="Format"/>
-    /// </summary>
-    /// <param name="text">The text to normalize</param>
-    /// <returns>The normalized text</returns>
-    private static string NormalizeLineEndings(string text)
-    {
-        return text.Replace("\r\n", "\n");
-    }
-
-    /// <summary>
-    /// Asserts that formatting produces the expected output and is idempotent, confirming the
-    /// directive was preserved rather than dropped by the transform, and that no phase run alone
-    /// changes the output (FMT-PIPE-027)
-    /// </summary>
-    /// <param name="input">The C# source text</param>
-    /// <param name="expected">The expected formatted output</param>
-    private void AssertFormatted(string input, string expected)
-    {
-        var actual = Format(input, TestContext.CancellationToken);
-
-        Assert.AreEqual(expected, actual, "The directive must be preserved.");
-
-        var secondPass = Format(actual, TestContext.CancellationToken);
-
-        Assert.AreEqual(expected, secondPass, "Formatting must be idempotent.");
-
-        PhaseStabilityCheck.AssertNoPhaseChanges(actual, "\n", _parseOptions);
-    }
-
-    #endregion // Methods
 
     #region Tests
 
@@ -113,7 +52,7 @@ public class DirectivePreservationTests
                              }
                              """;
 
-        AssertFormatted(input, NormalizeLineEndings(input));
+        AssertRuleResult(input, parseOptions: _parseOptions);
     }
 
     /// <summary>
@@ -151,7 +90,7 @@ public class DirectivePreservationTests
                                 }
                                 """;
 
-        AssertFormatted(input, NormalizeLineEndings(expected));
+        AssertRuleResult(input, expected, _parseOptions);
     }
 
     /// <summary>
@@ -196,7 +135,7 @@ public class DirectivePreservationTests
                                 }
                                 """;
 
-        AssertFormatted(input, NormalizeLineEndings(expected));
+        AssertRuleResult(input, expected, _parseOptions);
     }
 
     /// <summary>
@@ -219,7 +158,7 @@ public class DirectivePreservationTests
                              }
                              """;
 
-        var text = NormalizeLineEndings(input);
+        var text = NormalizeLineEndings(input, "\n");
         var tree = CSharpSyntaxTree.ParseText(text, _parseOptions, cancellationToken: TestContext.CancellationToken);
         var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationToken), new FormattingContext("\n"), TestContext.CancellationToken);
 

@@ -152,6 +152,22 @@ public abstract class FormatterTestsBase
     }
 
     /// <summary>
+    /// Formats the input once through the formatting pipeline exactly as every assertion of this base does: the input is
+    /// normalized to the requested line ending and parsed with the given parse options, and every phase's tree has to parse
+    /// back to itself (FMT-PIPE-021). Used where a test asserts only a property of the output rather than its exact text;
+    /// a test that knows the exact output uses <see cref="AssertRuleResult(string, string, CSharpParseOptions)"/>, and one
+    /// that needs only a fixed point uses <see cref="AssertSecondPassIsStable"/>
+    /// </summary>
+    /// <param name="input">The input source text</param>
+    /// <param name="endOfLine">The end-of-line sequence to format with</param>
+    /// <param name="parseOptions">The parse options to use, or <see langword="null"/> for the defaults</param>
+    /// <returns>The formatted source text</returns>
+    protected static string FormatWithPipeline(string input, string endOfLine, CSharpParseOptions parseOptions = null)
+    {
+        return ApplyRule(NormalizeLineEndings(input, endOfLine), endOfLine, parseOptions);
+    }
+
+    /// <summary>
     /// Returns the span of the given occurrence of a shape's text in a source text
     /// </summary>
     /// <param name="text">The source text</param>
