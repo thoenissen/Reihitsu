@@ -19,9 +19,50 @@ This spec covers what the rules share that report an expression-bodied member so
 
 ### SHARED-BODY-001 — A member the formatter cannot convert is not reported
 
-The rule MUST NOT report a member whose expression body the formatter keeps under FMT-STRUCT-007, nor a member with a directive or disabled text between `=>` and its expression, which the formatter refuses as a whole (FMT-UNSUP-012), nor a member with a `#region` or `#endregion` in the leading trivia of `=>`, which the formatter refuses as a whole as well (FMT-UNSUP-013). A member with a comment between `=>` and its expression, or between the token in front of `=>` and `=>`, is reported; its fix is withheld while the formatter refuses the member (FMT-UNSUP-012, FMT-UNSUP-013, SHARED-FIX-010).
+The rule MUST NOT report a member whose expression body the formatter keeps under FMT-STRUCT-007, nor a member with a directive or disabled text between `=>` and its expression, which the formatter refuses as a whole (FMT-UNSUP-012), nor a member with a `#region` or `#endregion` in the leading trivia of `=>`, which the formatter refuses as a whole as well (FMT-UNSUP-013). A member with a comment between `=>` and its expression, or between the token in front of `=>` and `=>`, is reported; its fix is withheld while the formatter refuses the member (FMT-UNSUP-012, FMT-UNSUP-013, SHARED-FIX-010). A conditional directive in front of `=>` — `#if`, `#elif`, `#else`, or `#endif` in the trailing trivia of the token in front of `=>` or in the leading trivia of `=>` — does not by itself keep the member from being reported: a member whose conditional group closes directly in front of `=>`, such as a group around its signature or around a constraint clause, and a member whose group chooses the `=>` and closes behind the `;` are reported, and their fix is withheld because the formatter refuses the member (FMT-UNSUP-013, SHARED-FIX-010). Such a member is not reported only when a directive of its group lies in the span from `=>` through the `;`, under FMT-STRUCT-007.
 
-Why: A diagnostic whose fix the formatter then refuses would never converge: the fix would run and leave the code as it was. The analyzer and the code fix take the decision from one predicate, the one by which the formatter keeps the members of FMT-STRUCT-007, so they stay in step. The formatter decides a directive or disabled text between `=>` and the expression through FMT-UNSUP-012, before any conversion; the analyzer keeps deciding that place by the same predicate, so it does not report a member the formatter refuses. A directive between `=>` and the expression stands where the created `return` cannot share its line, so no fix could convert the member, and the rule leaves it alone as it leaves the members of FMT-STRUCT-007. A region directive in the leading trivia of `=>` cannot keep both endpoints in place while the span is rebuilt, and the analyzer decides it by the same predicate, although the formatter refuses such a member through FMT-UNSUP-013 before any conversion. A comment between `=>` and the expression, or in front of `=>`, can be moved above the member by the author, after which the fix converts it.
+Why: A diagnostic whose fix the formatter then refuses would never converge: the fix would run and leave the code as it was. The analyzer and the code fix take the decision from one predicate, the one by which the formatter keeps the members of FMT-STRUCT-007, so they stay in step. The formatter decides a directive or disabled text between `=>` and the expression through FMT-UNSUP-012, before any conversion; the analyzer keeps deciding that place by the same predicate, so it does not report a member the formatter refuses. A directive between `=>` and the expression stands where the created `return` cannot share its line, so no fix could convert the member, and the rule leaves it alone as it leaves the members of FMT-STRUCT-007. A region directive in the leading trivia of `=>` cannot keep both endpoints in place while the span is rebuilt, and the analyzer decides it by the same predicate, although the formatter refuses such a member through FMT-UNSUP-013 before any conversion. A comment between `=>` and the expression, or in front of `=>`, can be moved above the member by the author, after which the fix converts it. A conditional group that closes in front of `=>` or chooses it splits nothing the conversion rebuilds, because the rebuilt span starts at `=>`; the analyzer decides by that span, and the author who writes the whole member in each branch of the group gets the fix.
+
+Example — RH3202, a conditional group around the signature that closes in front of `=>`, parsed without `NET8_0`:
+
+```csharp
+class C
+{
+#if NET8_0
+    public int M(int a)
+#else
+    public int M(long a)
+#endif
+        {|RH3202:=> 1|};
+}
+```
+
+is reported, and no code fix is offered: `#endif` stands in the leading trivia of `=>`, where the formatter refuses the member (FMT-UNSUP-013). The same holds for a group around a constraint clause (`T M<T>()⏎#if NET7_0_OR_GREATER⏎where T : INumber<T>⏎#endif⏎=> default;`) and for a group that chooses the `=>` (`int M()⏎#if DEBUG⏎=> 1;⏎#else⏎=> 0;⏎#endif`). The other side — the same group written around the whole member — is reported in the active branch, and the fix converts that branch's member, as the formatter does:
+
+```csharp
+class C
+{
+#if NET8_0
+    public int M(int a) => 1;
+#else
+    public int M(long a) {|RH3202:=> 1|};
+#endif
+}
+```
+
+```csharp
+class C
+{
+#if NET8_0
+    public int M(int a) => 1;
+#else
+    public int M(long a)
+    {
+        return 1;
+    }
+#endif
+}
+```
 
 Example — RH3203, a directive between `=>` and the expression:
 

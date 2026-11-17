@@ -19,10 +19,11 @@ With FMT-UNSUP-012, both gaps around the `=>` of an expression body are free of 
 
 A comment in front of the arrow has no good place once the formatter acts on the member:
 
-- For a property, an indexer, or an accessor, which keep their expression body (FMT-STRUCT-008), the line-break phase refused the join of FMT-BREAK-026 (FMT-BREAK-001), and the `=>` then started a line in the member's own column, which no requirement places. RH5401 reports such a property and could offer no fix. In a conditional group that chooses the arrow, the active `=>` was moved to the member's column and the inactive one left as written.
+- For a property or an indexer, which keep their expression body (FMT-STRUCT-008), the line-break phase refused the join of FMT-BREAK-026 (FMT-BREAK-001), and the `=>` then started a line in the member's own column, which no requirement places. RH5401 reports such a property and could offer no fix. In a conditional group that chooses the arrow, or one around the signature that closes in front of it, the active `=>` was moved to the member's column and the inactive one left as written.
+- For an accessor, which keeps its expression body as well and whose arrow FMT-BREAK-026 does not join, the lift of a get-only accessor list to the member had to check the trivia behind `get` and in front of the getter's arrow (FMT-STRUCT-015).
 - For a method, a constructor, a finalizer, an operator, a conversion operator, or a local function, the conversion removes the arrow. FMT-STRUCT-006 moved comments on lines of their own in front of the created statement, but only when no comment stood on the arrow's line; such a comment was written directly in front of the new opening brace (`/* c */ {`), a placement FMT-STRUCT-006 left unspecified. A region directive in the arrow's leading trivia kept the whole body (FMT-STRUCT-007).
 
-RH5040 already reports every comment directly in front of the `=>` of a member or an accessor (RH5040-001) — in the trailing trivia of the token in front of it and in the leading trivia of the `=>` alike — and RH3208 reports every expression-bodied local function as a whole, so a comment in front of the arrow is rare by the repository's definition. No rule reports a directive or disabled text there; a conditional group that chooses the arrow is rare in practice, and the same choice written around the whole member is formatted. Directives and disabled text are part of the shape because the join refusal and the seam checks of the get-only lift test them alike; with comments alone, both would stay. A comment that describes the member belongs above it, where the phases carry it as they carry every member's comment.
+RH5040 already reports every comment directly in front of the `=>` of a member or an accessor (RH5040-001) — in the trailing trivia of the token in front of it and in the leading trivia of the `=>` alike — and RH3208 reports every expression-bodied local function as a whole, so a comment in front of the arrow is rare by the repository's definition. No rule reports a directive or disabled text there as such, although RH3202–RH3208 and RH5401 report most members that hold one as a whole. A conditional group that closes directly in front of the `=>` — around the signature or around a constraint clause, as multi-targeting code writes it — or that chooses the `=>` puts a directive into the gap and is refused (changes 9 and 12); the same choice written around the whole member, from in front of its first token through behind its `;`, leaves the gap free of directives and is formatted, before and after. Directives and disabled text are part of the shape because the join refusal and the seam checks of the get-only lift test them alike; with comments alone, both would stay. A comment that describes the member belongs above it, where the phases carry it as they carry every member's comment.
 
 The maintainer decided before this run (escalation 10) to declare this shape unsupported, in a change of its own; thoenissen/Reihitsu#1851 records the answer. It is the twin of FMT-UNSUP-012, which the preceding change declared for the gap behind the arrow.
 
@@ -470,10 +471,106 @@ class C
 
 gave `private int _a;` and `private int _b;` on two lines with the rest unchanged; after, no fix is offered and the diagnostic stays. The same holds for every fix that formats through the formatter wherever the node it formats holds such an expression body.
 
+**12. A conditional group around the signature or a constraint clause, closing in front of a shared arrow** (new). The group's closing directive, and without the symbol also the group's opening directive and its disabled text, stand in the leading trivia of the `=>`. Input, parsed without `NET8_0` and `NET7_0_OR_GREATER`:
+
+```csharp
+using System.Numerics;
+
+class C
+{
+#if NET8_0
+    public int M(int a)
+#else
+    public int M(long a)
+#endif
+        => 1;
+
+    T Make<T>()
+#if NET7_0_OR_GREATER
+        where T : INumber<T>
+#endif
+        => default;
+
+#if NET8_0
+    public int P
+#else
+    public long P
+#endif
+        => 1;
+}
+```
+
+Before (`main`, `scripts/format.sh`): both methods are converted with every other line unchanged; the active `=>` of the property lands in the member's column.
+
+```csharp
+using System.Numerics;
+
+class C
+{
+#if NET8_0
+    public int M(int a)
+#else
+    public int M(long a)
+#endif
+    {
+        return 1;
+    }
+
+    T Make<T>()
+#if NET7_0_OR_GREATER
+        where T : INumber<T>
+#endif
+    {
+        return default;
+    }
+
+#if NET8_0
+    public int P
+#else
+    public long P
+#endif
+    => 1;
+}
+```
+
+After: refused at `(9,1)`, the `#endif` in front of the first `=>` (derived from FMT-UNSUP-013's location rule, not observed: the precheck does not exist yet). Alone in a file, `Make` is refused at its `#if NET7_0_OR_GREATER` and `P` at its `#endif`.
+
+RH3202 (`Expression-style methods should not be used`) reports both methods before and after (SHARED-BODY-001). Before (`main`, `scripts/apply-fix.sh RH3202`), its fix is offered on each and gives the same block as the formatter, LF and CRLF alike; after, no fix is offered on either. RH5401 reports the property and offers no fix, before and after.
+
+The same group written around the whole member is formatted, and RH3202's fix offered, before and after:
+
+```csharp
+class C
+{
+#if NET8_0
+    public int M(int a) => 1;
+#else
+    public int M(long a) => 1;
+#endif
+}
+```
+
+gives
+
+```csharp
+class C
+{
+#if NET8_0
+    public int M(int a) => 1;
+#else
+    public int M(long a)
+    {
+        return 1;
+    }
+#endif
+}
+```
+
 Unchanged:
 
 - RH5401 (`Expression-style get-only properties should be single-lined`) reports the property of change 1, and `int D⏎/* note */ => 1;`, and offers no fix, before and after; only the reason it is withheld changes (RH5401-004). It keeps reporting them: a shape the formatter refuses as unsupported is not one it keeps (SHARED-DIAG-010).
 - RH5040 still reports the comments, and RH3202–RH3208 still report the members of change 10; analyzers do not consult the precheck. RH3202–RH3208 still do not report a member with a `#region` or `#endregion` in the leading trivia of `=>` (SHARED-BODY-001).
+- A conditional group around the whole member is formatted as before (change 12's alternative).
 - A comment above the member is formatted as before (change 5's alternative), and so is a comment inside the signature in front of its last token, such as `int F(/* c */ int a) => a;`.
 - A comment behind the arrow is refused as before, with FMT-UNSUP-012's reason.
 - The `=>` of a lambda and of a switch-expression arm: `Func<int> f = () /* c */ => 1;` and `1 /* c */ => "one"` are formatted as before.
@@ -496,7 +593,7 @@ The gap ends at the last token of what the arrow clause follows. A comment above
 
 ### Directives and disabled text belong to the shape
 
-The join refusal of the line-break phase and the seam checks of the get-only lift test the gap for comments, directives, and disabled text alike, so a shape of comments alone would delete neither. The cost is change 9: a property or method whose arrow a conditional group chooses, and a region directive in front of the arrow.
+The join refusal of the line-break phase and the seam checks of the get-only lift test the gap for comments, directives, and disabled text alike, so a shape of comments alone would delete neither. The cost is changes 9 and 12: a property or method whose arrow a conditional group chooses, a region directive in front of the arrow, and a conditional group around the signature or a constraint clause that closes in front of a shared arrow, which the formatter and RH3202's fix converted well before.
 
 ### Also on one line
 
