@@ -11,6 +11,8 @@
 
 - Escalation 10 (declare the shape unsupported), answered before this run and carried by the issue text: declare a comment or directive between a binary operator and its right operand unsupported, in a change of its own (this run). Comments above the operator's line stay supported; only the position behind the operator is refused. Same decision as for the conditional operator (FMT-UNSUP-008).
 
+- Batch 1 (8 output questions, before test implementer): maintainer answered A to all: 1 declare the shape in this change; 2 same-line block comments included; 3 directives/disabled text included; 4 RH5302 fix withheld chain-wide; 5 other formatting fixes withheld (RH3202 example etc.); 6 `is` + constant name refused (spec states it syntactically); 7 RH2001 fix withheld for operator comment in initializer; 8 RH7101 fix withheld type-wide. Maintainer added "but a follow-up for B" — which B is unclear; asked back. Follow-up filing waits for that answer (only needed before publishing).
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -31,4 +33,4 @@
 
 ## Open worklist / next step
 
-- Spec author done (01, c920452): FMT-UNSUP-011, change doc Draft. Skeptic done (02, 8ab8f07): proceed narrower. Output-question batch 1 (8 questions) sent to maintainer; waiting. Next after answers: spec author amendment (RH2001-007, RH7101-007/Uses, is-constant sentence, change 6 RH7101 example, rarity sentence, non-goal), then test implementer.
+- Spec author done (01, c920452): FMT-UNSUP-011, change doc Draft. Skeptic done (02, 8ab8f07): proceed narrower. Batch 1 answered (all A). Next after answers: spec author amendment (RH2001-007, RH7101-007/Uses, is-constant sentence, change 6 RH7101 example, rarity sentence, non-goal), then test implementer.
