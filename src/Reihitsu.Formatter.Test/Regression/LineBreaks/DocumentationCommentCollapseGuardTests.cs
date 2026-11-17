@@ -1,10 +1,5 @@
-﻿using System.Threading;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-using Reihitsu.Formatter.Data;
-using Reihitsu.Formatter.Pipeline;
 using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
@@ -16,7 +11,7 @@ namespace Reihitsu.Formatter.Test.Regression.LineBreaks;
 /// join
 /// </summary>
 [TestClass]
-public class DocumentationCommentCollapseGuardTests
+public class DocumentationCommentCollapseGuardTests : FormatterTestsBase
 {
     #region Constants
 
@@ -103,45 +98,6 @@ public class DocumentationCommentCollapseGuardTests
 
     #endregion // Constants
 
-    #region Properties
-
-    /// <summary>
-    /// Test context for the current test
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
-
-    #region Methods
-
-    /// <summary>
-    /// Formats the given source through the full pipeline using the requested end-of-line sequence
-    /// </summary>
-    /// <param name="input">The C# source text</param>
-    /// <param name="endOfLine">The end-of-line sequence to use</param>
-    /// <param name="cancellationToken">The cancellation token</param>
-    /// <returns>The formatted source text</returns>
-    private static string Format(string input, string endOfLine, CancellationToken cancellationToken)
-    {
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: cancellationToken);
-        var context = new FormattingContext(endOfLine);
-        var result = FormattingPipeline.Execute(tree.GetRoot(cancellationToken), context, cancellationToken).Output;
-
-        return result.ToFullString();
-    }
-
-    /// <summary>
-    /// Normalizes every line break in the given text to CRLF regardless of the source line endings
-    /// </summary>
-    /// <param name="text">The text to normalize</param>
-    /// <returns>The text using CRLF line endings</returns>
-    private static string ToCrlf(string text)
-    {
-        return text.Replace("\r\n", "\n").Replace("\n", "\r\n");
-    }
-
-    #endregion // Methods
-
     #region Tests
 
     /// <summary>
@@ -151,7 +107,7 @@ public class DocumentationCommentCollapseGuardTests
     [TestMethod]
     public void DocumentedAccessorListKeepsItsDocumentationComment()
     {
-        var actual = Format(DocumentedAccessorTestData, "\n", TestContext.CancellationToken);
+        var actual = FormatWithPipeline(DocumentedAccessorTestData, "\n");
 
         Assert.Contains("/// Getter", actual, "The documentation comment must survive the auto-property collapse.");
     }
@@ -162,7 +118,7 @@ public class DocumentationCommentCollapseGuardTests
     [TestMethod]
     public void DocumentedAccessorListIsNotCollapsedToSingleLine()
     {
-        var actual = Format(DocumentedAccessorTestData, "\n", TestContext.CancellationToken);
+        var actual = FormatWithPipeline(DocumentedAccessorTestData, "\n");
 
         Assert.DoesNotContain("public int Value { get; set; }", actual, "The accessor list must not be collapsed across a documentation comment.");
     }
@@ -173,7 +129,7 @@ public class DocumentationCommentCollapseGuardTests
     [TestMethod]
     public void DocumentedAccessorListKeepsItsDocumentationCommentWithCrlf()
     {
-        var actual = Format(ToCrlf(DocumentedAccessorTestData), "\r\n", TestContext.CancellationToken);
+        var actual = FormatWithPipeline(DocumentedAccessorTestData, "\r\n");
 
         Assert.Contains("/// Getter", actual, "The documentation comment must survive the auto-property collapse on CRLF input.");
     }
@@ -185,12 +141,7 @@ public class DocumentationCommentCollapseGuardTests
     [TestMethod]
     public void DocumentedAccessorListFormattingIsIdempotent()
     {
-        var first = Format(DocumentedAccessorTestData, "\n", TestContext.CancellationToken);
-        var second = Format(first, "\n", TestContext.CancellationToken);
-
-        Assert.AreEqual(first, second, "The second formatting pass must be a no-op.");
-
-        PhaseStabilityCheck.AssertNoPhaseChanges(first, "\n", null);
+        AssertSecondPassIsStable(DocumentedAccessorTestData);
     }
 
     /// <summary>
@@ -200,7 +151,7 @@ public class DocumentationCommentCollapseGuardTests
     [TestMethod]
     public void DocumentedBracketedArgumentListIsNotCollapsedToSingleLine()
     {
-        var actual = Format(DocumentedIndexerTestData, "\n", TestContext.CancellationToken);
+        var actual = FormatWithPipeline(DocumentedIndexerTestData, "\n");
 
         Assert.Contains("/// index", actual, "The documentation comment must survive.");
         Assert.DoesNotContain("data[0]", actual, "The bracketed argument list must not be collapsed across a documentation comment.");
@@ -217,7 +168,7 @@ public class DocumentationCommentCollapseGuardTests
                                              .Replace("/// index", string.Empty)
                                              .Replace("/// </summary>", string.Empty);
 
-        var actual = Format(input, "\n", TestContext.CancellationToken);
+        var actual = FormatWithPipeline(input, "\n");
 
         Assert.DoesNotContain("data[0]", actual, "An ordinary comment must block the collapse too.");
     }
@@ -229,12 +180,7 @@ public class DocumentationCommentCollapseGuardTests
     [TestMethod]
     public void DocumentedBracketedArgumentListFormattingIsIdempotent()
     {
-        var first = Format(DocumentedIndexerTestData, "\n", TestContext.CancellationToken);
-        var second = Format(first, "\n", TestContext.CancellationToken);
-
-        Assert.AreEqual(first, second, "The second formatting pass must be a no-op.");
-
-        PhaseStabilityCheck.AssertNoPhaseChanges(first, "\n", null);
+        AssertSecondPassIsStable(DocumentedIndexerTestData);
     }
 
     /// <summary>
@@ -244,7 +190,7 @@ public class DocumentationCommentCollapseGuardTests
     [TestMethod]
     public void DocumentedAttributeListsKeepTheirDocumentationComment()
     {
-        var actual = Format(DocumentedAttributeMergeTestData, "\n", TestContext.CancellationToken);
+        var actual = FormatWithPipeline(DocumentedAttributeMergeTestData, "\n");
 
         Assert.Contains("Explains the parameter attribute.", actual, "The documentation comment must survive the attribute-list merge.");
     }
@@ -255,7 +201,7 @@ public class DocumentationCommentCollapseGuardTests
     [TestMethod]
     public void DocumentedAttributeListsAreNotMerged()
     {
-        var actual = Format(DocumentedAttributeMergeTestData, "\n", TestContext.CancellationToken);
+        var actual = FormatWithPipeline(DocumentedAttributeMergeTestData, "\n");
 
         Assert.DoesNotContain("[param: Obsolete, CLSCompliant(true)]", actual, "Attribute lists must not be merged across a documentation comment.");
     }
@@ -266,7 +212,7 @@ public class DocumentationCommentCollapseGuardTests
     [TestMethod]
     public void DocumentedAttributeListsKeepTheirDocumentationCommentWithCrlf()
     {
-        var actual = Format(ToCrlf(DocumentedAttributeMergeTestData), "\r\n", TestContext.CancellationToken);
+        var actual = FormatWithPipeline(DocumentedAttributeMergeTestData, "\r\n");
 
         Assert.Contains("Explains the parameter attribute.", actual, "The documentation comment must survive the attribute-list merge on CRLF input.");
     }
@@ -278,12 +224,7 @@ public class DocumentationCommentCollapseGuardTests
     [TestMethod]
     public void DocumentedAttributeListFormattingIsIdempotent()
     {
-        var first = Format(DocumentedAttributeMergeTestData, "\n", TestContext.CancellationToken);
-        var second = Format(first, "\n", TestContext.CancellationToken);
-
-        Assert.AreEqual(first, second, "The second formatting pass must be a no-op.");
-
-        PhaseStabilityCheck.AssertNoPhaseChanges(first, "\n", null);
+        AssertSecondPassIsStable(DocumentedAttributeMergeTestData);
     }
 
     /// <summary>
@@ -292,7 +233,7 @@ public class DocumentationCommentCollapseGuardTests
     [TestMethod]
     public void DocumentedAttributeInteriorKeepsItsDocumentationComment()
     {
-        var actual = Format(DocumentedAttributeInteriorTestData, "\n", TestContext.CancellationToken);
+        var actual = FormatWithPipeline(DocumentedAttributeInteriorTestData, "\n");
 
         Assert.Contains("Marks the backing field.", actual, "The interior documentation comment must survive.");
     }
@@ -322,7 +263,7 @@ public class DocumentationCommentCollapseGuardTests
                                 }
                                 """;
 
-        var actual = Format(testData, "\n", TestContext.CancellationToken);
+        var actual = FormatWithPipeline(testData, "\n");
 
         Assert.DoesNotContain("[Serializable, Obsolete]", actual, "Both attribute lists must be split, whether or not the member is documented.");
         Assert.Contains("A documented class.", actual, "The member documentation comment must survive.");
@@ -336,7 +277,7 @@ public class DocumentationCommentCollapseGuardTests
     [TestMethod]
     public void DirectiveWrappedAttributeListsAreNotMerged()
     {
-        var actual = Format(DirectiveWrappedAttributeTestData, "\n", TestContext.CancellationToken);
+        var actual = FormatWithPipeline(DirectiveWrappedAttributeTestData, "\n");
 
         Assert.DoesNotContain("[In, Out]", actual, "Attribute lists wrapped in a directive must not be merged.");
         Assert.Contains("\n#endif", actual, "The #endif directive must keep its own line.");
@@ -348,7 +289,7 @@ public class DocumentationCommentCollapseGuardTests
     [TestMethod]
     public void DirectiveWrappedAttributeListsAreNotMergedWithCrlf()
     {
-        var actual = Format(ToCrlf(DirectiveWrappedAttributeTestData), "\r\n", TestContext.CancellationToken);
+        var actual = FormatWithPipeline(DirectiveWrappedAttributeTestData, "\r\n");
 
         Assert.DoesNotContain("[In, Out]", actual, "Attribute lists wrapped in a directive must not be merged on CRLF input.");
         Assert.Contains("\r\n#endif", actual, "The #endif directive must keep its own line on CRLF input.");
@@ -362,12 +303,7 @@ public class DocumentationCommentCollapseGuardTests
     [TestMethod]
     public void DirectiveWrappedAttributeListFormattingIsIdempotent()
     {
-        var first = Format(DirectiveWrappedAttributeTestData, "\n", TestContext.CancellationToken);
-        var second = Format(first, "\n", TestContext.CancellationToken);
-
-        Assert.AreEqual(first, second, "The second formatting pass must be a no-op.");
-
-        PhaseStabilityCheck.AssertNoPhaseChanges(first, "\n", null);
+        AssertSecondPassIsStable(DirectiveWrappedAttributeTestData);
     }
 
     #endregion // Tests
