@@ -11,7 +11,7 @@
 
 - Escalation 10 (declare the shape unsupported), answered before this run and carried by the issue text: declare a comment or directive between a binary operator and its right operand unsupported, in a change of its own (this run). Comments above the operator's line stay supported; only the position behind the operator is refused. Same decision as for the conditional operator (FMT-UNSUP-008).
 
-- Batch 1 (8 output questions, before test implementer): maintainer answered A to all: 1 declare the shape in this change; 2 same-line block comments included; 3 directives/disabled text included; 4 RH5302 fix withheld chain-wide; 5 other formatting fixes withheld (RH3202 example etc.); 6 `is` + constant name refused (spec states it syntactically); 7 RH2001 fix withheld for operator comment in initializer; 8 RH7101 fix withheld type-wide. Maintainer added "but a follow-up for B" — which B is unclear; asked back. Follow-up filing waits for that answer (only needed before publishing).
+- Batch 1 (8 output questions, before test implementer): maintainer answered A to all: 1 declare the shape in this change; 2 same-line block comments included; 3 directives/disabled text included; 4 RH5302 fix withheld chain-wide; 5 other formatting fixes withheld (RH3202 example etc.); 6 `is` + constant name refused (spec states it syntactically); 7 RH2001 fix withheld for operator comment in initializer; 8 RH7101 fix withheld type-wide. Asked back about "follow-up for B": the maintainer meant question 8 — the RH7101 fix should not format the whole type (so a refused shape elsewhere in the type does not withhold it); handle in a follow-up, not this run.
 
 ## Decisions taken
 
@@ -26,6 +26,8 @@
 
 - Update #953: its example and members `1 + // c⏎2`, `a && // c⏎b` become refused; list pattern continuations (`o is⏎not null`, `o is⏎int i`) explicitly (02-skeptic).
 - RH7101 spec silent about FMT-UNSUP-008/-009 in `Uses` (02-skeptic) — fold into RH7101 amendment if Q8 answered A, else follow-up.
+
+- RH7101 fix formats the whole type, so any unsupported shape anywhere in the type withholds the fix for every combined field; the maintainer wants it to stop formatting the whole type (maintainer answer to batch 1, question 8). Carries the answer; not in this run.
 
 ## Audited SHA
 
