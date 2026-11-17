@@ -97,7 +97,8 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     }
 
     /// <summary>
-    /// Verifies that the formatter fixes a rule violation and remains stable on a second pass under LF and CRLF line endings
+    /// Verifies that the formatter fixes a rule violation under the given line ending, that a second pass leaves the output unchanged,
+    /// and, unless the formatter refused the input as unsupported, that no formatter phase run alone changes the output
     /// </summary>
     /// <param name="source">The source text before formatting, including analyzer-test markup</param>
     /// <param name="fixedSource">The expected formatted source text</param>
@@ -168,7 +169,7 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     }
 
     /// <summary>
-    /// Runs the formatter, verifies the fixed output, and asserts that no analyzer diagnostics remain
+    /// Runs the formatter and asserts that its output equals the expected fixed text
     /// </summary>
     /// <param name="source">The source text before formatting, including analyzer-test markup</param>
     /// <param name="fixed">The expected formatted source text</param>
