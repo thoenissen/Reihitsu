@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -181,13 +182,61 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzerTe
     }
 
     /// <summary>
-    /// Verifies that the trailing comma is not flagged when a conditional-compilation block carrying a further
-    /// element follows the final active item, since the formatter withholds its own removal for the same shape
+    /// Verifies that the trailing comma is reported without a code fix when a conditional-compilation block carrying a
+    /// further element follows the final active item, and that, where the symbol is defined, the comma of the item
+    /// inside the block is reported without a code fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-TRAIL-002")]
-    public async Task VerifyArrayWithConditionalBlockAfterFinalItemIsNotFlagged()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyArrayWithConditionalBlockAfterFinalItemIsReportedWithoutFix()
+    {
+        const string withoutSymbol = """
+                                     internal class Example
+                                     {
+                                         private static void Method()
+                                         {
+                                             var values = new[]
+                                             {
+                                                 1{|RH5410:,|}
+                                     #if SYMBOL
+                                                 2,
+                                     #endif
+                                             };
+                                         }
+                                     }
+                                     """;
+
+        const string withSymbol = """
+                                  internal class Example
+                                  {
+                                      private static void Method()
+                                      {
+                                          var values = new[]
+                                          {
+                                              1,
+                                  #if SYMBOL
+                                              2{|RH5410:,|}
+                                  #endif
+                                          };
+                                      }
+                                  }
+                                  """;
+
+        await VerifyNoCodeFixIsOffered(withoutSymbol);
+        await VerifyNoCodeFixIsOffered(withSymbol, DocumentationMode.Parse, "SYMBOL");
+    }
+
+    /// <summary>
+    /// Verifies that the comma written inside the branch, in front of the item that needs it, is not reported in a
+    /// build with or without the symbol
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TRAIL-002")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyArrayWithCommaInsideTheConditionalBlockIsNotReportedInEitherBuild()
     {
         const string testData = """
                                 internal class Example
@@ -196,9 +245,9 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzerTe
                                     {
                                         var values = new[]
                                         {
-                                            1,
+                                            1
                                 #if SYMBOL
-                                            2,
+                                            , 2
                                 #endif
                                         };
                                     }
@@ -206,6 +255,69 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzerTe
                                 """;
 
         await Verify(testData);
+        await VerifyWithPreprocessorSymbols(testData, "SYMBOL");
+    }
+
+    /// <summary>
+    /// Verifies that Fix All removes the trailing comma in front of the closing brace and leaves the comma in front of a
+    /// conditional block reported and in place
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TRAIL-002")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyFixAllKeepsOnlyTheCommaInFrontOfAConditionalBlock()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var a = new[]
+                                        {
+                                            1{|RH5410:,|}
+                                #if SYMBOL
+                                            2,
+                                #endif
+                                        };
+                                        var b = new[]
+                                        {
+                                            1,
+                                            2{|RH5410:,|}
+                                        };
+                                        var c = new[]
+                                        {
+                                            3{|RH5410:,|}
+                                        };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     private static void Method()
+                                     {
+                                         var a = new[]
+                                         {
+                                             1{|RH5410:,|}
+                                 #if SYMBOL
+                                             2,
+                                 #endif
+                                         };
+                                         var b = new[]
+                                         {
+                                             1,
+                                             2
+                                         };
+                                         var c = new[]
+                                         {
+                                             3
+                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
     }
 
     /// <summary>

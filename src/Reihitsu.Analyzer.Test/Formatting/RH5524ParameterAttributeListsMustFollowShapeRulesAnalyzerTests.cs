@@ -1572,16 +1572,17 @@ public class RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
     }
 
     /// <summary>
-    /// Verifies the spec example: a parameter attribute list behind a conditional directive between the lists of its target is not reported, under LF and CRLF line endings
+    /// Verifies the spec example: a list behind a conditional directive between the lists of its target is reported without a code fix, under LF and CRLF line endings
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5524-004")]
     [Requirement("SHARED-ATTR-020")]
+    [Requirement("SHARED-DIAG-008")]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    public async Task VerifyNoDiagnosticWhenConditionalDirectiveIsBetweenTheLists(string endOfLine)
+    public async Task VerifyDiagnosticWithoutCodeFixWhenConditionalDirectiveIsBetweenTheLists(string endOfLine)
     {
         const string testData = """
                                 class C
@@ -1590,7 +1591,7 @@ public class RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
                                 #if DEBUG
                                            [B]
                                 #endif
-                                           [D] int a)
+                                           {|RH5524:[D]|} int a)
                                     {
                                     }
                                 }
@@ -1609,17 +1610,18 @@ public class RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
                                 }
                                 """;
 
-        await Verify(ConvertEndOfLine(testData, endOfLine));
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
     }
 
     /// <summary>
-    /// Verifies that a conditional directive behind a reported list lies outside that list's span, so the list in front of the directive is still reported while the list behind it is not, under LF and CRLF line endings
+    /// Verifies that a conditional directive behind a reported list lies outside that list's span, so the list in front of the directive is still reported, and the list behind it is reported as well, under LF and CRLF line endings
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5524-004")]
     [Requirement("SHARED-ATTR-020")]
+    [Requirement("SHARED-DIAG-008")]
     [DataRow("\n")]
     [DataRow("\r\n")]
     public async Task VerifyListInFrontOfConditionalDirectiveIsStillReported(string endOfLine)
@@ -1631,7 +1633,7 @@ public class RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
                                 #if DEBUG
                                            [C1]
                                 #endif
-                                           [D] int a)
+                                           {|RH5524:[D]|} int a)
                                     {
                                     }
                                 }
@@ -1700,6 +1702,131 @@ public class RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
         await Verify(testData,
                      fixedData,
                      Diagnostics(RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5524MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a list behind a conditional directive between the lists of its target is reported without a code
+    /// fix for every shape of the directive: the rule judges the lists the analyzed build compiles
+    /// </summary>
+    /// <param name="directives">The conditional directives, and the lists they hold, between <c>[A]</c> and <c>[D]</c>, with the markup of every list reported among them</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("#if FEATURE\n#endif", DisplayName = "Empty block")]
+    [DataRow("#if NEVER\n           [B]\n#endif", DisplayName = "Excluded list")]
+    [DataRow("#if !NEVER\n           {|RH5524:[B]|}\n#endif", DisplayName = "Active list")]
+    [DataRow("#if NEVER\n           [B]\n#else\n           {|RH5524:[C1]|}\n#endif", DisplayName = "If and else")]
+    [DataRow("#if NEVER\n           [B]\n#elif !NEVER\n           {|RH5524:[C1]|}\n#endif", DisplayName = "If and elif")]
+    [DataRow("#if false\n           [B]\n#endif", DisplayName = "If false")]
+    [Requirement("RH5524-004")]
+    [Requirement("SHARED-ATTR-020")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyDiagnosticWithoutCodeFixForEveryShapeOfConditionalDirectiveBetweenTheLists(string directives)
+    {
+        var testData = $$"""
+                         class C
+                         {
+                             void M([A]
+                         {{directives}}
+                                    {|RH5524:[D]|} int a)
+                             {
+                             }
+                         }
+
+                         sealed class A : System.Attribute
+                         {
+                         }
+                         sealed class B : System.Attribute
+                         {
+                         }
+                         sealed class C1 : System.Attribute
+                         {
+                         }
+                         sealed class D : System.Attribute
+                         {
+                         }
+                         """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All merges the lists of the parameters without a conditional directive between their lists and
+    /// leaves the list behind such a directive reported and unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5524-004")]
+    [Requirement("SHARED-ATTR-020")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyFixAllMergesOnlyTheListsWithoutAConditionalDirective()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M([A]
+                                #if FEATURE
+                                #endif
+                                           {|RH5524:[D]|} int a)
+                                    {
+                                    }
+
+                                    void N([A] {|RH5524:[D]|} int b)
+                                    {
+                                    }
+
+                                    void O([B] {|RH5524:[C1]|} int c)
+                                    {
+                                    }
+                                }
+
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                sealed class C1 : System.Attribute
+                                {
+                                }
+                                sealed class D : System.Attribute
+                                {
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M([A]
+                                 #if FEATURE
+                                 #endif
+                                            {|RH5524:[D]|} int a)
+                                     {
+                                     }
+
+                                     void N([A, D] int b)
+                                     {
+                                     }
+
+                                     void O([B, C1] int c)
+                                     {
+                                     }
+                                 }
+
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 sealed class C1 : System.Attribute
+                                 {
+                                 }
+                                 sealed class D : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
     }
 
     #endregion // Tests

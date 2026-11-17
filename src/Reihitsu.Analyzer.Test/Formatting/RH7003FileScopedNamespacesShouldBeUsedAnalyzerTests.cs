@@ -169,6 +169,7 @@ public class RH7003FileScopedNamespacesShouldBeUsedAnalyzerTests : AnalyzerTests
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("RH7003-001")]
     [Requirement("SHARED-DIAG-008")]
     public async Task VerifyDirectiveContainingNamespaceIsReported()
     {

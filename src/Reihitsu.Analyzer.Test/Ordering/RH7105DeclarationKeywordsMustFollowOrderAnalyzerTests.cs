@@ -247,27 +247,124 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : BatchCodeFi
     }
 
     /// <summary>
-    /// Verifies that a misordered modifier list with an empty conditional directive between two of its modifiers is not
-    /// reported
+    /// Verifies that a misordered modifier list with an empty conditional directive between two of its modifiers is
+    /// reported, with and without the symbol defined, and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7105-001")]
     [Requirement("SHARED-DIAG-008")]
-    public async Task MisorderedModifiersSplitByAConditionalDirectiveAreNotReported()
+    public async Task MisorderedModifiersSplitByAConditionalDirectiveAreReportedWithoutFix()
     {
         const string testData = """
                                 public class TestClass
                                 {
-                                    static
+                                    {|RH7105:static|}
                                 #if FEATURE
                                 #endif
                                     public int Value { get; set; }
                                 }
                                 """;
 
-        await Verify(testData);
-        await Verify(testData, test => test.SolutionTransforms.Add(DefineDebug));
+        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyNoCodeFixIsOffered(testData, DocumentationMode.Parse, "FEATURE");
+    }
+
+    /// <summary>
+    /// Verifies that a misordered modifier list is reported, and no code fix is offered, for every shape of conditional
+    /// directive in front of a later modifier: the analyzer judges the modifiers the analyzed build compiles
+    /// </summary>
+    /// <param name="directives">The conditional directives, and the code they hold, between <c>static</c> and the type</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("#if FEATURE\n#endif\n    public", DisplayName = "Empty block")]
+    [DataRow("#if NEVER\n    volatile\n#endif\n    public", DisplayName = "Excluded modifier")]
+    [DataRow("#if !NEVER\n    public\n#endif", DisplayName = "Active modifier")]
+    [DataRow("#if NEVER\n    internal\n#else\n    public\n#endif", DisplayName = "If and else")]
+    [DataRow("#if NEVER\n    internal\n#elif !NEVER\n    public\n#endif", DisplayName = "If and elif")]
+    [DataRow("#if false\n    volatile\n#endif\n    public", DisplayName = "If false")]
+    [Requirement("RH7105-001")]
+    [Requirement("SHARED-DIAG-008")]
+    [Requirement("SHARED-MODORDER-003")]
+    public async Task ConditionalDirectiveInFrontOfALaterModifierKeepsTheReportAndWithholdsTheFix(string directives)
+    {
+        var testData = $$"""
+                         class C
+                         {
+                             {|RH7105:static|}
+                         {{directives}}
+                             int _a;
+                         }
+                         """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example in which an <c>#if</c> block that excludes a modifier stands between two
+    /// modifiers: the analyzed build compiles <c>static public</c>, the declaration is reported, and no code fix is
+    /// offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-001")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task ExcludedModifierBetweenTwoModifiersKeepsTheReportAndWithholdsTheFix()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH7105:static|}
+                                #if DEBUG
+                                    readonly
+                                #endif
+                                    public int _a;
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyNoCodeFixIsOffered(testData, DocumentationMode.Parse, "DEBUG");
+    }
+
+    /// <summary>
+    /// Verifies that Fix All corrects the declaration without a conditional directive between its modifiers and leaves
+    /// the one with such a directive reported and unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7105-001")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task FixAllCorrectsOnlyTheDeclarationWithoutAConditionalDirectiveBetweenItsModifiers()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    {|RH7105:static|}
+                                #if FEATURE
+                                #endif
+                                    public int _a;
+
+                                    {|RH7105:static|} public int _b;
+
+                                    {|RH7105:static|} public int _c;
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     {|RH7105:static|}
+                                 #if FEATURE
+                                 #endif
+                                     public int _a;
+
+                                     public static int _b;
+
+                                     public static int _c;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
     }
 
     /// <summary>
@@ -1181,19 +1278,20 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : BatchCodeFi
     }
 
     /// <summary>
-    /// Verifies the specification example in which a conditional directive between two modifiers keeps the declaration
-    /// from being reported, while one behind the last modifier does not, and no code fix is offered for it
+    /// Verifies the specification example in which neither a conditional directive between two modifiers nor one behind
+    /// the last modifier keeps the declaration from being reported, and no code fix is offered for either
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7105-001")]
+    [Requirement("SHARED-DIAG-008")]
     [Requirement("SHARED-MODORDER-003")]
     public async Task ConditionalDirectiveBehindTheLastModifierDoesNotKeepTheDeclarationFromBeingReported()
     {
         const string testData = """
                                 class C
                                 {
-                                    static
+                                    {|RH7105:static|}
                                 #if FEATURE
                                 #endif
                                     public int Value { get; set; }
@@ -1211,17 +1309,18 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : BatchCodeFi
 
     /// <summary>
     /// Verifies that a declaration whose conditional directive stands between two modifiers once the symbol is defined
-    /// is not reported
+    /// is reported in that build, and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7105-001")]
-    public async Task ConditionalDirectiveThatStandsBetweenModifiersWhereTheSymbolIsDefinedKeepsTheDeclarationFromBeingReported()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task ConditionalDirectiveThatStandsBetweenModifiersWhereTheSymbolIsDefinedKeepsTheReportAndWithholdsTheFix()
     {
         const string testData = """
                                 class C
                                 {
-                                    static public
+                                    {|RH7105:static|} public
                                 #if DEBUG
                                     readonly
                                 #endif
@@ -1229,7 +1328,7 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : BatchCodeFi
                                 }
                                 """;
 
-        await Verify(testData, test => test.SolutionTransforms.Add(DefineDebug));
+        await VerifyNoCodeFixIsOffered(testData, DocumentationMode.Parse, "DEBUG");
     }
 
     /// <summary>

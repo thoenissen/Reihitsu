@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -1466,49 +1467,128 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
     }
 
     /// <summary>
-    /// Verifying that a declarator with an empty conditional directive pair between its name and its equals sign is not
-    /// reported
+    /// Verifying that a declarator with an empty conditional directive pair between its name and its equals sign is
+    /// reported, and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5111-005")]
     [Requirement("SHARED-DIAG-008")]
-    public async Task VerifyDeclaratorWithConditionalDirectiveInFrontOfItsEqualsSignIsNotReported()
+    public async Task VerifyDeclaratorWithConditionalDirectiveInFrontOfItsEqualsSignIsReportedWithoutFix()
     {
         const string testData = """
                                 internal class TestClass
                                 {
                                     public void TestMethod()
                                     {
-                                        var value
+                                        var {|RH5111:value
                                 #if !UNDEFINED_SYMBOL
                                 #endif
-                                            = 1;
+                                            = 1|};
                                     }
                                 }
                                 """;
 
-        await Verify(testData);
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>
-    /// Verifying the specification example: a conditional directive between the target and its equals sign keeps the
-    /// declarator from being reported, while one inside the value withholds only the fix
+    /// Verifying that a declarator is reported, and no code fix is offered, for every shape of conditional directive
+    /// between its name and its value: the analyzer judges the target and the value the analyzed build compiles
+    /// </summary>
+    /// <param name="directives">The conditional directives, the code they hold, and the value with the end of the reported span</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("#if FEATURE\n#endif\n            = 1|}", DisplayName = "Empty block")]
+    [DataRow("#if NEVER\n            = 2\n#endif\n            = 1|}", DisplayName = "Excluded value")]
+    [DataRow("#if !NEVER\n            = 1|}\n#endif", DisplayName = "Active value")]
+    [DataRow("#if NEVER\n            = 2\n#else\n            = 1|}\n#endif", DisplayName = "If and else")]
+    [DataRow("#if NEVER\n            = 2\n#elif !NEVER\n            = 1|}\n#endif", DisplayName = "If and elif")]
+    [DataRow("#if false\n            = 2\n#endif\n            = 1|}", DisplayName = "If false")]
+    [Requirement("RH5111-005")]
+    [Requirement("SHARED-DIAG-008")]
+    [Requirement("SHARED-DIAG-010")]
+    public async Task VerifyEveryShapeOfConditionalDirectiveAroundTheEqualsSignKeepsTheReportAndWithholdsTheFix(string directives)
+    {
+        var testData = $$"""
+                         class C
+                         {
+                             void M()
+                             {
+                                 var {|RH5111:value
+                         {{directives}}
+                                     ;
+                             }
+                         }
+                         """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifying that Fix All joins the declarators without a conditional directive around their equals signs and leaves
+    /// the one with such a directive reported and unchanged
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5111-005")]
-    public async Task VerifyConditionalDirectiveInTheJudgedSpanKeepsTheDeclaratorFromBeingReportedButNotOneInsideTheValue()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyFixAllJoinsOnlyTheDeclaratorsWithoutAConditionalDirective()
     {
         const string testData = """
                                 class C
                                 {
                                     void M()
                                     {
-                                        var value
+                                        var {|RH5111:value
+                                #if FEATURE
+                                #endif
+                                            = 1|};
+                                        var {|RH5111:other
+                                            = 2|};
+                                        var {|RH5111:third
+                                            = 3|};
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M()
+                                     {
+                                         var {|RH5111:value
+                                 #if FEATURE
+                                 #endif
+                                             = 1|};
+                                         var other = 2;
+                                         var third = 3;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: a conditional directive between the target and its equals sign, and one
+    /// inside the value, withhold only the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5111-005")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyConditionalDirectiveInTheJudgedSpanOrInsideTheValueWithholdsOnlyTheFix()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var {|RH5111:value
                                 #if DEBUG
                                 #endif
-                                            = 1;
+                                            = 1|};
                                         var {|RH5111:other
                                             = N(1,
                                 #if DEBUG
@@ -1525,27 +1605,29 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : BatchCodeF
 
     /// <summary>
     /// Verifying that a declarator with an empty conditional directive pair between its equals sign and its value is
-    /// not reported
+    /// reported, with and without the symbol defined, and no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5111-005")]
-    public async Task VerifyDeclaratorWithConditionalDirectiveBehindItsEqualsSignIsNotReported()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyDeclaratorWithConditionalDirectiveBehindItsEqualsSignIsReportedWithoutFix()
     {
         const string testData = """
                                 class C
                                 {
                                     void M()
                                     {
-                                        var value =
+                                        var {|RH5111:value =
                                 #if DEBUG
                                 #endif
-                                            1;
+                                            1|};
                                     }
                                 }
                                 """;
 
-        await Verify(testData);
+        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyNoCodeFixIsOffered(testData, DocumentationMode.Parse, "DEBUG");
     }
 
     /// <summary>

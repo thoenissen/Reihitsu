@@ -609,6 +609,31 @@ public class RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzerTests : Bat
     }
 
     /// <summary>
+    /// Verifies the specification example of a class whose only member lies in an <c>#if</c> block: in a build that does
+    /// not define the symbol, the body holds no member, the class is reported, and no code fix is offered; in a build
+    /// that defines it, the class has a member and is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-DIAG-008")]
+    [Requirement("SHARED-EMPTY-001")]
+    [Requirement("SHARED-EMPTY-004")]
+    public async Task VerifyClassWhoseOnlyMemberLiesInAConditionalBlockIsReportedWithoutCodeFix()
+    {
+        const string testData = """
+                                class {|RH5412:A|}
+                                {
+                                #if DEBUG
+                                    int _x;
+                                #endif
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyWithPreprocessorSymbols(RemoveMarkup(testData), "DEBUG");
+    }
+
+    /// <summary>
     /// Verifies a <c>#pragma</c> directive in the body does not keep an empty class from being reported, and that no code
     /// fix is offered, since the fix would rewrite the body that holds the directive
     /// </summary>

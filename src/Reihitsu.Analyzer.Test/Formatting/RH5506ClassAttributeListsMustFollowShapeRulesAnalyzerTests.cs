@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -613,23 +614,24 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
     }
 
     /// <summary>
-    /// Verifies the spec example: a list with a conditional directive between its attributes is not reported, under LF and CRLF line endings
+    /// Verifies the spec example: a list with a conditional directive between its attributes is reported without a code fix, with and without the symbol defined, under LF and CRLF line endings
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5506-004")]
     [Requirement("SHARED-ATTR-019")]
+    [Requirement("SHARED-DIAG-008")]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    public async Task VerifyNoDiagnosticWhenConditionalDirectiveIsBetweenTheAttributes(string endOfLine)
+    public async Task VerifyDiagnosticWithoutCodeFixWhenConditionalDirectiveIsBetweenTheAttributes(string endOfLine)
     {
         const string testData = """
-                                [A,
+                                {|RH5506:[A,
                                 #if DEBUG
                                  B,
                                 #endif
-                                 C1]
+                                 C1]|}
                                 class C
                                 {
                                 }
@@ -648,29 +650,31 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
                                 }
                                 """;
 
-        await Verify(ConvertEndOfLine(testData, endOfLine));
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine), DocumentationMode.Parse, "DEBUG");
     }
 
     /// <summary>
-    /// Verifies that a list whose attribute a false conditional excludes as disabled text is not reported, under LF and CRLF line endings
+    /// Verifies that a list whose attribute a false conditional excludes as disabled text is reported without a code fix, under LF and CRLF line endings
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5506-004")]
     [Requirement("SHARED-ATTR-019")]
+    [Requirement("SHARED-DIAG-008")]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    public async Task VerifyNoDiagnosticWhenDisabledTextHoldsAnAttributeOfTheList(string endOfLine)
+    public async Task VerifyDiagnosticWithoutCodeFixWhenDisabledTextHoldsAnAttributeOfTheList(string endOfLine)
     {
         const string testData = """
-                                [A,
+                                {|RH5506:[A,
                                 #if false
                                  B,
                                 #else
                                  D,
                                 #endif
-                                 C1]
+                                 C1]|}
                                 class C
                                 {
                                 }
@@ -689,7 +693,131 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : BatchC
                                 }
                                 """;
 
-        await Verify(ConvertEndOfLine(testData, endOfLine));
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a list is reported without a code fix for every shape of conditional directive between its
+    /// attributes: the rule judges the attributes the analyzed build compiles
+    /// </summary>
+    /// <param name="directives">The conditional directives, and the attributes they hold, between <c>A,</c> and <c>C1</c></param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("#if FEATURE\n#endif", DisplayName = "Empty block")]
+    [DataRow("#if NEVER\n B,\n#endif", DisplayName = "Excluded attribute")]
+    [DataRow("#if !NEVER\n B,\n#endif", DisplayName = "Active attribute")]
+    [DataRow("#if NEVER\n B,\n#else\n D,\n#endif", DisplayName = "If and else")]
+    [DataRow("#if NEVER\n B,\n#elif !NEVER\n D,\n#endif", DisplayName = "If and elif")]
+    [Requirement("RH5506-004")]
+    [Requirement("SHARED-ATTR-019")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyDiagnosticWithoutCodeFixForEveryShapeOfConditionalDirectiveBetweenTheAttributes(string directives)
+    {
+        var testData = $$"""
+                         {|RH5506:[A,
+                         {{directives}}
+                          C1]|}
+                         class C
+                         {
+                         }
+
+                         sealed class A : System.Attribute
+                         {
+                         }
+                         sealed class B : System.Attribute
+                         {
+                         }
+                         sealed class C1 : System.Attribute
+                         {
+                         }
+                         sealed class D : System.Attribute
+                         {
+                         }
+                         """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All splits the lists without a conditional directive between their attributes and leaves the
+    /// list with such a directive reported and unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5506-004")]
+    [Requirement("SHARED-ATTR-019")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyFixAllSplitsOnlyTheListsWithoutAConditionalDirective()
+    {
+        const string testData = """
+                                {|RH5506:[A,
+                                #if FEATURE
+                                #endif
+                                 C1]|}
+                                class C
+                                {
+                                }
+
+                                {|RH5506:[A, B]|}
+                                class E
+                                {
+                                }
+
+                                {|RH5506:[C1, D]|}
+                                class F
+                                {
+                                }
+
+                                sealed class A : System.Attribute
+                                {
+                                }
+                                sealed class B : System.Attribute
+                                {
+                                }
+                                sealed class C1 : System.Attribute
+                                {
+                                }
+                                sealed class D : System.Attribute
+                                {
+                                }
+                                """;
+
+        const string fixedData = """
+                                 {|RH5506:[A,
+                                 #if FEATURE
+                                 #endif
+                                  C1]|}
+                                 class C
+                                 {
+                                 }
+
+                                 [A]
+                                 [B]
+                                 class E
+                                 {
+                                 }
+
+                                 [C1]
+                                 [D]
+                                 class F
+                                 {
+                                 }
+
+                                 sealed class A : System.Attribute
+                                 {
+                                 }
+                                 sealed class B : System.Attribute
+                                 {
+                                 }
+                                 sealed class C1 : System.Attribute
+                                 {
+                                 }
+                                 sealed class D : System.Attribute
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
     }
 
     /// <summary>

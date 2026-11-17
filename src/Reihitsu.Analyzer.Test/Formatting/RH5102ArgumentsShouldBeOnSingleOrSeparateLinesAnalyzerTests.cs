@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -548,24 +549,24 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
     }
 
     /// <summary>
-    /// Verifying that an empty conditional directive pair between two arguments keeps the argument list from being
-    /// reported
+    /// Verifying that an empty conditional directive pair between two arguments does not keep the argument list from
+    /// being reported, with and without the symbol defined, and that no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5102-004")]
     [Requirement("SHARED-DIAG-008")]
-    public async Task VerifyConditionalDirectiveBetweenArgumentsKeepsTheListFromBeingReported()
+    public async Task VerifyConditionalDirectiveBetweenArgumentsKeepsTheReportAndWithholdsTheFix()
     {
         const string testData = """
                                 internal class TestClass
                                 {
                                     void Method()
                                     {
-                                        Call(1, 2,
+                                        Call{|RH5102:(1, 2,
                                 #if DEBUG
                                 #endif
-                                             3);
+                                             3)|};
                                     }
 
                                     void Call(params int[] values)
@@ -574,7 +575,125 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
                                 }
                                 """;
 
+        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyNoCodeFixIsOffered(testData, DocumentationMode.Parse, "DEBUG");
+    }
+
+    /// <summary>
+    /// Verifying that an argument list is reported, and no code fix is offered, for every shape of conditional directive
+    /// in a gap between its arguments: the analyzer judges the arguments the analyzed build compiles
+    /// </summary>
+    /// <param name="directives">The conditional directives, and the arguments they hold, between <c>2,</c> and <c>4</c></param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("#if FEATURE\n#endif", DisplayName = "Empty block")]
+    [DataRow("#if NEVER\n              3,\n#endif", DisplayName = "Excluded argument")]
+    [DataRow("#if !NEVER\n              3,\n#endif", DisplayName = "Active argument")]
+    [DataRow("#if NEVER\n              3,\n#else\n              5,\n#endif", DisplayName = "If and else")]
+    [DataRow("#if NEVER\n              3,\n#elif !NEVER\n              5,\n#endif", DisplayName = "If and elif")]
+    [DataRow("#if false\n              3,\n#endif", DisplayName = "If false")]
+    [Requirement("RH5102-004")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyEveryShapeOfConditionalDirectiveBetweenArgumentsKeepsTheReportAndWithholdsTheFix(string directives)
+    {
+        var testData = $$"""
+                         class C
+                         {
+                             void N()
+                             {
+                                 M{|RH5102:(1, 2,
+                         {{directives}}
+                                   4)|};
+                             }
+
+                             int M(params int[] values) => 0;
+                         }
+                         """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifying that an argument list whose arguments the analyzed build compiles all start on one line is not
+    /// reported, also when a conditional directive in front of its closing parenthesis holds an argument of another
+    /// build
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-001")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyArgumentsOnOneLineWithAConditionalArgumentInFrontOfTheClosingParenthesisAreNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M(1, 2
+                                #if NEVER
+                                          , 4
+                                #endif
+                                          );
+                                    }
+
+                                    int M(params int[] values) => 0;
+                                }
+                                """;
+
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that Fix All lays out the argument lists without a conditional directive in their gaps and leaves the
+    /// one with such a directive reported and unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5102-004")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyFixAllLaysOutOnlyTheArgumentListsWithoutAConditionalDirective()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void N()
+                                    {
+                                        M{|RH5102:(1, 2,
+                                #if FEATURE
+                                #endif
+                                          3)|};
+                                        M{|RH5102:(4, 5,
+                                          6)|};
+                                        M{|RH5102:(7, 8,
+                                          9)|};
+                                    }
+
+                                    int M(params int[] values) => 0;
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void N()
+                                     {
+                                         M{|RH5102:(1, 2,
+                                 #if FEATURE
+                                 #endif
+                                           3)|};
+                                         M(4,
+                                           5,
+                                           6);
+                                         M(7,
+                                           8,
+                                           9);
+                                     }
+
+                                     int M(params int[] values) => 0;
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
     }
 
     /// <summary>
@@ -701,24 +820,24 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
     }
 
     /// <summary>
-    /// Verifying the specification example: a conditional directive in a gap between the arguments keeps the list from
-    /// being reported, a pragma there withholds only the fix, and a conditional directive inside an argument withholds
-    /// only the fix
+    /// Verifying the specification example: a conditional directive or a pragma in a gap between the arguments, and a
+    /// conditional directive inside an argument, withhold only the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5102-004")]
-    public async Task VerifyConditionalDirectiveInAGapKeepsTheListFromBeingReportedButNotOneInsideAnArgument()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyConditionalDirectiveInAGapOrInsideAnArgumentWithholdsOnlyTheFix()
     {
         const string testData = """
                                 class C
                                 {
                                     void N()
                                     {
-                                        M(1, 2,
+                                        M{|RH5102:(1, 2,
                                 #if DEBUG
                                 #endif
-                                          3);
+                                          3)|};
                                         M{|RH5102:(1, 2,
                                 #pragma warning disable CS0168
                                           3)|};
@@ -743,34 +862,36 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
     }
 
     /// <summary>
-    /// Verifying that a conditional directive with alternatives in front of the first argument keeps the argument list
-    /// from being reported
+    /// Verifying that a conditional directive with alternatives in front of the first argument does not keep the
+    /// argument list from being reported, with and without the symbol defined, and that no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5102-004")]
-    public async Task VerifyConditionalDirectiveWithAlternativesInFrontOfTheFirstArgumentKeepsTheListFromBeingReported()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyConditionalDirectiveWithAlternativesInFrontOfTheFirstArgumentKeepsTheReportAndWithholdsTheFix()
     {
         const string testData = """
                                 class C
                                 {
                                     void N()
                                     {
-                                        M(
+                                        M{|RH5102:(
                                 #if DEBUG
                                           0,
                                 #else
                                           1,
                                 #endif
                                           2, 3,
-                                          4);
+                                          4)|};
                                     }
 
                                     int M(params int[] values) => 0;
                                 }
                                 """;
 
-        await Verify(testData);
+        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyNoCodeFixIsOffered(testData, DocumentationMode.Parse, "DEBUG");
     }
 
     /// <summary>
@@ -940,7 +1061,7 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
     }
 
     /// <summary>
-    /// Verifies the input of the conditional directive report: an argument list with a conditional directive whose excluded code holds an argument is not reported, under LF and CRLF line endings
+    /// Verifies the input of the conditional directive report: an argument list with a conditional directive whose excluded code holds an argument is reported without a fix, with and without the symbol defined, under LF and CRLF line endings
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -949,18 +1070,18 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
     [Requirement("SHARED-DIAG-008")]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    public async Task VerifyConditionalDirectiveExcludingAnArgumentKeepsTheListFromBeingReported(string endOfLine)
+    public async Task VerifyConditionalDirectiveExcludingAnArgumentKeepsTheReportAndWithholdsTheFix(string endOfLine)
     {
         const string testData = """
                                 class C
                                 {
                                     void N(int a, int b, int c, int d)
                                     {
-                                        M(a, b,
+                                        M{|RH5102:(a, b,
                                 #if DEBUG
                                           c,
                                 #endif
-                                          d);
+                                          d)|};
                                     }
 
                                     void M(params int[] values)
@@ -969,7 +1090,8 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Batch
                                 }
                                 """;
 
-        await Verify(ConvertEndOfLine(testData, endOfLine));
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine), DocumentationMode.Parse, "DEBUG");
     }
 
     /// <summary>

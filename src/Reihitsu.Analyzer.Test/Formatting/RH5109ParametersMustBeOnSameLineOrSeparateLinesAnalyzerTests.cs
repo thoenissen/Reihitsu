@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -577,19 +578,19 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     }
 
     /// <summary>
-    /// Verifies that an empty conditional directive pair between two parameters keeps the parameter list from being
-    /// reported
+    /// Verifies that an empty conditional directive pair between two parameters does not keep the parameter list from
+    /// being reported, with and without the symbol defined, and that no code fix is offered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5109-004")]
     [Requirement("SHARED-DIAG-008")]
-    public async Task VerifyConditionalDirectiveBetweenParametersKeepsTheListFromBeingReported()
+    public async Task VerifyConditionalDirectiveBetweenParametersKeepsTheReportAndWithholdsTheFix()
     {
         const string testData = """
                                 internal class TestClass
                                 {
-                                    void Method(int first, int second,
+                                    void Method{|RH5109:(|}int first, int second,
                                 #if DEBUG
                                 #endif
                                                 int third)
@@ -598,7 +599,125 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
                                 }
                                 """;
 
+        await VerifyNoCodeFixIsOffered(testData);
+        await VerifyNoCodeFixIsOffered(testData, DocumentationMode.Parse, "DEBUG");
+    }
+
+    /// <summary>
+    /// Verifies that a parameter list is reported, and no code fix is offered, for every shape of conditional directive
+    /// in a gap between its parameters: the analyzer judges the parameters the analyzed build compiles
+    /// </summary>
+    /// <param name="directives">The conditional directives, and the parameters they hold, between <c>int b,</c> and <c>int d</c></param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("#if FEATURE\n#endif", DisplayName = "Empty block")]
+    [DataRow("#if NEVER\n           int c,\n#endif", DisplayName = "Excluded parameter")]
+    [DataRow("#if !NEVER\n           int c,\n#endif", DisplayName = "Active parameter")]
+    [DataRow("#if NEVER\n           int c,\n#else\n           int e,\n#endif", DisplayName = "If and else")]
+    [DataRow("#if NEVER\n           int c,\n#elif !NEVER\n           int e,\n#endif", DisplayName = "If and elif")]
+    [DataRow("#if false\n           int c,\n#endif", DisplayName = "If false")]
+    [Requirement("RH5109-004")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyEveryShapeOfConditionalDirectiveBetweenParametersKeepsTheReportAndWithholdsTheFix(string directives)
+    {
+        var testData = $$"""
+                         class C
+                         {
+                             void M{|RH5109:(|}int a, int b,
+                         {{directives}}
+                                    int d)
+                             {
+                             }
+                         }
+                         """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a parameter list whose parameters the analyzed build compiles all start on one line is not
+    /// reported, also when a conditional directive in front of its closing parenthesis holds a parameter of another
+    /// build
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5109-001")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyParametersOnOneLineWithAConditionalParameterInFrontOfTheClosingParenthesisAreNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M(int a, int b
+                                #if NEVER
+                                           , int c
+                                #endif
+                                           )
+                                    {
+                                    }
+                                }
+                                """;
+
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All lays out the parameter lists without a conditional directive in their gaps and leaves the
+    /// one with such a directive reported and unchanged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5109-004")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyFixAllLaysOutOnlyTheParameterListsWithoutAConditionalDirective()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M{|RH5109:(|}int a, int b,
+                                #if FEATURE
+                                #endif
+                                           int c)
+                                    {
+                                    }
+
+                                    void N{|RH5109:(|}int a, int b,
+                                           int c)
+                                    {
+                                    }
+
+                                    void O{|RH5109:(|}int a, int b,
+                                           int c)
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M{|RH5109:(|}int a, int b,
+                                 #if FEATURE
+                                 #endif
+                                            int c)
+                                     {
+                                     }
+
+                                     void N(int a,
+                                            int b,
+                                            int c)
+                                     {
+                                     }
+
+                                     void O(int a,
+                                            int b,
+                                            int c)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
     }
 
     /// <summary>
@@ -654,19 +773,19 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     }
 
     /// <summary>
-    /// Verifies the specification example: a conditional directive in a gap between the parameters keeps the list from
-    /// being reported, a pragma there withholds only the fix, and a conditional directive inside a default value
-    /// withholds only the fix
+    /// Verifies the specification example: a conditional directive or a pragma in a gap between the parameters, and a
+    /// conditional directive inside a default value, withhold only the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH5109-004")]
-    public async Task VerifyConditionalDirectiveInAGapKeepsTheListFromBeingReportedButNotOneInsideAParameter()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyConditionalDirectiveInAGapOrInsideAParameterWithholdsOnlyTheFix()
     {
         const string testData = """
                                 class C
                                 {
-                                    void M(int a, int b,
+                                    void M{|RH5109:(|}int a, int b,
                                 #if DEBUG
                                 #endif
                                            int c)
@@ -942,7 +1061,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     }
 
     /// <summary>
-    /// Verifies the input of the conditional directive report: a list with a conditional directive whose excluded code holds a parameter is not reported, under LF and CRLF line endings
+    /// Verifies the input of the conditional directive report: a list with a conditional directive whose excluded code holds a parameter is reported without a fix, with and without the symbol defined, under LF and CRLF line endings
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -951,12 +1070,12 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
     [Requirement("SHARED-DIAG-008")]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    public async Task VerifyConditionalDirectiveExcludingAParameterKeepsTheListFromBeingReported(string endOfLine)
+    public async Task VerifyConditionalDirectiveExcludingAParameterKeepsTheReportAndWithholdsTheFix(string endOfLine)
     {
         const string testData = """
                                 class C
                                 {
-                                    void M(int a, int b,
+                                    void M{|RH5109:(|}int a, int b,
                                 #if DEBUG
                                            int c,
                                 #endif
@@ -966,7 +1085,8 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Batc
                                 }
                                 """;
 
-        await Verify(ConvertEndOfLine(testData, endOfLine));
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine));
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(testData, endOfLine), DocumentationMode.Parse, "DEBUG");
     }
 
     /// <summary>

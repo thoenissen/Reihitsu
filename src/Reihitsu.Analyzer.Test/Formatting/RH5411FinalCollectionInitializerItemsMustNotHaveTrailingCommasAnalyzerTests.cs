@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -176,13 +177,65 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
     }
 
     /// <summary>
-    /// Verifies that the trailing comma is not flagged when a conditional-compilation block carrying a further
-    /// item follows the final active item, since the formatter withholds its own removal for the same shape
+    /// Verifies that the trailing comma is reported without a code fix when a conditional-compilation block carrying a
+    /// further element follows the final active item, and that, where the symbol is defined, the comma of the item
+    /// inside the block is reported without a code fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-TRAIL-002")]
-    public async Task VerifyCollectionWithConditionalBlockAfterFinalItemIsNotFlagged()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyCollectionWithConditionalBlockAfterFinalItemIsReportedWithoutFix()
+    {
+        const string withoutSymbol = """
+                                     using System.Collections.Generic;
+
+                                     internal class Example
+                                     {
+                                         private static void Method()
+                                         {
+                                             var values = new List<int>
+                                             {
+                                                 1{|RH5411:,|}
+                                     #if SYMBOL
+                                                 2,
+                                     #endif
+                                             };
+                                         }
+                                     }
+                                     """;
+
+        const string withSymbol = """
+                                  using System.Collections.Generic;
+
+                                  internal class Example
+                                  {
+                                      private static void Method()
+                                      {
+                                          var values = new List<int>
+                                          {
+                                              1,
+                                  #if SYMBOL
+                                              2{|RH5411:,|}
+                                  #endif
+                                          };
+                                      }
+                                  }
+                                  """;
+
+        await VerifyNoCodeFixIsOffered(withoutSymbol);
+        await VerifyNoCodeFixIsOffered(withSymbol, DocumentationMode.Parse, "SYMBOL");
+    }
+
+    /// <summary>
+    /// Verifies that the comma written inside the branch, in front of the item that needs it, is not reported in a
+    /// build with or without the symbol
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TRAIL-002")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyCollectionWithCommaInsideTheConditionalBlockIsNotReportedInEitherBuild()
     {
         const string testData = """
                                 using System.Collections.Generic;
@@ -193,9 +246,9 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
                                     {
                                         var values = new List<int>
                                         {
-                                            1,
+                                            1
                                 #if SYMBOL
-                                            2,
+                                            , 2
                                 #endif
                                         };
                                     }
@@ -203,6 +256,73 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
                                 """;
 
         await Verify(testData);
+        await VerifyWithPreprocessorSymbols(testData, "SYMBOL");
+    }
+
+    /// <summary>
+    /// Verifies that Fix All removes the trailing comma in front of the closing brace and leaves the comma in front of a
+    /// conditional block reported and in place
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TRAIL-002")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyFixAllKeepsOnlyTheCommaInFrontOfAConditionalBlock()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var a = new List<int>
+                                        {
+                                            1{|RH5411:,|}
+                                #if SYMBOL
+                                            2,
+                                #endif
+                                        };
+                                        var b = new List<int>
+                                        {
+                                            1,
+                                            2{|RH5411:,|}
+                                        };
+                                        var c = new List<int>
+                                        {
+                                            3{|RH5411:,|}
+                                        };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Example
+                                 {
+                                     private static void Method()
+                                     {
+                                         var a = new List<int>
+                                         {
+                                             1{|RH5411:,|}
+                                 #if SYMBOL
+                                             2,
+                                 #endif
+                                         };
+                                         var b = new List<int>
+                                         {
+                                             1,
+                                             2
+                                         };
+                                         var c = new List<int>
+                                         {
+                                             3
+                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
     }
 
     /// <summary>

@@ -100,13 +100,15 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasForma
     }
 
     /// <summary>
-    /// Verifies that the trailing comma before a conditional-compilation block carrying a further item stays
-    /// analyzer-clean and formatter-stable under LF and CRLF, since the formatter and the analyzer withhold in
-    /// lock-step
+    /// Verifies that the trailing comma before a conditional-compilation block carrying a further item is reported,
+    /// and that the formatter keeps it as written under LF and CRLF, since another build can need it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCollectionWithConditionalBlockAfterFinalItemIsFormatterStable()
+    [Requirement("SHARED-TRAIL-002")]
+    [Requirement("SHARED-DIAG-008")]
+    [Requirement("FMT-STRUCT-020")]
+    public async Task VerifyCollectionWithConditionalBlockAfterFinalItemIsReportedAndKeptByTheFormatter()
     {
         const string input = """
                              using System.Collections.Generic;
@@ -117,7 +119,7 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasForma
                                  {
                                      var values = new List<int>
                                                   {
-                                                      1,
+                                                      1{|RH5411:,|}
                              #if SYMBOL
                                          2,
                              #endif
@@ -126,7 +128,7 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasForma
                              }
                              """;
 
-        await VerifyFormatter(input);
+        await VerifyFormatterKeepsReportedShape(input);
     }
 
     #endregion // Tests

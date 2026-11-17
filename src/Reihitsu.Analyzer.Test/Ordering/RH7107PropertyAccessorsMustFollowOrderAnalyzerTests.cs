@@ -68,14 +68,17 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifies that an accessor list with a conditional directive around the misordered set accessor is not reported,
-    /// whether the symbol is defined or not
+    /// Verifies that an accessor list with a conditional directive around the misordered set accessor is judged as the
+    /// analyzed build compiles it: without the symbol, the build compiles only the get accessor and nothing is reported;
+    /// with the symbol, the get accessor is reported, and no code fix is offered, because the <c>#endif</c> in front of it
+    /// would leave its <c>#if</c> behind
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7107-001")]
+    [Requirement("RH7107-005")]
     [Requirement("SHARED-DIAG-008")]
-    public async Task ConditionalDirectiveAroundTheSetAccessorKeepsTheGetAccessorFromBeingReported()
+    public async Task ConditionalDirectiveAroundTheSetAccessorIsJudgedAsTheBuildCompilesIt()
     {
         const string testData = """
                                 public class TestClass
@@ -87,7 +90,7 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
                                         {
                                         }
                                 #endif
-                                        get
+                                        {|RH7107:get|}
                                         {
                                             return 0;
                                         }
@@ -95,19 +98,20 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
                                 }
                                 """;
 
-        await Verify(testData);
-        await Verify(testData, test => test.SolutionTransforms.Add(DefineDebug));
+        await Verify(RemoveMarkup(testData));
+        await VerifyNoCodeFixIsOffered(testData, DocumentationMode.Parse, "DEBUG");
     }
 
     /// <summary>
     /// Verifies that an accessor list with a conditional directive between the attribute list and the keyword of the
-    /// get accessor is not reported
+    /// get accessor is reported, and no code fix is offered, because the <c>#if</c> would move without its <c>#endif</c>
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7107-001")]
+    [Requirement("RH7107-005")]
     [Requirement("SHARED-DIAG-008")]
-    public async Task ConditionalDirectiveBehindTheAttributeListOfTheGetAccessorKeepsItFromBeingReported()
+    public async Task ConditionalDirectiveBehindTheAttributeListOfTheGetAccessorKeepsTheReportAndWithholdsTheFix()
     {
         const string testData = """
                                 public class TestClass
@@ -120,7 +124,7 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
 
                                         [System.Obsolete]
                                 #if DEBUG
-                                        get
+                                        {|RH7107:get|}
                                         {
                                             return 0;
                                         }
@@ -129,7 +133,7 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
                                 }
                                 """;
 
-        await Verify(testData, test => test.SolutionTransforms.Add(DefineDebug));
+        await VerifyNoCodeFixIsOffered(testData, DocumentationMode.Parse, "DEBUG");
     }
 
     /// <summary>
@@ -955,13 +959,16 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
     }
 
     /// <summary>
-    /// Verifies the specification example in which a conditional directive between the accessors keeps the get accessor
-    /// from being reported, and one inside an accessor body does not
+    /// Verifies the specification example in which neither a conditional directive between the accessors nor one inside
+    /// an accessor body keeps the get accessor from being reported; the fix is withheld for <c>A</c>, whose <c>#endif</c>
+    /// in front of <c>get</c> would leave its <c>#if</c> behind, and offered for <c>B</c>
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7107-001")]
-    public async Task ConditionalDirectiveBetweenTheAccessorsButNotInsideABodyKeepsTheGetAccessorFromBeingReported()
+    [Requirement("RH7107-005")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task ConditionalDirectiveBetweenTheAccessorsOrInsideABodyDoesNotKeepTheGetAccessorFromBeingReported()
     {
         const string testData = """
                                 class C
@@ -973,7 +980,7 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
                                 #if !NEVER
                                         set { _a = value; }
                                 #endif
-                                        get { return _a; }
+                                        {|RH7107:get|} { return _a; }
                                     }
 
                                     public int B
@@ -994,17 +1001,130 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
                                 }
                                 """;
 
-        await Verify(testData);
+        const string fixedData = """
+                                 class C
+                                 {
+                                     private int _a;
+
+                                     public int A
+                                     {
+                                 #if !NEVER
+                                         set { _a = value; }
+                                 #endif
+                                         {|RH7107:get|} { return _a; }
+                                     }
+
+                                     public int B
+                                     {
+                                         get
+                                         {
+                                             return _a;
+                                         }
+
+                                         set
+                                         {
+                                 #if DEBUG
+                                             System.Console.WriteLine(value);
+                                 #endif
+                                             _a = value;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
     }
 
     /// <summary>
-    /// Verifies that an accessor list with an empty conditional directive pair between the accessors is not reported
+    /// Verifies that a balanced conditional directive pair in the leading trivia of the get accessor, empty or holding
+    /// excluded code, does not keep it from being reported, and that the fix moves the pair with it
+    /// </summary>
+    /// <param name="directives">The balanced conditional directive pair, and the code it holds, in front of <c>get</c></param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("#if DEBUG\n#endif", DisplayName = "Empty block")]
+    [DataRow("#if NEVER\n        init { }\n#endif", DisplayName = "Excluded accessor")]
+    [DataRow("#if false\n        init { }\n#endif", DisplayName = "If false")]
+    [Requirement("RH7107-001")]
+    [Requirement("RH7107-005")]
+    [Requirement("SHARED-DIAG-008")]
+    [Requirement("SHARED-ORDER-006")]
+    public async Task BalancedConditionalDirectivePairInFrontOfTheGetAccessorIsReportedAndMovesWithIt(string directives)
+    {
+        var testData = $$"""
+                         class C
+                         {
+                             private int _a;
+
+                             public int A
+                             {
+                                 set { _a = value; }
+                         {{directives}}
+                                 {|RH7107:get|} { return _a; }
+                             }
+                         }
+                         """;
+
+        var fixedData = $$"""
+                          class C
+                          {
+                              private int _a;
+
+                              public int A
+                              {
+                          {{directives}}
+                                  get { return _a; }
+                                  set { _a = value; }
+                              }
+                          }
+                          """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional group whose <c>#if</c> stands in front of the crossed set accessor and whose
+    /// <c>#endif</c> stands in front of the get accessor does not keep the get accessor from being reported, and that no
+    /// code fix is offered, for every shape of the group
+    /// </summary>
+    /// <param name="directives">The conditional group, and the set accessor it holds, in front of <c>get</c></param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("#if !NEVER\n        set { _a = value; }\n#endif", DisplayName = "Active accessor")]
+    [DataRow("#if NEVER\n        init { _a = value; }\n#else\n        set { _a = value; }\n#endif", DisplayName = "If and else")]
+    [DataRow("#if NEVER\n        init { _a = value; }\n#elif !NEVER\n        set { _a = value; }\n#endif", DisplayName = "If and elif")]
+    [Requirement("RH7107-001")]
+    [Requirement("RH7107-005")]
+    [Requirement("SHARED-DIAG-008")]
+    [Requirement("SHARED-ORDER-003")]
+    public async Task ConditionalGroupAroundTheCrossedSetAccessorKeepsTheReportAndWithholdsTheFix(string directives)
+    {
+        var testData = $$"""
+                         class C
+                         {
+                             private int _a;
+
+                             public int A
+                             {
+                         {{directives}}
+                                 {|RH7107:get|} { return _a; }
+                             }
+                         }
+                         """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All moves the get accessors whose move is safe and leaves the one whose <c>#endif</c> would be
+    /// torn from its <c>#if</c> reported and in place
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("RH7107-001")]
+    [Requirement("RH7107-005")]
     [Requirement("SHARED-DIAG-008")]
-    public async Task EmptyConditionalDirectivePairBetweenTheAccessorsKeepsTheGetAccessorFromBeingReported()
+    public async Task FixAllMovesOnlyTheGetAccessorsWhoseMoveKeepsTheirDirectivesPaired()
     {
         const string testData = """
                                 class C
@@ -1013,15 +1133,54 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
 
                                     public int A
                                     {
+                                #if !NEVER
                                         set { _a = value; }
-                                #if DEBUG
                                 #endif
-                                        get { return _a; }
+                                        {|RH7107:get|} { return _a; }
+                                    }
+
+                                    public int B
+                                    {
+                                        set { _a = value; }
+                                        {|RH7107:get|} { return _a; }
+                                    }
+
+                                    public int D
+                                    {
+                                        set { _a = value; }
+                                        {|RH7107:get|} { return _a; }
                                     }
                                 }
                                 """;
 
-        await Verify(testData);
+        const string fixedData = """
+                                 class C
+                                 {
+                                     private int _a;
+
+                                     public int A
+                                     {
+                                 #if !NEVER
+                                         set { _a = value; }
+                                 #endif
+                                         {|RH7107:get|} { return _a; }
+                                     }
+
+                                     public int B
+                                     {
+                                         get { return _a; }
+                                         set { _a = value; }
+                                     }
+
+                                     public int D
+                                     {
+                                         get { return _a; }
+                                         set { _a = value; }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
     }
 
     /// <summary>
@@ -1172,23 +1331,6 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixT
     }
 
     #endregion // Tests
-
-    #region Methods
-
-    /// <summary>
-    /// Defines the preprocessor symbol <c>DEBUG</c> for the test project
-    /// </summary>
-    /// <param name="solution">Solution</param>
-    /// <param name="projectId">Project ID</param>
-    /// <returns>Solution</returns>
-    private static Solution DefineDebug(Solution solution, ProjectId projectId)
-    {
-        return solution.GetProject(projectId)?.ParseOptions is CSharpParseOptions parseOptions
-                   ? solution.WithProjectParseOptions(projectId, parseOptions.WithPreprocessorSymbols("DEBUG"))
-                   : solution;
-    }
-
-    #endregion // Methods
 
     #region BatchCodeFixTestsBase
 
