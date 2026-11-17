@@ -40,3 +40,8 @@ None yet.
 - Done: spec checker (consistent), commit 461c203.
 - Done: auditor (pass).
 - Next: validator, then issue manager (2 follow-up candidates), note, publish.
+
+## Follow-up issues
+
+- Candidate 1 → extended #1803 (comment with the skeptic's measurements).
+- Candidate 2 → created #1846.
