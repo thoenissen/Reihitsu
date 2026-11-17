@@ -33,4 +33,6 @@ None yet.
 - Skeptic done (01-skeptic.md): proceed narrower.
 - Test implementer done (02): lane widened to tooling.
 - Cleaner done (03): clean, bb2f598.
-- Next: spec checker → auditor → validator.
+- Spec checker done (04): consistent, no findings.
+- Merged origin/main abe1313 (clean, build green) as ec74419.
+- Next: auditor (main SHA abe1313) → validator.
