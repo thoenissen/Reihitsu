@@ -34,6 +34,7 @@ Batch 1 (before test implementer), answered 1A 2A 3A 4A 5A 6A:
 
 - SHARED-USING-009 keeps RH7201–RH7207 silent on a using block holding any directive; not a build-configuration reason, outside #1759 (01-spec-author.md).
 - Narrower trailing-comma fix guard: offer the fix when no `#if` stands between the comma and the brace, with the formatter following (02-skeptic.md, optional, low value).
+- RH2001 spec example (`#if !RELEASE` around `Value`, used outside the group) fails to compile (CS0103) in a RELEASE build (06-spec-author.md).
 
 ## State
 
@@ -44,4 +45,5 @@ Batch 1 (before test implementer), answered 1A 2A 3A 4A 5A 6A:
 - Spec author follow-up done (f3b78d5), change doc Accepted.
 - Test implementer done (dcbc177): 185 failing tests, all expected under-reporting.
 - Implementer done (233dfda, handover 4702026): verdict test disputed, 21 failing tests.
-- Next step: spec author (decision 8), then test implementer (decisions 7, 8), then cleaner. (was: batch 1: Q1 the newly reported rules (change doc), Q2 trailing commas, Q3 RH5111, Q4 RH7311, Q5 RH8201, Q6 escalation 10 (trailing-comma shape, recommend not declaring). Then route answers + decision 5 to spec author (Status Accepted), then test implementer.
+- Spec author repair done (1c988a4).
+- Next step: test implementer (decisions 7, 8), then cleaner. (was: batch 1: Q1 the newly reported rules (change doc), Q2 trailing commas, Q3 RH5111, Q4 RH7311, Q5 RH8201, Q6 escalation 10 (trailing-comma shape, recommend not declaring). Then route answers + decision 5 to spec author (Status Accepted), then test implementer.
