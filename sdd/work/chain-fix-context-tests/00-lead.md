@@ -34,4 +34,5 @@ None yet.
 - Last step: skeptic (`01-skeptic.md`, 312bc82): #889 proceed narrower, #1476 proceed; no output questions.
 - Test implementer: `02-test-implementer.md` (62009c4), tests written, lane check confirmed tests. Corrects one #1476 formatter output quoted by the skeptic; tests use measured output.
 - Cleaner: `03-cleaner.md` (d32dbfb), clean; comment repair being withdrawn (decision 5).
-- Next: lane check, spec checker, validator, issue manager, publish.
+- Spec checker `04-spec-checker.md` (6e7db19): consistent. Validator `05-validator.md` (a18834e): pass. Lane check on head: confirmed tests.
+- Next: issue manager (1 candidate), note, publish.
