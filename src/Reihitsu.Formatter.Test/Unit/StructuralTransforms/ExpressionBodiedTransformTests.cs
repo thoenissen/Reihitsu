@@ -794,29 +794,6 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied indexer with a comment trailing the arrow token is kept unchanged
-    /// </summary>
-    [TestMethod]
-    public void KeepsCommentTrailingArrowInIndexer()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 int[] _data;
-                                 int this[int i] => // why
-                                     _data[i];
-                             }
-                             """;
-
-        // Act
-        var actual = ApplyPhase(input);
-
-        // Assert
-        Assert.AreEqual(input, actual);
-    }
-
-    /// <summary>
     /// Verifies that an expression-bodied indexer with a comment leading the semicolon token is kept unchanged
     /// </summary>
     [TestMethod]

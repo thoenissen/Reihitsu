@@ -69,25 +69,47 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
 
     /// <summary>
     /// Verifies that the fix asks the formatter about the method it converts only: of two methods on one line, the one with a
-    /// comment behind its arrow gets no fix, and the one beside it does
+    /// comment behind its arrow gets no fix and stays reported, and the one beside it gets a fix that converts it and gives
+    /// the other method a line of its own, leaving its text as written
     /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-FIX-010")]
-    public async Task VerifyFixIsOfferedForAMethodBesideAMethodWithACommentBehindItsArrow()
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyFixIsOfferedForAMethodBesideAMethodWithACommentBehindItsArrow(string endOfLine)
     {
-        const string source = """
-                              class C
-                              {
-                                  int A() => 1; int B() => /* c */ 2;
-                              }
-                              """;
+        const string testData = """
+                                class C
+                                {
+                                    int A() => 1; int B() => /* c */ 2;
+                                }
+                                """;
 
-        var clean = await GetCodeFixActionsAsync(source, RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, root => FindArrow(root, "A").GetLocation());
+        const string resultData = """
+                                  class C
+                                  {
+                                      int A()
+                                      {
+                                          return 1;
+                                      }
+                                      int B() {|RH3202:=> /* c */ 2|};
+                                  }
+                                  """;
+
+        var source = ConvertEndOfLine(testData, endOfLine);
         var refused = await GetCodeFixActionsAsync(source, RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, root => FindArrow(root, "B").GetLocation());
 
-        Assert.IsNotEmpty(clean, "The fix must be offered for the method without the comment.");
         Assert.IsEmpty(refused, "The fix must not be offered for the method with the comment behind its arrow.");
+
+        var expected = ConvertEndOfLine(resultData, endOfLine);
+        var actual = await TryApplyCodeFixAtAsync(source, RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, root => FindArrow(root, "A").GetLocation());
+
+        Assert.IsNotNull(actual, "The fix must be offered for the method without the comment.");
+        Assert.AreEqual(RemoveMarkup(expected), actual, "The fix must convert the method without the comment and leave the other method as written.");
+
+        await Verify(expected);
     }
 
     /// <summary>
