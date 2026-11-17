@@ -39,4 +39,5 @@ None yet.
 - Merged origin/main abe1313 (clean, build green) as ec74419.
 - Auditor (05) on 091e588: pass with one comment finding.
 - Repair round 1 worklist: (a) test implementer adds the per-phase check to RH6001 `VerifyFormatterFixesGluedFixedKeyword` (decision 7); (b) cleaner rewords the two summaries (finding #1).
-- Next: test implementer → cleaner → spec checker → auditor (repair only) → validator.
+- (a) done (06-test-implementer), dc6c41f.
+- Next: cleaner (item b) → spec checker → auditor (repair only, base 091e588) → validator.
