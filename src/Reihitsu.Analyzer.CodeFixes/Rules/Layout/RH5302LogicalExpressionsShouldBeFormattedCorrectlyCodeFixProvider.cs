@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Layout;
-using Reihitsu.Core;
 using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -37,20 +36,6 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider :
     {
         return (await ReihitsuFormatter.FormatNodeInDocumentAsync(document, formattingNode, cancellationToken)
                                        .ConfigureAwait(false)).Output;
-    }
-
-    /// <summary>
-    /// Determines whether the operator token trails at the end of its left operand's last line, the shape that
-    /// requires moving a line break rather than only realigning the operator's own indentation
-    /// </summary>
-    /// <param name="binaryExpression">The binary expression whose operator is being checked</param>
-    /// <returns><see langword="true"/> if the operator immediately trails the left operand; otherwise, <see langword="false"/></returns>
-    private static bool IsTrailingOperator(BinaryExpressionSyntax binaryExpression)
-    {
-        var leftLineSpan = binaryExpression.Left.SyntaxTree.GetLineSpan(binaryExpression.Left.Span);
-        var operatorLineSpan = binaryExpression.OperatorToken.SyntaxTree.GetLineSpan(binaryExpression.OperatorToken.Span);
-
-        return operatorLineSpan.StartLinePosition.Line == leftLineSpan.EndLinePosition.Line;
     }
 
     /// <summary>
@@ -102,12 +87,6 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider :
                 var operatorToken = root.FindToken(diagnostic.Location.SourceSpan.Start);
 
                 if (operatorToken.Parent is not BinaryExpressionSyntax binaryExpression)
-                {
-                    continue;
-                }
-
-                if (IsTrailingOperator(binaryExpression)
-                    && SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(operatorToken, binaryExpression.Right.GetFirstToken()))
                 {
                     continue;
                 }
