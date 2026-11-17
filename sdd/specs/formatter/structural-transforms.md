@@ -5,7 +5,7 @@
 | ID prefix | FMT-STRUCT |
 | Status | Active |
 | Code owners | `StructuralTransformPhase`, `ConfigurableStructuralTransforms`, `ControlFlowBraceTransform`, `ExpressionBodiedMethodTransform`, `ExpressionBodiedConstructorTransform`, `ExpressionBodiedOperatorTransform`, `ExpressionBodiedConversionTransform`, `ExpressionBodiedFinalizerTransform`, `ExpressionBodiedLocalFunctionTransform`, `ExpressionBodiedTransformUtilities`, `ExpressionBodyToBlockConverter`, `AccessorExpressionBodyTransform`, `GetOnlyMemberExpressionBodyTransform`, `EmptyTypeDeclarationSemicolonTransform`, `EnumTrailingCommaRemovalTransform`, `InitializerTrailingCommaRemovalTransform`, `TrailingCommaRemovalUtilities`, `FieldDeclarationSplitTransform`, `AttributeListSplitTransform`, `AttributeListMergeTransform`, `AttributeListShapeUtilities` |
-| Uses | FMT-BREAK-013, FMT-BREAK-014, FMT-BREAK-027, FMT-BREAK-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-PIPE-029, FMT-PIPE-034, FMT-SPACE-003, FMT-SPACE-004, FMT-SPACE-008, FMT-SPACE-012, FMT-SPACE-017, FMT-UNSUP-004, FMT-UNSUP-009, FMT-UNSUP-010, SHARED-ATTR-013, SHARED-DOC-004 |
+| Uses | FMT-BREAK-013, FMT-BREAK-014, FMT-BREAK-027, FMT-BREAK-032, FMT-PIPE-001, FMT-PIPE-002, FMT-PIPE-003, FMT-PIPE-004, FMT-PIPE-008, FMT-PIPE-011, FMT-PIPE-013, FMT-PIPE-021, FMT-PIPE-029, FMT-PIPE-034, FMT-SPACE-003, FMT-SPACE-004, FMT-SPACE-008, FMT-SPACE-012, FMT-SPACE-017, FMT-UNSUP-004, FMT-UNSUP-009, FMT-UNSUP-010, FMT-UNSUP-012, SHARED-ATTR-013, SHARED-BODY-001, SHARED-DOC-004 |
 
 This spec covers the phase that rewrites syntax shape before any layout is decided, right after the tabs in whitespace are replaced (FMT-PIPE-001): braces for `if`/`else` bodies, block bodies for expression-bodied functions, expression bodies for simple accessors and get-only members, semicolon declarations for empty types, removal of trailing commas, one field per declaration, one attribute per list on declarations (FMT-STRUCT-028), and the merge of attribute lists that name one target (FMT-STRUCT-029). Every rewrite produces equivalent code (FMT-PIPE-003) and is refused for a construct whose comments, directives, or disabled text it could not carry over (FMT-PIPE-002). The RH7101 code fix splits a field by formatting it with its type as context (FMT-PIPE-029), so the field split, laid out by the phases after this one, is also that fix's output.
 
@@ -255,11 +255,11 @@ class C
 
 ### FMT-STRUCT-006 — The converted body keeps the expression's trivia
 
-When the formatter converts an expression body under FMT-STRUCT-004 or FMT-STRUCT-005, an expression written on the line after the arrow MUST join the created `return` keyword, a comment between the expression and the semicolon MUST stay in front of the statement's semicolon, and a comment or directive in the trivia of the removed arrow or semicolon MUST be carried into the block rather than dropped. The layout of the comments the converted body carries is kept as FMT-PIPE-013 states.
+When the formatter converts an expression body under FMT-STRUCT-004 or FMT-STRUCT-005, an expression written on the line after the arrow MUST join the created `return` keyword, a comment between the expression and the semicolon MUST stay in front of the statement's semicolon, and a comment or directive in the leading trivia of the removed arrow or in the trivia of the removed semicolon MUST be carried into the block rather than dropped. The layout of the comments the converted body carries is kept as FMT-PIPE-013 states. A comment, a directive, or disabled text between the arrow and the expression is a shape the formatter refuses as a whole (FMT-UNSUP-012), so the conversion never meets one.
 
-Unless a comment stands directly at the arrow, a comment that stands on a line of its own — nothing but whitespace in front of it on its line, and a line break behind it — between the token in front of the arrow and the arrow, or between the arrow and the expression, MUST be carried into the block as a comment on a line of its own in front of the created statement, in the order the comments were written. An expression behind such a comment MUST still join the created `return` keyword, so that the statement stays on one line as it would without the comment. A comment that starts the line after the arrow and is followed on that line by the expression MUST stay directly in front of the expression, which joins the created `return` keyword together with it (`return /* c */ 42;`). A comment stands directly at the arrow when it follows the arrow on the arrow's line, before the next token (`=> // b`, `=> /* c */ 42`), or precedes the arrow on a line on which no token stands in front of the arrow, behind the last line break in front of it (a line `/* c */ => 42;`). A comment behind the token in front of the arrow on the same line (`int M() /* c */ =>`) belongs to that token, does not stand at the arrow, and MUST NOT stop the move. When a comment stands directly at the arrow, the conversion MUST NOT move the comments on lines of their own in front of the created statement, and all comments of the member MUST keep the order in which they were written. A comment further along the arrow's line, behind the expression or behind the semicolon (`=> 42 /* t */;`, `=> 42; // t`), does not stand at the arrow and MUST NOT stop the move: the own-line comments still lead the created statement. This paragraph specifies the placement only for the comments it names; it leaves a documentation comment (`///`), the placement of a comment directly at the arrow and of the other comments of such a member, and a comment in front of an expression that becomes an expression statement or a `throw` statement, unspecified.
+Unless a comment stands directly at the arrow, a comment that stands on a line of its own — nothing but whitespace in front of it on its line, and a line break behind it — between the token in front of the arrow and the arrow MUST be carried into the block as a comment on a line of its own in front of the created statement, in the order the comments were written. The expression MUST still join the created `return` keyword, so that the statement stays on one line as it would without the comment. A comment stands directly at the arrow when it precedes the arrow on a line on which no token stands in front of the arrow, behind the last line break in front of it (a line `/* c */ => 42;`). A comment behind the token in front of the arrow on the same line (`int M() /* c */ =>`) belongs to that token, does not stand at the arrow, and MUST NOT stop the move. When a comment stands directly at the arrow, the conversion MUST NOT move the comments on lines of their own in front of the created statement, and all comments of the member MUST keep the order in which they were written. A comment behind the expression or behind the semicolon (`=> 42 /* t */;`, `=> 42; // t`) does not stand at the arrow and MUST NOT stop the move: the own-line comments still lead the created statement. This paragraph specifies the placement only for the comments it names; it leaves a documentation comment (`///`), and the placement of a comment directly at the arrow and of the other comments of such a member, unspecified.
 
-Why: The arrow and the semicolon disappear, so whatever trivia they carried needs a new owner. The line break after the arrow is layout only and has no meaning inside a `return` statement; a comment does, and FMT-PIPE-002 forbids losing it. A comment written on its own line next to the arrow introduces the body; in front of the created statement it keeps introducing it, while a place between the signature and the brace, or on a line of its own between `return` and its value, would put it next to other code (FMT-STRUCT-024). A comment written in front of the expression on the expression's line belongs to the expression and moves with it. Where a comment stands directly at the arrow, it lands on or in front of the new opening brace, so moving the own-line comments into the block would put them behind it, in reverse of the order the author wrote them; they stay where they are, and where that comment belongs is a separate decision. A comment behind the expression or the semicolon ends up behind the created statement, so moving the own-line comments keeps the source order.
+Why: The arrow and the semicolon disappear, so whatever trivia they carried needs a new owner. The line break after the arrow is layout only and has no meaning inside a `return` statement; a comment does, and FMT-PIPE-002 forbids losing it. A comment written on its own line in front of the arrow introduces the body; in front of the created statement it keeps introducing it, while a place between the signature and the brace would put it next to other code (FMT-STRUCT-024). Where a comment stands directly at the arrow, it lands on or in front of the new opening brace, so moving the own-line comments into the block would put them behind it, in reverse of the order the author wrote them; they stay where they are, and where that comment belongs is a separate decision. A comment behind the expression or the semicolon ends up behind the created statement, so moving the own-line comments keeps the source order. A comment behind the arrow had no such owner: the brace, the line in front of the statement, and the place behind `return` each needed a case of their own, so the formatter refuses it instead (FMT-UNSUP-012).
 
 Example:
 
@@ -288,7 +288,7 @@ class C
 }
 ```
 
-Comments on lines of their own around the arrow lead the created statement; a comment in front of the expression on its line stays in front of it:
+A comment on a line of its own in front of the arrow leads the created statement, and a comment behind the token in front of the arrow does not stop the move:
 
 ```csharp
 class C
@@ -297,16 +297,9 @@ class C
     // before arrow
     => 1;
 
-    int Get() =>
-        // after arrow
-        42;
-
-    void Run() =>
-        // run
-        Foo();
-
-    int Value() =>
-        /* c */ 42;
+    void Run() // run
+        // first
+        => Foo();
 }
 ```
 
@@ -319,30 +312,19 @@ class C
         return 1;
     }
 
-    int Get()
+    void Run() // run
     {
-        // after arrow
-        return 42;
-    }
-
-    void Run()
-    {
-        // run
+        // first
         Foo();
-    }
-
-    int Value()
-    {
-        return /* c */ 42;
     }
 }
 ```
 
 ### FMT-STRUCT-007 — Directives that cannot survive keep the expression body
 
-The formatter MUST keep the expression body of a member covered by FMT-STRUCT-004 or FMT-STRUCT-005 when any directive lies between the arrow and the start of the expression, when a conditional directive in the span from the arrow to the semicolon has its partner outside that span, or when a `#region` or `#endregion` lies in that span or in the arrow's leading trivia. A balanced conditional group, or another directive between the expression and the semicolon, MUST NOT block the conversion; it travels inside the created statement.
+The formatter MUST keep the expression body of a member covered by FMT-STRUCT-004 or FMT-STRUCT-005 when a conditional directive in the span from the arrow to the semicolon has its partner outside that span, or when a `#region` or `#endregion` lies in that span or in the arrow's leading trivia. A balanced conditional group, or another directive between the expression and the semicolon, MUST NOT block the conversion; it travels inside the created statement. A directive or disabled text between the arrow and the expression is a shape the formatter refuses as a whole (FMT-UNSUP-012), so the conversion never meets one.
 
-Why: A directive between the arrow and the expression would land directly after the created `return` keyword, where a directive cannot stand, so the result would not parse. Splitting a conditional group orphans the half that stays behind, and a region cannot keep both endpoints in place while the span is rebuilt. The decision is `ExpressionBodyRewriteUtilities.BlocksRewrite` in `Reihitsu.Core`, which the analyzer rules of FMT-STRUCT-004 and FMT-STRUCT-005 consult too, so an analyzer never reports a member whose fix would be refused.
+Why: Splitting a conditional group orphans the half that stays behind, and a region cannot keep both endpoints in place while the span is rebuilt. The decision is `ExpressionBodyRewriteUtilities.BlocksRewrite` in `Reihitsu.Core`, which the analyzer rules of FMT-STRUCT-004 and FMT-STRUCT-005 consult too, so an analyzer never reports a member whose fix would be refused; it also holds the case of a directive between the arrow and the expression, which those rules do not report (SHARED-BODY-001), although the formatter refuses the input before it converts anything.
 
 Example — a balanced group between the expression and the semicolon does not block the conversion:
 
@@ -728,7 +710,7 @@ Under C# 6, `Value` and the indexer are converted the same way and `Fail` keeps 
 
 ### FMT-STRUCT-015 — Get-only members that keep their accessor list
 
-The formatter MUST keep the accessor list of a property or indexer when the getter is an auto-accessor, carries an attribute or a modifier, cannot be converted under FMT-STRUCT-009 to FMT-STRUCT-013, or when the property has an initializer. It MUST also keep it when a comment, directive, or disabled text lies in trivia the conversion would delete or join onto the signature's line — after the signature, around the braces, around `get`, around the getter's arrow, before the expression, or before the getter's semicolon — or when a directive in the accessor list would be split as in FMT-STRUCT-013. A comment trailing the getter's semicolon or the closing brace MUST follow the member's new semicolon; when both carry a comment, the accessor list MUST be kept.
+The formatter MUST keep the accessor list of a property or indexer when the getter is an auto-accessor, carries an attribute or a modifier, cannot be converted under FMT-STRUCT-009 to FMT-STRUCT-013, or when the property has an initializer. It MUST also keep it when a comment, directive, or disabled text lies in trivia the conversion would delete or join onto the signature's line — after the signature, around the braces, around `get`, in front of the getter's arrow, or before the getter's semicolon — or when a directive in the accessor list would be split as in FMT-STRUCT-013. A comment, directive, or disabled text behind the arrow of an expression-bodied getter, in front of its expression, is a shape the formatter refuses as a whole (FMT-UNSUP-012). A comment trailing the getter's semicolon or the closing brace MUST follow the member's new semicolon; when both carry a comment, the accessor list MUST be kept.
 
 Why: An attribute on the getter would change its target on the member, and a modifier such as `readonly` would be lost. An auto-accessor has no expression to lift. The comment rules are those of FMT-STRUCT-012, applied to the accessor list.
 
@@ -1254,21 +1236,19 @@ The formatter MUST NOT apply a rewrite of this phase when its result would not c
 
 Why: A structural rewrite only changes the shape of code the author wrote, so it is worth applying only when nothing else changes. A result that does not compile, a declaration that lost its documentation, or a comment that now describes other code is a regression the author has to find and repair by hand, which costs more than the canonical shape gains. A code fix is withheld in the same situations.
 
-Example — a directive between the arrow and the expression would land directly behind the created `return`, where it does not parse (FMT-STRUCT-007):
+Example — a conditional group whose `#if` stands in front of the member and whose `#else` stands between the arrow and the semicolon would be split by the conversion (FMT-STRUCT-007), so `M` keeps its expression body:
 
 ```csharp
 class C
 {
-    int M() =>
 #if DEBUG
-        1;
+    int M() => 1
 #else
-    0;
+    int M() => 0
 #endif
+        ;
 }
 ```
-
-is left unchanged.
 
 ### FMT-STRUCT-025 — An `async` function of an unknown task type keeps its expression body
 
@@ -1501,8 +1481,6 @@ class C
 }
 ```
 
-Example — a comment that FMT-STRUCT-006 moves behind `return` keeps the whitespace in front of it: in `int Get() =>`, followed by a line holding `/* c */ 42;` indented by eight spaces, the transform's output holds `return` followed by the eight spaces and `/* c */ 42;`, which the spacing phase turns into `return /* c */ 42;`; when that line is not indented, the output holds `return/* c */ 42;`, and the final output keeps `return/* c */` as written.
-
 Example — nested unbraced `if` statements:
 
 ```csharp
@@ -1522,8 +1500,6 @@ class C
 The transform's output has no line break between the inner inserted `}` and the outer inserted `}` behind it, and a line break between the outer inserted `}` and `// about Bar`. The same holds when `#if DEBUG` follows instead of the comment, and when the inner `if` has an unbraced `else` body.
 
 Example — a created `return` and the expression behind it: `int A() => a;` gives `return a;` in the transform's output, `int B() => \u0061;` gives `return \u0061;`, `int C() => @a;` gives `return@a;`, `int D() => @"s";` gives `return@"s";`, and `int E() => (a);` gives `return(a);`. The final output of each has one space behind `return` (FMT-SPACE-012).
-
-Example — a comment directly at the arrow (FMT-STRUCT-006) keeps the other comments of the member where they are, and a comment that leads the expression keeps leading it: for `int Get() => // c` followed by a line `/* d */ 42;`, for `int Get() => // c` followed by a line `// d` and a line `42;`, and for `int Get()` followed by a line `/* c */ =>` and a line `/* d */ 42;`, the transform's output has a line break between the created `return` and `/* d */` or `// d`. This example decides the transform's output only; FMT-STRUCT-006 leaves the final place of these comments unspecified.
 
 ### FMT-STRUCT-027 — A removed comma's comment on a line of its own stays there
 

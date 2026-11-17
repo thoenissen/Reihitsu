@@ -5,9 +5,9 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.BlankLines;
 
 /// <summary>
-/// Regression tests verifying that a comment separated from the arrow of an expression-bodied void member by a blank line
-/// is placed on its own line inside the block that replaces the expression body, rather than being joined to the opening
-/// brace
+/// Regression tests for a comment separated from the arrow of an expression-bodied void member by a blank line: the comment
+/// stands between the arrow and the expression, so the formatter refuses the input as unsupported instead of placing the
+/// comment inside the block that would replace the expression body
 /// </summary>
 [TestClass]
 public class ExpressionBodyConversionCommentPlacementTests : FormatterTestsBase
@@ -15,130 +15,19 @@ public class ExpressionBodyConversionCommentPlacementTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies the comment placement for an expression-bodied void method
+    /// Verifies that a comment behind a blank line behind the arrow of a void method, a constructor, or a local function refuses
+    /// the input as unsupported: the input is returned unchanged, and the comment is reported
     /// </summary>
+    /// <param name="input">The source text</param>
     [TestMethod]
-    public void PlacesCommentOnOwnLineInConvertedMethodBody()
+    [Requirement("FMT-UNSUP-012")]
+    [DataRow("public class C\n{\n    public void M() =>\n\n        // c\n        Call();\n\n    public void Call()\n    {\n    }\n}", DisplayName = "Void method")]
+    [DataRow("public class C\n{\n    public C() =>\n\n        // c\n        Call();\n\n    public void Call()\n    {\n    }\n}", DisplayName = "Constructor")]
+    [DataRow("public class C\n{\n    public void M()\n    {\n        void Local() =>\n\n            // c\n            Call();\n\n        Local();\n    }\n\n    public void Call()\n    {\n    }\n}", DisplayName = "Local function")]
+    public void CommentBehindABlankLineBehindTheArrowIsUnsupported(string input)
     {
-        // Arrange
-        const string input = """
-                             public class C
-                             {
-                                 public void M() =>
-
-                                     // c
-                                     Call();
-
-                                 public void Call()
-                                 {
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                public class C
-                                {
-                                    public void M()
-                                    {
-                                        // c
-                                        Call();
-                                    }
-
-                                    public void Call()
-                                    {
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies the comment placement for an expression-bodied constructor
-    /// </summary>
-    [TestMethod]
-    public void PlacesCommentOnOwnLineInConvertedConstructorBody()
-    {
-        // Arrange
-        const string input = """
-                             public class C
-                             {
-                                 public C() =>
-
-                                     // c
-                                     Call();
-
-                                 public void Call()
-                                 {
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                public class C
-                                {
-                                    public C()
-                                    {
-                                        // c
-                                        Call();
-                                    }
-
-                                    public void Call()
-                                    {
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies the comment placement for an expression-bodied local function
-    /// </summary>
-    [TestMethod]
-    public void PlacesCommentOnOwnLineInConvertedLocalFunctionBody()
-    {
-        // Arrange
-        const string input = """
-                             public class C
-                             {
-                                 public void M()
-                                 {
-                                     void Local() =>
-
-                                         // c
-                                         Call();
-
-                                     Local();
-                                 }
-
-                                 public void Call()
-                                 {
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                public class C
-                                {
-                                    public void M()
-                                    {
-                                        void Local()
-                                        {
-                                            // c
-                                            Call();
-                                        }
-
-                                        Local();
-                                    }
-
-                                    public void Call()
-                                    {
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(ExpressionBodyArrowCommentReason, input, "// c");
     }
 
     #endregion // Methods

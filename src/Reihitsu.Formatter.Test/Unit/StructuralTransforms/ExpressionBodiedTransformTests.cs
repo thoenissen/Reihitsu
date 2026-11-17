@@ -657,36 +657,6 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment trailing the arrow token of an expression-bodied method survives conversion.
-    /// </summary>
-    [TestMethod]
-    public void PreservesCommentTrailingArrowInMethod()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 int Foo() => // why
-                                     42;
-                             }
-                             """;
-
-        const string expected = """
-                                class C
-                                {
-                                    int Foo(){// why
-                                return 42;}
-                                }
-                                """;
-
-        // Act
-        var actual = ApplyPhase(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
-    }
-
-    /// <summary>
     /// Verifies that a comment leading the semicolon token of an expression-bodied method survives conversion.
     /// </summary>
     [TestMethod]
@@ -756,38 +726,6 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment trailing the arrow token of an expression-bodied constructor survives conversion.
-    /// </summary>
-    [TestMethod]
-    public void PreservesCommentTrailingArrowInConstructor()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 C() => // why
-                                     _x = 1;
-                                 int _x;
-                             }
-                             """;
-
-        const string expected = """
-                                class C
-                                {
-                                    C(){// why
-                                        _x = 1;}
-                                    int _x;
-                                }
-                                """;
-
-        // Act
-        var actual = ApplyPhase(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
-    }
-
-    /// <summary>
     /// Verifies that a comment leading the semicolon token of an expression-bodied constructor survives conversion.
     /// </summary>
     [TestMethod]
@@ -812,36 +750,6 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
                                 // why
                                 ;}
                                     int _x;
-                                }
-                                """;
-
-        // Act
-        var actual = ApplyPhase(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
-    }
-
-    /// <summary>
-    /// Verifies that a comment trailing the arrow token of an expression-bodied operator survives conversion.
-    /// </summary>
-    [TestMethod]
-    public void PreservesCommentTrailingArrowInOperator()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 public static C operator +(C a, C b) => // why
-                                     new C();
-                             }
-                             """;
-
-        const string expected = """
-                                class C
-                                {
-                                    public static C operator +(C a, C b) {// why
-                                return new C();}
                                 }
                                 """;
 
@@ -886,29 +794,6 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied indexer with a comment trailing the arrow token is kept unchanged
-    /// </summary>
-    [TestMethod]
-    public void KeepsCommentTrailingArrowInIndexer()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 int[] _data;
-                                 int this[int i] => // why
-                                     _data[i];
-                             }
-                             """;
-
-        // Act
-        var actual = ApplyPhase(input);
-
-        // Assert
-        Assert.AreEqual(input, actual);
-    }
-
-    /// <summary>
     /// Verifies that an expression-bodied indexer with a comment leading the semicolon token is kept unchanged
     /// </summary>
     [TestMethod]
@@ -930,36 +815,6 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
 
         // Assert
         Assert.AreEqual(input, actual);
-    }
-
-    /// <summary>
-    /// Verifies that a comment trailing the arrow token of an expression-bodied conversion operator survives conversion.
-    /// </summary>
-    [TestMethod]
-    public void PreservesCommentTrailingArrowInConversion()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 public static implicit operator int(C c) => // why
-                                     0;
-                             }
-                             """;
-
-        const string expected = """
-                                class C
-                                {
-                                    public static implicit operator int(C c) {// why
-                                return 0;}
-                                }
-                                """;
-
-        // Act
-        var actual = ApplyPhase(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
     }
 
     /// <summary>
@@ -985,36 +840,6 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
                                     public static implicit operator int(C c) {return 0
                                 // why
                                 ;}
-                                }
-                                """;
-
-        // Act
-        var actual = ApplyPhase(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
-    }
-
-    /// <summary>
-    /// Verifies that a comment trailing the arrow token of an expression-bodied finalizer survives conversion.
-    /// </summary>
-    [TestMethod]
-    public void PreservesCommentTrailingArrowInFinalizer()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 ~C() => // why
-                                     Cleanup();
-                             }
-                             """;
-
-        const string expected = """
-                                class C
-                                {
-                                    ~C() {// why
-                                        Cleanup();}
                                 }
                                 """;
 

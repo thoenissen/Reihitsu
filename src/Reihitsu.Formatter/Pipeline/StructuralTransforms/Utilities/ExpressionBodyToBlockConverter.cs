@@ -20,14 +20,15 @@ internal static class ExpressionBodyToBlockConverter
     #region Methods
 
     /// <summary>
-    /// Creates a block body that wraps the given expression. Comments on lines of their own in front of the arrow and
-    /// between the arrow and the expression lead the created statement on lines of their own, in source order. When the
-    /// arrow's line holds a comment, no comment is moved, because the arrow's comment stays with the open brace and the
-    /// moved comments would end up behind it, in reverse of the order they were written
+    /// Creates a block body that wraps the given expression. Comments on lines of their own in front of the arrow lead the
+    /// created statement on lines of their own, in source order. When the arrow's line holds a comment in front of the arrow,
+    /// no comment is moved, and the arrow's leading trivia stays with the open brace. The gap between the arrow and the
+    /// expression holds no comment, directive, or disabled text, because the precheck refuses an input that holds one there
+    /// (FMT-UNSUP-012)
     /// </summary>
     /// <param name="expression">The arrow expression to wrap</param>
     /// <param name="statementForm">The statement form the expression should take</param>
-    /// <param name="arrowToken">The arrow token being replaced; its leading trivia moves to the open brace unless it consists of comments on lines of their own, which lead the created statement instead, and any comment in its trailing trivia moves onto the open brace's trailing trivia, mirroring a hand-written <c>{ // comment</c> block opener</param>
+    /// <param name="arrowToken">The arrow token being replaced; its leading trivia moves to the open brace unless it consists of comments on lines of their own, which lead the created statement instead</param>
     /// <param name="semicolonToken">The semicolon token being replaced; its trailing trivia moves to the close brace and any comment in its leading trivia moves in front of the created statement's semicolon</param>
     /// <returns>The block body</returns>
     internal static BlockSyntax CreateBlock(ExpressionSyntax expression,
@@ -35,47 +36,24 @@ internal static class ExpressionBodyToBlockConverter
                                             SyntaxToken arrowToken,
                                             SyntaxToken semicolonToken)
     {
-        var commentLinesTrivia = new List<SyntaxTrivia>();
         var openBraceLeadingTrivia = arrowToken.LeadingTrivia;
-        var moveComments = ArrowLineHoldsComment(arrowToken) == false;
+        var statement = CreateStatement(expression, statementForm, semicolonToken);
 
-        if (moveComments
-            && TrySplitOwnLineComments(arrowToken.LeadingTrivia, out var arrowCommentLinesTrivia, out var arrowLineTrivia)
-            && arrowCommentLinesTrivia.Count > 0
+        if (ArrowLineHoldsComment(arrowToken) == false
+            && TrySplitOwnLineComments(arrowToken.LeadingTrivia, out var commentLinesTrivia, out var arrowLineTrivia)
+            && commentLinesTrivia.Count > 0
             && arrowLineTrivia.All(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)))
         {
-            commentLinesTrivia.AddRange(arrowCommentLinesTrivia);
             openBraceLeadingTrivia = default;
-        }
 
-        if (moveComments
-            && TrySplitOwnLineComments(expression.GetLeadingTrivia(), out var expressionCommentLinesTrivia, out var expressionLineTrivia)
-            && expressionCommentLinesTrivia.Count > 0)
-        {
-            commentLinesTrivia.AddRange(expressionCommentLinesTrivia);
-            expression = expression.WithLeadingTrivia(expressionLineTrivia);
-        }
-
-        // A comment that stays in front of the expression starts a line of its own in the source, so the line break that
-        // ended the arrow's line is the one the author wrote in front of it
-        var lineBreak = arrowToken.TrailingTrivia.Concat(expression.GetLeadingTrivia()).FirstOrDefault(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
-        var openBraceTrailingTrivia = ExtractSignificantTrivia(arrowToken.TrailingTrivia);
-        var statement = CreateStatement(expression, statementForm, semicolonToken, moveComments, lineBreak);
-
-        if (commentLinesTrivia.Count > 0)
-        {
-            // The comment lines start behind a line break that ends the open brace's line, unless its trailing trivia already ends it
-            if (openBraceTrailingTrivia.Count == 0
-                || openBraceTrailingTrivia.Last().IsKind(SyntaxKind.EndOfLineTrivia) == false)
-            {
-                commentLinesTrivia.Insert(0, commentLinesTrivia.First(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)));
-            }
+            // The comment lines start behind a line break that ends the open brace's line
+            commentLinesTrivia.Insert(0, commentLinesTrivia.First(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)));
 
             statement = statement.WithLeadingTrivia(SyntaxFactory.TriviaList(commentLinesTrivia).AddRange(statement.GetLeadingTrivia()));
         }
 
         // The created tokens are built with explicit trivia, so they carry no elastic trivia (FMT-STRUCT-026)
-        var openBrace = SyntaxFactory.Token(openBraceLeadingTrivia, SyntaxKind.OpenBraceToken, openBraceTrailingTrivia);
+        var openBrace = SyntaxFactory.Token(openBraceLeadingTrivia, SyntaxKind.OpenBraceToken, default);
 
         return SyntaxFactory.Block(openBrace,
                                    SyntaxFactory.SingletonList(statement),
@@ -83,18 +61,13 @@ internal static class ExpressionBodyToBlockConverter
     }
 
     /// <summary>
-    /// Determines whether the arrow's line holds a comment: behind the arrow, in its trailing trivia, or in front of it on
-    /// its line, behind the last line break of its leading trivia
+    /// Determines whether the arrow's line holds a comment in front of the arrow, behind the last line break of its leading
+    /// trivia
     /// </summary>
     /// <param name="arrowToken">The arrow token</param>
-    /// <returns><see langword="true"/> if the arrow's line holds a comment; otherwise, <see langword="false"/></returns>
+    /// <returns><see langword="true"/> if the arrow's line holds a comment in front of the arrow; otherwise, <see langword="false"/></returns>
     private static bool ArrowLineHoldsComment(SyntaxToken arrowToken)
     {
-        if (arrowToken.TrailingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia))
-        {
-            return true;
-        }
-
         for (var triviaIndex = arrowToken.LeadingTrivia.Count - 1; triviaIndex >= 0; triviaIndex--)
         {
             var trivia = arrowToken.LeadingTrivia[triviaIndex];
@@ -190,19 +163,15 @@ internal static class ExpressionBodyToBlockConverter
     /// front of the newly created semicolon token instead. A <c>return</c> statement drops the
     /// expression's leading indentation when no line break is left in front of the expression, so an
     /// expression written on the line after the arrow joins the keyword exactly like one written on the
-    /// arrow's line, together with a comment written in front of it on that line unless comments must not move
+    /// arrow's line
     /// </summary>
     /// <param name="expression">The expression to wrap</param>
     /// <param name="statementForm">The statement form</param>
     /// <param name="semicolonToken">The semicolon token being replaced</param>
-    /// <param name="moveComments">Whether a comment in front of the expression on its line may join the <c>return</c> keyword</param>
-    /// <param name="lineBreak">The line break the author wrote in front of the expression's line, written behind a created <c>return</c> that a comment leading the expression follows</param>
     /// <returns>The wrapping statement</returns>
     private static StatementSyntax CreateStatement(ExpressionSyntax expression,
                                                    ExpressionBodyStatementForm statementForm,
-                                                   SyntaxToken semicolonToken,
-                                                   bool moveComments,
-                                                   SyntaxTrivia lineBreak)
+                                                   SyntaxToken semicolonToken)
     {
         var newSemicolonToken = SyntaxFactory.Token(ExtractSignificantTrivia(semicolonToken.LeadingTrivia), SyntaxKind.SemicolonToken, default);
 
@@ -216,83 +185,38 @@ internal static class ExpressionBodyToBlockConverter
             return SyntaxFactory.ExpressionStatement(expression, newSemicolonToken);
         }
 
-        return CreateReturnStatement(expression, newSemicolonToken, moveComments, lineBreak);
+        return CreateReturnStatement(expression, newSemicolonToken);
     }
 
     /// <summary>
     /// Wraps the expression in a <c>return</c> statement that the expression joins on the keyword's line. When the
     /// expression's leading trivia holds no line break, it is the indentation of an expression that started its own line
-    /// after the arrow, possibly with comments written in front of the expression on that line: the line break itself
-    /// belonged to the discarded arrow token. Indentation alone is dropped, and comments move behind the keyword, where the
-    /// parser places a comment written between <c>return</c> and its value, together with the whitespace the author wrote in
-    /// front of, between, and behind them (FMT-STRUCT-026). When comments must not move, only leading trivia of whitespace
-    /// alone is dropped. Leading trivia that carries a line break is kept, because the layout it describes is then the
-    /// author's. A comment that stays leading the expression in front of its first line break, because comments must not
-    /// move, gets a line break between it and the keyword, so it keeps leading the expression once the text is parsed again
-    /// (FMT-STRUCT-026). Otherwise the keyword gets one space behind it only when nothing separates it from the expression
-    /// and the two would read as one token, as the lexer decides for <c>return42</c>
+    /// after the arrow: the line break itself belonged to the discarded arrow token, and the indentation is dropped. Leading
+    /// trivia that carries a line break is kept, because the layout it describes is then the author's. Otherwise the keyword
+    /// gets one space behind it only when nothing separates it from the expression and the two would read as one token, as
+    /// the lexer decides for <c>return42</c>
     /// </summary>
     /// <param name="expression">The expression to wrap</param>
     /// <param name="semicolonToken">The semicolon token of the created statement</param>
-    /// <param name="moveComments">Whether a comment in front of the expression on its line may join the <c>return</c> keyword</param>
-    /// <param name="lineBreak">The line break the author wrote in front of the expression's line</param>
     /// <returns>The <c>return</c> statement</returns>
-    private static ReturnStatementSyntax CreateReturnStatement(ExpressionSyntax expression, SyntaxToken semicolonToken, bool moveComments, SyntaxTrivia lineBreak)
+    private static ReturnStatementSyntax CreateReturnStatement(ExpressionSyntax expression, SyntaxToken semicolonToken)
     {
         var returnKeyword = SyntaxFactory.Token(default, SyntaxKind.ReturnKeyword, default);
         var leadingTrivia = expression.GetLeadingTrivia();
 
         if (leadingTrivia.Count > 0
-            && leadingTrivia.All(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)
-                                           || (moveComments && trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))))
+            && leadingTrivia.All(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)))
         {
-            if (leadingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia))
-            {
-                returnKeyword = returnKeyword.WithTrailingTrivia(leadingTrivia);
-            }
-
             expression = expression.WithLeadingTrivia(default(SyntaxTriviaList));
         }
 
-        // Such a comment starts a line of its own in the source, so a line break ended the arrow's line in front of it
-        if (returnKeyword.TrailingTrivia.Count == 0
-            && lineBreak.IsKind(SyntaxKind.EndOfLineTrivia)
-            && LeadsWithCommentOnItsLine(expression.GetLeadingTrivia()))
-        {
-            returnKeyword = returnKeyword.WithTrailingTrivia(lineBreak);
-        }
-        else if (returnKeyword.TrailingTrivia.Count == 0
-                 && expression.GetLeadingTrivia().FullSpan.Length == 0
-                 && TokenSeparationUtilities.WouldMergeIntoOneToken(returnKeyword, expression.GetFirstToken()))
+        if (expression.GetLeadingTrivia().FullSpan.Length == 0
+            && TokenSeparationUtilities.WouldMergeIntoOneToken(returnKeyword, expression.GetFirstToken()))
         {
             returnKeyword = returnKeyword.WithTrailingTrivia(SyntaxFactory.Space);
         }
 
         return SyntaxFactory.ReturnStatement(returnKeyword, expression, semicolonToken);
-    }
-
-    /// <summary>
-    /// Determines whether a comment stands in a leading trivia list in front of its first line break, where the parser
-    /// would give it to the token in front of the list
-    /// </summary>
-    /// <param name="leadingTrivia">The leading trivia</param>
-    /// <returns><see langword="true"/> if a comment stands in front of the first line break; otherwise, <see langword="false"/></returns>
-    private static bool LeadsWithCommentOnItsLine(SyntaxTriviaList leadingTrivia)
-    {
-        foreach (var trivia in leadingTrivia)
-        {
-            if (SyntaxTriviaUtilities.EndsLine(trivia))
-            {
-                return false;
-            }
-
-            if (SyntaxTriviaUtilities.IsCommentTrivia(trivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     /// <summary>

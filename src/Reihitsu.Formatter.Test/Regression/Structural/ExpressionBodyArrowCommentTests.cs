@@ -10,9 +10,9 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.Structural;
 
 /// <summary>
-/// Full-pipeline tests for comments on lines of their own around the arrow of an expression body the
-/// formatter converts: they lead the created statement inside the block, and the expression joins the
-/// created <c>return</c> keyword
+/// Full-pipeline tests for comments in front of the arrow of an expression body the formatter converts: comments on lines
+/// of their own lead the created statement inside the block, and the expression joins the created <c>return</c> keyword; and
+/// for comments behind the arrow, which the formatter refuses as unsupported
 /// </summary>
 [TestClass]
 public class ExpressionBodyArrowCommentTests : FormatterTestsBase
@@ -20,12 +20,12 @@ public class ExpressionBodyArrowCommentTests : FormatterTestsBase
     #region Tests
 
     /// <summary>
-    /// Verifies the specified example: comments on lines of their own around the arrow lead the created
-    /// statement, and a comment in front of the expression on its line stays in front of it
+    /// Verifies the specified example: a comment on a line of its own in front of the arrow leads the created statement, and a
+    /// comment behind the token in front of the arrow does not stop the move
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-006")]
-    public void CommentsAroundTheArrowLeadTheCreatedStatement()
+    public void CommentsInFrontOfTheArrowLeadTheCreatedStatement()
     {
         // Arrange
         const string input = """
@@ -35,16 +35,9 @@ public class ExpressionBodyArrowCommentTests : FormatterTestsBase
                                  // before arrow
                                  => 1;
 
-                                 int Get() =>
-                                     // after arrow
-                                     42;
-
-                                 void Run() =>
-                                     // run
-                                     Foo();
-
-                                 int Value() =>
-                                     /* c */ 42;
+                                 void Run() // run
+                                     // first
+                                     => Foo();
                              }
                              """;
         const string expected = """
@@ -56,27 +49,43 @@ public class ExpressionBodyArrowCommentTests : FormatterTestsBase
                                         return 1;
                                     }
 
-                                    int Get()
+                                    void Run() // run
                                     {
-                                        // after arrow
-                                        return 42;
-                                    }
-
-                                    void Run()
-                                    {
-                                        // run
+                                        // first
                                         Foo();
-                                    }
-
-                                    int Value()
-                                    {
-                                        return /* c */ 42;
                                     }
                                 }
                                 """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the inputs whose comments FMT-STRUCT-006 placed between the arrow and the expression of a member the formatter
+    /// converts are refused as unsupported: the input is returned unchanged, and the first comment behind the arrow is reported
+    /// </summary>
+    /// <param name="members">The members of the class</param>
+    /// <param name="comment">The comment that is reported</param>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-012")]
+    [DataRow("    int Get() =>\n        // after arrow\n        42;", "// after arrow", DisplayName = "Comment line behind the arrow of a returning method")]
+    [DataRow("    int Get() =>\n    // c\n    42;", "// c", DisplayName = "Comment line behind the arrow in the member's column")]
+    [DataRow("    void Run() =>\n        // run\n        Foo();", "// run", DisplayName = "Comment line behind the arrow of a void method")]
+    [DataRow("    int Fail() =>\n        // never\n        throw new System.InvalidOperationException();", "// never", DisplayName = "Comment line in front of a throw expression")]
+    [DataRow("    int Value() =>\n        /* c */ 42;", "/* c */", DisplayName = "Block comment in front of the expression on its line")]
+    [DataRow("    int Both()\n        // before\n        =>\n        // after\n        42;", "// after", DisplayName = "Comment lines in front of and behind the arrow")]
+    [DataRow("    int Two() =>\n        // a\n\n        // b\n        42;", "// a", DisplayName = "Two comment lines with a blank line between them behind the arrow")]
+    [DataRow("    void M()\n    {\n        int Local() =>\n            // note\n            1;\n    }", "// note", DisplayName = "Comment line behind the arrow of a local function")]
+    [DataRow("    int A2()\n    // a\n    => // b\n    42;", "// b", DisplayName = "Line comment behind the arrow below a comment line in front of it")]
+    [DataRow("    int Get3()\n    // own\n    => /* glued */ 3;", "/* glued */", DisplayName = "Block comment glued behind the arrow below a comment line in front of it")]
+    [DataRow("    int M() =>\n        // a\n        42 /* t */;", "// a", DisplayName = "Comment line behind the arrow and a comment in front of the semicolon")]
+    [DataRow("    int N() =>\n        // b\n        42; // t", "// b", DisplayName = "Comment line behind the arrow and a comment behind the semicolon")]
+    [DataRow("    int M() /* c */ =>\n        // a\n        42;", "// a", DisplayName = "Comment line behind the arrow and a comment behind the token in front of it")]
+    public void CommentsBehindTheArrowOfAConvertedMemberAreUnsupported(string members, string comment)
+    {
+        // Act & Assert
+        AssertUnsupportedFor(ExpressionBodyArrowCommentReason, $"class C\n{{\n{members}\n}}", comment);
     }
 
     /// <summary>
@@ -112,183 +121,23 @@ public class ExpressionBodyArrowCommentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the reported shape: a comment on its own line after the arrow leads the created
-    /// statement, and <c>return 42;</c> stays on one line
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-006")]
-    public void CommentAfterArrowLeadsTheCreatedReturnStatement()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 int Get() =>
-                                 // c
-                                 42;
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    int Get()
-                                    {
-                                        // c
-                                        return 42;
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a comment on its own line after the arrow leads a created expression statement on a
-    /// line of its own instead of being joined to the opening brace
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-006")]
-    public void CommentAfterArrowLeadsTheCreatedExpressionStatement()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void Run() =>
-                                     // run
-                                     Foo();
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    void Run()
-                                    {
-                                        // run
-                                        Foo();
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a comment on its own line after the arrow leads a created <c>throw</c> statement
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-006")]
-    public void CommentAfterArrowLeadsTheCreatedThrowStatement()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 int Fail() =>
-                                     // never
-                                     throw new System.InvalidOperationException();
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    int Fail()
-                                    {
-                                        // never
-                                        throw new System.InvalidOperationException();
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a comment that starts the line after the arrow and is followed by the expression
-    /// stays in front of the expression, which joins the created <c>return</c> keyword with it
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-006")]
-    public void CommentInFrontOfExpressionOnItsLineJoinsTheReturnKeyword()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 int Value() =>
-                                     /* c */ 42;
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    int Value()
-                                    {
-                                        return /* c */ 42;
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that comments before and after the arrow both lead the created statement, in the order
-    /// they were written
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-006")]
-    public void CommentsBeforeAndAfterArrowLeadTheStatementInSourceOrder()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 int Both()
-                                     // before
-                                     =>
-                                     // after
-                                     42;
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    int Both()
-                                    {
-                                        // before
-                                        // after
-                                        return 42;
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that the blank line between two comments after the arrow is kept in front of the created
-    /// statement
+    /// Verifies that the blank line between two comments on lines of their own in front of the arrow is kept in front of the
+    /// created statement
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-006")]
     [Requirement("FMT-PIPE-013")]
-    public void BlankLineBetweenTwoCommentsAfterArrowIsKept()
+    public void BlankLineBetweenTwoCommentsBeforeArrowIsKept()
     {
         // Arrange
         const string input = """
                              class C
                              {
-                                 int Two() =>
+                                 int Two()
                                      // a
 
                                      // b
-                                     42;
+                                     => 42;
                              }
                              """;
         const string expected = """
@@ -358,43 +207,6 @@ public class ExpressionBodyArrowCommentTests : FormatterTestsBase
                                      int Local()
                                          // note
                                          => 1;
-                                 }
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        int Local()
-                                        {
-                                            // note
-                                            return 1;
-                                        }
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that a comment after the arrow of a local function leads the created statement
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-006")]
-    public void CommentAfterArrowOfLocalFunctionLeadsTheCreatedStatement()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void M()
-                                 {
-                                     int Local() =>
-                                         // note
-                                         1;
                                  }
                              }
                              """;
@@ -544,51 +356,6 @@ public class ExpressionBodyArrowCommentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that an own-line comment before the arrow is not moved in front of the created statement
-    /// when the arrow's line carries a comment behind the arrow, and both comments keep their order
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-006")]
-    public void OwnLineCommentStaysOutOfTheBlockWhenTheArrowLineCarriesALineComment()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 int A2()
-                                 // a
-                                 => // b
-                                 42;
-                             }
-                             """;
-
-        // Act & Assert
-        AssertCommentsKeepOrderOutsideTheBlock(input, "// a", "// b", "return 42;");
-    }
-
-    /// <summary>
-    /// Verifies that an own-line comment before the arrow is not moved in front of the created statement
-    /// when a delimited comment is glued behind the arrow, and both comments keep their order
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-006")]
-    public void OwnLineCommentStaysOutOfTheBlockWhenADelimitedCommentIsGluedBehindTheArrow()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 int Get3()
-                                 // own
-                                 => /* glued */ 3;
-                             }
-                             """;
-
-        // Act & Assert
-        AssertCommentsKeepOrderOutsideTheBlock(input, "// own", "/* glued */", "3;");
-    }
-
-    /// <summary>
-    /// Verifies that an own-line comment before the arrow is not moved in front of the created statement
     /// when a comment stands in front of the arrow on the arrow's line, and both comments keep their order
     /// </summary>
     [TestMethod]
@@ -643,38 +410,6 @@ public class ExpressionBodyArrowCommentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment between the expression and the semicolon does not stop the move of an own-line
-    /// comment after the arrow either
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-006")]
-    public void CommentBehindTheExpressionDoesNotStopTheMoveOfACommentAfterTheArrow()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 int M() =>
-                                     // a
-                                     42 /* t */;
-                             }
-                             """;
-        const string expected = """
-                                class C
-                                {
-                                    int M()
-                                    {
-                                        // a
-                                        return 42 /* t */;
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
     /// Verifies that a comment behind the semicolon on the arrow's line does not stand at the arrow, so the own-line
     /// comment before the arrow still leads the created statement. Where the comment behind the semicolon goes is not
     /// specified, so only that it survives behind the statement is asserted
@@ -695,51 +430,6 @@ public class ExpressionBodyArrowCommentTests : FormatterTestsBase
 
         // Act & Assert
         AssertOwnLineCommentLeadsStatementAndTrailingCommentFollows(input, "// b", "return 42;", "// t");
-    }
-
-    /// <summary>
-    /// Verifies that a comment behind the semicolon does not stop the move of an own-line comment after the arrow
-    /// either
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-006")]
-    public void CommentBehindTheSemicolonDoesNotStopTheMoveOfACommentAfterTheArrow()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 int N() =>
-                                     // b
-                                     42; // t
-                             }
-                             """;
-
-        // Act & Assert
-        AssertOwnLineCommentLeadsStatementAndTrailingCommentFollows(input, "// b", "return 42;", "// t");
-    }
-
-    /// <summary>
-    /// Verifies that a comment behind the token in front of the arrow on the arrow's line belongs to that token and
-    /// does not stand at the arrow, so an own-line comment after the arrow still leads the created statement. Where
-    /// the comment behind the token goes is not specified, so only that it survives is asserted
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-006")]
-    public void CommentBehindTheTokenInFrontOfTheArrowDoesNotStopTheMove()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 int M() /* c */ =>
-                                     // a
-                                     42;
-                             }
-                             """;
-
-        // Act & Assert
-        AssertOwnLineCommentLeadsStatementAndOtherCommentSurvives(input, "// a", "return 42;", "/* c */");
     }
 
     /// <summary>

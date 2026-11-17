@@ -400,6 +400,47 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
     }
 
     /// <summary>
+    /// Verifies the specification example: a comment behind the arrow of an expression body elsewhere in the type withholds the fix
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task SpecExampleCommentBehindTheArrowOfAnExpressionBodyWithholdsTheFix(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a, {|RH7101:_b|};
+
+                                  int A => // c
+                                      _a;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a comment or directive behind the arrow of an expression body withholds the fix wherever the type holds it:
+    /// in a method, in an accessor, in a local function in an initializer value of the declaration, and in a nested type
+    /// </summary>
+    /// <param name="source">The source text with markup</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    int M() => /* c */ 1;\n}", DisplayName = "Block comment behind the arrow of a method on one line")]
+    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    int P\n    {\n        get =>\n            // c\n            _x;\n    }\n}", DisplayName = "Comment line behind the arrow of a getter")]
+    [DataRow("using System;\n\nclass C\n{\n    private Func<int> _f = () =>\n    {\n        int L() => /* c */ 1;\n\n        return L();\n    }, {|RH7101:_g|};\n}", DisplayName = "Local function in an initializer value")]
+    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    class D\n    {\n        int P =>\n#pragma warning disable CS0001\n            1;\n    }\n}", DisplayName = "Directive behind the arrow in a nested type")]
+    public async Task CommentBehindTheArrowOfAnExpressionBodyElsewhereInTheTypeWithholdsTheFix(string source)
+    {
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
     /// Verifies that a comment behind a conditional expression's operator, or between a list element and a comma on a later line,
     /// elsewhere in the type withholds the fix
     /// </summary>
