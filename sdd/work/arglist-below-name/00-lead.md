@@ -10,6 +10,7 @@
 ## Maintainer answers
 
 - OQ batch 1 (questions as in 03-spec-author.md): 1A (join; multi-line collection keeps one element per line), 2A (join constructor initializer and primary-constructor base type), 3A (conditional judged after the join → one line), 4A (dictionary element initializer keeps one element per line).
+- OQ 5 (audit 11 finding 1): 5A — an argument list whose only line break was an argument-list gap inside an interpolation hole, later query clause, or array/stackalloc initializer is laid out as it reads after the join (one line), for chain and non-chain members alike.
 
 ## Decisions taken
 
@@ -43,4 +44,4 @@
 - Spec checker 10 (a4e0856): consistent. main up to date; Release build green.
 - Auditor 11 spawned on head a4e0856, main eb89003.
 - Auditor 11 (86552ab): 1 finding, undecided output (list collapsing to one line when the only break was an argument-list gap inside an interpolation hole / query clause / array or stackalloc initializer). Asked as OQ 5 (A one line = branch, B one argument per line = main for chain member).
-- Next: on answer, repair round 2: spec author (doc + false statements), test implementer (lock answer), implementer if B; cleaner, spec checker, auditor on repair; then validator, issue manager (F1, F2, F3, F5), note, publish.
+- Answer: 5A. Repair round 1 (audit) in progress: spec author (doc + false statements), test implementer (lock answer), implementer if B; cleaner, spec checker, auditor on repair; then validator, issue manager (F1, F2, F3, F5), note, publish.
