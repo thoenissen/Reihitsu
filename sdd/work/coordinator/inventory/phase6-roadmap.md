@@ -154,3 +154,5 @@ Roadmap as drafted; decide-list issues planned too and judged in their run (#160
 **Additions 2026-11-17 (c):** 1.10.0 #1843 #1844 (one run, OQ); 1.7.0 #1845 (extension-blocks run); 1.4.0 #1846 (own run), #1847 #1848 (one run after #1732).
 
 **Additions 2026-11-17 (d):** 1.4.0 #1850 (own run), #1851 (own run after #1847 #1848); 1.6.0 #1852 (with #953).
+
+**Change 2026-11-17 (e):** #1851 moved 1.4.0 -> 1.5.0 (follow-up rule; declaration decision stands).
