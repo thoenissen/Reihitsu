@@ -48,4 +48,5 @@ Roles: test implementer (for #1817 the Roslyn-version guard is a test; for #1808
 - Done: implementer, `02-implementer.md` at `7d2ecd5`.
 - Done: test implementer amendment, `03-test-implementer.md` at `6931294`.
 - Done: cleaner, `04-cleaner.md` at `b5426cd` (clean).
-- Next: spec checker (`05-spec-checker.md`).
+- Done: spec checker, `05-spec-checker.md` at `16300fe` (consistent).
+- Next: auditor (`06-auditor.md`).
