@@ -49,4 +49,5 @@
 - Cleaner 15 clean, spec checker 16 consistent; Release build green; auditor 17 spawned on head 1287283, main 1102aa5.
 - Auditor 17 (3439a34): pass, text cleanup (finding 2: FMT-BREAK-039 Why wording; "query clause after the first" in change doc). Audited SHA 1287283.
 - Spec author 18 (98b18eb) text fix; TEXT-ONLY PROOF PASS vs 1287283 (no second audit).
-- Next: validator 19; then, issue manager (F1, F2, F3, F5), note, publish.
+- Issue manager 20: F1 → #895 (comment; #1826 closed dup), F2 → #953 (comment), F3 → #1827 (new), F5 → dup of closed #1801.
+- Next: validator 19 result; then, issue manager (F1, F2, F3, F5), note, publish.
