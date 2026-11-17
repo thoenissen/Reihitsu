@@ -328,5 +328,27 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineFormatterT
         await VerifyFormatter(input, fixedData);
     }
 
+    /// <summary>
+    /// Verifies that formatted documentation of the first parameter of a record's parameter list, without a blank line
+    /// above it, stays unchanged and is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8303-002")]
+    [Requirement("FMT-BLANK-011")]
+    public async Task VerifyFormatterKeepsFirstParameterDocumentationWithoutBlankLine()
+    {
+        const string input = """
+                             public record R(
+                                             /// <summary>
+                                             /// first
+                                             /// </summary>
+                                             int A,
+                                             int B);
+                             """;
+
+        await VerifyFormatter(input);
+    }
+
     #endregion // Tests
 }

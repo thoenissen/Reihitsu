@@ -12,7 +12,8 @@ namespace Reihitsu.Cli.Test.EndToEnd;
 /// <summary>
 /// End-to-end tests for files whose text another build compiles as code (CLI-021): the CLI leaves them unchanged in every mode,
 /// names them as skipped, and they do not affect the exit code; and for a file with a comment between a conditional operator
-/// and its branch, which the formatter refuses as unsupported (FMT-UNSUP-008)
+/// and its branch, which the formatter refuses as unsupported (FMT-UNSUP-008); and for files with directives inside and in front of
+/// combined field declarations (FMT-UNSUP-010, FMT-STRUCT-022)
 /// </summary>
 [TestClass]
 [DoNotParallelize]
@@ -306,6 +307,102 @@ public class CliHiddenCodeEndToEndTests
         using (var tempDir = new TemporaryDirectoryFixture())
         {
             var filePath = tempDir.CreateFile("f.cs", source);
+
+            var (exitCode, _, error) = await Run([filePath]);
+
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+            Assert.AreEqual(string.Empty, error);
+            Assert.AreEqual(expected, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
+        }
+    }
+
+    /// <summary>
+    /// Verifies the visible output example of FMT-UNSUP-010: a file with a conditional group between the declarators of a field
+    /// declaration is left unchanged, reported with the reason and the line and column of the <c>#if</c> directive, and the run
+    /// exits with code 2
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-010")]
+    public async Task DirectiveBetweenTheDeclaratorsOfAFieldIsReportedAsUnsupported()
+    {
+        const string source = "class C\n{\n    int a,\n#if X\n        b,\n#endif\n        c;\n\n    void M(){ }\n}\n";
+
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile("f.cs", source);
+
+            var (exitCode, _, error) = await Run([filePath]);
+
+            Assert.AreEqual(ExitCodes.Error, exitCode);
+            Assert.AreSequenceEqual(new[] { $"error: {Path.GetFullPath(filePath)}(4,1): unsupported syntax: a directive inside a field declaration with several declarators. The file was left unchanged." }, Lines(error));
+            Assert.AreEqual(source, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
+        }
+    }
+
+    /// <summary>
+    /// Verifies the visible output example of FMT-UNSUP-010: a file with a conditional group inside the lambda value of a field
+    /// declaration with several declarators is left unchanged and reported with the line and column of the <c>#if</c> directive
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    [Requirement("FMT-UNSUP-010")]
+    public async Task DirectiveInsideAValueOfACombinedFieldIsReportedAsUnsupported()
+    {
+        const string source = "using System;\n\nclass C\n{\n    private Func<int> _a = () =>\n    {\n#if DEBUG\n        return 1;\n#else\n        return 2;\n#endif\n    }, _b;\n}\n";
+
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile("v.cs", source);
+
+            var (exitCode, _, error) = await Run(["--check", filePath]);
+
+            Assert.AreEqual(ExitCodes.Error, exitCode);
+            Assert.AreSequenceEqual(new[] { $"error: {Path.GetFullPath(filePath)}(7,1): unsupported syntax: a directive inside a field declaration with several declarators. The file was left unchanged." }, Lines(error));
+            Assert.AreEqual(source, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
+        }
+    }
+
+    /// <summary>
+    /// Verifies the visible output example of FMT-STRUCT-022: the CLI splits a combined field behind a region and one inside a
+    /// conditional group that is active without preprocessor symbols, keeps the directives in front of the first fields, and
+    /// reports nothing on standard error
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-022")]
+    public async Task CombinedFieldsBehindDirectivesAreSplit()
+    {
+        const string source = "class C\n{\n    #region Fields\n\n    private int _x, _y;\n\n    #endregion // Fields\n\n#if !RELEASE\n    private int _p, _q = 1;\n#endif\n}\n";
+        const string expected = "class C\n{\n    #region Fields\n\n    private int _x;\n    private int _y;\n\n    #endregion // Fields\n\n#if !RELEASE\n    private int _p;\n    private int _q = 1;\n#endif\n}";
+
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile("s.cs", source);
+
+            var (exitCode, _, error) = await Run([filePath]);
+
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+            Assert.AreEqual(string.Empty, error);
+            Assert.AreEqual(expected, await File.ReadAllTextAsync(filePath, TestContext.CancellationToken));
+        }
+    }
+
+    /// <summary>
+    /// Verifies the visible output example of FMT-STRUCT-022: the CLI, which defines no preprocessor symbols, keeps a combined field
+    /// behind an inactive attribute list whole, does not refuse the file, and reports nothing on standard error
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-022")]
+    public async Task CombinedFieldBehindAnInactiveAttributeListStaysWhole()
+    {
+        const string source = "using System.Diagnostics;\n\nclass C\n{\n#if DEBUG\n    [DebuggerBrowsable(DebuggerBrowsableState.Never)]\n#endif\n    private int _a, _b;\n}\n";
+        const string expected = "using System.Diagnostics;\n\nclass C\n{\n#if DEBUG\n    [DebuggerBrowsable(DebuggerBrowsableState.Never)]\n#endif\n    private int _a, _b;\n}";
+
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile("d.cs", source);
 
             var (exitCode, _, error) = await Run([filePath]);
 

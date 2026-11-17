@@ -5,7 +5,7 @@
 | ID prefix | FMT-UNSUP |
 | Status | Active |
 | Code owners | `PrecheckPhase`, `FormattingResult<T>`, `UnsupportedSyntax`, `SyntaxNotSupportedException` |
-| Uses | FMT-BREAK-001, FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-STRUCT-019, FMT-STRUCT-021, SHARED-BLANK-008, SHARED-FIX-010 |
+| Uses | FMT-BREAK-001, FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-STRUCT-019, FMT-STRUCT-021, FMT-STRUCT-022, SHARED-BLANK-008, SHARED-FIX-010 |
 
 This spec covers the formatter's *Unsupported* outcome: the input shapes the formatter refuses as a whole, the precheck phase that finds them before any other phase runs (FMT-PIPE-001), a phase's refusal of a shape the precheck does not find, what every entry point returns for a refused input, and the query that tells a code fix whether the formatter refuses a node. Each unsupported shape is a requirement of this spec; a shape is declared here so that no phase has to handle it.
 
@@ -387,8 +387,8 @@ The conditions, each with both sides:
 
 A comma inside the span of a variable declaration (FMT-UNSUP-004) is a comma of the input too, and a comment in front of it can refuse the input under both requirements, starting at the same comment, where FMT-UNSUP-001's first shape in the text does not decide. Which reason and location the formatter gives depends on the comma:
 
-- **A comma between two declarators of the declaration**, such as the one in front of `, b = 2` in `int a = 1 // c⏎, b = 2;`: the reason and the location are FMT-UNSUP-004's. A directive or disabled text in front of such a comma, which FMT-UNSUP-004 does not cover, is refused under this requirement only, with its reason.
-- **Every other comma in the span** — one in the declaration's type, such as the comma of a tuple type, a function pointer type, or a type argument list, and one in an attribute argument list of a field: `(int A // c⏎, int B) t = default;` and `delegate*<int // c⏎, void> _f;` give this requirement's reason and location.
+- **A comma between two declarators of the declaration**, such as the one in front of `, b = 2` in `int a = 1 // c⏎, b = 2;`: the reason and the location are FMT-UNSUP-004's. A directive or disabled text in front of such a comma, which FMT-UNSUP-004 does not cover, is refused under this requirement with its reason; in a field declaration with several declarators, FMT-UNSUP-010 refuses it as well, and the reason and the location stay this requirement's — also where the declaration is a local declaration inside a value of that field, such as one in the body of a lambda.
+- **Every other comma in the span** — one in the declaration's type, such as the comma of a tuple type, a function pointer type, or a type argument list, and one in an attribute argument list of a field: `(int A // c⏎, int B) t = default;` and `delegate*<int // c⏎, void> _f;` give this requirement's reason and location. A directive or disabled text in front of such a comma in a field declaration with several declarators is refused under FMT-UNSUP-010 as well, starting at the same directive, and gives FMT-UNSUP-010's reason.
 
 A comma inside an initializer value raises no such question: FMT-UNSUP-004 excepts the inside of the value, and a comma is never a value's first or last token, so only this requirement refuses a comment in front of it.
 
@@ -492,6 +492,112 @@ class C
         (int A // c
             , int B) t = default;
     }
+}
+```
+
+### FMT-UNSUP-010 — Directives inside a field declaration with several declarators are unsupported
+
+An input MUST be refused when a preprocessor directive or disabled text stands in the trivia of a token of a field declaration that has more than one declarator, other than in the leading trivia of the declaration's first token.
+
+The declaration's tokens run from its first token — its first attribute list, its first modifier, or its type — through the `;` that ends it, as FMT-UNSUP-004 states for a field, and include every token inside its initializer values. The conditions, each with both sides:
+
+- **A field declaration.** The requirement names the field declaration by its syntax, whatever declares it, and decides from the declaration's own tokens and trivia (FMT-UNSUP-003). An event field declaration and a local declaration statement are no field declaration: `public event Action A,⏎#if X⏎B,⏎#endif⏎C;` and `int a,⏎#if X⏎b,⏎#endif⏎c;` in a method are not refused under this requirement.
+- **More than one declarator.** The declarators are those of the build being formatted. A field with one declarator is not refused, also with a directive among its modifiers (`[Obsolete]⏎#if X⏎public⏎#endif⏎int _a;`). In a build that does not define `X`, `private int _a⏎#if X⏎, _b⏎#endif⏎;` has one declarator, and `, _b` is disabled text in front of the `;`: not refused under this requirement. In a build that defines `X` it has two, and it is refused.
+- **Other than in the leading trivia of the declaration's first token.** A directive and disabled text above the declaration, or in front of it on its line, are not refused: a `#region`, the `#if` or `#else` of a group that holds the whole declaration, and the `#endif` and the disabled text of a group in front of it. Whether the declaration is then split is FMT-STRUCT-022's: it is split when that trivia holds no disabled text, and kept whole when it does. A directive behind the declaration's `;` belongs to the token behind it, outside the declaration — a directive and disabled text are always leading trivia — such as the `#endif` of a group that holds the declaration. A directive between the attribute lists and the modifiers, or between the modifiers and the type, stands in the leading trivia of a later token and refuses the input.
+- **Inside an initializer value as well.** Unlike FMT-UNSUP-004, this requirement excepts no initializer value: a directive inside the lambda, the collection, or any other value of one of the declarators refuses the input.
+
+A node-level input that holds only part of the declaration — a declarator, its initializer value, or the variable declaration without the field — does not hold the shape (FMT-UNSUP-003).
+
+A directive or disabled text between a declarator and a comma on a later line of the text is refused under this requirement and under FMT-UNSUP-009, starting at the same directive: the reason and the location are FMT-UNSUP-009's. The declarator and the comma can belong to any variable declaration inside the field declaration: to the field's own, such as the `#if X` of `private int _a⏎#if X⏎, _b⏎#endif⏎;` in a build that defines `X`, and to a local declaration inside a value, such as the `#pragma` of `private Func<int> _f = () =>⏎{⏎int x = 1⏎#pragma warning disable CS0168⏎, y = 2;⏎return x + y;⏎}, _g;`, which gives FMT-UNSUP-009's reason as well. Every other directive in the declaration — one in front of a comma that separates no declarators, such as a comma of an argument list or a tuple type, one between a conditional operator and its branch (FMT-UNSUP-008), and every directive that no other requirement refuses — gives this requirement's reason.
+
+The reason the formatter gives for this shape is `a directive inside a field declaration with several declarators`, and its location is the span of the first directive or disabled text in that place.
+
+Why: The field split repeats the attributes, modifiers, and type on every field it creates and carries over only the declaration's leading trivia, the declarators with their values, and the trivia behind its `;` (FMT-STRUCT-021, FMT-STRUCT-022). A directive anywhere else would be dropped or would end up guarding a different field, and a conditional group that starts in one value and ends in another value or in front of the `;` would put the repeated modifiers and type into the text of another build. The split kept such a declaration whole through a guard of its own, which the RH7101 fix asked about. Telling a group that stays inside one value from one that crosses a comma would need the directives matched up, which is no cheap check; a declaration with several declarators and a directive inside is rare, and refusing it removes the guard. The leading trivia of the first token is a different place: it holds the `#region` of the members and the directives of a group that wraps the whole declaration or ends in front of it, which is common code. The split keeps that trivia on the first field unchanged, and a group around the declaration then holds all of its fields, so a directive there is neither dropped nor moved, and the declaration is split there. Disabled text in that trivia can hold an attribute list or a modifier that another build compiles as part of this declaration, which a split would give to the first field alone; that class is rare, and the split leaves it whole rather than refuse the file (FMT-STRUCT-022).
+
+Example — each declaration is refused, and the input that holds it is returned unchanged; in a build that does not define `X`, `_b,` is disabled text, and in one that defines it, `#if X` stands in front of `_b`:
+
+```csharp
+using System;
+
+class C
+{
+    int a,
+#if X
+        b,
+#endif
+        c;
+
+    private int _a,
+#pragma warning disable CS0169
+        _b;
+#pragma warning restore CS0169
+
+    [Obsolete]
+#if X
+    public
+#endif
+    int _c, _d;
+
+    private Func<int> _f = () =>
+    {
+#if DEBUG
+        return 1;
+#else
+        return 2;
+#endif
+    }, _g;
+}
+```
+
+The location is the span of the first directive, `#if X` in front of `b,`.
+
+Example — the other side: none of these directives refuses the input. The combined fields are split (FMT-STRUCT-021), and the directives stay where they are; the event field and the local of the first condition above are not refused either. A combined field behind disabled text is not refused either, and it stays whole (FMT-STRUCT-022):
+
+```csharp
+using System;
+
+class C
+{
+    #region Fields
+
+    private int _x, _y;
+
+    #endregion // Fields
+
+#if !RELEASE
+    private int _p, _q = 1;
+#endif
+
+    [Obsolete]
+#if X
+    public
+#endif
+    int _single;
+}
+```
+
+```csharp
+using System;
+
+class C
+{
+    #region Fields
+
+    private int _x;
+    private int _y;
+
+    #endregion // Fields
+
+#if !RELEASE
+    private int _p;
+    private int _q = 1;
+#endif
+
+    [Obsolete]
+#if X
+    public
+#endif
+    int _single;
 }
 ```
 

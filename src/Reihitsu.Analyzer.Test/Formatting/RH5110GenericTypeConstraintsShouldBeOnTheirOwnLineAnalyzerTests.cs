@@ -1009,6 +1009,65 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : B
         await Verify(testCode, testCode, test => test.TestState.AdditionalReferences.Add(unionSupport));
     }
 
+    /// <summary>
+    /// Verifies that a field declaration with several declarators and a directive between them in the constrained type withholds
+    /// the fix: the fix formats the declaration that owns the constraint clause, which the formatter refuses
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [Requirement("FMT-UNSUP-010")]
+    public async Task NoFixIsOfferedWhenTheConstrainedTypeHoldsACombinedFieldWithADirectiveInside()
+    {
+        const string source = """
+                              internal class Example<T> {|RH5110:where|} T : class
+                              {
+                                  private int _a,
+                              #pragma warning disable CS0169
+                                      _b;
+                              #pragma warning restore CS0169
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that a region in front of a combined field of the constrained type does not withhold the fix, which formats the
+    /// type and splits the field behind the region as the formatter splits it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-022")]
+    public async Task FixSplitsACombinedFieldBehindARegionOfTheConstrainedType()
+    {
+        const string source = """
+                              internal class Example<T> {|RH5110:where|} T : class
+                              {
+                                  #region Fields
+
+                                  private int _a, _b;
+
+                                  #endregion // Fields
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   internal class Example<T>
+                                       where T : class
+                                   {
+                                       #region Fields
+
+                                       private int _a;
+                                       private int _b;
+
+                                       #endregion // Fields
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

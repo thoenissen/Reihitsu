@@ -285,5 +285,112 @@ public class RH5020CommentsShouldBePrecededByABlankLineFormatterTests : Formatte
                               ExpectedDiagnostic(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 9, 17, 9, 32, AnalyzerResources.RH5020MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter leaves no blank line above the first comment behind an opening parenthesis or bracket,
+    /// that RH5020 reports neither the input nor the output, and that a second pass is stable
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5020-002")]
+    [Requirement("FMT-BLANK-011")]
+    public async Task VerifyFormatterLeavesFirstCommentBehindOpeningTokenWithoutBlankLine()
+    {
+        const string input = """
+                             public record R(
+                                 // first
+                                 int A,
+                                 int B);
+
+                             class C
+                             {
+                                 int M(
+                                     // first
+                                     int a,
+                                     int b)
+                                 {
+                                     return M(
+                                         // first
+                                         a,
+                                         b);
+                                 }
+
+                                 int[] F = [
+                                     // first
+                                     1,
+                                     2
+                                 ];
+                             }
+                             """;
+        const string fixedData = """
+                                 public record R(
+                                                 // first
+                                                 int A,
+                                                 int B);
+
+                                 class C
+                                 {
+                                     int M(
+                                           // first
+                                           int a,
+                                           int b)
+                                     {
+                                         return M(
+                                                  // first
+                                                  a,
+                                                  b);
+                                     }
+
+                                     int[] F = [
+                                                   // first
+                                                   1,
+                                                   2
+                                               ];
+                                 }
+                                 """;
+
+        await VerifyFormatter(input, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter inserts the blank line above a comment behind a comma of a parameter list, which RH5020
+    /// reports, and leaves none above the first comment of the same list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5020-002")]
+    [Requirement("FMT-BLANK-011")]
+    public async Task VerifyFormatterFixesCommentBehindCommaAndLeavesFirstCommentBehindOpeningParenthesis()
+    {
+        const string input = """
+                             class C
+                             {
+                                 void M(
+                                     // first
+                                     int a,
+                                     {|#0:// second|}
+                                     int b)
+                                 {
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M(
+                                            // first
+                                            int a,
+
+                                            // second
+                                            int b)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatter(input,
+                              fixedData,
+                              Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
+    }
+
     #endregion // Tests
 }

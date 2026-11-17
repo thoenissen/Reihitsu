@@ -396,5 +396,5 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH8401.md](analyzer/RH8401.md) | RH8401 | `RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer`, `RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixProvider` |
 | [analyzer/RH8402.md](analyzer/RH8402.md) | RH8402 | `RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer`, `RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProvider` |
 | [analyzer/RH8501.md](analyzer/RH8501.md) | RH8501 | `RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzer` |
-| [cli/reihitsu-format.md](cli/reihitsu-format.md) | CLI | `Program`, `ParseResult`, `FormatCommandHandler`, `ExitCodes`, `GeneratedFileUtilities`, `FileProcessResult`, `DefaultFileSystem`, `DefaultConsoleInput`, `DefaultSourceFormatter`, `DiffGenerator` |
+| [cli/reihitsu-format.md](cli/reihitsu-format.md) | CLI | `Program`, `ParseResult`, `FormatCommandHandler`, `BufferedConsoleOutput`, `ExitCodes`, `GeneratedFileUtilities`, `FileProcessResult`, `DefaultFileSystem`, `DefaultConsoleInput`, `DefaultSourceFormatter`, `DiffGenerator` |
 | [playground/playground.md](playground/playground.md) | PLAY | `Home`, `MainLayout`, `PlaygroundFormatter`, `PlaygroundFormatResult`, `PlaygroundVersion` |
