@@ -31,4 +31,4 @@ None yet.
 
 ## Next step
 
-Implementer done (01, d6bb4d8, tests pass). Cleaner done (02, e1d0230, clean). Next: spec checker.
+Implementer done (01, d6bb4d8, tests pass). Cleaner done (02, e1d0230, clean). Spec checker done (03, 9643278, consistent). Merged origin/main dc6d942 (no overlap). Next: auditor.
