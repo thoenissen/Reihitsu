@@ -62,9 +62,10 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzer : Diagnosti
 
         foreach (var regionTrivia in regions.Select(region => region.Region))
         {
-            // A region in a branch of a conditional directive is compared with no other region (RH7311-001)
-            if (regionTrivia.GetStructure() is not RegionDirectiveTriviaSyntax regionDirective
-                || RegionDirectiveUtilities.IsInConditionalBranch(regionTrivia, typeDeclaration))
+            // The regions are judged as the analyzed build compiles them: a region in the compiled branch of a conditional
+            // directive is compared with the other regions, and one in an excluded branch is not active, so two branches
+            // are never compared with each other (RH7311-001, SHARED-DIAG-008)
+            if (regionTrivia.GetStructure() is not RegionDirectiveTriviaSyntax { IsActive: true } regionDirective)
             {
                 continue;
             }

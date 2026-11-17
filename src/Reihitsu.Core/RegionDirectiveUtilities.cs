@@ -225,43 +225,6 @@ public static class RegionDirectiveUtilities
     }
 
     /// <summary>
-    /// Determines whether a directive lies in a branch — <c>#if</c>, <c>#elif</c>, or <c>#else</c> — of a conditional
-    /// directive that starts inside the given node
-    /// </summary>
-    /// <param name="directiveTrivia">Directive trivia</param>
-    /// <param name="scope">Node whose conditional directives are considered</param>
-    /// <returns><see langword="true"/> if an open branch of a conditional directive inside the node encloses the directive</returns>
-    public static bool IsInConditionalBranch(SyntaxTrivia directiveTrivia, SyntaxNode scope)
-    {
-        if (directiveTrivia.GetStructure() is not DirectiveTriviaSyntax directive)
-        {
-            return false;
-        }
-
-        var closedConditionals = 0;
-
-        for (var previousDirective = directive.GetPreviousDirective(); previousDirective != null && previousDirective.SpanStart >= scope.SpanStart; previousDirective = previousDirective.GetPreviousDirective())
-        {
-            switch (previousDirective)
-            {
-                case EndIfDirectiveTriviaSyntax:
-                    closedConditionals++;
-                    break;
-
-                case IfDirectiveTriviaSyntax when closedConditionals > 0:
-                    closedConditionals--;
-                    break;
-
-                case IfDirectiveTriviaSyntax:
-                case ElifDirectiveTriviaSyntax or ElseDirectiveTriviaSyntax when closedConditionals == 0:
-                    return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
     /// Tries to find the matching region directive
     /// </summary>
     /// <param name="syntaxRoot">Syntax root</param>

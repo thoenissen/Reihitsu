@@ -102,53 +102,6 @@ public static class AccessorOrderingUtilities
     }
 
     /// <summary>
-    /// Determines whether a conditional-compilation directive, or code such a directive excludes, stands between the
-    /// braces of an accessor list outside the accessors' bodies: in front of, between, or behind the accessors, their
-    /// attribute lists and keywords included (SHARED-DIAG-008). The inside of a block or an expression body is not
-    /// read, where an expression body runs through the accessor's <c>;</c>, so the gap in front of that <c>;</c> is
-    /// inside it; the gap in front of a body is read
-    /// </summary>
-    /// <param name="accessorList">Accessor list</param>
-    /// <returns><see langword="true"/> if such a directive or such code stands in the list outside every body</returns>
-    public static bool ContainsConditionalCompilationBoundaryOutsideBodies(AccessorListSyntax accessorList)
-    {
-        var bodySpans = accessorList.Accessors
-                                    .Select(GetBodySpan)
-                                    .Where(bodySpan => bodySpan != null)
-                                    .Select(bodySpan => bodySpan.Value)
-                                    .ToList();
-
-        return accessorList.DescendantTokens()
-                           .Where(token => token != accessorList.OpenBraceToken
-                                           && bodySpans.Any(bodySpan => bodySpan.Start < token.SpanStart && bodySpan.Contains(token.SpanStart)) == false)
-                           .Any(SyntaxTriviaUtilities.LeadingTriviaContainsConditionalCompilationBoundary);
-    }
-
-    /// <summary>
-    /// Gets the span of an accessor's body: its block, or its expression body through the terminating <c>;</c>
-    /// </summary>
-    /// <param name="accessor">Accessor</param>
-    /// <returns>The body's span, or <see langword="null"/> if the accessor has no body</returns>
-    private static TextSpan? GetBodySpan(AccessorDeclarationSyntax accessor)
-    {
-        if (accessor.Body != null)
-        {
-            return accessor.Body.Span;
-        }
-
-        if (accessor.ExpressionBody != null)
-        {
-            var end = accessor.SemicolonToken.IsMissing
-                          ? accessor.ExpressionBody.Span.End
-                          : accessor.SemicolonToken.Span.End;
-
-            return TextSpan.FromBounds(accessor.ExpressionBody.SpanStart, end);
-        }
-
-        return null;
-    }
-
-    /// <summary>
     /// Determines whether a comment stands between the braces of an accessor list outside every accessor
     /// </summary>
     /// <param name="accessorList">Accessor list</param>

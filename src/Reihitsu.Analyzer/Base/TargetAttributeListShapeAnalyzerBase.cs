@@ -2,7 +2,6 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core;
 using Reihitsu.Core.Enumerations;
@@ -72,19 +71,6 @@ public abstract class TargetAttributeListShapeAnalyzerBase : AttributeTargetRule
     }
 
     /// <summary>
-    /// Determines whether a gap of the list's shape — between its opening bracket, its target specifier, its attributes,
-    /// the commas between them, and its closing bracket — holds a conditional directive or code such a directive
-    /// excludes, so that another build compiles another list (SHARED-ATTR-019). The inside of an attribute is no gap
-    /// </summary>
-    /// <param name="attributeList">Attribute list</param>
-    /// <returns><see langword="true"/> if a gap of the list holds a conditional directive or disabled text</returns>
-    private static bool ContainsConditionalDirectiveInShape(AttributeListSyntax attributeList)
-    {
-        return SyntaxTriviaUtilities.ContainsConditionalCompilationBoundaryInElementGaps(attributeList.Attributes.GetWithSeparators(), attributeList.CloseBracketToken)
-               || attributeList.Target?.ChildTokens().Any(SyntaxTriviaUtilities.LeadingTriviaContainsConditionalCompilationBoundary) == true;
-    }
-
-    /// <summary>
     /// Analyzes an attribute list
     /// </summary>
     /// <param name="context">Context</param>
@@ -103,10 +89,11 @@ public abstract class TargetAttributeListShapeAnalyzerBase : AttributeTargetRule
         if (listShapeMode == TargetAttributeListShapeMode.SplitLists)
         {
             // The formatter keeps the lists of an inline auto-property accessor merged on the property's line,
-            // whatever their explicit target, so a split is never required there
+            // whatever their explicit target, so a split is never required there. The attributes are judged as the
+            // analyzed build compiles them; a conditional directive in the list does not keep it from being reported,
+            // and the fix withholds itself there (SHARED-ATTR-019, SHARED-DIAG-008)
             if (attributeList.Attributes.Count > 1
-                && AttributeTargetUtilities.IsAttributeListOnInlineAutoPropertyAccessor(attributeList) == false
-                && ContainsConditionalDirectiveInShape(attributeList) == false)
+                && AttributeTargetUtilities.IsAttributeListOnInlineAutoPropertyAccessor(attributeList) == false)
             {
                 context.ReportDiagnostic(CreateDiagnostic(attributeList.GetLocation()));
             }
@@ -122,11 +109,11 @@ public abstract class TargetAttributeListShapeAnalyzerBase : AttributeTargetRule
                                                                              && ResolveListShapeMode(list) == TargetAttributeListShapeMode.MergedList)
                                                               .ToArray();
 
-        // A conditional directive between the first list of the target and this one leaves other lists in another build
-        // (SHARED-ATTR-020)
+        // The lists are judged as the analyzed build compiles them; a conditional directive between the first list of the
+        // target and this one does not keep it from being reported, and the fix withholds itself there (SHARED-ATTR-020,
+        // SHARED-DIAG-008)
         if (siblings.Length > 1
-            && ReferenceEquals(attributeList, siblings[0]) == false
-            && SyntaxTriviaUtilities.ContainsConditionalCompilationBoundary(attributeList.Parent, TextSpan.FromBounds(siblings[0].OpenBracketToken.Span.End, attributeList.CloseBracketToken.SpanStart)) == false)
+            && ReferenceEquals(attributeList, siblings[0]) == false)
         {
             context.ReportDiagnostic(CreateDiagnostic(attributeList.GetLocation()));
         }

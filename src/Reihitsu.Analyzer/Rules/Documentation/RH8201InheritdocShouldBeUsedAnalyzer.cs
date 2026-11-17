@@ -42,37 +42,6 @@ public class RH8201InheritdocShouldBeUsedAnalyzer : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
-    /// Determines whether the interfaces of the type may differ between build configurations
-    /// </summary>
-    /// <param name="typeSymbol">Type symbol</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns><see langword="true"/> if a file declaring the type or one of its source-declared interfaces contains an <c>#if</c> directive</returns>
-    /// <remarks>
-    /// The check covers whole files rather than type headers, because a conditional region can enclose a complete
-    /// declaration, supply alternative headers, or change the members and base lists of the interfaces themselves
-    /// </remarks>
-    private static bool HasConditionalInterfaces(INamedTypeSymbol typeSymbol, CancellationToken cancellationToken)
-    {
-        var syntaxTrees = typeSymbol.DeclaringSyntaxReferences
-                                    .Concat(typeSymbol.AllInterfaces.SelectMany(interfaceType => interfaceType.DeclaringSyntaxReferences))
-                                    .Select(reference => reference.SyntaxTree)
-                                    .Distinct();
-
-        foreach (var syntaxTree in syntaxTrees)
-        {
-            var root = syntaxTree.GetRoot(cancellationToken);
-
-            if (root.ContainsDirectives
-                && root.GetFirstDirective(directive => directive.IsKind(SyntaxKind.IfDirectiveTrivia)) != null)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
     /// Determines whether the member inherits documentation from an overridden or implemented member
     /// </summary>
     /// <param name="node">Member declaration</param>
@@ -82,28 +51,14 @@ public class RH8201InheritdocShouldBeUsedAnalyzer : DiagnosticAnalyzerBase
     /// <remarks>
     /// The <see langword="override"/> modifier is checked syntactically before any semantic lookup. A field-like event
     /// only qualifies when every declarator inherits, because the code fix replaces the documentation shared by all of
-    /// them. An implicit interface implementation does not qualify when the interfaces of its containing type may be
-    /// conditionally compiled, because the member may implement nothing in another build configuration, where the
-    /// replaced documentation would be lost
+    /// them. The interfaces and interface members are judged as the analyzed build compiles them, also when an
+    /// <c>#if</c> directive could change them in another build; the code fix withholds itself there (RH8201-003,
+    /// SHARED-DIAG-008)
     /// </remarks>
     private static bool InheritsDocumentation(MemberDeclarationSyntax node, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
-        if (node.Modifiers.Any(SyntaxKind.OverrideKeyword))
-        {
-            return true;
-        }
-
-        var inherits = DocumentationAnalysisUtilities.CanInheritDocumentation(node, semanticModel, cancellationToken);
-
-        if (inherits == false
-            || DocumentationAnalysisUtilities.IsExplicitInterfaceImplementation(node))
-        {
-            return inherits;
-        }
-
-        return node.Parent is not TypeDeclarationSyntax typeDeclaration
-               || semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) is not INamedTypeSymbol typeSymbol
-               || HasConditionalInterfaces(typeSymbol, cancellationToken) == false;
+        return node.Modifiers.Any(SyntaxKind.OverrideKeyword)
+               || DocumentationAnalysisUtilities.CanInheritDocumentation(node, semanticModel, cancellationToken);
     }
 
     /// <summary>

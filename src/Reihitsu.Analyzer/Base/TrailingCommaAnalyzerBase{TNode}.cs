@@ -1,9 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
-
-using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Base;
 
@@ -51,13 +48,6 @@ public abstract class TrailingCommaAnalyzerBase<TNode> : DiagnosticAnalyzerBase
     protected abstract SyntaxNodeOrTokenList GetElementsWithSeparators(TNode node);
 
     /// <summary>
-    /// Get the token closing the element list
-    /// </summary>
-    /// <param name="node">Node</param>
-    /// <returns>Closing brace token</returns>
-    protected abstract SyntaxToken GetCloseBraceToken(TNode node);
-
-    /// <summary>
     /// Analyzing all matching syntax nodes
     /// </summary>
     /// <param name="context">Context</param>
@@ -82,15 +72,10 @@ public abstract class TrailingCommaAnalyzerBase<TNode> : DiagnosticAnalyzerBase
             return;
         }
 
-        var lastSeparator = lastItem.AsToken();
-        var gap = TextSpan.FromBounds(lastSeparator.Span.End, GetCloseBraceToken(node).SpanStart);
-
-        if (SyntaxTriviaUtilities.ContainsConditionalCompilationBoundary(node, gap))
-        {
-            return;
-        }
-
-        context.ReportDiagnostic(CreateDiagnostic(lastSeparator.GetLocation()));
+        // The list is judged as the analyzed build compiles it: a comma behind the last compiled element is reported also
+        // when a conditional directive or excluded code follows it, and the fix withholds itself there (SHARED-TRAIL-002,
+        // SHARED-DIAG-008)
+        context.ReportDiagnostic(CreateDiagnostic(lastItem.AsToken().GetLocation()));
     }
 
     #endregion // Methods

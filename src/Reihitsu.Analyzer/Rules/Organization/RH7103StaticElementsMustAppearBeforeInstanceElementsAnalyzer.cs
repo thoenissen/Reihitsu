@@ -68,10 +68,9 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer : Diag
 
             if (OrderingDeclarationUtilities.IsStatic(memberDeclaration))
             {
-                // A conditional directive in the modifiers lets another build configuration compile the member as an
-                // instance member, so the verdict on the active modifiers can be wrong for it (SHARED-DIAG-008)
-                if (seenInstanceGroups.Contains(group)
-                    && OrderingDeclarationUtilities.HasModifiersSplitByConditionalDirective(memberDeclaration) == false)
+                // The modifiers are judged as the analyzed build compiles them, also when a conditional directive
+                // splits them; the fix withholds itself there (RH7103-001, SHARED-DIAG-008)
+                if (seenInstanceGroups.Contains(group))
                 {
                     context.ReportDiagnostic(CreateDiagnostic(OrderingDeclarationUtilities.GetDiagnosticLocation(memberDeclaration)));
                 }

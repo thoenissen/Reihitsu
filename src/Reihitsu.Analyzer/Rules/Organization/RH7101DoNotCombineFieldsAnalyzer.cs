@@ -2,12 +2,10 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
-using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Organization;
 
@@ -56,15 +54,6 @@ public class RH7101DoNotCombineFieldsAnalyzer : DiagnosticAnalyzerBase
             return;
         }
 
-        // A conditional directive between the declarators lets another build configuration compile another set of
-        // declarators (RH7101-001, SHARED-DIAG-008)
-        var variables = fieldDeclaration.Declaration.Variables;
-
-        if (SyntaxTriviaUtilities.ContainsConditionalCompilationBoundary(fieldDeclaration, TextSpan.FromBounds(variables.First().SpanStart, variables.Last().SpanStart)))
-        {
-            return;
-        }
-
         // The rule withholds itself for a whole file with malformed syntax, where the formatter leaves the file untouched and
         // the fix could not split the declaration (RH7101-001, SHARED-JOIN-002)
         if (errorVerdicts.ContainsError(context.Node.SyntaxTree, context.CancellationToken))
@@ -72,6 +61,8 @@ public class RH7101DoNotCombineFieldsAnalyzer : DiagnosticAnalyzerBase
             return;
         }
 
+        // The declarators are judged as the analyzed build compiles them, also across a conditional directive between
+        // them; the fix withholds itself there (RH7101-001, SHARED-DIAG-008, SHARED-FIX-010)
         context.ReportDiagnostic(CreateDiagnostic(fieldDeclaration.Declaration.Variables[1].Identifier.GetLocation()));
     }
 

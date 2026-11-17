@@ -43,11 +43,5 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzer :
         return node.Expressions.GetWithSeparators();
     }
 
-    /// <inheritdoc/>
-    protected override SyntaxToken GetCloseBraceToken(InitializerExpressionSyntax node)
-    {
-        return node.CloseBraceToken;
-    }
-
     #endregion // TrailingCommaAnalyzerBase
 }

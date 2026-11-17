@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
-using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -133,14 +132,8 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzer : DiagnosticAnaly
     /// <param name="skipValuePlacementCheck">Whether the value-placement rule should be skipped because the formatter never collapses the value onto the operator line</param>
     private void CheckAssignment(SyntaxNodeAnalysisContext context, SyntaxNodeOrToken target, SyntaxToken equalsToken, ExpressionSyntax value, Location location, bool skipValuePlacementCheck)
     {
-        // A conditional directive in the gaps around the equals sign lets another build configuration compile another
-        // layout (RH5111-005, SHARED-DIAG-008)
-        if (SyntaxTriviaUtilities.LeadingTriviaContainsConditionalCompilationBoundary(equalsToken)
-            || SyntaxTriviaUtilities.LeadingTriviaContainsConditionalCompilationBoundary(value.GetFirstToken()))
-        {
-            return;
-        }
-
+        // The gaps around the equals sign are judged as the analyzed build compiles them; a conditional directive there
+        // does not keep the assignment from being reported, and the fix withholds itself (RH5111-005, SHARED-DIAG-008)
         var targetEndLine = target.GetLocation()?.GetLineSpan().EndLinePosition.Line;
         var equalsLine = equalsToken.GetLocation().GetLineSpan().StartLinePosition.Line;
         var valueStartLine = value.GetLocation().GetLineSpan().StartLinePosition.Line;
