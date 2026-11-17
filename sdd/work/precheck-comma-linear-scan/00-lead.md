@@ -36,4 +36,5 @@ None yet.
 - Done: test implementer (reproduced; 5 tests in `LongListPrecheckCostTests`, red only on a 3 s Stopwatch limit), commit 34094d6.
 - Done: implementer (tests pass), commit 2a56548.
 - Done: cleaner (clean), commit 15d7528.
-- Next: spec checker.
+- Done: spec checker (consistent), commit 461c203.
+- Next: auditor.
