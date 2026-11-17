@@ -35,6 +35,11 @@ internal sealed class PrecheckPhase : IFormattingPhase
     /// </summary>
     internal const string ListSeparatorCommentReason = "a comment or directive between a list element and the comma behind it";
 
+    /// <summary>
+    /// The reason given for a directive or disabled text inside a field declaration with several declarators (FMT-UNSUP-010)
+    /// </summary>
+    internal const string FieldDeclarationDirectiveReason = "a directive inside a field declaration with several declarators";
+
     #endregion // Constants
 
     #region Methods
@@ -49,6 +54,7 @@ internal sealed class PrecheckPhase : IFormattingPhase
     {
         SyntaxTrivia? firstComment = null;
         SyntaxTrivia? firstOperatorTrivia = null;
+        SyntaxTrivia? firstFieldDirective = null;
 
         foreach (var descendant in node.DescendantNodesAndSelf())
         {
@@ -65,22 +71,32 @@ internal sealed class PrecheckPhase : IFormattingPhase
                         firstOperatorTrivia = SelectFirst(firstOperatorTrivia, FindTriviaBehindConditionalOperator(conditional));
                     }
                     break;
+
+                case FieldDeclarationSyntax fieldDeclaration:
+                    {
+                        firstFieldDirective = SelectFirst(firstFieldDirective, FindDirectiveInFieldDeclaration(fieldDeclaration));
+                    }
+                    break;
             }
         }
 
         var (firstSeparatorTrivia, isDeclaratorComma) = FindTriviaInFrontOfComma(node);
 
-        // Of two shapes that start at the same comment, the one listed first wins: FMT-UNSUP-004 keeps its reason for a comma
-        // between two declarators, and FMT-UNSUP-009 gives its own for every other comma inside a variable declaration
+        // Of two shapes that start at the same trivia, the one listed first wins: FMT-UNSUP-004 keeps its reason for a comment,
+        // and FMT-UNSUP-009 for a directive, in front of a comma between two declarators; FMT-UNSUP-009 gives its own for a
+        // comment in front of every other comma inside a variable declaration, and FMT-UNSUP-010 gives its own for every other
+        // directive inside a field declaration with several declarators
         var candidates = isDeclaratorComma
                              ? new List<(SyntaxTrivia? Trivia, string Reason)>
                                {
                                    (firstComment, VariableDeclarationCommentReason),
                                    (firstSeparatorTrivia, ListSeparatorCommentReason),
+                                   (firstFieldDirective, FieldDeclarationDirectiveReason),
                                    (firstOperatorTrivia, ConditionalOperatorCommentReason)
                                }
                              : new List<(SyntaxTrivia? Trivia, string Reason)>
                                {
+                                   (firstFieldDirective, FieldDeclarationDirectiveReason),
                                    (firstSeparatorTrivia, ListSeparatorCommentReason),
                                    (firstComment, VariableDeclarationCommentReason),
                                    (firstOperatorTrivia, ConditionalOperatorCommentReason)
@@ -268,6 +284,50 @@ internal sealed class PrecheckPhase : IFormattingPhase
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Finds the first directive or disabled text in a field declaration with more than one declarator, from its first token
+    /// through its <c>;</c>, initializer values included, outside the leading trivia of its first token (FMT-UNSUP-010). The
+    /// declarators are those of the build being parsed: a declarator in disabled text does not count
+    /// </summary>
+    /// <param name="fieldDeclaration">The field declaration</param>
+    /// <returns>The first such trivia, or <see langword="null"/></returns>
+    private static SyntaxTrivia? FindDirectiveInFieldDeclaration(FieldDeclarationSyntax fieldDeclaration)
+    {
+        if (fieldDeclaration.Declaration.Variables.Count < 2)
+        {
+            return null;
+        }
+
+        var isFirst = true;
+
+        foreach (var token in fieldDeclaration.DescendantTokens())
+        {
+            var directive = (isFirst ? null : FindFirstDirectiveOrDisabledText(token.LeadingTrivia))
+                                ?? FindFirstDirectiveOrDisabledText(token.TrailingTrivia);
+
+            isFirst = false;
+
+            if (directive != null)
+            {
+                return directive;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Gets the first directive or disabled text of a trivia list
+    /// </summary>
+    /// <param name="trivia">The trivia list</param>
+    /// <returns>The first directive or disabled text, or <see langword="null"/> when the list holds none</returns>
+    private static SyntaxTrivia? FindFirstDirectiveOrDisabledText(SyntaxTriviaList trivia)
+    {
+        var found = trivia.FirstOrDefault(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia);
+
+        return found == default ? null : found;
     }
 
     /// <summary>

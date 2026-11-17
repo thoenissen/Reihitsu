@@ -260,8 +260,9 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     /// front of. FMT-DOC-001 leaves a delimited comment undecided when it stands behind an earlier comment of the same
     /// leading trivia, behind an opening brace, or behind the colon of a switch label, so only the first comment of its
     /// token's leading trivia is moved, and only when the token in front of it neither opens a block nor ends a switch
-    /// label. Both facts are the ones the blank-line boundary in front of a comment reads
-    /// (<see cref="TriviaListUtilities.IndexOfFirstComment"/>, <see cref="BlockStartUtilities.IsFirstInBlock(PrecedingTokenFacts)"/>)
+    /// label (<see cref="TriviaListUtilities.IndexOfFirstComment"/>, <see cref="BlockStartUtilities.IsFirstInBlock(PrecedingTokenFacts)"/>).
+    /// A comment written behind an opening parenthesis, bracket, or <c>&lt;</c> is moved, although the blank-line boundary
+    /// in front of it then inserts no blank line (<see cref="BlockStartUtilities.IsFirstBehindOpeningToken(PrecedingTokenFacts)"/>)
     /// </summary>
     /// <param name="trivia">Delimited documentation trivia written behind code</param>
     /// <returns><see langword="true"/> if the comment starts a new line; otherwise, <see langword="false"/></returns>

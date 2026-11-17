@@ -45,12 +45,13 @@ public class ReihitsuFormatterSplitsFieldDeclarationTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies the spec example: the method returns true for a combined declaration without a directive, and false for one with
-    /// an <c>#if</c> directive between its declarators
+    /// Verifies the spec example: the method returns true for a combined declaration without a directive and for one with an
+    /// <c>#if</c> directive between its declarators; <see cref="ReihitsuFormatter.FindUnsupportedSyntax"/> returns that directive
+    /// for the second declaration and for the class, and null for the first
     /// </summary>
     [TestMethod]
     [Requirement("FMT-PIPE-031")]
-    public void ReturnsTrueForACombinedDeclarationAndFalseForOneWithADirective()
+    public void SpecExampleReturnsTrueForACombinedDeclarationAlsoWithADirectiveBetweenItsDeclarators()
     {
         const string source = """
                               class C
@@ -65,9 +66,54 @@ public class ReihitsuFormatterSplitsFieldDeclarationTests : FormatterTestsBase
                               """;
 
         var root = CSharpSyntaxTree.ParseText(source, cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
+        var directiveStart = source.IndexOf("#if DEBUG", StringComparison.Ordinal);
+
+        Assert.IsTrue(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_a")));
+        Assert.IsTrue(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_c")));
+        Assert.IsNull(ReihitsuFormatter.FindUnsupportedSyntax(FindField(root, "_a")));
+
+        foreach (var node in new SyntaxNode[] { FindField(root, "_c"), root.DescendantNodes().OfType<ClassDeclarationSyntax>().Single() })
+        {
+            var unsupported = ReihitsuFormatter.FindUnsupportedSyntax(node);
+
+            Assert.IsNotNull(unsupported, $"The {node.Kind()} must be refused.");
+            Assert.AreEqual("a directive inside a field declaration with several declarators", unsupported.Reason);
+            Assert.AreEqual(directiveStart, unsupported.Location.SourceSpan.Start);
+        }
+    }
+
+    /// <summary>
+    /// Verifies the spec example: in a build that does not define <c>DEBUG</c>, the method returns true for the declaration whose
+    /// leading trivia holds only a region directive, and false for the declaration whose leading trivia holds disabled text;
+    /// <see cref="ReihitsuFormatter.FindUnsupportedSyntax"/> returns null for both declarations and for the class
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-PIPE-031")]
+    public void SpecExampleReturnsFalseForDisabledTextInTheLeadingTrivia()
+    {
+        const string source = """
+                              class C
+                              {
+                                  #region Fields
+
+                                  private int _a, _b;
+
+                                  #endregion // Fields
+
+                              #if DEBUG
+                                  [System.Obsolete]
+                              #endif
+                                  private int _c, _d;
+                              }
+                              """;
+
+        var root = CSharpSyntaxTree.ParseText(source, cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
 
         Assert.IsTrue(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_a")));
         Assert.IsFalse(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_c")));
+        Assert.IsNull(ReihitsuFormatter.FindUnsupportedSyntax(FindField(root, "_a")));
+        Assert.IsNull(ReihitsuFormatter.FindUnsupportedSyntax(FindField(root, "_c")));
+        Assert.IsNull(ReihitsuFormatter.FindUnsupportedSyntax(root.DescendantNodes().OfType<ClassDeclarationSyntax>().Single()));
     }
 
     /// <summary>
@@ -158,19 +204,44 @@ public class ReihitsuFormatterSplitsFieldDeclarationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the method returns false for a combined declaration with a directive in its leading trivia or between its
-    /// declarators, as the split refuses it
+    /// Verifies that the method returns true for a combined declaration with a directive and no disabled text in its leading
+    /// trivia, and for one with a directive or disabled text elsewhere in it, which the formatter refuses as unsupported: whether
+    /// it refuses the declaration is not part of the answer
     /// </summary>
     /// <param name="declaration">The combined declaration with its directive</param>
     [TestMethod]
     [Requirement("FMT-PIPE-031")]
-    [DataRow("    #region Fields\n    private int _x, _y;\n    #endregion")]
-    [DataRow("    private int _x,\n#pragma warning disable CS0169\n                _y;\n#pragma warning restore CS0169")]
-    [DataRow("#if DEBUG\n    private int _x, _y;\n#endif")]
-    public void ReturnsFalseForACombinedDeclarationThatCarriesADirective(string declaration)
+    [DataRow("    #region Fields\n    private int _x, _y;\n    #endregion", DisplayName = "Region around the declaration")]
+    [DataRow("#if DEBUG\n    private int _x, _y;\n#endif", DisplayName = "Active group around the declaration")]
+    [DataRow("#pragma warning disable CS0169\n    private int _x, _y;\n#pragma warning restore CS0169", DisplayName = "Pragma directive in front of the declaration")]
+    [DataRow("#if DEBUG\n    private int _p;\n#endif\n    private int _x, _y;", DisplayName = "End of an active group in front of the declaration")]
+    [DataRow("    private int _x,\n#pragma warning disable CS0169\n                _y;\n#pragma warning restore CS0169", DisplayName = "Pragma directive between the declarators")]
+    [DataRow("    private\n#if NEVER\n    static\n#endif\n    int _x, _y;", DisplayName = "Disabled text in the leading trivia of a later token")]
+    public void ReturnsTrueForACombinedDeclarationWithADirectiveAndNoDisabledTextInItsLeadingTrivia(string declaration)
     {
         var options = CSharpParseOptions.Default.WithPreprocessorSymbols("DEBUG");
         var root = CSharpSyntaxTree.ParseText($"class C\n{{\n{declaration}\n}}", options, cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
+
+        Assert.IsTrue(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_x")));
+    }
+
+    /// <summary>
+    /// Verifies that the method returns false for a combined declaration whose leading trivia holds disabled text, whatever the
+    /// disabled text holds, also behind a region directive
+    /// </summary>
+    /// <param name="declaration">The combined declaration with the disabled text in front of it</param>
+    [TestMethod]
+    [Requirement("FMT-PIPE-031")]
+    [DataRow("#if NEVER\n    [System.Obsolete]\n#endif\n    private int _x, _y;", DisplayName = "Disabled attribute list")]
+    [DataRow("#if NEVER\n    static\n#endif\n    private int _x, _y;", DisplayName = "Disabled modifier")]
+    [DataRow("#if NEVER\n    [System.Obsolete]\n#elif NOTHING\n    [System.NonSerialized]\n#endif\n    private int _x, _y;", DisplayName = "Disabled attribute lists in two branches")]
+    [DataRow("#if NEVER\n    private int _p;\n#endif\n    private int _x, _y;", DisplayName = "Disabled member of its own")]
+    [DataRow("#if NEVER\n    private long _x, _y;\n#else\n    private int _x, _y;\n#endif", DisplayName = "Declaration in the active else branch")]
+    [DataRow("#if false\n    [System.Obsolete]\n#endif\n    private int _x, _y;", DisplayName = "Fully inactive group")]
+    [DataRow("    #region Fields\n#if NEVER\n    private int _p;\n#endif\n    private int _x, _y;\n    #endregion", DisplayName = "Region and disabled member")]
+    public void ReturnsFalseForACombinedDeclarationWithDisabledTextInItsLeadingTrivia(string declaration)
+    {
+        var root = CSharpSyntaxTree.ParseText($"class C\n{{\n{declaration}\n}}", cancellationToken: TestContext.CancellationToken).GetRoot(TestContext.CancellationToken);
 
         Assert.IsFalse(ReihitsuFormatter.SplitsFieldDeclaration(FindField(root, "_x")));
     }

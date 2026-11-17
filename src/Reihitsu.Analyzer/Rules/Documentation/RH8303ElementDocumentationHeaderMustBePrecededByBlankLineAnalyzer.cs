@@ -105,15 +105,16 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer :
     }
 
     /// <summary>
-    /// Determines whether a documentation trivia is the first element of a block, which is the case when the token
-    /// preceding its owning token is an opening brace. Comments behind that brace do not change the decision, and a
-    /// comment that merely ends with a brace character behind another token does not open a block
+    /// Determines whether a documentation trivia is the first content behind an opening token, which is the case when the
+    /// token preceding its owning token opens content (<see cref="SyntaxTriviaUtilities.IsContentOpeningToken"/>,
+    /// RH8303-002). Comments behind that token do not change the decision, and a comment that merely ends with a brace,
+    /// parenthesis, or bracket character behind another token does not open content
     /// </summary>
     /// <param name="documentationTrivia">Documentation trivia to inspect</param>
-    /// <returns><see langword="true"/> when the documentation directly follows an opening brace; otherwise, <see langword="false"/></returns>
-    private static bool IsFirstInBlock(SyntaxTrivia documentationTrivia)
+    /// <returns><see langword="true"/> when the documentation directly follows an opening token; otherwise, <see langword="false"/></returns>
+    private static bool IsFirstBehindOpeningToken(SyntaxTrivia documentationTrivia)
     {
-        return documentationTrivia.Token.GetPreviousToken().IsKind(SyntaxKind.OpenBraceToken);
+        return SyntaxTriviaUtilities.IsContentOpeningToken(documentationTrivia.Token.GetPreviousToken());
     }
 
     /// <summary>
@@ -153,7 +154,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer :
                 continue;
             }
 
-            if (IsFirstInBlock(trivia)
+            if (IsFirstBehindOpeningToken(trivia)
                 || IsPrecededByCommentOrDirective(trivia))
             {
                 continue;
@@ -217,11 +218,11 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer :
                 continue;
             }
 
-            // The first documentation header of a block is exempt. The decision is read from the token preceding the
-            // documentation rather than from line text, so a comment behind the opening brace does not hide it and a
-            // comment ending with a brace character behind another token does not imitate it. Continuation lines of
-            // documentation that starts behind the brace resolve to the same documentation trivia
-            if (IsFirstInBlock(documentationTrivia))
+            // The first documentation header behind an opening token is exempt. The decision is read from the token
+            // preceding the documentation rather than from line text, so a comment behind the opening token does not hide
+            // it and a comment ending with a brace character behind another token does not imitate it. Continuation lines
+            // of documentation that starts behind the opening token resolve to the same documentation trivia
+            if (IsFirstBehindOpeningToken(documentationTrivia))
             {
                 continue;
             }
@@ -258,7 +259,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer :
             var documentationStart = documentationTrivia.FullSpan.Start;
 
             if (nonFormattableLineIndices.Contains(sourceText.Lines.GetLineFromPosition(documentationStart).LineNumber)
-                || IsFirstInBlock(documentationTrivia)
+                || IsFirstBehindOpeningToken(documentationTrivia)
                 || IsPrecededByCommentOrDirective(documentationTrivia))
             {
                 continue;

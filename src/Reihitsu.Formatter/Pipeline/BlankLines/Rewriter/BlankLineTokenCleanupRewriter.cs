@@ -608,7 +608,14 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
             var hasNonRegionDirective = token.LeadingTrivia.Any(static trivia => SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia)
                                                                                  && SyntaxTriviaUtilities.IsRegionDirective(trivia) == false);
 
-            if (hasNonRegionDirective == false)
+            // Behind an opening token, a leading blank line above a comment is the author's blank line behind that token,
+            // not one directly before this token, and it is kept (FMT-BLANK-011, FMT-BLANK-019). Behind an opening brace
+            // the branch above has already removed it (FMT-BLANK-007)
+            var isAuthorsBlankLineBehindOpeningToken = previousToken.OpensContent
+                                                       && token.LeadingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia);
+
+            if (hasNonRegionDirective == false
+                && isAuthorsBlankLineBehindOpeningToken == false)
             {
                 var keepSingleLineBreak = previousToken.EndsLine == false;
                 token = CollapseLeadingBlankLines(token, _context.EndOfLine, keepSingleLineBreak);

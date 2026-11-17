@@ -186,9 +186,9 @@ internal sealed class DefaultFileSystem : IFileSystem
     }
 
     /// <inheritdoc/>
-    public Task WriteAllTextAsync(string path, string content, Encoding encoding, CancellationToken cancellationToken)
+    public Task WriteAllTextAsync(string path, string content, Encoding encoding)
     {
-        return File.WriteAllTextAsync(path, content, encoding, cancellationToken);
+        return File.WriteAllTextAsync(path, content, encoding, CancellationToken.None);
     }
 
     /// <inheritdoc/>

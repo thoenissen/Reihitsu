@@ -42,14 +42,14 @@ internal interface IFileSystem
     Task<string> ReadSourceHeaderAsync(string path, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Writes content to a file, creating or overwriting it
+    /// Writes content to a file, creating or overwriting it; a write takes no cancellation token, because a write that has
+    /// started and is then interrupted leaves a truncated file (CLI-022)
     /// </summary>
     /// <param name="path">The path of the file to write</param>
     /// <param name="content">The content to write to the file</param>
     /// <param name="encoding">The encoding to use when writing the file</param>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests</param>
     /// <returns>A task that represents the asynchronous write operation</returns>
-    Task WriteAllTextAsync(string path, string content, Encoding encoding, CancellationToken cancellationToken);
+    Task WriteAllTextAsync(string path, string content, Encoding encoding);
 
     /// <summary>
     /// Enumerates files matching a pattern in a directory

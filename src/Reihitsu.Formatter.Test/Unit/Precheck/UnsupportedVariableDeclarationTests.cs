@@ -1600,14 +1600,16 @@ public class UnsupportedVariableDeclarationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a directive between a field's declarators does not refuse the input: the shape is a comment, not a
-    /// directive
+    /// Verifies that a directive between a variable declaration's declarators is not refused as a comment: a local declaration
+    /// with the directive is not refused, and a field declaration with several declarators is refused with the reason of a
+    /// directive inside a field declaration (FMT-UNSUP-010), not with the reason of a comment
     /// </summary>
     [TestMethod]
     [Requirement("FMT-UNSUP-004")]
-    public void DirectiveInsideADeclarationIsSupported()
+    [Requirement("FMT-UNSUP-010")]
+    public void DirectiveInsideADeclarationIsNoComment()
     {
-        const string input = """
+        const string field = """
                              using System;
 
                              class C
@@ -1619,19 +1621,37 @@ public class UnsupportedVariableDeclarationTests : FormatterTestsBase
                                              _c;
                              }
                              """;
+        const string local = """
+                             using System;
 
-        AssertSupported(input);
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int a,
+                                     #if DEBUG
+                                         b,
+                                     #endif
+                                         c;
+                                 }
+                             }
+                             """;
+
+        AssertUnsupportedFor(FieldDeclarationDirectiveReason, field, "#if DEBUG");
+        AssertSupported(local);
     }
 
     /// <summary>
-    /// Verifies that disabled text that looks like a comment between a field's declarators does not refuse the input:
-    /// disabled text is no comment
+    /// Verifies that disabled text that looks like a comment between a variable declaration's declarators is not refused as a
+    /// comment: a local declaration with it is not refused, and a field declaration with several declarators is refused with
+    /// the reason of a directive inside a field declaration (FMT-UNSUP-010), not with the reason of a comment
     /// </summary>
     [TestMethod]
     [Requirement("FMT-UNSUP-004")]
-    public void CommentLookingDisabledTextInsideADeclarationIsSupported()
+    [Requirement("FMT-UNSUP-010")]
+    public void CommentLookingDisabledTextInsideADeclarationIsNoComment()
     {
-        const string input = """
+        const string field = """
                              using System;
 
                              class C
@@ -1643,8 +1663,24 @@ public class UnsupportedVariableDeclarationTests : FormatterTestsBase
                                              _c;
                              }
                              """;
+        const string local = """
+                             using System;
 
-        AssertSupported(input);
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int a,
+                                     #if NEVER
+                                         /* c */ b,
+                                     #endif
+                                         c;
+                                 }
+                             }
+                             """;
+
+        AssertUnsupportedFor(FieldDeclarationDirectiveReason, field, "#if NEVER");
+        AssertSupported(local);
     }
 
     /// <summary>

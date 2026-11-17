@@ -1370,6 +1370,198 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
         await Verify(testData, fixedData);
     }
 
+    /// <summary>
+    /// Verifies the specification example: documentation that is the first content of a record's parameter list and of a
+    /// type parameter list is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8303-002")]
+    public async Task SpecExampleFirstParameterAndFirstTypeParameterDocumentationIsNotReported()
+    {
+        const string testData = """
+                                public record R(
+                                    /// <summary>first</summary>
+                                    int A,
+                                    int B);
+
+                                class C
+                                {
+                                    void M<
+                                        /// <summary>first</summary>
+                                        T>()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example under CRLF line endings: documentation that is the first content of a record's
+    /// parameter list and of a type parameter list is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8303-002")]
+    public async Task SpecExampleFirstParameterAndFirstTypeParameterDocumentationIsNotReportedWithCarriageReturnLineFeed()
+    {
+        const string testData = """
+                                public record R(
+                                    /// <summary>first</summary>
+                                    int A,
+                                    int B);
+
+                                class C
+                                {
+                                    void M<
+                                        /// <summary>first</summary>
+                                        T>()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(NormalizeToCarriageReturnLineFeed(testData));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: documentation syntax that is the first content behind the <c>&lt;</c> of a
+    /// type argument list, the opening parenthesis of an argument list, and the opening bracket of a collection expression
+    /// is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8303-002")]
+    public async Task SpecExampleFirstDocumentationBehindTypeArgumentArgumentOrCollectionOpenerIsNotReported()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    List<
+                                        /// <summary>x</summary>
+                                        int> M(int a)
+                                    {
+                                        M(
+                                            /// <summary>x</summary>
+                                            a);
+                                        int[] b = [
+                                            /// <summary>x</summary>
+                                            1,
+                                        ];
+                                        return null;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: documentation behind a comma of a parameter list is reported, and the fix inserts
+    /// the blank line above it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8303-001")]
+    [Requirement("RH8303-002")]
+    public async Task SpecExampleDocumentationBehindCommaOfParameterListIsReportedAndFixed()
+    {
+        const string testData = """
+                                public record R(int A,
+                                                {|RH8303:///|} <summary>second</summary>
+                                                int B);
+                                """;
+        const string fixedData = """
+                                 public record R(int A,
+
+                                                 /// <summary>second</summary>
+                                                 int B);
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies both sides of the boundary in one type parameter list: documentation behind the <c>&lt;</c> is not
+    /// reported, documentation behind a comma of the same list is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8303-001")]
+    [Requirement("RH8303-002")]
+    public async Task FirstTypeParameterDocumentationIsNotReportedWhileDocumentationBehindCommaIsReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    void M<
+                                        /// <summary>first</summary>
+                                        T,
+                                        {|RH8303:///|} <summary>second</summary>
+                                        U>()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     void M<
+                                         /// <summary>first</summary>
+                                         T,
+
+                                         /// <summary>second</summary>
+                                         U>()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that documentation that is the first content behind an opening parenthesis is not reported when a comment
+    /// follows the parenthesis on its line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8303-002")]
+    public async Task FirstParameterDocumentationBelowTrailingCommentOfOpeningParenthesisIsNotReported()
+    {
+        const string testData = """
+                                public record R( // note
+                                    /// <summary>first</summary>
+                                    int A,
+                                    int B);
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a delimited documentation comment that is the first content behind an opening parenthesis is not
+    /// reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8303-002")]
+    public async Task FirstParameterDelimitedDocumentationIsNotReported()
+    {
+        const string testData = """
+                                public record R(
+                                    /** <summary>first</summary> */
+                                    int A,
+                                    int B);
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

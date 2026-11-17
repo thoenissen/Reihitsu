@@ -131,7 +131,9 @@ public sealed class DefaultFileSystemTests
                                                    force: false,
                                                    utf8Bom: true,
                                                    LanguageVersionResolver.MaxSupportedLanguageVersion,
-                                                   dependencies);
+                                                   dependencies,
+                                                   suppressUnsupported: false,
+                                                   maxParallelism: 4);
 
             var exitCode = await handler.ExecuteAsync(TestContext.CancellationToken);
 

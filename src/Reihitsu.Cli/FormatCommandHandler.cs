@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -69,6 +70,11 @@ internal sealed class FormatCommandHandler
     private readonly bool _suppressUnsupported;
 
     /// <summary>
+    /// Maximum number of files processed at the same time
+    /// </summary>
+    private readonly int _maxParallelism;
+
+    /// <summary>
     /// Parse options carrying the resolved C# language version, so parsing and formatting target the same version
     /// </summary>
     private readonly CSharpParseOptions _parseOptions;
@@ -114,8 +120,10 @@ internal sealed class FormatCommandHandler
     /// <param name="languageVersion">The resolved C# language version every file is parsed and formatted for</param>
     /// <param name="dependencies">The command dependencies</param>
     /// <param name="suppressUnsupported">If <see langword="true"/>, report a file the formatter refuses as unsupported as a warning that does not change the exit code</param>
-    public FormatCommandHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, bool force, bool utf8Bom, LanguageVersion languageVersion, FormatCommandDependencies dependencies, bool suppressUnsupported = false)
+    /// <param name="maxParallelism">Maximum number of files processed at the same time; <c>1</c> processes one file after another</param>
+    public FormatCommandHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, bool force, bool utf8Bom, LanguageVersion languageVersion, FormatCommandDependencies dependencies, bool suppressUnsupported, int maxParallelism)
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxParallelism, 1);
         ArgumentNullException.ThrowIfNull(paths);
         ArgumentNullException.ThrowIfNull(dependencies);
         ArgumentNullException.ThrowIfNull(dependencies.FileSystem);
@@ -131,6 +139,7 @@ internal sealed class FormatCommandHandler
         _force = force;
         _utf8Bom = utf8Bom;
         _suppressUnsupported = suppressUnsupported;
+        _maxParallelism = maxParallelism;
         _parseOptions = CSharpParseOptions.Default.WithLanguageVersion(languageVersion);
         _fileSystem = dependencies.FileSystem;
         _console = dependencies.Console;
@@ -246,14 +255,104 @@ internal sealed class FormatCommandHandler
     }
 
     /// <summary>
-    /// Processes the collected files and aggregates their result counters
+    /// Processes the collected files, up to <see cref="_maxParallelism"/> of them at the same time, writes the lines of every
+    /// file in selection order as soon as every file selected before it has finished, and aggregates the result counters
+    /// (CLI-022)
     /// </summary>
     /// <param name="files">Files to process</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The aggregate file-processing counters</returns>
+    /// <remarks>
+    /// When the run is canceled, or a file's processing is canceled, no further file is started; the files in progress run
+    /// to their end, the lines of every finished file are written in selection order, also behind an unfinished file, and the
+    /// cancellation is rethrown without counters. In write mode, no file's read runs while a write is in progress, so a file
+    /// reached through two selected paths is never read while the other path's write has truncated it (CLI-022); formatting
+    /// stays parallel
+    /// </remarks>
     private async Task<(int TotalFiles, int ChangedFiles, int SkippedSyntaxErrors, int SkippedEncoding, int SkippedGenerated, int ErrorFiles, int SkippedUnsupported, int SkippedHiddenCode)> ProcessFilesAsync(IReadOnlyList<string> files,
                                                                                                                                                                                                                 CancellationToken cancellationToken)
     {
+        var outputs = new BufferedConsoleOutput[files.Count];
+        var results = new FileProcessResult?[files.Count];
+        var outputGate = new object();
+        var nextToWrite = 0;
+        var tasks = new List<Task>(files.Count);
+        ExceptionDispatchInfo cancellation = null;
+
+        using (SemaphoreSlim slots = new(_maxParallelism, _maxParallelism), fileAccess = _checkOnly || _dryRun ? null : new(1, 1))
+        {
+            for (var index = 0; index < files.Count; index++)
+            {
+                try
+                {
+                    await slots.WaitAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+
+                // A file whose processing was canceled stops the run like the run's own cancellation: no further file starts
+                if (Volatile.Read(ref cancellation) != null)
+                {
+                    slots.Release();
+
+                    break;
+                }
+
+                var fileIndex = index;
+
+                outputs[fileIndex] = new BufferedConsoleOutput();
+
+                tasks.Add(Task.Run(async () =>
+                                   {
+                                       try
+                                       {
+                                           var result = await ProcessSelectedFileAsync(files[fileIndex], outputs[fileIndex], fileAccess, cancellationToken).ConfigureAwait(false);
+
+                                           lock (outputGate)
+                                           {
+                                               results[fileIndex] = result;
+
+                                               while (nextToWrite < files.Count
+                                                      && results[nextToWrite] != null)
+                                               {
+                                                   outputs[nextToWrite].FlushTo(_console);
+                                                   nextToWrite++;
+                                               }
+                                           }
+                                       }
+                                       catch (OperationCanceledException ex)
+                                       {
+                                           Interlocked.CompareExchange(ref cancellation, ExceptionDispatchInfo.Capture(ex), null);
+                                       }
+                                       finally
+                                       {
+                                           slots.Release();
+                                       }
+                                   },
+                                   CancellationToken.None));
+            }
+
+            await Task.WhenAll(tasks).ConfigureAwait(false);
+        }
+
+        if (cancellation != null
+            || cancellationToken.IsCancellationRequested)
+        {
+            // Every finished file is named, also when a file selected before it is unfinished (CLI-022)
+            for (var index = nextToWrite; index < files.Count; index++)
+            {
+                if (results[index] != null)
+                {
+                    outputs[index].FlushTo(_console);
+                }
+            }
+
+            cancellation?.Throw();
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
         var totalFiles = 0;
         var changedFiles = 0;
         var skippedSyntaxErrors = 0;
@@ -263,46 +362,60 @@ internal sealed class FormatCommandHandler
         var skippedUnsupported = 0;
         var skippedHiddenCode = 0;
 
-        foreach (var filePath in files)
+        foreach (var result in results)
         {
-            if (GeneratedFileUtilities.IsGeneratedFile(filePath))
-            {
-                skippedGenerated++;
+            var value = result.GetValueOrDefault();
 
-                if (_verbose)
-                {
-                    _console.WriteLine($"Skipped (generated): {filePath}");
-                }
-
-                continue;
-            }
-
-            var result = await ProcessFileAsync(filePath, cancellationToken).ConfigureAwait(false);
-
-            totalFiles += result.SkippedGeneratedCount == 0 ? 1 : 0;
-            changedFiles += result.ChangedFileCount;
-            skippedSyntaxErrors += result.SkippedSyntaxErrorCount;
-            skippedEncoding += result.SkippedEncodingCount;
-            skippedGenerated += result.SkippedGeneratedCount;
-            errorFiles += result.ErrorFileCount;
-            skippedUnsupported += result.SkippedUnsupportedCount;
-            skippedHiddenCode += result.SkippedHiddenCodeCount;
+            totalFiles += value.SkippedGeneratedCount == 0 ? 1 : 0;
+            changedFiles += value.ChangedFileCount;
+            skippedSyntaxErrors += value.SkippedSyntaxErrorCount;
+            skippedEncoding += value.SkippedEncodingCount;
+            skippedGenerated += value.SkippedGeneratedCount;
+            errorFiles += value.ErrorFileCount;
+            skippedUnsupported += value.SkippedUnsupportedCount;
+            skippedHiddenCode += value.SkippedHiddenCodeCount;
         }
 
         return (totalFiles, changedFiles, skippedSyntaxErrors, skippedEncoding, skippedGenerated, errorFiles, skippedUnsupported, skippedHiddenCode);
     }
 
     /// <summary>
+    /// Processes one selected file: a file generated by its name is skipped without being read; every other file is processed
+    /// by <see cref="ProcessFileAsync"/>
+    /// </summary>
+    /// <param name="filePath">The file path to process</param>
+    /// <param name="console">The output that collects the file's lines</param>
+    /// <param name="fileAccess">The gate every read and write of the run takes in write mode; <see langword="null"/> when nothing is written</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests</param>
+    /// <returns>The processing counters for the file</returns>
+    private async Task<FileProcessResult> ProcessSelectedFileAsync(string filePath, IConsoleOutput console, SemaphoreSlim fileAccess, CancellationToken cancellationToken)
+    {
+        if (GeneratedFileUtilities.IsGeneratedFile(filePath))
+        {
+            if (_verbose)
+            {
+                console.WriteLine($"Skipped (generated): {filePath}");
+            }
+
+            return FileProcessResult.SkippedGenerated;
+        }
+
+        return await ProcessFileAsync(filePath, console, fileAccess, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// Processes a single file and returns aggregate counters for summary reporting
     /// </summary>
     /// <param name="filePath">The file path to process</param>
+    /// <param name="console">The output that collects the file's lines</param>
+    /// <param name="fileAccess">The gate every read and write of the run takes in write mode; <see langword="null"/> when nothing is written</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests</param>
     /// <returns>The processing counters for the file</returns>
-    private async Task<FileProcessResult> ProcessFileAsync(string filePath, CancellationToken cancellationToken)
+    private async Task<FileProcessResult> ProcessFileAsync(string filePath, IConsoleOutput console, SemaphoreSlim fileAccess, CancellationToken cancellationToken)
     {
         try
         {
-            var fileRead = await _fileSystem.ReadFileAsync(filePath, cancellationToken).ConfigureAwait(false);
+            var fileRead = await ReadFileAsync(filePath, fileAccess, cancellationToken).ConfigureAwait(false);
             var originalContent = fileRead.Content;
             var syntaxTree = CSharpSyntaxTree.ParseText(originalContent, _parseOptions, filePath, cancellationToken: cancellationToken);
 
@@ -310,7 +423,7 @@ internal sealed class FormatCommandHandler
             {
                 if (_verbose)
                 {
-                    _console.WriteLine($"Skipped (syntax errors): {filePath}");
+                    console.WriteLine($"Skipped (syntax errors): {filePath}");
                 }
 
                 return FileProcessResult.SkippedSyntaxError;
@@ -320,7 +433,7 @@ internal sealed class FormatCommandHandler
             {
                 if (_verbose)
                 {
-                    _console.WriteLine($"Skipped (generated): {filePath}");
+                    console.WriteLine($"Skipped (generated): {filePath}");
                 }
 
                 return FileProcessResult.SkippedGenerated;
@@ -332,7 +445,7 @@ internal sealed class FormatCommandHandler
             {
                 if (_verbose)
                 {
-                    _console.WriteLine($"Skipped (code hidden in another build configuration): {filePath}");
+                    console.WriteLine($"Skipped (code hidden in another build configuration): {filePath}");
                 }
 
                 return FileProcessResult.SkippedHiddenCode;
@@ -342,7 +455,7 @@ internal sealed class FormatCommandHandler
 
             if (formattingResult.Unsupported != null)
             {
-                ReportUnsupported(filePath, formattingResult.Unsupported);
+                ReportUnsupported(filePath, formattingResult.Unsupported, console);
 
                 return FileProcessResult.SkippedUnsupported;
             }
@@ -355,32 +468,59 @@ internal sealed class FormatCommandHandler
             {
                 if (_verbose)
                 {
-                    _console.WriteLine($"Unchanged: {filePath}");
+                    console.WriteLine($"Unchanged: {filePath}");
                 }
 
                 return FileProcessResult.NoChange;
             }
 
-            await HandleChangedFileAsync(filePath, originalContent, formattedContent, fileRead.Encoding, cancellationToken).ConfigureAwait(false);
+            await HandleChangedFileAsync(filePath, originalContent, formattedContent, fileRead.Encoding, console, fileAccess, cancellationToken).ConfigureAwait(false);
 
             return FileProcessResult.Changed;
         }
         catch (OperationCanceledException)
         {
-            // Cancellation is not a per-file error: let it propagate so the run stops instead of continuing the loop.
+            // Cancellation is not a per-file error: let it propagate so the run starts no further file.
             throw;
         }
         catch (DecoderFallbackException)
         {
-            _console.WriteErrorLine($"Skipped (could not decode): {filePath}");
+            console.WriteErrorLine($"Skipped (could not decode): {filePath}");
 
             return FileProcessResult.SkippedEncoding;
         }
         catch (Exception ex)
         {
-            _console.WriteErrorLine($"Error processing {filePath}: {ex.Message}");
+            console.WriteErrorLine($"Error processing {filePath}: {ex.Message}");
 
             return FileProcessResult.Error;
+        }
+    }
+
+    /// <summary>
+    /// Reads a file; in write mode it takes the run's file-access gate, so the read never sees a file another selected path
+    /// is writing
+    /// </summary>
+    /// <param name="filePath">The file path to read</param>
+    /// <param name="fileAccess">The gate every read and write of the run takes in write mode; <see langword="null"/> when nothing is written</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests</param>
+    /// <returns>The file's content and detected encoding</returns>
+    private async Task<FileReadResult> ReadFileAsync(string filePath, SemaphoreSlim fileAccess, CancellationToken cancellationToken)
+    {
+        if (fileAccess == null)
+        {
+            return await _fileSystem.ReadFileAsync(filePath, cancellationToken).ConfigureAwait(false);
+        }
+
+        await fileAccess.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            return await _fileSystem.ReadFileAsync(filePath, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            fileAccess.Release();
         }
     }
 
@@ -390,39 +530,44 @@ internal sealed class FormatCommandHandler
     /// </summary>
     /// <param name="filePath">The file path</param>
     /// <param name="unsupported">The shape the formatter refuses the file for</param>
-    private void ReportUnsupported(string filePath, UnsupportedSyntax unsupported)
+    /// <param name="console">The output that collects the file's lines</param>
+    private void ReportUnsupported(string filePath, UnsupportedSyntax unsupported, IConsoleOutput console)
     {
         var severity = _suppressUnsupported ? "warning" : "error";
         var start = unsupported.Location.GetLineSpan().StartLinePosition;
 
-        _console.WriteErrorLine($"{severity}: {filePath}({start.Line + 1},{start.Character + 1}): unsupported syntax: {unsupported.Reason}. The file was left unchanged.");
+        console.WriteErrorLine($"{severity}: {filePath}({start.Line + 1},{start.Character + 1}): unsupported syntax: {unsupported.Reason}. The file was left unchanged.");
     }
 
     /// <summary>
-    /// Handles output and optional writing for a changed file
+    /// Handles output and optional writing for a changed file; a write is not started once the run is canceled, and a write
+    /// that has started is not interrupted, so a canceled run never leaves a truncated file (CLI-022). A write holds the run's
+    /// file-access gate, so no read of the run sees the file while it is truncated
     /// </summary>
     /// <param name="filePath">The file path</param>
     /// <param name="originalContent">The original file content</param>
     /// <param name="formattedContent">The formatted file content</param>
     /// <param name="originalEncoding">The encoding detected while reading the original file</param>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests</param>
+    /// <param name="console">The output that collects the file's lines</param>
+    /// <param name="fileAccess">The gate every read and write of the run takes in write mode; <see langword="null"/> when nothing is written</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests before the write starts</param>
     /// <returns>A task that completes when file handling is finished</returns>
-    private async Task HandleChangedFileAsync(string filePath, string originalContent, string formattedContent, Encoding originalEncoding, CancellationToken cancellationToken)
+    private async Task HandleChangedFileAsync(string filePath, string originalContent, string formattedContent, Encoding originalEncoding, IConsoleOutput console, SemaphoreSlim fileAccess, CancellationToken cancellationToken)
     {
         if (_checkOnly)
         {
-            _console.WriteLine($"Not formatted: {filePath}");
+            console.WriteLine($"Not formatted: {filePath}");
 
             return;
         }
 
         if (_dryRun)
         {
-            _console.WriteLine($"Would format: {filePath}");
+            console.WriteLine($"Would format: {filePath}");
 
             if (string.Equals(originalContent, formattedContent, StringComparison.Ordinal) == false)
             {
-                _console.WriteLine(_diffGenerator.Generate(filePath, originalContent, formattedContent));
+                console.WriteLine(_diffGenerator.Generate(filePath, originalContent, formattedContent));
             }
 
             return;
@@ -430,9 +575,21 @@ internal sealed class FormatCommandHandler
 
         var outputEncoding = _utf8Bom ? _utf8BomEncoding : originalEncoding;
 
-        await _fileSystem.WriteAllTextAsync(filePath, formattedContent, outputEncoding, cancellationToken)
-                         .ConfigureAwait(false);
-        _console.WriteLine($"Formatted: {filePath}");
+        await fileAccess.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            await _fileSystem.WriteAllTextAsync(filePath, formattedContent, outputEncoding)
+                             .ConfigureAwait(false);
+        }
+        finally
+        {
+            fileAccess.Release();
+        }
+
+        console.WriteLine($"Formatted: {filePath}");
     }
 
     /// <summary>

@@ -342,12 +342,12 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a directive written before the first declarator still leaves the field declaration intact. The
-    /// directive guard inspects the whole declaration, so it covers the newly read slot as well.
+    /// Verifies that a conditional group between the type and the first declarator, whose comment is disabled text, is a shape
+    /// the formatter refuses: the input is returned unchanged, and the <c>#if DEBUG</c> directive is reported
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-STRUCT-023")]
-    public void DirectiveBeforeFirstDeclaratorLeavesTheFieldIntact()
+    [Requirement("FMT-UNSUP-010")]
+    public void DirectiveBeforeFirstDeclaratorIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -362,15 +362,16 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                              """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertUnsupportedFor(FieldDeclarationDirectiveReason, input, "#if DEBUG");
     }
 
     /// <summary>
-    /// Verifies that disabled text written before the first declarator still leaves the field declaration intact.
+    /// Verifies that a fully inactive group between the type and the first declarator is a shape the formatter refuses: the
+    /// input is returned unchanged, and the <c>#if false</c> directive is reported
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-STRUCT-023")]
-    public void DisabledTextBeforeFirstDeclaratorLeavesTheFieldIntact()
+    [Requirement("FMT-UNSUP-010")]
+    public void DisabledTextBeforeFirstDeclaratorIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -385,7 +386,7 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
                              """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertUnsupportedFor(FieldDeclarationDirectiveReason, input, "#if false");
     }
 
     /// <summary>
@@ -691,6 +692,273 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
 
                                     private int _first = Offset(/* c */1);
                                     private int _second;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a region in front of the declaration and a conditional group that holds the whole
+    /// declaration stay in front of the first field, and both declarations are split
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-022")]
+    public void SpecExampleRegionAndGroupAroundTheDeclarationAreSplit()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 #region Fields
+
+                                 private int _x, _y;
+
+                                 #endregion // Fields
+
+                             #if !RELEASE
+                                 private int _p, _q = 1;
+                             #endif
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    #region Fields
+
+                                    private int _x;
+                                    private int _y;
+
+                                    #endregion // Fields
+
+                                #if !RELEASE
+                                    private int _p;
+                                    private int _q = 1;
+                                #endif
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies the specification example: in a build that defines neither <c>DEBUG</c> nor <c>NETSTANDARD</c>, the declarations
+    /// behind an inactive attribute list and behind an inactive modifier stay whole, while the declaration behind the end of a
+    /// group the file's own <c>#define</c> makes active is split
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-022")]
+    public void SpecExampleDisabledTextInTheLeadingTriviaKeepsTheDeclarationWhole()
+    {
+        // Arrange
+        const string input = """
+                             #define D
+                             using System.Diagnostics;
+
+                             class C
+                             {
+                             #if DEBUG
+                                 [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+                             #endif
+                                 private int _a, _b;
+
+                             #if NETSTANDARD
+                                 static
+                             #endif
+                                 private int _c, _d;
+
+                             #if D
+                                 private int _x;
+                             #endif
+                                 private int _m, _n;
+                             }
+                             """;
+        const string expected = """
+                                #define D
+                                using System.Diagnostics;
+
+                                class C
+                                {
+                                #if DEBUG
+                                    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+                                #endif
+                                    private int _a, _b;
+
+                                #if NETSTANDARD
+                                    static
+                                #endif
+                                    private int _c, _d;
+
+                                #if D
+                                    private int _x;
+                                #endif
+                                    private int _m;
+                                    private int _n;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that disabled text in the declaration's leading trivia keeps it whole whatever the disabled text holds: an
+    /// attribute list in each of two inactive branches, a whole member of its own, the declaration's own branch for another build
+    /// with the declaration in the active <c>#else</c>, and an attribute list in a fully inactive group
+    /// </summary>
+    /// <param name="input">The formatted source text, which the formatter leaves unchanged</param>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-022")]
+    [DataRow("using System;\n\nclass C\n{\n#if DEBUG\n    [Obsolete]\n#elif TRACE\n    [NonSerialized]\n#endif\n    private int _a, _b;\n}", DisplayName = "Attribute lists in an if and an elif branch")]
+    [DataRow("class C\n{\n#if DEBUG\n    private int _dbg;\n#endif\n    private int _a, _b;\n}", DisplayName = "Inactive group that holds a member of its own")]
+    [DataRow("class C\n{\n#if X\n    private long _a, _b;\n#else\n    private int _a, _b;\n#endif\n}", DisplayName = "Declaration in the active else branch")]
+    [DataRow("using System;\n\nclass C\n{\n#if false\n    [Obsolete]\n#endif\n    private int _a, _b;\n}", DisplayName = "Attribute list in a fully inactive group")]
+    [DataRow("class C\n{\n    #region Fields\n\n#if DEBUG\n    private int _dbg;\n#endif\n    private int _a, _b;\n\n    #endregion // Fields\n}", DisplayName = "Region and inactive group in front of the declaration")]
+    public void DisabledTextInTheLeadingTriviaKeepsTheDeclarationWhole(string input)
+    {
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a pragma directive in front of the declaration stays in front of the first field, the pragma directive behind
+    /// the semicolon stays behind the last field, and the declaration is split
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-022")]
+    public void PragmaDirectiveInFrontOfTheDeclarationStaysOnTheFirstField()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                             #pragma warning disable CS0169
+                                 private int _a, _b;
+                             #pragma warning restore CS0169
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                #pragma warning disable CS0169
+                                    private int _a;
+                                    private int _b;
+                                #pragma warning restore CS0169
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a declaration in the active branch of a group whose disabled <c>#else</c> branch follows it is split: its
+    /// leading trivia holds only the <c>#if</c> directive, and the disabled branch belongs to the token behind its semicolon
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-022")]
+    public void DeclarationInTheActiveBranchInFrontOfADisabledElseBranchIsSplit()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                             #if !X
+                                 private int _a, _b;
+                             #else
+                                 private long _a, _b;
+                             #endif
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                #if !X
+                                    private int _a;
+                                    private int _b;
+                                #else
+                                    private long _a, _b;
+                                #endif
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a region in front of an attributed declaration stays in front of the first field's attribute list, and every
+    /// field repeats the attribute list
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-022")]
+    public void RegionInFrontOfAnAttributedDeclarationStaysInFrontOfTheFirstField()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+
+                             class C
+                             {
+                                 #region Fields
+
+                                 [NonSerialized]
+                                 private static readonly string _a = "a", _b = "b";
+
+                                 #endregion // Fields
+                             }
+                             """;
+        const string expected = """
+                                using System;
+
+                                class C
+                                {
+                                    #region Fields
+
+                                    [NonSerialized]
+                                    private static readonly string _a = "a";
+                                    [NonSerialized]
+                                    private static readonly string _b = "b";
+
+                                    #endregion // Fields
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a region and an ordinary comment in front of the declaration both stay in front of the first field
+    /// </summary>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-022")]
+    public void RegionAndCommentInFrontOfTheDeclarationStayInFrontOfTheFirstField()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 #region Fields
+
+                                 // The coordinates
+                                 private int _x, _y;
+
+                                 #endregion // Fields
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    #region Fields
+
+                                    // The coordinates
+                                    private int _x;
+                                    private int _y;
+
+                                    #endregion // Fields
                                 }
                                 """;
 

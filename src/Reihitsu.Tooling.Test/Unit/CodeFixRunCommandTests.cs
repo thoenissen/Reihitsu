@@ -289,10 +289,10 @@ public sealed class CodeFixRunCommandTests
         // Arrange
         using (var fixture = new TemporaryDirectoryFixture())
         {
-            // The condition is deliberately true, so the field stays active code the analyzer reports on. A
-            // disabled branch would be reported as no-diagnostic and would prove nothing about fix availability.
+            // A pragma directive between the declarators is not conditional, so the analyzer still reports the field, and
+            // the formatter refuses the declaration as unsupported, so the code fix registers no action for it
             fixture.CreateFile("directive.cs",
-                               "internal class Sample\n{\n#if !NEVER\n    private int _first, _second;\n#endif\n}\n");
+                               "internal class Sample\n{\n    private int _first,\n#pragma warning disable CS0169\n        _second;\n#pragma warning restore CS0169\n}\n");
 
             // Act
             var (exitCode, output, _) = await RunAsync(CombinedFieldsDiagnosticId, fixture.Path);

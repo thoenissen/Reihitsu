@@ -99,6 +99,28 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
+    /// Determines whether a token opens content, so that a comment whose owning token directly follows it is the first
+    /// content behind an opening token and is preceded by no blank line. The formatter's blank line in front of a comment
+    /// and the RH5020 and RH8303 analyzers read this one owner (FMT-BLANK-011, RH5020-002, RH8303-002). An opening brace
+    /// <c>{</c>, parenthesis <c>(</c>, or bracket <c>[</c> opens content in any construct; a <c>&lt;</c> opens content only
+    /// when it opens a type parameter list, a type argument list, or a function pointer parameter list, and is an operator
+    /// otherwise
+    /// </summary>
+    /// <param name="token">The token in front of the token that owns the comment</param>
+    /// <returns><see langword="true"/> if the token opens content; otherwise, <see langword="false"/></returns>
+    public static bool IsContentOpeningToken(SyntaxToken token)
+    {
+        return token.Kind() switch
+               {
+                   SyntaxKind.OpenBraceToken or SyntaxKind.OpenParenToken or SyntaxKind.OpenBracketToken => true,
+                   SyntaxKind.LessThanToken => token.Parent?.Kind() is SyntaxKind.TypeParameterList
+                                                                    or SyntaxKind.TypeArgumentList
+                                                                    or SyntaxKind.FunctionPointerParameterList,
+                   _ => false,
+               };
+    }
+
+    /// <summary>
     /// Determines whether a trivia is a <c>#region</c> or <c>#endregion</c> directive
     /// </summary>
     /// <param name="trivia">The trivia to check</param>

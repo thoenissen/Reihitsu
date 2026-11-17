@@ -20,6 +20,7 @@ namespace Reihitsu.Cli;
 /// <param name="LanguageVersion">The resolved C# language version selected by --lang-version, clamped to the newest supported version</param>
 /// <param name="ExceedingLanguageVersion">The --lang-version value that named a version newer than the newest supported one, or null</param>
 /// <param name="ArgumentError">The first error in an option value, or null</param>
+/// <param name="MaxParallelism">The maximum number of files processed at the same time selected by --max-parallelism, or the number of logical processors</param>
 internal readonly record struct ParseResult(bool CheckOnly,
                                             bool DryRun,
                                             bool Verbose,
@@ -32,4 +33,5 @@ internal readonly record struct ParseResult(bool CheckOnly,
                                             string UnknownOption,
                                             LanguageVersion LanguageVersion,
                                             string ExceedingLanguageVersion,
-                                            string ArgumentError);
+                                            string ArgumentError,
+                                            int MaxParallelism);
