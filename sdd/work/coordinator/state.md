@@ -5,6 +5,7 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 ## Phase 5 (current — read this first)
 
+- Working agreement (maintainer 2026-11-17): a follow-up joins the RUNNING release only if (a) the release's own features need it to be implemented well (defect or gap in what the release ships), or (b) it is small and will not trigger further follow-ups. Everything else goes to the roadmap release of its theme. The release's features must be well implemented before release.
 - **SDD established 2026-10-24**: cleanup PR #1429 merged (retired requirements dropped, IDs renumbered, decisions folded into rules, one change doc `sdd/changes/2026-10/introduce-sdd.md`). #899 and #912 closed by the maintainer 2026-10-24. No open `SDD open questions: …` issue. No open PRs.
 - Decision (maintainer 2026-10-24): spec format stays as it is for now — no split per requirement, no index change.
 - Working agreement P5 (maintainer 2026-10-24, after W1 prompts): prompts must be truly independent. No cross-run instructions (no 'run X owns file Y', 'relies on wording run Z adds', 'do not touch run W's files', 'R8 touches after you'). Runs that depend on each other go into different waves or into one run; a parallel wave holds only runs with no shared files and no dependency. Each prompt names only its own issues, decisions, reading, done, must-not.
@@ -36,6 +37,7 @@ Parent: #899. Branch: `claude/sdd-coordinator` (never merged; `sdd/work/` stays 
 
 Prompts are plain `/squad #a #b …` (maintainer 2026-10-25): every decision lives on the issues (triage comments), never in a prompt. Added 2026-10-25: #1458 (RH5202 fix changes verbatim value, 1.2.0, alone, after R3), #1463 (formatter phases must not predict later phases; behavior change, Maintenance; after R1, R3, #1458; before R10, R11), #1464 (squad architecture escalation, tooling; after #1441; body edited: no decisions entry). R3 = PR #1457.
 
+Status 2026-11-17 (k): maintainer set the follow-up rule (see Phase 5 agreements). Applied to 1.4.0 remainder -> proposal asked: keep #1847 (release quality) #1850 (small); move #1848 #1851 to 1.5.0; release-readiness check of 1.4.0 features before release.
 Status 2026-11-17 (j): DECIDED 1A 2A 3A, APPLIED. 1.4.0 end: now #1847 #1848 | #1850; then #1851. Maintainer: 'feels like a never-ending story' -> proposed scope freeze for running releases (asked).
 Status 2026-11-17 (i): merged #1839 (#1732) #1840 (#1802) #1849 (#1846). 1.4.0 open: #1847 #1848 -> start now. New #1850 (CI hang timeout, tooling), #1851 (unsupported shape before `=>`, maintainer already decided: declare in own change), #1852 (return value continuation indent, OQ). Proposed: #1850 1.4.0 now; #1851 1.4.0 after #1847 #1848 (FormatterTestsBase); #1852 1.6.0 with #953. Asked.
 Status 2026-11-17 (h): triage (g) APPROVED and APPLIED (milestones + comments). 1.4.0 remaining: #1732 (PR #1839), #1802 (PR #1840), /squad #1846 now, /squad #1847 #1848 after #1732.
