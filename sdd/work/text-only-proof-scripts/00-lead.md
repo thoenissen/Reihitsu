@@ -30,6 +30,7 @@ Roles: test implementer (for #1817 the Roslyn-version guard is a test; for #1808
 | 1 | Lane | Which option of #1808 | Markdown (`.md`) under `scripts/` counts as text for the proof, as everywhere else; every other file under `scripts/` and `.github/workflows/` stays behavioral; lane-check classification unchanged; `scripts/README.md`, *The text-only proof*, states it | Nothing in a Markdown file executes; the proof's question is "can this change affect compiled/executed behavior", and prose cannot. The repository already treats specs and rule pages, which also describe behavior, as text | Internal tooling only; no formatter, diagnostic, code-fix, rule page, or CLI output | — |
 | 2 | Lane | Which option of #1817 | Bring the pin to the repository's Roslyn version (`RoslynVersion` in `Directory.Build.props`) and make the Roslyn-version guard fail when a `#:package Microsoft.CodeAnalysis*` directive of a file-based program drifts from it; check the proof's verdicts on a text-only and a non-text-only change before and after the bump | One Roslyn version is the repository principle; an exemption would leave the proof parsing newer syntax with an older parser | Internal tooling and tests only | — |
 | 3 | Lane | Roles skipped | Spec author and skeptic skipped (tooling lane); test implementer runs for #1817 only | Lane table | — | — |
+| 4 | Test implementer | A Roslyn `#:package` directive without a version (open in 01) | Report it as a violation like any other version that is not exactly `RoslynVersion`; the implementer adds the case to the guard and the test implementer's contract applies unchanged otherwise | A version-less directive floats, which is drift by the same rule that rejects `5.*` | Internal guard only | — |
 
 ## Follow-up candidates
 
@@ -38,4 +39,5 @@ Roles: test implementer (for #1817 the Roslyn-version guard is a test; for #1808
 ## Worklist / next step
 
 - Done: claim, lane, prepare.
-- Next: test implementer (`01-test-implementer.md`).
+- Done: test implementer, `01-test-implementer.md` at `816e7e4` (8 failing guard tests for #1817; nothing for #1808).
+- Next: implementer (`02-implementer.md`).
