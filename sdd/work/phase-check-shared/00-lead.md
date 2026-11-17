@@ -25,10 +25,12 @@ None yet.
 ## Follow-up candidates
 
 - Other analyzer formatter tests that call `FormatSyntaxTree` directly (RH5021, RH5029, RH5030, RH5104, RH5111, RH5201, RH5412–RH5416, RH6001) may assert full-run idempotency without the per-phase check (02-test-implementer).
+- `scripts/format.sh` prints S1125 warnings for `src/Reihitsu.Cli/FormatCommandHandler.cs` (lines 647, 658, 712) while building the CLI; the Release build reports none; file untouched by this run (03-cleaner).
 
 ## Worklist / next step
 
 - Claimed (commit "Claim issue #1805"), prepare.sh green.
 - Skeptic done (01-skeptic.md): proceed narrower.
 - Test implementer done (02): lane widened to tooling.
-- Next: cleaner → spec checker → auditor → validator.
+- Cleaner done (03): clean, bb2f598.
+- Next: spec checker → auditor → validator.
