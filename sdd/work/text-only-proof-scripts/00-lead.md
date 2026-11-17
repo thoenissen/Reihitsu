@@ -50,4 +50,5 @@ Roles: test implementer (for #1817 the Roslyn-version guard is a test; for #1808
 - Done: cleaner, `04-cleaner.md` committed in `b5426cd`, derived from `6d060d1` (clean).
 - Done: spec checker, `05-spec-checker.md` at `16300fe` (consistent).
 - Done: auditor, `06-auditor.md` in `5a64c17`: pass, one comment-only finding. Audited SHA: `8a4daf2`.
-- Next: cleaner fixes the test summary comment (`07-cleaner.md`); prove with `scripts/verify-text-only.sh --base 8a4daf2 --head worktree`; then validator.
+- Done: cleaner `07-cleaner.md` in `4e6c966`; text-only proof vs `8a4daf2` PASS, no second audit.
+- Next: validator (`08-validator.md`), then publish.
