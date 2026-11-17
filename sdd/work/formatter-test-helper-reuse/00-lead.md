@@ -33,5 +33,5 @@ None yet.
 ## State
 
 - Audited SHA: n/a (no auditor in this lane)
-- Last step: cleaner (`03-cleaner.md`, 035402f): clean.
-- Next step: spec checker, then validator.
+- Last step: spec checker (`04-spec-checker.md`, 899c079): consistent, no findings.
+- Next step: validator, then publish.
