@@ -16,10 +16,13 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | Skeptic | State that the line count follows the text as laid out (formatting can raise it) | Accept; spec author adds one sentence to SHARED-LINES-001 `Why:` | Prevents later roles from raising FC-013/FC-014 disagreements | Wording only | pending |
+| 2 | Skeptic | Define a line as the compiler's line split (CRLF/LF/CR count alike, FC-033) | Accept; spec author states it in SHARED-LINES-001 | Removes an ambiguity | Same count for all line endings is the only sensible reading; no output changes beyond it | pending |
+| 3 | Skeptic | One owner for the counting (FC-015) | Accept; implementer builds one shared counter that both rules use, and it becomes the code owner of `shared/line-count.md` | Avoids private copies | Internal structure | pending |
 
 ## Follow-up candidates
 
-(none yet)
+- A setting written twice in `reihitsu.json` is not reported by RH0001; the later value wins (02-skeptic.md, found by reading code, low value).
 
 ## Audited SHA
 
@@ -27,4 +30,6 @@
 
 ## Open worklist / next step
 
-- Next: spawn the spec author (handover `01-spec-author.md`).
+- Done: 01-spec-author (eaa17de), 02-skeptic (b7f1ce2).
+- Now: output-question batch 1 (Q1–Q8 from 01/02 handovers) posted to the maintainer; waiting.
+- Next: route answers to the spec author (amend specs, add decisions 1–2, set change doc Accepted), then the test implementer.
