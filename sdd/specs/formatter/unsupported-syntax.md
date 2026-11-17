@@ -607,7 +607,7 @@ An input MUST be refused when a comment — `//`, `/* */`, `///`, or `/** */`, i
 
 The conditions, each with both sides:
 
-- **The operator of a binary expression.** The operator is a binary operator as SHARED-COMMENT-007 defines it: an arithmetic, shift, relational, equality, bitwise, logical, or null-coalescing operator, the `is` of a type test, and the `as` of a conversion. `a + /* c */ b`, `o is /* c */ string`, and `o as /* c */ string` are refused. A token that is no such operator is not: the `is` of a pattern match and the operators inside a pattern, such as `and`, `or`, and `>` (`n is > /* c */ 1 or /* c */ 3`), an assignment or compound assignment operator (`n += /* c */ 1`), the `..` of a range, and a conditional expression's `?` and `:`, which FMT-UNSUP-008 decides.
+- **The operator of a binary expression.** The operator is a binary operator as SHARED-COMMENT-007 defines it: an arithmetic, shift, relational, equality, bitwise, logical, or null-coalescing operator, the `is` of a type test, and the `as` of a conversion. `a + /* c */ b`, `o is /* c */ string`, and `o as /* c */ string` are refused. Whether an `is` is the operator of a type test is decided by the syntax tree alone: an `is` that the parser reads as the operator of a binary expression counts, whatever its right operand denotes, so `o is /* c */ Color.Red`, where `Color.Red` is an enum member, is refused like `o is /* c */ string`, although SHARED-COMMENT-007 leaves such an `is` open; an `is` the parser reads as a pattern match, such as the `is` of `o is /* c */ 5` or `o is /* c */ not null`, does not count. A token that is no such operator is not: the `is` of a pattern match and the operators inside a pattern, such as `and`, `or`, and `>` (`n is > /* c */ 1 or /* c */ 3`), an assignment or compound assignment operator (`n += /* c */ 1`), the `..` of a range, and a conditional expression's `?` and `:`, which FMT-UNSUP-008 decides.
 - **Behind the operator.** Only the gap between the operator and the right operand's first token counts. A comment, a directive, or disabled text in front of the operator — in the trailing trivia of the left operand's last token or in the leading trivia of the operator, such as a comment behind the left operand on its line (`a /* c */ && b`) or on a line above the operator's line — does not refuse the input. Nor does one inside the right operand, behind its first token (`a && (/* c */ b)`, `n + M(/* c */ 1)`), or behind the right operand.
 - **On any line.** Whether the gap holds a line break does not matter: `n * /* scale */ 2` on one line is refused like `a && // c⏎b`.
 - **Every binary expression.** Each binary expression is checked with its own operator and right operand — one in a chain, such as the second `&&` of `a && b && /* c */ c`, one nested in an operand of another, and one inside a lambda, an argument, or any other expression. A token in disabled text is no token of the input: in a build that does not define `X`, the `|` of the disabled text `| B` in `A⏎#if X⏎| B⏎#endif⏎| C` is not checked, and the directives stand in front of the last `|`, so the input is not refused in either build.
@@ -621,7 +621,7 @@ Where FMT-UNSUP-004 or FMT-UNSUP-010 refuses the same comment, directive, or dis
 
 The reason the formatter gives for this shape is `a comment or directive between a binary operator and its right operand`, and its location is the span of the first comment, directive, or disabled text in that place.
 
-Why: The line-break phase moves a binary operator at the end of a line to the start of the next line and joins the right operand behind it (FMT-BREAK-017). A comment or a directive behind the operator kept the right operand off the operator's line, so the phase refused the join (FMT-BREAK-001), left the operator at the end of the line, and the right operand started a line that no requirement places, in the column of the enclosing statement; RH5302's fix carried a copy of that refusal. RH5049 already reports a comment behind a binary operator, so the shape is rare, and a comment that explains an operand belongs in front of the operator — on the line above the operator's line or behind the left operand — where the phases carry it as they do for every wrapped operator. Directives and disabled text are part of the shape because the join refuses them alike: with comments alone, the refusal would have to stay. The shape is the same on one line, as it is for a conditional's operators (FMT-UNSUP-008), so the boundary is a place in the syntax tree, not a question of line breaks. The operator and its right operand belong to one binary expression, so a node-level input that holds the operator holds the whole gap, and no phase writes a comment, a directive, or disabled text into that gap: the join carries only whitespace into it (FMT-UNSUP-005). The `is` of a pattern match, the pattern combinators, and the assignment operators are laid out by other requirements, which hold no such refusal, so declaring them would delete nothing. A comment in an attribute argument of a declaration, and a directive in a field declaration with several declarators, were refused under FMT-UNSUP-004 and FMT-UNSUP-010 before this requirement existed, and keep the reason they gave.
+Why: The line-break phase moves a binary operator at the end of a line to the start of the next line and joins the right operand behind it (FMT-BREAK-017). A comment or a directive behind the operator kept the right operand off the operator's line, so the phase refused the join (FMT-BREAK-001), left the operator at the end of the line, and the right operand started a line that no requirement places, in the column of the enclosing statement; RH5302's fix carried a copy of that refusal. RH5049 already reports a comment behind a binary operator, so the comment is rare by the repository's definition. No rule reports a directive or disabled text there; they are rare in practice, because a conditional operand is written behind a trailing operator only where the operators are not written at the line starts, as the formatter writes them (FMT-BREAK-017), and written with leading operators, the same code is formatted. A comment that explains an operand belongs in front of the operator — on the line above the operator's line or behind the left operand — where the phases carry it as they do for every wrapped operator. Directives and disabled text are part of the shape because the join refuses them alike: with comments alone, the refusal would have to stay. The shape is the same on one line, as it is for a conditional's operators (FMT-UNSUP-008), so the boundary is a place in the syntax tree, not a question of line breaks. The operator and its right operand belong to one binary expression, so a node-level input that holds the operator holds the whole gap, and no phase writes a comment, a directive, or disabled text into that gap: the join carries only whitespace into it (FMT-UNSUP-005). The precheck reads syntax only, so whether an `is` is a type test is the parser's reading, the reading the line-break phase joins by; whether the name behind it denotes a type or a constant needs a semantic model the precheck does not have. The `is` of a pattern match, the pattern combinators, and the assignment operators are laid out by other requirements, which hold no such refusal, so declaring them would delete nothing. A comment in an attribute argument of a declaration, and a directive in a field declaration with several declarators, were refused under FMT-UNSUP-004 and FMT-UNSUP-010 before this requirement existed, and keep the reason they gave.
 
 Example — each binary expression is refused, and the input that holds it is returned unchanged:
 
@@ -649,6 +649,25 @@ class C
 ```
 
 The location is the span of `// c1`, which starts in line 5, column 22.
+
+Example — an `is` followed by an enum member is read as the operator of a binary expression, and the input is refused:
+
+```csharp
+enum Color
+{
+    Red
+}
+
+class C
+{
+    bool M(object o)
+    {
+        return o is /* c */ Color.Red;
+    }
+}
+```
+
+The location is the span of `/* c */`, which starts in line 10, column 21.
 
 Example — directives and disabled text behind an operator refuse the input in every build: where `DEBUG` is defined, `#if DEBUG` stands behind the first `|`; where it is not, `#if DEBUG`, the disabled text, and `#endif` stand behind it:
 
@@ -684,9 +703,15 @@ class C
         var z = n + M2(1) // c3
                 + 2;
         var w = n is > /* c4 */ 1 or /* c5 */ 3;
+        var u = M3() is /* c7 */ 5;
         n += /* c6 */ 1;
 
-        return x && y && z > 0 && w;
+        return x && y && z > 0 && w && u;
+    }
+
+    object M3()
+    {
+        return 5;
     }
 
     int M2(int v)
