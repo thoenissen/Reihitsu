@@ -16,6 +16,8 @@
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | Spec author | Requirement wording: "no phase adds elastic trivia" vs the issue's "no phase output carries" | Take "adds" (FMT-PIPE-034), with a non-goal for elastic trivia a node-level caller passes in | Identical for document/tree entry points; "carries" would force phases to strip trivia from code-fix input and change code-fix spacing no one asked about | No formatter output changes (spec author ran format on the example; suite outputs unchanged); code-fix outputs untouched | 05b79d7 |
+| 2 | Spec author | Where the rule lives | Stated once in pipeline spec; FMT-STRUCT-026 points to it | One statement of a rule | Spec text only | 05b79d7 |
 
 ## Follow-up candidates
 
@@ -27,4 +29,5 @@
 
 ## Open worklist / next step
 
-- Next: spawn spec author (01).
+- Done: spec author (01), commit 05b79d7; lane check confirmed behavior-change. Change doc Draft, no visible output changes, no output questions.
+- Next: skeptic (02).
