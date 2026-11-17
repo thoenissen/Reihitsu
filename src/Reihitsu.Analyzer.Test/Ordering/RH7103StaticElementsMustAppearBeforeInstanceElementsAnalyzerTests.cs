@@ -1895,16 +1895,18 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     }
 
     /// <summary>
-    /// Verifying that a static member whose <c>static</c> modifier only some configurations compile is not reported,
-    /// because a conditional directive lies in the modifier list the rule judges
+    /// Verifying the specification example: a static member whose <c>static</c> modifier only some configurations
+    /// compile is reported without a fix in a build that compiles it as static, and nothing is reported in a build with
+    /// <c>DEBUG</c>, which compiles it as an instance field
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [DataRow("\n")]
     [DataRow("\r\n")]
+    [Requirement("RH7103-001")]
     [Requirement("SHARED-DIAG-008")]
-    public async Task StaticMemberWhoseStaticModifierAnIfSplitsIsNotReported(string endOfLine)
+    public async Task StaticMemberWhoseStaticModifierAnIfSplitsIsReportedWithoutFix(string endOfLine)
     {
         const string source = """
                               public struct S
@@ -1914,11 +1916,108 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                               #if !DEBUG
                                       static
                               #endif
-                                      int _b;
+                                      int {|RH7103:_b|};
                               }
                               """;
 
-        await Verify(WithEndOfLine(source, endOfLine));
+        await VerifyNoCodeFixIsOffered(WithEndOfLine(source, endOfLine));
+        await VerifyWithPreprocessorSymbols(WithEndOfLine(RemoveMarkup(source), endOfLine), "DEBUG");
+    }
+
+    /// <summary>
+    /// Verifying that a static member is reported, and no code fix is offered, for every shape of conditional directive
+    /// in its modifier list: the analyzer judges the modifiers the analyzed build compiles
+    /// </summary>
+    /// <param name="directives">The conditional directives, and the code they hold, between <c>private</c> and the type</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("#if FEATURE\n#endif\n        static", DisplayName = "Empty block")]
+    [DataRow("#if NEVER\n        readonly\n#endif\n        static", DisplayName = "Excluded modifier")]
+    [DataRow("#if !NEVER\n        static\n#endif", DisplayName = "Active modifier")]
+    [DataRow("#if NEVER\n        readonly\n#else\n        static\n#endif", DisplayName = "If and else")]
+    [DataRow("#if NEVER\n        readonly\n#elif !NEVER\n        static\n#endif", DisplayName = "If and elif")]
+    [DataRow("#if false\n        readonly\n#endif\n        static", DisplayName = "If false")]
+    [Requirement("RH7103-001")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task ConditionalDirectiveInTheModifierListOfAStaticMemberKeepsTheReportAndWithholdsTheFix(string directives)
+    {
+        var source = $$"""
+                       public class C
+                       {
+                           private int _a;
+                           private
+                       {{directives}}
+                               int {|RH7103:_b|};
+                       }
+                       """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that Fix All moves the static members without a conditional directive in their modifier lists and
+    /// leaves the one with such a directive reported and in place
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7103-001")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task FixAllMovesOnlyTheStaticMembersWithoutAConditionalDirectiveInTheirModifierLists()
+    {
+        const string source = """
+                              public class C
+                              {
+                                  private int _a;
+                                  private
+                              #if FEATURE
+                              #endif
+                                      static int {|RH7103:_b|};
+                              }
+
+                              public class D
+                              {
+                                  private int _c;
+                                  private static int {|RH7103:_d|};
+                              }
+
+                              public class E
+                              {
+                                  private int _e;
+                                  private static int {|RH7103:_f|};
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   public class C
+                                   {
+                                       private int _a;
+                                       private
+                                   #if FEATURE
+                                   #endif
+                                           static int {|RH7103:_b|};
+                                   }
+
+                                   public class D
+                                   {
+                                       private static int _d;
+                                       private int _c;
+                                   }
+
+                                   public class E
+                                   {
+                                       private static int _f;
+                                       private int _e;
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
     }
 
     /// <summary>

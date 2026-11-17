@@ -49,10 +49,9 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer : Diagnosti
             return;
         }
 
-        // A conditional directive in a gap of the list lets another build configuration compile other parameters
-        // (RH5109-004, SHARED-DIAG-008)
-        if (parameterList.Parameters.Count <= 1
-            || SyntaxTriviaUtilities.ContainsConditionalCompilationBoundaryInElementGaps(parameterList.Parameters.GetWithSeparators(), parameterList.CloseParenToken))
+        // The parameters are judged as the analyzed build compiles them; a conditional directive in a gap of the list
+        // does not keep it from being reported, and the fix withholds itself there (RH5109-004, SHARED-DIAG-008)
+        if (parameterList.Parameters.Count <= 1)
         {
             return;
         }

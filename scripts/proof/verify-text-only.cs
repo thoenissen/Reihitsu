@@ -1,4 +1,4 @@
-#:package Microsoft.CodeAnalysis.CSharp@5.6.0
+#:package Microsoft.CodeAnalysis.CSharp@5.12.0
 
 // Syntax-aware proof that a change carries no compiled behavior.
 //
@@ -222,7 +222,7 @@ internal static class Proof
     private static readonly string[] _nonCompiledPrefixes = [".claude/", ".github/ISSUE_TEMPLATE/", "documentation/", "plans/"];
 
     /// <summary>
-    /// Paths whose contents are executable behavior even though nothing there compiles
+    /// Paths whose contents other than Markdown are executable behavior even though nothing there compiles
     /// </summary>
     private static readonly string[] _behavioralPrefixes = ["scripts/", ".github/workflows/"];
 
@@ -597,14 +597,18 @@ internal static class Proof
     {
         var normalized = path.Replace('\\', '/');
 
-        // A behavioral prefix wins over the extension: scripts/README.md documents executable behavior and belongs to the surface the workflows audit
+        // Markdown is text wherever it lives, also under a behavioral prefix: nothing in it executes
+        if (normalized.EndsWith(".md", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
         if (_behavioralPrefixes.Any(prefix => normalized.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
         {
             return false;
         }
 
-        return normalized.EndsWith(".md", StringComparison.OrdinalIgnoreCase)
-            || _nonCompiledPrefixes.Any(prefix => normalized.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
+        return _nonCompiledPrefixes.Any(prefix => normalized.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>

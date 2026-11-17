@@ -17,6 +17,22 @@ internal static class TrailingCommaCodeFixHelper
     #region Methods
 
     /// <summary>
+    /// Determines whether a conditional-compilation directive or code such a directive excludes lies between the trailing
+    /// comma represented by the provided diagnostic span and the token behind it, so that another build can compile an
+    /// element that needs the comma (SHARED-TRAIL-002)
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="diagnosticSpan">Diagnostic span</param>
+    /// <returns><see langword="true"/> if such a directive or such code follows the comma, or the span holds no comma</returns>
+    public static bool CommaPrecedesConditionalCompilationBoundary(SyntaxNode root, TextSpan diagnosticSpan)
+    {
+        var commaToken = root.FindToken(diagnosticSpan.Start);
+
+        return commaToken.IsKind(SyntaxKind.CommaToken) == false
+               || SyntaxTriviaUtilities.ContainsConditionalCompilationBoundary(root, TextSpan.FromBounds(commaToken.Span.End, commaToken.GetNextToken().SpanStart));
+    }
+
+    /// <summary>
     /// Removes the trailing comma represented by the provided diagnostic span
     /// </summary>
     /// <param name="document">Document</param>

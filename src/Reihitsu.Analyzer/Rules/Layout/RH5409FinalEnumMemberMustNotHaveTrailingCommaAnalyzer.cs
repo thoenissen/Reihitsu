@@ -43,11 +43,5 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer : TrailingCom
         return node.Members.GetWithSeparators();
     }
 
-    /// <inheritdoc/>
-    protected override SyntaxToken GetCloseBraceToken(EnumDeclarationSyntax node)
-    {
-        return node.CloseBraceToken;
-    }
-
     #endregion // TrailingCommaAnalyzerBase
 }

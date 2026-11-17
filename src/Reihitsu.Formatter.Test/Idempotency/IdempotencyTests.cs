@@ -901,8 +901,8 @@ public class IdempotencyTests : FormatterTestsBase
                                                        var chain = Compute() // chain comment
                                                            .Continue();
 
-                                                       var sum = First() + // binary comment
-                                                           Second();
+                                                       var sum = First() // binary comment
+                                                           + Second();
                                                    }
 
                                                    private object Compute()
@@ -1244,7 +1244,7 @@ public class IdempotencyTests : FormatterTestsBase
             Assert.AreEqual(formatted, secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), $"Formatter must be idempotent under {DescribeLineEnding(endOfLine)} line endings.");
             AssertUsesLineEnding(formatted, endOfLine);
             Assert.Contains("// chain comment" + endOfLine, formatted, "The chain dot must not be collapsed into the comment.");
-            Assert.Contains("// binary comment" + endOfLine, formatted, "The binary operand must not be collapsed into the comment.");
+            Assert.Contains("// binary comment" + endOfLine, formatted, "The binary operator must not be collapsed into the comment.");
         }
     }
 

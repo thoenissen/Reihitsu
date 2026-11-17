@@ -5,7 +5,7 @@
 | ID prefix | SHARED-DIAG |
 | Status | Active |
 | Code owners | `DiagnosticAnalyzerBase`, `PartialMemberUtilities` |
-| Uses | FMT-DOC-012, FMT-UNSUP-001, FMT-UNSUP-008, RH2109-004, RH3002-010, RH5308-005, SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-010, SHARED-JOIN-001, SHARED-TRAIL-002 |
+| Uses | FMT-DOC-012, FMT-UNSUP-001, FMT-UNSUP-008, RH2109-004, RH5308-005, SHARED-FIX-003, SHARED-FIX-005, SHARED-FIX-009, SHARED-FIX-010, SHARED-JOIN-001 |
 
 This spec covers what holds for every analyzer rule, so a rule spec states only what the rule itself reports. It applies to every rule without being listed under `Uses`.
 
@@ -398,21 +398,38 @@ public static class Extensions
 
 ### SHARED-DIAG-008 — A conditional directive in the judged span
 
-A rule MUST NOT report a construct when a conditional directive — `#if`, `#elif`, `#else`, or `#endif` — or code that such a directive excludes lies inside the span the rule judges: the part of the construct its verdict is about, such as a modifier list, a declarator list, an accessor list, the gap between a trailing comma and the closing brace, or a namespace header. A conditional directive elsewhere in the construct, such as in a body the rule does not judge, MUST NOT keep the construct from being reported. A `#region`, `#endregion`, or `#pragma` directive inside the judged span MUST NOT by itself keep the construct from being reported; a rule's own requirement may still leave such a shape unreported, as SHARED-JOIN-001 does for a gap that holds a directive. For a construct that is reported, a code fix that rewrites or moves the part of the judged span that holds such a directive MUST NOT be offered; the diagnostic is still reported. A fix that leaves the directive and its line in place, such as removing the comma in front of it, stays offered. SHARED-TRAIL-002 is one instance of this requirement. RH3002-010 departs from this requirement for RH3002: it reports a parenthesized expression with a conditional directive, or code such a directive excludes, between its parentheses, and withholds the fix.
+A rule MUST judge a construct as the analyzed build compiles it, with the conditional compilation symbols that build defines. A conditional directive — `#if`, `#elif`, `#else`, or `#endif` — or code that such a directive excludes MUST NOT keep a construct from being reported, also when it lies inside the span the rule judges: the part of the construct its verdict is about, such as a modifier list, a declarator list, an accessor list, an argument list, the gap between a trailing comma and the closing brace, or a type's body. Code that such a directive excludes counts as absent; the directive itself counts as a directive line, which it is in every build. A `#region`, `#endregion`, or `#pragma` directive inside the judged span MUST NOT by itself keep the construct from being reported either. A rule's own requirement may still leave a shape that holds a directive unreported for a reason that holds in every build configuration, as SHARED-JOIN-001 does for a gap that holds a directive.
 
-Why: Behind a conditional directive, another build configuration compiles another version of the judged span — one more element, another modifier, another accessor — so a verdict on the version the analyzer sees can be wrong for the others. A directive in a part the rule does not judge cannot change its verdict. A `#region`, `#endregion`, or `#pragma` directive is the same in every configuration and adds nothing to the span, so it gives no reason of its own to stay silent; a rule may still have a reason of its own, such as a join that would have to move the directive. A fix that rewrites the part of the span around such a directive would have to drop it or move it next to other code; a fix that does not touch it cannot.
+For a construct that is reported with a directive of any kind, or code that a conditional directive excludes, inside the judged span, a code fix that rewrites or moves the part of the judged span that holds it MUST NOT be offered; the diagnostic is still reported. A fix that leaves the directive, its line, and the excluded code in place, such as removing the comma in front of a `#region`, stays offered where it keeps every build configuration intact (SHARED-FIX-003); where only working out another build could show that, it is withheld (SHARED-FIX-009), as for removing the comma in front of a conditional directive, which another build's element can need. A rule's own requirements may withhold its fix in further cases.
 
-Example — the body of an empty type is the span RH5412 judges, so a conditional block in it keeps the type from being reported:
+Why: Analyzers judge the code the current build compiles, which is the common analyzer case; the code another build compiles is judged when that build is analyzed. Staying silent wherever another build could compile another version of the judged span would leave every construct that holds such a directive unchecked in every build. A fix is different: it writes code that every build compiles. Rewriting the part of the span that holds a directive would drop the directive or move it next to other code (SHARED-FIX-003), and around a conditional directive the result would have to be right for a version of the span that only another build compiles, which no fix works out (SHARED-FIX-009). A `#region`, `#endregion`, or `#pragma` directive is the same in every build, so a fix that leaves it and its line in place keeps every build as it was.
+
+Example — the body of an empty type is the span RH5412 judges. In a build that does not define `DEBUG`, the body holds no member:
 
 ```csharp
-class A
+class {|RH5412:A|}
 {
 #if DEBUG
+    int _x;
 #endif
 }
 ```
 
-is not reported.
+is reported, and no code fix is offered.
+
+Example — a conditional directive between the modifiers that RH7105 judges:
+
+```csharp
+class C
+{
+    {|RH7105:static|}
+#if FEATURE
+#endif
+    public int Value { get; set; }
+}
+```
+
+is reported, and no code fix is offered.
 
 Example — a `#pragma` directive in the modifier list that RH7106 judges does not keep the modifier from being reported:
 
@@ -427,16 +444,25 @@ class C
 
 is reported, and no code fix is offered: the fix would rewrite the modifier list that holds the directive.
 
-Example — the conditional directive lies in the namespace's body, which RH7003 does not judge:
+Example — the `#region` and `#endregion` directives lie behind the last enum member, and RH5409's fix removes the comma in front of them and leaves them in place:
 
 ```csharp
-namespace {|RH7003:N|}
+enum E
 {
-#if DEBUG
-    class C
-    {
-    }
-#endif
+    A,
+    B{|RH5409:,|}
+#region R
+#endregion
+}
+```
+
+```csharp
+enum E
+{
+    A,
+    B
+#region R
+#endregion
 }
 ```
 
@@ -529,7 +555,7 @@ partial class D
 
 ### SHARED-DIAG-010 — A layout rule does not report a shape the formatter keeps
 
-A rule whose subject is the layout of code — its line breaks, blank lines, indentation, or spacing — and whose code fix lays the reported code out as the formatter lays it out MUST NOT report a shape that the formatter deliberately keeps as it is: a shape that a requirement of the formatter leaves unchanged, such as the text of a delimited documentation comment (FMT-DOC-012) or a gap that the formatter does not join because a comment or a directive sits in it. A shape that the formatter changes MUST be reported as the rule's own requirements state. SHARED-JOIN-001 is one instance of this requirement. RH5111 is an exception: a comment, or a `#region`, `#endregion`, or `#pragma` directive, between the target and the `=` or between the `=` and the value keeps the construct reported, although the formatter keeps that gap, as RH5111's spec states. A shape that the formatter refuses as unsupported (FMT-UNSUP-001) is not a shape it keeps: the formatter asks the user to rewrite it, so the rule reports it as its own requirements state, and its fix is withheld (SHARED-FIX-010).
+A rule whose subject is the layout of code — its line breaks, blank lines, indentation, or spacing — and whose code fix lays the reported code out as the formatter lays it out MUST NOT report a shape that the formatter deliberately keeps as it is: a shape that a requirement of the formatter leaves unchanged, such as the text of a delimited documentation comment (FMT-DOC-012) or a gap that the formatter does not join because a comment or a directive sits in it. A shape that the formatter changes MUST be reported as the rule's own requirements state. SHARED-JOIN-001 is one instance of this requirement. RH5111 is an exception: a comment or a preprocessor directive of any kind between the target and the `=` or between the `=` and the value keeps the construct reported, although the formatter keeps that gap, as RH5111's spec states. A shape that the formatter refuses as unsupported (FMT-UNSUP-001) is not a shape it keeps: the formatter asks the user to rewrite it, so the rule reports it as its own requirements state, and its fix is withheld (SHARED-FIX-010).
 
 A rule whose subject is the order or the content of code is not covered: it reports what its own requirements state, also where the formatter keeps the code as it is. A rule without a code fix that lays out the reported code as the formatter does is not covered either.
 

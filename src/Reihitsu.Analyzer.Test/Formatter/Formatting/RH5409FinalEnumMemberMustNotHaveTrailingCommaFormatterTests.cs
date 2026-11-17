@@ -68,25 +68,27 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaFormatterTests : Forma
     }
 
     /// <summary>
-    /// Verifies that the trailing comma before a conditional-compilation block carrying a further member stays
-    /// analyzer-clean and formatter-stable under LF and CRLF, since the formatter and the analyzer withhold in
-    /// lock-step
+    /// Verifies that the trailing comma before a conditional-compilation block carrying a further member is reported,
+    /// and that the formatter keeps it as written under LF and CRLF, since another build can need it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyEnumWithConditionalBlockAfterFinalMemberIsFormatterStable()
+    [Requirement("SHARED-TRAIL-002")]
+    [Requirement("SHARED-DIAG-008")]
+    [Requirement("FMT-STRUCT-019")]
+    public async Task VerifyEnumWithConditionalBlockAfterFinalMemberIsReportedAndKeptByTheFormatter()
     {
         const string input = """
                              internal enum RH5409
                              {
-                                 First,
+                                 First{|RH5409:,|}
                              #if SYMBOL
                                  Second,
                              #endif
                              }
                              """;
 
-        await VerifyFormatter(input);
+        await VerifyFormatterKeepsReportedShape(input);
     }
 
     #endregion // Tests

@@ -1,5 +1,7 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -216,25 +218,38 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
     }
 
     /// <summary>
-    /// Verifies that the trailing comma is not flagged when a conditional-compilation block carrying a further
-    /// member follows the final active member, since the formatter withholds its own removal for the same shape
+    /// Verifies that the trailing comma is reported without a code fix when a conditional-compilation block carrying a
+    /// further member follows the final active member, and that, where the symbol is defined, the comma of the member
+    /// inside the block is reported without a code fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-TRAIL-002")]
-    public async Task VerifyEnumWithConditionalBlockAfterFinalMemberIsNotFlagged()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyEnumWithConditionalBlockAfterFinalMemberIsReportedWithoutFix()
     {
-        const string testData = """
-                                internal enum RH5409
-                                {
-                                    First,
-                                #if SYMBOL
-                                    Second,
-                                #endif
-                                }
-                                """;
+        const string withoutSymbol = """
+                                     internal enum RH5409
+                                     {
+                                         First{|RH5409:,|}
+                                     #if SYMBOL
+                                         Second,
+                                     #endif
+                                     }
+                                     """;
 
-        await Verify(testData);
+        const string withSymbol = """
+                                  internal enum RH5409
+                                  {
+                                      First,
+                                  #if SYMBOL
+                                      Second{|RH5409:,|}
+                                  #endif
+                                  }
+                                  """;
+
+        await VerifyNoCodeFixIsOffered(withoutSymbol);
+        await VerifyNoCodeFixIsOffered(withSymbol, DocumentationMode.Parse, "SYMBOL");
     }
 
     /// <summary>
@@ -286,19 +301,20 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
     }
 
     /// <summary>
-    /// Verifies the specification example of a comma in front of a directive: a conditional block after the comma
-    /// keeps it from being reported, while a "#region"/"#endregion" pair does not
+    /// Verifies the specification example of a comma in front of a directive: the comma in front of a conditional
+    /// block and the comma in front of a "#region"/"#endregion" pair are both reported; the fix removes only the comma
+    /// in front of the region pair
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-TRAIL-002")]
     [Requirement("SHARED-DIAG-008")]
-    public async Task VerifySpecificationExampleReportsCommaInFrontOfRegionButNotInFrontOfConditionalBlock()
+    public async Task VerifySpecificationExampleReportsCommaInFrontOfRegionAndInFrontOfConditionalBlock()
     {
         const string testData = """
                                 enum E
                                 {
-                                    A,
+                                    A{|RH5409:,|}
                                 #if DEBUG
                                     B,
                                 #endif
@@ -315,7 +331,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
         const string fixedData = """
                                  enum E
                                  {
-                                     A,
+                                     A{|RH5409:,|}
                                  #if DEBUG
                                      B,
                                  #endif
@@ -330,7 +346,152 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat));
+        await Verify(testData,
+                     fixedData,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     },
+                     Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of the same enum in a build that defines <c>DEBUG</c>: the comma behind the
+    /// last member, in front of the <c>#endif</c>, is reported without a code fix, and the comma behind <c>A</c> is not
+    /// a trailing comma in that build
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TRAIL-002")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifySpecificationExampleReportsCommaInFrontOfEndIfWhereTheSymbolIsDefined()
+    {
+        const string testData = """
+                                enum E
+                                {
+                                    A,
+                                #if DEBUG
+                                    B{|RH5409:,|}
+                                #endif
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData, DocumentationMode.Parse, "DEBUG");
+    }
+
+    /// <summary>
+    /// Verifies the specification example of the comma written inside the branch, in front of the member that needs it:
+    /// it is not reported in a build with or without the symbol
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TRAIL-002")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifySpecificationExampleCommaInsideTheBranchIsNotReportedInEitherBuild()
+    {
+        const string testData = """
+                                enum E
+                                {
+                                    A
+                                #if DEBUG
+                                    , B
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData);
+        await VerifyWithPreprocessorSymbols(testData, "DEBUG");
+    }
+
+    /// <summary>
+    /// Verifies that the comma behind the last member of an active conditional block, in front of its <c>#endif</c>, is
+    /// reported without a code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TRAIL-002")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyCommaInFrontOfEndIfOfAnActiveBlockIsReportedWithoutFix()
+    {
+        const string testData = """
+                                enum E
+                                {
+                                    A,
+                                #if !NEVER
+                                    B{|RH5409:,|}
+                                #endif
+                                }
+                                """;
+
+        await VerifyNoCodeFixIsOffered(testData);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All removes the trailing commas in front of the closing brace and in front of a region pair and
+    /// leaves the comma in front of a conditional block reported and in place
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-TRAIL-002")]
+    [Requirement("SHARED-TRAIL-003")]
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyFixAllKeepsOnlyTheCommaInFrontOfAConditionalBlock()
+    {
+        const string testData = """
+                                enum E
+                                {
+                                    A{|RH5409:,|}
+                                #if DEBUG
+                                    B,
+                                #endif
+                                }
+
+                                enum F
+                                {
+                                    A,
+                                    B{|RH5409:,|}
+                                }
+
+                                enum G
+                                {
+                                    A{|RH5409:,|}
+                                #region R
+                                #endregion
+                                }
+                                """;
+        const string fixedData = """
+                                 enum E
+                                 {
+                                     A{|RH5409:,|}
+                                 #if DEBUG
+                                     B,
+                                 #endif
+                                 }
+
+                                 enum F
+                                 {
+                                     A,
+                                     B
+                                 }
+
+                                 enum G
+                                 {
+                                     A
+                                 #region R
+                                 #endregion
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     test =>
+                     {
+                         // The diagnostic whose fix is withheld stays and is marked in the expected source
+                         test.FixedState.MarkupHandling = MarkupMode.Allow;
+                         test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
+                     });
     }
 
     /// <summary>
@@ -367,39 +528,40 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
     }
 
     /// <summary>
-    /// Verifies that a conditional directive pair after the comma keeps it from being reported even when the pair
-    /// excludes no code
+    /// Verifies that a conditional directive pair after the comma withholds the fix, and the comma is still reported,
+    /// even when the pair excludes no code
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-TRAIL-002")]
     [Requirement("SHARED-DIAG-008")]
-    public async Task VerifyCommaInFrontOfEmptyConditionalBlockIsNotReported()
+    public async Task VerifyCommaInFrontOfEmptyConditionalBlockIsReportedWithoutFix()
     {
         const string testData = """
                                 enum E
                                 {
-                                    A,
+                                    A{|RH5409:,|}
                                 #if SYMBOL
                                 #endif
                                 }
                                 """;
 
-        await Verify(testData);
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>
-    /// Verifies that "#else" and "#elif" branches after the comma keep it from being reported
+    /// Verifies that "#else" and "#elif" branches after the comma withhold the fix, and the comma is still reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-TRAIL-002")]
-    public async Task VerifyCommaInFrontOfElseAndElifBranchesIsNotReported()
+    [Requirement("SHARED-DIAG-008")]
+    public async Task VerifyCommaInFrontOfElseAndElifBranchesIsReportedWithoutFix()
     {
         const string testData = """
                                 enum E
                                 {
-                                    A,
+                                    A{|RH5409:,|}
                                 #if SYMBOL
                                     B,
                                 #elif OTHER
@@ -409,7 +571,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
                                 }
                                 """;
 
-        await Verify(testData);
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>
@@ -552,25 +714,25 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
 
     /// <summary>
     /// Verifies that a fully inactive <c>#if false</c> block after the comma, whose excluded code lies in the gap the rule
-    /// judges, keeps the comma from being reported
+    /// judges, withholds the fix, and the comma is still reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-DIAG-008")]
     [Requirement("SHARED-TRAIL-002")]
-    public async Task VerifyCommaInFrontOfInactiveIfFalseBlockIsNotReported()
+    public async Task VerifyCommaInFrontOfInactiveIfFalseBlockIsReportedWithoutFix()
     {
         const string testData = """
                                 enum E
                                 {
-                                    A,
+                                    A{|RH5409:,|}
                                 #if false
                                     B,
                                 #endif
                                 }
                                 """;
 
-        await Verify(testData);
+        await VerifyNoCodeFixIsOffered(testData);
     }
 
     /// <summary>

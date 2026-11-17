@@ -63,14 +63,9 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzer : DiagnosticAnalyz
     /// <param name="memberDeclaration">Declaration</param>
     private void AnalyzeModifiers(SyntaxNodeAnalysisContext context, MemberDeclarationSyntax memberDeclaration)
     {
+        // The modifiers are judged as the analyzed build compiles them; a conditional directive between them does not
+        // keep the declaration from being reported, and the fix withholds itself there (RH7105-001, SHARED-DIAG-008)
         var modifiers = DeclarationModifierUtilities.GetModifiers(memberDeclaration);
-
-        // A conditional directive in front of a modifier but the first lets another build configuration compile other
-        // modifiers (RH7105-001, SHARED-DIAG-008); one behind the last modifier lies outside the judged span (SHARED-MODORDER-003)
-        if (OrderingDeclarationUtilities.HasConditionalDirectiveBetweenModifiers(memberDeclaration))
-        {
-            return;
-        }
 
         if (ModifierOrderingUtilities.TryGetRh7105Violation(modifiers, out var diagnosticToken))
         {

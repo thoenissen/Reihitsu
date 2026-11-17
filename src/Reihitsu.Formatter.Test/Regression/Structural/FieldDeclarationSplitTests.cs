@@ -914,14 +914,14 @@ public class FieldDeclarationSplitTests : FormatterTestsBase
         const string input = """
                              class C
                              {
-                                 private int _a = 1, _b = 2 + /* two */ 3, _c;
+                                 private int _a = 1, _b = 2 /* two */ + 3, _c;
                              }
                              """;
         const string expected = """
                                 class C
                                 {
                                     private int _a = 1;
-                                    private int _b = 2 + /* two */ 3;
+                                    private int _b = 2 /* two */ + 3;
                                     private int _c;
                                 }
                                 """;

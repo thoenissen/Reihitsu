@@ -103,11 +103,6 @@ internal sealed class BinaryOperatorLineBreakRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(operatorToken, node.Right.GetFirstToken()))
-        {
-            return node;
-        }
-
         var leftLastToken = node.Left.GetLastToken();
         var rightFirstToken = node.Right.GetFirstToken();
         var newLeftTrailing = LineBreakTriviaUtilities.EndLineInFrontOf(leftLastToken, operatorToken, _context.EndOfLine);

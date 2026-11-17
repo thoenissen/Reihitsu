@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.CodeFixes.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Rules.Documentation;
 using Reihitsu.Core;
 using Reihitsu.Formatter.Utilities;
@@ -25,6 +26,61 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
 public class RH8201InheritdocShouldBeUsedCodeFixProvider : ReihitsuCodeFixProviderBase
 {
     #region Methods
+
+    /// <summary>
+    /// Determines whether the interfaces of the type may differ between build configurations
+    /// </summary>
+    /// <param name="typeSymbol">Type symbol</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> if a file declaring the type or one of its source-declared interfaces contains an <c>#if</c> directive</returns>
+    /// <remarks>
+    /// The check covers whole files rather than type headers, because a conditional region can enclose a complete
+    /// declaration, supply alternative headers, or change the members and base lists of the interfaces themselves
+    /// </remarks>
+    private static bool HasConditionalInterfaces(INamedTypeSymbol typeSymbol, CancellationToken cancellationToken)
+    {
+        var syntaxTrees = typeSymbol.DeclaringSyntaxReferences
+                                    .Concat(typeSymbol.AllInterfaces.SelectMany(interfaceType => interfaceType.DeclaringSyntaxReferences))
+                                    .Select(reference => reference.SyntaxTree)
+                                    .Distinct();
+
+        foreach (var syntaxTree in syntaxTrees)
+        {
+            var root = syntaxTree.GetRoot(cancellationToken);
+
+            if (root.ContainsDirectives
+                && root.GetFirstDirective(directive => directive.IsKind(SyntaxKind.IfDirectiveTrivia)) != null)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether the fix is withheld for the member: it inherits its documentation only by implicitly
+    /// implementing an interface member, and an <c>#if</c> directive in a file that declares its type or one of the
+    /// type's interfaces may let another build configuration compile it as implementing nothing, where the replaced
+    /// documentation would be lost (RH8201-003). An override and an explicit implementation implement their member in
+    /// every configuration in which they compile
+    /// </summary>
+    /// <param name="declaration">Member declaration</param>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> if the fix is withheld</returns>
+    private static bool IsImplicitImplementationWithConditionalInterfaces(MemberDeclarationSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        if (declaration.Modifiers.Any(SyntaxKind.OverrideKeyword)
+            || DocumentationAnalysisUtilities.IsExplicitInterfaceImplementation(declaration))
+        {
+            return false;
+        }
+
+        return declaration.Parent is not TypeDeclarationSyntax typeDeclaration
+               || semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken) is not INamedTypeSymbol typeSymbol
+               || HasConditionalInterfaces(typeSymbol, cancellationToken);
+    }
 
     /// <summary>
     /// Creates the &lt;inheritdoc/&gt; trivia using the document's detected end-of-line sequence
@@ -166,8 +222,10 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : ReihitsuCodeFixProvid
     protected sealed override async Task RegisterCodeFixesCoreAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+        var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
 
-        if (root == null)
+        if (root == null
+            || semanticModel == null)
         {
             return;
         }
@@ -178,7 +236,8 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : ReihitsuCodeFixProvid
 
             var declaration = root.FindToken(diagnosticSpan.Start).Parent?.AncestorsAndSelf().OfType<MemberDeclarationSyntax>().FirstOrDefault();
 
-            if (declaration != null)
+            if (declaration != null
+                && IsImplicitImplementationWithConditionalInterfaces(declaration, semanticModel, context.CancellationToken) == false)
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH8201Title,
                                                           cancellationToken => ApplyCodeFixAsync(context.Document, declaration, cancellationToken),

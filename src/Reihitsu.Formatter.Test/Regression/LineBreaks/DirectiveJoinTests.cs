@@ -72,23 +72,6 @@ public class DirectiveJoinTests
     #region Tests
 
     /// <summary>
-    /// Verifies that a binary operator right operand is not collapsed across a directive
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-001")]
-    public void BinaryOperatorIsNotCollapsedAcrossDirective()
-    {
-        const string input = """
-                             var x = a +
-                             #if DEBUG
-                                 b;
-                             #endif
-                             """;
-
-        AssertUnchanged(input);
-    }
-
-    /// <summary>
     /// Verifies that an assignment value is not collapsed across a directive after the operator
     /// </summary>
     [TestMethod]

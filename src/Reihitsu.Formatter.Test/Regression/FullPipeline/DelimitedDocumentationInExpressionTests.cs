@@ -6,8 +6,9 @@ namespace Reihitsu.Formatter.Test.Regression.FullPipeline;
 
 /// <summary>
 /// Full-pipeline tests for delimited documentation comments written behind an operator inside an expression: behind the
-/// <c>?</c> or <c>:</c> of a conditional expression, which the formatter refuses as unsupported (FMT-UNSUP-008), and behind
-/// other operators, where the operator stays at the end of the line in front of the moved comment
+/// <c>?</c> or <c>:</c> of a conditional expression, which the formatter refuses as unsupported (FMT-UNSUP-008), behind a
+/// binary operator, which it refuses as unsupported as well (FMT-UNSUP-011), and behind other operators, where the operator stays
+/// at the end of the line in front of the moved comment
 /// </summary>
 [TestClass]
 public class DelimitedDocumentationInExpressionTests : FormatterTestsBase
@@ -395,13 +396,13 @@ public class DelimitedDocumentationInExpressionTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a delimited documentation comment behind a <c>+</c> starts a new line and the operator stays at
-    /// the end of the line in front of it
+    /// Verifies that a delimited documentation comment behind a <c>+</c> is a comment between a binary operator and its right
+    /// operand: the input is refused as unsupported, and the comment is reported
     /// </summary>
     [TestMethod]
-    public void MovesDelimitedDocumentationBehindAdditionOperator()
+    [Requirement("FMT-UNSUP-011")]
+    public void DelimitedDocumentationBehindAdditionOperatorIsUnsupported()
     {
-        // Arrange
         const string input = """
                              internal class C
                              {
@@ -413,35 +414,18 @@ public class DelimitedDocumentationInExpressionTests : FormatterTestsBase
                                  internal int N(int x, int y) => x;
                              }
                              """;
-        const string expected = """
-                                internal class C
-                                {
-                                    internal int M(int a, int b, int? n)
-                                    {
-                                        return a +
 
-                                        /** d */ b;
-                                    }
-
-                                    internal int N(int x, int y)
-                                    {
-                                        return x;
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(BinaryOperatorCommentReason, input, "/** d */");
     }
 
     /// <summary>
-    /// Verifies that a delimited documentation comment behind a <c>??</c> starts a new line and the operator stays at
-    /// the end of the line in front of it
+    /// Verifies that a delimited documentation comment behind a <c>??</c> is a comment between a binary operator and its right
+    /// operand: the input is refused as unsupported, and the comment is reported
     /// </summary>
     [TestMethod]
-    public void MovesDelimitedDocumentationBehindCoalesceOperator()
+    [Requirement("FMT-UNSUP-011")]
+    public void DelimitedDocumentationBehindCoalesceOperatorIsUnsupported()
     {
-        // Arrange
         const string input = """
                              internal class C
                              {
@@ -453,35 +437,18 @@ public class DelimitedDocumentationInExpressionTests : FormatterTestsBase
                                  internal int N(int x, int y) => x;
                              }
                              """;
-        const string expected = """
-                                internal class C
-                                {
-                                    internal int M(int a, int b, int? n)
-                                    {
-                                        return n ??
 
-                                        /** d */ b;
-                                    }
-
-                                    internal int N(int x, int y)
-                                    {
-                                        return x;
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(BinaryOperatorCommentReason, input, "/** d */");
     }
 
     /// <summary>
-    /// Verifies that a delimited documentation comment behind a <c>&amp;&amp;</c> starts a new line and the operator
-    /// stays at the end of the line in front of it
+    /// Verifies that a delimited documentation comment behind a <c>&amp;&amp;</c> is a comment between a binary operator and its right
+    /// operand: the input is refused as unsupported, and the comment is reported
     /// </summary>
     [TestMethod]
-    public void MovesDelimitedDocumentationBehindConditionalAndOperator()
+    [Requirement("FMT-UNSUP-011")]
+    public void DelimitedDocumentationBehindConditionalAndOperatorIsUnsupported()
     {
-        // Arrange
         const string input = """
                              internal class C
                              {
@@ -494,27 +461,8 @@ public class DelimitedDocumentationInExpressionTests : FormatterTestsBase
                                  internal int N(int x, int y) => x;
                              }
                              """;
-        const string expected = """
-                                internal class C
-                                {
-                                    internal int M(int a, int b, int? n)
-                                    {
-                                        var t = a > 0 &&
 
-                                        /** d */ b > 0;
-
-                                        return a;
-                                    }
-
-                                    internal int N(int x, int y)
-                                    {
-                                        return x;
-                                    }
-                                }
-                                """;
-
-        // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(BinaryOperatorCommentReason, input, "/** d */");
     }
 
     /// <summary>

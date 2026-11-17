@@ -104,7 +104,7 @@ fi
 
 checker_exit_code=0
 
-printf '%s\n' "$changes" | dotnet run "$repository_root/scripts/lane-check/lane-check.cs" --verbosity quiet --property Configuration=Debug --property NoWarn=RH0002 -- --lane "$lane" --text-only "$text_only" || checker_exit_code=$?
+printf '%s\n' "$changes" | dotnet run "$repository_root/scripts/lane-check/lane-check.cs" --verbosity quiet -- --lane "$lane" --text-only "$text_only" || checker_exit_code=$?
 
 case "$checker_exit_code" in
     0) exit 0 ;;

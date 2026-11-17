@@ -151,50 +151,6 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Determines whether a conditional directive — <c>#if</c>, <c>#elif</c>, <c>#else</c>, or <c>#endif</c> — or code
-    /// that such a directive excludes lies inside the declaration's modifier list or between its last modifier and the
-    /// token behind it, so that another build configuration compiles other modifiers (SHARED-DIAG-008)
-    /// </summary>
-    /// <param name="memberDeclaration">Declaration</param>
-    /// <returns><see langword="true"/> if a conditional directive splits the modifiers</returns>
-    public static bool HasModifiersSplitByConditionalDirective(MemberDeclarationSyntax memberDeclaration)
-    {
-        var modifiers = DeclarationModifierUtilities.GetModifiers(memberDeclaration);
-
-        if (modifiers.Count == 0)
-        {
-            return false;
-        }
-
-        var span = TextSpan.FromBounds(modifiers.First().SpanStart, modifiers.Last().GetNextToken().SpanStart);
-
-        return SyntaxTriviaUtilities.ContainsConditionalCompilationBoundary(memberDeclaration, span);
-    }
-
-    /// <summary>
-    /// Determines whether a conditional directive — <c>#if</c>, <c>#elif</c>, <c>#else</c>, or <c>#endif</c> — or code
-    /// that such a directive excludes lies in front of a modifier of the declaration but its first, so that another
-    /// build configuration compiles other modifiers in another order (SHARED-DIAG-008). Unlike
-    /// <see cref="HasModifiersSplitByConditionalDirective"/>, the gap behind the last modifier is not judged
-    /// (SHARED-MODORDER-003), and neither is the gap in front of the first modifier
-    /// </summary>
-    /// <param name="memberDeclaration">Declaration</param>
-    /// <returns><see langword="true"/> if a conditional directive stands between two modifiers</returns>
-    public static bool HasConditionalDirectiveBetweenModifiers(MemberDeclarationSyntax memberDeclaration)
-    {
-        var modifiers = DeclarationModifierUtilities.GetModifiers(memberDeclaration);
-
-        if (modifiers.Count < 2)
-        {
-            return false;
-        }
-
-        var span = TextSpan.FromBounds(modifiers.First().SpanStart, modifiers.Last().SpanStart);
-
-        return SyntaxTriviaUtilities.ContainsConditionalCompilationBoundary(memberDeclaration, span);
-    }
-
-    /// <summary>
     /// Gets the preferred diagnostic location for a declaration
     /// </summary>
     /// <param name="memberDeclaration">Declaration</param>
