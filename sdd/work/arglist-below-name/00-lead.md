@@ -23,6 +23,7 @@
 | 5 | implementer | New type `ArgumentListLineStartRewriter` as the one owner of the gap | Accept | It implements the issue's own fix and decision 3; not a structural change under escalation 9 | Internal structure | 993f700 |
 | 6 | implementer | `AGENTS.md` phase-table edit made by the implementer | Keep; the spec checker verifies it | The table must name the new owner; one-line text change | Repository instructions only | 993f700 |
 | 7 | spec checker | Repair round 1: `ArgumentListLineStartRewriter` missing from code owners (line-breaks.md header, specs/README.md) | Route to spec author; skip the cleaner for this text-only repair, re-run spec checker | Same requirement, PR-introduced | Spec metadata only | ba51961 |
+| 8 | audit repair | Other FMT-BREAK-020 joins inside nested constructs (`Baz($"{x.⏎ToString()}", 2)`) still run after the list layout (12-spec-author) | Dropped, not a follow-up | Rare input class (line break inside a member access inside an interpolation hole inside an argument) | Not changed by the run; main's output kept | — |
 
 ## Follow-up candidates
 
@@ -44,4 +45,4 @@
 - Spec checker 10 (a4e0856): consistent. main up to date; Release build green.
 - Auditor 11 spawned on head a4e0856, main eb89003.
 - Auditor 11 (86552ab): 1 finding, undecided output (list collapsing to one line when the only break was an argument-list gap inside an interpolation hole / query clause / array or stackalloc initializer). Asked as OQ 5 (A one line = branch, B one argument per line = main for chain member).
-- Answer: 5A. Repair round 1 (audit) in progress: spec author (doc + false statements), test implementer (lock answer), implementer if B; cleaner, spec checker, auditor on repair; then validator, issue manager (F1, F2, F3, F5), note, publish.
+- Answer: 5A. Spec author 12 (d8c5fb6) done. Repair round 1 (audit) in progress, next test implementer 13: spec author (doc + false statements), test implementer (lock answer), implementer if B; cleaner, spec checker, auditor on repair; then validator, issue manager (F1, F2, F3, F5), note, publish.
