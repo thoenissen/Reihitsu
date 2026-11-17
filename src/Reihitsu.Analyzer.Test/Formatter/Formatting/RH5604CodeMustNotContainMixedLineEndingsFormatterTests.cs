@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Analyzer.Test.Base;
 using Reihitsu.Formatter;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 
@@ -171,6 +172,8 @@ public class RH5604CodeMustNotContainMixedLineEndingsFormatterTests : FormatterT
         var secondTree = ReihitsuFormatter.FormatSyntaxTree(firstTree, CancellationToken.None).Output;
 
         Assert.AreEqual(firstTreeText, (await secondTree.GetRootAsync(CancellationToken.None)).ToFullString());
+
+        PhaseStabilityCheck.AssertNoPhaseChanges(firstTree);
     }
 
     /// <summary>
@@ -201,6 +204,8 @@ public class RH5604CodeMustNotContainMixedLineEndingsFormatterTests : FormatterT
         var secondTree = ReihitsuFormatter.FormatSyntaxTree(firstTree, CancellationToken.None).Output;
 
         Assert.AreEqual(firstTreeText, (await secondTree.GetRootAsync(CancellationToken.None)).ToFullString());
+
+        PhaseStabilityCheck.AssertNoPhaseChanges(firstTree);
 
         var root = await CSharpSyntaxTree.ParseText(input, cancellationToken: CancellationToken.None).GetRootAsync(CancellationToken.None);
         var firstNodeText = ReihitsuFormatter.FormatNode(root, cancellationToken: CancellationToken.None).Output.ToFullString();
