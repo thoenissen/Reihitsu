@@ -3675,6 +3675,96 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                      });
     }
 
+    /// <summary>
+    /// Verifies the specification example through the code fix and Fix All: a line break behind the type and a line break
+    /// between two modifiers are repeated in every field the fix creates, and a line break behind a <c>,</c> stands in no
+    /// field, under LF and CRLF line endings
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-021")]
+    [Requirement("RH7101-004")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task FixRepeatsLineBreaksInsideAndBehindTheHeadInEveryField(string endOfLine)
+    {
+        const string source = """
+                              using System;
+                              using System.Collections.Generic;
+
+                              class C
+                              {
+                                  private Dictionary<string, List<int>>
+                                      _map1, {|RH7101:_map2|} = new();
+
+                                  private static
+                                      readonly int _g = 1, {|RH7101:_h|};
+
+                                  [NonSerialized]
+                                  private int _x,
+                                      {|RH7101:_y|};
+                              }
+                              """;
+        const string fixedSource = """
+                                   using System;
+                                   using System.Collections.Generic;
+
+                                   class C
+                                   {
+                                       private Dictionary<string, List<int>>
+                                       _map1;
+                                       private Dictionary<string, List<int>>
+                                       _map2 = new();
+
+                                       private static
+                                       readonly int _g = 1;
+                                       private static
+                                       readonly int _h;
+
+                                       [NonSerialized]
+                                       private int _x;
+                                       [NonSerialized]
+                                       private int _y;
+                                   }
+                                   """;
+
+        await Verify(ConvertEndOfLine(source, endOfLine), ConvertEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix repeats a line break behind the type in every field it creates, with the first declarator on a
+    /// deeper column, and writes every line break as the document's line ending
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("FMT-STRUCT-021")]
+    [Requirement("RH7101-004")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task FixRepeatsALineBreakBehindTheTypeInEveryField(string endOfLine)
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  private int
+                                      _g, {|RH7101:_h|};
+                              }
+                              """;
+        const string fixedSource = """
+                                   internal class TestClass
+                                   {
+                                       private int
+                                       _g;
+                                       private int
+                                       _h;
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
     #endregion // Tests
 
     #region Methods
