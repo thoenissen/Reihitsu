@@ -31,4 +31,5 @@ None yet.
 ## Open worklist / next step
 
 - Skeptic done (f65198d): proceed narrower, no output questions, no architecture findings.
-- Next: test implementer (equivalence tests + measured reproduction).
+- Test implementer done (f75732b): reproduced by measurement (probe in scratchpad), 16 equivalence tests green on unchanged code.
+- Next: implementer.
