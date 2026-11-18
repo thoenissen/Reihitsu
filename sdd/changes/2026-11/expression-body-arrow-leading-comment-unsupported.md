@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | FMT-UNSUP-013 (added), FMT-UNSUP-012 (changed: the gap in front of the `=>` is FMT-UNSUP-013's, and its example of the supported side loses the comments in front of the `=>`), FMT-STRUCT-006 (changed: no comment in front of the arrow to place), FMT-STRUCT-007 (changed: a region directive in the arrow's leading trivia is refused instead), FMT-STRUCT-015 (changed: the seams behind `get` and in front of the getter's arrow are refused instead), FMT-STRUCT-026 (changed: wording), SHARED-BODY-001 (changed: names the region directive in the leading trivia of `=>` and the comment in front of `=>`), SHARED-BODY-003 (changed: a comment, directive, or disabled text in front of `=>` withholds the fix), RH5401-004 (changed: a comment or directive in front of the `=>` withholds the fix through the precheck), RH7101-007 (changed: FMT-UNSUP-013 withholds the fix as well) |
 | Depends on | [The formatter's Unsupported outcome](unsupported-precheck.md), [Declaring a shape unsupported is a refusal](unsupported-shape-as-refusal.md), [A comment or directive behind the arrow of an expression body is unsupported](expression-body-arrow-comment-unsupported.md) |
@@ -581,7 +581,12 @@ No rule page changes: the fixes above lose their action only for the refused sha
 
 ### Declare the shape, in this change (maintainer, escalation 10)
 
-The maintainer decided before this run to declare a comment, directive, or disabled text between the `=>` of an expression body and the code in front of it unsupported, in a change of its own, with the span the issue gives: the trailing trivia of the token in front of the `=>` and the leading trivia of the `=>`. This change is that declaration.
+The maintainer decided before this run to declare a comment, directive, or disabled text between the `=>` of an expression body and the code in front of it unsupported, in a change of its own, with the span the issue gives: the trailing trivia of the token in front of the `=>` and the leading trivia of the `=>`. This change is that declaration. Changes 1–11 lie inside that span — comments, directives, and disabled text in either trivia list, for every owner the issue lists — so the run did not ask them again.
+
+The run asked the two places the issue did not settle, and the maintainer chose each as recommended:
+
+- A conditional group around the signature, a constraint clause, or a property's type that closes directly in front of a shared `=>` (change 12) is part of the shape: the formatter refuses it, RH3202's fix and every other fix that formats such a member are withheld, and RH3202 and RH5401 keep reporting the member. It is declared in this change, not in one of its own.
+- The reason the CLI reports is `a comment or directive between the arrow of an expression body and the code in front of it`, not the issue's wording `a comment or directive between an expression body's arrow and the code in front of it`, because it pairs with FMT-UNSUP-012's reason, `a comment or directive between the arrow of an expression body and its expression`.
 
 ### The same expression bodies as FMT-UNSUP-012
 
@@ -593,7 +598,7 @@ The gap ends at the last token of what the arrow clause follows. A comment above
 
 ### Directives and disabled text belong to the shape
 
-The join refusal of the line-break phase and the seam checks of the get-only lift test the gap for comments, directives, and disabled text alike, so a shape of comments alone would delete neither. The cost is changes 9 and 12: a property or method whose arrow a conditional group chooses, a region directive in front of the arrow, and a conditional group around the signature or a constraint clause that closes in front of a shared arrow, which the formatter and RH3202's fix converted well before.
+The join refusal of the line-break phase and the seam checks of the get-only lift test the gap for comments, directives, and disabled text alike, so a shape of comments alone would delete neither. The cost is changes 9 and 12: a property or method whose arrow a conditional group chooses, a region directive in front of the arrow, and a conditional group around the signature or a constraint clause that closes in front of a shared arrow, which the formatter and RH3202's fix converted well before. The maintainer accepted that cost for change 12 (*Declare the shape, in this change*); the same choice written around the whole member stays supported.
 
 ### Also on one line
 
@@ -648,4 +653,6 @@ RH5401's fix still formats the property and compares, because that decides the w
 - **Only a gap with a line break** — rejected: the get-only lift would keep its check of the trivia behind `get` for `get /* c */ => _v;`, and the boundary would differ from FMT-UNSUP-008, FMT-UNSUP-011, and FMT-UNSUP-012.
 - **Members and accessors only, as RH5040 reports, not local functions** — rejected: the conversion of a local function runs through the same code, which would keep the comment move for it alone.
 - **Also the arrow of a lambda and of a switch-expression arm** — rejected: nothing would be deleted for them.
+- **Leave a conditional group that closes in front of a shared `=>` out of the shape** (change 12) — rejected by the maintainer: the join refusal and the get-only lift's seam checks test directives as they test comments, so they would stay.
+- **The issue's reason wording, `a comment or directive between an expression body's arrow and the code in front of it`** — rejected by the maintainer: FMT-UNSUP-012's reason says "the arrow of an expression body", and the two reasons read as a pair.
 - **Stop RH5401 reporting a property with a comment or directive in front of the arrow** — not chosen: SHARED-DIAG-010 asks a layout rule to report a shape the formatter refuses as unsupported, so the report stays and only its fix is withheld, as before.
