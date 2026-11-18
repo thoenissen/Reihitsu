@@ -84,22 +84,6 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Returns the pending replacement recorded for a token, or the token itself when none exists. Several rules may
-    /// touch the same token — one clears its leading trivia, another its trailing trivia — so every rule composes on the
-    /// pending token instead of letting the last writer discard an earlier edit
-    /// </summary>
-    /// <param name="token">The original token to look up</param>
-    /// <param name="replacements">The token replacement map built so far</param>
-    /// <returns>The pending replacement, or <paramref name="token"/> when it has not been replaced</returns>
-    private static SyntaxToken GetPendingToken(SyntaxToken token,
-                                               Dictionary<SyntaxToken, SyntaxToken> replacements)
-    {
-        return replacements.TryGetValue(token, out var pending)
-                   ? pending
-                   : token;
-    }
-
-    /// <summary>
     /// Determines whether the gap between two adjacent tokens holds a line break: an end-of-line trivia, or the line break
     /// that ends a <c>///</c> comment, a directive, or disabled text (<see cref="SyntaxTriviaUtilities.AreSeparatedByEndOfLine"/>)
     /// </summary>
@@ -196,16 +180,16 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Closes the gap between two adjacent tokens: their line breaks and the whitespace around them are removed, and the
-    /// gap holds the minimal separator (FMT-BREAK-031). A gap that holds a comment, a preprocessor directive or disabled
-    /// text is left untouched
+    /// Selects the gap between two adjacent tokens for closing when it holds a line break: the gap is then joined by
+    /// <see cref="LineBreakTriviaUtilities.JoinGaps"/>, which writes the minimal separator (FMT-BREAK-031). A gap that holds a comment, a preprocessor directive or disabled
+    /// text is not selected and is left untouched
     /// </summary>
     /// <param name="previousToken">The token in front of the gap</param>
     /// <param name="nextToken">The token behind the gap</param>
-    /// <param name="replacements">The token replacement map to populate</param>
+    /// <param name="gaps">The gaps to join</param>
     private static void CloseGap(SyntaxToken previousToken,
                                  SyntaxToken nextToken,
-                                 Dictionary<SyntaxToken, SyntaxToken> replacements)
+                                 List<(SyntaxToken PreviousToken, SyntaxToken Token)> gaps)
     {
         if (HasLineBreak(previousToken, nextToken) == false
             || LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, nextToken))
@@ -213,23 +197,21 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
             return;
         }
 
-        var pendingPrevious = GetPendingToken(previousToken, replacements);
-
-        replacements[previousToken] = pendingPrevious.WithTrailingTrivia(LineBreakTriviaUtilities.CreateJoinedTrailingTrivia(pendingPrevious, nextToken));
-        replacements[nextToken] = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(GetPendingToken(nextToken, replacements));
+        gaps.Add((previousToken, nextToken));
     }
 
     /// <summary>
-    /// Closes the gaps between consecutive tokens of an operator or attached part, except gaps that hold blocking trivia
+    /// Selects the gaps between consecutive tokens of an operator or attached part for closing, except gaps that hold
+    /// blocking trivia
     /// </summary>
     /// <param name="tokens">The tokens in source order</param>
-    /// <param name="replacements">The token replacement map to populate</param>
+    /// <param name="gaps">The gaps to join</param>
     private static void CloseInnerGaps(IReadOnlyList<SyntaxToken> tokens,
-                                       Dictionary<SyntaxToken, SyntaxToken> replacements)
+                                       List<(SyntaxToken PreviousToken, SyntaxToken Token)> gaps)
     {
         for (var tokenIndex = 1; tokenIndex < tokens.Count; tokenIndex++)
         {
-            CloseGap(tokens[tokenIndex - 1], tokens[tokenIndex], replacements);
+            CloseGap(tokens[tokenIndex - 1], tokens[tokenIndex], gaps);
         }
     }
 
@@ -248,7 +230,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
+        var gaps = new List<(SyntaxToken PreviousToken, SyntaxToken Token)>();
 
         foreach (var attachedPart in chain.AttachedParts)
         {
@@ -257,59 +239,41 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
                 continue;
             }
 
-            CloseGap(attachedPart.FirstToken.GetPreviousToken(), attachedPart.FirstToken, replacements);
-            CloseInnerGaps(attachedPart.Tokens, replacements);
+            CloseGap(attachedPart.FirstToken.GetPreviousToken(), attachedPart.FirstToken, gaps);
+            CloseInnerGaps(attachedPart.Tokens, gaps);
         }
 
-        return Replace(node, replacements);
-    }
-
-    /// <summary>
-    /// Applies the recorded token replacements to a node
-    /// </summary>
-    /// <param name="node">The node</param>
-    /// <param name="replacements">The token replacements</param>
-    /// <returns>The node with the replacements applied</returns>
-    private static SyntaxNode Replace(SyntaxNode node, Dictionary<SyntaxToken, SyntaxToken> replacements)
-    {
-        if (replacements.Count == 0)
-        {
-            return node;
-        }
-
-        return node.ReplaceTokens(replacements.Keys, (original, _) => replacements[original]);
+        return LineBreakTriviaUtilities.JoinGaps(node, gaps);
     }
 
     /// <summary>
     /// Ensures a line break in front of a token. An existing line break in the gap is kept as it is; otherwise one is
-    /// appended to the previous token's trailing trivia, behind any block comment that sits there. A token behind the
-    /// closing line of a multi-line comment does not start its line although the gap holds a line break, so a line break
-    /// is appended to its leading trivia, behind that comment
+    /// appended to the previous token's trailing trivia, behind any block comment that sits there
+    /// (<see cref="LineBreakTriviaUtilities.EndLineInFrontOf"/>). A token behind the closing line of a multi-line comment
+    /// does not start its line although the gap holds a line break, so a line break is appended to its leading trivia,
+    /// behind that comment. Each edit is computed from the original token and writes only the trailing trivia of the
+    /// token in front of a link operator or the leading trivia of the operator, a side no gap the chain closes writes
     /// </summary>
     /// <param name="previousToken">The token in front of the gap</param>
     /// <param name="nextToken">The token that must start a line</param>
-    /// <param name="replacements">The token replacement map to populate</param>
+    /// <param name="edits">The line-break edits to populate, keyed by original token</param>
     private void EnsureLineBreak(SyntaxToken previousToken,
                                  SyntaxToken nextToken,
-                                 Dictionary<SyntaxToken, SyntaxToken> replacements)
+                                 Dictionary<SyntaxToken, SyntaxToken> edits)
     {
         if (HasLineBreak(previousToken, nextToken))
         {
             if (IsBehindMultiLineCommentTail(nextToken))
             {
-                var pendingNext = GetPendingToken(nextToken, replacements);
-                var leadingTrivia = LineBreakTriviaUtilities.RemoveTrailingWhitespace(pendingNext.LeadingTrivia);
+                var leadingTrivia = LineBreakTriviaUtilities.RemoveTrailingWhitespace(nextToken.LeadingTrivia);
 
-                replacements[nextToken] = pendingNext.WithLeadingTrivia(LineBreakTriviaUtilities.AppendEndOfLine(leadingTrivia, _context.EndOfLine));
+                edits[nextToken] = nextToken.WithLeadingTrivia(LineBreakTriviaUtilities.AppendEndOfLine(leadingTrivia, _context.EndOfLine));
             }
 
             return;
         }
 
-        var pendingPrevious = GetPendingToken(previousToken, replacements);
-        var trailingTrivia = LineBreakTriviaUtilities.RemoveTrailingWhitespace(pendingPrevious.TrailingTrivia);
-
-        replacements[previousToken] = pendingPrevious.WithTrailingTrivia(LineBreakTriviaUtilities.AppendEndOfLine(trailingTrivia, _context.EndOfLine));
+        edits[previousToken] = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.EndLineInFrontOf(previousToken, nextToken, _context.EndOfLine));
     }
 
     /// <summary>
@@ -326,14 +290,15 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
             return JoinConditionalElementAccesses(node);
         }
 
-        var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
+        var gaps = new List<(SyntaxToken PreviousToken, SyntaxToken Token)>();
+        var lineBreakEdits = new Dictionary<SyntaxToken, SyntaxToken>();
 
         // A member name split from its dot is rejoined, and an attached part joins the element in front of it. Neither
         // gap is a wrap, so a line break that blocking trivia keeps there does not affect the chain's layout. The gap in
         // front of an argument list is ArgumentListLineStartRewriter's, which has joined it before this rewriter runs.
         foreach (var link in chain.Links)
         {
-            CloseGap(link.DotToken, link.Name.GetFirstToken(), replacements);
+            CloseGap(link.DotToken, link.Name.GetFirstToken(), gaps);
         }
 
         foreach (var attachedPart in chain.AttachedParts)
@@ -343,22 +308,24 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
                 continue;
             }
 
-            CloseGap(attachedPart.FirstToken.GetPreviousToken(), attachedPart.FirstToken, replacements);
-            CloseInnerGaps(attachedPart.Tokens, replacements);
+            CloseGap(attachedPart.FirstToken.GetPreviousToken(), attachedPart.FirstToken, gaps);
+            CloseInnerGaps(attachedPart.Tokens, gaps);
         }
 
         // Link operators are never split. A line break in front of or inside an operator is the user's wrap.
         foreach (var link in chain.Links)
         {
-            CloseInnerGaps(link.OperatorTokens, replacements);
+            CloseInnerGaps(link.OperatorTokens, gaps);
         }
 
+        // Every layout decision reads the tree before the joins, and the joins and the line-break edits apply in one
+        // rewrite, so no token has to be found again in a rewritten tree.
         if (chain.IsWrapped)
         {
-            ApplyWrappedLayout(chain, replacements);
+            ApplyWrappedLayout(chain, gaps, lineBreakEdits);
         }
 
-        return Replace(node, replacements);
+        return LineBreakTriviaUtilities.JoinGaps(node, gaps, lineBreakEdits);
     }
 
     /// <summary>
@@ -366,9 +333,11 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     /// later link are those <see cref="GetWrappedLayoutLineBreaks"/> decides
     /// </summary>
     /// <param name="chain">The chain</param>
-    /// <param name="replacements">The token replacement map to populate</param>
+    /// <param name="gaps">The gaps to join</param>
+    /// <param name="lineBreakEdits">The line-break edits to populate, keyed by original token</param>
     private void ApplyWrappedLayout(FluentChain chain,
-                                    Dictionary<SyntaxToken, SyntaxToken> replacements)
+                                    List<(SyntaxToken PreviousToken, SyntaxToken Token)> gaps,
+                                    Dictionary<SyntaxToken, SyntaxToken> lineBreakEdits)
     {
         var lineBreaks = GetWrappedLayoutLineBreaks(chain);
 
@@ -379,11 +348,11 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
 
             if (linkIndex == 0)
             {
-                CloseGap(previousToken, operatorToken, replacements);
+                CloseGap(previousToken, operatorToken, gaps);
             }
             else if (lineBreaks[linkIndex])
             {
-                EnsureLineBreak(previousToken, operatorToken, replacements);
+                EnsureLineBreak(previousToken, operatorToken, lineBreakEdits);
             }
         }
     }
