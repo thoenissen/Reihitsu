@@ -26,7 +26,7 @@
 | 3 | Skeptic | Architecture finding: `ListElementInteriorJoinRewriter` (before list layout) and `ChainLineBreakRewriter` (after) both join attached parts | Change the structure in this run: FMT-BREAK-040 is the one owner and the join runs before list layout; no third partial join site | The narrow fix would add a third copy; within the line-break phase the run already changes | Output effects are change doc change 3, asked as an output question | — |
 | 4 | Skeptic | FMT-BREAK-040 does not exclude the implicit element access (`["a"] = 1` in initializers), `new[]`, or `stackalloc[]` | Spec-author amendment: exclude them and add a keep-as-is example | They are not attached parts; read literally, the spec would join common code | The amendment keeps today's output | 28dda88 |
 | 5 | Skeptic | The issue's goals: the root-column goal and the owner hint | Root column → output question 6; owner hint dropped | Agent-filed proposals | The root column is asked as an output question | — |
-| 6 | Spec author (04) | The CLI prefix in the change doc examples (`Error:` vs `error:`) | Use what the CLI prints today | Examples must be real output | Doc text only; no CLI change | 476ec37 |
+| 6 | Spec author (04), test implementer (07) | The CLI prefix in the change doc examples | Use what the CLI prints today, which is `error:` in lower case (07 found that 04's `Error:` is wrong); the correction goes to the spec author with the next docs round | Examples must be real output | Doc text only; no CLI change | pending |
 | 7 | Skeptic (05) | RH5112's fix also becomes withheld under FMT-UNSUP-014 (`return items // element⏎?[0]⏎.ToString();`) | Add it to change 7, with a test that locks the withheld fix | A consequence of the declaration answer 6 | Covered by answer 6 (the declaration withholds every fix whose formatted node holds the shape) | 20d383b |
 | 2 | Spec author | Follow the issue's owner hint (`JoinConditionalElementAccesses`, `NormalizeChain`)? | No; no code owner is prescribed | Agent-filed proposal; the implementer picks the owner | Internal | e13cde4 |
 
@@ -49,7 +49,9 @@
 - Spec author 04 done (476ec37): FMT-UNSUP-014, which deletes the `ArgumentListLineStartRewriter.CanJoin` trivia term and the `MethodChainAttachedPart` column. Open for the next batch: (a) a same-line comment in the gap (spec refuses it, recommendation A); (b) escalation 10: also declare the gap between `?` and `[` (would delete the remaining inner-gap refusal).
 - Skeptic 05 done (720a2cf): the declaration is sound. Batch 2 asked: (a) same-line comment, incl. the FMT-SPACE-028 conflict `[with /* size */ (4)]`; (b) escalation 10 for the `?`–`[` gap. ANSWERED (1A, 2A).
 - Spec author 06 done (20d383b): spec complete, no open questions.
-- Next: test implementer (07).
+- Test implementer 07 done (edf68c7): new tests fail for the specified reason; architecture is green.
+- Open docs item: correct `Error:` → `error:` in the change doc (decision 6), routed with the spec checker's findings.
+- Next: implementer (08).
 - Old: spec author (06) applies (a), (b), RH5112 in change 7, and the FMT-UNSUP-014 wording; then the test implementer.
 - Old: fresh skeptic (05), then ask (a) and (b) with any skeptic questions, then the test implementer.
 - Old: spec author (04) writes the declaration and Decisions, and sets Status Accepted; then a fresh skeptic (05) on the declaration; then the test implementer.
