@@ -12,6 +12,7 @@
 
 - Batch 1 (Q1–Q8 of 01-spec-author/02-skeptic): 1A (limits in `reihitsu.json` `design` section, validated by RH0001; RH8402 no longer silenced by a valid `design` section), **2B** (built-in default limits apply when no limit is configured — not inactive), 3A (nested code counts toward the container), 4A (RH2008 / RH2111, titles and messages as drafted, operator token / accessor keyword location), 5A (unions judged, enums not), 6A (each accessor on its own), 7A (initializer lambdas not judged), 8A (strict whole-number validation 1..2147483647, unknown setting reported).
 - Batch 2: **9B** (defaults 60 lines per method-like member, 500 per type), **10A** (every line of a multi-line string literal counts), **11A amended**: both rules are turned off for this repository's own build (`Release.ruleset`, `Debug.ruleset`) **and must also be ignored by the self-hosting scans (`Reihitsu.SelfHosting.Test`)**; a follow-up issue decides the repository's own limits or refactors.
+- 03-spec-author (37d7350) and 04-skeptic (247ae19) done; batch 3 (Q12 as redrafted by 04-skeptic with option D, Q13–Q16 from 03-spec-author with the skeptic's heading fixes) posted; waiting.
 - New maintainer requirement (with batch 2): the rules must distinguish production code from test code and have separate limits for each. Pending: the spec author designs it and drafts output questions (how test code is recognized, default test limits, configuration keys, RH0001 validation); then batch 3.
 - Earlier: the maintainer asked which default values to use: what limits would work in this repository. Pending: measure the method and type line counts of this repository under the spec's counting definition and propose defaults as a follow-up output question.
 
@@ -21,10 +22,13 @@
 |---|---|---|---|---|---|---|
 | 1 | Skeptic | State that the line count follows the text as laid out (formatting can raise it) | Accept; spec author adds one sentence to SHARED-LINES-001 `Why:` | Prevents later roles from raising FC-013/FC-014 disagreements | Wording only | pending |
 | 2 | Skeptic | Define a line as the compiler's line split (CRLF/LF/CR count alike, FC-033) | Accept; spec author states it in SHARED-LINES-001 | Removes an ambiguity | Same count for all line endings is the only sensible reading; no output changes beyond it | pending |
+| 4 | Skeptic (04) | SHARED-LINES-002 wording | Accept: a default applies whenever a setting has no valid value (covers an unreadable file) | Complete and shorter | Same output as the listed cases | pending |
+| 5 | Skeptic (04) | Under Q12 D, a Microsoft.Testing.Platform extension library counts as test code | Accept if 12D is chosen | Rare, and test tooling anyway | Follows from the maintainer's 12 answer | pending |
 | 3 | Skeptic | One owner for the counting (FC-015) | Accept; implementer builds one shared counter that both rules use, and it becomes the code owner of `shared/line-count.md` | Avoids private copies | Internal structure | pending |
 
 ## Follow-up candidates
 
+- (extends the next item, 04-skeptic.md) The repository loads the analyzer DLLs directly (`Directory.Build.props:53-56`), so no package targets are imported: when the rules are turned on here, `Directory.Build.props` and the self-hosting scans must also make `IsTestProject` (and `IsTestingPlatformApplication`) visible, or every test project counts as production code.
 - This repository's own limits for RH2008/RH2111 (or refactors of its outliers), with both rules turned off meanwhile (maintainer answer 11A).
 - A setting written twice in `reihitsu.json` is not reported by RH0001; the later value wins (02-skeptic.md, found by reading code, low value).
 
