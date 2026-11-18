@@ -15,7 +15,7 @@
 ## Maintainer answers
 
 - Batch 1: 1A (join `[`/`!` outside chains), 2A (a conditional is judged as the line it becomes), 3A (a list is judged as the line it becomes, including `?[` and in-chain `!`), 4A (a collection expression keeps one element per line), 5A (RH5302 fix results follow).
-- Q6 (a part kept below by a comment): the maintainer answered "unsupported", i.e. declare the shape unsupported (escalation 10). Still open, asked back: in this run or a change of its own; which gaps; whether directives and disabled text are included.
+- Q6 (a part kept below by a comment): the maintainer answered "unsupported", i.e. declare the shape unsupported (escalation 10). Details: 6.1A — declare in this run; 6.2A — the shape covers the gap in front of `[` (element access), `?[`, and a trailing `!` (the FMT-BREAK-040 gaps), and the gap in front of an argument list's `(` (FMT-BREAK-039); 6.3A — a comment, a directive, or disabled text in the gap. Lead's caveat to the maintainer: if the declaration deletes no special case, the lead comes back before anything is built.
 
 ## Decisions taken
 
@@ -41,4 +41,5 @@
 - Spec author done (e13cde4): change doc `sdd/changes/2026-11/attached-part-below-element.md` (Draft, 5 visible output changes), FMT-BREAK-040 new; one output question (column of a part held below by a comment). Lane check confirmed.
 - Skeptic done (6a73a04): proceed. Amendment (decision 4) sent to a fresh spec author (03).
 - Spec amendment done (28dda88), commit for decision 4.
-- Output question batch 1 (change doc changes 1–5 + the comment column) posted to the maintainer; answered except the Q6 details (asked back). WAITING.
+- Output question batch 1 (change doc changes 1–5 + the comment column) posted to the maintainer; fully answered.
+- Next: spec author (04) writes the declaration and Decisions, and sets Status Accepted; then a fresh skeptic (05) on the declaration; then the test implementer.
