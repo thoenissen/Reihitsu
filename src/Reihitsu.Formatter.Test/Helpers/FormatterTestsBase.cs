@@ -49,6 +49,12 @@ public abstract class FormatterTestsBase
     /// </summary>
     protected const string ExpressionBodyArrowLeadingCommentReason = "a comment or directive between the arrow of an expression body and the code in front of it";
 
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive in front of an argument list, an element access, or a
+    /// null-forgiving operator, or between the <c>?</c> and the <c>[</c> of a conditional element access (FMT-UNSUP-014)
+    /// </summary>
+    protected const string AttachedPartCommentReason = "a comment or directive in front of an argument list, an element access, or a null-forgiving operator";
+
     #endregion // Constants
 
     #region Fields
