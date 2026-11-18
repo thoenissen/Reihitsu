@@ -37,4 +37,5 @@ None yet.
 - Implementer done (06d658a, handover 76d7748): tests pass; indentation ≈1200→243 ms, cleanup ≈935→29 ms at N=1600; line-ending and doc-comment sites unchanged with reasons.
 - Tab tests done (0f331bc, 04-test-implementer.md): 11 tests, green before and after.
 - Cleaner done (8fa0e97): clean, no changes, Release 0 warnings.
-- Next: spec checker.
+- Spec checker done (6e06438): consistent, no findings.
+- Next: auditor.
