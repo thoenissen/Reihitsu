@@ -459,7 +459,7 @@ public class RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzerTests : Bat
     }
 
     /// <summary>
-    /// Verifying the fix under CRLF line endings, with a trailing comment carried behind the new semicolon
+    /// Verifying the fix under CRLF line endings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -478,6 +478,33 @@ public class RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzerTests : Bat
                                           return _value;
                                       }
                                   }|}
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _value;
+
+                                       public int A => _value;
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, "\r\n");
+    }
+
+    /// <summary>
+    /// Verifying the fix under CRLF line endings, with a trailing comment carried behind the new semicolon
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-GETONLY-005")]
+    public async Task FixKeepsCarriageReturnLineFeedLineEndingsWithTrailingComment()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _value;
 
                                   public int B
                                   {|RH3209:{
@@ -490,8 +517,6 @@ public class RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzerTests : Bat
                                    class C
                                    {
                                        private int _value;
-
-                                       public int A => _value;
 
                                        public int B => _value; // b
                                    }
