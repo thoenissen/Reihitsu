@@ -44,4 +44,5 @@
 - Repair round 1 open: worklist #1 implementer, #2 test implementer; then cleaner, spec checker, auditor (repair only).
 - Repair: test implementer #2 done (`08-test-implementer.md`, 1013494); implementer #1 done (`09-implementer.md`, 60b93fe), formatter 5781/0.
 - Repair: cleaner clean (`10-cleaner.md`, cc7d290); spec checker consistent (`11-spec-checker.md`, afb7993).
-- Next: auditor on the repair.
+- Audit 2 (repair only, `12-auditor.md`, d5bf274): PASS. Audited SHA: fa5ee92143355d318e591361a320662924c4951e.
+- Next: validator, then issue manager (1 candidate), note, publish.
