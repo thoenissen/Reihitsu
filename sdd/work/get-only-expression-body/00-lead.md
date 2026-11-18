@@ -18,6 +18,7 @@ Batch 1 (before test implementer):
 - Q3 (comment/directive the formatter refuses as unsupported between `get` and `=>` or `=>` and expression): **A** — reported, no fix.
 - Q4 (fix keeps the rest of the signature as written, `public  int  A => _value;`): **A**.
 - Q5 (escalation 10, declare comment/directive inside a get-only accessor list unsupported): not declared — the maintainer said this is not unsupported, since it is clear how such code is formatted. Read as 5A.
+- Q7 (directive or disabled text the formatter keeps a get-only member's accessor list for, e.g. `#if WRITABLE set ... #endif`, or `#if TRACE get => ... #else get { return 0; } #endif`): **B** — reported on the accessor list, no fix offered.
 - Q6 (escalation 9, move the get-only predicate/conversion into one new `Reihitsu.Core` type used by formatter, both analyzers, both fixes): **A**.
 
 ## Decisions taken
@@ -40,4 +41,5 @@ Batch 1 (before test implementer):
 - Amendments pending for spec author: change doc shows signature-kept example; SHARED-GETONLY-006 narrowing (decision 3); directive example in visible change 5.
 - Batch 1 answered (see Maintainer answers).
 - Spec author 03 done (25e5014): answers carried out, change doc Accepted, Core type `GetOnlyMemberExpressionBodyRewriteUtilities`, SHARED-GETONLY-007 added (directive the formatter keeps the member for: not reported, drafted).
-- Next: WAITING on maintainer for Q7 (directive the formatter keeps the member for: A not reported / B reported without fix). Then test implementer.
+- Q7 answered B.
+- Next: spec author 04 carries out Q7 (SHARED-GETONLY-007); then test implementer 05.
