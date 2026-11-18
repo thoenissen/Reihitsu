@@ -42,14 +42,14 @@ internal static class AttachedPartGapUtilities
         return token.Kind() switch
                {
                    SyntaxKind.OpenParenToken => token.Parent is ArgumentListSyntax
-                                                                {
-                                                                    Parent: InvocationExpressionSyntax
-                                                                            or ObjectCreationExpressionSyntax
-                                                                            or ImplicitObjectCreationExpressionSyntax
-                                                                            or ConstructorInitializerSyntax
-                                                                            or PrimaryConstructorBaseTypeSyntax
-                                                                            or WithElementSyntax
-                                                                },
+                                                             {
+                                                                 Parent: InvocationExpressionSyntax
+                                                                         or ObjectCreationExpressionSyntax
+                                                                         or ImplicitObjectCreationExpressionSyntax
+                                                                         or ConstructorInitializerSyntax
+                                                                         or PrimaryConstructorBaseTypeSyntax
+                                                                         or WithElementSyntax
+                                                             },
                    SyntaxKind.OpenBracketToken => token.Parent is BracketedArgumentListSyntax { Parent: ElementAccessExpressionSyntax },
                    SyntaxKind.QuestionToken => IsConditionalAccessOperator(token)
                                                && IsElementBindingOpenBracket(token.GetNextToken()),
