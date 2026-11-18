@@ -22,6 +22,7 @@
 | 5 | skeptic | #1651 architecture/unit test | Keep a unit test of `EndLineInFrontOf`'s branches (and `JoinGaps`, which has none either); drop the architecture-test idea | A source-pattern ban is grep-like and defeated by a rename | Tests only | — |
 | 6 | skeptic | Architecture finding: comment-tail class (SHARED-COMMENT-012) fails in every non-chain rewriter | Not a finding of this run: decision 3 keeps the chain branch, so the run neither depends on nor exposes it. Follow-up bug (it violates unchanged requirements and leaves RH5302/RH5308 fixes without progress on formatter output), carrying the FMT-BREAK-037 output question for cell F. Escalation 10 asked now | `squad/README.md`, Architecture findings: unrelated structural defect → follow-up | No output change in this run | — |
 | 7 | skeptic | #1651 fact evaluated twice at the list site | Accept; pure predicate | Skeptic recommendation | Internal | — |
+| 8 | test implementer | Two new chain tests lock the member name behind a `//` comment or a directive between `.` and the member name at the statement's column (possible indentation defect) | Keep the tests as characterization of today's output; drop the candidate: a comment or directive between `.` and its member name is a rare input class (`AGENTS.md`, Code-fix coverage) | Not a follow-up per `lead.md`, Follow-ups | The run changes no output there; the tests lock `main`'s output | c92003c |
 
 ## Follow-up candidates
 
@@ -31,4 +32,5 @@
 
 - Last step: skeptic (`01-skeptic.md`, f206305): #1640 proceed; #1651 proceed narrower.
 - Escalation 10 answered (A, not declared).
-- Next: test implementer.
+- Test implementer done (`02-test-implementer.md`, c92003c); lane check confirmed.
+- Next: implementer.
