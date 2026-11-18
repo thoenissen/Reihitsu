@@ -60,7 +60,8 @@
 - Spec author 11 done (d0aacbb). Spec checker 12 (cb602cb): consistent.
 - Merged origin/main 6d574e1 (text-only fluent-chain helper docs); Release build green at da5fcff.
 - Auditor 13 (f942308): PASS, no findings. Audited SHA: fb01a18f2074f51e806acb23483c312bc09b45b7.
-- Next: validator (14), then publish (section 8).
+- Validator 14 (7b2de2a): PASS on a64d716.
+- Next: issue manager (15) with the follow-up candidates, then the note, the cleanup and publishing.
 - Old: spec author (06) applies (a), (b), RH5112 in change 7, and the FMT-UNSUP-014 wording; then the test implementer.
 - Old: fresh skeptic (05), then ask (a) and (b) with any skeptic questions, then the test implementer.
 - Old: spec author (04) writes the declaration and Decisions, and sets Status Accepted; then a fresh skeptic (05) on the declaration; then the test implementer.
