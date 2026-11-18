@@ -10,7 +10,8 @@
 
 ## Maintainer answers
 
-(none yet)
+- Batch 1 (Q1–Q8 of 01-spec-author/02-skeptic): 1A (limits in `reihitsu.json` `design` section, validated by RH0001; RH8402 no longer silenced by a valid `design` section), **2B** (built-in default limits apply when no limit is configured — not inactive), 3A (nested code counts toward the container), 4A (RH2008 / RH2111, titles and messages as drafted, operator token / accessor keyword location), 5A (unions judged, enums not), 6A (each accessor on its own), 7A (initializer lambdas not judged), 8A (strict whole-number validation 1..2147483647, unknown setting reported).
+- The maintainer asked which default values to use: what limits would work in this repository. Pending: measure the method and type line counts of this repository under the spec's counting definition and propose defaults as a follow-up output question.
 
 ## Decisions taken
 
@@ -31,5 +32,5 @@
 ## Open worklist / next step
 
 - Done: 01-spec-author (eaa17de), 02-skeptic (b7f1ce2).
-- Now: output-question batch 1 (Q1–Q8 from 01/02 handovers) posted to the maintainer; waiting.
+- Batch 1 answered. Now: measuring the repository's method/type line-count distribution for the default limits (2B).
 - Next: route answers to the spec author (amend specs, add decisions 1–2, set change doc Accepted), then the test implementer.
