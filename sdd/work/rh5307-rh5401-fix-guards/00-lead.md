@@ -9,7 +9,11 @@
 
 ## Maintainer answers
 
-None yet.
+Batch 1 (questions in 03-spec-author.md, Q1–Q4). Maintainer's reply, verbatim: "1a 2b 3 der fix sollte keine leerzeile einfügen, das gehört nicht zum scope 4a"
+- Q1 (RH5401, attribute on the property's line): A — fix offered, `[Obsolete]⏎int E => 1;`.
+- Q2 (RH5401 rule-page sentence): B — "The code fix is offered when the property, apart from its attributes, fits on one line."
+- Q3 (RH5401, comment between attribute and property): neither A nor B. In English: the fix must not insert a blank line; that is not part of its scope. Read as: the fix is offered and gives `[Obsolete]⏎// note⏎int E => 1;` (no blank line added).
+- Q4 (RH5307 further receivers/containers): A — each fix joins the list it reports.
 
 ## Decisions taken
 
@@ -29,4 +33,4 @@ None yet.
 
 - Last step: spec author (01, commit 3501371), change doc Draft. Open output question: 01 Q3 (attribute on the property's line).
 - Skeptic done (02). Spec author amendment done (03, dba3ee9), change doc Draft.
-- WAITING: output-question batch 1 posted to maintainer (03 Q1–Q4). Next after answers: route answers to spec author (Status Accepted), then test implementer.
+- Batch 1 answered. Next: fresh spec author carries the answers out and sets Status Accepted; then test implementer.
