@@ -33,9 +33,15 @@ Batch 1 (before test implementer):
 | 5 | Spec 04 | Merge SHARED-GETONLY-003 (comments) and -007 (directives)? | Keep separate | Boundaries and reasons differ | Same visible outcome either way | 27fe5de |
 | 6 | Spec 04 | Show fix output for a conditional group inside the getter's expression? | No; tests assert the fix is offered and equals the formatter's conversion | Avoid pinning the formatter's known indentation quirk (follow-up candidate) | Fix output follows the formatter (SHARED-GETONLY-005) | 27fe5de |
 | 7 | Tests 05 | `DelimitedCommentTrailingTheExpressionStaysBehindIt`: `{ get => _value /* c */; }` reported with fix writing `=> _value /* c */;`? | Yes, test stands; spec author clarifies SHARED-GETONLY-003 wording ("in front of the getter's semicolon" only where the conversion deletes or joins that trivia) | The formatter converts this member (it does not keep the list), so Q2 B does not apply; SHARED-GETONLY-005 makes the fix write the formatter's result | Decided by Q2 B's scope and the unchanged SHARED-GETONLY-005; output equals today's formatter output | d7fb059 |
+| 8 | Impl 06 | `FixKeepsCarriageReturnLineFeedLineEndings` (RH3209) compares a single-fix application against a two-diagnostic expected text | Test is wrong in mechanics; test implementer splits it so each CRLF fix check has one diagnostic | Test harness applies only the first fix in that step | Asserted outputs unchanged; only the test's structure | — |
+| 9 | Impl 06 | AGENTS.md phase-table guard renamed to `GetOnlyMemberExpressionBodyRewriteUtilities.ContainsBlockingDirective` | Accept | Required by `PhaseOwnershipDocumentationTests` after the Q6 A move | Contributor doc only | 08a771a |
+| 10 | Impl 06 | Core type also owns accessor-level conversion; new analyzer/code-fix base classes | Accept | Get-only conversion is built on the accessor conversion; one code path for both rules | Internal structure; formatter output unchanged (5908 tests green) | 08a771a |
+| 11 | Impl 06 | Misspaced signature + multi-line expression: continuation lines keep formatter columns | Accept as known limit, same as RH3202 fix | Rare (input already violates spacing rules), not destructive; follows Q4 A | Covered by Q4 A; no code is dropped | 08a771a |
 ## Follow-up candidates
 
 - A balanced `#if` group inside a wrapped argument list in an expression body is indented inconsistently (active branch column 16, disabled branch and `)` column 22); existing formatter behavior (02-skeptic)
+
+- Five copies of "remove trailing whitespace trivia" across Formatter, Core, CodeFixes could share one Core owner (06-implementer)
 
 ## Worklist / next step
 
@@ -48,4 +54,5 @@ Batch 1 (before test implementer):
 - Spec author 04 done (27fe5de): Q7 carried out.
 - Test implementer 05 done (d7fb059): 68+4 analyzer tests + 6 formatter-parity tests; build fails only on the four missing rule types.
 - Pending text item: spec author clarifies SHARED-GETONLY-003 wording (decision 7), after the implementer.
-- Next: implementer 06.
+- Implementer 06 done (08a771a, e940dcd): all tests green except disputed CRLF test.
+- Next: test implementer 07 (split CRLF test) and spec author 08 (SHARED-GETONLY-003 wording, decision 7) in parallel; then cleaner.
