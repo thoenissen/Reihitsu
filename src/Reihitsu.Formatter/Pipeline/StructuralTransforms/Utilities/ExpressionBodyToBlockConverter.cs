@@ -20,15 +20,13 @@ internal static class ExpressionBodyToBlockConverter
     #region Methods
 
     /// <summary>
-    /// Creates a block body that wraps the given expression. Comments on lines of their own in front of the arrow lead the
-    /// created statement on lines of their own, in source order. When the arrow's line holds a comment in front of the arrow,
-    /// no comment is moved, and the arrow's leading trivia stays with the open brace. The gap between the arrow and the
-    /// expression holds no comment, directive, or disabled text, because the precheck refuses an input that holds one there
-    /// (FMT-UNSUP-012)
+    /// Creates a block body that wraps the given expression. The arrow's leading trivia moves to the open brace. Neither gap
+    /// around the arrow holds a comment, a directive, or disabled text, because the precheck refuses an input that holds one
+    /// there (FMT-UNSUP-012, FMT-UNSUP-013)
     /// </summary>
     /// <param name="expression">The arrow expression to wrap</param>
     /// <param name="statementForm">The statement form the expression should take</param>
-    /// <param name="arrowToken">The arrow token being replaced; its leading trivia moves to the open brace unless it consists of comments on lines of their own, which lead the created statement instead</param>
+    /// <param name="arrowToken">The arrow token being replaced; its leading trivia moves to the open brace</param>
     /// <param name="semicolonToken">The semicolon token being replaced; its trailing trivia moves to the close brace and any comment in its leading trivia moves in front of the created statement's semicolon</param>
     /// <returns>The block body</returns>
     internal static BlockSyntax CreateBlock(ExpressionSyntax expression,
@@ -36,123 +34,14 @@ internal static class ExpressionBodyToBlockConverter
                                             SyntaxToken arrowToken,
                                             SyntaxToken semicolonToken)
     {
-        var openBraceLeadingTrivia = arrowToken.LeadingTrivia;
         var statement = CreateStatement(expression, statementForm, semicolonToken);
 
-        if (ArrowLineHoldsComment(arrowToken) == false
-            && TrySplitOwnLineComments(arrowToken.LeadingTrivia, out var commentLinesTrivia, out var arrowLineTrivia)
-            && commentLinesTrivia.Count > 0
-            && arrowLineTrivia.All(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)))
-        {
-            openBraceLeadingTrivia = default;
-
-            // The comment lines start behind a line break that ends the open brace's line
-            commentLinesTrivia.Insert(0, commentLinesTrivia.First(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)));
-
-            statement = statement.WithLeadingTrivia(SyntaxFactory.TriviaList(commentLinesTrivia).AddRange(statement.GetLeadingTrivia()));
-        }
-
         // The created tokens are built with explicit trivia, so they carry no elastic trivia (FMT-STRUCT-026)
-        var openBrace = SyntaxFactory.Token(openBraceLeadingTrivia, SyntaxKind.OpenBraceToken, default);
+        var openBrace = SyntaxFactory.Token(arrowToken.LeadingTrivia, SyntaxKind.OpenBraceToken, default);
 
         return SyntaxFactory.Block(openBrace,
                                    SyntaxFactory.SingletonList(statement),
                                    SyntaxFactory.Token(default, SyntaxKind.CloseBraceToken, semicolonToken.TrailingTrivia));
-    }
-
-    /// <summary>
-    /// Determines whether the arrow's line holds a comment in front of the arrow, behind the last line break of its leading
-    /// trivia
-    /// </summary>
-    /// <param name="arrowToken">The arrow token</param>
-    /// <returns><see langword="true"/> if the arrow's line holds a comment in front of the arrow; otherwise, <see langword="false"/></returns>
-    private static bool ArrowLineHoldsComment(SyntaxToken arrowToken)
-    {
-        for (var triviaIndex = arrowToken.LeadingTrivia.Count - 1; triviaIndex >= 0; triviaIndex--)
-        {
-            var trivia = arrowToken.LeadingTrivia[triviaIndex];
-
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia)
-                || SyntaxTriviaUtilities.EndsWithLineBreak(trivia))
-            {
-                return false;
-            }
-
-            if (SyntaxTriviaUtilities.IsCommentTrivia(trivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Splits a leading trivia list into the comments that stand on lines of their own and the trivia of the last line,
-    /// the one that holds the token the list leads. A line counts as a comment line when it holds nothing but whitespace
-    /// and ordinary comments and ends with a line break; a line holding only whitespace is a blank line. The comment
-    /// lines come back with the whitespace the author wrote in front of and between their comments (FMT-STRUCT-026), each
-    /// ended by its line break, with the blank lines between two of them; the whitespace behind a line's last comment, and
-    /// blank lines in front of the first and behind the last comment line, are dropped
-    /// </summary>
-    /// <param name="leadingTrivia">The leading trivia to split</param>
-    /// <param name="commentLinesTrivia">The comment lines, in source order</param>
-    /// <param name="lastLineTrivia">The trivia of the last line, in front of the token</param>
-    /// <returns><see langword="true"/> if the list holds nothing but whitespace, line breaks, and ordinary comments; otherwise, <see langword="false"/></returns>
-    private static bool TrySplitOwnLineComments(SyntaxTriviaList leadingTrivia,
-                                                out List<SyntaxTrivia> commentLinesTrivia,
-                                                out SyntaxTriviaList lastLineTrivia)
-    {
-        commentLinesTrivia = [];
-        lastLineTrivia = default;
-
-        var lineTrivia = new List<SyntaxTrivia>();
-        var pendingBlankLines = new List<SyntaxTrivia>();
-
-        foreach (var trivia in leadingTrivia)
-        {
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                var firstContentIndex = lineTrivia.FindIndex(static lineTriviaItem => lineTriviaItem.IsKind(SyntaxKind.WhitespaceTrivia) == false);
-
-                if (firstContentIndex < 0)
-                {
-                    pendingBlankLines.Add(trivia);
-                }
-                else
-                {
-                    var lastContentIndex = lineTrivia.FindLastIndex(static lineTriviaItem => lineTriviaItem.IsKind(SyntaxKind.WhitespaceTrivia) == false);
-
-                    if (commentLinesTrivia.Count > 0)
-                    {
-                        commentLinesTrivia.AddRange(pendingBlankLines);
-                    }
-
-                    commentLinesTrivia.AddRange(lineTrivia.GetRange(0, lastContentIndex + 1));
-                    commentLinesTrivia.Add(trivia);
-                    pendingBlankLines.Clear();
-                }
-
-                lineTrivia.Clear();
-
-                continue;
-            }
-
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false
-                && trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) == false
-                && trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) == false)
-            {
-                commentLinesTrivia.Clear();
-
-                return false;
-            }
-
-            lineTrivia.Add(trivia);
-        }
-
-        lastLineTrivia = SyntaxFactory.TriviaList(lineTrivia);
-
-        return true;
     }
 
     /// <summary>

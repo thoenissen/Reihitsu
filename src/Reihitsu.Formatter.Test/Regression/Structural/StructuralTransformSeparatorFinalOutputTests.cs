@@ -434,9 +434,9 @@ public class StructuralTransformSeparatorFinalOutputTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the inputs of the removed examples of FMT-STRUCT-026 that start from a comment behind the arrow, a comment
-    /// moved behind the created <c>return</c> and a comment directly at the arrow, are refused as unsupported: the input is
-    /// returned unchanged, and the first comment behind an arrow is reported
+    /// Verifies that the inputs of the removed examples of FMT-STRUCT-026 that start from a comment behind the arrow and a comment
+    /// moved behind the created <c>return</c> are refused as unsupported: the input is returned unchanged, and the first comment
+    /// behind an arrow is reported. The example with a comment directly at the arrow is refused under FMT-UNSUP-013
     /// </summary>
     /// <param name="members">The members of the class</param>
     /// <param name="comment">The comment that is reported</param>
@@ -446,7 +446,6 @@ public class StructuralTransformSeparatorFinalOutputTests : FormatterTestsBase
     [DataRow("    int Get() =>\n/* c */ 42;", "/* c */", DisplayName = "Block comment in front of the expression at the start of its line")]
     [DataRow("    int Get() => // c\n        /* d */ 42;", "// c", DisplayName = "Line comment behind the arrow and a block comment in front of the expression")]
     [DataRow("    int Get2() => // c\n        // d\n        42;", "// c", DisplayName = "Line comment behind the arrow and a comment line")]
-    [DataRow("    int Get3()\n        /* c */ =>\n        /* d */ 42;", "/* d */", DisplayName = "Comment in front of the arrow and a block comment in front of the expression")]
     [DataRow("    void M()\n    {\n        int L() => // c\n            /* d */ 42;\n    }", "// c", DisplayName = "Local function")]
     [DataRow("    public static C operator +(C x, C y) => // c\n        /* d */ x;", "// c", DisplayName = "Operator")]
     [DataRow("    public static implicit operator int(C c) => // c\n        /* d */ 0;", "// c", DisplayName = "Conversion operator")]

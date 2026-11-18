@@ -101,10 +101,11 @@ internal sealed class GetOnlyMemberExpressionBodyTransform : CSharpSyntaxRewrite
     /// <summary>
     /// Determines whether the trivia the rewrite deletes or joins onto the member signature's line is plain layout.
     /// These seams are the trailing trivia of the token before the accessor list, both sides of the opening brace,
-    /// both sides of the <c>get</c> keyword, the leading trivia of the getter's arrow, the getter semicolon's leading
-    /// trivia, and the closing brace's leading trivia. The gap behind the getter's arrow is no seam to check: a getter
-    /// written with an expression body that holds a comment, a directive, or disabled text there is refused by the
-    /// precheck (FMT-UNSUP-012), and a getter converted from a block gets an arrow with nothing behind it
+    /// the leading trivia of the <c>get</c> keyword, the getter semicolon's leading trivia, and the closing brace's
+    /// leading trivia. Neither gap around the getter's arrow is a seam to check: a getter written with an expression body
+    /// that holds a comment, a directive, or disabled text there is refused by the precheck (FMT-UNSUP-012,
+    /// FMT-UNSUP-013), and a getter converted from a block keeps its block when its keyword's trailing trivia holds one
+    /// (FMT-STRUCT-012) and gets an arrow with no trivia
     /// </summary>
     /// <param name="accessorList">The accessor list to inspect</param>
     /// <param name="getter">The expression-bodied getter</param>
@@ -119,8 +120,6 @@ internal sealed class GetOnlyMemberExpressionBodyTransform : CSharpSyntaxRewrite
                && AccessorExpressionBodyTransform.IsLayoutOnly(accessorList.OpenBraceToken.LeadingTrivia)
                && AccessorExpressionBodyTransform.IsLayoutOnly(accessorList.OpenBraceToken.TrailingTrivia)
                && AccessorExpressionBodyTransform.IsLayoutOnly(getter.Keyword.LeadingTrivia)
-               && AccessorExpressionBodyTransform.IsLayoutOnly(getter.Keyword.TrailingTrivia)
-               && AccessorExpressionBodyTransform.IsLayoutOnly(getter.ExpressionBody.ArrowToken.LeadingTrivia)
                && AccessorExpressionBodyTransform.IsLayoutOnly(getter.SemicolonToken.LeadingTrivia)
                && AccessorExpressionBodyTransform.IsLayoutOnly(accessorList.CloseBraceToken.LeadingTrivia);
     }

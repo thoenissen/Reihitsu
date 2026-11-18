@@ -5,7 +5,7 @@
 | ID prefix | FMT-UNSUP |
 | Status | Active |
 | Code owners | `PrecheckPhase`, `FormattingResult<T>`, `UnsupportedSyntax`, `SyntaxNotSupportedException` |
-| Uses | FMT-BREAK-001, FMT-BREAK-017, FMT-BREAK-026, FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-STRUCT-004, FMT-STRUCT-005, FMT-STRUCT-007, FMT-STRUCT-008, FMT-STRUCT-009, FMT-STRUCT-014, FMT-STRUCT-015, FMT-STRUCT-019, FMT-STRUCT-021, FMT-STRUCT-022, RH5040-002, SHARED-BLANK-008, SHARED-COMMENT-007, SHARED-FIX-010 |
+| Uses | FMT-BREAK-001, FMT-BREAK-017, FMT-BREAK-026, FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-STRUCT-004, FMT-STRUCT-005, FMT-STRUCT-007, FMT-STRUCT-008, FMT-STRUCT-009, FMT-STRUCT-012, FMT-STRUCT-014, FMT-STRUCT-015, FMT-STRUCT-019, FMT-STRUCT-021, FMT-STRUCT-022, RH5040-001, RH5040-002, SHARED-BLANK-008, SHARED-COMMENT-007, SHARED-FIX-010 |
 
 This spec covers the formatter's *Unsupported* outcome: the input shapes the formatter refuses as a whole, the precheck phase that finds them before any other phase runs (FMT-PIPE-001), a phase's refusal of a shape the precheck does not find, what every entry point returns for a refused input, and the query that tells a code fix whether the formatter refuses a node. Each unsupported shape is a requirement of this spec; a shape is declared here so that no phase has to handle it.
 
@@ -737,7 +737,7 @@ An input MUST be refused when a comment — `//`, `/* */`, `///`, or `/** */`, i
 The conditions, each with both sides:
 
 - **The `=>` of an expression body.** An expression body is the arrow clause of a member, an accessor, or a local function: of a method, a constructor, a finalizer, an operator, a conversion operator, a property, an indexer, a `get`, `set`, `init`, `add`, or `remove` accessor, or a local function. `int A => /* c */ 1;`, `get => /* c */ _v;`, and `int Local() => /* c */ 1;` are refused. The `=>` of a lambda and of a switch-expression arm belongs to no expression body: `() => /* c */ 1` and `1 => /* c */ "one"` do not refuse the input.
-- **Behind the `=>`.** Only the gap between the `=>` and the expression's first token counts. A comment, a directive, or disabled text in front of the `=>` — behind the token in front of it on its line (`int A /* c */ => 1;`), on a line of its own above the `=>`, or in front of the `=>` on the `=>`'s line — does not refuse the input. Nor does one inside the expression, behind its first token (`=> (/* c */ 1)`, `=> M(/* c */ 1)`), or behind the expression, in front of the `;` or behind it (`=> 1 /* c */;`, `=> 1; // c`).
+- **Behind the `=>`.** Only the gap between the `=>` and the expression's first token counts. A comment, a directive, or disabled text in front of the `=>` — behind the token in front of it on its line (`int A /* c */ => 1;`), on a line of its own above the `=>`, or in front of the `=>` on the `=>`'s line — is not this shape: FMT-UNSUP-013 refuses it. A comment, a directive, or disabled text inside the expression, behind its first token (`=> (/* c */ 1)`, `=> M(/* c */ 1)`), or behind the expression, in front of the `;` or behind it (`=> 1 /* c */;`, `=> 1; // c`), does not refuse the input.
 - **On any line.** Whether the gap holds a line break does not matter: `int Get() => /* c */ 42;` on one line is refused like `int A => // c⏎1;` and like a comment on a line of its own between the `=>` and the expression.
 - **Every expression body.** Each expression body is checked with its own `=>` and expression, also one nested in another construct, such as a local function inside a lambda's body or an accessor of a property in a nested type. A token in disabled text is no token of the input: an expression body inside disabled text is not checked.
 
@@ -809,24 +809,119 @@ using System;
 class C
 {
     // c1
-    int A /* c2 */ => 1;
+    int A => 1;
 
-    int B()
-        // c3
-        => 1;
+    int C2 => (/* c2 */ 1);
 
-    int C2 => (/* c4 */ 1);
+    int D => 1 /* c3 */;
 
-    int D => 1 /* c5 */;
-
-    int E => 1; // c6
+    int E => 1; // c4
 
     void M(int n)
     {
-        Func<int> f = () => /* c7 */ 1;
+        Func<int> f = () => /* c5 */ 1;
         var s = n switch
         {
-            1 => /* c8 */ "one",
+            1 => /* c6 */ "one",
+            _ => "other",
+        };
+    }
+}
+```
+
+### FMT-UNSUP-013 — Comments and directives between the arrow of an expression body and the code in front of it are unsupported
+
+An input MUST be refused when a comment — `//`, `/* */`, `///`, or `/** */`, in every documentation mode — a preprocessor directive, or disabled text stands between the `=>` of an expression body and the token in front of the `=>`: in the trailing trivia of the token in front of the `=>`, or in the leading trivia of the `=>`.
+
+The conditions, each with both sides:
+
+- **The `=>` of an expression body.** An expression body is the arrow clause FMT-UNSUP-012 names: of a method, a constructor, a finalizer, an operator, a conversion operator, a property, an indexer, a `get`, `set`, `init`, `add`, or `remove` accessor, or a local function. `int A // c⏎=> 1;`, `get /* c */ => _v;`, and `int Local() // c⏎=> 1;` are refused. The `=>` of a lambda and of a switch-expression arm belongs to no expression body: `() /* c */ => 1` and `1 /* c */ => "one"` do not refuse the input.
+- **In front of the `=>`.** Only the gap between the `=>` and the token in front of it counts. That token is the last token of what the arrow clause follows: the name of a property, the `]` of an indexer's parameter list, the `)` of a parameter list or of a constructor initializer, the last token of a constraint clause, or an accessor's keyword. A comment, a directive, or disabled text in the leading trivia of the declaration's first token — above the member, its documentation comment included — does not refuse the input, and neither does one in front of the token in front of the `=>`, such as inside the parameter list (`int F(/* c */ int a) => a;`). One behind the `=>`, in front of the expression, is FMT-UNSUP-012's shape.
+- **On any line.** Whether the gap holds a line break does not matter: `int A /* c */ => 1;` on one line is refused like `int A // c⏎=> 1;` and like a comment on a line of its own between the token in front of the `=>` and the `=>`.
+- **Every expression body.** Each expression body is checked with its own `=>` and the token in front of it, also one nested in another construct, such as a local function inside a lambda's body or an accessor of a property in a nested type. A token in disabled text is no token of the input: an expression body inside disabled text is not checked.
+
+The gap lies between two tokens, so a node-level input holds the shape only when it holds both: an input that holds the `=>` but not the token in front of it, such as the arrow clause itself, does not hold the shape (FMT-UNSUP-003).
+
+Where FMT-UNSUP-010 refuses the same directive or disabled text — in front of the `=>` of an expression body inside an initializer value of a field declaration with several declarators, such as a local function in a lambda's body — both shapes start at it, and FMT-UNSUP-001's first shape in the text does not decide; the reason and the location are FMT-UNSUP-010's. In a field with one declarator, the same directive gives this requirement's reason.
+
+The reason the formatter gives for this shape is `a comment or directive between the arrow of an expression body and the code in front of it`, and its location is the span of the first comment, directive, or disabled text in that place.
+
+Why: A property, an indexer, and an accessor keep their expression body (FMT-STRUCT-008). For a property and an indexer, the line-break phase refused the join of FMT-BREAK-026 across a comment or directive in front of the arrow (FMT-BREAK-001), and the `=>` then started a line that no requirement places, in the member's own column. FMT-BREAK-026 does not join an accessor's arrow; for an accessor, the lift of a get-only accessor list to the member had to check the trivia behind `get` and in front of the getter's arrow (FMT-STRUCT-015). The conversion of a method, a constructor, a finalizer, an operator, a conversion operator, or a local function into a block (FMT-STRUCT-004, FMT-STRUCT-005) removes the arrow, and a comment in front of it had no owner: the conversion moved comments on lines of their own in front of the created statement, kept them in front of the new opening brace when a comment stood on the arrow's line, which wrote the comment directly in front of the brace, and kept the expression body for a region directive there (FMT-STRUCT-007). RH5040 already reports every comment directly in front of the `=>` of a member or an accessor (RH5040-001), and RH3208 reports every expression-bodied local function as a whole, so a comment in front of the arrow is rare by the repository's definition. No rule reports a directive or disabled text there as such, although RH3202, RH3203, RH3205, RH3206, RH3207, RH3208, and RH5401 report most members that hold one as a whole. A conditional group that closes directly in front of the `=>` — around the signature or around a constraint clause — or that chooses the `=>` puts a directive into the gap and is refused; the same choice written around the whole member, from in front of its first token through behind its `;`, leaves the gap free of directives and is formatted. Directives and disabled text are part of the shape because the join refusal and the seam checks of the get-only lift test them alike: with comments alone, both would have to stay. A comment that describes the member belongs above it, in the leading trivia of its first token, where the phases carry it as they do for every member. Together with FMT-UNSUP-012, both gaps around the `=>` of an expression body are free of comments, directives, and disabled text in every input the phases receive. The shape is the same on one line, as for FMT-UNSUP-012: the boundary is a place in the syntax tree, not a question of line breaks. No phase writes a comment, a directive, or disabled text into the gap (FMT-UNSUP-005): the join of FMT-BREAK-026 carries only whitespace, and the conversions that create an arrow (FMT-STRUCT-009, FMT-STRUCT-014) keep the accessor's block or the accessor list when a comment, directive, or disabled text stands in the trivia they would put in front of the created arrow — behind the accessor keyword (FMT-STRUCT-012), or behind the signature and around the braces of the accessor list (FMT-STRUCT-015). The `=>` of a lambda and of a switch-expression arm belongs to an expression, which no transform converts and FMT-BREAK-026 does not join, so declaring it would delete nothing. A directive in a field declaration with several declarators was refused under FMT-UNSUP-010 before this requirement existed, and keeps the reason it gave.
+
+Example — each expression body is refused, and the input that holds it is returned unchanged:
+
+```csharp
+class C
+{
+    private int _v;
+
+    int A // c1
+        => 1;
+
+    int B
+        // c2
+        => 2;
+
+    int this[int i] /* c3 */ => i;
+
+    int Get() /* c4 */ => 42;
+
+    int V
+    {
+        get // c5
+            => _v;
+    }
+
+    void M()
+    {
+        int Local()
+            /* c6 */ => 1;
+
+        Local();
+    }
+}
+```
+
+The location is the span of `// c1`, which starts in line 5, column 11.
+
+Example — a directive and disabled text in front of the `=>` refuse the input in every build: where `DEBUG` is defined, `#if DEBUG` stands in front of the first `=>`; where it is not, `#if DEBUG`, the disabled text, and `#else` stand in front of the second:
+
+```csharp
+class C
+{
+    int A
+#if DEBUG
+        => 1;
+#else
+        => 2;
+#endif
+}
+```
+
+The location is the span of `#if DEBUG`, which starts in line 4, column 1.
+
+Example — the other side: none of these comments refuses the input under this requirement or FMT-UNSUP-012, and the input is formatted:
+
+```csharp
+using System;
+
+class C
+{
+    // c1
+    int A => 1;
+
+    int B(/* c2 */ int a) => a;
+
+    int D => 1 /* c3 */;
+
+    int E => 1; // c4
+
+    void M(int n)
+    {
+        Func<int> f = () /* c5 */ => 1;
+        var s = n switch
+        {
+            1 /* c6 */ => "one",
             _ => "other",
         };
     }

@@ -2826,6 +2826,35 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzerTests : B
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifies the change example: a comment behind the signature of a local function in front of the arrow withholds the fix,
+    /// because the formatter refuses the local function it would format, while the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    [Requirement("SHARED-FIX-010")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentInFrontOfTheArrow(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  void M()
+                                  {
+                                      int Local() // c
+                                          {|RH3208:=> 1|};
+
+                                      Local();
+                                  }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

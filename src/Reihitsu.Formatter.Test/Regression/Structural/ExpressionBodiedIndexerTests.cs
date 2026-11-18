@@ -157,11 +157,12 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a line comment after the closing bracket keeps the arrow on its own line, because joining
-    /// the arrow would move it into the comment, exactly like the expression-bodied property counterpart
+    /// Verifies that a line comment after the closing bracket refuses the input as unsupported, exactly like the
+    /// expression-bodied property counterpart
     /// </summary>
     [TestMethod]
-    public void LineCommentAfterClosingBracketKeepsArrowOnOwnLine()
+    [Requirement("FMT-UNSUP-013")]
+    public void LineCommentAfterClosingBracketIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -173,18 +174,9 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
                                      => _items[index]; // after
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    private readonly int[] _items = [1, 2, 3];
-
-                                    public int this[int index] // trailing
-                                    => _items[index]; // after
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(ExpressionBodyArrowLeadingCommentReason, input, "// trailing");
     }
 
     /// <summary>
@@ -279,10 +271,12 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a directive between the closing bracket and the arrow keeps the arrow on its own line, exactly like the expression-bodied property counterpart
+    /// Verifies that a directive between the closing bracket and the arrow refuses the input as unsupported, exactly like the
+    /// expression-bodied property counterpart
     /// </summary>
     [TestMethod]
-    public void DirectiveBeforeArrowKeepsArrowOnOwnLine()
+    [Requirement("FMT-UNSUP-013")]
+    public void DirectiveBeforeArrowIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -296,19 +290,8 @@ public class ExpressionBodiedIndexerTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = """
-                                class C
-                                {
-                                    private readonly int[] _items = [1, 2, 3];
-
-                                    public int this[int index]
-                                #pragma warning disable CS0618
-                                    => _items[index];
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(ExpressionBodyArrowLeadingCommentReason, input, "#pragma warning disable CS0618");
     }
 
     /// <summary>

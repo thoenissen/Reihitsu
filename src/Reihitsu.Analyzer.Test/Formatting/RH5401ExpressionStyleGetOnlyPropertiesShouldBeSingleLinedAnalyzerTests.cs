@@ -494,6 +494,42 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies that a comment or a directive in front of the arrow withholds the fix, because the formatter refuses the property,
+    /// while the diagnostic stays: a line comment behind the name, a block comment in front of the arrow on its line, a comment line,
+    /// and a pragma directive
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH5401-004")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyFixIsWithheldForACommentOrDirectiveInFrontOfTheArrow(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  {|RH5401:int B // note
+                                      => 1;|}
+
+                                  {|RH5401:int D
+                                  /* note */ => 1;|}
+
+                                  {|RH5401:int E
+                                      // note
+                                      => 1;|}
+
+                                  {|RH5401:int F
+                              #pragma warning disable CS0618
+                                      => 1;|}
+                              #pragma warning restore CS0618
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase
