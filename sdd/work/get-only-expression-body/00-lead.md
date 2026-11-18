@@ -65,5 +65,6 @@ Batch 1 (before test implementer):
 - Spec checker 10 done (48888c2): consistent, no findings. Merged main 6d574e1 (comment-only, no overlap). Build green.
 - Auditor 11 (972b3fc): findings — #1 high shared line (SHARED-FIX-007), #2 medium missing test, #3 low code owners; architecture finding decided (decision 12).
 - Spec author 13 (1976629), test implementer 12 (6fb5a80) done; decisions 14, 15.
-- Next: spec author 14 (decisions 14, 15) and test implementer 15 (rewrite case-e tests, add one-line type test) in parallel; then implementer 16.
+- Spec author 14 (9095b22, SHARED-GETONLY-008) and test implementer 15 (c191c72; 26 expected failures) done.
+- Next: implementer 16 (repair round 1, decision 12), then cleaner, spec checker, auditor (repair only), validator.
 - (old) Repair round 1: test implementer 12 (shared-line tests + finding 2) and spec author 13 (finding 3) in parallel; then implementer 14; then cleaner, spec checker, auditor (repair only), validator.
