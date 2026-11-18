@@ -17,6 +17,8 @@ Batch 1 (questions in 03-spec-author.md, Q1–Q4). Maintainer's reply, verbatim:
 
 Question 5 (04-spec-author.md, several blank lines between attributes and property; also without comment and between two attribute lists). Maintainer's reply, verbatim: "5a, dont touch" — A: the fix keeps the blank lines as written.
 
+Escalation 9 (question 6, after the implementer: ~200-line blank-line restore in the RH5401 fix). Maintainer's reply, verbatim: "B is ok" — B: withhold the RH5401 fix when formatting would insert or remove a blank line behind an attribute list (cheap blank-line-count comparison); the Q3 input and the Q5 input get no fix; `[Obsolete]⏎⏎// note⏎int E⏎    => 1;` still gets `[Obsolete]⏎⏎// note⏎int E => 1;`; `[Obsolete] int E⏎    => 1;` still gets `[Obsolete]⏎int E => 1;`. Supersedes the offered-fix part of answers 3 and 5.
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -37,4 +39,4 @@ Question 5 (04-spec-author.md, several blank lines between attributes and proper
 - Skeptic done (02). Spec author amendment done (03, dba3ee9), change doc Draft.
 - Batch 1 carried out (04, 36627a0), change doc Accepted. RH5401-003 got a rule-local exception: no blank line inserted.
 - Q5 carried out (04 follow-up, f0437cc). Test implementer done (05, b1dc664): 41 new, 3 changed tests, 60 failing as expected. Implementer done (06, b64257f/a6ab82f): all tests pass; RH5401 fix grew ~200 lines restoring blank lines after formatting (Q3/Q5), and reports an architecture finding (fix vs. blank-line phase own the same gaps).
-- WAITING: escalation 9 posted (6: A keep restore, B withhold when formatting would insert/remove a blank line behind an attribute list (recommended), C formatter mode as follow-up).
+- Escalation 9 answered: B. Next: spec author (07) → test implementer (08) → implementer (09), then cleaner.
