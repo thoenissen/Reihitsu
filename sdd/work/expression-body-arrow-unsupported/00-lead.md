@@ -41,4 +41,5 @@
 - Test implementer done (35945c0, 05-test-implementer.md): 126 formatter, 33 analyzer, 11 CLI tests red as expected.
 - Implementer done (51ffef7, 714d8e0; 06-implementer.md): all tests green in Debug.
 - Cleaner done (52e3db1): clean, Release build 0 warnings.
-- Next: spec checker (08).
+- Spec checker done (19fb597): consistent, no findings. main not ahead.
+- Next: auditor (09).
