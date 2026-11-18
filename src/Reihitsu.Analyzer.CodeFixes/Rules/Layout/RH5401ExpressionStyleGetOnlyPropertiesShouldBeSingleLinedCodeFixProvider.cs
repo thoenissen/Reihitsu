@@ -40,6 +40,26 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixPro
     }
 
     /// <summary>
+    /// Counts the blank lines of the property's attribute region: every gap from the <c>[</c> of its first attribute list
+    /// through the gap in front of its first token behind its attribute lists, with every comment, directive, and disabled
+    /// text in between (RH5401-004)
+    /// </summary>
+    /// <param name="propertyDeclaration">Property declaration with at least one attribute list</param>
+    /// <returns>The number of blank lines in the attribute region</returns>
+    private static int CountBlankLinesInAttributeRegion(PropertyDeclarationSyntax propertyDeclaration)
+    {
+        var firstOwnToken = propertyDeclaration.AttributeLists.Last().GetLastToken().GetNextToken();
+        var blankLineCount = 0;
+
+        for (var token = propertyDeclaration.AttributeLists.First().OpenBracketToken; token.SpanStart < firstOwnToken.SpanStart; token = token.GetNextToken())
+        {
+            blankLineCount += TokenGapAnalysis.Between(token, token.GetNextToken()).BlankLineCount;
+        }
+
+        return blankLineCount;
+    }
+
+    /// <summary>
     /// Determines whether the formatted property holds, in the gap behind each of its attribute lists as written, as many
     /// blank lines as that gap as written (RH5401-004). The gap runs from the <c>]</c> closing the list to the next token,
     /// with every comment, directive, and disabled text in between. The formatter may split a list into one list per
@@ -88,16 +108,16 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixPro
     }
 
     /// <summary>
-    /// Determines whether the formatter puts the property's own code on one line: from its first token behind its attribute
-    /// lists through its <c>;</c>, without the trivia in front of that token or behind the <c>;</c> (RH5401-004). The
-    /// attribute lists, and a comment between them and that first token, do not count. The formatted property must also keep
-    /// the blank lines behind each attribute list as written, because the fix neither inserts nor removes one there
-    /// (RH5401-004)
+    /// Determines whether formatting the property completes the fix (RH5401-003, RH5401-004): the formatter puts the
+    /// property's own code on one line — from its first token behind its attribute lists through its <c>;</c>, without the
+    /// trivia in front of that token or behind the <c>;</c>; the attribute lists, and a comment between them and that first
+    /// token, do not count — and it neither inserts nor removes a blank line among the attribute lists or between them and
+    /// the property, counted in the gap behind each list as written and over the attribute region in all
     /// </summary>
     /// <param name="propertyDeclaration">Property declaration</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns><see langword="true"/> when formatting puts the property's own code on one line and keeps the blank lines behind its attribute lists; otherwise, <see langword="false"/></returns>
-    private static bool CanCollapse(PropertyDeclarationSyntax propertyDeclaration, CancellationToken cancellationToken)
+    /// <returns><see langword="true"/> when formatting puts the property's own code on one line and keeps the blank lines of its attribute region; otherwise, <see langword="false"/></returns>
+    private static bool FormatsOnOneLineKeepingBlankLines(PropertyDeclarationSyntax propertyDeclaration, CancellationToken cancellationToken)
     {
         if (ReihitsuFormatter.FormatNode(propertyDeclaration, cancellationToken: cancellationToken).Output is not PropertyDeclarationSyntax formatted)
         {
@@ -112,8 +132,21 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixPro
 
         // For shapes the formatter keeps multi-lined (for example multi-line collection or switch expressions) the
         // result still spans several lines, so single-lining is impossible and the action must not be offered
-        return ownCode.IndexOf('\n') < 0
-               && KeepsBlankLinesBehindAttributeLists(propertyDeclaration, formatted);
+        if (ownCode.IndexOf('\n') >= 0)
+        {
+            return false;
+        }
+
+        if (propertyDeclaration.AttributeLists.Count == 0)
+        {
+            return true;
+        }
+
+        // The gaps behind the lists and the total over the attribute region each catch a change the other misses: a blank
+        // line inside a list the formatter splits lies in no gap behind a list, and a dropped blank line there can be offset
+        // by one the formatter inserts in front of a comment behind the lists
+        return KeepsBlankLinesBehindAttributeLists(propertyDeclaration, formatted)
+               && CountBlankLinesInAttributeRegion(propertyDeclaration) == CountBlankLinesInAttributeRegion(formatted);
     }
 
     #endregion // Methods
@@ -148,11 +181,11 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixPro
 
         foreach (var diagnostic in context.Diagnostics)
         {
-            // Only offer the action when the formatter is actually able to collapse the property. For shapes the
-            // formatter keeps multi-lined the formatting is a no-op, so registering would leave the diagnostic unresolved
+            // Only offer the action when formatting puts the property's own code on one line and keeps the blank lines of its
+            // attribute region; otherwise the fix would leave the diagnostic unresolved or change blank lines it does not own
             if (root.FindNode(diagnostic.Location.SourceSpan) is PropertyDeclarationSyntax propertyDeclaration
                 && ReihitsuFormatter.FindUnsupportedSyntax(propertyDeclaration) == null
-                && CanCollapse(propertyDeclaration, context.CancellationToken))
+                && FormatsOnOneLineKeepingBlankLines(propertyDeclaration, context.CancellationToken))
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5401Title,
                                                           token => ApplyCodeFixAsync(context.Document, propertyDeclaration, token),
