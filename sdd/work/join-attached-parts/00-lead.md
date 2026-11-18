@@ -15,7 +15,8 @@
 ## Maintainer answers
 
 - Batch 1: 1A (join `[`/`!` outside chains), 2A (a conditional is judged as the line it becomes), 3A (a list is judged as the line it becomes, including `?[` and in-chain `!`), 4A (a collection expression keeps one element per line), 5A (RH5302 fix results follow).
-- Q6 (a part kept below by a comment): the maintainer answered "unsupported", i.e. declare the shape unsupported (escalation 10). Details: 6.1A — declare in this run; 6.2A — the shape covers the gap in front of `[` (element access), `?[`, and a trailing `!` (the FMT-BREAK-040 gaps), and the gap in front of an argument list's `(` (FMT-BREAK-039); 6.3A — a comment, a directive, or disabled text in the gap. Lead's caveat to the maintainer: if the declaration deletes no special case, the lead comes back before anything is built.
+- Q6 (a part kept below by a comment): the maintainer answered "unsupported", i.e. declare the shape unsupported (escalation 10). Details: 6.1A — declare in this run; 6.2A — the shape covers the gap in front of `[` (element access), `?[`, and a trailing `!` (the FMT-BREAK-040 gaps), and the gap in front of an argument list's `(` (FMT-BREAK-039); 6.3A — a comment, a directive, or disabled text in the gap. - Batch 2: 1A — a same-line comment in the gap is part of the shape (refused; FMT-SPACE-028's `[with /* size */ (4)]` example becomes a refused input); 2 "unsupported" = 2A — the gap between `?` and `[` of a conditional element access is declared too, in this run, as part of the same shape.
+- (6 note) Lead's caveat to the maintainer: if the declaration deletes no special case, the lead comes back before anything is built.
 
 ## Decisions taken
 
@@ -46,7 +47,7 @@
 - Spec amendment done (28dda88), commit for decision 4.
 - Output question batch 1 (change doc changes 1–5 + the comment column) posted to the maintainer; fully answered.
 - Spec author 04 done (476ec37): FMT-UNSUP-014, which deletes the `ArgumentListLineStartRewriter.CanJoin` trivia term and the `MethodChainAttachedPart` column. Open for the next batch: (a) a same-line comment in the gap (spec refuses it, recommendation A); (b) escalation 10: also declare the gap between `?` and `[` (would delete the remaining inner-gap refusal).
-- Skeptic 05 done (720a2cf): the declaration is sound. Batch 2 asked: (a) same-line comment, incl. the FMT-SPACE-028 conflict `[with /* size */ (4)]`; (b) escalation 10 for the `?`–`[` gap. WAITING.
-- After the answers: spec author (06) applies (a), (b), RH5112 in change 7, and the FMT-UNSUP-014 wording; then the test implementer.
+- Skeptic 05 done (720a2cf): the declaration is sound. Batch 2 asked: (a) same-line comment, incl. the FMT-SPACE-028 conflict `[with /* size */ (4)]`; (b) escalation 10 for the `?`–`[` gap. ANSWERED (1A, 2A).
+- Now: spec author (06) applies (a), (b), RH5112 in change 7, and the FMT-UNSUP-014 wording; then the test implementer.
 - Old: fresh skeptic (05), then ask (a) and (b) with any skeptic questions, then the test implementer.
 - Old: spec author (04) writes the declaration and Decisions, and sets Status Accepted; then a fresh skeptic (05) on the declaration; then the test implementer.
