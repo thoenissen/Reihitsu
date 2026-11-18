@@ -53,7 +53,8 @@
 - Test implementer 07 done (edf68c7): new tests fail for the specified reason; architecture is green.
 - Open docs item: correct `Error:` → `error:` in the change doc (decision 6), routed with the spec checker's findings.
 - Implementer 08 done (6ec5154): all tests green in Debug. Open docs items for the spec author: AGENTS.md PrecheckPhase/LineBreakPhase rows, change doc owner names, code owner for AttachedPartGapUtilities, and `error:` (decision 6). These go with the spec checker's findings.
-- Next: cleaner (09), then spec checker (10).
+- Cleaner 09 done (502d8e5): clean.
+- Next: spec checker (10).
 - Old: spec author (06) applies (a), (b), RH5112 in change 7, and the FMT-UNSUP-014 wording; then the test implementer.
 - Old: fresh skeptic (05), then ask (a) and (b) with any skeptic questions, then the test implementer.
 - Old: spec author (04) writes the declaration and Decisions, and sets Status Accepted; then a fresh skeptic (05) on the declaration; then the test implementer.
