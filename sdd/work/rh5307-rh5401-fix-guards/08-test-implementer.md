@@ -48,3 +48,11 @@ Architecture: 198 passed.
 ## Follow-up candidates
 
 _None._
+
+## Follow-up
+
+The implementer disputed `VerifyFixAllLeavesAPropertyWhoseBlankLinesTheFormatterWouldChange` (09-implementer.md, *Disputed tests or scope*), and the lead routed it back to me. The dispute is correct, and the defect was mine. The fixed source keeps `D`'s withheld diagnostic as `{|RH5401:...|}` markup, but the test did not allow markup in the fixed states. So the testing library expected no diagnostic in them and failed with `expected "0" actual "1"` on `D`.
+
+Correction: the test passes an `onConfigure` to `Verify` that sets `test.FixedState.MarkupHandling = MarkupMode.Allow;` and `test.BatchFixedState.MarkupHandling = MarkupMode.Allow;`. This is the same setup as `RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTests` uses for a withheld diagnostic. I added `using Microsoft.CodeAnalysis.Testing;`. The asserted source and fixed code are unchanged.
+
+Run on da8beca (HEAD d9cc9b1 changes nothing under `src`): `scripts/test.sh --project analyzer --filter "FullyQualifiedName~RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTests"` gives 78 passed and 0 failed. Architecture tests: 198 passed. `scripts/format.sh` changed nothing in the test file.
