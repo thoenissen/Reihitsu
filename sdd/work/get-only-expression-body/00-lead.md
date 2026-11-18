@@ -56,4 +56,5 @@ Batch 1 (before test implementer):
 - Pending text item: spec author clarifies SHARED-GETONLY-003 wording (decision 7), after the implementer.
 - Implementer 06 done (08a771a, e940dcd): all tests green except disputed CRLF test.
 - Test implementer 07 (706343d) and spec author 08 (c458cf6) done.
-- Next: cleaner 09.
+- Cleaner 09 done (ee8b0a6): clean, Release 0 warnings.
+- Next: spec checker 10.
