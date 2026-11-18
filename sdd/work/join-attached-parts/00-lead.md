@@ -25,6 +25,7 @@
 | 3 | Skeptic | Architecture finding: `ListElementInteriorJoinRewriter` (before list layout) and `ChainLineBreakRewriter` (after) both join attached parts | Change the structure in this run: FMT-BREAK-040 is the one owner and the join runs before list layout; no third partial join site | The narrow fix would add a third copy; within the line-break phase the run already changes | Output effects are change doc change 3, asked as an output question | — |
 | 4 | Skeptic | FMT-BREAK-040 does not exclude the implicit element access (`["a"] = 1` in initializers), `new[]`, or `stackalloc[]` | Spec-author amendment: exclude them and add a keep-as-is example | They are not attached parts; read literally, the spec would join common code | The amendment keeps today's output | 28dda88 |
 | 5 | Skeptic | The issue's goals: the root-column goal and the owner hint | Root column → output question 6; owner hint dropped | Agent-filed proposals | The root column is asked as an output question | — |
+| 6 | Spec author (04) | The CLI prefix in the change doc examples (`Error:` vs `error:`) | Use what the CLI prints today | Examples must be real output | Doc text only; no CLI change | 476ec37 |
 | 2 | Spec author | Follow the issue's owner hint (`JoinConditionalElementAccesses`, `NormalizeChain`)? | No; no code owner is prescribed | Agent-filed proposal; the implementer picks the owner | Internal | e13cde4 |
 
 ## Follow-up candidates
@@ -33,6 +34,7 @@
 - Postfix `++`/`--` below its operand: `i⏎++` stays at the statement's column; `Baz(i⏎++, 2)` gets one argument per line; no requirement decides it — 02-skeptic.
 - `new⏎[]`, `new int⏎[3]`, `stackalloc⏎[]` leave `[` at the statement's column — 02-skeptic.
 - A lambda expression body below `=>` lands at the statement's column; no requirement decides the column — 02-skeptic.
+- A comment on its own line in front of a wrapped chain link inside a statement gets a blank line above it (`var d = s⏎// c⏎.Length;`) — 04-spec-author.
 - Analyzer counterpart (report a line break in front of an attached part): would be a new rule → not taken in; an issue already exists per #895's text, so the issue manager checks duplicates — 01-spec-author.
 
 ## Worklist / next step
@@ -42,4 +44,6 @@
 - Skeptic done (6a73a04): proceed. Amendment (decision 4) sent to a fresh spec author (03).
 - Spec amendment done (28dda88), commit for decision 4.
 - Output question batch 1 (change doc changes 1–5 + the comment column) posted to the maintainer; fully answered.
-- Next: spec author (04) writes the declaration and Decisions, and sets Status Accepted; then a fresh skeptic (05) on the declaration; then the test implementer.
+- Spec author 04 done (476ec37): FMT-UNSUP-014, which deletes the `ArgumentListLineStartRewriter.CanJoin` trivia term and the `MethodChainAttachedPart` column. Open for the next batch: (a) a same-line comment in the gap (spec refuses it, recommendation A); (b) escalation 10: also declare the gap between `?` and `[` (would delete the remaining inner-gap refusal).
+- Next: fresh skeptic (05), then ask (a) and (b) with any skeptic questions, then the test implementer.
+- Old: spec author (04) writes the declaration and Decisions, and sets Status Accepted; then a fresh skeptic (05) on the declaration; then the test implementer.
