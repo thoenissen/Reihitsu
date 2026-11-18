@@ -19,12 +19,17 @@
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
 | 1 | Start | Batch #849 and #850 into one run? | Yes | They share one mechanism (the formatter's get-only collapse) and one lane; two rules | Internal | b3e1523 |
+| 2 | Skeptic | Issue goals: rule page records withheld fixes; README row; coordinate IDs with #628; drop #628 indexer row | Drop all four | Rule pages list no withheld fixes (general-notes covers it); README has no rule table; #628 closed, RH3209/RH3210 free; #628 already updated | Text/internal only | — |
+| 3 | Skeptic | SHARED-GETONLY-006 queries the unsupported-syntax check on the original declaration | Keep the query, narrow it to the getter, state its reason as SHARED-FIX-003 | Built node loses the comment, so SHARED-FIX-010 alone would offer a dropping fix | Same visible result either way | — |
+| 4 | Skeptic | Who writes the gap in front of `=>` in the fix | Shared converter + node-level format, splice arrow clause/semicolon onto signature as written (RH3202 precedent) | Avoids predicting the spacing phase | Internal mechanism | — |
 
 ## Follow-up candidates
 
-(none yet)
+- A balanced `#if` group inside a wrapped argument list in an expression body is indented inconsistently (active branch column 16, disabled branch and `)` column 22); existing formatter behavior (02-skeptic)
 
 ## Worklist / next step
 
 - Spec author done (89106f5): RH3209 (properties), RH3210 (indexers); change doc Draft; one output question open (comment the formatter keeps the accessor list for: A not reported, B reported without fix).
-- Next: skeptic (02) running; then batch output questions before test implementer.
+- Skeptic done (56e46fa): proceed. Architecture finding: shared Core owner for the get-only predicate/conversion (~250 moved lines + new type) -> escalation 9. Escalation 10 named (declare comment/directive in get-only accessor list unsupported; skeptic recommends no).
+- Amendments pending for spec author: change doc shows signature-kept example; SHARED-GETONLY-006 narrowing (decision 3); directive example in visible change 5.
+- Next: WAITING on maintainer for output-question batch 1 (Q1 rules as drafted, Q2 comment boundary, Q3 refused shapes, Q4 signature kept, Q5 escalation 10, Q6 escalation 9).
