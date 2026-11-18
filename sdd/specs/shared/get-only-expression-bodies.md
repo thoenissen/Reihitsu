@@ -23,7 +23,7 @@ This spec covers what the rules share that report a get-only member whose access
 
 A rule that uses this spec MUST report a member of its kind whose accessor list the structural transforms replace with an expression body under FMT-STRUCT-014 and that FMT-STRUCT-015 does not keep: an accessor list whose only accessor is a `get` accessor without attributes and modifiers, either expression-bodied or with a block that FMT-STRUCT-009 to FMT-STRUCT-013 convert — a single `return` with a value, `return ref` included, or a single `throw` with an operand. It MUST report such a member from C# 6 on, and a member whose getter throws from C# 7 on; below those versions it MUST NOT report it (SHARED-DIAG-011). A member in an interface, a static member, and an explicit interface implementation are reported like any other.
 
-Why: An expression-bodied member is the shortest equivalent of a get-only property or indexer, and it is the form the formatter writes (FMT-STRUCT-014). Without a rule, a user who runs only the analyzers never learns that the accessor list is not the house style, and a user who formats sees a rewrite no diagnostic announced. The rule reports the members the formatter converts, so formatting a document clears their diagnostics, and the code fix has a result to offer for each of them; a member that only a comment or a refused shape keeps from being converted is reported as well, without a fix (SHARED-GETONLY-003, SHARED-GETONLY-006). Expression-bodied properties and indexers only exist from C# 6 on, and throw expressions from C# 7 on; below those versions the user cannot write the form the rule asks for.
+Why: An expression-bodied member is the shortest equivalent of a get-only property or indexer, and it is the form the formatter writes (FMT-STRUCT-014). Without a rule, a user who runs only the analyzers never learns that the accessor list is not the house style, and a user who formats sees a rewrite no diagnostic announced. The rule reports the members the formatter converts, so formatting a document clears their diagnostics, and the code fix has a result to offer for each of them; a member that only a comment, a directive, or a refused shape keeps from being converted is reported as well, without a fix (SHARED-GETONLY-003, SHARED-GETONLY-006, SHARED-GETONLY-007). Expression-bodied properties and indexers only exist from C# 6 on, and throw expressions from C# 7 on; below those versions the user cannot write the form the rule asks for.
 
 Example — RH3209:
 
@@ -273,13 +273,13 @@ class C
 
 is reported, and no code fix is offered.
 
-### SHARED-GETONLY-007 — A member whose directive the formatter keeps is not reported
+### SHARED-GETONLY-007 — A member whose directive the formatter keeps is reported without a fix
 
-A rule that uses this spec MUST NOT report a member that holds a directive or disabled text anywhere from the trailing trivia of the last token in front of its accessor list through the list's closing brace, except a directive or disabled text in one of the two gaps around the `=>` of an expression-bodied getter, which SHARED-GETONLY-006 reports, and a conditional group that lies wholly between the first and the last token of the getter's expression, which FMT-STRUCT-013 converts and the rule reports. A member that holds both such a directive and a comment of SHARED-GETONLY-003 is not reported.
+A rule that uses this spec MUST report a member that SHARED-GETONLY-001 describes in the code the build compiles also when it holds a directive or disabled text anywhere from the trailing trivia of the last token in front of its accessor list through the list's closing brace, for which FMT-STRUCT-015 keeps its accessor list or FMT-STRUCT-013 keeps its getter block. The code fix MUST NOT be offered for such a member. Two places are not this requirement's: a directive or disabled text in one of the two gaps around the `=>` of an expression-bodied getter is SHARED-GETONLY-006's, and a conditional group that lies wholly between the first and the last token of the getter's expression keeps neither the accessor list nor the fix, because FMT-STRUCT-013 converts it: the fix writes what the formatter writes for it (SHARED-GETONLY-005). A member that holds such a directive and also a comment of SHARED-GETONLY-003 is reported without a fix as well. A member that is not get-only in the code the build compiles, such as one whose `set` accessor stands in an active branch, is not reported (SHARED-GETONLY-002).
 
-Why: Disabled text can hold code of another build, such as a setter, an attribute, or a second statement, and a member that is get-only in one build is then not get-only in another, so the expression-bodied form the rule asks for cannot be written for every build (SHARED-DIAG-011). The formatter keeps the accessor list or the getter block for each such directive (FMT-STRUCT-013, FMT-STRUCT-015). A conditional group inside the getter's expression only chooses part of the value and leaves the member get-only in every build. The expression-bodied member rules leave members with a directive in the converted span alone for the same reason (SHARED-BODY-001).
+Why: A rule analyzes the code the build compiles, and in that build the member is get-only, so the expression-bodied form the rule asks for can be written there (SHARED-DIAG-011); the author decides how the other builds are written, for example by writing the whole member in each branch of the conditional group. The directive does not make the accessor list the better form, as a comment does not (SHARED-GETONLY-003). The fix writes what the formatter writes, and the formatter keeps the accessor list or the getter block for the directive (FMT-STRUCT-013, FMT-STRUCT-015), because a rewrite would drop or move code of another build; so the fix is withheld (SHARED-FIX-003), and a reported diagnostic without a fix is a supported end state. A conditional group inside the getter's expression only chooses part of the value: the conversion keeps it in place, and the member stays get-only in every build. The expression-bodied member rules decide differently for a directive in the span their fix rebuilds (SHARED-BODY-001): there the member is not reported, because no fix could convert it; here the rule is about the get-only accessor list itself, which the author can rewrite by hand.
 
-Example — RH3209:
+Example — RH3209, compiled without `WRITABLE`:
 
 ```csharp
 class C
@@ -287,24 +287,24 @@ class C
     private int _value;
 
     public int A
-    {
+    {|RH3209:{
         get => _value;
 #if WRITABLE
         set => _value = value;
 #endif
-    }
+    }|}
 
     public int B
-    {
+    {|RH3209:{
 #if DEBUG
         get => 1;
 #else
         get => 2;
 #endif
-    }
+    }|}
 
     public int D
-    {
+    {|RH3209:{
         get
         {
             return _value;
@@ -313,11 +313,11 @@ class C
 #else
         }
 #endif
-    }
+    }|}
 }
 ```
 
-is not reported, while a conditional group inside the getter's expression is:
+is reported, and no code fix is offered. Compiled with `WRITABLE`, `A` has a setter and is not reported (SHARED-GETONLY-002). A conditional group inside the getter's expression is reported, and the code fix is offered:
 
 ```csharp
 class C
