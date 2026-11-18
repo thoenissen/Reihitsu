@@ -120,67 +120,67 @@ public class CliHiddenCodeEndToEndTests
     private const string ArrowDirectiveSource = "class C\n{\n    int A =>\n#if DEBUG\n        1;\n#else\n        2;\n#endif\n\n    int M() =>\n#if DEBUG\n        1;\n#else\n        0;\n#endif\n}\n";
 
     /// <summary>
-    /// The file of the FMT-UNSUP-013 change's the first visible output example: a property with a line comment behind its name,
+    /// The file of the FMT-UNSUP-013 change's first visible output example: a property with a line comment behind its name,
     /// which starts in line 3, column 11
     /// </summary>
     private const string LeadingArrowPropertySource = "class C\n{\n    int P // c\n        => 1;\n}\n";
 
     /// <summary>
-    /// The file of the FMT-UNSUP-013 change's the example of an indexer with a line comment behind its bracket, which starts in
+    /// The file of the FMT-UNSUP-013 change's example of an indexer with a line comment behind its bracket, which starts in
     /// line 3, column 21, a property with a block comment directly at its arrow, and a property with a block comment on one line
     /// </summary>
     private const string LeadingArrowIndexerSource = "class C\n{\n    int this[int i] // c\n        => i;\n\n    int Q\n        /* c */ => 2;\n\n    int A /* c */ => 1;\n}\n";
 
     /// <summary>
-    /// The file of the FMT-UNSUP-013 change's the example of a getter with a comment behind its keyword, which starts in line 7,
+    /// The file of the FMT-UNSUP-013 change's example of a getter with a comment behind its keyword, which starts in line 7,
     /// column 13
     /// </summary>
     private const string LeadingArrowAccessorSource = "class C\n{\n    private int _v;\n\n    int V\n    {\n        get // c\n            => _v;\n    }\n}\n";
 
     /// <summary>
-    /// The file of the FMT-UNSUP-013 change's the example of a method with a block comment directly at its arrow, which starts in
+    /// The file of the FMT-UNSUP-013 change's example of a method with a block comment directly at its arrow, which starts in
     /// line 4, column 9, and a method with a block comment on one line
     /// </summary>
     private const string LeadingArrowMethodSource = "class C\n{\n    int B()\n        /* c */ => 1;\n\n    int M() /* c */ => 1;\n}\n";
 
     /// <summary>
-    /// The file of the FMT-UNSUP-013 change's the example of a method with a comment line in front of its arrow, which starts in
+    /// The file of the FMT-UNSUP-013 change's example of a method with a comment line in front of its arrow, which starts in
     /// line 4, column 9, and a method with a comment behind its signature
     /// </summary>
     private const string LeadingArrowOwnLineSource = "class C\n{\n    int Other()\n        // before arrow\n        => 1;\n\n    void Run() // run\n        => Foo();\n\n    void Foo()\n    {\n    }\n}\n";
 
     /// <summary>
-    /// The file of the FMT-UNSUP-013 change's the example of a block comment in front of the arrow on one line, which starts in
+    /// The file of the FMT-UNSUP-013 change's example of a block comment in front of the arrow on one line, which starts in
     /// line 2, column 11, in a file whose <c>class C{</c> the formatter would otherwise correct
     /// </summary>
     private const string LeadingArrowSameLineSource = "class C{\n    int A /* c */ => 1;\n}\n";
 
     /// <summary>
-    /// The file of the FMT-UNSUP-013 change's the example of a constructor with an initializer and a method with a constraint
+    /// The file of the FMT-UNSUP-013 change's example of a constructor with an initializer and a method with a constraint
     /// clause, each with a comment in front of the arrow, the first of which starts in line 12, column 26
     /// </summary>
     private const string LeadingArrowConstructorSource = "class B\n{\n    public B(int v)\n    {\n    }\n}\n\nclass C : B\n{\n    private int _v;\n\n    public C() : base(1) // c\n        => _v = 1;\n\n    T Make<T>()\n        where T : new() // c\n        => new T();\n}\n";
 
     /// <summary>
-    /// The file of the FMT-UNSUP-013 change's the example of a local function with a comment behind its signature, which starts in
+    /// The file of the FMT-UNSUP-013 change's example of a local function with a comment behind its signature, which starts in
     /// line 5, column 21
     /// </summary>
     private const string LeadingArrowLocalFunctionSource = "class C\n{\n    void M()\n    {\n        int Local() // c\n            => 1;\n\n        Local();\n    }\n}\n";
 
     /// <summary>
-    /// The file of the FMT-UNSUP-013 change's the example of conditional groups that choose the arrow of a property and of a
+    /// The file of the FMT-UNSUP-013 change's example of conditional groups that choose the arrow of a property and of a
     /// method, whose first <c>#if DEBUG</c> starts in line 4, column 1
     /// </summary>
     private const string LeadingArrowDirectiveSource = "class C\n{\n    int A\n#if DEBUG\n        => 1;\n#else\n        => 2;\n#endif\n\n    int M()\n#if DEBUG\n        => 1;\n#else\n        => 0;\n#endif\n}\n";
 
     /// <summary>
-    /// The file of the FMT-UNSUP-013 change's the example of a region directive in front of the arrow, which starts in line 4,
+    /// The file of the FMT-UNSUP-013 change's example of a region directive in front of the arrow, which starts in line 4,
     /// column 9
     /// </summary>
     private const string LeadingArrowRegionSource = "class C\n{\n    int M()\n        #region R\n        => 1;\n        #endregion\n}\n";
 
     /// <summary>
-    /// The file of the FMT-UNSUP-013 change's the example of conditional groups around a signature, a constraint clause, and the
+    /// The file of the FMT-UNSUP-013 change's example of conditional groups around a signature, a constraint clause, and the
     /// type of a property that close in front of a shared arrow, the first <c>#endif</c> of which starts in line 9, column 1
     /// </summary>
     private const string LeadingArrowSharedArrowSource = "using System.Numerics;\n\nclass C\n{\n#if NET8_0\n    public int M(int a)\n#else\n    public int M(long a)\n#endif\n        => 1;\n\n    T Make<T>()\n#if NET7_0_OR_GREATER\n        where T : INumber<T>\n#endif\n        => default;\n\n#if NET8_0\n    public int P\n#else\n    public long P\n#endif\n        => 1;\n}\n";
