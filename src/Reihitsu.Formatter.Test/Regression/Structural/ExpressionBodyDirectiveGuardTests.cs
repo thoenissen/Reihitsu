@@ -168,12 +168,11 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a region opened before the arrow is refused, so the formatter and the code fix
-    /// agree on a member whose region directive sits outside the rewritten span
+    /// Verifies that a region opened before the arrow refuses the input as unsupported
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-STRUCT-007")]
-    public void MethodWithRegionBeforeArrowIsNotConverted()
+    [Requirement("FMT-UNSUP-013")]
+    public void MethodWithRegionBeforeArrowIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -190,7 +189,7 @@ public class ExpressionBodyDirectiveGuardTests : FormatterTestsBase
                              """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertUnsupportedFor(ExpressionBodyArrowLeadingCommentReason, input, "#region Body");
     }
 
     #endregion // Methods

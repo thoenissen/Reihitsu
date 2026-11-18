@@ -671,6 +671,39 @@ public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Bat
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies the change example: a comment behind the constructor initializer in front of the arrow withholds the fix, because
+    /// the formatter refuses the constructor it would format, while the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    [Requirement("SHARED-FIX-010")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentInFrontOfTheArrow(string endOfLine)
+    {
+        const string source = """
+                              class B
+                              {
+                                  public B(int v)
+                                  {
+                                  }
+                              }
+
+                              class C : B
+                              {
+                                  private int _v;
+
+                                  public C() : base(1) // c
+                                      {|RH3203:=> _v = 1|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

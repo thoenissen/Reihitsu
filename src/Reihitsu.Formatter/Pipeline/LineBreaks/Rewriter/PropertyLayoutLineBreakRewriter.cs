@@ -50,25 +50,19 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
     /// Moves the arrow of an expression-bodied property or indexer and the first token of its expression onto the
     /// line of the token that precedes the arrow — the property name or the indexer's closing bracket. Each join writes
     /// the minimal separator (FMT-BREAK-031), and a gap that is already on one line keeps its whitespace: the spaces
-    /// around the arrow are the horizontal-spacing phase's (FMT-SPACE-017). The layout is kept when the join of the arrow
-    /// would cross a comment, a directive, or disabled text in front of it; the gap behind the arrow holds none, because the
-    /// precheck refuses an input that holds one there (FMT-UNSUP-012)
+    /// around the arrow are the horizontal-spacing phase's (FMT-SPACE-017). Neither gap around the arrow holds a comment, a
+    /// directive, or disabled text, because the precheck refuses an input that holds one there (FMT-UNSUP-012, FMT-UNSUP-013)
     /// </summary>
     /// <typeparam name="TNode">The declaration type</typeparam>
     /// <param name="node">The property or indexer declaration</param>
     /// <param name="getExpressionBody">Gets the declaration's expression body</param>
-    /// <returns>The declaration with the arrow on the signature line, or unchanged when it has no expression body or the join is unsafe</returns>
+    /// <returns>The declaration with the arrow on the signature line, or unchanged when it has no expression body</returns>
     private static TNode CollapseExpressionBody<TNode>(TNode node, Func<TNode, ArrowExpressionClauseSyntax> getExpressionBody)
         where TNode : BasePropertyDeclarationSyntax
     {
         var expressionBody = getExpressionBody(node);
 
         if (expressionBody == null)
-        {
-            return node;
-        }
-
-        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(expressionBody.ArrowToken.GetPreviousToken(), expressionBody.ArrowToken))
         {
             return node;
         }

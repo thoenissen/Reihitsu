@@ -520,6 +520,30 @@ public class RH3205ExpressionStyleOperatorsShouldNotBeUsedAnalyzerTests : BatchC
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies that a comment in front of the arrow withholds the fix, because the formatter refuses the member it would format,
+    /// while the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    [Requirement("SHARED-FIX-010")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentInFrontOfTheArrow(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  public static C operator +(C a, C b) // c
+                                      {|RH3205:=> a|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

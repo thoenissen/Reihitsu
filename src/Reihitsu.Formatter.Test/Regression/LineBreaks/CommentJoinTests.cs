@@ -154,25 +154,6 @@ public class CommentJoinTests
     }
 
     /// <summary>
-    /// Verifies that the arrow of an expression-bodied property is not collapsed into a trailing comment behind the property's
-    /// name. A comment behind the arrow is refused as unsupported before this phase runs (FMT-UNSUP-012)
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-001")]
-    public void ExpressionBodiedPropertyArrowIsNotCollapsedIntoTrailingComment()
-    {
-        const string input = """
-                             class C
-                             {
-                                 int X // note
-                                     => 1;
-                             }
-                             """;
-
-        AssertUnchanged(input);
-    }
-
-    /// <summary>
     /// Verifies that an auto-property accessor list is not collapsed into a trailing comment on the property header
     /// </summary>
     [TestMethod]

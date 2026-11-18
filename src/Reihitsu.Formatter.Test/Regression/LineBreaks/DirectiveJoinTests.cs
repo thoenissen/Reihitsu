@@ -164,25 +164,5 @@ public class DirectiveJoinTests
         AssertUnchanged(input);
     }
 
-    /// <summary>
-    /// Verifies that the arrow of an expression-bodied property is not collapsed across a directive in front of it. A directive
-    /// behind the arrow is refused as unsupported before this phase runs (FMT-UNSUP-012)
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-BREAK-001")]
-    public void ExpressionBodiedPropertyArrowIsNotCollapsedAcrossDirective()
-    {
-        const string input = """
-                             class C
-                             {
-                                 int X
-                             #pragma warning disable CS0001
-                                     => 1;
-                             }
-                             """;
-
-        AssertUnchanged(input);
-    }
-
     #endregion // Tests
 }

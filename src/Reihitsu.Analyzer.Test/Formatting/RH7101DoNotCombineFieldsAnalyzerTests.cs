@@ -4052,6 +4052,48 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
         await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies the change example: a comment in front of the arrow of an expression body elsewhere in the type withholds the fix,
+    /// while the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task CommentInFrontOfTheArrowOfAnExpressionBodyWithholdsTheFix(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _a, {|RH7101:_b|};
+
+                                  int A // c
+                                      => _a;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that a comment or directive in front of the arrow of an expression body withholds the fix wherever the type holds
+    /// it: in a method, in an accessor, in a local function in an initializer value of the declaration, and in a nested type
+    /// </summary>
+    /// <param name="source">The source text with markup</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH7101-007")]
+    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    int M() /* c */ => 1;\n}", DisplayName = "Block comment in front of the arrow of a method on one line")]
+    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    int P\n    {\n        get\n            // c\n            => _x;\n    }\n}", DisplayName = "Comment line in front of the arrow of a getter")]
+    [DataRow("using System;\n\nclass C\n{\n    private Func<int> _f = () =>\n    {\n        int L() /* c */ => 1;\n\n        return L();\n    }, {|RH7101:_g|};\n}", DisplayName = "Local function in an initializer value")]
+    [DataRow("class C\n{\n    private int _x, {|RH7101:_y|};\n\n    class D\n    {\n        int P\n#pragma warning disable CS0001\n            => 1;\n    }\n}", DisplayName = "Directive in front of the arrow in a nested type")]
+    public async Task CommentInFrontOfTheArrowOfAnExpressionBodyElsewhereInTheTypeWithholdsTheFix(string source)
+    {
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
     #endregion // Tests
 
     #region Methods

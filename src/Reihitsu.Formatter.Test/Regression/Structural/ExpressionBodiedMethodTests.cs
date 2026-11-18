@@ -284,12 +284,11 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment placed before the arrow token is carried into the block, in front of the
-    /// created statement
+    /// Verifies that a comment placed before the arrow token refuses the input as unsupported
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-STRUCT-006")]
-    public void PreservesCommentBeforeArrow()
+    [Requirement("FMT-UNSUP-013")]
+    public void CommentBeforeArrowIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -300,19 +299,9 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
                                      => 42;
                              }
                              """;
-        const string expected = """
-                                class C
-                                {
-                                    int M()
-                                    {
-                                        // note
-                                        return 42;
-                                    }
-                                }
-                                """;
 
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(ExpressionBodyArrowLeadingCommentReason, input, "// note");
     }
 
     /// <summary>
