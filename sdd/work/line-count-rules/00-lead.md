@@ -12,7 +12,7 @@
 
 - Batch 1 (Q1–Q8 of 01-spec-author/02-skeptic): 1A (limits in `reihitsu.json` `design` section, validated by RH0001; RH8402 no longer silenced by a valid `design` section), **2B** (built-in default limits apply when no limit is configured — not inactive), 3A (nested code counts toward the container), 4A (RH2008 / RH2111, titles and messages as drafted, operator token / accessor keyword location), 5A (unions judged, enums not), 6A (each accessor on its own), 7A (initializer lambdas not judged), 8A (strict whole-number validation 1..2147483647, unknown setting reported).
 - Batch 2: **9B** (defaults 60 lines per method-like member, 500 per type), **10A** (every line of a multi-line string literal counts), **11A amended**: both rules are turned off for this repository's own build (`Release.ruleset`, `Debug.ruleset`) **and must also be ignored by the self-hosting scans (`Reihitsu.SelfHosting.Test`)**; a follow-up issue decides the repository's own limits or refactors.
-- 05-spec-author (dc3a886), 06-test-implementer (1198769), 07-implementer (d629d44, aa5077c) done. Note for the run note: ruleset entries RH2008/RH2111 None carry out answer 11A, not a warning suppression. 08-cleaner (935d1da) clean. 09-spec-checker (3e29830): one finding (specs/README.md row order for shared/line-count.md). Repair round 1 done: 10-spec-author (0c690a0), 11-spec-checker (f3c8b9b) consistent. origin/main merged (no conflicts), Release build green. Next: auditor (12-auditor.md).
+- 05-spec-author (dc3a886), 06-test-implementer (1198769), 07-implementer (d629d44, aa5077c) done. Note for the run note: ruleset entries RH2008/RH2111 None carry out answer 11A, not a warning suppression. 08-cleaner (935d1da) clean. 09-spec-checker (3e29830): one finding (specs/README.md row order for shared/line-count.md). Repair round 1 done: 10-spec-author (0c690a0), 11-spec-checker (f3c8b9b) consistent. origin/main merged (no conflicts), Release build green. 12-auditor (f069e28) pass. Next: validator (13-validator.md), then issue manager, note, publish.
 - Earlier: 03-spec-author (37d7350) and 04-skeptic (247ae19) done; batch 3 (Q12 as redrafted by 04-skeptic with option D, Q13–Q16 from 03-spec-author with the skeptic's heading fixes) posted; waiting.
 - Batch 3: **12D** (test code = project with `IsTestProject` or `IsTestingPlatformApplication` true; the maintainer asked whether the analyzer can read the latter — answered: yes, through `build_property.IsTestingPlatformApplication` once `CompilerVisibleProperty` declares it, verified by the skeptic on generated configs; the verifier tests must prove it in both directions), **13A** (flat setting names), **14A** (test defaults 100 / 1000), **15A** (each setting keeps its own default), **16A** (an invalid setting keeps its default).
 - New maintainer requirement (with batch 2): the rules must distinguish production code from test code and have separate limits for each. Pending: the spec author designs it and drafts output questions (how test code is recognized, default test limits, configuration keys, RH0001 validation); then batch 3.
@@ -27,17 +27,19 @@
 | 4 | Skeptic (04) | SHARED-LINES-002 wording | Accept: a default applies whenever a setting has no valid value (covers an unreadable file) | Complete and shorter | Same output as the listed cases | pending |
 | 5 | Skeptic (04) | Under Q12 D, a Microsoft.Testing.Platform extension library counts as test code | Accept if 12D is chosen | Rare, and test tooling anyway | Follows from the maintainer's 12 answer | pending |
 | 6 | Test implementer | RH0001 location of an invalid design value (spec says "on the value") | Follow the loader's existing location convention (string value or name located just after its opening quote) | Consistency with every other RH0001 diagnostic | The existing RH0001 location convention (unchanged) decides it | 1198769 |
+| 7 | Auditor (hints) | Take the auditor's hints (BOM on three new files, `private` for two helpers, a test for a blank line inside an interpolated multi-line string)? | Leave them; publish the audited tree | BOM absent in 21 existing files and unenforced; visibility is cosmetic; the probe shows the count is right and SHARED-LINES-001 is covered by the existing raw-string tests | None changes output | — |
 | 3 | Skeptic | One owner for the counting (FC-015) | Accept; implementer builds one shared counter that both rules use, and it becomes the code owner of `shared/line-count.md` | Avoids private copies | Internal structure | pending |
 
 ## Follow-up candidates
 
+- `Debug.ruleset:101` names `RH08402`, a typo for `RH8402` (12-auditor.md; no visible effect today; no test could pin it, so not taken as an adjacent fix).
 - (extends the next item, 04-skeptic.md) The repository loads the analyzer DLLs directly (`Directory.Build.props:53-56`), so no package targets are imported: when the rules are turned on here, `Directory.Build.props` and the self-hosting scans must also make `IsTestProject` (and `IsTestingPlatformApplication`) visible, or every test project counts as production code.
 - This repository's own limits for RH2008/RH2111 (or refactors of its outliers), with both rules turned off meanwhile (maintainer answer 11A).
 - A setting written twice in `reihitsu.json` is not reported by RH0001; the later value wins (02-skeptic.md, found by reading code, low value).
 
 ## Audited SHA
 
-(none yet)
+dfe3ac09e40b221bf100bce4c32d3af766e01126 (12-auditor, pass; base main 899c0c7)
 
 ## Open worklist / next step
 
