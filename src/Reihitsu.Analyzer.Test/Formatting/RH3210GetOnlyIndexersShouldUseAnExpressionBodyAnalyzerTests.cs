@@ -605,6 +605,148 @@ public class RH3210GetOnlyIndexersShouldUseAnExpressionBodyAnalyzerTests : Batch
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifying the negative example <c>B</c> of SHARED-GETONLY-003 on an indexer: a delimited comment on a line of its own
+    /// in front of the getter's semicolon withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-GETONLY-003")]
+    public async Task DelimitedCommentOnALineOfItsOwnInFrontOfTheGettersSemicolonWithholdsFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int this[int index]
+                                  {|RH3210:{
+                                      get => index
+                                          /* d */ ;
+                                  }|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the block variant of the negative example <c>B</c> of SHARED-GETONLY-003 on an indexer: a delimited comment
+    /// on a line of its own in front of the semicolon of the getter block's <c>return</c> statement withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-GETONLY-003")]
+    public async Task DelimitedCommentOnALineOfItsOwnInFrontOfTheReturnSemicolonWithholdsFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int this[int index]
+                                  {|RH3210:{
+                                      get
+                                      {
+                                          return index
+                                              /* e */ ;
+                                      }
+                                  }|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a member behind the closing brace of a multi-line accessor list, on the same line, starts on the line
+    /// after the converted indexer, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixPutsAMemberBehindTheClosingBraceOnTheNextLine(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int this[int i]
+                                  {|RH3210:{
+                                      get => i;
+                                  }|} public void M() { }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       public int this[int i] => i;
+                                       public void M() { }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that the converted indexer starts on the line after a member in front of it on the same line, under LF and
+    /// CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixPutsTheConvertedIndexerOnTheLineAfterAMemberInFrontOfIt(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int B => 1; public int this[int i] {|RH3210:{ get { return i; } }|}
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       public int B => 1;
+                                       public int this[int i] => i;
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that fixing two reported indexers that share one line, one at a time and with Fix All, gives each of them
+    /// a line of its own, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixAllPutsTwoConvertedIndexersOfOneLineOnLinesOfTheirOwn(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int this[int i] {|RH3210:{ get => i; }|} public int this[long l] {|RH3210:{ get => (int)l; }|}
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       public int this[int i] => i;
+                                       public int this[long l] => (int)l;
+                                   }
+                                   """;
+
+        await Verify(ConvertEndOfLine(source, endOfLine), ConvertEndOfLine(fixedSource, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods

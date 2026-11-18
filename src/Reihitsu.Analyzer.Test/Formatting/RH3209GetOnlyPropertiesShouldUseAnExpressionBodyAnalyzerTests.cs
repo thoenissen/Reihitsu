@@ -1733,6 +1733,319 @@ public class RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzerTests : Bat
         await VerifyNoCodeFixIsOfferedOnceASyntaxErrorIsAdded(source);
     }
 
+    /// <summary>
+    /// Verifying the negative example <c>B</c> of SHARED-GETONLY-003: a delimited comment on a line of its own in front of
+    /// the getter's semicolon withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-GETONLY-003")]
+    public async Task DelimitedCommentOnALineOfItsOwnInFrontOfTheGettersSemicolonWithholdsFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _value;
+
+                                  public int B
+                                  {|RH3209:{
+                                      get => _value
+                                          /* d */ ;
+                                  }|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a single-line comment on a line of its own in front of the getter's semicolon withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-GETONLY-003")]
+    public async Task SingleLineCommentOnALineOfItsOwnInFrontOfTheGettersSemicolonWithholdsFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _value;
+
+                                  public int B
+                                  {|RH3209:{
+                                      get => _value
+                                          // d
+                                          ;
+                                  }|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying the block variant of the negative example <c>B</c> of SHARED-GETONLY-003: a delimited comment on a line of
+    /// its own in front of the semicolon of the getter block's <c>return</c> statement withholds the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-GETONLY-003")]
+    public async Task DelimitedCommentOnALineOfItsOwnInFrontOfTheReturnSemicolonWithholdsFix()
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _value;
+
+                                  public int B
+                                  {|RH3209:{
+                                      get
+                                      {
+                                          return _value
+                                              /* e */ ;
+                                      }
+                                  }|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifying that a member behind the closing brace of the converted accessor list, on the same line, starts on the next
+    /// line, and that the blank line above the converted member stays, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixPutsAMemberBehindTheConvertedMemberOnTheNextLine(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _value;
+
+                                  public int A {|RH3209:{ get => _value; }|} public int B => 1;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _value;
+
+                                       public int A => _value;
+                                       public int B => 1;
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that the converted member starts on the line after a member in front of it on the same line, under LF and
+    /// CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixPutsTheConvertedMemberOnTheLineAfterAMemberInFrontOfIt(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _value;
+
+                                  public int B => 1; public int A {|RH3209:{ get { return _value; } }|}
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _value;
+
+                                       public int B => 1;
+                                       public int A => _value;
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that a member whose signature shares its line with a member in front of it, and whose accessor list spans
+    /// several lines, starts on the line after that member, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixPutsAMultiLineConvertedMemberOnTheLineAfterAMemberInFrontOfIt(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _value;
+
+                                  public int B => 1; public int A
+                                  {|RH3209:{
+                                      get => _value;
+                                  }|}
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _value;
+
+                                       public int B => 1;
+                                       public int A => _value;
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that a member behind the closing brace of a multi-line accessor list whose getter's semicolon carries a
+    /// single-line comment starts on the next line in the column of the converted member, and the comment follows the new
+    /// semicolon, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    [Requirement("SHARED-GETONLY-005")]
+    public async Task FixPutsAMemberBehindTheClosingBraceOnTheNextLineWhenTheSemicolonCarriesAComment(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A
+                                  {|RH3209:{
+                                      get => 1; // a
+                                  }|} public int B => 2;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       public int A => 1; // a
+                                       public int B => 2;
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that a member behind a delimited comment behind the closing brace of the converted accessor list starts on
+    /// the next line, and the comment follows the new semicolon, as the formatter writes it, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    [Requirement("SHARED-GETONLY-005")]
+    public async Task FixPutsAMemberBehindADelimitedCommentBehindTheConvertedMemberOnTheNextLine(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A {|RH3209:{ get => 1; }|} /* c */ public int B => 2;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       public int A => 1; /* c */
+                                       public int B => 2;
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that the converted member behind a member and a delimited comment on the same line starts on the next
+    /// line, and the comment stays behind the member in front, as the formatter writes it, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixPutsTheConvertedMemberBehindADelimitedCommentOnTheNextLine(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int B => 2; /* c */ public int A {|RH3209:{ get => 1; }|}
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       public int B => 2; /* c */
+                                       public int A => 1;
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that fixing two reported members that share one line, one at a time and with Fix All, gives each of them a
+    /// line of its own, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    public async Task FixAllPutsTwoConvertedMembersOfOneLineOnLinesOfTheirOwn(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  private int _value;
+
+                                  public int A {|RH3209:{ get => _value; }|} public int B {|RH3209:{ get { return 2; } }|}
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       private int _value;
+
+                                       public int A => _value;
+                                       public int B => 2;
+                                   }
+                                   """;
+
+        await Verify(ConvertEndOfLine(source, endOfLine), ConvertEndOfLine(fixedSource, endOfLine));
+    }
+
     #endregion // Tests
 
     #region Methods
