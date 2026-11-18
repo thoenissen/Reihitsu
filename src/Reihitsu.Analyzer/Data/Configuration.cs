@@ -13,6 +13,11 @@ internal class Configuration
     public ConfigurationCategoryCopyright Copyright { get; set; }
 
     /// <summary>
+    /// Category: Design
+    /// </summary>
+    public ConfigurationCategoryDesign Design { get; set; }
+
+    /// <summary>
     /// Category: Naming
     /// </summary>
     public ConfigurationCategoryNaming Naming { get; set; }

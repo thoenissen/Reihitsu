@@ -4,7 +4,7 @@
 |---|---|
 | ID prefix | SHARED-LINES |
 | Status | Active |
-| Code owners | — |
+| Code owners | `LineCountAnalyzerBase` |
 | Uses | RH0001-001, RH0001-003, RH0001-007, SHARED-DIAG-008 |
 
 This spec covers the rules that count the lines of code of a declaration's body and report the declaration when the count exceeds a limit: RH2008 for methods and the other members with a body, RH2111 for types. It defines what a line of code is, which code is test code, which limit applies to a declaration, and how the count is compared with it. Each rule that uses this spec states which declarations it judges, which span of each declaration it counts, which settings hold its limits, and their default values, and where its diagnostic is located.

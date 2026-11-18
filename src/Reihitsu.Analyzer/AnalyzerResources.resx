@@ -249,6 +249,12 @@
   <data name="RH2007Title" xml:space="preserve">
     <value>Debug.Fail must provide message text.</value>
   </data>
+  <data name="RH2008MessageFormat" xml:space="preserve">
+    <value>This member has {0} lines of code, which exceeds the limit of {1}.</value>
+  </data>
+  <data name="RH2008Title" xml:space="preserve">
+    <value>Methods should not exceed the line limit.</value>
+  </data>
   <data name="RH3106MessageFormat" xml:space="preserve">
     <value>Unnecessary delegate parentheses should be removed.</value>
   </data>
@@ -326,6 +332,12 @@
   </data>
   <data name="RH2110Title" xml:space="preserve">
     <value>Nested unions should not be used.</value>
+  </data>
+  <data name="RH2111MessageFormat" xml:space="preserve">
+    <value>This type has {0} lines of code, which exceeds the limit of {1}.</value>
+  </data>
+  <data name="RH2111Title" xml:space="preserve">
+    <value>Types should not exceed the line limit.</value>
   </data>
   <data name="RH4001MessageFormat" xml:space="preserve">
     <value>The name of the type should match the filename</value>

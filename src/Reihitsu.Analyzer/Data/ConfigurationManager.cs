@@ -27,6 +27,11 @@ internal static class ConfigurationManager
     private const string CopyrightSectionName = "copyright";
 
     /// <summary>
+    /// Configuration section name: design
+    /// </summary>
+    private const string DesignSectionName = "design";
+
+    /// <summary>
     /// Configuration section name: naming
     /// </summary>
     private const string NamingSectionName = "naming";
@@ -149,6 +154,12 @@ internal static class ConfigurationManager
                 case CopyrightSectionName:
                     {
                         ParseCopyright(ref reader, configuration, errors);
+                    }
+                    break;
+
+                case DesignSectionName:
+                    {
+                        ParseDesign(ref reader, configuration, errors);
                     }
                     break;
 
@@ -390,6 +401,121 @@ internal static class ConfigurationManager
 
         return normalizedText.StartsWith("/*", StringComparison.Ordinal)
                && normalizedText.EndsWith("*/", StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Parse design category
+    /// </summary>
+    /// <param name="reader">Reader</param>
+    /// <param name="configuration">Configuration</param>
+    /// <param name="errors">Errors</param>
+    private static void ParseDesign(ref Utf8JsonReader reader, Configuration configuration, List<ConfigurationValidationError> errors)
+    {
+        if (reader.TokenType != JsonTokenType.StartObject)
+        {
+            errors.Add(CreateValidationError($"The '{DesignSectionName}' section must be a JSON object.", GetCurrentValueSpan(ref reader)));
+
+            SkipValue(ref reader);
+
+            return;
+        }
+
+        var design = configuration.Design ??= new ConfigurationCategoryDesign();
+
+        while (reader.Read())
+        {
+            if (reader.TokenType == JsonTokenType.EndObject)
+            {
+                break;
+            }
+
+            if (reader.TokenType != JsonTokenType.PropertyName)
+            {
+                continue;
+            }
+
+            var propertyName = reader.GetString();
+            var propertySpan = GetPropertyNameSpan(ref reader);
+
+            reader.Read();
+
+            switch (propertyName)
+            {
+                case ConfigurationCategoryDesign.MaximumMethodLinesPropertyName:
+                    {
+                        design.MaximumMethodLines = ParseLineLimit(ref reader, propertyName, errors);
+                    }
+                    break;
+
+                case ConfigurationCategoryDesign.MaximumTestMethodLinesPropertyName:
+                    {
+                        design.MaximumTestMethodLines = ParseLineLimit(ref reader, propertyName, errors);
+                    }
+                    break;
+
+                case ConfigurationCategoryDesign.MaximumTypeLinesPropertyName:
+                    {
+                        design.MaximumTypeLines = ParseLineLimit(ref reader, propertyName, errors);
+                    }
+                    break;
+
+                case ConfigurationCategoryDesign.MaximumTestTypeLinesPropertyName:
+                    {
+                        design.MaximumTestTypeLines = ParseLineLimit(ref reader, propertyName, errors);
+                    }
+                    break;
+
+                default:
+                    {
+                        errors.Add(CreateValidationError($"Unknown configuration setting '{DesignSectionName}.{propertyName}'.", propertySpan));
+                        SkipValue(ref reader);
+                    }
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Parse a line limit of the design category: a JSON number written as a whole number without a sign, a fraction,
+    /// or an exponent, from 1 to <see cref="int.MaxValue"/>
+    /// </summary>
+    /// <param name="reader">Reader positioned on the value</param>
+    /// <param name="propertyName">Property name</param>
+    /// <param name="errors">Errors</param>
+    /// <returns>The limit, or <see langword="null"/> when the value is not such a number</returns>
+    private static int? ParseLineLimit(ref Utf8JsonReader reader, string propertyName, List<ConfigurationValidationError> errors)
+    {
+        if (reader.TokenType == JsonTokenType.Number
+            && IsWrittenAsDigits(reader.ValueSpan)
+            && reader.TryGetInt32(out var limit)
+            && limit >= 1)
+        {
+            return limit;
+        }
+
+        errors.Add(CreateValidationError($"The '{DesignSectionName}.{propertyName}' setting must be a whole number from 1 to 2147483647.", GetCurrentValueSpan(ref reader)));
+
+        SkipValue(ref reader);
+
+        return null;
+    }
+
+    /// <summary>
+    /// Determines whether a JSON number is written with ASCII digits only
+    /// </summary>
+    /// <param name="value">UTF-8 text of the number</param>
+    /// <returns><see langword="true"/> when every character is a digit; otherwise <see langword="false"/></returns>
+    private static bool IsWrittenAsDigits(ReadOnlySpan<byte> value)
+    {
+        foreach (var character in value)
+        {
+            if (character is < (byte)'0' or > (byte)'9')
+            {
+                return false;
+            }
+        }
+
+        return value.IsEmpty == false;
     }
 
     /// <summary>
