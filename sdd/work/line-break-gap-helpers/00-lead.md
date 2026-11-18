@@ -37,4 +37,5 @@
 - Test implementer done (`02-test-implementer.md`, c92003c); lane check confirmed.
 - Implementer done (`03-implementer.md`, c35dfca): one disputed phase-level test.
 - Test implementer follow-up done (`04-test-implementer.md`, f1a1732): formatter 5781/0.
-- Next: cleaner.
+- Cleaner done (`05-cleaner.md`, 510ec3b): clean.
+- Next: spec checker.
