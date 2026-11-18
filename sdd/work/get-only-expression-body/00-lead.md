@@ -26,4 +26,5 @@
 
 ## Worklist / next step
 
-- Next: spawn spec author (01).
+- Spec author done (89106f5): RH3209 (properties), RH3210 (indexers); change doc Draft; one output question open (comment the formatter keeps the accessor list for: A not reported, B reported without fix).
+- Next: skeptic (02) running; then batch output questions before test implementer.
