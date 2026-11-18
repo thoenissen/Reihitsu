@@ -33,6 +33,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH2005](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2005.md)| Fields must be private.| ✔| ✔| ❌|
 | [RH2006](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2006.md)| Debug.Assert must provide message text.| ✔| ❌| ❌|
 | [RH2007](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2007.md)| Debug.Fail must provide message text.| ✔| ❌| ❌|
+| [RH2008](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2008.md)| Methods should not exceed the line limit.| ✔| ❌| ❌|
 | [RH2101](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2101.md)| Nested classes should not be used.| ✔| ❌| ❌|
 | [RH2102](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2102.md)| Classes should not use parameterized primary constructors.| ✔| ❌| ❌|
 | [RH2103](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2103.md)| Structs should not use parameterized primary constructors.| ✔| ❌| ❌|
@@ -43,6 +44,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH2108](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2108.md)| Nested delegates should not be used.| ✔| ❌| ❌|
 | [RH2109](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2109.md)| Razor @code blocks should not be used.| ✔| ❌| ❌|
 | [RH2110](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2110.md)| Nested unions should not be used.| ✔| ❌| ❌|
+| [RH2111](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2111.md)| Types should not exceed the line limit.| ✔| ❌| ❌|
 || **Clarity**||||
 | [RH3001](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3001.md)| Not operator should not be used.| ✔| ✔| ❌|
 | [RH3002](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3002.md)| Statement must not use unnecessary parentheses.| ✔| ✔| ❌|

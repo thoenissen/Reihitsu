@@ -1068,6 +1068,29 @@ public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : B
         await Verify(source, fixedSource);
     }
 
+    /// <summary>
+    /// Verifies the change example: a comment behind the constraint clause in front of the arrow withholds the fix, because the
+    /// formatter refuses the method the fix formats, while the diagnostic stays
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentInFrontOfTheArrow(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  T Make<T>() {|RH5110:where|} T : new() // c
+                                      => new T();
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

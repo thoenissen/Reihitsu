@@ -27,6 +27,8 @@ internal static class RuleDocumentationExampleOptOuts
 
                                                                                // Context-dependent: needs project configuration, a disabled-by-default rule, or a real file name
                                                                                // that a standalone compilation unit cannot supply
+                                                                               ["RH2008"] = "Example needs a reihitsu.json configuration file with a method line limit far below the default, which is outside a standalone compilation unit.",
+                                                                               ["RH2111"] = "Example needs a reihitsu.json configuration file with a type line limit far below the default, which is outside a standalone compilation unit.",
                                                                                ["RH4001"] = "Example's violation depends on the source file's name ('Foo.cs' in a comment) and the code fix renames the file itself; the verifier's in-memory document is always named 'Test.cs' and only compares resulting text, so neither the real mismatch nor the rename is observable here.",
                                                                                ["RH4009"] = "Example needs a reihitsu.json configuration file listing the allowed namespace, which is outside a standalone compilation unit.",
                                                                                ["RH7305A"] = "The analyzer is disabled by default, so it reports nothing without explicit opt-in configuration.",

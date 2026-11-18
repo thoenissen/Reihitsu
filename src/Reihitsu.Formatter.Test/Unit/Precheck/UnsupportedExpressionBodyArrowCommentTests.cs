@@ -137,9 +137,9 @@ public class UnsupportedExpressionBodyArrowCommentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the specification example of the other side: comments above a member, in front of an arrow, inside an expression,
-    /// behind an expression or its semicolon, and behind the arrow of a lambda or of a switch-expression arm do not refuse the input,
-    /// and the input is formatted
+    /// Verifies the specification example of the other side: comments above a member, inside an expression, behind an expression or
+    /// its semicolon, and behind the arrow of a lambda or of a switch-expression arm do not refuse the input, and the input is
+    /// formatted
     /// </summary>
     [TestMethod]
     [Requirement("FMT-UNSUP-012")]
@@ -151,24 +151,20 @@ public class UnsupportedExpressionBodyArrowCommentTests : FormatterTestsBase
                              class C
                              {
                                  // c1
-                                 int A /* c2 */ => 1;
+                                 int A => 1;
 
-                                 int B()
-                                     // c3
-                                     => 1;
+                                 int C2 => (/* c2 */ 1);
 
-                                 int C2 => (/* c4 */ 1);
+                                 int D => 1 /* c3 */;
 
-                                 int D => 1 /* c5 */;
-
-                                 int E => 1; // c6
+                                 int E => 1; // c4
 
                                  void M(int n)
                                  {
-                                     Func<int> f = () => /* c7 */ 1;
+                                     Func<int> f = () => /* c5 */ 1;
                                      var s = n switch
                                      {
-                                         1 => /* c8 */ "one",
+                                         1 => /* c6 */ "one",
                                          _ => "other",
                                      };
                                  }
@@ -341,19 +337,13 @@ public class UnsupportedExpressionBodyArrowCommentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment or directive outside the gap does not refuse the input: in front of the arrow, behind the token in
-    /// front of it, on a line of its own above it, or on its line; inside the expression behind its first token; and behind the
-    /// expression or its semicolon
+    /// Verifies that a comment outside the gap does not refuse the input: above the member; inside the expression behind its first
+    /// token; and behind the expression or its semicolon. A comment or directive in front of the arrow is FMT-UNSUP-013's shape
     /// </summary>
     /// <param name="members">The members of the class</param>
     [TestMethod]
     [Requirement("FMT-UNSUP-012")]
     [DataRow("    // c\n    int A => 1;", DisplayName = "Above the member")]
-    [DataRow("    int A /* c */ => 1;", DisplayName = "Behind the token in front of the arrow")]
-    [DataRow("    int A // c\n        => 1;", DisplayName = "Line comment behind the token in front of the arrow")]
-    [DataRow("    int B()\n        // c\n        => 1;", DisplayName = "Comment line above the arrow of a method")]
-    [DataRow("    int Q\n        /* c */ => 2;", DisplayName = "In front of the arrow on its line")]
-    [DataRow("    int A\n#pragma warning disable CS0001\n        => 1;", DisplayName = "Directive above the arrow")]
     [DataRow("    ref int M() => ref /* c */ _v;", DisplayName = "Behind a ref")]
     [DataRow("    int M() => throw /* c */ new Exception();", DisplayName = "Behind a throw")]
     [DataRow("    int M() => (/* c */ 1);", DisplayName = "Inside parentheses")]
@@ -362,7 +352,6 @@ public class UnsupportedExpressionBodyArrowCommentTests : FormatterTestsBase
     [DataRow("    int M() => 1 /* c */;", DisplayName = "In front of the semicolon")]
     [DataRow("    int M() => 1; // c", DisplayName = "Behind the semicolon")]
     [DataRow("    Func<int> F => () => /* c */ 1;", DisplayName = "Behind the arrow of a lambda that is the expression")]
-    [DataRow("    int P { get /* c */ => _v; }", DisplayName = "Behind the get keyword")]
     public void CommentOutsideTheGapIsSupported(string members)
     {
         AssertSupported(WrapInClass(members));
@@ -597,36 +586,23 @@ public class UnsupportedExpressionBodyArrowCommentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the formatter never writes the shape: inputs with comments next to the arrows of getters, of get-only members
-    /// whose accessor list is lifted, and of members whose expression body is converted, with comments inside accessor blocks that
-    /// become expression bodies, with documentation comments in front of an arrow, and with a blank line behind an arrow, are
-    /// formatted, and their output, formatted again, is neither refused nor changed
+    /// Verifies that the formatter never writes the shape: inputs with a comment in front of the <c>get</c> keyword, with comments
+    /// inside accessor blocks that become expression bodies, and with a blank line behind an arrow, are formatted, and their output,
+    /// formatted again, is neither refused nor changed
     /// </summary>
     /// <param name="members">The members of the class</param>
     /// <param name="documentationMode">The documentation mode of the parse</param>
     [TestMethod]
     [Requirement("FMT-UNSUP-005")]
     [Requirement("FMT-UNSUP-012")]
-    [DataRow("    int A { get /* c */ => _v; }", DocumentationMode.Parse, DisplayName = "Comment behind the get keyword")]
-    [DataRow("    int B\n    {\n        get\n            // c\n            => _v;\n    }", DocumentationMode.Parse, DisplayName = "Comment line between the get keyword and its arrow")]
     [DataRow("    int D { /* c */ get => _v; }", DocumentationMode.Parse, DisplayName = "Comment in front of the get keyword")]
     [DataRow("    int E { get { /* c */ return _v; } }", DocumentationMode.Parse, DisplayName = "Comment in front of the return of a getter block")]
     [DataRow("    int F { get { return _v; /* c */ } }", DocumentationMode.Parse, DisplayName = "Comment behind the return of a getter block")]
     [DataRow("    int G { get { return /* c */ _v; } }", DocumentationMode.Parse, DisplayName = "Comment behind the return keyword of a getter block")]
     [DataRow("    int H { get { return // c\n                _v; } }", DocumentationMode.Parse, DisplayName = "Line comment behind the return keyword of a getter block")]
     [DataRow("    int S { set { /* c */ _v = value; } }", DocumentationMode.Parse, DisplayName = "Comment in front of the statement of a setter block")]
-    [DataRow("    int A /// doc\n        => 1;", DocumentationMode.Parse, DisplayName = "Single-line documentation comment behind a property's name")]
-    [DataRow("    int A /// doc\n        => 1;", DocumentationMode.None, DisplayName = "Single-line documentation comment behind a property's name, mode None")]
-    [DataRow("    int B\n        /// <summary>doc</summary>\n        => 2;", DocumentationMode.Parse, DisplayName = "Documentation comment line above a property's arrow")]
-    [DataRow("    int B\n        /// <summary>doc</summary>\n        => 2;", DocumentationMode.Diagnose, DisplayName = "Documentation comment line above a property's arrow, mode Diagnose")]
-    [DataRow("    int M() /// doc\n        => 1;", DocumentationMode.Parse, DisplayName = "Single-line documentation comment behind a method's signature")]
-    [DataRow("    int N()\n        /// <summary>doc</summary>\n        => 2;", DocumentationMode.Parse, DisplayName = "Documentation comment line above a method's arrow")]
-    [DataRow("    int N()\n        /// <summary>doc</summary>\n        => 2;", DocumentationMode.None, DisplayName = "Documentation comment line above a method's arrow, mode None")]
-    [DataRow("    int V\n    {\n        get /// doc\n            => _v;\n    }", DocumentationMode.Parse, DisplayName = "Single-line documentation comment behind the get keyword")]
-    [DataRow("    int M() /** c */ => 1;", DocumentationMode.Parse, DisplayName = "Delimited documentation comment in front of a method's arrow")]
     [DataRow("    int A =>\n\n        1;", DocumentationMode.Parse, DisplayName = "Blank line behind a property's arrow")]
     [DataRow("    int M() =>\n\n        1;", DocumentationMode.Parse, DisplayName = "Blank line behind a method's arrow")]
-    [DataRow("    int M()\n        // c\n        => 1;", DocumentationMode.Parse, DisplayName = "Comment line above a method's arrow")]
     public void OutputOfFormattedExpressionBodiesIsNotUnsupported(string members, DocumentationMode documentationMode)
     {
         var input = WrapInClass(members);

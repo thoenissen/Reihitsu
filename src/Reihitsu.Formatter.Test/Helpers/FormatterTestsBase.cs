@@ -43,6 +43,12 @@ public abstract class FormatterTestsBase
     /// </summary>
     protected const string ExpressionBodyArrowCommentReason = "a comment or directive between the arrow of an expression body and its expression";
 
+    /// <summary>
+    /// The reason the formatter gives for a comment or directive between the arrow of an expression body and the code in front of it
+    /// (FMT-UNSUP-013)
+    /// </summary>
+    protected const string ExpressionBodyArrowLeadingCommentReason = "a comment or directive between the arrow of an expression body and the code in front of it";
+
     #endregion // Constants
 
     #region Fields

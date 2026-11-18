@@ -1469,6 +1469,192 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
         await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
     }
 
+    /// <summary>
+    /// Verifies that the fix of a chain in the embedded statement of an if statement, which starts in the middle of the
+    /// if statement's line, joins the first link onto the root's line, aligns the next link under it, and keeps the code
+    /// in front of the chain as written, its double space included, in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5112-003")]
+    [Requirement("SHARED-CHAIN-009")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixOfChainInEmbeddedStatementThatStartsMidLineKeepsTheCodeInFrontAsWritten(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    object M(dynamic a, bool k)
+                                    {
+                                        if(k)return  a
+                                            {|RH5112:.|}B()
+                                            .C();
+
+                                        return null;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     object M(dynamic a, bool k)
+                                     {
+                                         if(k)return  a.B()
+                                                       .C();
+
+                                         return null;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a chain in a statement behind a case label on the label's line joins the first link onto
+    /// the root's line, aligns the next link under it, and keeps the code in front of the chain as written, in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5112-003")]
+    [Requirement("SHARED-CHAIN-009")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixOfChainInStatementBehindCaseLabelKeepsTheCodeInFrontAsWritten(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    object M(dynamic a, int k)
+                                    {
+                                        switch (k)
+                                        {
+                                            case 1:return  a
+                                                {|RH5112:.|}B()
+                                                .C();
+                                        }
+
+                                        return null;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     object M(dynamic a, int k)
+                                     {
+                                         switch (k)
+                                         {
+                                             case 1:return  a.B()
+                                                             .C();
+                                         }
+
+                                         return null;
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a chain in a statement of a lambda block that opens in the middle of a line joins the first
+    /// link onto the root's line, aligns the next link under it, and keeps the code in front of the chain and behind it as
+    /// written, in one pass
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5112-003")]
+    [Requirement("SHARED-CHAIN-009")]
+    [Requirement("SHARED-FIX-006")]
+    public async Task VerifyFixOfChainInLambdaBlockOpenedMidLineKeepsTheCodeAroundAsWritten(string endOfLine)
+    {
+        const string testData = """
+                                using System;
+
+                                class C
+                                {
+                                    void Run(Action a)
+                                    {
+                                    }
+
+                                    void M(dynamic a)
+                                    {
+                                        Run(()=>{ var r=a
+                                            {|RH5112:.|}B()
+                                            .C(); });
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 class C
+                                 {
+                                     void Run(Action a)
+                                     {
+                                     }
+
+                                     void M(dynamic a)
+                                     {
+                                         Run(()=>{ var r=a.B()
+                                                          .C(); });
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix of a chain whose root stands behind a comment that leads its line joins the first link onto
+    /// the root's line and gives the chain the layout the formatter gives it
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5112-003")]
+    public async Task VerifyFixOfChainBehindLineLeadingCommentMatchesTheFormatter(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    string M(string s)
+                                    {
+                                        return
+                                        /* c */ s
+                                            {|RH5112:.|}Trim()
+                                            .ToUpper();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 class C
+                                 {
+                                     string M(string s)
+                                     {
+                                         return
+                                         /* c */ s.Trim()
+                                                  .ToUpper();
+                                     }
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testData, fixedData, endOfLine);
+
+        Assert.AreEqual(ConvertEndOfLine(fixedData, endOfLine), Format(ConvertEndOfLine(RemoveMarkup(testData), endOfLine)));
+    }
+
     #endregion // Tests
 
     #region BatchCodeFixTestsBase

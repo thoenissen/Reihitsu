@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
+﻿using System.Text.RegularExpressions;
+
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Data;
@@ -1212,7 +1214,8 @@ public class LineBreakRewriterTests
         var result = ExecuteLineBreakPhase(input, "\n");
 
         // Assert
-        Assert.Contains("Call(\"a\",\n", result, "Inserted separator line breaks should use LF from the formatting context.");
+        // The line-break phase may leave whitespace in front of the line break it inserts; the cleanup phase removes it
+        Assert.MatchesRegex(new Regex("Call\\(\"a\",[ ]*\n[ ]*\"b\",", RegexOptions.None, Regex.InfiniteMatchTimeout), result, "Inserted separator line breaks should use LF from the formatting context.");
 
         Assert.DoesNotContain("\r\n", result, "Inserted separator line breaks should not fall back to CRLF.");
     }

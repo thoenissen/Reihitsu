@@ -680,37 +680,37 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     }
 
     /// <summary>
-    /// Verifies that the fix carries a comment on its own line before the arrow into the block, in front of the
-    /// created statement, as the formatter does
+    /// Verifies the change example: a comment on its own line before the arrow, and a comment behind the signature followed by a
+    /// comment line before the arrow, withhold the fix, because the formatter refuses the method the fix formats, while both
+    /// diagnostics stay
     /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
+    [Requirement("SHARED-BODY-001")]
     [Requirement("SHARED-BODY-003")]
-    public async Task VerifyCommentBeforeArrowLeadsTheCreatedStatement()
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForACommentBeforeTheArrow(string endOfLine)
     {
-        const string testData = """
-                                internal class RH3202
-                                {
-                                    public int GetValue()
-                                        // why
-                                        {|#0:=> 42|};
-                                }
-                                """;
+        const string source = """
+                              class C
+                              {
+                                  int Other()
+                                  // before arrow
+                                  {|RH3202:=> 1|};
 
-        const string resultData = """
-                                  internal class RH3202
+                                  void Run() // run
+                                      // first
+                                      {|RH3202:=> Foo()|};
+
+                                  void Foo()
                                   {
-                                      public int GetValue()
-                                      {
-                                          // why
-                                          return 42;
-                                      }
                                   }
-                                  """;
+                              }
+                              """;
 
-        await Verify(testData.Replace("\r\n", "\n"),
-                     resultData.Replace("\r\n", "\n"),
-                     Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
     }
 
     /// <summary>
@@ -1422,70 +1422,49 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
     }
 
     /// <summary>
-    /// Verifies that a block comment behind the signature on its line stays there, the spacing of the signature stays as
-    /// written, and the whitespace between the comment and the arrow goes with the arrow
+    /// Verifies that a block comment behind the signature on the arrow's line withholds the fix, because the formatter refuses the
+    /// method the fix formats, while the diagnostic stays
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-BODY-003")]
-    public async Task FixKeepsABlockCommentBehindTheSignatureOnItsLine()
+    public async Task VerifyNoFixIsOfferedForABlockCommentBehindTheSignatureOnTheArrowsLine()
     {
-        const string testData = """
-                                class C
-                                {
-                                    private int _value;
+        const string source = """
+                              class C
+                              {
+                                  private int _value;
 
-                                    public int  GetValue( ) /* c */   {|RH3202:=> _value|};
-                                }
-                                """;
+                                  public int  GetValue( ) /* c */   {|RH3202:=> _value|};
+                              }
+                              """;
 
-        const string resultData = """
-                                  class C
-                                  {
-                                      private int _value;
-
-                                      public int  GetValue( ) /* c */
-                                      {
-                                          return _value;
-                                      }
-                                  }
-                                  """;
-
-        await Verify(testData, resultData);
+        await VerifyNoCodeFixIsOffered(source);
     }
 
     /// <summary>
-    /// Verifies that a line comment behind the signature stays there when the arrow starts the next line, and the spacing
-    /// of the signature stays as written
+    /// Verifies that a line comment behind the signature withholds the fix when the arrow starts the next line, because the
+    /// formatter refuses the method the fix formats, while the diagnostic stays
     /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [Requirement("SHARED-BODY-003")]
-    public async Task FixKeepsALineCommentBehindTheSignatureWhenTheArrowStartsTheNextLine()
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyNoFixIsOfferedForALineCommentBehindTheSignatureWhenTheArrowStartsTheNextLine(string endOfLine)
     {
-        const string testData = """
-                                class C
-                                {
-                                    private int _value;
+        const string source = """
+                              class C
+                              {
+                                  private int _value;
 
-                                    public int  GetValue( ) // c
-                                        {|RH3202:=> _value|};
-                                }
-                                """;
+                                  public int  GetValue( ) // c
+                                      {|RH3202:=> _value|};
+                              }
+                              """;
 
-        const string resultData = """
-                                  class C
-                                  {
-                                      private int _value;
-
-                                      public int  GetValue( ) // c
-                                      {
-                                          return _value;
-                                      }
-                                  }
-                                  """;
-
-        await Verify(testData, resultData);
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
     }
 
     /// <summary>
@@ -1783,6 +1762,241 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : BatchCod
         const string resultData = "class C\r{\r    public int GetValue()\n    {\n        return 1;\n    }\n    public int GetOther()\r    {\r        return 2;\r    }\r}\r";
 
         Assert.AreEqual(resultData, await ApplyCodeFixAsync(testData));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a conditional group around the signature that closes in front of the arrow is reported,
+    /// and no fix is offered, because the formatter refuses the method; parsed without the symbol
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-001")]
+    [Requirement("SHARED-FIX-010")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task SpecExampleConditionalGroupAroundTheSignatureIsReportedWithoutAFix(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                              #if NET8_0
+                                  public int M(int a)
+                              #else
+                                  public int M(long a)
+                              #endif
+                                      {|RH3202:=> 1|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example for the build that defines the symbol: the group's <c>#else</c>, its disabled signature,
+    /// and its <c>#endif</c> stand in front of the arrow, the method is reported, and no fix is offered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-001")]
+    [Requirement("SHARED-FIX-010")]
+    public async Task ConditionalGroupAroundTheSignatureIsReportedWithoutAFixWhereTheSymbolIsDefined()
+    {
+        const string source = """
+                              class C
+                              {
+                              #if NET8_0
+                                  public int M(int a)
+                              #else
+                                  public int M(long a)
+                              #endif
+                                      {|RH3202:=> 1|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source, Microsoft.CodeAnalysis.DocumentationMode.Parse, "NET8_0");
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a conditional group around a constraint clause that closes in front of the arrow is
+    /// reported, and no fix is offered, because the formatter refuses the method
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-001")]
+    [Requirement("SHARED-FIX-010")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task ConditionalGroupAroundAConstraintClauseIsReportedWithoutAFix(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  T M<T>()
+                              #if NET7_0_OR_GREATER
+                                      where T : struct
+                              #endif
+                                      {|RH3202:=> default|};
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a conditional group that chooses the arrow and closes behind the semicolon is reported
+    /// in its active branch, and no fix is offered, because the formatter refuses the method
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-001")]
+    [Requirement("SHARED-FIX-010")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task ConditionalGroupThatChoosesTheArrowIsReportedWithoutAFix(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  int M()
+                              #if DEBUG
+                                      => 1;
+                              #else
+                                      {|RH3202:=> 0|};
+                              #endif
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example of the other side: the same group written around the whole member is reported in the
+    /// active branch, and the fix converts that branch's member, as the formatter does
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-001")]
+    public async Task SpecExampleConditionalGroupAroundTheWholeMemberIsFixed()
+    {
+        const string testData = """
+                                class C
+                                {
+                                #if NET8_0
+                                    public int M(int a) => 1;
+                                #else
+                                    public int M(long a) {|RH3202:=> 1|};
+                                #endif
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                  #if NET8_0
+                                      public int M(int a) => 1;
+                                  #else
+                                      public int M(long a)
+                                      {
+                                          return 1;
+                                      }
+                                  #endif
+                                  }
+                                  """;
+
+        await Verify(testData, resultData);
+    }
+
+    /// <summary>
+    /// Verifies that a method with a region directive in the leading trivia of its arrow is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-001")]
+    public async Task VerifyMethodWithARegionDirectiveInFrontOfTheArrowIsNotReported()
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int M()
+                                        #region R
+                                        => 1;
+                                        #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a pragma directive in front of the arrow, which the formatter refuses, withholds the fix, while the diagnostic
+    /// stays
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-BODY-003")]
+    public async Task VerifyNoFixIsOfferedForADirectiveInFrontOfTheArrow()
+    {
+        const string source = """
+                              class C
+                              {
+                                  int M()
+                              #pragma warning disable CS0618
+                                      {|RH3202:=> 1|};
+                              #pragma warning restore CS0618
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(source);
+    }
+
+    /// <summary>
+    /// Verifies that the fix asks the formatter about the method it converts only: of two methods, the one with a comment in front
+    /// of its arrow gets no fix and stays reported, and the one beside it is converted
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("SHARED-FIX-010")]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    public async Task VerifyFixIsOfferedForAMethodBesideAMethodWithACommentInFrontOfItsArrow(string endOfLine)
+    {
+        const string testData = """
+                                class C
+                                {
+                                    int A() => 1;
+
+                                    int B() /* c */ => 2;
+                                }
+                                """;
+
+        const string resultData = """
+                                  class C
+                                  {
+                                      int A()
+                                      {
+                                          return 1;
+                                      }
+
+                                      int B() /* c */ {|RH3202:=> 2|};
+                                  }
+                                  """;
+
+        var source = ConvertEndOfLine(testData, endOfLine);
+        var refused = await GetCodeFixActionsAsync(source, RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, root => FindArrow(root, "B").GetLocation());
+
+        Assert.IsEmpty(refused, "The fix must not be offered for the method with the comment in front of its arrow.");
+
+        var expected = ConvertEndOfLine(resultData, endOfLine);
+        var actual = await TryApplyCodeFixAtAsync(source, RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, root => FindArrow(root, "A").GetLocation());
+
+        Assert.IsNotNull(actual, "The fix must be offered for the method without the comment.");
+        Assert.AreEqual(RemoveMarkup(expected), actual, "The fix must convert the method without the comment and leave the other method as written.");
+
+        await Verify(expected);
     }
 
     /// <summary>

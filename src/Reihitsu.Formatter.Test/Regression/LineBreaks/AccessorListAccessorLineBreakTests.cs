@@ -608,7 +608,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
                              {
                                  private int _x;
 
-                                 public int X { get => _x; set /* c */ => _x = value; }
+                                 public int X { get => _x; set => _x = /* c */ value; }
                              }
                              """;
         const string expected = """
@@ -619,7 +619,7 @@ public class AccessorListAccessorLineBreakTests : FormatterTestsBase
                                     public int X
                                     {
                                         get => _x;
-                                        set /* c */ => _x = value;
+                                        set => _x = /* c */ value;
                                     }
                                 }
                                 """;
