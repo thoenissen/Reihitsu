@@ -16,6 +16,8 @@
 ## Maintainer answers
 
 - Escalation 10 (declare the shape "comment, directive, or disabled text between an expression body's `=>` and the code in front of it"): declare it, in a change of its own — this run. (Given before the run, in #1851.)
+- Batch 1, Q1 (change doc visible output change 12: `#if` group around the signature, a constraint clause, or a property's type, ending in front of a shared `=>`): **A** — refused as part of the shape; RH3202's and every formatting fix withheld on it; RH3202 and RH5401 keep reporting; declared in this work.
+- Batch 1, Q2 (CLI reason text): **A** — `a comment or directive between the arrow of an expression body and the code in front of it`.
 
 ## Decisions taken
 
@@ -34,6 +36,5 @@
 
 ## State
 
-- Last step: spec author amendment done (03-spec-author.md, f722970); lane check confirmed.
-- Waiting: output-question batch posted to the maintainer — 1: change 12 (`#if` group around signature / constraint clause / property type in front of a shared `=>`), 2: CLI reason wording (spec author's Q2).
-- Next after answers: route to spec author (Decisions + Status: Accepted), then test implementer.
+- Last step: maintainer answered batch 1 (1A, 2A).
+- Next: spec author records the answers in the change doc's Decisions and sets Status: Accepted (05?), then test implementer.
