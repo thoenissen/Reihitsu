@@ -5,7 +5,7 @@
 | ID prefix | FMT-UNSUP |
 | Status | Active |
 | Code owners | `PrecheckPhase`, `FormattingResult<T>`, `UnsupportedSyntax`, `SyntaxNotSupportedException` |
-| Uses | FMT-BREAK-001, FMT-BREAK-017, FMT-BREAK-026, FMT-BREAK-039, FMT-BREAK-040, FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-STRUCT-004, FMT-STRUCT-005, FMT-STRUCT-007, FMT-STRUCT-008, FMT-STRUCT-009, FMT-STRUCT-012, FMT-STRUCT-014, FMT-STRUCT-015, FMT-STRUCT-019, FMT-STRUCT-021, FMT-STRUCT-022, RH5040-001, RH5040-002, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-COMMENT-007, SHARED-FIX-010 |
+| Uses | FMT-BREAK-001, FMT-BREAK-017, FMT-BREAK-026, FMT-BREAK-039, FMT-BREAK-040, FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-SPACE-028, FMT-STRUCT-004, FMT-STRUCT-005, FMT-STRUCT-007, FMT-STRUCT-008, FMT-STRUCT-009, FMT-STRUCT-012, FMT-STRUCT-014, FMT-STRUCT-015, FMT-STRUCT-019, FMT-STRUCT-021, FMT-STRUCT-022, RH5040-001, RH5040-002, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-COMMENT-007, SHARED-FIX-010 |
 
 This spec covers the formatter's *Unsupported* outcome: the input shapes the formatter refuses as a whole, the precheck phase that finds them before any other phase runs (FMT-PIPE-001), a phase's refusal of a shape the precheck does not find, what every entry point returns for a refused input, and the query that tells a code fix whether the formatter refuses a node. Each unsupported shape is a requirement of this spec; a shape is declared here so that no phase has to handle it.
 
@@ -930,7 +930,10 @@ class C
 
 ### FMT-UNSUP-014 — Comments and directives in front of an argument list, an element access, or a null-forgiving operator are unsupported
 
-An input MUST be refused when a comment — `//`, `/* */`, `///`, or `/** */`, in every documentation mode — a preprocessor directive, or disabled text stands in the gap in front of an argument list, an element access, a conditional element access, or a null-forgiving operator whose gap FMT-BREAK-039 or FMT-BREAK-040 joins: in the trailing trivia of the token in front of the part's first token, or in the leading trivia of that first token.
+An input MUST be refused when a comment — `//`, `/* */`, `///`, or `/** */`, in every documentation mode — a preprocessor directive, or disabled text stands in one of the gaps of an argument list, an element access, a conditional element access, or a null-forgiving operator of the kinds whose gap FMT-BREAK-039 or FMT-BREAK-040 joins:
+
+- the gap in front of the part's first token: in the trailing trivia of the token in front of it, or in the leading trivia of that first token;
+- the gap between the `?` and the `[` of a conditional element access: in the trailing trivia of the `?`, or in the leading trivia of the `[`.
 
 The part's first token is decided by the syntax tree alone:
 
@@ -942,8 +945,8 @@ The part's first token is decided by the syntax tree alone:
 The conditions, each with both sides:
 
 - **The parts FMT-BREAK-039 and FMT-BREAK-040 join.** Every other `(`, `[`, `?`, and `!` is not this shape: the `(` of a parameter list (`void M /* c */ (int x)`), of an attribute's argument list (`[Obsolete /* c */ ("x")]`), of a parenthesized expression, a cast, or a tuple; the `[` of an implicit element access (`["a"] = 1`), an array rank specifier, `new[]`, `stackalloc []`, a collection expression, a list pattern, an attribute list, or an indexer's parameter list; the `?` of a conditional member access (`n /* c */ ?.Length`) and of a conditional expression; and a `!` followed by `.` or `?.`, which is the first token of a link operator (SHARED-CHAIN-001) whose gap the chain layout decides (`s // c⏎!.Length`). The `!` of a logical negation is a prefix operator, not a null-forgiving operator.
-- **In front of the part.** Only the gap between the part's first token and the token in front of it counts. A comment, a directive, or disabled text in front of the token in front of the part — above the statement, or on the line above it — does not refuse the input, and neither does one inside the part: inside an argument list (`Foo(/* c */ 1)`, `arr[/* c */ 0]`), between the `?` and the `[` of a conditional element access (`n? /* c */ [0]`), or behind the part (`arr[0] /* c */`).
-- **On any line.** Whether the gap holds a line break does not matter: `Foo /* c */ (1)` on one line is refused like `Foo // c⏎(1)` and like a comment on a line of its own between `Foo` and `(1)`.
+- **In front of the part, and between `?` and `[`.** Only the gap between the part's first token and the token in front of it counts, and, for a conditional element access, the gap between its `?` and its `[` (`n? /* c */ [0]`, `n? // c⏎[0]`, also behind a null-forgiving operator: `x!? /* c */ [0]`). These are all the gaps between the tokens a part starts with: an argument list, an element access, and a null-forgiving operator start with one token, a conditional element access with its `?` and `[`. A comment, a directive, or disabled text in front of the token in front of the part — above the statement, or on the line above it — does not refuse the input, and neither does one inside the part's brackets or parentheses (`Foo(/* c */ 1)`, `arr[/* c */ 0]`, `n?[/* c */ 0]`) or behind the part (`arr[0] /* c */`).
+- **On any line.** Whether the gap holds a line break does not matter: `Foo /* c */ (1)` on one line is refused like `Foo // c⏎(1)` and like a comment on a line of its own between `Foo` and `(1)`, and so is `[with /* size */ (4)]` (FMT-SPACE-028) and `n? /* c */ [0]`.
 - **Every part.** Each part is checked with its own gap, whatever expression stands in front of it — in a chain with links or in an expression without any, inside a list element, an interpolation hole, a lambda, or any other construct. A token in disabled text is no token of the input: a part inside disabled text is not checked.
 
 The gap lies between two tokens, so a node-level input holds the shape only when it holds both: an input that holds the part but not the token in front of it, such as an argument list itself, does not hold the shape, and neither does one that holds the token in front but not the part, such as the invoked expression alone (FMT-UNSUP-003).
@@ -955,7 +958,7 @@ Where FMT-UNSUP-004 or FMT-UNSUP-010 refuses the same comment, directive, or dis
 
 The reason the formatter gives for this shape is `a comment or directive in front of an argument list, an element access, or a null-forgiving operator`, and its location is the span of the first comment, directive, or disabled text in that place.
 
-Why: The line-break phase joins an argument list, an element access, a conditional element access, and a null-forgiving operator onto the line of the token in front of it (FMT-BREAK-039, FMT-BREAK-040). A comment, a directive, or disabled text in that gap kept the part off that line, so the phase refused the join (FMT-BREAK-001), and the part started a line that no requirement places: outside a chain with links it took the column of the enclosing statement, in a chain with links the indentation phase gave it a column of its own, and the branches of a conditional group around it could get different columns. A comment between an expression and its argument list or index is rare, and a comment that explains the part belongs behind the line or above the statement, where the phases carry it as they do for every statement. A conditional group that chooses between two argument lists is rare as well; the same choice written around the whole statement is formatted. Directives and disabled text are part of the shape because the join refusal and the column of a part kept below test them alike: with comments alone, both would have to stay. The shape is the same on one line, as for the operators of FMT-UNSUP-008 and FMT-UNSUP-011: the boundary is a place in the syntax tree, not a question of line breaks. The gap between a conditional element access's `?` and `[` and the gaps inside a part are not in the shape: a comment there is handled as before, and FMT-BREAK-040's removal of a line break between `?` and `[` still yields to FMT-BREAK-001. No phase writes a comment, a directive, or disabled text into the gap (FMT-UNSUP-005): the joins of FMT-BREAK-039 and FMT-BREAK-040 carry only whitespace into it, and no transform creates such a part or moves trivia in front of one. A comment in an attribute argument of a declaration and a directive in a field declaration with several declarators were refused under FMT-UNSUP-004 and FMT-UNSUP-010 before this requirement existed, and keep the reason they gave.
+Why: The line-break phase joins an argument list, an element access, a conditional element access, and a null-forgiving operator onto the line of the token in front of it (FMT-BREAK-039, FMT-BREAK-040). A comment, a directive, or disabled text in that gap kept the part off that line, so the phase refused the join (FMT-BREAK-001), and the part started a line that no requirement places: outside a chain with links it took the column of the enclosing statement, in a chain with links the indentation phase gave it a column of its own, and the branches of a conditional group around it could get different columns. A comment between an expression and its argument list or index is rare, and a comment that explains the part belongs behind the line or above the statement, where the phases carry it as they do for every statement. A conditional group that chooses between two argument lists is rare as well; the same choice written around the whole statement is formatted. Directives and disabled text are part of the shape because the join refusal and the column of a part kept below test them alike: with comments alone, both would have to stay. The shape is the same on one line, as for the operators of FMT-UNSUP-008 and FMT-UNSUP-011: the boundary is a place in the syntax tree, not a question of line breaks. The gap between a conditional element access's `?` and `[` is in the shape as well: FMT-BREAK-040 removes a line break there, and a comment there kept the `[` on a line of its own that the chain layout aligned under the `?`; with the gap in the shape, no gap between the tokens a part starts with ever keeps a line break, and neither the join nor the indentation phase has to handle one. The inside of a part's brackets or parentheses is not in the shape: a comment there is handled as before. No phase writes a comment, a directive, or disabled text into either gap (FMT-UNSUP-005): the joins of FMT-BREAK-039 and FMT-BREAK-040 carry only whitespace into it, and no transform creates such a part or moves trivia in front of one or between its `?` and `[`. A comment in an attribute argument of a declaration and a directive in a field declaration with several declarators were refused under FMT-UNSUP-004 and FMT-UNSUP-010 before this requirement existed, and keep the reason they gave.
 
 Example — each part is refused, and the input that holds it is returned unchanged:
 
@@ -973,8 +976,10 @@ class C
             // c3
             ?[0];
         var d = s /* c4 */ !;
+        var e = n? // c5
+            [0];
 
-        return a + b + (c ?? 0) + d.Length;
+        return a + b + (c ?? 0) + d.Length + (e ?? 0);
     }
 
     int Foo(int x)
@@ -1025,7 +1030,7 @@ class C
         // c2
         var a = arr[/* c3 */ 0];
         var b = Foo(/* c4 */ 1); // c5
-        var c = n? /* c6 */ [0];
+        var c = n?[/* c6 */ 0];
         var d = s // c7
                 !.Length;
         var e = (/* c8 */ 1);

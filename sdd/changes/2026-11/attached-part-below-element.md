@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | FMT-BREAK-040 (new), FMT-UNSUP-014 (added), FMT-BREAK-039 (changed: the join never meets the shape; its comment example is refused), FMT-BREAK-020, FMT-BREAK-015, FMT-BREAK-031, RH2001-007 (changed: a comment in front of an argument list, an element access, or a null-forgiving operator of the initializer's value withholds the fix), RH7101-007 (changed: names FMT-UNSUP-014 among the shapes that withhold the fix) |
+| Affected requirements | FMT-BREAK-040 (new), FMT-UNSUP-014 (added), FMT-BREAK-039 (changed: the join never meets the shape; its comment example is refused), FMT-BREAK-020, FMT-BREAK-015, FMT-BREAK-031, RH2001-007 (changed: a comment in front of an argument list, an element access, or a null-forgiving operator of the initializer's value withholds the fix), RH7101-007 (changed: names FMT-UNSUP-014 among the shapes that withhold the fix), FMT-SPACE-028 (changed: a comment in the gap between `with` and its argument list is refused; its example `[with /* size */ (4)]` is removed) |
 | Depends on | [An argument list written below its name joins the name's line](argument-list-below-name.md), [The formatter's Unsupported outcome](unsupported-precheck.md), [Declaring a shape unsupported is a refusal](unsupported-shape-as-refusal.md) |
 
 ## What
@@ -13,7 +13,7 @@ The line-break phase joins an element access, a conditional element access, and 
 
 FMT-BREAK-040 is the one requirement that owns these gaps, as FMT-BREAK-039 owns the gap in front of an argument list's `(`. FMT-BREAK-020, which joined an element access and a conditional element access in a chain with at least one link, now states only the rejoin of a split member name and points to FMT-BREAK-039 and FMT-BREAK-040 for attached parts. FMT-BREAK-015 names the new owner among the gaps it leaves alone. FMT-BREAK-031 lists the new join among the joins that write the minimal separator; it changes no output of its own.
 
-The formatter declares a new unsupported shape (FMT-UNSUP-014): a comment, a preprocessor directive, or disabled text in the gap in front of an argument list that FMT-BREAK-039 joins, or in front of an element access, a conditional element access, or a null-forgiving operator that FMT-BREAK-040 joins — in the trailing trivia of the token in front of the part's first token or in the leading trivia of that first token, whether the gap holds a line break or not. Every entry point refuses an input that holds the shape and reports it with the reason `a comment or directive in front of an argument list, an element access, or a null-forgiving operator`; the CLI leaves the file unchanged and reports it; and every code fix whose formatted node holds it is withheld (SHARED-FIX-010). So neither join meets a comment, a directive, or disabled text in its gap, and FMT-BREAK-001 never has to refuse one there. Not refused: the gap between a conditional element access's `?` and `[`, the inside of a part, a `!` that starts a link operator (`!.`, `!?.`), and every other `(` and `[` — parameter lists, attribute argument lists, parenthesized expressions, implicit element accesses, collection expressions.
+The formatter declares a new unsupported shape (FMT-UNSUP-014): a comment, a preprocessor directive, or disabled text in the gap in front of an argument list that FMT-BREAK-039 joins, or in front of an element access, a conditional element access, or a null-forgiving operator that FMT-BREAK-040 joins — in the trailing trivia of the token in front of the part's first token or in the leading trivia of that first token — or between the `?` and the `[` of a conditional element access, whether the gap holds a line break or not. Every entry point refuses an input that holds the shape and reports it with the reason `a comment or directive in front of an argument list, an element access, or a null-forgiving operator`; the CLI leaves the file unchanged and reports it; and every code fix whose formatted node holds it is withheld (SHARED-FIX-010). So neither join meets a comment, a directive, or disabled text in its gap, and FMT-BREAK-001 never has to refuse one there. FMT-SPACE-028 no longer keeps a comment between a collection expression's `with` and its argument list; that input is refused. Not refused: the inside of a part's brackets or parentheses, a `!` that starts a link operator (`!.`, `!?.`), and every other `(` and `[` — parameter lists, attribute argument lists, parenthesized expressions, implicit element accesses, collection expressions.
 
 The argument-list case of thoenissen/Reihitsu#895 (`Foo⏎(1)`, primary-constructor base arguments) is already joined on `main` by FMT-BREAK-039 and is not part of this change.
 
@@ -425,6 +425,58 @@ class C{
 
 Before (`main`): only the brace of `class C{` moves to its own line; both comments stay. After: the file is unchanged, `class C{` included, and the CLI reports `Error: <file>(4,20): unsupported syntax: a comment or directive in front of an argument list, an element access, or a null-forgiving operator. The file was left unchanged.`
 
+Input — a block comment between a collection expression's `with` and its argument list, on one line:
+
+```csharp
+using System.Collections.Generic;
+
+class C
+{
+    List<string> M()
+    {
+        List<string> d = [with /* size */ (4)];
+
+        return d;
+    }
+}
+```
+
+Before (`main`): the space behind the comment is removed (FMT-SPACE-028).
+
+```csharp
+        List<string> d = [with /* size */(4)];
+```
+
+After: the file is unchanged, and the CLI reports `Error: <file>(7,32): unsupported syntax: a comment or directive in front of an argument list, an element access, or a null-forgiving operator. The file was left unchanged.`
+
+Input — a comment between the `?` and the `[` of a conditional element access:
+
+```csharp
+class C
+{
+    int? M(int[]? n)
+    {
+        return n? // first
+            [0];
+    }
+}
+```
+
+Before (`main`): `[0]` moves under the `?`.
+
+```csharp
+class C
+{
+    int? M(int[]? n)
+    {
+        return n? // first
+                [0];
+    }
+}
+```
+
+After: the file is unchanged, and the CLI reports `Error: <file>(5,19): unsupported syntax: a comment or directive in front of an argument list, an element access, or a null-forgiving operator. The file was left unchanged.`
+
 The analyzers do not change: no analyzer rule reports these comments, and analyzers do not consult the precheck. No rule page changes.
 
 **7. Code fixes that format a node holding the shape are withheld** (SHARED-FIX-010); their diagnostics stay. Checked with `scripts/apply-fix.sh` on `main`.
@@ -501,21 +553,48 @@ Before (`main`): the fix is offered and gives
     private int _b;
 ```
 
-After: no fix offered. The fix formats the whole type, so the shape anywhere in the type withholds it. The same holds for every other fix that formats through the formatter, wherever the node it formats holds the shape.
+After: no fix offered. The fix formats the whole type, so the shape anywhere in the type withholds it.
+
+RH5112 (`Wrapped fluent calls should keep the first call on the original line`), input:
+
+```csharp
+internal sealed class Example
+{
+    private static string Run(int[] items)
+    {
+        return items // element
+            ?[0]
+            .ToString();
+    }
+}
+```
+
+Before (`main`): the fix is offered and gives
+
+```csharp
+        return items // element
+               ?[0].ToString();
+```
+
+After: no fix offered. The chain the fix formats holds the comment in front of `?[0]`. The same holds for every other fix that formats through the formatter, wherever the node it formats holds the shape.
 
 No rule page changes: the rules lose their fix only for the refused shape, which `documentation/rules/general-notes.md` covers ("A diagnostic without a code fix").
 
 ## Decisions
 
-The maintainer answered the run's output questions in batch 1: 1A, 2A, 3A, 4A, and 5A choose the visible output changes 1–5 as drafted — join `[` and `!` outside chains (1), judge a conditional as the line it becomes (2), judge a list as the line it becomes, also for `?[` and the `!` in a chain (3), keep one element per line in a collection expression (4), and let RH5302's fix results follow (5). Question 6 asked about a part kept on its own line by a comment; the maintainer answered to declare the shape unsupported: 6.1A, 6.2A, 6.3A (escalation 10). Changes 6 and 7 follow from that answer.
+The maintainer answered the run's output questions in batch 1: 1A, 2A, 3A, 4A, and 5A choose the visible output changes 1–5 as drafted — join `[` and `!` outside chains (1), judge a conditional as the line it becomes (2), judge a list as the line it becomes, also for `?[` and the `!` in a chain (3), keep one element per line in a collection expression (4), and let RH5302's fix results follow (5). Question 6 asked about a part kept on its own line by a comment; the maintainer answered to declare the shape unsupported: 6.1A, 6.2A, 6.3A (escalation 10). Changes 6 and 7 follow from that answer. In batch 2 the maintainer answered 1A, a comment in the gap with no line break is part of the shape, and 2A, the gap between a conditional element access's `?` and `[` is declared too, in this run.
 
 ### Declare the shape, in this change (maintainer, questions 6.1A, 6.2A, 6.3A)
 
 A part kept on its own line by a comment, a directive, or disabled text had no column of its own outside a chain with links, and the issue proposed giving it the column of the expression's first token. The maintainer chose to declare the shape unsupported instead, in this run (6.1A). The shape covers the gap in front of the first token of an element access, a conditional element access, and a null-forgiving operator — the gaps FMT-BREAK-040 joins — and the gap in front of an argument list's `(` that FMT-BREAK-039 joins (6.2A); and it holds a comment, a directive, or disabled text (6.3A). Directives and disabled text belong to it because the join refusal and the chain contributor's column for a part kept below test them alike: with comments alone, both would stay (*Special cases*).
 
-### The gap in front of the part, on any line
+### The gaps of the part, on any line (maintainer, batch 2, 1A)
 
-The shape is the gap in front of the part's first token as a place in the syntax tree, as for the operators of FMT-UNSUP-008 and FMT-UNSUP-011: a block comment there with no line break (`Foo /* c */ (1)`) is refused too. This member deletes no special case of its own — both deleted guards act only where a line break separates the part from the token in front of it — and is taken from the maintainer's answer, which names the gap, not a line break. The gap between a conditional element access's `?` and `[` is not the gap in front of the part's first token and is not in the shape; a comment there keeps FMT-BREAK-001's refusal.
+The shape is each gap as a place in the syntax tree, as for the operators of FMT-UNSUP-008 and FMT-UNSUP-011: a block comment there with no line break (`Foo /* c */ (1)`) is refused too. The maintainer chose this reading (1A) over refusing only a gap that holds a line break. This member deletes no special case of its own — every deleted guard acts only where a line break separates two tokens of the part or the part from the token in front of it. It makes FMT-SPACE-028's example of a comment between a collection expression's `with` and its argument list (`[with /* size */ (4)]`, formatted to `[with /* size */(4)]` on `main`) a refused input, so FMT-SPACE-028 drops that sentence and that example line and points to FMT-UNSUP-014, and change 6 shows the refusal. It also withholds the RH2001 and RH7101 fixes on `= Offset /* three */ (3)`, which change 7's rule already covers.
+
+### The gap between `?` and `[` is declared too (maintainer, batch 2, 2A)
+
+The gap between a conditional element access's `?` and `[` is part of the shape, in this change (2A). With it, the shape covers every gap between the tokens a part starts with, so no line break FMT-BREAK-040 removes is ever kept by a comment, a directive, or disabled text, and FMT-BREAK-040 no longer sends that gap to FMT-BREAK-001. It deletes the refusal FMT-BREAK-040's owner would need for that gap and the chain contributor's alignment of a part's later tokens (*Special cases*). It refuses `n? // c⏎[0]`, which `main` formats with `[0]` under the `?` (change 6).
 
 ### Which `!` and `?` belong to the shape is decided by the syntax tree
 
@@ -548,6 +627,9 @@ FMT-BREAK-040 states the join for every such part, so FMT-BREAK-020 (in a chain)
 - `ArgumentListLineStartRewriter.CanJoin`: the `LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, token) == false` term, and the remarks' sentence that a gap holding a comment, a directive, or disabled text is not joined. The term tests exactly the trailing trivia of the token in front of an argument list's `(` and the `(`'s leading trivia for comments, directives, and disabled text — FMT-UNSUP-014's place for the argument lists FMT-BREAK-039 names, which are the ones `IsArgumentListOpenParenthesis` admits. `CanJoin` joins only when the token in front lies inside the root, so every gap it tests lies between two tokens of the input, and a refused input never reaches it (FMT-UNSUP-003).
 - `MethodChainAlignmentContributor.Contribute`: the column of an attached part's first token that starts a line — `LayoutComputer.SetIfFirstOnLine(attachedPart.FirstToken, column, "MethodChainAttachedPart", model)` with its choice between the root column and the anchor column — and the class summary's sentence about it. An attached part's first token starts a line only when the gap in front of it holds a line break the line-break phase did not join. FMT-BREAK-039 and FMT-BREAK-040 join every such gap of a chain inside the input unless a comment, a directive, or disabled text stands in it (on `main` the chain rewriter and the argument-list rewriter already did so in a chain with links, which is the only chain the loop runs for), and FMT-UNSUP-014 refuses every input that holds one there. With the declaration no supported input reaches the loop. `main`'s output for it is change 6's chain example.
 - The refusal the join of FMT-BREAK-040 would need for the gap in front of the part's first token. On `main` that gap is joined by `ChainLineBreakRewriter.CloseGap` for an attached part's first token (in `NormalizeChain` and `JoinConditionalElementAccesses`) and by `ListElementInteriorJoinRewriter.CanJoin` inside a list element, each behind `WouldJoinAcrossUnjoinableTrivia`; decision 3 of the run moves these joins to one owner, and that owner carries no copy of FMT-BREAK-001's refusal for the gap in front of the part.
+- The refusal the FMT-BREAK-040 owner would need for the gap between a conditional element access's `?` and `[`. On `main` that gap is joined by `ChainLineBreakRewriter.CloseInnerGaps` over the part's tokens (in `NormalizeChain` and `JoinConditionalElementAccesses`), which refuses through `CloseGap`'s `WouldJoinAcrossUnjoinableTrivia` term; the part's tokens are the `?` and the `[`, behind a `!` when one stands in front (`FluentChain.GetConditionalTokens`), and every gap between them is in the shape. Decision 3 moves the join to one owner, and that owner carries no refusal for it. `CloseGap` and `CloseInnerGaps` themselves stay for link operators (*Checked and kept*).
+- `MethodChainAlignmentContributor.Contribute`: both `AlignRestOfRun(attachedPart.Tokens, model)` calls — the one for a chain without links and the one in the attached-part loop of a chain with links. The only attached part with more than one token is a conditional element access (`!`, `?`, `[`, or `?`, `[`), and a later token of it starts a line only when the gap in front of it holds a line break FMT-BREAK-040 did not remove, which only a comment, a directive, or disabled text in the gap can cause; FMT-UNSUP-014 refuses every input that holds one there. Every node-level input that holds the `?` holds the whole conditional access, so the `[` behind it as well, and no input holds only one side of that gap. `AlignRestOfRun` itself stays for link operators.
+- Spec text: FMT-BREAK-040's sentence that the removal of a line break between `?` and `[` still yields to FMT-BREAK-001, and FMT-SPACE-028's sentence and example of a comment kept in front of the argument list of `with(…)`.
 - Spec text: FMT-BREAK-039's example of a comment, a directive, or disabled text that keeps the parenthesis on its own line (now an example of the refused input), and this change doc's statement that a part kept below keeps today's column.
 
 ### Checked and kept
@@ -555,7 +637,7 @@ FMT-BREAK-040 states the join for every such part, so FMT-BREAK-020 (in a chain)
 - `LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia` and `SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia`: many other callers — parameter lists, chains, assignments, accessors, lists, constraints, and analyzers.
 - `ChainLineBreakRewriter.CloseGap`'s refusal: it also serves the rejoin of a split member name (FMT-BREAK-020), the inner gaps of link operators, and the first link's join (FMT-BREAK-019), which the shape does not cover.
 - `ListElementInteriorJoinRewriter.CanJoin`'s refusal: it serves every interior wrap of a list element (FMT-BREAK-015), not only the gaps in front of attached parts, which it leaves to their owners.
-- The refusal for the gap between a conditional element access's `?` and `[` (on `main` `CloseInnerGaps` over the part's tokens, after decision 3 the FMT-BREAK-040 owner's), and `MethodChainAlignmentContributor.AlignRestOfRun` for an attached part's tokens: the shape does not cover that gap (question 6.2A names the gap in front of the part), and `AlignRestOfRun` also aligns the rest of a link operator.
+- `ChainLineBreakRewriter.CloseInnerGaps` and `MethodChainAlignmentContributor.AlignRestOfRun` as methods: both serve a link operator's tokens (`!?.`, `?.`, `!.`), whose inner gaps the shape does not cover. Only their calls for an attached part's tokens are deleted.
 - `LineBreakListRewriter.CollapseOwnedOpenParenToDeclarationLine` and `CollapseOpenParenToDeclarationLine`: they join a parameter list's `(`, which is not in the shape.
 - `FluentChain` and `FluentChainLink` in `Reihitsu.Core`: their trivia checks decide whether a chain is wrapped and where its first link stands, for the analyzers (RH5112, RH5201, RH5048) as for the formatter, and analyzers do not consult the precheck.
 - The indentation of a part kept below outside a chain with links: no contributor has a case for it — the line took the enclosing statement's column as an unowned continuation line — so there is nothing to delete.
@@ -569,5 +651,6 @@ FMT-BREAK-040 states the join for every such part, so FMT-BREAK-020 (in a chain)
 - **Give a part kept on its own line by a comment, a directive, or disabled text the column of the expression's first token**, as the issue proposes — rejected by the maintainer (question 6): it would add a column rule for a rare input, and the join refusal would stay; the shape is declared unsupported instead.
 - **Keep the refusal (FMT-BREAK-001) and today's column for a part kept below** — rejected by the maintainer (question 6): outside a chain with links the part stays at the enclosing statement's column, and the branches of a conditional group around it get different columns.
 - **Declare comments only** — not offered: directives and disabled text reach the same refusal and the same column, so the declaration would delete neither.
-- **Include the gap between a conditional element access's `?` and `[`** — not part of the maintainer's answer, which names the gap in front of the part: it would delete the refusal for that inner gap and the chain contributor's alignment of the rest of a part as far as it serves conditional element accesses, and refuse `n? // c⏎[0]`.
+- **Leave the gap between a conditional element access's `?` and `[` out of the shape** — rejected by the maintainer (batch 2, 2A): the refusal for that gap and the chain contributor's alignment of a part's later tokens would stay, for a comment placed between the two characters of `?[`.
+- **Refuse only a gap that holds a line break** — rejected by the maintainer (batch 2, 1A): `Foo /* c */ (1)` and `[with /* size */ (4)]` would stay formatted, and FMT-SPACE-028 unchanged; the shape would differ from FMT-UNSUP-008 and FMT-UNSUP-011, where the gap is a place in the syntax tree.
 - **Report the shape with a new analyzer rule** — out of scope: the formatter may do more than the analyzers (P11); a rule for it is a candidate of its own.
