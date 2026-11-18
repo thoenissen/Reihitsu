@@ -25,10 +25,11 @@ None yet.
 
 - Per-token `GetPreviousToken()` calls grow ~4× per doubling (4.1 → 14.4 → 55.0 ms); several phases call it per token or per comment; may explain the remaining superlinear growth of other phases and of `LayoutComputer.Compute`. Must measure and attribute first. (01-skeptic.md)
 - Remaining superlinear growth of `LayoutComputer.Compute` (35–40 → 124–146 ms N=800→1600) and of the other phases at large N, incl. blank-line/line-break/horizontal-spacing on a large array initializer (`LineBreakListRewriter.cs:526`); cause not established. (01-skeptic.md) — likely to be merged with the item above by the issue manager.
+- `RH5604CodeMustNotContainMixedLineEndingsCodeFixProvider.ApplyCodeFixAsync` (`src/Reihitsu.Analyzer.CodeFixes/Rules/Layout/RH5604CodeMustNotContainMixedLineEndingsCodeFixProvider.cs:41-66`) is a private copy of `LineEndingNormalizationPhase.Execute`: one rule stated in two places (FC-015, pre-existing, untouched by this run). (07-auditor.md)
 
 ## Audited SHA
 
-—
+6db7bcc (base origin/main 6d574e1)
 
 ## Open worklist / next step
 
@@ -38,4 +39,6 @@ None yet.
 - Tab tests done (0f331bc, 04-test-implementer.md): 11 tests, green before and after.
 - Cleaner done (8fa0e97): clean, no changes, Release 0 warnings.
 - Spec checker done (6e06438): consistent, no findings.
-- Next: auditor.
+- Auditor done (c437b5d): pass, text cleanup — finding #1 comment at `TabReplacementPhase.cs:24-26` (FC-031). Output-equivalence across 11736 perturbed files confirmed.
+- PR text hints: line-ending site is ~14 % (≈119 ms of ≈830 ms at N=1600, mixed variant) after the fix and stays because mixed line endings are rare (RH5604 reports them); `TabReplacementPhase.cs:150` set is bounded to one directive.
+- Next: cleaner fixes the comment, proven by verify-text-only vs 6db7bcc; issue manager in parallel; then validator, publish.
