@@ -134,7 +134,6 @@ public class LineBreakTriviaUtilitiesTests
     /// start its line yet, and that the whitespace at the end of that trivia is kept for the cleanup phase
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-BREAK-029")]
     public void EndLineInFrontOfAppendsLineBreakBehindWhitespace()
     {
         // Arrange

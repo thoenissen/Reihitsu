@@ -242,7 +242,7 @@ public class ChainGapJoinTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-019")]
-    [Requirement("FMT-BREAK-029")]
+    [Requirement("FMT-CLEAN-001")]
     public void LineBreakInsertedBehindBlockCommentAndBehindWhitespace()
     {
         // Arrange
