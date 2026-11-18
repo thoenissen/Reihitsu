@@ -12,7 +12,13 @@
 
 ## Maintainer answers
 
-(none yet)
+Batch 1 (before test implementer):
+- Q1 (two rules RH3209/RH3210, Warning, on by default, span `{`..`}`, fix + Fix All, not-reported shapes, version gates, rule pages): **A** — as drafted.
+- Q2 (comment the formatter keeps the accessor list for, e.g. `public int A // note` / comment above `get`): **B** — reported on the accessor list, no fix offered.
+- Q3 (comment/directive the formatter refuses as unsupported between `get` and `=>` or `=>` and expression): **A** — reported, no fix.
+- Q4 (fix keeps the rest of the signature as written, `public  int  A => _value;`): **A**.
+- Q5 (escalation 10, declare comment/directive inside a get-only accessor list unsupported): not declared — the maintainer said this is not unsupported, since it is clear how such code is formatted. Read as 5A.
+- Q6 (escalation 9, move the get-only predicate/conversion into one new `Reihitsu.Core` type used by formatter, both analyzers, both fixes): **A**.
 
 ## Decisions taken
 
@@ -32,4 +38,5 @@
 - Spec author done (89106f5): RH3209 (properties), RH3210 (indexers); change doc Draft; one output question open (comment the formatter keeps the accessor list for: A not reported, B reported without fix).
 - Skeptic done (56e46fa): proceed. Architecture finding: shared Core owner for the get-only predicate/conversion (~250 moved lines + new type) -> escalation 9. Escalation 10 named (declare comment/directive in get-only accessor list unsupported; skeptic recommends no).
 - Amendments pending for spec author: change doc shows signature-kept example; SHARED-GETONLY-006 narrowing (decision 3); directive example in visible change 5.
-- Next: WAITING on maintainer for output-question batch 1 (Q1 rules as drafted, Q2 comment boundary, Q3 refused shapes, Q4 signature kept, Q5 escalation 10, Q6 escalation 9).
+- Batch 1 answered (see Maintainer answers).
+- Next: fresh spec author (03) carries out answers + amendments, sets change doc Accepted; then test implementer.
