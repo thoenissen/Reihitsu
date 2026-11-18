@@ -208,6 +208,7 @@ public class ChainGapJoinTests : FormatterTestsBase
     /// Verifies a chain without links whose conditional element accesses are joined onto one line
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-040")]
     public void ConditionalElementAccessesWithoutLinksAreJoined()
     {
         // Arrange

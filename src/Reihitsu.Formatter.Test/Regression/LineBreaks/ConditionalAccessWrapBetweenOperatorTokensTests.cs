@@ -1521,11 +1521,11 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
     }
 
     /// <summary>
-    /// Verifies that a comment between <c>?</c> and <c>[</c> in a short chain refuses the join, keeps the
-    /// <c>?</c> on the root line, and aligns the <c>[</c> under it
+    /// Verifies that a comment between <c>?</c> and <c>[</c> in a short chain refuses the input
     /// </summary>
     [TestMethod]
-    public void CommentBetweenQuestionMarkAndBracketInShortChainAlignsBracketUnderQuestionMark()
+    [Requirement("FMT-UNSUP-014")]
+    public void CommentBetweenQuestionMarkAndBracketInShortChainIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1539,19 +1539,8 @@ public class ConditionalAccessWrapBetweenOperatorTokensTests : FormatterTestsBas
                              }
                              """;
 
-        const string expected = """
-                                public class Sample
-                                {
-                                    public object M(dynamic a, dynamic list, dynamic obj)
-                                    {
-                                        return a? // c
-                                                [0];
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(AttachedPartCommentReason, input, "// c");
     }
 
     /// <summary>

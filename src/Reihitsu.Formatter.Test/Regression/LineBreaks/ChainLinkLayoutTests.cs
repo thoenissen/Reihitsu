@@ -1065,6 +1065,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-020")]
+    [Requirement("FMT-BREAK-040")]
     public void ConditionalElementAccessJoinsItsElement()
     {
         // Arrange
@@ -1100,6 +1101,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     /// </summary>
     [TestMethod]
     [Requirement("FMT-BREAK-020")]
+    [Requirement("FMT-BREAK-040")]
     public void ElementAccessJoinsItsElement()
     {
         // Arrange
@@ -1204,6 +1206,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     /// Verifies that a wrapped trailing <c>!</c> joins its element
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-040")]
     public void TrailingNullForgivingJoinsItsElement()
     {
         // Arrange
@@ -1236,6 +1239,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     /// Verifies that a wrapped trailing <c>!</c> joins the last link of a wrapped chain
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-040")]
     public void TrailingNullForgivingJoinsLastLink()
     {
         // Arrange
@@ -1270,6 +1274,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     /// Verifies that a wrapped trailing <c>!</c> inside an argument joins its element
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-040")]
     public void TrailingNullForgivingInsideArgumentJoinsItsElement()
     {
         // Arrange
@@ -1302,6 +1307,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     /// Verifies that a wrapped element access ending the chain joins its element
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-040")]
     public void OutermostElementAccessJoinsItsElement()
     {
         // Arrange
@@ -1334,6 +1340,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     /// Verifies that a wrapped conditional element access ending the chain joins its element
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-040")]
     public void OutermostConditionalElementAccessJoinsItsElement()
     {
         // Arrange
@@ -1366,6 +1373,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     /// Verifies that a wrapped element access joins a member name
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-040")]
     public void OutermostElementAccessJoinsMemberName()
     {
         // Arrange
@@ -1466,6 +1474,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     /// Verifies that an element access after a member name joins in one pass and the call stays wrapped
     /// </summary>
     [TestMethod]
+    [Requirement("FMT-BREAK-040")]
     public void ElementAccessAfterMemberNameJoinsInOnePass()
     {
         // Arrange
@@ -1530,10 +1539,11 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an element access outside a member chain keeps the user's break and today's indentation
+    /// Verifies that an element access outside a member chain joins its element as it does inside one
     /// </summary>
     [TestMethod]
-    public void ElementAccessWithoutMemberAccessKeepsItsBreak()
+    [Requirement("FMT-BREAK-040")]
+    public void ElementAccessWithoutMemberAccessJoinsItsElement()
     {
         // Arrange
         const string input = """
@@ -1552,8 +1562,7 @@ public class ChainLinkLayoutTests : FormatterTestsBase
                                 {
                                     public void M()
                                     {
-                                        var r = list
-                                        [0];
+                                        var r = list[0];
                                     }
                                 }
                                 """;
@@ -1596,10 +1605,11 @@ public class ChainLinkLayoutTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment before an element access keeps it on its own line at the anchor column
+    /// Verifies that a comment in front of an element access in a chain with links refuses the input
     /// </summary>
     [TestMethod]
-    public void CommentBeforeElementAccessKeepsElementAccessAtAnchorColumn()
+    [Requirement("FMT-UNSUP-014")]
+    public void CommentBeforeElementAccessInAChainIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1614,27 +1624,17 @@ public class ChainLinkLayoutTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = """
-                                public class Sample
-                                {
-                                    public void M()
-                                    {
-                                        var r = x.B() // c
-                                                 [0]
-                                                 .C();
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(AttachedPartCommentReason, input, "// c");
     }
 
     /// <summary>
-    /// Verifies that a comment inside <c>?[</c> keeps the <c>?</c> at its element and puts <c>[</c> under it
+    /// Verifies that a comment between the <c>?</c> and the <c>[</c> of a conditional element access in a chain with links refuses
+    /// the input
     /// </summary>
     [TestMethod]
-    public void CommentInsideConditionalElementAccessPutsBracketUnderQuestionMark()
+    [Requirement("FMT-UNSUP-014")]
+    public void CommentInsideConditionalElementAccessInAChainIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1649,27 +1649,16 @@ public class ChainLinkLayoutTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = """
-                                public class Sample
-                                {
-                                    public void M()
-                                    {
-                                        var r = x.B()? // c
-                                                     [0]
-                                                 .C();
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(AttachedPartCommentReason, input, "// c");
     }
 
     /// <summary>
-    /// Verifies that a comment before an argument list keeps it on its own line at the anchor column
+    /// Verifies that a comment in front of an argument list in a chain with links refuses the input
     /// </summary>
     [TestMethod]
-    public void CommentBeforeArgumentListKeepsArgumentListAtAnchorColumn()
+    [Requirement("FMT-UNSUP-014")]
+    public void CommentBeforeArgumentListInAChainIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1684,20 +1673,8 @@ public class ChainLinkLayoutTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = """
-                                public class Sample
-                                {
-                                    public void M()
-                                    {
-                                        var r = x.B // c
-                                                 (1)
-                                                 .C();
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(AttachedPartCommentReason, input, "// c");
     }
 
     /// <summary>
