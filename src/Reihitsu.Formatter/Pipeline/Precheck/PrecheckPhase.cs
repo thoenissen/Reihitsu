@@ -51,6 +51,12 @@ internal sealed class PrecheckPhase : IFormattingPhase
     /// </summary>
     internal const string ExpressionBodyArrowCommentReason = "a comment or directive between the arrow of an expression body and its expression";
 
+    /// <summary>
+    /// The reason given for a comment, a directive, or disabled text between the arrow of an expression body and the token in
+    /// front of it (FMT-UNSUP-013)
+    /// </summary>
+    internal const string ExpressionBodyArrowLeadingCommentReason = "a comment or directive between the arrow of an expression body and the code in front of it";
+
     #endregion // Constants
 
     #region Methods
@@ -68,6 +74,7 @@ internal sealed class PrecheckPhase : IFormattingPhase
         SyntaxTrivia? firstFieldDirective = null;
         SyntaxTrivia? firstBinaryOperatorTrivia = null;
         SyntaxTrivia? firstArrowTrivia = null;
+        SyntaxTrivia? firstArrowLeadingTrivia = null;
 
         foreach (var descendant in node.DescendantNodesAndSelf())
         {
@@ -100,6 +107,7 @@ internal sealed class PrecheckPhase : IFormattingPhase
                 case ArrowExpressionClauseSyntax arrowExpressionClause:
                     {
                         firstArrowTrivia = SelectFirst(firstArrowTrivia, FindTriviaBehindExpressionBodyArrow(arrowExpressionClause));
+                        firstArrowLeadingTrivia = SelectFirst(firstArrowLeadingTrivia, FindTriviaInFrontOfExpressionBodyArrow(node, arrowExpressionClause));
                     }
                     break;
             }
@@ -110,9 +118,9 @@ internal sealed class PrecheckPhase : IFormattingPhase
         // Of two shapes that start at the same trivia, the one listed first wins: FMT-UNSUP-004 keeps its reason for a comment,
         // and FMT-UNSUP-009 for a directive, in front of a comma between two declarators; FMT-UNSUP-009 gives its own for a
         // comment in front of every other comma inside a variable declaration, and FMT-UNSUP-010 gives its own for every other
-        // directive inside a field declaration with several declarators. FMT-UNSUP-011 and FMT-UNSUP-012 are listed last, so
-        // FMT-UNSUP-004 and FMT-UNSUP-010 keep their reason for a comment or directive behind a binary operator, and FMT-UNSUP-010
-        // keeps its reason for a directive behind the arrow of an expression body, that they refuse as well
+        // directive inside a field declaration with several declarators. FMT-UNSUP-011, FMT-UNSUP-012, and FMT-UNSUP-013 are listed
+        // last, so FMT-UNSUP-004 and FMT-UNSUP-010 keep their reason for a comment or directive behind a binary operator, and
+        // FMT-UNSUP-010 keeps its reason for a directive on either side of the arrow of an expression body, that they refuse as well
         var candidates = isDeclaratorComma
                              ? new List<(SyntaxTrivia? Trivia, string Reason)>
                                {
@@ -121,7 +129,8 @@ internal sealed class PrecheckPhase : IFormattingPhase
                                    (firstFieldDirective, FieldDeclarationDirectiveReason),
                                    (firstOperatorTrivia, ConditionalOperatorCommentReason),
                                    (firstBinaryOperatorTrivia, BinaryOperatorCommentReason),
-                                   (firstArrowTrivia, ExpressionBodyArrowCommentReason)
+                                   (firstArrowTrivia, ExpressionBodyArrowCommentReason),
+                                   (firstArrowLeadingTrivia, ExpressionBodyArrowLeadingCommentReason)
                                }
                              : new List<(SyntaxTrivia? Trivia, string Reason)>
                                {
@@ -130,7 +139,8 @@ internal sealed class PrecheckPhase : IFormattingPhase
                                    (firstComment, VariableDeclarationCommentReason),
                                    (firstOperatorTrivia, ConditionalOperatorCommentReason),
                                    (firstBinaryOperatorTrivia, BinaryOperatorCommentReason),
-                                   (firstArrowTrivia, ExpressionBodyArrowCommentReason)
+                                   (firstArrowTrivia, ExpressionBodyArrowCommentReason),
+                                   (firstArrowLeadingTrivia, ExpressionBodyArrowLeadingCommentReason)
                                };
 
         (SyntaxTrivia? Trivia, string Reason) first = (null, null);
@@ -299,6 +309,30 @@ internal sealed class PrecheckPhase : IFormattingPhase
     {
         return FindFirstUnsupportedOperatorTrivia(arrowExpressionClause.ArrowToken.TrailingTrivia)
                    ?? FindFirstUnsupportedOperatorTrivia(arrowExpressionClause.Expression.GetFirstToken().LeadingTrivia);
+    }
+
+    /// <summary>
+    /// Finds the first comment, directive, or disabled text between the arrow of an expression body and the token in front of it:
+    /// in the trailing trivia of that token, or in the leading trivia of the <c>=&gt;</c> (FMT-UNSUP-013). The gap lies between
+    /// two tokens, so a node that holds the arrow but not the token in front of it, such as the arrow clause itself, does not
+    /// hold it (FMT-UNSUP-003)
+    /// </summary>
+    /// <param name="node">The node the precheck decides on</param>
+    /// <param name="arrowExpressionClause">The arrow clause</param>
+    /// <returns>The first such trivia, or <see langword="null"/></returns>
+    private static SyntaxTrivia? FindTriviaInFrontOfExpressionBodyArrow(SyntaxNode node, ArrowExpressionClauseSyntax arrowExpressionClause)
+    {
+        var arrowToken = arrowExpressionClause.ArrowToken;
+        var previousToken = arrowToken.GetPreviousToken();
+
+        if (previousToken == default
+            || node.Span.Contains(previousToken.Span) == false)
+        {
+            return null;
+        }
+
+        return FindFirstUnsupportedOperatorTrivia(previousToken.TrailingTrivia)
+                   ?? FindFirstUnsupportedOperatorTrivia(arrowToken.LeadingTrivia);
     }
 
     /// <summary>
