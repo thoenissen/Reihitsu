@@ -55,4 +55,5 @@ Batch 1 (before test implementer):
 - Test implementer 05 done (d7fb059): 68+4 analyzer tests + 6 formatter-parity tests; build fails only on the four missing rule types.
 - Pending text item: spec author clarifies SHARED-GETONLY-003 wording (decision 7), after the implementer.
 - Implementer 06 done (08a771a, e940dcd): all tests green except disputed CRLF test.
-- Next: test implementer 07 (split CRLF test) and spec author 08 (SHARED-GETONLY-003 wording, decision 7) in parallel; then cleaner.
+- Test implementer 07 (706343d) and spec author 08 (c458cf6) done.
+- Next: cleaner 09.
