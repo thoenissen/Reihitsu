@@ -4,10 +4,10 @@
 |---|---|
 | ID prefix | SHARED-GETONLY |
 | Status | Active |
-| Code owners | `GetOnlyMemberExpressionBodyRewriteUtilities` |
+| Code owners | `GetOnlyMemberExpressionBodyRewriteUtilities`, `GetOnlyMemberExpressionBodyAnalyzerBase`, `GetOnlyMemberExpressionBodyCodeFixProviderBase` |
 | Uses | FMT-STRUCT-009, FMT-STRUCT-011, FMT-STRUCT-012, FMT-STRUCT-013, FMT-STRUCT-014, FMT-STRUCT-015, FMT-UNSUP-001, FMT-UNSUP-007, FMT-UNSUP-012, FMT-UNSUP-013, SHARED-BODY-001, SHARED-DIAG-011, SHARED-FIX-003, SHARED-FIX-006, SHARED-FIX-007, SHARED-FIX-010 |
 
-This spec covers what the rules share that report a get-only member whose accessor list the formatter replaces with an expression body — RH3209 (properties) and RH3210 (indexers): which declarations are reported, where the diagnostic is, what the code fix produces, and when it is withheld. Each rule's spec states which kind of member it reports. "The member" below is the property or indexer declaration the rule checks; "the getter" is the only accessor of its accessor list. The formatter's counterparts are FMT-STRUCT-014 and FMT-STRUCT-015. The decision whether a get-only member is converted, and the conversion itself, have one owner, `GetOnlyMemberExpressionBodyRewriteUtilities` in `Reihitsu.Core`, which the formatter's get-only transform, the analyzers, and the code fixes of both rules use.
+This spec covers what the rules share that report a get-only member whose accessor list the formatter replaces with an expression body — RH3209 (properties) and RH3210 (indexers): which declarations are reported, where the diagnostic is, what the code fix produces, and when it is withheld. Each rule's spec states which kind of member it reports. "The member" below is the property or indexer declaration the rule checks; "the getter" is the only accessor of its accessor list. The formatter's counterparts are FMT-STRUCT-014 and FMT-STRUCT-015. The decision whether a get-only member is converted, and the conversion itself, have one owner, `GetOnlyMemberExpressionBodyRewriteUtilities` in `Reihitsu.Core`, which the formatter's get-only transform, the analyzers, and the code fixes of both rules use. The analyzers of both rules share `GetOnlyMemberExpressionBodyAnalyzerBase`, which reports the member and places the diagnostic; their code fixes share `GetOnlyMemberExpressionBodyCodeFixProviderBase`, which decides whether the fix is offered and writes its result.
 
 ## Non-goals
 
