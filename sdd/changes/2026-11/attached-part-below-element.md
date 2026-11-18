@@ -264,11 +264,13 @@ No rule page changes: no analyzer rule reports an element access or a null-forgi
 
 A part kept on its own line by a comment, a directive, or disabled text in the gap is not joined (FMT-BREAK-001), and its column is today's.
 
+A `[` that is not the first token of an attached part keeps today's output: the implicit element access of an initializer (`{⏎["a"] = 1,⏎["b"] = 2⏎}`) and the `[` of an array or `stackalloc` creation (`new⏎[]`, `new int⏎[3]`, `stackalloc⏎[]`) are not joined.
+
 ## Decisions
 
 ### The join is stated by its cause, the gap in front of an attached part
 
-The requirement names the gap in front of the first token of an element access, a conditional element access, and a null-forgiving operator — the attached parts of SHARED-CHAIN-001 that FMT-BREAK-039 does not own — whatever expression stands in front of it, rather than listing receivers (`arr`, `this`, `(arr)`, `d["k"]`). A `!` followed by `.` or `?.` is part of a link operator and stays the chain layout's (FMT-BREAK-019).
+The requirement names the gap in front of the first token of an element access, a conditional element access, and a null-forgiving operator — the attached parts of SHARED-CHAIN-001 that FMT-BREAK-039 does not own — whatever expression stands in front of it, rather than listing receivers (`arr`, `this`, `(arr)`, `d["k"]`). A `!` followed by `.` or `?.` is part of a link operator and stays the chain layout's (FMT-BREAK-019). The `[` joined is the one that opens the bracketed argument list of an element access or of the element binding behind a conditional element access's `?`; every other `[` is not an attached part and keeps today's output. That excludes the implicit element access of an object or dictionary initializer (`["a"] = 1`), whose `[` follows the initializer's `{` or a `,` rather than an element, and the `[` of `new[]`, `new int[3]`, and `stackalloc []`, which belongs to the creation expression itself; reading these as attached parts would join common initializer code onto its `{`.
 
 ### One requirement owns the gaps, and the join counts as FMT-BREAK-039's
 

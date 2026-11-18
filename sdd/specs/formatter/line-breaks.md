@@ -3188,7 +3188,7 @@ is left unchanged.
 
 When a line break separates an element access, a conditional element access, or a null-forgiving operator — the attached parts of SHARED-CHAIN-001 other than an argument list — from the token in front of it, the part MUST be joined onto that token's line. The part's first token is the one joined: the `[` of an element access's bracketed argument list (`arr⏎[0]`, `this⏎[0]`, `d["k"]⏎[0]`, `(arr)⏎[0]`), the `?` of a conditional element access (`n⏎?[0]`), and the `!` of a null-forgiving operator (`Get()⏎!`, `s⏎! + ""`). A line break between the `?` and the `[` of a conditional element access MUST be removed as well (`n?⏎[0]` becomes `n?[0]`). This holds wherever the part stands: in a chain with links, in an expression without any link, inside a list element, inside an interpolation hole, inside a lambda, as an assignment's target, and everywhere else. This requirement is the one owner of these gaps; FMT-BREAK-020 and FMT-BREAK-015 leave them to it. Blank lines in the gap go with the join (FMT-BREAK-030).
 
-A null-forgiving operator is an attached part only when no `.` or `?.` follows it (SHARED-CHAIN-001). In `s⏎!;` and `s⏎! + ""` the `!` is one and joins `s`; in `s⏎!.Length` the `!` is the first token of the link operator `!.`, whose gap is laid out as the gap in front of a link (FMT-BREAK-019), not by this requirement. A `[` that does not open an element access's bracketed argument list — an array rank specifier, a collection expression, a list pattern, an attribute list, an indexer's parameter list — is not an attached part either, and this requirement does not decide the gap in front of it.
+A null-forgiving operator is an attached part only when no `.` or `?.` follows it (SHARED-CHAIN-001). In `s⏎!;` and `s⏎! + ""` the `!` is one and joins `s`; in `s⏎!.Length` the `!` is the first token of the link operator `!.`, whose gap is laid out as the gap in front of a link (FMT-BREAK-019), not by this requirement. The `[` this requirement joins is the opening bracket of the bracketed argument list of an `ElementAccessExpressionSyntax`, or of the `ElementBindingExpressionSyntax` that a conditional element access holds behind its `?`. Every other `[` is not the first token of an attached part, and this requirement does not decide the gap in front of it. For example: the bracketed argument list of an implicit element access (`ImplicitElementAccessSyntax`, the `["a"]` of `["a"] = 1` in an object or dictionary initializer), which has no element in front of it, only the initializer's `{` or a `,`; the `[` of an implicit array creation (`new[] { 1 }`) and of an implicit `stackalloc` array creation (`stackalloc [] { 1 }`), which belongs to the `new` or `stackalloc` expression itself; an array rank specifier (`new int[3]`, `stackalloc int[3]`, `int[]`); a collection expression; a list pattern; an attribute list; an indexer's parameter list; and a function pointer's calling-convention list.
 
 Where a construct around the part is laid out by whether it spans several lines, the line break the join removes counts as FMT-BREAK-039 states for the line break in front of an argument list: a construct FMT-BREAK-022 decides still counts it, and a list FMT-BREAK-012 lays out and a conditional expression (FMT-BREAK-018) are judged as the line they become, also where the part stands inside an interpolation hole, a query clause after the first, or an array or `stackalloc` initializer of a list element.
 
@@ -3296,6 +3296,29 @@ class C
 
     void Baz(object? x, int y)
     {
+    }
+}
+```
+
+Example — a `[` that is not the first token of an attached part is not joined: the implicit element accesses of a dictionary initializer stay on their own lines, and the `[` of `new[]`, `new int[3]`, and `stackalloc []` stays where it is written. The input below is kept as written:
+
+```csharp
+using System;
+using System.Collections.Generic;
+
+class C
+{
+    void M(int[] arr)
+    {
+        var d = new Dictionary<string, int>
+                {
+                    ["a"] = 1,
+                    ["b"] = arr[0]
+                };
+        var e = new[] { 1, 2 };
+        var f = new int[3];
+        Span<int> g = stackalloc [] { 1, 2 };
+        Span<int> h = stackalloc int[3];
     }
 }
 ```
