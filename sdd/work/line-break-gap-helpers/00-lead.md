@@ -9,7 +9,7 @@
 
 ## Maintainer answers
 
-(none yet)
+1. Escalation 10 (declare the shape "code behind the closing `*/` of a multi-line block comment" unsupported?): **A — not declared.** Formatter output stays as on `main` in this run; the missing line break is a follow-up bug.
 
 ## Decisions taken
 
@@ -25,10 +25,10 @@
 
 ## Follow-up candidates
 
-1. Bug: tokens behind a multi-line comment's closing line are not broken onto their own line (cells C, U, D, R, E, P, Q, S, T; SHARED-COMMENT-012 with FMT-BREAK-012/017/018/022/023; RH5302/RH5308 fixes make no progress on formatter output, RH5203 reports it). Carries the FMT-BREAK-037 output question for cell F. — `01-skeptic.md`, #1651 Follow-up candidates 1 and 2. (Text of the escalation-10 answer to be added.)
+1. Bug: tokens behind a multi-line comment's closing line are not broken onto their own line (cells C, U, D, R, E, P, Q, S, T; SHARED-COMMENT-012 with FMT-BREAK-012/017/018/022/023; RH5302/RH5308 fixes make no progress on formatter output, RH5203 reports it). Carries the FMT-BREAK-037 output question for cell F. — `01-skeptic.md`, #1651 Follow-up candidates 1 and 2. The maintainer chose not to declare the shape unsupported (escalation 10, answer A); the follow-up fixes the line break instead.
 
 ## State
 
 - Last step: skeptic (`01-skeptic.md`, f206305): #1640 proceed; #1651 proceed narrower.
-- Waiting: escalation 10 (declare comment-tail shape unsupported?) asked in chat before the test implementer.
+- Escalation 10 answered (A, not declared).
 - Next: test implementer.
