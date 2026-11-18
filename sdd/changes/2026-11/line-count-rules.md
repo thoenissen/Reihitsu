@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
 | Affected requirements | RH0001-004, new: RH0001-007; new specs: RH2008 (RH2008-001 to RH2008-005), RH2111 (RH2111-001 to RH2111-006), shared/line-count.md (SHARED-LINES-001 to SHARED-LINES-003) |
 
@@ -15,7 +15,7 @@ Two new Design rules report a declaration whose body holds more lines of code th
 
 A **line of code** is a line on which a character of a token of the counted body lies (SHARED-LINES-001): the signature or header, the outer braces, blank lines, comment and documentation-comment lines, preprocessor directive lines (`#region` included), and code a conditional directive excludes are not counted; every line of a multi-line string literal is. A declaration is reported when its count is greater than its limit (SHARED-LINES-002). Local functions and lambdas count toward the member that holds them, and nested types toward the type that holds them; a local function and a nested type are also judged on their own. Each accessor is judged on its own, and each part of a partial type.
 
-Production code and test code have separate limits. Test code is the code of a project whose MSBuild property `IsTestProject` is `true` — every project that references `Microsoft.NET.Test.Sdk` — and all other code is production code (SHARED-LINES-003). The package makes the property visible to its analyzers.
+Production code and test code have separate limits. Test code is the code of a project whose MSBuild property `IsTestProject` or `IsTestingPlatformApplication` is `true` — every project that references `Microsoft.NET.Test.Sdk`, and every project that runs its tests on Microsoft.Testing.Platform, such as an `MSTest.Sdk`, xUnit v3, or TUnit project — and all other code is production code (SHARED-LINES-003). The package makes both properties visible to its analyzers.
 
 | Setting in `design` | Rule | Code | Default |
 |---|---|---|---|
@@ -328,7 +328,7 @@ class C
 ```
 
 ```csharp
-// after, in a test project (it references Microsoft.NET.Test.Sdk, or sets IsTestProject to true): not reported
+// after, in a test project (it references Microsoft.NET.Test.Sdk, runs its tests on Microsoft.Testing.Platform, or sets IsTestProject to true): not reported
 class C
 {
     void M()
@@ -340,7 +340,7 @@ class C
 }
 ```
 
-Without `reihitsu.json`, a test method with 80 lines of code in its body is not reported (default 100), and the same method in a production project is reported (default 60). With `{ "design": { "maximumMethodLines": 40 } }` alone, the test limit stays 100.
+Without `reihitsu.json`, a test method with 80 lines of code in its body is not reported (default 100), and the same method in a production project is reported (default 60). With `{ "design": { "maximumMethodLines": 40 } }` alone, the test limit stays 100. A shared test-helper library that only references a test framework, such as `MSTest.TestFramework`, is production code.
 
 **6. RH0001 — the `design` section is accepted and validated.**
 
@@ -358,7 +358,7 @@ After: "The 'design.maximumMethodLines' setting must be a whole number from 1 to
 
 ## Decisions
 
-The maintainer answered the output questions of this run in three batches; the numbers are the question numbers of the run.
+The maintainer answered the output questions of this run in three batches (1A–8A, 9B–11A, 12D–16A); the numbers are the question numbers of the run.
 
 ### The limits are settings of `reihitsu.json`, in a `design` section (1A)
 
@@ -366,11 +366,31 @@ Reihitsu reads its own settings only from `reihitsu.json`, sectioned by category
 
 ### Built-in default limits apply when no limit is configured (2B, 9B)
 
-Both rules are active without configuration. The defaults are 60 lines of code per method-like member and 500 per type in production code, chosen against the measurement in *Why*. A setting RH0001 reports as invalid, and every setting of a file that cannot be parsed, keeps its default rather than turning the rule off (SHARED-LINES-002); RH0001 reports the setting. Pending batch 3 for the fallback of an invalid setting.
+Both rules are active without configuration. The defaults are 60 lines of code per method-like member and 500 per type in production code, chosen against the measurement in *Why*. A setting without a valid value keeps its default rather than turning the rule off (SHARED-LINES-002); RH0001 reports the setting or the file.
 
 ### Production code and test code have separate limits
 
-The maintainer asked for it with batch 2. Test code is recognized by the project, through the MSBuild property `IsTestProject` (SHARED-LINES-003), which `Microsoft.NET.Test.Sdk` sets and `dotnet test` reads; the package makes it visible to the analyzers. Each rule has a second setting, `maximumTestMethodLines` and `maximumTestTypeLines`, with defaults of 100 and 1000, and each setting keeps its own default when only the other one is configured. Pending batch 3 for the recognition, the setting names, the test defaults, and the independence of the settings.
+The maintainer asked for it with batch 2. Each rule has a second setting for test code, and the settings are independent.
+
+### Test code is the code of a test project, on VSTest or Microsoft.Testing.Platform (12D)
+
+Test code is recognized by the project, through the MSBuild properties `IsTestProject` and `IsTestingPlatformApplication` (SHARED-LINES-003): a project for which either is `true` is test code. `Microsoft.NET.Test.Sdk` sets `IsTestProject` in the projects that run their tests on VSTest; projects that run their tests on Microsoft.Testing.Platform — `MSTest.Sdk` with its default runner, xUnit v3, TUnit — set `IsTestingPlatformApplication`, often without `IsTestProject`, and `dotnet test` on that platform runs the projects that carry it. The package declares both properties as `CompilerVisibleProperty`, so the analyzers read them as `build_property.IsTestProject` and `build_property.IsTestingPlatformApplication`. A project-level decision keeps a test project's helpers, base classes, and data with its tests and needs no list of frameworks or attributes. A library that extends Microsoft.Testing.Platform also carries `IsTestingPlatformApplication` and counts as test code; it is test tooling, and rare. A project that loads the analyzer without the package's build files sees neither property and is production code.
+
+### The test settings sit beside the production settings (13A)
+
+`maximumTestMethodLines` and `maximumTestTypeLines` are settings of the `design` section, one level deep like every other Reihitsu setting, and each name says on its own what it limits.
+
+### Test code has defaults of 100 lines per method-like member and 1000 per type (14A)
+
+Test methods arrange their inputs and expected results in their bodies, and a test class holds one test per case; 100 lies above the 99th percentile of this repository's test methods (61) and still marks the outliers.
+
+### Each setting keeps its own default (15A)
+
+A configured production setting does not move the test limit, and a configured test setting does not move the production limit. Every setting means one thing and has one documented default; a project that wants one limit for both sets both.
+
+### A setting without a valid value keeps its default (16A)
+
+A setting RH0001 reports as invalid, and every setting of a file that is empty or cannot be read or parsed, keeps its default rather than turning the rule off; RH0001 already points at the mistake.
 
 ### Nested functions and types count toward their container, and are also judged on their own (3A)
 
@@ -414,7 +434,13 @@ As thoenissen/Reihitsu#354 proposes: a reader opens one part, and a sum across f
 - **Both rules inactive until a limit is configured** — rejected (2B): the rules would do nothing for most projects, and the defaults sit where few declarations reach.
 - **The rules off by default, with defaults once enabled** — rejected (2B): it takes two steps to turn a rule on.
 - **One limit for production and test code** — rejected on the maintainer's request: test code runs longer for reasons a production limit does not account for.
-- **Test code recognized by a test attribute on the type or method, or by a list of test framework references** — rejected: an attribute leaves a test project's helpers and base classes as production code, and a list of frameworks misses one.
+- **Test code recognized by `IsTestProject` alone** (12A) — rejected (12D): `IsTestProject` is set by `Microsoft.NET.Test.Sdk`, which only projects that run their tests on VSTest reference; an `MSTest.Sdk` project with its default runner, an xUnit v3 project, and others on Microsoft.Testing.Platform do not set it, and their tests would be held to the production limits unless each set the property itself.
+- **Test code recognized by a list of test framework references** (12B) — rejected (12D): a framework missing from the list makes its tests production code, and a shared helper library that references a framework would count as test code.
+- **Test code recognized by a test attribute on the type or method** (12C) — rejected (12D): it leaves a test project's helpers, builders, and base classes as production code.
+- **Test settings in a nested `test` object** (13B) — rejected (13A): a second level no other Reihitsu setting has.
+- **Test defaults of 150 and 2000, or the production defaults for test code** (14B, 14C) — rejected (14A): the first marks almost no outlier, the second holds test code to limits it routinely exceeds.
+- **A test setting that follows a configured production setting** (15B) — rejected (15A): changing one limit would move another one silently.
+- **A rule that goes silent while its setting is invalid** (16B) — rejected (16A): a typo would turn a rule off.
 - **Counting every line of the body, comments and blank lines included** — rejected: it punishes documentation and readable spacing, and thoenissen/Reihitsu#353 and thoenissen/Reihitsu#354 ask to leave them out.
 - **Leaving the lines of multi-line string literals out** — rejected (10A): they are lines a reader reads as part of the code.
 - **Leaving nested types and local functions out of the container's count** — rejected (3A): moving code into them would satisfy the limit without making the container shorter to read.
