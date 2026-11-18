@@ -36,4 +36,4 @@ Question 5 (04-spec-author.md, several blank lines between attributes and proper
 - Last step: spec author (01, commit 3501371), change doc Draft. Open output question: 01 Q3 (attribute on the property's line).
 - Skeptic done (02). Spec author amendment done (03, dba3ee9), change doc Draft.
 - Batch 1 carried out (04, 36627a0), change doc Accepted. RH5401-003 got a rule-local exception: no blank line inserted.
-- Q5 answered (A). Next: spec author continue (04 agent) to carry out Q5; then test implementer.
+- Q5 carried out (04 follow-up, f0437cc). Next: test implementer (05).
