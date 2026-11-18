@@ -1395,6 +1395,26 @@ internal static class AnalyzerResources
     internal static string RH3208Title => GetString(nameof(RH3208Title));
 
     /// <summary>
+    /// Localized string for RH3209MessageFormat
+    /// </summary>
+    internal static string RH3209MessageFormat => GetString(nameof(RH3209MessageFormat));
+
+    /// <summary>
+    /// Localized string for RH3209Title
+    /// </summary>
+    internal static string RH3209Title => GetString(nameof(RH3209Title));
+
+    /// <summary>
+    /// Localized string for RH3210MessageFormat
+    /// </summary>
+    internal static string RH3210MessageFormat => GetString(nameof(RH3210MessageFormat));
+
+    /// <summary>
+    /// Localized string for RH3210Title
+    /// </summary>
+    internal static string RH3210Title => GetString(nameof(RH3210Title));
+
+    /// <summary>
     /// Localized string for RH5401MessageFormat
     /// </summary>
     internal static string RH5401MessageFormat => GetString(nameof(RH5401MessageFormat));
