@@ -29,6 +29,7 @@
 | 6 | Spec author (04), test implementer (07) | The CLI prefix in the change doc examples | Use what the CLI prints today, which is `error:` in lower case (07 found that 04's `Error:` is wrong); the correction goes to the spec author with the next docs round | Examples must be real output | Doc text only; no CLI change | d0aacbb |
 | 7 | Skeptic (05) | RH5112's fix also becomes withheld under FMT-UNSUP-014 (`return items // element⏎?[0]⏎.ToString();`) | Add it to change 7, with a test that locks the withheld fix | A consequence of the declaration answer 6 | Covered by answer 6 (the declaration withholds every fix whose formatted node holds the shape) | 20d383b |
 | 8 | Implementer (08) | A new shared type `AttachedPartGapUtilities` (~60 lines) plus the `ArgumentListLineStartRewriter` → `AttachedPartLineStartRewriter` rename | Accept | Part of the issue's own fix: one gap definition shared by the join owner and the precheck instead of a copy (escalation 9 does not cover a fix's own code) | Internal structure | 6ec5154 |
+| 9 | Auditor (13) | The auditor's hint (not a finding) about the punctuation of the `ListElementInteriorJoinRewriter` remark | Leave it | Not a finding; a text-only round would cost a cleaner and a proof | Comment only | — |
 | 2 | Spec author | Follow the issue's owner hint (`JoinConditionalElementAccesses`, `NormalizeChain`)? | No; no code owner is prescribed | Agent-filed proposal; the implementer picks the owner | Internal | e13cde4 |
 
 ## Follow-up candidates
@@ -38,6 +39,7 @@
 - `new⏎[]`, `new int⏎[3]`, `stackalloc⏎[]` leave `[` at the statement's column — 02-skeptic.
 - A lambda expression body below `=>` lands at the statement's column; no requirement decides the column — 02-skeptic.
 - A comment on its own line in front of a wrapped chain link inside a statement gets a blank line above it (`var d = s⏎// c⏎.Length;`) — 04-spec-author.
+- A query continuation clause below its query takes the enclosing statement's column (`var a = from x in list⏎select x;` → `select` at the column of `var`); pre-existing, with the same unowned-continuation-line cause as the lambda-body candidate — 13-auditor.
 - Analyzer counterpart (report a line break in front of an attached part): would be a new rule → not taken in; an issue already exists per #895's text, so the issue manager checks duplicates — 01-spec-author.
 
 ## Worklist / next step
@@ -57,7 +59,8 @@
 - Spec checker 10 (d467533): 3 doc findings (error: prefix, AttachedPartGapUtilities as a code owner, a stale `ArgumentListLineStartRewriter.CanJoin` name). Repair round 1: spec author (11), then a fresh spec checker (12), then the auditor.
 - Spec author 11 done (d0aacbb). Spec checker 12 (cb602cb): consistent.
 - Merged origin/main 6d574e1 (text-only fluent-chain helper docs); Release build green at da5fcff.
-- Next: auditor (13) against main 6d574e1.
+- Auditor 13 (f942308): PASS, no findings. Audited SHA: fb01a18f2074f51e806acb23483c312bc09b45b7.
+- Next: validator (14), then publish (section 8).
 - Old: spec author (06) applies (a), (b), RH5112 in change 7, and the FMT-UNSUP-014 wording; then the test implementer.
 - Old: fresh skeptic (05), then ask (a) and (b) with any skeptic questions, then the test implementer.
 - Old: spec author (04) writes the declaration and Decisions, and sets Status Accepted; then a fresh skeptic (05) on the declaration; then the test implementer.
