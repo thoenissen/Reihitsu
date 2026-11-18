@@ -39,4 +39,5 @@ Batch 1 (before test implementer):
 - Skeptic done (56e46fa): proceed. Architecture finding: shared Core owner for the get-only predicate/conversion (~250 moved lines + new type) -> escalation 9. Escalation 10 named (declare comment/directive in get-only accessor list unsupported; skeptic recommends no).
 - Amendments pending for spec author: change doc shows signature-kept example; SHARED-GETONLY-006 narrowing (decision 3); directive example in visible change 5.
 - Batch 1 answered (see Maintainer answers).
-- Next: fresh spec author (03) carries out answers + amendments, sets change doc Accepted; then test implementer.
+- Spec author 03 done (25e5014): answers carried out, change doc Accepted, Core type `GetOnlyMemberExpressionBodyRewriteUtilities`, SHARED-GETONLY-007 added (directive the formatter keeps the member for: not reported, drafted).
+- Next: WAITING on maintainer for Q7 (directive the formatter keeps the member for: A not reported / B reported without fix). Then test implementer.
