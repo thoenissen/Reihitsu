@@ -11,7 +11,9 @@
 ## Maintainer answers
 
 - Batch 1 (Q1–Q8 of 01-spec-author/02-skeptic): 1A (limits in `reihitsu.json` `design` section, validated by RH0001; RH8402 no longer silenced by a valid `design` section), **2B** (built-in default limits apply when no limit is configured — not inactive), 3A (nested code counts toward the container), 4A (RH2008 / RH2111, titles and messages as drafted, operator token / accessor keyword location), 5A (unions judged, enums not), 6A (each accessor on its own), 7A (initializer lambdas not judged), 8A (strict whole-number validation 1..2147483647, unknown setting reported).
-- The maintainer asked which default values to use: what limits would work in this repository. Pending: measure the method and type line counts of this repository under the spec's counting definition and propose defaults as a follow-up output question.
+- Batch 2: **9B** (defaults 60 lines per method-like member, 500 per type), **10A** (every line of a multi-line string literal counts), **11A amended**: both rules are turned off for this repository's own build (`Release.ruleset`, `Debug.ruleset`) **and must also be ignored by the self-hosting scans (`Reihitsu.SelfHosting.Test`)**; a follow-up issue decides the repository's own limits or refactors.
+- New maintainer requirement (with batch 2): the rules must distinguish production code from test code and have separate limits for each. Pending: the spec author designs it and drafts output questions (how test code is recognized, default test limits, configuration keys, RH0001 validation); then batch 3.
+- Earlier: the maintainer asked which default values to use: what limits would work in this repository. Pending: measure the method and type line counts of this repository under the spec's counting definition and propose defaults as a follow-up output question.
 
 ## Decisions taken
 
@@ -23,6 +25,7 @@
 
 ## Follow-up candidates
 
+- This repository's own limits for RH2008/RH2111 (or refactors of its outliers), with both rules turned off meanwhile (maintainer answer 11A).
 - A setting written twice in `reihitsu.json` is not reported by RH0001; the later value wins (02-skeptic.md, found by reading code, low value).
 
 ## Audited SHA
