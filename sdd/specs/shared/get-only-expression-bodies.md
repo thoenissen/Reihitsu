@@ -101,9 +101,9 @@ is not reported. The other side of each condition is under SHARED-GETONLY-001: a
 
 ### SHARED-GETONLY-003 — A member whose comment the formatter keeps is reported without a fix
 
-A rule that uses this spec MUST report a member that SHARED-GETONLY-001 describes also when FMT-STRUCT-015 keeps its accessor list because of a comment, or FMT-STRUCT-012 keeps its getter block because of one: a comment in trivia the conversion would delete or join onto the signature's line — behind the last token in front of the accessor list, on either side of its opening brace, in front of `get`, in front of the getter's semicolon, or in front of the list's closing brace — a comment behind both the getter's semicolon and the closing brace, or a comment in a seam of the getter block that FMT-STRUCT-012 names. The code fix MUST NOT be offered for such a member. A comment behind only the getter's semicolon, or behind only the closing brace, keeps neither the accessor list nor the fix: the fix carries it behind the new semicolon (SHARED-GETONLY-005). A directive or disabled text in these places is SHARED-GETONLY-007's.
+A rule that uses this spec MUST report a member that SHARED-GETONLY-001 describes also when FMT-STRUCT-015 keeps its accessor list because of a comment, or FMT-STRUCT-012 keeps its getter block because of one: a comment in trivia the conversion would delete or join onto the signature's line — behind the last token in front of the accessor list, on either side of its opening brace, in front of `get`, in the leading trivia of the getter's semicolon, or in front of the list's closing brace — a single-line comment in the trailing trivia of the getter expression's last token, a comment behind both the getter's semicolon and the closing brace, or a comment in a seam of the getter block that FMT-STRUCT-012 names. The code fix MUST NOT be offered for such a member. Two kinds of comment keep neither the accessor list nor the fix. A comment behind only the getter's semicolon, or behind only the closing brace, follows the new semicolon (SHARED-GETONLY-005). A delimited comment in the trailing trivia of the getter expression's last token — on the expression's own line, in front of the semicolon — stays behind the expression, in front of the new semicolon; the conversion neither deletes it nor joins it onto another line, and this holds for the returned expression of a getter block as well (FMT-STRUCT-012). The leading trivia of the semicolon is what starts on a later line than the expression: a comment there, on a line of its own in front of `;`, withholds the fix. A directive or disabled text in these places is SHARED-GETONLY-007's.
 
-Why: The rule is about the get-only accessor list, and a comment does not make the accessor list the better form: the author can move the comment above the member, after which the formatter and the fix convert it. The fix writes what the formatter writes, and the formatter keeps the accessor list because the comment has no place on the expression-bodied member (FMT-STRUCT-015) — deleting it would lose what the author wrote, and moving it would change what it describes — so the fix is withheld (SHARED-FIX-003); a reported diagnostic without a fix is a supported end state. A comment behind the semicolon or behind the closing brace already ends the member's last line and follows the new semicolon, so it is no obstacle.
+Why: The rule is about the get-only accessor list, and a comment does not make the accessor list the better form: the author can move the comment above the member, after which the formatter and the fix convert it. The fix writes what the formatter writes, and the formatter keeps the accessor list because the comment has no place on the expression-bodied member (FMT-STRUCT-015) — deleting it would lose what the author wrote, and moving it would change what it describes — so the fix is withheld (SHARED-FIX-003); a reported diagnostic without a fix is a supported end state. A comment behind the semicolon or behind the closing brace already ends the member's last line and follows the new semicolon, so it is no obstacle. A delimited comment behind the expression on its own line stays next to the code it was written next to, so it is no obstacle either; a single-line comment there would comment out the new semicolon, and a comment on a line of its own in front of `;` would be joined onto the expression's line.
 
 Example — RH3209:
 
@@ -166,6 +166,51 @@ class C
 }
 ```
 
+A delimited comment behind the getter's expression, in front of its semicolon on the same line, is reported with a fix and stays behind the expression:
+
+```csharp
+class C
+{
+    private int _value;
+
+    public int A {|RH3209:{ get => _value /* c */; }|}
+
+    public int B {|RH3209:{ get { return _value /* d */; } }|}
+}
+```
+
+```csharp
+class C
+{
+    private int _value;
+
+    public int A => _value /* c */;
+
+    public int B => _value /* d */;
+}
+```
+
+The other side of that condition — a single-line comment behind the expression, or a comment on a line of its own in front of the semicolon — is reported, and no code fix is offered:
+
+```csharp
+class C
+{
+    private int _value;
+
+    public int A
+    {|RH3209:{
+        get => _value // c
+            ;
+    }|}
+
+    public int B
+    {|RH3209:{
+        get => _value
+            /* d */ ;
+    }|}
+}
+```
+
 ### SHARED-GETONLY-004 — The diagnostic covers the accessor list
 
 A rule that uses this spec MUST report one diagnostic per member, on its accessor list: from its opening brace through its closing brace.
@@ -176,7 +221,7 @@ Example: see SHARED-GETONLY-001.
 
 ### SHARED-GETONLY-005 — The fix writes the formatter's expression body
 
-The code fix MUST replace the accessor list with the arrow clause and semicolon that FMT-STRUCT-014 writes for it: the getter's expression, a `throw` statement's operand as FMT-STRUCT-011 wraps it, and a comment that trailed the getter's semicolon or the closing brace behind the new semicolon, as FMT-STRUCT-015 carries it. The fix MUST take the converted member from the conversion the formatter uses, not build it on its own. The arrow clause and the semicolon are the code the fix changes, laid out as the formatter lays them out (SHARED-FIX-007), and so is the gap in front of the arrow: it is the gap the formatter writes between the last token in front of the accessor list and `=>`, not one the fix writes on its own. The rest of the member MUST stay as written (SHARED-FIX-006): everything in front of the accessor list, such as its documentation comment, its attributes, its modifiers, its type, its name or parameter list, with the whitespace and comments between their tokens. The whitespace between the last token in front of the accessor list and its opening brace goes with the removed list, so the arrow follows that token on its line.
+The code fix MUST replace the accessor list with the arrow clause and semicolon that FMT-STRUCT-014 writes for it: the getter's expression, with a delimited comment that trailed it on its line kept behind it (SHARED-GETONLY-003), a `throw` statement's operand as FMT-STRUCT-011 wraps it, and a comment that trailed the getter's semicolon or the closing brace behind the new semicolon, as FMT-STRUCT-015 carries it. The fix MUST take the converted member from the conversion the formatter uses, not build it on its own. The arrow clause and the semicolon are the code the fix changes, laid out as the formatter lays them out (SHARED-FIX-007), and so is the gap in front of the arrow: it is the gap the formatter writes between the last token in front of the accessor list and `=>`, not one the fix writes on its own. The rest of the member MUST stay as written (SHARED-FIX-006): everything in front of the accessor list, such as its documentation comment, its attributes, its modifiers, its type, its name or parameter list, with the whitespace and comments between their tokens. The whitespace between the last token in front of the accessor list and its opening brace goes with the removed list, so the arrow follows that token on its line.
 
 Why: One owner for the conversion keeps the fix and the formatter from drifting apart, and the fix's result is then what formatting the document produces for the accessor list. A fix that wrote the gap in front of the arrow itself would predict what the formatter's spacing writes there. The diagnostic is about the accessor list only; the layout of the signature is the author's, and the formatter and the layout rules correct it on their own.
 
