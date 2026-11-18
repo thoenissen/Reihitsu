@@ -48,11 +48,11 @@ internal static class FluentChainCodeFixHelper
     }
 
     /// <summary>
-    /// Formats a chain the way formatting the document lays it out, and changes nothing but the chain (SHARED-CHAIN-009). A
-    /// chain usually starts in the middle of a line, so the statement or member that starts the chain's line is formatted
-    /// as positional context and only the chain is written back: the chain's first token keeps its line and its column in
-    /// the document, and the chain's other lines are laid out from that column (FMT-PIPE-017), so the code around the chain
-    /// stays as written (SHARED-FIX-006)
+    /// Formats a chain the way formatting the document lays it out, and changes nothing but the chain (SHARED-CHAIN-009): the
+    /// chain's first token keeps its line and its column in the document, and the chain's other lines are laid out from
+    /// that column (FMT-PIPE-017), so the code around the chain stays as written (SHARED-FIX-006). A chain usually starts
+    /// in the middle of a line, so the statement or member that starts the chain's line is handed to the formatter as the
+    /// code around the chain, in which the formatter lays the chain out, and only the chain is written back
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="chainNode">The outermost node of the chain</param>
@@ -69,8 +69,9 @@ internal static class FluentChainCodeFixHelper
     }
 
     /// <summary>
-    /// Gets the statement or member that starts the chain's line, which <see cref="FormatChainAsync"/> formats as positional
-    /// context
+    /// Gets the statement or member that starts the chain's line: the code around the chain that
+    /// <see cref="FormatChainAsync"/> hands to the formatter with it, and the code <see cref="IsFormattingRefused"/> checks for
+    /// a shape the formatter refuses as unsupported
     /// </summary>
     /// <param name="chainNode">The outermost node of the chain</param>
     /// <returns>The context, or <see langword="null"/> when no statement or member starts the chain's line</returns>
