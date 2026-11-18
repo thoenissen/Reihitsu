@@ -32,6 +32,7 @@ Batch 1 (before test implementer):
 
 | 5 | Spec 04 | Merge SHARED-GETONLY-003 (comments) and -007 (directives)? | Keep separate | Boundaries and reasons differ | Same visible outcome either way | 27fe5de |
 | 6 | Spec 04 | Show fix output for a conditional group inside the getter's expression? | No; tests assert the fix is offered and equals the formatter's conversion | Avoid pinning the formatter's known indentation quirk (follow-up candidate) | Fix output follows the formatter (SHARED-GETONLY-005) | 27fe5de |
+| 7 | Tests 05 | `DelimitedCommentTrailingTheExpressionStaysBehindIt`: `{ get => _value /* c */; }` reported with fix writing `=> _value /* c */;`? | Yes, test stands; spec author clarifies SHARED-GETONLY-003 wording ("in front of the getter's semicolon" only where the conversion deletes or joins that trivia) | The formatter converts this member (it does not keep the list), so Q2 B does not apply; SHARED-GETONLY-005 makes the fix write the formatter's result | Decided by Q2 B's scope and the unchanged SHARED-GETONLY-005; output equals today's formatter output | d7fb059 |
 ## Follow-up candidates
 
 - A balanced `#if` group inside a wrapped argument list in an expression body is indented inconsistently (active branch column 16, disabled branch and `)` column 22); existing formatter behavior (02-skeptic)
@@ -45,4 +46,6 @@ Batch 1 (before test implementer):
 - Spec author 03 done (25e5014): answers carried out, change doc Accepted, Core type `GetOnlyMemberExpressionBodyRewriteUtilities`, SHARED-GETONLY-007 added (directive the formatter keeps the member for: not reported, drafted).
 - Q7 answered B.
 - Spec author 04 done (27fe5de): Q7 carried out.
-- Next: test implementer 05.
+- Test implementer 05 done (d7fb059): 68+4 analyzer tests + 6 formatter-parity tests; build fails only on the four missing rule types.
+- Pending text item: spec author clarifies SHARED-GETONLY-003 wording (decision 7), after the implementer.
+- Next: implementer 06.
