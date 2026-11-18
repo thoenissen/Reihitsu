@@ -10,7 +10,7 @@
 
 **RH5307.** The code fix joins the argument list the diagnostic is located on, whatever the receiver of the element access is and whatever contains it (RH5307-004). Until now the requirement covered only an element access outside every other bracketed argument list and with a receiver that does not start with an element access, and the fix did not read the reported list at all: it took the first bracketed argument list around the diagnostic's first token — the receiver's first token — or, when there was none, the argument list of the innermost element access around that token, and judged and joined that list instead. The class this concerns is every reported element access whose receiver's first token lies inside another bracketed argument list (of an element access, an element binding, or an implicit element access) or inside another element access or element binding than the reported one. For its members the fix was either withheld, because the list it found was not an indexer list or could not be joined, or offered as an action that changed nothing, because the list it found was already on one line; where the receiver's own list was wrapped and reported too, both fixes joined the receiver's list and the reported one was never joined. The members whose receiver's first token lies in no such list or access — an access that is the argument of an invocation, an element of a collection expression, or has a parenthesized or member-binding receiver — were fixed and stay fixed. RH5307-001 now states that the argument list of a null-conditional element access (`c?[…]`) is not reported, which is the analyzer's behavior today, and the rule page says so.
 
-**RH5401.** The code fix is offered for a property with attribute lists as well (RH5401-003). Until now the fix was withheld for every such property whose formatted attribute lists take lines of their own, because it required the whole formatted declaration, attribute lines included, to be one line. The fix now judges only the property's own code, from its first token behind its attribute lists through its `;` (RH5401-004); the attribute lists are laid out with the property as the formatter places them (FMT-BREAK-027), except that the fix inserts no blank line inside the property where the formatter would insert one in front of a comment behind an attribute list (RH5401-003).
+**RH5401.** The code fix is offered for a property with attribute lists as well (RH5401-003). Until now the fix was withheld for every such property whose formatted attribute lists take lines of their own, because it required the whole formatted declaration, attribute lines included, to be one line. The fix now judges only the property's own code, from its first token behind its attribute lists through its `;` (RH5401-004); the attribute lists are laid out with the property as the formatter places them (FMT-BREAK-027), except that the fix neither inserts nor removes a blank line behind an attribute list, where the formatter would insert one in front of a comment or collapse several into one (RH5401-003).
 
 ## Why
 
@@ -249,6 +249,41 @@ class C
 
 Formatting the document would insert a blank line in front of `// note`; the fix inserts none.
 
+```csharp
+// input
+using System;
+
+class C
+{
+    [Obsolete]
+
+
+    // note
+    int H
+        => 1;
+}
+```
+
+```csharp
+// before: RH5401 reports H; no fix is offered
+```
+
+```csharp
+// after: RH5401 reports H; the fix gives
+using System;
+
+class C
+{
+    [Obsolete]
+
+
+    // note
+    int H => 1;
+}
+```
+
+Formatting the document would collapse the two blank lines into one; the fix keeps them. The same holds without the comment and between two attribute lists.
+
 A property with attribute lists whose expression the formatter keeps wrapped (`[Obsolete]⏎int E =>⏎    1⏎    + 2;`) is still reported without a fix. A property whose attribute list keeps the property's line because it holds a comment between its brackets (`[Obsolete /* c */] int E⏎    => 1;`) was fixed before and is fixed the same way after: `[Obsolete /* c */] int E => 1;`.
 
 **RH5401 · rule page**
@@ -281,6 +316,10 @@ The maintainer decided in the run for thoenissen/Reihitsu#1277, 2026-11 (questio
 
 The maintainer decided in the run for thoenissen/Reihitsu#1277, 2026-11 (question 3): the fix offered for `[Obsolete]⏎// note⏎int E⏎    => 1;` must not insert a blank line, because blank lines are not part of what the fix is for; it gives `[Obsolete]⏎// note⏎int E => 1;`. Neither option asked — the formatter's blank line in front of the comment, or no fix — was chosen. The formatter inserts that blank line under FMT-BLANK-011, and the fix formats the property as the formatter does (RH5401-003), so RH5401-003 gains the exception; the same holds for a comment between two attribute lists.
 
+### The RH5401 fix removes no blank line behind an attribute list
+
+The maintainer decided in the run for thoenissen/Reihitsu#1277, 2026-11 (question 5, answer A, "don't touch"): several blank lines behind an attribute list, in front of a comment, the next attribute list, or the property's own code, stay as written (`[Obsolete]⏎⏎⏎// note⏎int H⏎    => 1;` gives `[Obsolete]⏎⏎⏎// note⏎int H => 1;`), although the formatter collapses them into one. Together with the previous decision, the fix leaves every blank line behind an attribute list as written.
+
 ### The RH5401 rule page states the condition without an attribute layout
 
 The maintainer decided in the run for thoenissen/Reihitsu#1277, 2026-11 (question 2, answer B): the page says "The code fix is offered when the property, apart from its attributes, fits on one line.", which holds also for an attribute list that keeps the property's line.
@@ -295,3 +334,4 @@ The maintainer decided in the run for thoenissen/Reihitsu#1277, 2026-11 (questio
 - **Offer the RH5401 fix for an attributed property only when its attribute lists already stand on lines of their own** — rejected: the attribute lists are part of the reported construct, and the formatter's layout for them is fixed (FMT-BREAK-027); a second guard for their placement would refuse safe ground again.
 - **Let the RH5401 fix insert the formatter's blank line in front of a comment behind an attribute list** — rejected by the maintainer: blank lines are not part of what the fix is for.
 - **Withhold the RH5401 fix for a comment between the attribute lists and the property** — rejected by the maintainer: the fix is offered, without the blank line.
+- **Let the RH5401 fix collapse several blank lines behind an attribute list into one, as the formatter does** — rejected by the maintainer: the fix does not touch those blank lines.

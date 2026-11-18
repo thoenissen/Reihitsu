@@ -90,3 +90,13 @@ Why A: it follows the answer that blank lines are not part of what this fix is f
 ## Follow-up candidates
 
 _None._ (FMT-BREAK-014 and `c?[1,⏎2]` stays as recorded in `00-lead.md`.)
+
+## Follow-up
+
+The maintainer answered the open output question with "5a, dont touch": several blank lines behind an attribute list stay as written.
+
+- RH5401-003: the exception now reads that the fix MUST NOT insert **or remove** a blank line behind an attribute list (in front of the next attribute list or the property's own code, with or without a comment); those blank lines stay as written, also where the formatter would insert one (FMT-BLANK-011) or collapse several. The line break that moves an attribute list off the property's line is not a blank line; blank lines inside the property's own code are still the formatter's. The second attributed example gains `H` (two blank lines in front of a comment) and `K` (two blank lines between two attribute lists), both kept. `Why:` names removal too.
+- Change doc: *What* and *Visible output changes* (new `H` input/before/after), a new decision "The RH5401 fix removes no blank line behind an attribute list", and a rejected alternative. `Status: Accepted` now holds without reservation: every listed change has an answer.
+- Verified as before: scratch worktree (deleted) with a throwaway RH5401 fix that formats as today and then restores the original count of blank lines in front of each attribute list after the first and in front of the property's own first token; `scripts/apply-fix.sh RH5401` under LF and CRLF, all fixed in 1 iteration. Kept: one and two blank lines in front of a comment, two in front of the property, two between attribute lists; none inserted in front of a comment behind `[Obsolete]` or between two lists; the blank line between the name and `=>` is still removed (own code). The throwaway mishandled `[Obsolete] int E` (it also dropped the line break the formatter writes there); that is the throwaway's defect, and the spec's output for it (`[Obsolete]⏎int E => 1;`) is the one observed in the earlier run.
+- Examples for the tests: RH5401-003 `E`, `G`, `H`, `K` and the comment-between example; nothing waits any more.
+- Verdict for this follow-up: spec written. No output questions open.
