@@ -38,4 +38,5 @@
 - Implementer done (`03-implementer.md`, c35dfca): one disputed phase-level test.
 - Test implementer follow-up done (`04-test-implementer.md`, f1a1732): formatter 5781/0.
 - Cleaner done (`05-cleaner.md`, 510ec3b): clean.
-- Next: spec checker.
+- Spec checker done (`06-spec-checker.md`, fec9ddd): consistent. main not moved; build green.
+- Next: auditor.
