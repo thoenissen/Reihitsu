@@ -1821,6 +1821,7 @@ public class RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzerTests : Bat
     [DataRow("\n")]
     [DataRow("\r\n")]
     [Requirement("SHARED-FIX-007")]
+    [Requirement("SHARED-GETONLY-008")]
     public async Task FixPutsAMemberBehindTheConvertedMemberOnTheNextLine(string endOfLine)
     {
         const string source = """
@@ -1855,6 +1856,7 @@ public class RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzerTests : Bat
     [DataRow("\n")]
     [DataRow("\r\n")]
     [Requirement("SHARED-FIX-007")]
+    [Requirement("SHARED-GETONLY-008")]
     public async Task FixPutsTheConvertedMemberOnTheLineAfterAMemberInFrontOfIt(string endOfLine)
     {
         const string source = """
@@ -1889,6 +1891,7 @@ public class RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzerTests : Bat
     [DataRow("\n")]
     [DataRow("\r\n")]
     [Requirement("SHARED-FIX-007")]
+    [Requirement("SHARED-GETONLY-008")]
     public async Task FixPutsAMultiLineConvertedMemberOnTheLineAfterAMemberInFrontOfIt(string endOfLine)
     {
         const string source = """
@@ -1928,6 +1931,7 @@ public class RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzerTests : Bat
     [DataRow("\r\n")]
     [Requirement("SHARED-FIX-007")]
     [Requirement("SHARED-GETONLY-005")]
+    [Requirement("SHARED-GETONLY-008")]
     public async Task FixPutsAMemberBehindTheClosingBraceOnTheNextLineWhenTheSemicolonCarriesAComment(string endOfLine)
     {
         const string source = """
@@ -1952,17 +1956,16 @@ public class RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzerTests : Bat
     }
 
     /// <summary>
-    /// Verifying that a member behind a delimited comment behind the closing brace of the converted accessor list starts on
-    /// the next line, and the comment follows the new semicolon, as the formatter writes it, under LF and CRLF
+    /// Verifying that the fix is withheld when a delimited comment behind the closing brace of the accessor list separates
+    /// the member from a member behind it on the same line, under LF and CRLF
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    [Requirement("SHARED-FIX-007")]
-    [Requirement("SHARED-GETONLY-005")]
-    public async Task FixPutsAMemberBehindADelimitedCommentBehindTheConvertedMemberOnTheNextLine(string endOfLine)
+    [Requirement("SHARED-GETONLY-008")]
+    public async Task CommentBetweenTheMemberAndAMemberBehindItOnTheSameLineWithholdsFix(string endOfLine)
     {
         const string source = """
                               class C
@@ -1971,28 +1974,20 @@ public class RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzerTests : Bat
                               }
                               """;
 
-        const string fixedSource = """
-                                   class C
-                                   {
-                                       public int A => 1; /* c */
-                                       public int B => 2;
-                                   }
-                                   """;
-
-        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
     }
 
     /// <summary>
-    /// Verifying that the converted member behind a member and a delimited comment on the same line starts on the next
-    /// line, and the comment stays behind the member in front, as the formatter writes it, under LF and CRLF
+    /// Verifying that the fix is withheld when a delimited comment separates the member from a member in front of it on the
+    /// same line, under LF and CRLF
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     [DataRow("\n")]
     [DataRow("\r\n")]
-    [Requirement("SHARED-FIX-007")]
-    public async Task FixPutsTheConvertedMemberBehindADelimitedCommentOnTheNextLine(string endOfLine)
+    [Requirement("SHARED-GETONLY-008")]
+    public async Task CommentBetweenTheMemberAndAMemberInFrontOfItOnTheSameLineWithholdsFix(string endOfLine)
     {
         const string source = """
                               class C
@@ -2001,11 +1996,151 @@ public class RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzerTests : Bat
                               }
                               """;
 
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying that the fix leaves the members on the line of a member of a type written on one line, in front of it and
+    /// behind it, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-GETONLY-008")]
+    public async Task FixLeavesTheMembersOnTheLineOfAMemberOfATypeWrittenOnOneLine(string endOfLine)
+    {
+        const string source = """
+                              namespace N
+                              {
+                                  class C { private int _value; public int A {|RH3209:{ get => _value; }|} private int _x; }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   namespace N
+                                   {
+                                       class C { private int _value; public int A => _value; private int _x; }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying the specification example: a converted member with a sibling behind it, and one with a sibling in front of
+    /// it, each on one line, are put on lines of their own, one at a time and with Fix All, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-FIX-007")]
+    [Requirement("SHARED-GETONLY-008")]
+    public async Task VerifySpecificationExampleOfMembersSharingTheirLine(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A {|RH3209:{ get => 1; }|} public int B => 2;
+
+                                  public int D => 3; public int E {|RH3209:{ get => 4; }|}
+                              }
+                              """;
+
         const string fixedSource = """
                                    class C
                                    {
-                                       public int B => 2; /* c */
                                        public int A => 1;
+                                       public int B => 2;
+
+                                       public int D => 3;
+                                       public int E => 4;
+                                   }
+                                   """;
+
+        await Verify(ConvertEndOfLine(source, endOfLine), ConvertEndOfLine(fixedSource, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the specification example: a member of a type written on one line, with only a member in front of it, is
+    /// converted and stays on the type's line, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-GETONLY-008")]
+    public async Task VerifySpecificationExampleOfAMemberOfATypeWrittenOnOneLine(string endOfLine)
+    {
+        const string source = """
+                              namespace N
+                              {
+                                  class C { private int _value; public int A {|RH3209:{ get => _value; }|} }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   namespace N
+                                   {
+                                       class C { private int _value; public int A => _value; }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that the fix is withheld when a delimited comment separates a member of a type written on one line from a
+    /// member behind it, although that line does not begin with a member, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-GETONLY-008")]
+    public async Task CommentBetweenTheMemberAndAMemberBehindItInATypeWrittenOnOneLineWithholdsFix(string endOfLine)
+    {
+        const string source = """
+                              namespace N
+                              {
+                                  class C { private int _value; public int A {|RH3209:{ get => _value; }|} /* c */ private int _x; }
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifying the specification example: a delimited comment behind the converted member whose sibling stands on the
+    /// next line does not withhold the fix, and the comment follows the new semicolon, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-GETONLY-005")]
+    [Requirement("SHARED-GETONLY-008")]
+    public async Task CommentBehindTheMemberWithTheSiblingOnTheNextLineKeepsTheFix(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int A {|RH3209:{ get => 1; }|} /* c */
+                                  public int B => 2;
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   class C
+                                   {
+                                       public int A => 1; /* c */
+                                       public int B => 2;
                                    }
                                    """;
 
@@ -2022,6 +2157,7 @@ public class RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzerTests : Bat
     [DataRow("\n")]
     [DataRow("\r\n")]
     [Requirement("SHARED-FIX-007")]
+    [Requirement("SHARED-GETONLY-008")]
     public async Task FixAllPutsTwoConvertedMembersOfOneLineOnLinesOfTheirOwn(string endOfLine)
     {
         const string source = """

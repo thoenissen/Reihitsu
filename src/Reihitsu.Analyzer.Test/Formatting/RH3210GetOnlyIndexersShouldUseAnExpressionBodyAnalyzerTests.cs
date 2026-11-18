@@ -664,6 +664,7 @@ public class RH3210GetOnlyIndexersShouldUseAnExpressionBodyAnalyzerTests : Batch
     [DataRow("\n")]
     [DataRow("\r\n")]
     [Requirement("SHARED-FIX-007")]
+    [Requirement("SHARED-GETONLY-008")]
     public async Task FixPutsAMemberBehindTheClosingBraceOnTheNextLine(string endOfLine)
     {
         const string source = """
@@ -688,6 +689,57 @@ public class RH3210GetOnlyIndexersShouldUseAnExpressionBodyAnalyzerTests : Batch
     }
 
     /// <summary>
+    /// Verifying that the fix leaves the members on the line of an indexer of a type written on one line, in front of it
+    /// and behind it, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-GETONLY-008")]
+    public async Task FixLeavesTheMembersOnTheLineOfAnIndexerOfATypeWrittenOnOneLine(string endOfLine)
+    {
+        const string source = """
+                              namespace N
+                              {
+                                  class C { private int _x; public int this[int i] {|RH3210:{ get => i; }|} private int _y; }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   namespace N
+                                   {
+                                       class C { private int _x; public int this[int i] => i; private int _y; }
+                                   }
+                                   """;
+
+        await VerifyCodeFixWithEndOfLine(source, fixedSource, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifying that the fix is withheld when a delimited comment separates the indexer from a member behind it on the same
+    /// line, under LF and CRLF
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("SHARED-GETONLY-008")]
+    public async Task CommentBetweenTheIndexerAndAMemberBehindItOnTheSameLineWithholdsFix(string endOfLine)
+    {
+        const string source = """
+                              class C
+                              {
+                                  public int this[int i] {|RH3210:{ get => i; }|} /* c */ public int B => 2;
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
     /// Verifying that the converted indexer starts on the line after a member in front of it on the same line, under LF and
     /// CRLF
     /// </summary>
@@ -697,6 +749,7 @@ public class RH3210GetOnlyIndexersShouldUseAnExpressionBodyAnalyzerTests : Batch
     [DataRow("\n")]
     [DataRow("\r\n")]
     [Requirement("SHARED-FIX-007")]
+    [Requirement("SHARED-GETONLY-008")]
     public async Task FixPutsTheConvertedIndexerOnTheLineAfterAMemberInFrontOfIt(string endOfLine)
     {
         const string source = """
@@ -727,6 +780,7 @@ public class RH3210GetOnlyIndexersShouldUseAnExpressionBodyAnalyzerTests : Batch
     [DataRow("\n")]
     [DataRow("\r\n")]
     [Requirement("SHARED-FIX-007")]
+    [Requirement("SHARED-GETONLY-008")]
     public async Task FixAllPutsTwoConvertedIndexersOfOneLineOnLinesOfTheirOwn(string endOfLine)
     {
         const string source = """
