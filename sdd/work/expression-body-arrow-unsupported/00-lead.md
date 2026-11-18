@@ -37,4 +37,5 @@
 ## State
 
 - Last step: maintainer answered batch 1 (1A, 2A).
-- Next: spec author records the answers in the change doc's Decisions and sets Status: Accepted (05?), then test implementer.
+- Spec author recorded answers, change doc Accepted (652f7f0, 04-spec-author.md).
+- Next: test implementer (05).
