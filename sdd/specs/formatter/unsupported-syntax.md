@@ -5,7 +5,7 @@
 | ID prefix | FMT-UNSUP |
 | Status | Active |
 | Code owners | `PrecheckPhase`, `FormattingResult<T>`, `UnsupportedSyntax`, `SyntaxNotSupportedException` |
-| Uses | FMT-BREAK-001, FMT-BREAK-017, FMT-BREAK-026, FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-STRUCT-004, FMT-STRUCT-005, FMT-STRUCT-007, FMT-STRUCT-008, FMT-STRUCT-009, FMT-STRUCT-012, FMT-STRUCT-014, FMT-STRUCT-015, FMT-STRUCT-019, FMT-STRUCT-021, FMT-STRUCT-022, RH5040-001, RH5040-002, SHARED-BLANK-008, SHARED-COMMENT-007, SHARED-FIX-010 |
+| Uses | FMT-BREAK-001, FMT-BREAK-017, FMT-BREAK-026, FMT-BREAK-039, FMT-BREAK-040, FMT-PIPE-001, FMT-PIPE-004, FMT-PIPE-005, FMT-PIPE-006, FMT-PIPE-009, FMT-PIPE-017, FMT-PIPE-030, FMT-PIPE-031, FMT-PIPE-032, FMT-PIPE-033, FMT-STRUCT-004, FMT-STRUCT-005, FMT-STRUCT-007, FMT-STRUCT-008, FMT-STRUCT-009, FMT-STRUCT-012, FMT-STRUCT-014, FMT-STRUCT-015, FMT-STRUCT-019, FMT-STRUCT-021, FMT-STRUCT-022, RH5040-001, RH5040-002, SHARED-BLANK-008, SHARED-CHAIN-001, SHARED-COMMENT-007, SHARED-FIX-010 |
 
 This spec covers the formatter's *Unsupported* outcome: the input shapes the formatter refuses as a whole, the precheck phase that finds them before any other phase runs (FMT-PIPE-001), a phase's refusal of a shape the precheck does not find, what every entry point returns for a refused input, and the query that tells a code fix whether the formatter refuses a node. Each unsupported shape is a requirement of this spec; a shape is declared here so that no phase has to handle it.
 
@@ -924,6 +924,119 @@ class C
             1 /* c6 */ => "one",
             _ => "other",
         };
+    }
+}
+```
+
+### FMT-UNSUP-014 — Comments and directives in front of an argument list, an element access, or a null-forgiving operator are unsupported
+
+An input MUST be refused when a comment — `//`, `/* */`, `///`, or `/** */`, in every documentation mode — a preprocessor directive, or disabled text stands in the gap in front of an argument list, an element access, a conditional element access, or a null-forgiving operator whose gap FMT-BREAK-039 or FMT-BREAK-040 joins: in the trailing trivia of the token in front of the part's first token, or in the leading trivia of that first token.
+
+The part's first token is decided by the syntax tree alone:
+
+- the `(` of an `ArgumentListSyntax` whose parent is an invocation, an object creation, an implicit object creation, a constructor initializer, a primary-constructor base type, or the `with(…)` element of a collection expression — the argument lists FMT-BREAK-039 names: `Foo /* c */ (1)`, `new List<int> // c⏎(4)`, `: base /* c */ (1)`;
+- the `[` of the bracketed argument list of an `ElementAccessExpressionSyntax`: `arr // c⏎[0]`, `this /* c */ [0]`;
+- the `?` of a `ConditionalAccessExpressionSyntax` whose next token is the `[` of an `ElementBindingExpressionSyntax`'s bracketed argument list: `n // c⏎?[0]`, also behind a null-forgiving operator (`x! /* c */ ?[0]`);
+- the `!` of a null-forgiving operator (`SuppressNullableWarningExpression`) that is not followed by `.` or by the `?.` of a conditional member access: `Get() /* c */ !`, `s // c⏎! + ""`, `x /* c */ !?[0]`.
+
+The conditions, each with both sides:
+
+- **The parts FMT-BREAK-039 and FMT-BREAK-040 join.** Every other `(`, `[`, `?`, and `!` is not this shape: the `(` of a parameter list (`void M /* c */ (int x)`), of an attribute's argument list (`[Obsolete /* c */ ("x")]`), of a parenthesized expression, a cast, or a tuple; the `[` of an implicit element access (`["a"] = 1`), an array rank specifier, `new[]`, `stackalloc []`, a collection expression, a list pattern, an attribute list, or an indexer's parameter list; the `?` of a conditional member access (`n /* c */ ?.Length`) and of a conditional expression; and a `!` followed by `.` or `?.`, which is the first token of a link operator (SHARED-CHAIN-001) whose gap the chain layout decides (`s // c⏎!.Length`). The `!` of a logical negation is a prefix operator, not a null-forgiving operator.
+- **In front of the part.** Only the gap between the part's first token and the token in front of it counts. A comment, a directive, or disabled text in front of the token in front of the part — above the statement, or on the line above it — does not refuse the input, and neither does one inside the part: inside an argument list (`Foo(/* c */ 1)`, `arr[/* c */ 0]`), between the `?` and the `[` of a conditional element access (`n? /* c */ [0]`), or behind the part (`arr[0] /* c */`).
+- **On any line.** Whether the gap holds a line break does not matter: `Foo /* c */ (1)` on one line is refused like `Foo // c⏎(1)` and like a comment on a line of its own between `Foo` and `(1)`.
+- **Every part.** Each part is checked with its own gap, whatever expression stands in front of it — in a chain with links or in an expression without any, inside a list element, an interpolation hole, a lambda, or any other construct. A token in disabled text is no token of the input: a part inside disabled text is not checked.
+
+The gap lies between two tokens, so a node-level input holds the shape only when it holds both: an input that holds the part but not the token in front of it, such as an argument list itself, does not hold the shape, and neither does one that holds the token in front but not the part, such as the invoked expression alone (FMT-UNSUP-003).
+
+Where FMT-UNSUP-004 or FMT-UNSUP-010 refuses the same comment, directive, or disabled text, both shapes start at it, and FMT-UNSUP-001's first shape in the text does not decide; the reason and the location are then FMT-UNSUP-004's or FMT-UNSUP-010's:
+
+- **FMT-UNSUP-004** excepts the inside of an initializer value, and the gap in front of a part inside a value is always inside it, so the two meet only outside a value, such as in an attribute argument of a declaration: `[Obsolete(nameof /* c */ (C))] private int _e;` gives FMT-UNSUP-004's reason, while `int c = Foo /* c */ (1);` gives this requirement's.
+- **FMT-UNSUP-010** excepts no initializer value: a directive or disabled text in front of a part anywhere in a field declaration with several declarators, also inside a value, gives FMT-UNSUP-010's reason. In a field with one declarator, the same directive gives this requirement's.
+
+The reason the formatter gives for this shape is `a comment or directive in front of an argument list, an element access, or a null-forgiving operator`, and its location is the span of the first comment, directive, or disabled text in that place.
+
+Why: The line-break phase joins an argument list, an element access, a conditional element access, and a null-forgiving operator onto the line of the token in front of it (FMT-BREAK-039, FMT-BREAK-040). A comment, a directive, or disabled text in that gap kept the part off that line, so the phase refused the join (FMT-BREAK-001), and the part started a line that no requirement places: outside a chain with links it took the column of the enclosing statement, in a chain with links the indentation phase gave it a column of its own, and the branches of a conditional group around it could get different columns. A comment between an expression and its argument list or index is rare, and a comment that explains the part belongs behind the line or above the statement, where the phases carry it as they do for every statement. A conditional group that chooses between two argument lists is rare as well; the same choice written around the whole statement is formatted. Directives and disabled text are part of the shape because the join refusal and the column of a part kept below test them alike: with comments alone, both would have to stay. The shape is the same on one line, as for the operators of FMT-UNSUP-008 and FMT-UNSUP-011: the boundary is a place in the syntax tree, not a question of line breaks. The gap between a conditional element access's `?` and `[` and the gaps inside a part are not in the shape: a comment there is handled as before, and FMT-BREAK-040's removal of a line break between `?` and `[` still yields to FMT-BREAK-001. No phase writes a comment, a directive, or disabled text into the gap (FMT-UNSUP-005): the joins of FMT-BREAK-039 and FMT-BREAK-040 carry only whitespace into it, and no transform creates such a part or moves trivia in front of one. A comment in an attribute argument of a declaration and a directive in a field declaration with several declarators were refused under FMT-UNSUP-004 and FMT-UNSUP-010 before this requirement existed, and keep the reason they gave.
+
+Example — each part is refused, and the input that holds it is returned unchanged:
+
+```csharp
+#nullable enable
+
+class C
+{
+    int M(int[] arr, int[]? n, string? s)
+    {
+        var a = arr // c1
+            [0];
+        var b = Foo /* c2 */ (1);
+        var c = n
+            // c3
+            ?[0];
+        var d = s /* c4 */ !;
+
+        return a + b + (c ?? 0) + d.Length;
+    }
+
+    int Foo(int x)
+    {
+        return x;
+    }
+}
+```
+
+The location is the span of `// c1`, which starts in line 7, column 21.
+
+Example — a directive and disabled text in front of an argument list refuse the input in every build: where `DEBUG` is defined, `#if DEBUG` stands in front of `(1)`; where it is not, `#if DEBUG`, the disabled text, and `#else` stand in front of `(2)`:
+
+```csharp
+class C
+{
+    int M()
+    {
+        return Foo
+#if DEBUG
+            (1);
+#else
+            (2);
+#endif
+    }
+
+    int Foo(int x)
+    {
+        return x;
+    }
+}
+```
+
+The location is the span of `#if DEBUG`, which starts in line 6, column 1.
+
+Example — the other side: none of these comments refuses the input under this requirement, and the input is formatted:
+
+```csharp
+#nullable enable
+
+using System;
+
+class C
+{
+    [Obsolete /* c1 */ ("x")]
+    int M(int[] arr, int[]? n, string? s)
+    {
+        // c2
+        var a = arr[/* c3 */ 0];
+        var b = Foo(/* c4 */ 1); // c5
+        var c = n? /* c6 */ [0];
+        var d = s // c7
+                !.Length;
+        var e = (/* c8 */ 1);
+        int[] f = [/* c9 */ 1];
+
+        return a + b + (c ?? 0) + d + e + f[0];
+    }
+
+    int Foo /* c10 */ (int x)
+    {
+        return x;
     }
 }
 ```
