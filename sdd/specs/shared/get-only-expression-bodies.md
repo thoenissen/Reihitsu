@@ -4,10 +4,10 @@
 |---|---|
 | ID prefix | SHARED-GETONLY |
 | Status | Active |
-| Code owners | — |
-| Uses | FMT-STRUCT-009, FMT-STRUCT-011, FMT-STRUCT-012, FMT-STRUCT-013, FMT-STRUCT-014, FMT-STRUCT-015, FMT-UNSUP-001, FMT-UNSUP-012, FMT-UNSUP-013, SHARED-DIAG-011, SHARED-FIX-006, SHARED-FIX-007, SHARED-FIX-010 |
+| Code owners | `GetOnlyMemberExpressionBodyRewriteUtilities` |
+| Uses | FMT-STRUCT-009, FMT-STRUCT-011, FMT-STRUCT-012, FMT-STRUCT-013, FMT-STRUCT-014, FMT-STRUCT-015, FMT-UNSUP-001, FMT-UNSUP-007, FMT-UNSUP-012, FMT-UNSUP-013, SHARED-BODY-001, SHARED-DIAG-011, SHARED-FIX-003, SHARED-FIX-006, SHARED-FIX-007, SHARED-FIX-010 |
 
-This spec covers what the rules share that report a get-only member whose accessor list the formatter replaces with an expression body — RH3209 (properties) and RH3210 (indexers): which declarations are reported, where the diagnostic is, what the code fix produces, and when it is withheld. Each rule's spec states which kind of member it reports. "The member" below is the property or indexer declaration the rule checks; "the getter" is the only accessor of its accessor list. The formatter's counterparts are FMT-STRUCT-014 and FMT-STRUCT-015.
+This spec covers what the rules share that report a get-only member whose accessor list the formatter replaces with an expression body — RH3209 (properties) and RH3210 (indexers): which declarations are reported, where the diagnostic is, what the code fix produces, and when it is withheld. Each rule's spec states which kind of member it reports. "The member" below is the property or indexer declaration the rule checks; "the getter" is the only accessor of its accessor list. The formatter's counterparts are FMT-STRUCT-014 and FMT-STRUCT-015. The decision whether a get-only member is converted, and the conversion itself, have one owner, `GetOnlyMemberExpressionBodyRewriteUtilities` in `Reihitsu.Core`, which the formatter's get-only transform, the analyzers, and the code fixes of both rules use.
 
 ## Non-goals
 
@@ -23,7 +23,7 @@ This spec covers what the rules share that report a get-only member whose access
 
 A rule that uses this spec MUST report a member of its kind whose accessor list the structural transforms replace with an expression body under FMT-STRUCT-014 and that FMT-STRUCT-015 does not keep: an accessor list whose only accessor is a `get` accessor without attributes and modifiers, either expression-bodied or with a block that FMT-STRUCT-009 to FMT-STRUCT-013 convert — a single `return` with a value, `return ref` included, or a single `throw` with an operand. It MUST report such a member from C# 6 on, and a member whose getter throws from C# 7 on; below those versions it MUST NOT report it (SHARED-DIAG-011). A member in an interface, a static member, and an explicit interface implementation are reported like any other.
 
-Why: An expression-bodied member is the shortest equivalent of a get-only property or indexer, and it is the form the formatter writes (FMT-STRUCT-014). Without a rule, a user who runs only the analyzers never learns that the accessor list is not the house style, and a user who formats sees a rewrite no diagnostic announced. The rule reports exactly the members the formatter converts, so formatting a document clears every diagnostic of the rule and leaves none behind, and the code fix has a result to offer wherever the rule reports. Expression-bodied properties and indexers only exist from C# 6 on, and throw expressions from C# 7 on; below those versions the user cannot write the form the rule asks for.
+Why: An expression-bodied member is the shortest equivalent of a get-only property or indexer, and it is the form the formatter writes (FMT-STRUCT-014). Without a rule, a user who runs only the analyzers never learns that the accessor list is not the house style, and a user who formats sees a rewrite no diagnostic announced. The rule reports the members the formatter converts, so formatting a document clears their diagnostics, and the code fix has a result to offer for each of them; a member that only a comment or a refused shape keeps from being converted is reported as well, without a fix (SHARED-GETONLY-003, SHARED-GETONLY-006). Expression-bodied properties and indexers only exist from C# 6 on, and throw expressions from C# 7 on; below those versions the user cannot write the form the rule asks for.
 
 Example — RH3209:
 
@@ -99,11 +99,11 @@ class C
 
 is not reported. The other side of each condition is under SHARED-GETONLY-001: a getter alone, with a body, without attributes and modifiers, with a single convertible statement, on a property without an initializer.
 
-### SHARED-GETONLY-003 — A member whose comments or directives the formatter keeps is not reported
+### SHARED-GETONLY-003 — A member whose comment the formatter keeps is reported without a fix
 
-A rule that uses this spec MUST NOT report a member whose accessor list FMT-STRUCT-015 keeps because of a comment, a directive, or disabled text: one in trivia the conversion would delete or join onto the signature's line — behind the last token in front of the accessor list, on either side of its opening brace, in front of `get`, in front of the getter's semicolon, or in front of its closing brace — a comment behind both the getter's semicolon and the closing brace, or a directive the conversion would split as in FMT-STRUCT-013. It MUST NOT report a member whose getter block FMT-STRUCT-012 or FMT-STRUCT-013 keeps either. A comment behind only the getter's semicolon, or behind only the closing brace, MUST NOT keep the member from being reported.
+A rule that uses this spec MUST report a member that SHARED-GETONLY-001 describes also when FMT-STRUCT-015 keeps its accessor list because of a comment, or FMT-STRUCT-012 keeps its getter block because of one: a comment in trivia the conversion would delete or join onto the signature's line — behind the last token in front of the accessor list, on either side of its opening brace, in front of `get`, in front of the getter's semicolon, or in front of the list's closing brace — a comment behind both the getter's semicolon and the closing brace, or a comment in a seam of the getter block that FMT-STRUCT-012 names. The code fix MUST NOT be offered for such a member. A comment behind only the getter's semicolon, or behind only the closing brace, keeps neither the accessor list nor the fix: the fix carries it behind the new semicolon (SHARED-GETONLY-005). A directive or disabled text in these places is SHARED-GETONLY-007's.
 
-Why: The formatter keeps the accessor list there because the comment has no place on the expression-bodied member: deleting it would lose what the author wrote, and moving it would change what it describes (FMT-STRUCT-015). A diagnostic the formatter never clears would ask for a change the fix cannot make either, because the fix writes what the formatter writes. A comment behind the semicolon or behind the closing brace already ends the member's last line and follows the new semicolon, so it is no obstacle.
+Why: The rule is about the get-only accessor list, and a comment does not make the accessor list the better form: the author can move the comment above the member, after which the formatter and the fix convert it. The fix writes what the formatter writes, and the formatter keeps the accessor list because the comment has no place on the expression-bodied member (FMT-STRUCT-015) — deleting it would lose what the author wrote, and moving it would change what it describes — so the fix is withheld (SHARED-FIX-003); a reported diagnostic without a fix is a supported end state. A comment behind the semicolon or behind the closing brace already ends the member's last line and follows the new semicolon, so it is no obstacle.
 
 Example — RH3209:
 
@@ -113,33 +113,33 @@ class C
     private int _value;
 
     public int A // note
-    {
+    {|RH3209:{
         get => _value;
-    }
+    }|}
 
     public int B
-    {
+    {|RH3209:{
         // the value
         get => _value;
-    }
+    }|}
 
     public int D
-    {
+    {|RH3209:{
         get => _value; // a
-    } // b
+    }|} // b
 
     public int E
-    {
+    {|RH3209:{
         get
         {
             // cached
             return _value;
         }
-    }
+    }|}
 }
 ```
 
-is not reported, while a comment behind one of the two is:
+is reported, and no code fix is offered. A comment behind only one of the two is reported with a fix:
 
 ```csharp
 class C
@@ -155,6 +155,17 @@ class C
 }
 ```
 
+```csharp
+class C
+{
+    private int _value;
+
+    public int A => _value; // a
+
+    public int B => _value; // b
+}
+```
+
 ### SHARED-GETONLY-004 — The diagnostic covers the accessor list
 
 A rule that uses this spec MUST report one diagnostic per member, on its accessor list: from its opening brace through its closing brace.
@@ -165,9 +176,9 @@ Example: see SHARED-GETONLY-001.
 
 ### SHARED-GETONLY-005 — The fix writes the formatter's expression body
 
-The code fix MUST replace the accessor list with the arrow clause and semicolon that FMT-STRUCT-014 writes for it: the getter's expression, a `throw` statement's operand as FMT-STRUCT-011 wraps it, and a comment that trailed the getter's semicolon or the closing brace behind the new semicolon, as FMT-STRUCT-015 carries it. The arrow clause and the semicolon are the code the fix changes, laid out as the formatter lays them out (SHARED-FIX-007). The rest of the member MUST stay as written (SHARED-FIX-006): everything in front of the accessor list, such as its documentation comment, its attributes, its modifiers, its type, its name or parameter list, with the whitespace and comments between their tokens. The whitespace between the last token in front of the accessor list and its opening brace goes with the removed list, so the arrow follows that token on its line.
+The code fix MUST replace the accessor list with the arrow clause and semicolon that FMT-STRUCT-014 writes for it: the getter's expression, a `throw` statement's operand as FMT-STRUCT-011 wraps it, and a comment that trailed the getter's semicolon or the closing brace behind the new semicolon, as FMT-STRUCT-015 carries it. The fix MUST take the converted member from the conversion the formatter uses, not build it on its own. The arrow clause and the semicolon are the code the fix changes, laid out as the formatter lays them out (SHARED-FIX-007), and so is the gap in front of the arrow: it is the gap the formatter writes between the last token in front of the accessor list and `=>`, not one the fix writes on its own. The rest of the member MUST stay as written (SHARED-FIX-006): everything in front of the accessor list, such as its documentation comment, its attributes, its modifiers, its type, its name or parameter list, with the whitespace and comments between their tokens. The whitespace between the last token in front of the accessor list and its opening brace goes with the removed list, so the arrow follows that token on its line.
 
-Why: One owner for the conversion keeps the fix and the formatter from drifting apart, and the fix's result is then what formatting the document produces for the accessor list. The diagnostic is about the accessor list only; the layout of the signature is the author's, and the formatter and the layout rules correct it on their own.
+Why: One owner for the conversion keeps the fix and the formatter from drifting apart, and the fix's result is then what formatting the document produces for the accessor list. A fix that wrote the gap in front of the arrow itself would predict what the formatter's spacing writes there. The diagnostic is about the accessor list only; the layout of the signature is the author's, and the formatter and the layout rules correct it on their own.
 
 Example — RH3209:
 
@@ -231,11 +242,11 @@ class C
 }
 ```
 
-### SHARED-GETONLY-006 — No fix for a member the formatter refuses
+### SHARED-GETONLY-006 — No fix for a getter the formatter refuses
 
-A rule that uses this spec MUST report a member that SHARED-GETONLY-001 describes also when the formatter refuses it as unsupported (FMT-UNSUP-001), such as a getter with a comment, a directive, or disabled text between `get` and its `=>` (FMT-UNSUP-013) or between the `=>` and its expression (FMT-UNSUP-012). The code fix MUST NOT be offered for a member whose declaration holds a shape the formatter refuses, nor where the member the fix builds holds one (SHARED-FIX-010).
+A rule that uses this spec MUST report a member that SHARED-GETONLY-001 describes also when the formatter refuses it as unsupported (FMT-UNSUP-001), such as a getter with a comment, a directive, or disabled text between `get` and its `=>` (FMT-UNSUP-013) or between the `=>` and its expression (FMT-UNSUP-012). The code fix MUST NOT be offered when the getter as written — the accessor declaration, from `get` through its semicolon or block — holds a shape the formatter refuses; it learns this by asking `ReihitsuFormatter.FindUnsupportedSyntax` (FMT-UNSUP-007) about that getter. The fix MUST NOT be offered either where the member it builds holds such a shape (SHARED-FIX-010).
 
-Why: A refused shape is not one the formatter keeps: it asks the user to rewrite it, and once the comment moves above the member, the formatter and the fix convert it. The fix would have to drop or move the comment, because the arrow the conversion writes has nothing on either side of it (FMT-STRUCT-014), so it is withheld; a reported diagnostic without a fix is a supported end state.
+Why: A refused shape is not one the formatter keeps: it asks the user to rewrite it, and once the comment or directive moves out of the getter, the formatter and the fix convert it. The conversion deletes `get` and both gaps around the getter's `=>`, and the arrow it writes has nothing on either side of it (FMT-STRUCT-014), so the member the fix builds no longer holds what stood in those gaps, and SHARED-FIX-010's question about that member alone would offer a fix that drops it; asking about the getter as written withholds that fix (SHARED-FIX-003). A refused shape elsewhere in the member is also in the member the fix builds, so SHARED-FIX-010 withholds the fix for it. A reported diagnostic without a fix is a supported end state.
 
 Example — RH3209:
 
@@ -247,7 +258,87 @@ class C
     public int A {|RH3209:{ get /* c */ => _value; }|}
 
     public int B {|RH3209:{ get => /* c */ _value; }|}
+
+    public int D
+    {|RH3209:{
+        get
+#if DEBUG
+            => 1;
+#else
+            => 2;
+#endif
+    }|}
 }
 ```
 
 is reported, and no code fix is offered.
+
+### SHARED-GETONLY-007 — A member whose directive the formatter keeps is not reported
+
+A rule that uses this spec MUST NOT report a member that holds a directive or disabled text anywhere from the trailing trivia of the last token in front of its accessor list through the list's closing brace, except a directive or disabled text in one of the two gaps around the `=>` of an expression-bodied getter, which SHARED-GETONLY-006 reports, and a conditional group that lies wholly between the first and the last token of the getter's expression, which FMT-STRUCT-013 converts and the rule reports. A member that holds both such a directive and a comment of SHARED-GETONLY-003 is not reported.
+
+Why: Disabled text can hold code of another build, such as a setter, an attribute, or a second statement, and a member that is get-only in one build is then not get-only in another, so the expression-bodied form the rule asks for cannot be written for every build (SHARED-DIAG-011). The formatter keeps the accessor list or the getter block for each such directive (FMT-STRUCT-013, FMT-STRUCT-015). A conditional group inside the getter's expression only chooses part of the value and leaves the member get-only in every build. The expression-bodied member rules leave members with a directive in the converted span alone for the same reason (SHARED-BODY-001).
+
+Example — RH3209:
+
+```csharp
+class C
+{
+    private int _value;
+
+    public int A
+    {
+        get => _value;
+#if WRITABLE
+        set => _value = value;
+#endif
+    }
+
+    public int B
+    {
+#if DEBUG
+        get => 1;
+#else
+        get => 2;
+#endif
+    }
+
+    public int D
+    {
+        get
+        {
+            return _value;
+#if DEBUG
+        }
+#else
+        }
+#endif
+    }
+}
+```
+
+is not reported, while a conditional group inside the getter's expression is:
+
+```csharp
+class C
+{
+    public int A
+    {|RH3209:{
+        get
+        {
+            return M(
+#if DEBUG
+                1
+#else
+                2
+#endif
+                );
+        }
+    }|}
+
+    private static int M(int value)
+    {
+        return value;
+    }
+}
+```

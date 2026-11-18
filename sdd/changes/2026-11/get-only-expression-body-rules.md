@@ -2,9 +2,9 @@
 
 | | |
 |---|---|
-| Status | Draft |
+| Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | new specs: RH3209 (RH3209-001), RH3210 (RH3210-001), shared/get-only-expression-bodies.md (SHARED-GETONLY-001 to SHARED-GETONLY-006) |
+| Affected requirements | new specs: RH3209 (RH3209-001), RH3210 (RH3210-001), shared/get-only-expression-bodies.md (SHARED-GETONLY-001 to SHARED-GETONLY-007) |
 
 ## What
 
@@ -13,7 +13,7 @@ Two new Clarity rules report a get-only member whose accessor list the formatter
 - **RH3209 — Get-only properties should use an expression body** (Clarity, Warning, enabled, Fix All) reports a property.
 - **RH3210 — Get-only indexers should use an expression body** (Clarity, Warning, enabled, Fix All) reports an indexer.
 
-Both report exactly the members the formatter converts: an accessor list whose only accessor is a `get` without attributes and modifiers, expression-bodied or with a block of one `return` with a value or one `throw` with an operand that the accessor conversion accepts, on a member without an initializer, from C# 6 on, and from C# 7 on for a getter that throws. The diagnostic is on the accessor list. The fix replaces the accessor list with the arrow clause and semicolon the formatter writes and keeps the rest of the member as written. A member the formatter refuses as unsupported is reported, and its fix is withheld. The behavior both rules share is one shared spec; each rule's spec names its kind of member.
+Both report the members the formatter converts: an accessor list whose only accessor is a `get` without attributes and modifiers, expression-bodied or with a block of one `return` with a value or one `throw` with an operand that the accessor conversion accepts, on a member without an initializer, from C# 6 on, and from C# 7 on for a getter that throws. The diagnostic is on the accessor list. The fix replaces the accessor list with the arrow clause and semicolon the formatter writes and keeps the rest of the member as written. A member that the formatter keeps for a comment, or refuses as unsupported, is reported, and its fix is withheld; a member that holds a directive or disabled text the formatter keeps it for is not reported. The decision whether a member is converted, and the conversion, move into one type in `Reihitsu.Core`, which the formatter, both analyzers, and both fixes use. The behavior both rules share is one shared spec; each rule's spec names its kind of member.
 
 ## Why
 
@@ -155,7 +155,7 @@ class C
 
 Under C# 6, a getter that throws is not reported; under C# 5, no member is.
 
-**4. A comment the formatter keeps the accessor list for — the member is not reported.**
+**4. A comment the formatter keeps the accessor list for — the member is reported without a fix.**
 
 ```csharp
 // input
@@ -178,6 +178,15 @@ class C
     {
         get => _value; // a
     } // b
+
+    public int E
+    {
+        get
+        {
+            // cached
+            return _value;
+        }
+    }
 }
 ```
 
@@ -186,10 +195,10 @@ class C
 ```
 
 ```csharp
-// after: not reported
+// after: RH3209 on the accessor list of A, B, D, and E; no code fix is offered
 ```
 
-A comment behind only the getter's semicolon or only the closing brace does not keep the member from being reported, and the fix carries it behind the new semicolon:
+A comment behind only the getter's semicolon or only the closing brace does not withhold the fix, and the fix carries it behind the new semicolon:
 
 ```csharp
 // input
@@ -211,7 +220,7 @@ class C
 }
 ```
 
-**5. A getter the formatter refuses as unsupported is reported without a fix.**
+**5. A getter the formatter refuses as unsupported is reported without a fix** — a comment, a directive, or disabled text between `get` and `=>`, or between `=>` and the expression.
 
 ```csharp
 // input
@@ -220,6 +229,51 @@ class C
     private int _value;
 
     public int A { get /* c */ => _value; }
+
+    public int B
+    {
+        get
+#if DEBUG
+            => 1;
+#else
+            => 2;
+#endif
+    }
+}
+```
+
+```csharp
+// before: not reported; the formatter refuses the file as unsupported
+```
+
+```csharp
+// after: RH3209 on the accessor list of A and B; no code fix is offered
+```
+
+**6. A directive the formatter keeps the accessor list or the getter block for — the member is not reported.** A conditional group inside the getter's expression does not keep the member from being reported.
+
+```csharp
+// input
+class C
+{
+    private int _value;
+
+    public int A
+    {
+        get => _value;
+#if WRITABLE
+        set => _value = value;
+#endif
+    }
+
+    public int B
+    {
+#if DEBUG
+        get => 1;
+#else
+        get => 2;
+#endif
+    }
 }
 ```
 
@@ -228,16 +282,52 @@ class C
 ```
 
 ```csharp
-// after: RH3209 on the accessor list; no code fix is offered
+// after: not reported
 ```
 
-**6. Rule pages.** `documentation/rules/RH3209.md` and `documentation/rules/RH3210.md` are new.
+**7. The fix keeps the signature as written.** It replaces only the accessor list; the spacing in front of it stays.
+
+```csharp
+// input
+class C
+{
+    private int _value;
+
+    public  int  A { get { return _value; } }
+}
+```
+
+```csharp
+// before: not reported
+```
+
+```csharp
+// after: RH3209 on the accessor list; the fix gives
+class C
+{
+    private int _value;
+
+    public  int  A => _value;
+}
+```
+
+Formatting the document instead writes `public int A => _value;`.
+
+**8. Rule pages.** `documentation/rules/RH3209.md` and `documentation/rules/RH3210.md` are new.
 
 ## Decisions
 
-### The rules report what the formatter converts
+### The rules report the get-only shape, and the fix converts what the formatter converts
 
-The analyzer reports exactly the members whose accessor list FMT-STRUCT-014 replaces and FMT-STRUCT-015 does not keep, also for the comment and directive guards (SHARED-GETONLY-003): formatting a document then clears every diagnostic of the two rules, and the fix has a result wherever a member is reported. A member the formatter refuses as unsupported is not one it keeps, so it is reported, as SHARED-DIAG-010 and SHARED-BODY-001 treat refused shapes, and its fix is withheld (SHARED-FIX-010).
+The analyzer reports the members whose accessor list FMT-STRUCT-014 replaces, and also those the formatter keeps only for a comment (SHARED-GETONLY-003) or refuses as unsupported (SHARED-GETONLY-006): the comment or the refused shape does not make the accessor list the better form, and the author can move it above the member, after which the formatter and the fix convert it. For these members the fix is withheld, because the formatter keeps or refuses them and the fix writes what the formatter writes (SHARED-FIX-003, SHARED-FIX-010); a reported diagnostic without a fix is a supported end state. A refused shape is not one the formatter keeps (SHARED-DIAG-010 treats it alike). The maintainer chose this for comments over leaving those members unreported.
+
+### A directive the formatter keeps the member for is not reported
+
+Disabled text can hold a setter or other code of another build, so a member that is get-only in one build may not be in another, and the expression-bodied form cannot be written for every build (SHARED-DIAG-011, SHARED-GETONLY-007). The expression-bodied member rules leave directives in the converted span alone for the same reason (SHARED-BODY-001). A directive or disabled text the formatter refuses as unsupported, between `get` and `=>` or between `=>` and the expression, is reported (SHARED-GETONLY-006), as the maintainer chose.
+
+### The fix asks the formatter about the getter as written
+
+The conversion deletes `get` and both gaps around the getter's `=>`, so the member the fix builds no longer holds a comment or directive that stood there, and SHARED-FIX-010's question about the built member alone would offer a fix that drops it. The fix therefore also asks `ReihitsuFormatter.FindUnsupportedSyntax` about the getter as written, and withholds itself when the getter holds a refused shape (SHARED-FIX-003). The question is about the getter, not the whole member: a refused shape elsewhere in the member is also in the member the fix builds.
 
 ### The diagnostic is on the accessor list
 
@@ -245,7 +335,15 @@ The accessor list is what the fix replaces, as the expression-bodied member rule
 
 ### The fix keeps the signature as written
 
-The fix replaces only the accessor list, and the whitespace between the signature and the list goes with it, as the block-body fixes replace only the expression body (SHARED-BODY-003, SHARED-FIX-006).
+The fix replaces only the accessor list, and the whitespace between the signature and the list goes with it, as the block-body fixes replace only the expression body (SHARED-BODY-003, SHARED-FIX-006). The gap in front of the new `=>` is the one the formatter writes for the converted member, not one the fix writes on its own, so the fix does not predict the formatter's spacing.
+
+### One owner for the conversion
+
+The decision whether a get-only member is converted, and the conversion itself, move from the formatter's transforms into one type in `Reihitsu.Core`, `GetOnlyMemberExpressionBodyRewriteUtilities`, which the formatter's get-only transform, both analyzers, and both fixes call. The analyzer references only `Reihitsu.Core`, and a code fix may not call a member of a formatter transform (FMT-PIPE-009), so without one owner the conditions of FMT-STRUCT-009 to FMT-STRUCT-015 would be written three times and drift apart. `ExpressionBodyRewriteUtilities` (SHARED-BODY) and `EmptyTypeDeclarationSemicolonAnalysisUtilities` (SHARED-EMPTY) are the precedents. The formatter's output does not change.
+
+### The shape is not declared unsupported
+
+A comment or directive inside a get-only accessor list is not declared unsupported: the formatter has a clear output for it, it keeps the accessor list, and a cheap precheck could not tell a convertible getter from one with several statements, so it would refuse common code.
 
 ### One shared spec
 
@@ -254,6 +352,10 @@ The two rules differ only in the kind of member, so their behavior is specified 
 ## Alternatives considered
 
 - **One rule for properties and indexers** — rejected: separate rules allow separate configuration, as for the other member kinds.
-- **Report a member the formatter keeps for a comment, without a fix** — as SHARED-EMPTY-001 reports an empty type with a comment. Rejected in this draft: the diagnostic would stay after formatting the document, and no fix could clear it. It is the alternative named in visible output change 4.
+- **Do not report a member the formatter keeps for a comment** — rejected by the maintainer: the rule would then hide a get-only accessor list whenever a comment sits in it, although the author can move the comment and convert the member.
+- **Report a member the formatter keeps for a directive, without a fix** — rejected: the directive can make the member something other than get-only in another build, where the expression-bodied form cannot be written.
+- **Declare a comment or directive inside a get-only accessor list unsupported** — rejected by the maintainer: the formatter has a clear output for such code.
+- **Restate the formatter's conditions in the analyzer and the fix** — rejected: one rule in three places drifts; one `Reihitsu.Core` owner instead.
+- **The fix writes the space in front of `=>` itself** — rejected: it would predict the formatter's spacing; the gap comes from the formatter.
 - **Put the diagnostic on the member's name or on `get`** — rejected: the accessor list is the code the fix replaces.
 - **No analyzer, formatter only** — rejected: an analyzer-only user never learns the form the formatter writes.
