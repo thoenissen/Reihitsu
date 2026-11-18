@@ -59,14 +59,7 @@ public class RH2111TypesShouldNotExceedTheLineLimitAnalyzer : LineCountAnalyzerB
 
     #region LineCountAnalyzerBase
 
-    /// <summary>
-    /// Gets the span between the braces of a type declaration with a brace body, and the type's identifier. A
-    /// declaration that ends with <c>;</c> instead of a brace body is not judged
-    /// </summary>
-    /// <param name="node">Declaration of one of the registered syntax kinds</param>
-    /// <param name="span">Counted span</param>
-    /// <param name="location">Location of the diagnostic</param>
-    /// <returns><see langword="true"/> when the type has a brace body; otherwise <see langword="false"/></returns>
+    /// <inheritdoc/>
     private protected override bool TryGetCountedSpan(SyntaxNode node, out TextSpan span, out Location location)
     {
         if (node is TypeDeclarationSyntax typeDeclaration

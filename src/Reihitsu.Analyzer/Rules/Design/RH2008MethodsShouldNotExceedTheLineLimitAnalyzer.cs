@@ -66,16 +66,7 @@ public class RH2008MethodsShouldNotExceedTheLineLimitAnalyzer : LineCountAnalyze
 
     #region LineCountAnalyzerBase
 
-    /// <summary>
-    /// Gets the body of a member with a block body or an expression body, and the token that names the member: its
-    /// identifier, the <c>this</c> keyword of an indexer, the operator token of an operator, the <c>operator</c> keyword
-    /// of a conversion operator, or the keyword of an accessor. A property or indexer is judged only by an expression
-    /// body; with an accessor list, its accessors are judged instead
-    /// </summary>
-    /// <param name="node">Declaration of one of the registered syntax kinds</param>
-    /// <param name="span">Counted span</param>
-    /// <param name="location">Location of the diagnostic</param>
-    /// <returns><see langword="true"/> when the member has a body; otherwise <see langword="false"/></returns>
+    /// <inheritdoc/>
     private protected override bool TryGetCountedSpan(SyntaxNode node, out TextSpan span, out Location location)
     {
         var (body, expressionBody, nameToken) = node switch

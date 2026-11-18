@@ -96,55 +96,6 @@ public abstract class LineCountAnalyzerBase : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
-    /// Gets the counted span of a judged declaration and the location of its diagnostic
-    /// </summary>
-    /// <param name="node">Declaration of one of the registered syntax kinds</param>
-    /// <param name="span">Counted span</param>
-    /// <param name="location">Location of the diagnostic</param>
-    /// <returns><see langword="true"/> when the declaration is judged; otherwise <see langword="false"/></returns>
-    private protected abstract bool TryGetCountedSpan(SyntaxNode node, out TextSpan span, out Location location);
-
-    /// <summary>
-    /// Gets the span between the braces of a block body, the braces excluded
-    /// </summary>
-    /// <param name="openBraceToken">Opening brace</param>
-    /// <param name="closeBraceToken">Closing brace</param>
-    /// <returns>Span between the braces</returns>
-    private protected static TextSpan GetSpanBetweenBraces(SyntaxToken openBraceToken, SyntaxToken closeBraceToken)
-    {
-        return TextSpan.FromBounds(openBraceToken.Span.End, Math.Max(openBraceToken.Span.End, closeBraceToken.SpanStart));
-    }
-
-    /// <summary>
-    /// Gets the counted span of a body: the tokens between the braces of a block body, or the <c>=&gt;</c> and the
-    /// expression of an expression body
-    /// </summary>
-    /// <param name="body">Block body, or <see langword="null"/></param>
-    /// <param name="expressionBody">Expression body, or <see langword="null"/></param>
-    /// <param name="span">Counted span</param>
-    /// <returns><see langword="true"/> when there is a body; otherwise <see langword="false"/></returns>
-    private protected static bool TryGetBodySpan(BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, out TextSpan span)
-    {
-        if (body != null)
-        {
-            span = GetSpanBetweenBraces(body.OpenBraceToken, body.CloseBraceToken);
-
-            return true;
-        }
-
-        if (expressionBody != null)
-        {
-            span = expressionBody.Span;
-
-            return true;
-        }
-
-        span = default;
-
-        return false;
-    }
-
-    /// <summary>
     /// Counts the lines of code of a span: the lines of the text on which at least one character of a token of the
     /// span lies. Each line is counted once, a token that runs over several lines makes each of them a line of code,
     /// and trivia — whitespace, comments, documentation comments, directives, and disabled text — makes no line one
@@ -190,6 +141,55 @@ public abstract class LineCountAnalyzerBase : DiagnosticAnalyzerBase
         return IsTrue(globalOptions, IsTestProjectOptionName)
                || IsTrue(globalOptions, IsTestingPlatformApplicationOptionName);
     }
+
+    /// <summary>
+    /// Gets the span between the braces of a block body, the braces excluded
+    /// </summary>
+    /// <param name="openBraceToken">Opening brace</param>
+    /// <param name="closeBraceToken">Closing brace</param>
+    /// <returns>Span between the braces</returns>
+    private protected static TextSpan GetSpanBetweenBraces(SyntaxToken openBraceToken, SyntaxToken closeBraceToken)
+    {
+        return TextSpan.FromBounds(openBraceToken.Span.End, Math.Max(openBraceToken.Span.End, closeBraceToken.SpanStart));
+    }
+
+    /// <summary>
+    /// Gets the counted span of a body: the tokens between the braces of a block body, or the <c>=&gt;</c> and the
+    /// expression of an expression body
+    /// </summary>
+    /// <param name="body">Block body, or <see langword="null"/></param>
+    /// <param name="expressionBody">Expression body, or <see langword="null"/></param>
+    /// <param name="span">Counted span</param>
+    /// <returns><see langword="true"/> when there is a body; otherwise <see langword="false"/></returns>
+    private protected static bool TryGetBodySpan(BlockSyntax body, ArrowExpressionClauseSyntax expressionBody, out TextSpan span)
+    {
+        if (body != null)
+        {
+            span = GetSpanBetweenBraces(body.OpenBraceToken, body.CloseBraceToken);
+
+            return true;
+        }
+
+        if (expressionBody != null)
+        {
+            span = expressionBody.Span;
+
+            return true;
+        }
+
+        span = default;
+
+        return false;
+    }
+
+    /// <summary>
+    /// Gets the counted span of a judged declaration and the location of its diagnostic
+    /// </summary>
+    /// <param name="node">Declaration of one of the registered syntax kinds</param>
+    /// <param name="span">Counted span</param>
+    /// <param name="location">Location of the diagnostic</param>
+    /// <returns><see langword="true"/> when the declaration is judged; otherwise <see langword="false"/></returns>
+    private protected abstract bool TryGetCountedSpan(SyntaxNode node, out TextSpan span, out Location location);
 
     /// <summary>
     /// Determines whether a global analyzer option has the value <c>true</c>, compared case-insensitively
