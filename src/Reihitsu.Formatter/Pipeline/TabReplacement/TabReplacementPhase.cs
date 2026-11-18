@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Formatter.Data;
+using Reihitsu.Formatter.Pipeline.Core.Rewriter;
 
 namespace Reihitsu.Formatter.Pipeline.TabReplacement;
 
@@ -21,7 +22,8 @@ internal sealed class TabReplacementPhase : IFormattingPhase
 
     /// <summary>
     /// Executes the tab replacement phase on the given syntax tree. Only the tokens and directives that hold a tab in
-    /// their whitespace are rebuilt; without such a tab the input node itself is returned. A node-level root already has
+    /// their whitespace are rebuilt, in one walk of the tree (<see cref="TokenRewriter"/>), so the cost grows with the
+    /// number of tokens; without such a tab the input node itself is returned. A node-level root already has
     /// no parent (FMT-PIPE-023), so whether the phase returns its input or a copy is not visible to the phases after it
     /// </summary>
     /// <param name="root">The root syntax node to process</param>
@@ -31,12 +33,9 @@ internal sealed class TabReplacementPhase : IFormattingPhase
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var tokens = root.DescendantTokens()
-                         .Where(HasWhitespaceTab)
-                         .ToArray();
-        var replaced = tokens.Length == 0
-                           ? root
-                           : root.ReplaceTokens(tokens, (_, rewritten) => ReplaceTabsAroundToken(rewritten, cancellationToken));
+        var replaced = root.DescendantTokens().Any(HasWhitespaceTab)
+                           ? TokenRewriter.RewriteTokens(root, token => HasWhitespaceTab(token) ? ReplaceTabsAroundToken(token, cancellationToken) : token)
+                           : root;
 
         return ReplaceDirectiveTriviaTabs(replaced, cancellationToken);
     }
