@@ -55,7 +55,9 @@
 - Implementer 08 done (6ec5154): all tests green in Debug. Open docs items for the spec author: AGENTS.md PrecheckPhase/LineBreakPhase rows, change doc owner names, code owner for AttachedPartGapUtilities, and `error:` (decision 6). These go with the spec checker's findings.
 - Cleaner 09 done (502d8e5): clean.
 - Spec checker 10 (d467533): 3 doc findings (error: prefix, AttachedPartGapUtilities as a code owner, a stale `ArgumentListLineStartRewriter.CanJoin` name). Repair round 1: spec author (11), then a fresh spec checker (12), then the auditor.
-- Spec author 11 done (d0aacbb). Next: fresh spec checker (12).
+- Spec author 11 done (d0aacbb). Spec checker 12 (cb602cb): consistent.
+- Merged origin/main 6d574e1 (text-only fluent-chain helper docs); Release build green at da5fcff.
+- Next: auditor (13) against main 6d574e1.
 - Old: spec author (06) applies (a), (b), RH5112 in change 7, and the FMT-UNSUP-014 wording; then the test implementer.
 - Old: fresh skeptic (05), then ask (a) and (b) with any skeptic questions, then the test implementer.
 - Old: spec author (04) writes the declaration and Decisions, and sets Status Accepted; then a fresh skeptic (05) on the declaration; then the test implementer.
