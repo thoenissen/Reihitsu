@@ -235,17 +235,36 @@ internal static class LineBreakTriviaUtilities
     /// trailing trivia (<see cref="CreateJoinedTrailingTrivia"/>), and the token behind it loses its leading line break and
     /// whitespace (<see cref="RemoveLeadingEndOfLineAndWhitespace"/>). A token that stands at both ends of two gaps carries
     /// both edits. The caller selects the gaps and has already refused every gap that must keep its line break; this
-    /// method joins each one it is given
+    /// method joins each one it is given. A caller that also writes edits of another kind passes them along, so they apply
+    /// in the same rewrite and no token has to be found again in a rewritten tree; each join is applied on top of the edit
+    /// given for the same token
     /// </summary>
     /// <typeparam name="TNode">The syntax node type containing the gaps</typeparam>
-    /// <param name="node">The node containing the tokens of every gap</param>
-    /// <param name="gaps">The gaps to join, each given by the token in front of it and the token behind it, in text order</param>
-    /// <returns>The node with every gap joined, or the original node when no gap was given</returns>
+    /// <param name="node">The node containing the tokens of every gap and every edit</param>
+    /// <param name="gaps">
+    /// The gaps to join, each given by the token in front of it and the token behind it. Each gap closes two adjacent
+    /// tokens, and each token stands in front of at most one gap and behind at most one, so the order of the gaps is free
+    /// </param>
+    /// <param name="edits">
+    /// The caller's other edits, or <see langword="null"/> for none: the replacement of each original token they change,
+    /// computed from the original token. An edit writes only a trivia side no given gap writes: the trailing trivia of a
+    /// token in front of no gap, or the leading trivia of a token behind no gap
+    /// </param>
+    /// <returns>The node with every gap joined and every edit applied, or the original node when there are neither</returns>
     public static TNode JoinGaps<TNode>(TNode node,
-                                        IEnumerable<(SyntaxToken PreviousToken, SyntaxToken Token)> gaps)
+                                        IEnumerable<(SyntaxToken PreviousToken, SyntaxToken Token)> gaps,
+                                        IReadOnlyDictionary<SyntaxToken, SyntaxToken> edits = null)
         where TNode : SyntaxNode
     {
         var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
+
+        if (edits != null)
+        {
+            foreach (var edit in edits)
+            {
+                replacements[edit.Key] = edit.Value;
+            }
+        }
 
         foreach (var (previousToken, token) in gaps)
         {

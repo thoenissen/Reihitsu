@@ -473,9 +473,9 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     /// attribute formatting later in this pass spreads over several lines (FMT-BREAK-012). It runs after the commas
     /// that start a line were moved behind their elements, so no separator starts a line here. A first element that a comment, a directive, or
     /// disabled text keeps off the line of the opening delimiter cannot join that line, starts its own line, and
-    /// so makes the list multi-line, one element per line. Only the whitespace at the end of a separator's
-    /// trailing trivia is replaced by the line break; whitespace before or between block comments that stay after
-    /// the separator is kept as written
+    /// so makes the list multi-line, one element per line. The line break is appended to the separator's trailing
+    /// trivia, behind any block comment there (<see cref="LineBreakTriviaUtilities.EndLineInFrontOf"/>); whitespace in
+    /// front of it is kept as written, and the cleanup phase removes whitespace at the end of a line (FMT-BREAK-029)
     /// </summary>
     /// <typeparam name="TNode">The type of the containing syntax node</typeparam>
     /// <typeparam name="TElement">The type of the elements in the separated list</typeparam>
@@ -515,7 +515,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
             }
 
             tokensToReplace.Add(separator);
-            replacementMap[separator] = separator.WithTrailingTrivia(LineBreakTriviaUtilities.AppendEndOfLine(LineBreakTriviaUtilities.RemoveTrailingWhitespace(separator.TrailingTrivia), endOfLine));
+            replacementMap[separator] = separator.WithTrailingTrivia(LineBreakTriviaUtilities.EndLineInFrontOf(separator, nextFirstToken, endOfLine));
         }
 
         if (hasExistingLineBreak == false || tokensToReplace.Count == 0)
