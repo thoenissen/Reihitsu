@@ -33,8 +33,8 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [shared/expression-body-conversion.md](shared/expression-body-conversion.md) | SHARED-BODY | `ExpressionBodyAnalyzerBase<TNode>`, `ExpressionBodyToBlockCodeFixProviderBase<TNode>`, `ExpressionBodyCodeFixUtilities`, `ExpressionBodyRewriteUtilities` |
 | [shared/fluent-chain-layout.md](shared/fluent-chain-layout.md) | SHARED-CHAIN | `FluentChain`, `FluentChainLink`, `FluentChainAttachedPart`, `FluentChainUtilities`, `FluentChainAnalyzerBase`, `FluentChainCodeFixHelper` |
 | [shared/initializer-layout.md](shared/initializer-layout.md) | SHARED-INIT | `InitializerLayoutAnalysisUtilities` |
-| [shared/line-join-rules.md](shared/line-join-rules.md) | SHARED-JOIN | `SyntaxTreeErrorVerdictCache` |
 | [shared/line-count.md](shared/line-count.md) | SHARED-LINES | `LineCountAnalyzerBase` |
+| [shared/line-join-rules.md](shared/line-join-rules.md) | SHARED-JOIN | `SyntaxTreeErrorVerdictCache` |
 | [shared/member-region-grouping.md](shared/member-region-grouping.md) | SHARED-REGGROUP | `MembersShouldBeGroupedByRegionsAnalyzerBase`, `NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase`, `OverrideMemberUtilities`, `InterfaceImplementationUtilities` |
 | [shared/modifier-ordering.md](shared/modifier-ordering.md) | SHARED-MODORDER | `ModifierOrderingUtilities`, `ModifierOrderingCodeFixProviderBase` |
 | [shared/nested-types.md](shared/nested-types.md) | SHARED-NESTED | `NestedTypeAnalyzerHelper` |
