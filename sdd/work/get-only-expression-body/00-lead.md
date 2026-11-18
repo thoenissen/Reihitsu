@@ -37,6 +37,8 @@ Batch 1 (before test implementer):
 | 9 | Impl 06 | AGENTS.md phase-table guard renamed to `GetOnlyMemberExpressionBodyRewriteUtilities.ContainsBlockingDirective` | Accept | Required by `PhaseOwnershipDocumentationTests` after the Q6 A move | Contributor doc only | 08a771a |
 | 10 | Impl 06 | Core type also owns accessor-level conversion; new analyzer/code-fix base classes | Accept | Get-only conversion is built on the accessor conversion; one code path for both rules | Internal structure; formatter output unchanged (5908 tests green) | 08a771a |
 | 11 | Impl 06 | Misspaced signature + multi-line expression: continuation lines keep formatter columns | Accept as known limit, same as RH3202 fix | Rare (input already violates spacing rules), not destructive; follows Q4 A | Covered by Q4 A; no code is dropped | 08a771a |
+| 12 | Audit 11 (repair round 1) | Architecture finding: the new fix's "keep signature, splice formatter body" duplicates `ExpressionBodyCodeFixUtilities.ConvertBodyAsync` and has drifted (shared-line handling, finding 1) | Change the structure in this run: the get-only fix reuses the RH3202 family's existing splice/shared-line path instead of its own copy; if that needs more than about 100 production lines, apply the narrow wrapper fix (`FormatMemberOnLinesOfItsOwnAsync`) and file the shared splice as a follow-up | The narrow fix alone would keep a second statement of the splice; both owners are in CodeFixes, a component the run changes | Expected output is decided by the unchanged SHARED-FIX-007 (shared line) | — |
+| 13 | Audit 11 | Findings 2 (missing SHARED-GETONLY-003 own-line comment tests) and 3 (code owners incomplete) | Repair: test implementer, spec author | Same requirement | Tests of existing behavior; doc header | — |
 ## Follow-up candidates
 
 - A balanced `#if` group inside a wrapped argument list in an expression body is indented inconsistently (active branch column 16, disabled branch and `)` column 22); existing formatter behavior (02-skeptic)
@@ -58,4 +60,5 @@ Batch 1 (before test implementer):
 - Test implementer 07 (706343d) and spec author 08 (c458cf6) done.
 - Cleaner 09 done (ee8b0a6): clean, Release 0 warnings.
 - Spec checker 10 done (48888c2): consistent, no findings. Merged main 6d574e1 (comment-only, no overlap). Build green.
-- Next: auditor 11, base 6d574e1.
+- Auditor 11 (972b3fc): findings — #1 high shared line (SHARED-FIX-007), #2 medium missing test, #3 low code owners; architecture finding decided (decision 12).
+- Repair round 1: test implementer 12 (shared-line tests + finding 2) and spec author 13 (finding 3) in parallel; then implementer 14; then cleaner, spec checker, auditor (repair only), validator.
