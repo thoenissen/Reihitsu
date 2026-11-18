@@ -533,7 +533,7 @@ class C
 }
 ```
 
-After: refused at `(9,1)`, the `#endif` in front of the first `=>` (derived from FMT-UNSUP-013's location rule, not observed: the precheck does not exist yet). Alone in a file, `Make` is refused at its `#if NET7_0_OR_GREATER` and `P` at its `#endif`.
+After: refused at `(9,1)`, the `#endif` in front of the first `=>`. Alone in a file, `Make` is refused at its `#if NET7_0_OR_GREATER` and `P` at its `#endif`.
 
 RH3202 (`Expression-style methods should not be used`) reports both methods before and after (SHARED-BODY-001). Before (`main`, `scripts/apply-fix.sh RH3202`), its fix is offered on each and gives the same block as the formatter, LF and CRLF alike; after, no fix is offered on either. RH5401 reports the property and offers no fix, before and after.
 
