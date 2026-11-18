@@ -38,4 +38,5 @@
 
 - Last step: maintainer answered batch 1 (1A, 2A).
 - Spec author recorded answers, change doc Accepted (652f7f0, 04-spec-author.md).
-- Next: test implementer (05).
+- Test implementer done (35945c0, 05-test-implementer.md): 126 formatter, 33 analyzer, 11 CLI tests red as expected.
+- Next: implementer (06).
