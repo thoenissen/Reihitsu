@@ -57,4 +57,5 @@ Batch 1 (before test implementer):
 - Implementer 06 done (08a771a, e940dcd): all tests green except disputed CRLF test.
 - Test implementer 07 (706343d) and spec author 08 (c458cf6) done.
 - Cleaner 09 done (ee8b0a6): clean, Release 0 warnings.
-- Next: spec checker 10.
+- Spec checker 10 done (48888c2): consistent, no findings. Merged main 6d574e1 (comment-only, no overlap). Build green.
+- Next: auditor 11, base 6d574e1.
