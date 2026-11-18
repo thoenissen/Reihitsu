@@ -22,7 +22,7 @@
 |---|---|---|---|---|---|---|
 | 1 | Spec author | Widen FMT-BREAK-020 or add a new requirement for the join? | New FMT-BREAK-040 owns the join; FMT-BREAK-020 keeps member-name rejoin only | One owner per gap; spec author's recommendation | Spec structure only | e13cde4 |
 | 3 | Skeptic | Architecture finding: `ListElementInteriorJoinRewriter` (before list layout) and `ChainLineBreakRewriter` (after) both join attached parts | Change the structure in this run: FMT-BREAK-040 is the one owner and the join runs before list layout; no third partial join site | The narrow fix would add a third copy; within the line-break phase the run already changes | Output effects are change doc change 3, asked as an output question | — |
-| 4 | Skeptic | FMT-BREAK-040 does not exclude the implicit element access (`["a"] = 1` in initializers), `new[]`, or `stackalloc[]` | Spec-author amendment: exclude them and add a keep-as-is example | They are not attached parts; read literally, the spec would join common code | The amendment keeps today's output | — |
+| 4 | Skeptic | FMT-BREAK-040 does not exclude the implicit element access (`["a"] = 1` in initializers), `new[]`, or `stackalloc[]` | Spec-author amendment: exclude them and add a keep-as-is example | They are not attached parts; read literally, the spec would join common code | The amendment keeps today's output | 28dda88 |
 | 5 | Skeptic | The issue's goals: the root-column goal and the owner hint | Root column → output question 6; owner hint dropped | Agent-filed proposals | The root column is asked as an output question | — |
 | 2 | Spec author | Follow the issue's owner hint (`JoinConditionalElementAccesses`, `NormalizeChain`)? | No; no code owner is prescribed | Agent-filed proposal; the implementer picks the owner | Internal | e13cde4 |
 
@@ -39,4 +39,5 @@
 - Claimed (11cc1d2), draft PR #1870, SDK prepared.
 - Spec author done (e13cde4): change doc `sdd/changes/2026-11/attached-part-below-element.md` (Draft, 5 visible output changes), FMT-BREAK-040 new; one output question (column of a part held below by a comment). Lane check confirmed.
 - Skeptic done (6a73a04): proceed. Amendment (decision 4) sent to a fresh spec author (03).
+- Spec amendment done (28dda88), commit for decision 4.
 - Output question batch 1 (change doc changes 1–5 + the comment column) posted to the maintainer; WAITING for the answers before the test implementer.
