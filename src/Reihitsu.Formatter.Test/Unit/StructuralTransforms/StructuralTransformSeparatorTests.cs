@@ -99,37 +99,6 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a single-line comment on a line of its own in front of the arrow, which the conversion moves in front of the
-    /// created <c>return</c>, is followed by a line break in front of it, and is preceded by one behind the inserted <c>{</c>, so
-    /// the comment keeps leading the created statement
-    /// </summary>
-    [TestMethod]
-    [Requirement("FMT-STRUCT-026")]
-    public void OwnLineCommentMovedInFrontOfTheCreatedReturnKeepsLeadingIt()
-    {
-        const string input = """
-                             class C
-                             {
-                                 int Get()
-                                     // c
-                                     => 42;
-                             }
-                             """;
-
-        ForEachLineEnding(input,
-                          (output, _, description) =>
-                          {
-                              var block = output.DescendantNodes().OfType<MethodDeclarationSyntax>().Single().Body;
-                              var returnKeyword = block.Statements.Single().GetFirstToken();
-                              var gap = GetGap(output, block.OpenBraceToken, returnKeyword);
-
-                              AssertLineBreakBefore(gap, "// c", description);
-                              AssertLineBreakAfter(gap, "// c", description);
-                              AssertSameTree(output, description);
-                          });
-    }
-
-    /// <summary>
     /// Verifies that a trailing single-line comment of a braced statement at the end of the file, with no line break behind
     /// it, gets a line break in front of the inserted <c>}</c>
     /// </summary>
@@ -675,8 +644,8 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that no token the expression-body conversion creates carries elastic trivia, for a converted value expression,
-    /// a converted statement expression, and a comment moved in front of the created statement
+    /// Verifies that no token the expression-body conversion creates carries elastic trivia, for a converted value expression and
+    /// a converted statement expression
     /// </summary>
     [TestMethod]
     [Requirement("FMT-STRUCT-026")]
@@ -688,10 +657,6 @@ public class StructuralTransformSeparatorTests : FormatterTestsBase
                                  int Get() => 42;
 
                                  void Run() => Get();
-
-                                 int Other()
-                                     // c
-                                     => 42;
                              }
                              """;
 

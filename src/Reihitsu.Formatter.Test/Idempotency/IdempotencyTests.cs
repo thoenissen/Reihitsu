@@ -567,15 +567,14 @@ public class IdempotencyTests : FormatterTestsBase
                                                                """;
 
     /// <summary>
-    /// Input source used to verify that comments and directives attached to the arrow or semicolon
-    /// token survive expression-body-to-block conversion, under repeated formatting
+    /// Input source used to verify that comments and directives above the member or attached to the
+    /// semicolon token survive expression-body-to-block conversion, under repeated formatting
     /// </summary>
     private const string ExpressionBodiedCommentTestData = """
                                                            internal class ExpressionBodiedCommentTestData
                                                            {
-                                                               public int LeadingArrowComment()
-                                                                   // keep me
-                                                                   => 42;
+                                                               // keep me
+                                                               public int CommentAboveMember() => 42;
 
                                                                public int LeadingSemicolonComment() => 42
                                                                    // keep me

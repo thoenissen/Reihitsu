@@ -1240,11 +1240,11 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment after the <c>get</c> keyword keeps the accessor list
+    /// Verifies that a comment after the <c>get</c> keyword of an expression-bodied getter refuses the input as unsupported
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-STRUCT-015")]
-    public void CommentAfterGetKeywordKeepsAccessorList()
+    [Requirement("FMT-UNSUP-013")]
+    public void CommentAfterGetKeywordIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1260,7 +1260,7 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
                              """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertUnsupportedFor(ExpressionBodyArrowLeadingCommentReason, input, "/* c */");
     }
 
     /// <summary>
@@ -1549,11 +1549,11 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment line between the <c>get</c> keyword and the getter's arrow keeps the accessor list
+    /// Verifies that a comment line between the <c>get</c> keyword and the getter's arrow refuses the input as unsupported
     /// </summary>
     [TestMethod]
-    [Requirement("FMT-STRUCT-015")]
-    public void CommentBeforeGetterArrowKeepsAccessorList()
+    [Requirement("FMT-UNSUP-013")]
+    public void CommentBeforeGetterArrowIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1570,30 +1570,16 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = """
-                                class C
-                                {
-                                    private int _value;
-
-                                    public int Value
-                                    {
-                                        get
-
-                                        // Explains the value
-                                        => _value;
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(ExpressionBodyArrowLeadingCommentReason, input, "// Explains the value");
     }
 
     /// <summary>
-    /// Verifies that a directive between the <c>get</c> keyword and the getter's arrow keeps the accessor list
+    /// Verifies that a directive between the <c>get</c> keyword and the getter's arrow refuses the input as unsupported
     /// </summary>
     [TestMethod]
-    public void DirectiveBeforeGetterArrowKeepsAccessorList()
+    [Requirement("FMT-UNSUP-013")]
+    public void DirectiveBeforeGetterArrowIsUnsupported()
     {
         // Arrange
         const string input = """
@@ -1610,22 +1596,8 @@ public class GetOnlyMemberExpressionBodyTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = """
-                                class C
-                                {
-                                    private int _value;
-
-                                    public int Value
-                                    {
-                                        get
-                                #pragma warning disable CS0618
-                                        => _value;
-                                    }
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertUnsupportedFor(ExpressionBodyArrowLeadingCommentReason, input, "#pragma warning disable CS0618");
     }
 
     /// <summary>
