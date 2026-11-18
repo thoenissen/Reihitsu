@@ -33,4 +33,5 @@ Batch 1 (questions in 03-spec-author.md, Q1–Q4). Maintainer's reply, verbatim:
 
 - Last step: spec author (01, commit 3501371), change doc Draft. Open output question: 01 Q3 (attribute on the property's line).
 - Skeptic done (02). Spec author amendment done (03, dba3ee9), change doc Draft.
-- Batch 1 answered. Next: fresh spec author carries the answers out and sets Status Accepted; then test implementer.
+- Batch 1 carried out (04, 36627a0), change doc Accepted. RH5401-003 got a rule-local exception: no blank line inserted.
+- WAITING: output question 04 Q (several blank lines between attributes and property: A keep, B collapse) posted to maintainer.
