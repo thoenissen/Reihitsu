@@ -28,6 +28,7 @@
 | 5 | Skeptic | The issue's goals: the root-column goal and the owner hint | Root column → output question 6; owner hint dropped | Agent-filed proposals | The root column is asked as an output question | — |
 | 6 | Spec author (04), test implementer (07) | The CLI prefix in the change doc examples | Use what the CLI prints today, which is `error:` in lower case (07 found that 04's `Error:` is wrong); the correction goes to the spec author with the next docs round | Examples must be real output | Doc text only; no CLI change | pending |
 | 7 | Skeptic (05) | RH5112's fix also becomes withheld under FMT-UNSUP-014 (`return items // element⏎?[0]⏎.ToString();`) | Add it to change 7, with a test that locks the withheld fix | A consequence of the declaration answer 6 | Covered by answer 6 (the declaration withholds every fix whose formatted node holds the shape) | 20d383b |
+| 8 | Implementer (08) | A new shared type `AttachedPartGapUtilities` (~60 lines) plus the `ArgumentListLineStartRewriter` → `AttachedPartLineStartRewriter` rename | Accept | Part of the issue's own fix: one gap definition shared by the join owner and the precheck instead of a copy (escalation 9 does not cover a fix's own code) | Internal structure | 6ec5154 |
 | 2 | Spec author | Follow the issue's owner hint (`JoinConditionalElementAccesses`, `NormalizeChain`)? | No; no code owner is prescribed | Agent-filed proposal; the implementer picks the owner | Internal | e13cde4 |
 
 ## Follow-up candidates
@@ -51,7 +52,8 @@
 - Spec author 06 done (20d383b): spec complete, no open questions.
 - Test implementer 07 done (edf68c7): new tests fail for the specified reason; architecture is green.
 - Open docs item: correct `Error:` → `error:` in the change doc (decision 6), routed with the spec checker's findings.
-- Next: implementer (08).
+- Implementer 08 done (6ec5154): all tests green in Debug. Open docs items for the spec author: AGENTS.md PrecheckPhase/LineBreakPhase rows, change doc owner names, code owner for AttachedPartGapUtilities, and `error:` (decision 6). These go with the spec checker's findings.
+- Next: cleaner (09), then spec checker (10).
 - Old: spec author (06) applies (a), (b), RH5112 in change 7, and the FMT-UNSUP-014 wording; then the test implementer.
 - Old: fresh skeptic (05), then ask (a) and (b) with any skeptic questions, then the test implementer.
 - Old: spec author (04) writes the declaration and Decisions, and sets Status Accepted; then a fresh skeptic (05) on the declaration; then the test implementer.
