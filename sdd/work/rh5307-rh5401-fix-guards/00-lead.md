@@ -39,4 +39,4 @@ Escalation 9 (question 6, after the implementer: ~200-line blank-line restore in
 - Skeptic done (02). Spec author amendment done (03, dba3ee9), change doc Draft.
 - Batch 1 carried out (04, 36627a0), change doc Accepted. RH5401-003 got a rule-local exception: no blank line inserted.
 - Q5 carried out (04 follow-up, f0437cc). Test implementer done (05, b1dc664): 41 new, 3 changed tests, 60 failing as expected. Implementer done (06, b64257f/a6ab82f): all tests pass; RH5401 fix grew ~200 lines restoring blank lines after formatting (Q3/Q5), and reports an architecture finding (fix vs. blank-line phase own the same gaps).
-- Escalation 9 answered: B. Next: spec author (07) → test implementer (08) → implementer (09), then cleaner.
+- Escalation 9 answered: B. Spec author done (07, 398d780). Next: test implementer (08) → implementer (09), then cleaner.
