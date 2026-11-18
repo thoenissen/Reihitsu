@@ -17,6 +17,9 @@ None yet.
 |---|---|---|---|---|---|---|
 | 1 | spec author | Lane | Widen bug fix → behavior change | RH5307-004 and RH5401-003/-004 limited the fix to today's inputs; offering it changes requirements, so a change doc is required. Lane check confirms behavior-change | The visible changes are the maintainer's decisions on #1217 Q1/Q3 and #1219 Q1 (2026-10-20) | 3501371 |
 | 2 | spec author | RH5307 rule page mentions `?[ ]` despite rule-page convention | Keep the sentence | The maintainer's decision #1217 Q1 names the page | Maintainer decision covers it | 3501371 |
+| 3 | skeptic | RH5307 architecture finding: the fix decides the reported list by a different rule than the analyzer and keeps a private copy of the analyzer's guard | Change the structure in this run: the fix resolves the list at the diagnostic's location and reuses the analyzer's guard instead of its private copy, where the analyzer exposes it; otherwise the copy becomes a follow-up | The narrow fix is the structural fix; stays in the analyzer and its code fix (counterparts), small | Which list is fixed is the maintainer's #1217 Q3 decision; the new members are asked as output questions | |
+| 4 | skeptic | RH5307 class wider than the change doc (c?[0][…], c?[m[…]], initializer `[m[…]] = 1`, a[0].P[0][…]/this[0][…], j[0,⏎1][1,⏎2]) | Widen the run to the whole class; members not named by #1217 Q3 go into the output-question batch | Same cause (target resolved from the receiver's first token) | Asked | |
+| 5 | skeptic | Spec wording: RH5401-003 "as FMT-BREAK-027 places them"; RH5307-004 example gains `c?[0][1,⏎2]`; change doc names the whole class incl. no-progress members | Accept all three | Prevent misreadings; no output change | Wording only | |
 
 ## Follow-up candidates
 
@@ -25,4 +28,4 @@ None yet.
 ## State
 
 - Last step: spec author (01, commit 3501371), change doc Draft. Open output question: 01 Q3 (attribute on the property's line).
-- Next: skeptic (fresh), then output-question batch.
+- Skeptic done (02, 0be3e5b): proceed. Next: fresh spec author amendment + drafts of output questions; then batch to maintainer: 01 Q3, 02 Q1 (RH5401 page wording), 02 Q2 (comment between attribute and property), new RH5307 members.
