@@ -5,7 +5,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
-using Reihitsu.Core.Enumerations;
 using Reihitsu.Formatter.Data;
 using Reihitsu.Formatter.Data.Enumerations;
 using Reihitsu.Formatter.Extensions;
@@ -24,9 +23,8 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 /// <item><description>A member name split from its dot is rejoined; such a split is no wrap.</description></item>
 /// <item>
 /// <description>
-/// In a chain with at least one link, an element access and a conditional element access join the element in front
-/// of it; a chain without links only joins its conditional element accesses. The gap in front of an argument list is
-/// <see cref="ArgumentListLineStartRewriter"/>'s.
+/// The gaps in front of and inside an attached part are <see cref="AttachedPartLineStartRewriter"/>'s, which has joined
+/// them before this rewriter runs.
 /// </description>
 /// </item>
 /// <item><description>A link operator is never split: a line break inside it moves in front of its first token.</description></item>
@@ -201,8 +199,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Selects the gaps between consecutive tokens of an operator or attached part for closing, except gaps that hold
-    /// blocking trivia
+    /// Selects the gaps between consecutive tokens of a link operator for closing, except gaps that hold blocking trivia
     /// </summary>
     /// <param name="tokens">The tokens in source order</param>
     /// <param name="gaps">The gaps to join</param>
@@ -213,37 +210,6 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
         {
             CloseGap(tokens[tokenIndex - 1], tokens[tokenIndex], gaps);
         }
-    }
-
-    /// <summary>
-    /// Joins the conditional element accesses of a chain without links (<c>a</c> ⏎ <c>?[0]</c>). Other attached parts of
-    /// such a chain keep the user's layout
-    /// </summary>
-    /// <param name="node">The outermost chain node</param>
-    /// <returns>The node with its conditional element accesses joined</returns>
-    private static SyntaxNode JoinConditionalElementAccesses(ExpressionSyntax node)
-    {
-        var chain = FluentChain.Create(node, false);
-
-        if (chain == null)
-        {
-            return node;
-        }
-
-        var gaps = new List<(SyntaxToken PreviousToken, SyntaxToken Token)>();
-
-        foreach (var attachedPart in chain.AttachedParts)
-        {
-            if (attachedPart.Kind != FluentChainAttachedPartKind.ConditionalElementAccess)
-            {
-                continue;
-            }
-
-            CloseGap(attachedPart.FirstToken.GetPreviousToken(), attachedPart.FirstToken, gaps);
-            CloseInnerGaps(attachedPart.Tokens, gaps);
-        }
-
-        return LineBreakTriviaUtilities.JoinGaps(node, gaps);
     }
 
     /// <summary>
@@ -287,29 +253,18 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
 
         if (chain == null)
         {
-            return JoinConditionalElementAccesses(node);
+            return node;
         }
 
         var gaps = new List<(SyntaxToken PreviousToken, SyntaxToken Token)>();
         var lineBreakEdits = new Dictionary<SyntaxToken, SyntaxToken>();
 
-        // A member name split from its dot is rejoined, and an attached part joins the element in front of it. Neither
-        // gap is a wrap, so a line break that blocking trivia keeps there does not affect the chain's layout. The gap in
-        // front of an argument list is ArgumentListLineStartRewriter's, which has joined it before this rewriter runs.
+        // A member name split from its dot is rejoined. The gap is no wrap, so a line break that blocking trivia keeps
+        // there does not affect the chain's layout. The gaps in front of and inside an attached part are
+        // AttachedPartLineStartRewriter's, which has joined them before this rewriter runs.
         foreach (var link in chain.Links)
         {
             CloseGap(link.DotToken, link.Name.GetFirstToken(), gaps);
-        }
-
-        foreach (var attachedPart in chain.AttachedParts)
-        {
-            if (attachedPart.Kind == FluentChainAttachedPartKind.ArgumentList)
-            {
-                continue;
-            }
-
-            CloseGap(attachedPart.FirstToken.GetPreviousToken(), attachedPart.FirstToken, gaps);
-            CloseInnerGaps(attachedPart.Tokens, gaps);
         }
 
         // Link operators are never split. A line break in front of or inside an operator is the user's wrap.

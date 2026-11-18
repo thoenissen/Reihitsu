@@ -29,8 +29,9 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks.Rewriter;
 /// </para>
 /// <para>
 /// A gap that another owner already lays out is never joined: list boundaries (separators, element starts, closers),
-/// the opening parenthesis of a parameter list other than a lambda's, the opening parenthesis of an argument list
-/// (<see cref="ArgumentListLineStartRewriter"/>), operator wraps of binary, conditional, member-access, postfix,
+/// the opening parenthesis of a parameter list other than a lambda's, the gaps of an attached part - in front of an
+/// argument list, an element access, a conditional element access, or a null-forgiving operator, and between the
+/// <c>?</c> and the <c>[</c> of a conditional element access (<see cref="AttachedPartLineStartRewriter"/>) -, operator wraps of binary, conditional, member-access, postfix,
 /// is-pattern, and assignment expressions, multi-line literals, attribute-list placement, and every line inside a
 /// construct <see cref="ListElementInteriorUtilities.FindOwningConstruct"/> names - brace scopes, initializers, switch
 /// expressions, patterns, collection expression interiors, interpolation holes, and the clauses after a query's first
@@ -169,8 +170,8 @@ internal sealed class ListElementInteriorJoinRewriter : CSharpSyntaxRewriter
             return true;
         }
 
-        // The gap in front of an argument list's opening parenthesis belongs to ArgumentListLineStartRewriter
-        if (ArgumentListLineStartRewriter.IsArgumentListOpenParenthesis(token))
+        // The gaps of an attached part belong to AttachedPartLineStartRewriter
+        if (AttachedPartGapUtilities.IsAttachedPartGap(token))
         {
             return true;
         }
