@@ -15,6 +15,8 @@ Batch 1 (questions in 03-spec-author.md, Q1–Q4). Maintainer's reply, verbatim:
 - Q3 (RH5401, comment between attribute and property): neither A nor B. In English: the fix must not insert a blank line; that is not part of its scope. Read as: the fix is offered and gives `[Obsolete]⏎// note⏎int E => 1;` (no blank line added).
 - Q4 (RH5307 further receivers/containers): A — each fix joins the list it reports.
 
+Question 5 (04-spec-author.md, several blank lines between attributes and property; also without comment and between two attribute lists). Maintainer's reply, verbatim: "5a, dont touch" — A: the fix keeps the blank lines as written.
+
 ## Decisions taken
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
@@ -34,4 +36,4 @@ Batch 1 (questions in 03-spec-author.md, Q1–Q4). Maintainer's reply, verbatim:
 - Last step: spec author (01, commit 3501371), change doc Draft. Open output question: 01 Q3 (attribute on the property's line).
 - Skeptic done (02). Spec author amendment done (03, dba3ee9), change doc Draft.
 - Batch 1 carried out (04, 36627a0), change doc Accepted. RH5401-003 got a rule-local exception: no blank line inserted.
-- WAITING: output question 04 Q (several blank lines between attributes and property: A keep, B collapse) posted to maintainer.
+- Q5 answered (A). Next: spec author continue (04 agent) to carry out Q5; then test implementer.
