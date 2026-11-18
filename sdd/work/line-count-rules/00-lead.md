@@ -32,5 +32,6 @@
 ## Open worklist / next step
 
 - Done: 01-spec-author (eaa17de), 02-skeptic (b7f1ce2).
-- Batch 1 answered. Now: measuring the repository's method/type line-count distribution for the default limits (2B).
+- Measurement done (scratchpad linecount/linecounts.csv): prod methods p95 25 / p99 42 / max 132, over 50: 34, over 60: 19, over 75: 7; prod types p99 437 / max 812, over 400: 10, over 500: 5, over 750: 1; test code far larger (raw-string inputs count). Batch 2 posted: Q9 default limits, Q10 raw-string lines, Q11 this repository's own build. Waiting.
+- Earlier: measuring the repository's method/type line-count distribution for the default limits (2B).
 - Next: route answers to the spec author (amend specs, add decisions 1–2, set change doc Accepted), then the test implementer.
