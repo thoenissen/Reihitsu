@@ -15,10 +15,14 @@ None yet.
 
 | # | Stage | Question | Decision | Why | Why nothing visible is in question | Commit |
 |---|---|---|---|---|---|---|
+| 1 | Skeptic | Goal "indentation and cleanup phases grow linearly" cannot be met by the named mechanism (`LayoutComputer.Compute` alone grows ~3.1–3.7× per doubling) | Narrow the goal: the whole-tree token replacement in both phases becomes linear, and both phases lose its share; the remaining superlinear growth of the layout computation is a follow-up. PR links `Closes #1862` (purpose met: the measured hot spot removed) and states the difference | Skeptic measurement (01-skeptic.md); `agent-filed` goals are proposals | Performance only; formatter output stays byte-identical | — |
+| 2 | Skeptic | How to test a performance fix | No wall-clock or ratio assertion in tests (flaky; a whole-phase ratio would fail after a correct fix). Tests pin byte-identical output of both phases on inputs where they actually rewrite (the input list in 01-skeptic.md); the before/after timing is measured and reported in handovers and the PR | Skeptic recommendation 1 | Tests assert today's output unchanged | — |
+| 3 | Skeptic | Sibling sites (tab replacement, line endings, doc-comment phase) | Make them linear only if the hot-site fix yields a shared helper at no extra cost; otherwise the PR states each site's measured cost and why it stays | Skeptic recommendation 2; issue's own wording | No output change | — |
 
 ## Follow-up candidates
 
-None yet.
+- Per-token `GetPreviousToken()` calls grow ~4× per doubling (4.1 → 14.4 → 55.0 ms); several phases call it per token or per comment; may explain the remaining superlinear growth of other phases and of `LayoutComputer.Compute`. Must measure and attribute first. (01-skeptic.md)
+- Remaining superlinear growth of `LayoutComputer.Compute` (35–40 → 124–146 ms N=800→1600) and of the other phases at large N, incl. blank-line/line-break/horizontal-spacing on a large array initializer (`LineBreakListRewriter.cs:526`); cause not established. (01-skeptic.md) — likely to be merged with the item above by the issue manager.
 
 ## Audited SHA
 
@@ -26,4 +30,5 @@ None yet.
 
 ## Open worklist / next step
 
-- Next: skeptic (premise check).
+- Skeptic done (f65198d): proceed narrower, no output questions, no architecture findings.
+- Next: test implementer (equivalence tests + measured reproduction).
