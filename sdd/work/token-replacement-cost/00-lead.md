@@ -41,4 +41,6 @@ None yet.
 - Spec checker done (6e06438): consistent, no findings.
 - Auditor done (c437b5d): pass, text cleanup — finding #1 comment at `TabReplacementPhase.cs:24-26` (FC-031). Output-equivalence across 11736 perturbed files confirmed.
 - PR text hints: line-ending site is ~14 % (≈119 ms of ≈830 ms at N=1600, mixed variant) after the fix and stays because mixed line endings are rare (RH5604 reports them); `TabReplacementPhase.cs:150` set is bounded to one directive.
-- Next: cleaner fixes the comment, proven by verify-text-only vs 6db7bcc; issue manager in parallel; then validator, publish.
+- Cleaner repaired finding #1 (86276aa); TEXT-ONLY PROOF: PASS vs 6db7bcc — no second audit.
+- Issue manager done (2f12904): candidates 1+2 added as a comment to #1803 (existing, says re-measure after #1862); candidate 3 filed as #1874.
+- Next: validator on 86276aa (running), then note, trigger commit, publish.
