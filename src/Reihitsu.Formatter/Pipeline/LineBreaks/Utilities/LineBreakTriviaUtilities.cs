@@ -149,10 +149,11 @@ internal static class LineBreakTriviaUtilities
     /// the last element included: in a parameter list — parenthesized, or an indexer's bracketed one — an argument list,
     /// and an attribute argument list (FMT-BREAK-011, FMT-BREAK-012), and in initializers, collection expressions, and
     /// patterns (FMT-BREAK-038). The gap in front of such a comma holds only whitespace and line breaks, because the
-    /// precheck refuses a comment, a directive, or disabled text there (FMT-UNSUP-009). When the moved comma does not
-    /// already end its line and the token behind it does not start one, only the whitespace at the end of the comma's
-    /// trailing trivia is replaced by the line break, so a comment behind the comma moves with it; whitespace before or
-    /// between block comments that stay after the comma is kept as written
+    /// precheck refuses a comment, a directive, or disabled text there (FMT-UNSUP-009). When no line break separates the
+    /// moved comma from the token behind it, a line break is appended to the comma's trailing trivia
+    /// (<see cref="EndLineInFrontOf"/>), so a comment behind the comma moves with it and stays in front of the line break;
+    /// the comma's trailing trivia is otherwise kept as written, whitespace at its end included, which the cleanup phase
+    /// removes (FMT-CLEAN-001)
     /// </summary>
     /// <typeparam name="TNode">The list node type</typeparam>
     /// <typeparam name="TElement">The type of the elements in the list</typeparam>
@@ -183,11 +184,7 @@ internal static class LineBreakTriviaUtilities
             var newPreviousToken = previousToken.WithTrailingTrivia(CreateJoinedTrailingTrivia(previousToken, separator));
             var newSeparator = RemoveLeadingEndOfLineAndWhitespace(separator);
 
-            if (HasTrailingEndOfLine(newSeparator) == false
-                && (nextToken == default || HasLeadingEndOfLine(nextToken) == false))
-            {
-                newSeparator = newSeparator.WithTrailingTrivia(AppendEndOfLine(RemoveTrailingWhitespace(newSeparator.TrailingTrivia), endOfLine));
-            }
+            newSeparator = newSeparator.WithTrailingTrivia(EndLineInFrontOf(newSeparator, nextToken, endOfLine));
 
             node = node.ReplaceTokens([previousToken, separator],
                                       (original, _) => original == previousToken
