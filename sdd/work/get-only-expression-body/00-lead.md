@@ -30,6 +30,8 @@ Batch 1 (before test implementer):
 | 3 | Skeptic | SHARED-GETONLY-006 queries the unsupported-syntax check on the original declaration | Keep the query, narrow it to the getter, state its reason as SHARED-FIX-003 | Built node loses the comment, so SHARED-FIX-010 alone would offer a dropping fix | Same visible result either way | — |
 | 4 | Skeptic | Who writes the gap in front of `=>` in the fix | Shared converter + node-level format, splice arrow clause/semicolon onto signature as written (RH3202 precedent) | Avoids predicting the spacing phase | Internal mechanism | — |
 
+| 5 | Spec 04 | Merge SHARED-GETONLY-003 (comments) and -007 (directives)? | Keep separate | Boundaries and reasons differ | Same visible outcome either way | 27fe5de |
+| 6 | Spec 04 | Show fix output for a conditional group inside the getter's expression? | No; tests assert the fix is offered and equals the formatter's conversion | Avoid pinning the formatter's known indentation quirk (follow-up candidate) | Fix output follows the formatter (SHARED-GETONLY-005) | 27fe5de |
 ## Follow-up candidates
 
 - A balanced `#if` group inside a wrapped argument list in an expression body is indented inconsistently (active branch column 16, disabled branch and `)` column 22); existing formatter behavior (02-skeptic)
@@ -42,4 +44,5 @@ Batch 1 (before test implementer):
 - Batch 1 answered (see Maintainer answers).
 - Spec author 03 done (25e5014): answers carried out, change doc Accepted, Core type `GetOnlyMemberExpressionBodyRewriteUtilities`, SHARED-GETONLY-007 added (directive the formatter keeps the member for: not reported, drafted).
 - Q7 answered B.
-- Next: spec author 04 carries out Q7 (SHARED-GETONLY-007); then test implementer 05.
+- Spec author 04 done (27fe5de): Q7 carried out.
+- Next: test implementer 05.
