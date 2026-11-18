@@ -36,10 +36,6 @@
 
 ## State
 
-- Last step: maintainer answered batch 1 (1A, 2A).
-- Spec author recorded answers, change doc Accepted (652f7f0, 04-spec-author.md).
-- Test implementer done (35945c0, 05-test-implementer.md): 126 formatter, 33 analyzer, 11 CLI tests red as expected.
-- Implementer done (51ffef7, 714d8e0; 06-implementer.md): all tests green in Debug.
-- Cleaner done (52e3db1): clean, Release build 0 warnings.
-- Spec checker done (19fb597): consistent, no findings. main not ahead.
-- Next: auditor (09).
+- Audited SHA: 2e8c96842194b3570639c73d8df857ab058f0b65 (main 074661f). Auditor: pass, text cleanup (09-auditor.md, c245622).
+- Text cleanup worklist: #1 change doc line ~536 drop the "derived, not observed" parenthetical for change 12 → spec author (10); #2 CliHiddenCodeEndToEndTests.cs summaries "change's the … example" → cleaner (11).
+- Next: prove with scripts/verify-text-only.sh --base 2e8c968 --head worktree; then validator, lane check, issue manager (accessor-arrow follow-up), note, publish.
