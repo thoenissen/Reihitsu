@@ -416,6 +416,34 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     }
 
     /// <summary>
+    /// Verifies that a valid <c>design</c> section next to the <c>copyright</c> section is no problem of the
+    /// configuration, so a file without the header is still reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-001")]
+    public async Task ConfigurationWithValidDesignSection()
+    {
+        var configuration = CreateSpecificationConfiguration().TrimEnd()[..^1] + ",\"design\":{\"maximumMethodLines\":60,\"maximumTypeLines\":500}}";
+
+        await VerifySpecificationFile("namespace N;\n", configuration, CreateSpecificationFileDiagnostic());
+    }
+
+    /// <summary>
+    /// Verifies that nothing is reported when the <c>design</c> section next to the <c>copyright</c> section holds an
+    /// invalid setting, which is a problem of the configuration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH8402-001")]
+    public async Task ConfigurationWithInvalidDesignSetting()
+    {
+        var configuration = CreateSpecificationConfiguration().TrimEnd()[..^1] + ",\"design\":{\"maximumMethodLines\":0}}";
+
+        await VerifySpecificationFile("namespace N;\n", configuration);
+    }
+
+    /// <summary>
     /// Verifies that a file starting with the configured header, its placeholders and the file name filled in, is
     /// not reported
     /// </summary>
