@@ -35,4 +35,5 @@ None yet.
 - Skeptic done (f65198d): proceed narrower, no output questions, no architecture findings.
 - Test implementer done (f75732b): reproduced by measurement (probe in scratchpad), 16 equivalence tests green on unchanged code.
 - Implementer done (06d658a, handover 76d7748): tests pass; indentation ≈1200→243 ms, cleanup ≈935→29 ms at N=1600; line-ending and doc-comment sites unchanged with reasons.
-- Next: fresh test implementer for tab-replacement whole-file tests, then cleaner.
+- Tab tests done (0f331bc, 04-test-implementer.md): 11 tests, green before and after.
+- Next: cleaner.
