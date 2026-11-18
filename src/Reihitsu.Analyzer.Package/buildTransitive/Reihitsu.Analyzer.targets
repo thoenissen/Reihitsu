@@ -4,4 +4,9 @@
     <AdditionalFiles Include="@(RazorComponent)" />
   </ItemGroup>
 
+  <ItemGroup>
+    <CompilerVisibleProperty Include="IsTestProject" />
+    <CompilerVisibleProperty Include="IsTestingPlatformApplication" />
+  </ItemGroup>
+
 </Project>

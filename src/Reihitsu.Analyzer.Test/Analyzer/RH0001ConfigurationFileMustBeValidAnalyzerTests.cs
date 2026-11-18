@@ -743,6 +743,216 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
         await VerifyConfiguration("[ ]  \n", InvalidConfiguration("The configuration root must be a JSON object.", 1, 1));
     }
 
+    /// <summary>
+    /// Verifies the valid example of RH0001-007: all four line limits as whole numbers
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-004")]
+    [Requirement("RH0001-007")]
+    public async Task DesignSectionWithEveryLineLimitIsValid()
+    {
+        const string configuration = """
+                                     {
+                                       "design": {
+                                         "maximumMethodLines": 50,
+                                         "maximumTestMethodLines": 80,
+                                         "maximumTypeLines": 400,
+                                         "maximumTestTypeLines": 800
+                                       }
+                                     }
+                                     """;
+
+        await VerifyConfiguration(configuration);
+    }
+
+    /// <summary>
+    /// Verifies that every setting of the <c>design</c> section is optional, so an empty section is valid
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-004")]
+    [Requirement("RH0001-007")]
+    public async Task EmptyDesignSectionIsValid()
+    {
+        await VerifyConfiguration("""{ "design": { } }""");
+    }
+
+    /// <summary>
+    /// Verifies the bounds of the valid range of a line limit, 1 and 2147483647, for every setting
+    /// </summary>
+    /// <param name="settingName">Name of the setting</param>
+    /// <param name="value">Valid value</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-007")]
+    [DataRow("maximumMethodLines", "1")]
+    [DataRow("maximumMethodLines", "2147483647")]
+    [DataRow("maximumTestMethodLines", "1")]
+    [DataRow("maximumTestMethodLines", "2147483647")]
+    [DataRow("maximumTypeLines", "1")]
+    [DataRow("maximumTypeLines", "2147483647")]
+    [DataRow("maximumTestTypeLines", "1")]
+    [DataRow("maximumTestTypeLines", "2147483647")]
+    public async Task LineLimitAtTheBoundsOfTheRangeIsValid(string settingName, string value)
+    {
+        await VerifyConfiguration($$"""{ "design": { "{{settingName}}": {{value}} } }""");
+    }
+
+    /// <summary>
+    /// Verifies that the settings are checked one by one: a test limit below the production limit, or above it, is
+    /// valid
+    /// </summary>
+    /// <param name="configuration">Text of <c>reihitsu.json</c></param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-007")]
+    [DataRow("""{ "design": { "maximumMethodLines": 80, "maximumTestMethodLines": 40 } }""")]
+    [DataRow("""{ "design": { "maximumMethodLines": 40, "maximumTestMethodLines": 80 } }""")]
+    [DataRow("""{ "design": { "maximumTypeLines": 800, "maximumTestTypeLines": 400 } }""")]
+    [DataRow("""{ "design": { "maximumTypeLines": 400, "maximumTestTypeLines": 800 } }""")]
+    public async Task TestLimitIsCheckedIndependentlyOfProductionLimit(string configuration)
+    {
+        await VerifyConfiguration(configuration);
+    }
+
+    /// <summary>
+    /// Verifies the invalid example of RH0001-007: three invalid values, each reported on the value, and an unknown
+    /// setting, reported on its property name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-002")]
+    [Requirement("RH0001-007")]
+    public async Task InvalidDesignSettingsAreReported()
+    {
+        const string configuration = """{ "design": { "maximumMethodLines": 50.0, "maximumTypeLines": "500", "maximumTestTypeLines": 0, "maximumFileLines": 900 } }""";
+
+        await VerifyConfiguration(configuration,
+                                  InvalidConfiguration("The 'design.maximumMethodLines' setting must be a whole number from 1 to 2147483647.", 1, 37),
+                                  InvalidConfiguration("The 'design.maximumTypeLines' setting must be a whole number from 1 to 2147483647.", 1, 64),
+                                  InvalidConfiguration("The 'design.maximumTestTypeLines' setting must be a whole number from 1 to 2147483647.", 1, 94),
+                                  InvalidConfiguration("Unknown configuration setting 'design.maximumFileLines'.", 1, 98));
+    }
+
+    /// <summary>
+    /// Verifies that every value that is not a JSON number written as a whole number from 1 to 2147483647 is reported
+    /// on the value
+    /// </summary>
+    /// <param name="value">Invalid value</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-007")]
+    [DataRow("0")]
+    [DataRow("-1")]
+    [DataRow("-60")]
+    [DataRow("2.5")]
+    [DataRow("50.0")]
+    [DataRow("1.0")]
+    [DataRow("1e2")]
+    [DataRow("5e1")]
+    [DataRow("5E1")]
+    [DataRow("1e+2")]
+    [DataRow("2147483648")]
+    [DataRow("99999999999999999999")]
+    [DataRow("null")]
+    [DataRow("true")]
+    [DataRow("false")]
+    [DataRow("[ 50 ]")]
+    [DataRow("{ }")]
+    public async Task NonWholeNumberValueIsReported(string value)
+    {
+        await VerifyConfiguration($$"""{ "design": { "maximumMethodLines": {{value}} } }""",
+                                  InvalidConfiguration("The 'design.maximumMethodLines' setting must be a whole number from 1 to 2147483647.", 1, 37));
+    }
+
+    /// <summary>
+    /// Verifies that a string value is reported, also one that holds a valid number, located on the text of the
+    /// string as every other string value of the configuration is
+    /// </summary>
+    /// <param name="value">Text of the string value</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-007")]
+    [DataRow("50")]
+    [DataRow("fifty")]
+    public async Task StringValueIsReported(string value)
+    {
+        await VerifyConfiguration($$"""{ "design": { "maximumMethodLines": "{{value}}" } }""",
+                                  InvalidConfiguration("The 'design.maximumMethodLines' setting must be a whole number from 1 to 2147483647.", 1, 38));
+    }
+
+    /// <summary>
+    /// Verifies that an invalid value is reported for each of the four settings, with the setting's name in the
+    /// message
+    /// </summary>
+    /// <param name="settingName">Name of the setting</param>
+    /// <param name="column">Column of the value</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-007")]
+    [DataRow("maximumMethodLines", 37)]
+    [DataRow("maximumTestMethodLines", 41)]
+    [DataRow("maximumTypeLines", 35)]
+    [DataRow("maximumTestTypeLines", 39)]
+    public async Task InvalidValueIsReportedForEverySetting(string settingName, int column)
+    {
+        await VerifyConfiguration($$"""{ "design": { "{{settingName}}": 0 } }""",
+                                  InvalidConfiguration($"The 'design.{settingName}' setting must be a whole number from 1 to 2147483647.", 1, column));
+    }
+
+    /// <summary>
+    /// Verifies that a setting the <c>design</c> section does not know is reported on its property name, also one that
+    /// differs from a known setting only in letter case
+    /// </summary>
+    /// <param name="settingName">Name of the unknown setting</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-007")]
+    [DataRow("maximumFileLines")]
+    [DataRow("MaximumMethodLines")]
+    [DataRow("allowedNamespaceDeclarations")]
+    public async Task UnknownDesignSettingIsReported(string settingName)
+    {
+        await VerifyConfiguration($$"""{ "design": { "{{settingName}}": 900 } }""",
+                                  InvalidConfiguration($"Unknown configuration setting 'design.{settingName}'.", 1, 16));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>design</c> section whose value is not an object is reported on the value
+    /// </summary>
+    /// <param name="value">Value of the section</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-004")]
+    [DataRow("1")]
+    [DataRow("[ ]")]
+    [DataRow("null")]
+    public async Task DesignSectionMustBeObject(string value)
+    {
+        await VerifyConfiguration($$"""{ "design": {{value}} }""", InvalidConfiguration("The 'design' section must be a JSON object.", 1, 13));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>design</c> section next to the other sections is valid
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [Requirement("RH0001-004")]
+    [Requirement("RH0001-007")]
+    public async Task DesignSectionNextToOtherSectionsIsValid()
+    {
+        const string configuration = """
+                                     {
+                                       "naming": { "allowedNamespaceDeclarations": [ "TestNamespace" ] },
+                                       "copyright": { "copyrightText": "// Copyright (c) {company}.", "company": "Example" },
+                                       "design": { "maximumMethodLines": 60, "maximumTypeLines": 500 }
+                                     }
+                                     """;
+
+        await VerifyConfiguration(configuration);
+    }
+
     #endregion // Tests
 
     #region Methods

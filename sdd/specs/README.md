@@ -33,6 +33,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [shared/expression-body-conversion.md](shared/expression-body-conversion.md) | SHARED-BODY | `ExpressionBodyAnalyzerBase<TNode>`, `ExpressionBodyToBlockCodeFixProviderBase<TNode>`, `ExpressionBodyCodeFixUtilities`, `ExpressionBodyRewriteUtilities` |
 | [shared/fluent-chain-layout.md](shared/fluent-chain-layout.md) | SHARED-CHAIN | `FluentChain`, `FluentChainLink`, `FluentChainAttachedPart`, `FluentChainUtilities`, `FluentChainAnalyzerBase`, `FluentChainCodeFixHelper` |
 | [shared/initializer-layout.md](shared/initializer-layout.md) | SHARED-INIT | `InitializerLayoutAnalysisUtilities` |
+| [shared/line-count.md](shared/line-count.md) | SHARED-LINES | `LineCountAnalyzerBase` |
 | [shared/line-join-rules.md](shared/line-join-rules.md) | SHARED-JOIN | `SyntaxTreeErrorVerdictCache` |
 | [shared/member-region-grouping.md](shared/member-region-grouping.md) | SHARED-REGGROUP | `MembersShouldBeGroupedByRegionsAnalyzerBase`, `NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase`, `OverrideMemberUtilities`, `InterfaceImplementationUtilities` |
 | [shared/modifier-ordering.md](shared/modifier-ordering.md) | SHARED-MODORDER | `ModifierOrderingUtilities`, `ModifierOrderingCodeFixProviderBase` |
@@ -63,6 +64,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH2005.md](analyzer/RH2005.md) | RH2005 | `RH2005FieldsMustBePrivateAnalyzer`, `RH2005FieldsMustBePrivateCodeFixProvider`, `DeclarationModifierUtilities` |
 | [analyzer/RH2006.md](analyzer/RH2006.md) | RH2006 | `RH2006DebugAssertMustProvideMessageTextAnalyzer` |
 | [analyzer/RH2007.md](analyzer/RH2007.md) | RH2007 | `RH2007DebugFailMustProvideMessageTextAnalyzer` |
+| [analyzer/RH2008.md](analyzer/RH2008.md) | RH2008 | `RH2008MethodsShouldNotExceedTheLineLimitAnalyzer` |
 | [analyzer/RH2101.md](analyzer/RH2101.md) | RH2101 | `RH2101NestedClassesShouldNotBeUsedAnalyzer` |
 | [analyzer/RH2102.md](analyzer/RH2102.md) | RH2102 | `RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzer` |
 | [analyzer/RH2103.md](analyzer/RH2103.md) | RH2103 | `RH2103StructsShouldNotUseParameterizedPrimaryConstructorsAnalyzer` |
@@ -73,6 +75,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH2108.md](analyzer/RH2108.md) | RH2108 | `RH2108NestedDelegatesShouldNotBeUsedAnalyzer` |
 | [analyzer/RH2109.md](analyzer/RH2109.md) | RH2109 | `RH2109RazorCodeBlocksShouldNotBeUsedAnalyzer` |
 | [analyzer/RH2110.md](analyzer/RH2110.md) | RH2110 | `RH2110NestedUnionsShouldNotBeUsedAnalyzer` |
+| [analyzer/RH2111.md](analyzer/RH2111.md) | RH2111 | `RH2111TypesShouldNotExceedTheLineLimitAnalyzer` |
 | [analyzer/RH3001.md](analyzer/RH3001.md) | RH3001 | `RH3001NotOperatorShouldNotBeUsedAnalyzer`, `RH3001NotOperatorShouldNotBeUsedCodeFixProvider` |
 | [analyzer/RH3002.md](analyzer/RH3002.md) | RH3002 | `RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer`, `RH3002StatementMustNotUseUnnecessaryParenthesesCodeFixProvider` |
 | [analyzer/RH3003.md](analyzer/RH3003.md) | RH3003 | `RH3003UseStringEmptyForEmptyStringsAnalyzer`, `RH3003UseStringEmptyForEmptyStringsCodeFixProvider` |

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Rules.Design;
 using Reihitsu.Analyzer.Rules.Naming;
 using Reihitsu.SelfHosting.Test.Utilities;
 
@@ -21,6 +22,12 @@ namespace Reihitsu.SelfHosting.Test.Analyzers;
 public sealed class AnalyzerViolationReportTests
 {
     #region Fields
+
+    /// <summary>
+    /// Analyzers the self-hosting scan deliberately leaves out, ordered by name: the line-count rules, which this
+    /// repository turns off until it has decided its own limits
+    /// </summary>
+    private static readonly string[] _analyzersLeftOutOfTheScan = [nameof(RH2008MethodsShouldNotExceedTheLineLimitAnalyzer), nameof(RH2111TypesShouldNotExceedTheLineLimitAnalyzer)];
 
     /// <summary>
     /// Root that the synthetic source files are placed under; it is only used as a path prefix and never created
@@ -56,8 +63,8 @@ public sealed class AnalyzerViolationReportTests
 
     /// <summary>
     /// Verifies that the rows are exactly the C# analyzers Roslyn's own discovery finds in the analyzer assembly, the way
-    /// the compiler loads them from the package: no analyzer the compiler runs goes without a row, and no row runs a type
-    /// the compiler would not load
+    /// the compiler loads them from the package: no analyzer the compiler runs goes without a row, except the analyzers
+    /// the scan deliberately leaves out, and no row runs a type the compiler would not load
     /// </summary>
     [TestMethod]
     public void AnalyzerRowsMatchTheAnalyzersTheCompilerLoadsFromTheAnalyzerAssembly()
@@ -80,8 +87,23 @@ public sealed class AnalyzerViolationReportTests
         // Assert
         Assert.IsEmpty(loadFailures, $"Roslyn failed to load analyzers:\n{string.Join("\n", loadFailures)}");
         Assert.IsGreaterThan(0, compilerAnalyzerNames.Count, "Roslyn found no analyzer in the analyzer assembly.");
-        Assert.IsEmpty(analyzersWithoutRow, $"Analyzers the compiler loads but no row runs: {string.Join(", ", analyzersWithoutRow)}");
+        Assert.AreSequenceEqual(_analyzersLeftOutOfTheScan, analyzersWithoutRow, $"Analyzers the compiler loads but no row runs: {string.Join(", ", analyzersWithoutRow)}");
         Assert.IsEmpty(rowsWithoutAnalyzer, $"Rows for types the compiler does not load as analyzers: {string.Join(", ", rowsWithoutAnalyzer)}");
+    }
+
+    /// <summary>
+    /// Verifies that the line-count rules RH2008 and RH2111 have no row: this repository turns both off until it has
+    /// decided its own limits, so the scan must not judge its source against them
+    /// </summary>
+    [TestMethod]
+    public void LineCountAnalyzersHaveNoRow()
+    {
+        // Act
+        var names = AnalyzerSelfHostingTests.AnalyzerNames.ToList();
+
+        // Assert
+        Assert.DoesNotContain(nameof(RH2008MethodsShouldNotExceedTheLineLimitAnalyzer), names);
+        Assert.DoesNotContain(nameof(RH2111TypesShouldNotExceedTheLineLimitAnalyzer), names);
     }
 
     /// <summary>
