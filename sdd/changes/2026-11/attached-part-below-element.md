@@ -301,7 +301,7 @@ class C
 After: the file is unchanged, and the CLI reports
 
 ```
-Error: <file>(5,21): unsupported syntax: a comment or directive in front of an argument list, an element access, or a null-forgiving operator. The file was left unchanged.
+error: <file>(5,21): unsupported syntax: a comment or directive in front of an argument list, an element access, or a null-forgiving operator. The file was left unchanged.
 ```
 
 Input — a null-forgiving operator below a comment line:
@@ -341,7 +341,7 @@ class C
 }
 ```
 
-After: the file is unchanged, and the CLI reports `Error: <file>(8,13): unsupported syntax: a comment or directive in front of an argument list, an element access, or a null-forgiving operator. The file was left unchanged.`
+After: the file is unchanged, and the CLI reports `error: <file>(8,13): unsupported syntax: a comment or directive in front of an argument list, an element access, or a null-forgiving operator. The file was left unchanged.`
 
 Input — an element access in a chain with links, below a comment:
 
@@ -359,7 +359,7 @@ class C
 }
 ```
 
-Before (`main`): unchanged; `[0]` is aligned to the chain's links. After: the file is unchanged, and the CLI reports `Error: <file>(8,32): unsupported syntax: a comment or directive in front of an argument list, an element access, or a null-forgiving operator. The file was left unchanged.`
+Before (`main`): unchanged; `[0]` is aligned to the chain's links. After: the file is unchanged, and the CLI reports `error: <file>(8,32): unsupported syntax: a comment or directive in front of an argument list, an element access, or a null-forgiving operator. The file was left unchanged.`
 
 Input — a conditional group that chooses between two argument lists:
 
@@ -405,7 +405,7 @@ class C
 }
 ```
 
-After: the file is unchanged, in every build, and the CLI reports `Error: <file>(6,1): unsupported syntax: a comment or directive in front of an argument list, an element access, or a null-forgiving operator. The file was left unchanged.` Written around the whole statement, the same choice is formatted.
+After: the file is unchanged, in every build, and the CLI reports `error: <file>(6,1): unsupported syntax: a comment or directive in front of an argument list, an element access, or a null-forgiving operator. The file was left unchanged.` Written around the whole statement, the same choice is formatted.
 
 Input — block comments in the gap on one line; the whole file is refused, also the code elsewhere in it that the formatter would correct:
 
@@ -423,7 +423,7 @@ class C{
 }
 ```
 
-Before (`main`): only the brace of `class C{` moves to its own line; both comments stay. After: the file is unchanged, `class C{` included, and the CLI reports `Error: <file>(4,20): unsupported syntax: a comment or directive in front of an argument list, an element access, or a null-forgiving operator. The file was left unchanged.`
+Before (`main`): only the brace of `class C{` moves to its own line; both comments stay. After: the file is unchanged, `class C{` included, and the CLI reports `error: <file>(4,20): unsupported syntax: a comment or directive in front of an argument list, an element access, or a null-forgiving operator. The file was left unchanged.`
 
 Input — a block comment between a collection expression's `with` and its argument list, on one line:
 
@@ -447,7 +447,7 @@ Before (`main`): the space behind the comment is removed (FMT-SPACE-028).
         List<string> d = [with /* size */(4)];
 ```
 
-After: the file is unchanged, and the CLI reports `Error: <file>(7,32): unsupported syntax: a comment or directive in front of an argument list, an element access, or a null-forgiving operator. The file was left unchanged.`
+After: the file is unchanged, and the CLI reports `error: <file>(7,32): unsupported syntax: a comment or directive in front of an argument list, an element access, or a null-forgiving operator. The file was left unchanged.`
 
 Input — a comment between the `?` and the `[` of a conditional element access:
 
@@ -475,7 +475,7 @@ class C
 }
 ```
 
-After: the file is unchanged, and the CLI reports `Error: <file>(5,19): unsupported syntax: a comment or directive in front of an argument list, an element access, or a null-forgiving operator. The file was left unchanged.`
+After: the file is unchanged, and the CLI reports `error: <file>(5,19): unsupported syntax: a comment or directive in front of an argument list, an element access, or a null-forgiving operator. The file was left unchanged.`
 
 The analyzers do not change: no analyzer rule reports these comments, and analyzers do not consult the precheck. No rule page changes.
 
@@ -624,7 +624,7 @@ FMT-BREAK-040 states the join for every such part, so FMT-BREAK-020 (in a chain)
 
 ### Deleted
 
-- `ArgumentListLineStartRewriter.CanJoin`: the `LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, token) == false` term, and the remarks' sentence that a gap holding a comment, a directive, or disabled text is not joined. The term tests exactly the trailing trivia of the token in front of an argument list's `(` and the `(`'s leading trivia for comments, directives, and disabled text — FMT-UNSUP-014's place for the argument lists FMT-BREAK-039 names, which are the ones `IsArgumentListOpenParenthesis` admits. `CanJoin` joins only when the token in front lies inside the root, so every gap it tests lies between two tokens of the input, and a refused input never reaches it (FMT-UNSUP-003).
+- `AttachedPartLineStartRewriter.CanJoin`, formerly `ArgumentListLineStartRewriter.CanJoin` (the change renames the type when it makes it the one owner of every attached part's gaps): the `LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, token) == false` term, and the remarks' sentence that a gap holding a comment, a directive, or disabled text is not joined. The term tested exactly the trailing trivia of the token in front of an argument list's `(` and the `(`'s leading trivia for comments, directives, and disabled text — FMT-UNSUP-014's place for the argument lists FMT-BREAK-039 names, which were the ones `main`'s `IsArgumentListOpenParenthesis` admitted and which `AttachedPartGapUtilities.IsAttachedPartGap` now admits together with the other attached parts. `CanJoin` joins only when the token in front lies inside the root, so every gap it tests lies between two tokens of the input, and a refused input never reaches it (FMT-UNSUP-003).
 - `MethodChainAlignmentContributor.Contribute`: the column of an attached part's first token that starts a line — `LayoutComputer.SetIfFirstOnLine(attachedPart.FirstToken, column, "MethodChainAttachedPart", model)` with its choice between the root column and the anchor column — and the class summary's sentence about it. An attached part's first token starts a line only when the gap in front of it holds a line break the line-break phase did not join. FMT-BREAK-039 and FMT-BREAK-040 join every such gap of a chain inside the input unless a comment, a directive, or disabled text stands in it (on `main` the chain rewriter and the argument-list rewriter already did so in a chain with links, which is the only chain the loop runs for), and FMT-UNSUP-014 refuses every input that holds one there. With the declaration no supported input reaches the loop. `main`'s output for it is change 6's chain example.
 - The refusal the join of FMT-BREAK-040 would need for the gap in front of the part's first token. On `main` that gap is joined by `ChainLineBreakRewriter.CloseGap` for an attached part's first token (in `NormalizeChain` and `JoinConditionalElementAccesses`) and by `ListElementInteriorJoinRewriter.CanJoin` inside a list element, each behind `WouldJoinAcrossUnjoinableTrivia`; decision 3 of the run moves these joins to one owner, and that owner carries no copy of FMT-BREAK-001's refusal for the gap in front of the part.
 - The refusal the FMT-BREAK-040 owner would need for the gap between a conditional element access's `?` and `[`. On `main` that gap is joined by `ChainLineBreakRewriter.CloseInnerGaps` over the part's tokens (in `NormalizeChain` and `JoinConditionalElementAccesses`), which refuses through `CloseGap`'s `WouldJoinAcrossUnjoinableTrivia` term; the part's tokens are the `?` and the `[`, behind a `!` when one stands in front (`FluentChain.GetConditionalTokens`), and every gap between them is in the shape. Decision 3 moves the join to one owner, and that owner carries no refusal for it. `CloseGap` and `CloseInnerGaps` themselves stay for link operators (*Checked and kept*).
