@@ -39,4 +39,5 @@
 - Audited SHA: 2e8c96842194b3570639c73d8df857ab058f0b65 (main 074661f). Auditor: pass, text cleanup (09-auditor.md, c245622).
 - Text cleanup worklist: #1 change doc line ~536 drop the "derived, not observed" parenthetical for change 12 → spec author (10); #2 CliHiddenCodeEndToEndTests.cs summaries "change's the … example" → cleaner (11).
 - Text fixes done (29c01b8, b433af1); text-only proof vs audited SHA passes, no second audit.
-- Next: validator (12), lane check, issue manager (accessor-arrow follow-up), note, publish.
+- Issue manager filed #1863 (accessor arrow follow-up).
+- Next: validator (12) result, lane check, note, publish.
