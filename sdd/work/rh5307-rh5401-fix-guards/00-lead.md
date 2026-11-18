@@ -28,4 +28,5 @@ None yet.
 ## State
 
 - Last step: spec author (01, commit 3501371), change doc Draft. Open output question: 01 Q3 (attribute on the property's line).
-- Skeptic done (02, 0be3e5b): proceed. Next: fresh spec author amendment + drafts of output questions; then batch to maintainer: 01 Q3, 02 Q1 (RH5401 page wording), 02 Q2 (comment between attribute and property), new RH5307 members.
+- Skeptic done (02). Spec author amendment done (03, dba3ee9), change doc Draft.
+- WAITING: output-question batch 1 posted to maintainer (03 Q1–Q4). Next after answers: route answers to spec author (Status Accepted), then test implementer.
