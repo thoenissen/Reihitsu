@@ -23,6 +23,8 @@
 | 6 | skeptic | Architecture finding: comment-tail class (SHARED-COMMENT-012) fails in every non-chain rewriter | Not a finding of this run: decision 3 keeps the chain branch, so the run neither depends on nor exposes it. Follow-up bug (it violates unchanged requirements and leaves RH5302/RH5308 fixes without progress on formatter output), carrying the FMT-BREAK-037 output question for cell F. Escalation 10 asked now | `squad/README.md`, Architecture findings: unrelated structural defect → follow-up | No output change in this run | — |
 | 7 | skeptic | #1651 fact evaluated twice at the list site | Accept; pure predicate | Skeptic recommendation | Internal | — |
 | 8 | test implementer | Two new chain tests lock the member name behind a `//` comment or a directive between `.` and the member name at the statement's column (possible indentation defect) | Keep the tests as characterization of today's output; drop the candidate: a comment or directive between `.` and its member name is a rare input class (`AGENTS.md`, Code-fix coverage) | Not a follow-up per `lead.md`, Follow-ups | The run changes no output there; the tests lock `main`'s output | c92003c |
+| 9 | implementer | `LineBreakRewriterTests.SplitsMixedLineArgumentsUsingConfiguredLineFeed` asserts the line-break phase's own text with the space before the inserted LF removed; the phase now keeps it | The test's expectation changes to allow the whitespace in front of the line break; its purpose (the break is LF, no CRLF) stays. Routed to the test implementer | Decision 4: phase-level whitespace is internal; cleanup owns it (FMT-BREAK-029, FMT-CLEAN-001) | Final formatter output unchanged; the test asserts a single phase's output | — |
+| 10 | implementer | Selfhosting `WorkingDocumentsDirectoryContainsNoFiles` fails | Expected while `sdd/work/` exists; it is deleted before publishing | `lead.md` section 8 | Internal | — |
 
 ## Follow-up candidates
 
@@ -33,4 +35,5 @@
 - Last step: skeptic (`01-skeptic.md`, f206305): #1640 proceed; #1651 proceed narrower.
 - Escalation 10 answered (A, not declared).
 - Test implementer done (`02-test-implementer.md`, c92003c); lane check confirmed.
-- Next: implementer.
+- Implementer done (`03-implementer.md`, c35dfca): one disputed phase-level test.
+- Next: test implementer adjusts that test (decision 9), then cleaner.
