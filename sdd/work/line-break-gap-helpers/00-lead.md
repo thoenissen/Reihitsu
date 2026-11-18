@@ -25,6 +25,7 @@
 | 8 | test implementer | Two new chain tests lock the member name behind a `//` comment or a directive between `.` and the member name at the statement's column (possible indentation defect) | Keep the tests as characterization of today's output; drop the candidate: a comment or directive between `.` and its member name is a rare input class (`AGENTS.md`, Code-fix coverage) | Not a follow-up per `lead.md`, Follow-ups | The run changes no output there; the tests lock `main`'s output | c92003c |
 | 9 | implementer | `LineBreakRewriterTests.SplitsMixedLineArgumentsUsingConfiguredLineFeed` asserts the line-break phase's own text with the space before the inserted LF removed; the phase now keeps it | The test's expectation changes to allow the whitespace in front of the line break; its purpose (the break is LF, no CRLF) stays. Routed to the test implementer | Decision 4: phase-level whitespace is internal; cleanup owns it (FMT-BREAK-029, FMT-CLEAN-001) | Final formatter output unchanged; the test asserts a single phase's output | f1a1732 |
 | 10 | implementer | Selfhosting `WorkingDocumentsDirectoryContainsNoFiles` fails | Expected while `sdd/work/` exists; it is deleted before publishing | `lead.md` section 8 | Internal | — |
+| 11 | auditor | Audit findings #1 (`CollapseSeparatorsToPreviousElementLine` keeps its own copy of the check) and #2 (`FMT-BREAK-029` tag on a test the requirement does not cover) | Repair round 1: #1 to the implementer (same requirement, #1651 scope), #2 to the test implementer (PR-introduced) | Both in the run's scope; auditor showed #1 leaves formatter tests green | Final output unchanged (formatter suite green in the auditor's trial) | — |
 
 ## Follow-up candidates
 
@@ -39,4 +40,6 @@
 - Test implementer follow-up done (`04-test-implementer.md`, f1a1732): formatter 5781/0.
 - Cleaner done (`05-cleaner.md`, 510ec3b): clean.
 - Spec checker done (`06-spec-checker.md`, fec9ddd): consistent. main not moved; build green.
-- Next: auditor.
+- Audit 1 of eadb480 (`07-auditor.md`, 2ea11cf): findings #1 medium, #2 low.
+- Repair round 1 open: worklist #1 implementer, #2 test implementer; then cleaner, spec checker, auditor (repair only).
+- Next: test implementer (#2), then implementer (#1).
