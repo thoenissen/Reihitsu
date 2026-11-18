@@ -5,7 +5,7 @@
 | ID prefix | SHARED-GETONLY |
 | Status | Active |
 | Code owners | `GetOnlyMemberExpressionBodyRewriteUtilities`, `GetOnlyMemberExpressionBodyAnalyzerBase`, `GetOnlyMemberExpressionBodyCodeFixProviderBase` |
-| Uses | FMT-STRUCT-009, FMT-STRUCT-011, FMT-STRUCT-012, FMT-STRUCT-013, FMT-STRUCT-014, FMT-STRUCT-015, FMT-UNSUP-001, FMT-UNSUP-007, FMT-UNSUP-012, FMT-UNSUP-013, SHARED-BODY-001, SHARED-DIAG-011, SHARED-FIX-003, SHARED-FIX-006, SHARED-FIX-007, SHARED-FIX-010 |
+| Uses | FMT-STRUCT-009, FMT-STRUCT-011, FMT-STRUCT-012, FMT-STRUCT-013, FMT-STRUCT-014, FMT-STRUCT-015, FMT-UNSUP-001, FMT-UNSUP-007, FMT-UNSUP-012, FMT-UNSUP-013, SHARED-BODY-001, SHARED-DIAG-011, SHARED-FIX-003, SHARED-FIX-006, SHARED-FIX-007, SHARED-FIX-010, RH3202-002, RH5417-003 |
 
 This spec covers what the rules share that report a get-only member whose accessor list the formatter replaces with an expression body — RH3209 (properties) and RH3210 (indexers): which declarations are reported, where the diagnostic is, what the code fix produces, and when it is withheld. Each rule's spec states which kind of member it reports. "The member" below is the property or indexer declaration the rule checks; "the getter" is the only accessor of its accessor list. The formatter's counterparts are FMT-STRUCT-014 and FMT-STRUCT-015. The decision whether a get-only member is converted, and the conversion itself, have one owner, `GetOnlyMemberExpressionBodyRewriteUtilities` in `Reihitsu.Core`, which the formatter's get-only transform, the analyzers, and the code fixes of both rules use. The analyzers of both rules share `GetOnlyMemberExpressionBodyAnalyzerBase`, which reports the member and places the diagnostic; their code fixes share `GetOnlyMemberExpressionBodyCodeFixProviderBase`, which decides whether the fix is offered and writes its result.
 
@@ -385,5 +385,80 @@ class C
     {
         return value;
     }
+}
+```
+
+### SHARED-GETONLY-008 — The fix and a member that shares its line
+
+When the member the fix converts shares its line with another member of the same member list, the fix MUST give the converted member its own line as SHARED-FIX-007 (*Shared line*) states, but only when the line on which the member starts begins with a member of that list, as RH3202-002 and RH5417-003 define it. When that line does not begin with a member — it begins with the header and opening brace of a type written on one line, the continuation of a sibling's wrapped initializer, a statement or closing brace inside a sibling's body, the closing line of a sibling's multi-line string literal, or the tail of a multi-line comment — the fix MUST NOT separate the member from the members on its lines: they stay where they are, and only the accessor list is replaced (SHARED-GETONLY-005).
+
+The code fix MUST NOT be offered when the member shares its line with another member of the same list across a gap that holds a comment: the trivia between the member's first token and the token in front of it, or between its last token and the token behind it, where that other token belongs to another member of the list, holds a comment and no line break. This holds whether or not the line begins with a member, and it takes precedence over SHARED-GETONLY-003 and SHARED-GETONLY-005, under which a comment behind only the closing brace or only the getter's semicolon follows the new semicolon. A gap that holds a line break is not a shared line, whatever comments it holds, and is not this paragraph's; a single-line comment always ends its line, so only a delimited comment can stand in such a gap, and a directive always stands on a line of its own.
+
+Why: The fix changes one member; the spacing between members is the author's, and where the members have to be separated, the formatter separates them from the column of the member that begins the line (SHARED-FIX-007). On a line that does not begin with a member, that column is not a member column, and finding it would repeat the formatter's indentation in the fix, which is why the sibling rules RH3202 and RH5417 leave such lines as written; one owner of that decision keeps the families alike. A comment between two members on one line belongs to neither of them: separating them has to decide on which line it stays, which is the formatter's carry-over of trivia at a member boundary, and keeping them on one line leaves the shape SHARED-FIX-007 forbids. Two members on one line with a comment between them already break the one-member-per-line layout, so the class is rare, and the fix is withheld for it by a cheap check of the gap's trivia rather than by modelling where the comment goes (`AGENTS.md`, *Code-fix coverage*); a reported diagnostic without a fix is a supported end state.
+
+Example — RH3209, the converted member and a sibling on one line:
+
+```csharp
+class C
+{
+    public int A {|RH3209:{ get => 1; }|} public int B => 2;
+
+    public int D => 3; public int E {|RH3209:{ get => 4; }|}
+}
+```
+
+```csharp
+class C
+{
+    public int A => 1;
+    public int B => 2;
+
+    public int D => 3;
+    public int E => 4;
+}
+```
+
+Example — RH3209, a type written on one line; the line begins with the type's header, so the members stay on it:
+
+```csharp
+namespace N
+{
+    class C { private int _value; public int A {|RH3209:{ get => _value; }|} }
+}
+```
+
+```csharp
+namespace N
+{
+    class C { private int _value; public int A => _value; }
+}
+```
+
+Example — RH3209, a comment in the gap to a sibling on the same line:
+
+```csharp
+class C
+{
+    public int A {|RH3209:{ get => 1; }|} /* c */ public int B => 2;
+
+    public int D => 3; /* c */ public int E {|RH3209:{ get => 4; }|}
+}
+```
+
+is reported, and no code fix is offered. The other side of that condition — the comment and the sibling on separate lines — is reported with a fix:
+
+```csharp
+class C
+{
+    public int A {|RH3209:{ get => 1; }|} /* c */
+    public int B => 2;
+}
+```
+
+```csharp
+class C
+{
+    public int A => 1; /* c */
+    public int B => 2;
 }
 ```

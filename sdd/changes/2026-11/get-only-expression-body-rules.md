@@ -4,7 +4,7 @@
 |---|---|
 | Status | Accepted |
 | Date | 2026-11 |
-| Affected requirements | new specs: RH3209 (RH3209-001), RH3210 (RH3210-001), shared/get-only-expression-bodies.md (SHARED-GETONLY-001 to SHARED-GETONLY-007) |
+| Affected requirements | new specs: RH3209 (RH3209-001), RH3210 (RH3210-001), shared/get-only-expression-bodies.md (SHARED-GETONLY-001 to SHARED-GETONLY-008) |
 
 ## What
 
