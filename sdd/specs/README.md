@@ -32,6 +32,7 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [shared/empty-type-declarations.md](shared/empty-type-declarations.md) | SHARED-EMPTY | `EmptyTypeDeclarationShouldUseSemicolonAnalyzerBase`, `EmptyTypeDeclarationShouldUseSemicolonCodeFixProviderBase`, `EmptyTypeDeclarationSemicolonAnalysisUtilities` |
 | [shared/expression-body-conversion.md](shared/expression-body-conversion.md) | SHARED-BODY | `ExpressionBodyAnalyzerBase<TNode>`, `ExpressionBodyToBlockCodeFixProviderBase<TNode>`, `ExpressionBodyCodeFixUtilities`, `ExpressionBodyRewriteUtilities` |
 | [shared/fluent-chain-layout.md](shared/fluent-chain-layout.md) | SHARED-CHAIN | `FluentChain`, `FluentChainLink`, `FluentChainAttachedPart`, `FluentChainUtilities`, `FluentChainAnalyzerBase`, `FluentChainCodeFixHelper` |
+| [shared/get-only-expression-bodies.md](shared/get-only-expression-bodies.md) | SHARED-GETONLY | `GetOnlyMemberExpressionBodyRewriteUtilities`, `GetOnlyMemberExpressionBodyAnalyzerBase`, `GetOnlyMemberExpressionBodyCodeFixProviderBase` |
 | [shared/initializer-layout.md](shared/initializer-layout.md) | SHARED-INIT | `InitializerLayoutAnalysisUtilities` |
 | [shared/line-count.md](shared/line-count.md) | SHARED-LINES | `LineCountAnalyzerBase` |
 | [shared/line-join-rules.md](shared/line-join-rules.md) | SHARED-JOIN | `SyntaxTreeErrorVerdictCache` |
@@ -98,6 +99,8 @@ One row per spec file under `sdd/specs/`. Add the row in the PR that adds the sp
 | [analyzer/RH3206.md](analyzer/RH3206.md) | RH3206 | `RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer`, `RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedCodeFixProvider` |
 | [analyzer/RH3207.md](analyzer/RH3207.md) | RH3207 | `RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer`, `RH3207ExpressionStyleFinalizersShouldNotBeUsedCodeFixProvider` |
 | [analyzer/RH3208.md](analyzer/RH3208.md) | RH3208 | `RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer`, `RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedCodeFixProvider` |
+| [analyzer/RH3209.md](analyzer/RH3209.md) | RH3209 | `RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzer`, `RH3209GetOnlyPropertiesShouldUseAnExpressionBodyCodeFixProvider` |
+| [analyzer/RH3210.md](analyzer/RH3210.md) | RH3210 | `RH3210GetOnlyIndexersShouldUseAnExpressionBodyAnalyzer`, `RH3210GetOnlyIndexersShouldUseAnExpressionBodyCodeFixProvider` |
 | [analyzer/RH4001.md](analyzer/RH4001.md) | RH4001 | `RH4001TypeNameShouldMatchFileNameAnalyzer`, `RH4001TypeNameShouldMatchFileNameCodeFixProvider`, `RH4001TypeNameShouldMatchFileNameHelper` |
 | [analyzer/RH4002.md](analyzer/RH4002.md) | RH4002 | `RH4002ClassNameCasingAnalyzer`, `RH4002ClassNameCasingCodeFixProvider` |
 | [analyzer/RH4003.md](analyzer/RH4003.md) | RH4003 | `RH4003StructNameCasingAnalyzer`, `RH4003StructNameCasingCodeFixProvider` |

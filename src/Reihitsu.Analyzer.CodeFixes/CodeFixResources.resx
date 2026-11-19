@@ -369,6 +369,12 @@
   <data name="RH3208Title" xml:space="preserve">
     <value>Convert to block body</value>
   </data>
+  <data name="RH3209Title" xml:space="preserve">
+    <value>Convert to expression body</value>
+  </data>
+  <data name="RH3210Title" xml:space="preserve">
+    <value>Convert to expression body</value>
+  </data>
   <data name="RH5401Title" xml:space="preserve">
     <value>Collapse property to single line</value>
   </data>
