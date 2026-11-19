@@ -71,5 +71,6 @@ Batch 1 (before test implementer):
 - Implementer 16 done (af77361, d170808): all green.
 - Cleaner 17 done (400352d): member reorder only, Release clean.
 - Spec checker 18 (03aa494): one low finding — SHARED-GETONLY code owners miss ExpressionBodyCodeFixUtilities (and possibly BlankLineCodeFixUtilities).
-- Next: spec author 19 (owners), spec checker 20, auditor 21 (repair only), validator 22. (old:) spec checker 18, auditor 19 (repair only, audited base d7990b4), validator 20.
+- Spec author 19 (e6012b7): owners named in intro (one-spec-per-type rule). Merged main e3cf4cd (formatter line-break changes); Release build green; RH3202/3203/3208/3209/3210 tests 311/311.
+- Next: spec checker 20 and auditor 21 (repair + merge, base e3cf4cd) in parallel; validator 22. (old:) spec checker 18, auditor 19 (repair only, audited base d7990b4), validator 20.
 - (old) Repair round 1: test implementer 12 (shared-line tests + finding 2) and spec author 13 (finding 3) in parallel; then implementer 14; then cleaner, spec checker, auditor (repair only), validator.
