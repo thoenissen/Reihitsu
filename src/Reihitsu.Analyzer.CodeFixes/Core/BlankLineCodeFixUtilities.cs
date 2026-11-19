@@ -116,7 +116,9 @@ internal static class BlankLineCodeFixUtilities
     /// <summary>
     /// Determines whether a member shares a line with a sibling member across a comment: the member's first token and the
     /// token in front of it, or its last token and the token behind it, are separated by a gap to another member of the same
-    /// list that holds a comment and no line break (SHARED-GETONLY-008)
+    /// list that holds trivia other than whitespace, and no line break separates the two tokens
+    /// (<see cref="SyntaxTriviaUtilities.AreSeparatedByEndOfLine"/>, SHARED-GETONLY-008). Only a delimited comment can stand
+    /// in such a gap, a multi-line one included, because every other trivia but whitespace ends its line
     /// </summary>
     /// <param name="member">Member</param>
     /// <returns><see langword="true"/> if a comment separates the member from a sibling on one line</returns>
@@ -241,19 +243,19 @@ internal static class BlankLineCodeFixUtilities
     }
 
     /// <summary>
-    /// Determines whether the gap between a member and a sibling member holds a comment and no line break
+    /// Determines whether the gap between a member and a sibling member holds trivia other than whitespace and no line break
+    /// separates its two tokens (<see cref="SyntaxTriviaUtilities.AreSeparatedByEndOfLine"/>); a line break inside the text
+    /// of a multi-line comment does not separate them
     /// </summary>
     /// <param name="member">Member</param>
     /// <param name="left">Token in front of the gap</param>
     /// <param name="right">Token behind the gap</param>
-    /// <returns><see langword="true"/> if the gap holds a comment and no line break</returns>
+    /// <returns><see langword="true"/> if the gap holds trivia other than whitespace and no line break</returns>
     private static bool IsCommentGapToSiblingMember(MemberDeclarationSyntax member, SyntaxToken left, SyntaxToken right)
     {
-        var gap = left.TrailingTrivia.Concat(right.LeadingTrivia).ToList();
-
         return IsGapToSiblingMember(member, left, right)
-               && gap.Any(obj => obj.IsKind(SyntaxKind.SingleLineCommentTrivia) || obj.IsKind(SyntaxKind.MultiLineCommentTrivia))
-               && gap.All(obj => obj.ToFullString().IndexOf('\n') < 0);
+               && left.TrailingTrivia.Concat(right.LeadingTrivia).Any(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia) == false)
+               && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(left, right) == false;
     }
 
     /// <summary>
