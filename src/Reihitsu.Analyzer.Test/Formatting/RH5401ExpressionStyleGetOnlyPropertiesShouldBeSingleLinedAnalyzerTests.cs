@@ -1620,9 +1620,9 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
     }
 
     /// <summary>
-    /// Verifies the specification example: the fix is withheld, while the diagnostic stays, when an attribute list holds
-    /// a blank line, or a comment that starts its own line, between its brackets, whether or not the formatter splits the
-    /// list
+    /// Verifies the specification example: the fix is withheld, while the diagnostic stays, when an attribute list holds,
+    /// between its brackets, a blank line, a directive, disabled text, or a comment that starts its own line, whether or
+    /// not the formatter splits the list
     /// </summary>
     /// <param name="endOfLine">Line break of the document</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -1630,7 +1630,7 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
     [DataRow("\n")]
     [DataRow("\r\n")]
     [Requirement("RH5401-004")]
-    public async Task VerifyFixIsWithheldForABlankLineOrACommentOnItsOwnLineBetweenTheBracketsOfAnAttributeList(string endOfLine)
+    public async Task VerifyFixIsWithheldForABlankLineADirectiveDisabledTextOrACommentOnItsOwnLineBetweenTheBracketsOfAnAttributeList(string endOfLine)
     {
         const string source = """
                               using System;
@@ -1681,6 +1681,31 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
                                                 // why
                                                 "1")]
                                   int W
+                                      => 1;|}
+
+                                  {|RH5401:[Obsolete("a",
+                              #if DEBUG
+                                            false
+                              #else
+                                            true
+                              #endif
+                                            )]
+                                  int I
+                                      => 1;|}
+
+                                  {|RH5401:[Obsolete,
+                              #region R
+                                   CLSCompliant(false)
+                              #endregion
+                                  ]
+                                  int X
+                                      => 1;|}
+
+                                  #region R
+                                  {|RH5401:[Obsolete,
+                              #endregion
+                                   CLSCompliant(false)]
+                                  int Z
                                       => 1;|}
                               }
                               """;
@@ -2047,6 +2072,281 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
                                      [Obsolete("a", // c
                                                false)]
                                      int Y => 1;
+                                 }
+                                 """;
+
+        await VerifyCodeFixWithEndOfLine(testCode, fixedCode, endOfLine);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a conditional directive with disabled text inside
+    /// the argument list of an attribute
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForAConditionalDirectiveWithDisabledTextInsideTheArgumentsOfAnAttribute(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete("a",
+                              #if DEBUG
+                                            false
+                              #else
+                                            true
+                              #endif
+                                            )]
+                                  int I
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a <c>#region</c> and its <c>#endregion</c> between
+    /// the brackets of an attribute list
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForARegionBetweenTheBracketsOfAnAttributeList(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete,
+                              #region R
+                                   CLSCompliant(false)
+                              #endregion
+                                  ]
+                                  int X
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that one directive between the brackets of an attribute list withholds the fix, while the diagnostic
+    /// stays, also when its counterpart stands in front of the opening bracket
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForOneDirectiveBetweenTheBracketsOfAnAttributeListWhoseCounterpartStandsInFrontOfIt(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  #region R
+                                  {|RH5401:[Obsolete,
+                              #endregion
+                                   CLSCompliant(false)]
+                                  int Z
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a directive that is neither conditional nor a
+    /// region, here a pragma, inside the argument list of an attribute
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForAPragmaInsideTheArgumentsOfAnAttribute(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete("a",
+                              #pragma warning disable CS0618
+                              #pragma warning restore CS0618
+                                            false)]
+                                  int E
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a nullable directive inside the argument list of
+    /// an attribute
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForANullableDirectiveInsideTheArgumentsOfAnAttribute(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete("a",
+                              #nullable enable
+                                            false)]
+                                  int E
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for directives directly behind the opening bracket
+    /// and in front of the closing bracket of an attribute list
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForDirectivesBehindTheOpeningAndInFrontOfTheClosingBracketOfAnAttributeList(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[
+                              #region R
+                                   Obsolete
+                              #endregion
+                                  ]
+                                  int E
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for a directive in front of the closing bracket of an
+    /// attribute list that ends on the property's line
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForADirectiveInFrontOfTheClosingBracketOfAnAttributeListOnThePropertysLine(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete
+                              #pragma warning disable CS0618
+                                  ] int G
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is withheld, while the diagnostic stays, for disabled text of a branch the test compilation
+    /// does not compile between the brackets of an attribute list
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixIsWithheldForDisabledTextOfAnInactiveBranchBetweenTheBracketsOfAnAttributeList(string endOfLine)
+    {
+        const string source = """
+                              using System;
+
+                              class C
+                              {
+                                  {|RH5401:[Obsolete,
+                              #if NOT_DEFINED
+                                   CLSCompliant(false)
+                              #endif
+                                  ]
+                                  int E
+                                      => 1;|}
+                              }
+                              """;
+
+        await VerifyNoCodeFixIsOffered(ConvertEndOfLine(source, endOfLine));
+    }
+
+    /// <summary>
+    /// Verifies the specification example: a directive in front of the opening bracket of an attribute list, which is not
+    /// between its brackets, does not keep the fix from being offered, and the directives stay as written
+    /// </summary>
+    /// <param name="endOfLine">Line break of the document</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    [DataRow("\n")]
+    [DataRow("\r\n")]
+    [Requirement("RH5401-003")]
+    [Requirement("RH5401-004")]
+    public async Task VerifyFixKeepsADirectiveInFrontOfTheOpeningBracketOfAnAttributeList(string endOfLine)
+    {
+        const string testCode = """
+                                using System;
+
+                                class C
+                                {
+                                #pragma warning disable CS0618
+                                    {|RH5401:[Obsolete]
+                                    int E2
+                                        => 1;|}
+                                #pragma warning restore CS0618
+                                }
+                                """;
+        const string fixedCode = """
+                                 using System;
+
+                                 class C
+                                 {
+                                 #pragma warning disable CS0618
+                                     [Obsolete]
+                                     int E2 => 1;
+                                 #pragma warning restore CS0618
                                  }
                                  """;
 
