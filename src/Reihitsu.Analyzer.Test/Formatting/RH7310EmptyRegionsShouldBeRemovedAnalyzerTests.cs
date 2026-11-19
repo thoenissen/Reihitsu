@@ -73,7 +73,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH7310MessageFormat));
+        await Verify(testData, Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -168,7 +168,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH7310MessageFormat, 2));
+        await Verify(testData, Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -192,7 +192,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH7310MessageFormat));
+        await Verify(testData, Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -380,7 +380,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH7310MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -416,7 +416,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH7310MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -464,7 +464,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH7310MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -503,7 +503,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
                                       config.NumberOfIncrementalIterations = 2;
                                       config.NumberOfFixAllIterations = 2;
                                   },
-                     Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH7310MessageFormat));
+                     Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -816,7 +816,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH7310MessageFormat));
+        await Verify(testData, Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -834,7 +834,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
                                 public record R(int A);
                                 """;
 
-        await Verify(testData, Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH7310MessageFormat));
+        await Verify(testData, Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -869,7 +869,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : BatchCodeFixTestsB
         // lines with the region pair
         return new FixAllScenario(testData,
                                   resultData,
-                                  Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH7310MessageFormat, 2));
+                                  Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

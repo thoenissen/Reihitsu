@@ -50,7 +50,7 @@ public class RH5018LockStatementsShouldBePrecededByABlankLineFormatterTests : Fo
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5018LockStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 13, AnalyzerResources.RH5018MessageFormat));
+                              ExpectedDiagnostic(RH5018LockStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 13, MessageFormat));
     }
 
     #endregion // Tests

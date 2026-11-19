@@ -56,7 +56,7 @@ public class RH5510EnumAttributeListsMustFollowShapeRulesAnalyzerTests : BatchCo
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5510MessageFormat));
+                     Diagnostics(RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -114,7 +114,7 @@ public class RH5510EnumAttributeListsMustFollowShapeRulesAnalyzerTests : BatchCo
                                    """;
 
         await Verify(testData,
-                     Diagnostics(RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5510MessageFormat));
+                     Diagnostics(RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
                                                    RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
@@ -153,7 +153,7 @@ public class RH5510EnumAttributeListsMustFollowShapeRulesAnalyzerTests : BatchCo
                                 """;
 
         await Verify(testData,
-                     Diagnostics(RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5510MessageFormat));
+                     Diagnostics(RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -193,7 +193,7 @@ public class RH5510EnumAttributeListsMustFollowShapeRulesAnalyzerTests : BatchCo
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5510MessageFormat));
+                     Diagnostics(RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -234,7 +234,7 @@ public class RH5510EnumAttributeListsMustFollowShapeRulesAnalyzerTests : BatchCo
 
         await Verify(NormalizeToCarriageReturnLineFeed(testData),
                      NormalizeToCarriageReturnLineFeed(fixedData),
-                     Diagnostics(RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5510MessageFormat));
+                     Diagnostics(RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
 
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(RemoveMarkup(testData))), "Every line break the fix inserts must be CRLF.");
     }
@@ -359,7 +359,7 @@ public class RH5510EnumAttributeListsMustFollowShapeRulesAnalyzerTests : BatchCo
         // now stands.
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5510MessageFormat, 2),
+                                  Diagnostics(RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat, 2),
                                   Configure: config => config.NumberOfFixAllIterations = 1);
     }
 

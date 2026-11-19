@@ -42,7 +42,7 @@ public class RH5108ParameterListMustFollowDeclarationFormatterTests : FormatterT
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5108MessageFormat));
+                              Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

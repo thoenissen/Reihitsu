@@ -50,7 +50,7 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyFormatterTests
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5305MessageFormat));
+                              Diagnostics(RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -88,7 +88,7 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyFormatterTests
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5305MessageFormat));
+                              Diagnostics(RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -137,7 +137,7 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyFormatterTests
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5305MessageFormat));
+                              Diagnostics(RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

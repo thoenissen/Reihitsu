@@ -68,7 +68,7 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5108MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -153,7 +153,7 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5108MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -183,7 +183,7 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5108MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -219,7 +219,7 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5108MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -251,7 +251,7 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5108MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -283,7 +283,7 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5108MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -303,7 +303,7 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
                                  internal delegate void TestDelegate(int value);
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5108MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -323,7 +323,7 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
                                  internal record TestRecord(int Value);
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5108MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -343,7 +343,7 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
                                  internal record struct TestRecord(int Value);
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5108MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -421,7 +421,7 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
                                  }
                                  """;
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5108MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -537,7 +537,7 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : BatchCodeFi
         // occurrences are corrected independently
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5108MessageFormat, 2));
+                                  Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

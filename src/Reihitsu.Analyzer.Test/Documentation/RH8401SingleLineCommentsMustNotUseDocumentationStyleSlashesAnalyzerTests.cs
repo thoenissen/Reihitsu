@@ -57,7 +57,7 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, AnalyzerResources.RH8401MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -83,7 +83,7 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
 
         await Verify(source,
                      test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject),
-                     Diagnostics(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, AnalyzerResources.RH8401MessageFormat));
+                     Diagnostics(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -122,7 +122,7 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
         await Verify(source,
                      fixedSource,
                      test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject),
-                     Diagnostics(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, AnalyzerResources.RH8401MessageFormat));
+                     Diagnostics(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -162,7 +162,7 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, AnalyzerResources.RH8401MessageFormat, 2));
+        await Verify(source, fixedSource, Diagnostics(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -306,7 +306,7 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, AnalyzerResources.RH8401MessageFormat, 6));
+        await Verify(testData, Diagnostics(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, MessageFormat, 6));
     }
 
     /// <summary>
@@ -377,7 +377,7 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, AnalyzerResources.RH8401MessageFormat, 2));
+        await Verify(testData, fixedData, Diagnostics(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -587,7 +587,7 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
 
         await Verify(testData,
                      test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject),
-                     Diagnostics(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, AnalyzerResources.RH8401MessageFormat, 6));
+                     Diagnostics(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, MessageFormat, 6));
     }
 
     /// <summary>
@@ -795,7 +795,7 @@ public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
 
         // Both diagnostics belong to the same documentation comment and both fixes replace the identical
         // ParentTrivia.FullSpan, so the batch merge must apply that replacement once rather than twice
-        return new FixAllScenario(source, fixedSource, Diagnostics(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, AnalyzerResources.RH8401MessageFormat, 2));
+        return new FixAllScenario(source, fixedSource, Diagnostics(RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

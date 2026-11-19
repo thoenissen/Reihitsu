@@ -37,7 +37,7 @@ public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzerTes
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8033MessageFormat));
+        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -133,7 +133,7 @@ public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzerTes
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8033MessageFormat));
+        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -255,7 +255,7 @@ public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzerTes
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8033MessageFormat, 2));
+        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -305,7 +305,7 @@ public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzerTes
                                      </doc>
                                      """;
 
-        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", documentation)), Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8033MessageFormat));
+        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", documentation)), Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -370,7 +370,7 @@ public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzerTes
                                      </doc>
                                      """;
 
-        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", documentation)), Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8033MessageFormat));
+        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", documentation)), Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -413,7 +413,7 @@ public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzerTes
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8033MessageFormat, 4));
+        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -526,7 +526,7 @@ public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzerTes
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8033MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -550,7 +550,7 @@ public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzerTes
                               }
                               """;
 
-        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8033MessageFormat));
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -752,7 +752,7 @@ public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzerTes
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8033MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -787,7 +787,7 @@ public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzerTes
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8033MessageFormat));
+        await Verify(source, Diagnostics(RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

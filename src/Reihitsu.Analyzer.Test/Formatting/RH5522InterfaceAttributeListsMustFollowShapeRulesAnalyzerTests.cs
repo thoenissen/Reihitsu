@@ -56,7 +56,7 @@ public class RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5522MessageFormat));
+                     Diagnostics(RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -114,7 +114,7 @@ public class RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
                                    """;
 
         await Verify(testData,
-                     Diagnostics(RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5522MessageFormat));
+                     Diagnostics(RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
                                                    RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId,
@@ -151,7 +151,7 @@ public class RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
                                 """;
 
         await Verify(testData,
-                     Diagnostics(RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5522MessageFormat));
+                     Diagnostics(RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -191,7 +191,7 @@ public class RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5522MessageFormat));
+                     Diagnostics(RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -232,7 +232,7 @@ public class RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
 
         await Verify(NormalizeToCarriageReturnLineFeed(testData),
                      NormalizeToCarriageReturnLineFeed(fixedData),
-                     Diagnostics(RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5522MessageFormat));
+                     Diagnostics(RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
 
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(RemoveMarkup(testData))), "Every line break the fix inserts must be CRLF.");
     }
@@ -355,7 +355,7 @@ public class RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzerTests : Ba
         // attribute now stands.
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5522MessageFormat, 2),
+                                  Diagnostics(RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat, 2),
                                   Configure: config => config.NumberOfFixAllIterations = 1);
     }
 

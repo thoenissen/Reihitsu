@@ -37,7 +37,7 @@ public class RH4124SingleLetterLambdaAndAnonymousMethodParameterNamesAnalyzerTes
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH4124SingleLetterLambdaAndAnonymousMethodParameterNamesAnalyzer.DiagnosticId, AnalyzerResources.RH4124MessageFormat));
+        await Verify(testCode, Diagnostics(RH4124SingleLetterLambdaAndAnonymousMethodParameterNamesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -63,7 +63,7 @@ public class RH4124SingleLetterLambdaAndAnonymousMethodParameterNamesAnalyzerTes
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH4124SingleLetterLambdaAndAnonymousMethodParameterNamesAnalyzer.DiagnosticId, AnalyzerResources.RH4124MessageFormat, 3));
+        await Verify(testCode, Diagnostics(RH4124SingleLetterLambdaAndAnonymousMethodParameterNamesAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>

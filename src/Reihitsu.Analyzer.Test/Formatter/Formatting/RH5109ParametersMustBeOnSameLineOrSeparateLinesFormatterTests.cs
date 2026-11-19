@@ -44,7 +44,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesFormatterTests : For
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5109MessageFormat));
+                              Diagnostics(RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

@@ -69,7 +69,7 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineFormatterTests :
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 12, AnalyzerResources.RH5029MessageFormat));
+                              ExpectedDiagnostic(RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 12, MessageFormat));
     }
 
     /// <summary>

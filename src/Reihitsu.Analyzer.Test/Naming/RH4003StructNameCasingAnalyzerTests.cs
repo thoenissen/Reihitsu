@@ -61,7 +61,7 @@ public class RH4003StructNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4003S
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4003StructNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4003MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4003StructNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -111,7 +111,7 @@ public class RH4003StructNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4003S
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4003StructNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4003MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4003StructNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -161,7 +161,7 @@ public class RH4003StructNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4003S
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4003StructNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4003MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4003StructNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -211,7 +211,7 @@ public class RH4003StructNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4003S
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4003StructNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4003MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4003StructNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -371,7 +371,7 @@ public class RH4003StructNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4003S
         // The first struct declares a field of the second, so one rename has to reach the other declaration
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH4003StructNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4003MessageFormat, 2));
+                                  Diagnostics(RH4003StructNameCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

@@ -38,7 +38,7 @@ public class RH5603FileMustNotEndWithANewlineFormatterTests : FormatterTestsBase
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, 4, 2, 5, 1, AnalyzerResources.RH5603MessageFormat));
+                              ExpectedDiagnostic(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, 4, 2, 5, 1, MessageFormat));
     }
 
     /// <summary>
@@ -68,7 +68,7 @@ public class RH5603FileMustNotEndWithANewlineFormatterTests : FormatterTestsBase
 
         await VerifyFormatter(ExpandWhitespaceMarkers(input),
                               fixedData,
-                              ExpectedDiagnostic(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, 4, 2, 6, 1, AnalyzerResources.RH5603MessageFormat));
+                              ExpectedDiagnostic(RH5603FileMustNotEndWithANewlineAnalyzer.DiagnosticId, 4, 2, 6, 1, MessageFormat));
     }
 
     #endregion // Tests

@@ -53,7 +53,7 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesFormatterTests :
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat));
+                              Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -107,7 +107,7 @@ public class RH5527ReturnValueAttributesMustFollowPlacementRulesFormatterTests :
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5527MessageFormat));
+                              Diagnostics(RH5527ReturnValueAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

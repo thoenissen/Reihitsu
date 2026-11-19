@@ -77,7 +77,7 @@ public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzer.DiagnosticId, AnalyzerResources.RH5023MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -614,7 +614,7 @@ public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Bat
         // fix's removal span sits close behind the first fix's own removal
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzer.DiagnosticId, AnalyzerResources.RH5023MessageFormat, 2));
+                                  Diagnostics(RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

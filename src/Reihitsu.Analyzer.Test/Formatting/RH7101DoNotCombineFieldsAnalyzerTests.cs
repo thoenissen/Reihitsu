@@ -122,7 +122,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -158,7 +158,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -226,7 +226,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                  }
                                  """;
 
-        await Verify(testData, fixedData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+        await Verify(testData, fixedData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -259,7 +259,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                  }
                                  """;
 
-        await Verify(testData, fixedData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+        await Verify(testData, fixedData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -290,7 +290,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                  }
                                  """;
 
-        await Verify(testData, fixedData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+        await Verify(testData, fixedData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -540,7 +540,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -576,7 +576,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
         await Verify(testData,
                      fixedData,
                      test => test.SolutionTransforms.Add(DefineDebug),
-                     Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+                     Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -3661,7 +3661,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                  """;
 
         // The .NET 9 reference assemblies lack the union runtime types (CS0518, CS0656), so compiler diagnostics are not verified
-        await Verify(testData, fixedData, test => test.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+        await Verify(testData, fixedData, test => test.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -3725,7 +3725,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
                                  """;
 
         // The .NET 9 reference assemblies lack the union runtime types (CS0518, CS0656), so compiler diagnostics are not verified
-        await Verify(testData, fixedData, test => test.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat, 2));
+        await Verify(testData, fixedData, test => test.CompilerDiagnostics = CompilerDiagnostics.None, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -4280,7 +4280,7 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : BatchCodeFixTestsBase<RH710
         // converges in one pass
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat, 2));
+                                  Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

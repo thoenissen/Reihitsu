@@ -33,7 +33,7 @@ public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyFormatterTests :
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6014MessageFormat));
+                              Diagnostics(RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -67,7 +67,7 @@ public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyFormatterTests :
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6014MessageFormat));
+                              Diagnostics(RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

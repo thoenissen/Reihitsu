@@ -73,7 +73,7 @@ public class RH6007OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Bat
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6007OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6007MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6007OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -112,7 +112,7 @@ public class RH6007OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Bat
                                  + "    }\n"
                                  + "}";
 
-        await Verify(testData, fixedData, Diagnostics(RH6007OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6007MessageFormat, 6));
+        await Verify(testData, fixedData, Diagnostics(RH6007OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 6));
     }
 
     /// <summary>
@@ -161,7 +161,7 @@ public class RH6007OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Bat
                                 + "    }\n"
                                 + "}";
 
-        await Verify(testData, Diagnostics(RH6007OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6007MessageFormat));
+        await Verify(testData, Diagnostics(RH6007OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
 
         var spanStart = testData.IndexOf("{|#0:", StringComparison.Ordinal);
         var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0:  |}", "  "),
@@ -192,7 +192,7 @@ public class RH6007OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Bat
                                 + "    }\n"
                                 + "}";
 
-        await Verify(testData, Diagnostics(RH6007OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6007MessageFormat));
+        await Verify(testData, Diagnostics(RH6007OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
 
         var spanStart = testData.IndexOf("{|#0:", StringComparison.Ordinal);
         var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0:  |}", "  "),
@@ -238,7 +238,7 @@ public class RH6007OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Bat
         // removes its own trailing whitespace run, so the batch fixer converges in one pass
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH6007OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6007MessageFormat, 2));
+                                  Diagnostics(RH6007OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

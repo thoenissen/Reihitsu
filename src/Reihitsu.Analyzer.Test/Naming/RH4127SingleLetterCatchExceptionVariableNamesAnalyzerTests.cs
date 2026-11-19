@@ -42,7 +42,7 @@ public class RH4127SingleLetterCatchExceptionVariableNamesAnalyzerTests : Analyz
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH4127SingleLetterCatchExceptionVariableNamesAnalyzer.DiagnosticId, AnalyzerResources.RH4127MessageFormat));
+        await Verify(testCode, Diagnostics(RH4127SingleLetterCatchExceptionVariableNamesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

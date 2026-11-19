@@ -49,7 +49,7 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7305TypesShouldBeOrganizedWithRegionsAnalyzer.DiagnosticId, AnalyzerResources.RH7305MessageFormat));
+        await Verify(testData, Diagnostics(RH7305TypesShouldBeOrganizedWithRegionsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -182,7 +182,7 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7305TypesShouldBeOrganizedWithRegionsAnalyzer.DiagnosticId, AnalyzerResources.RH7305MessageFormat));
+        await Verify(testData, Diagnostics(RH7305TypesShouldBeOrganizedWithRegionsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -210,7 +210,7 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7305TypesShouldBeOrganizedWithRegionsAnalyzer.DiagnosticId, AnalyzerResources.RH7305MessageFormat));
+        await Verify(testData, Diagnostics(RH7305TypesShouldBeOrganizedWithRegionsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -253,7 +253,7 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7305TypesShouldBeOrganizedWithRegionsAnalyzer.DiagnosticId, AnalyzerResources.RH7305MessageFormat));
+        await Verify(testData, Diagnostics(RH7305TypesShouldBeOrganizedWithRegionsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -287,7 +287,7 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7305TypesShouldBeOrganizedWithRegionsAnalyzer.DiagnosticId, AnalyzerResources.RH7305MessageFormat));
+        await Verify(testData, Diagnostics(RH7305TypesShouldBeOrganizedWithRegionsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -321,7 +321,7 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7305TypesShouldBeOrganizedWithRegionsAnalyzer.DiagnosticId, AnalyzerResources.RH7305MessageFormat));
+        await Verify(testData, Diagnostics(RH7305TypesShouldBeOrganizedWithRegionsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -534,7 +534,7 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
                                 #endregion // Services
                                 """;
 
-        await Verify(testData, Diagnostics(RH7305TypesShouldBeOrganizedWithRegionsAnalyzer.DiagnosticId, AnalyzerResources.RH7305MessageFormat));
+        await Verify(testData, Diagnostics(RH7305TypesShouldBeOrganizedWithRegionsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -559,7 +559,7 @@ public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7305TypesShouldBeOrganizedWithRegionsAnalyzer.DiagnosticId, AnalyzerResources.RH7305MessageFormat));
+        await Verify(testData, Diagnostics(RH7305TypesShouldBeOrganizedWithRegionsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

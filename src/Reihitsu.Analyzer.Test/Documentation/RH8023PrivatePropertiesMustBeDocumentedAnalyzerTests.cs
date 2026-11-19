@@ -34,7 +34,7 @@ public class RH8023PrivatePropertiesMustBeDocumentedAnalyzerTests : AnalyzerTest
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8023PrivatePropertiesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8023MessageFormat));
+        await Verify(source, Diagnostics(RH8023PrivatePropertiesMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -105,7 +105,7 @@ public class RH8023PrivatePropertiesMustBeDocumentedAnalyzerTests : AnalyzerTest
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8023PrivatePropertiesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8023MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8023PrivatePropertiesMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -134,7 +134,7 @@ public class RH8023PrivatePropertiesMustBeDocumentedAnalyzerTests : AnalyzerTest
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8023PrivatePropertiesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8023MessageFormat));
+        await Verify(source, Diagnostics(RH8023PrivatePropertiesMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -181,7 +181,7 @@ public class RH8023PrivatePropertiesMustBeDocumentedAnalyzerTests : AnalyzerTest
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8023PrivatePropertiesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8023MessageFormat, 5));
+        await Verify(source, Diagnostics(RH8023PrivatePropertiesMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 5));
     }
 
     /// <summary>
@@ -233,7 +233,7 @@ public class RH8023PrivatePropertiesMustBeDocumentedAnalyzerTests : AnalyzerTest
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8023PrivatePropertiesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8023MessageFormat));
+        await Verify(source, Diagnostics(RH8023PrivatePropertiesMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

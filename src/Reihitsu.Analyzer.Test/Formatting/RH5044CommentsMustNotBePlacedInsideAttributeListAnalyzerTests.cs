@@ -37,7 +37,7 @@ public class RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, AnalyzerResources.RH5044MessageFormat));
+        await Verify(testData, Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -59,7 +59,7 @@ public class RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, AnalyzerResources.RH5044MessageFormat));
+        await Verify(testData, Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -84,7 +84,7 @@ public class RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, AnalyzerResources.RH5044MessageFormat));
+        await Verify(testData, Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -105,7 +105,7 @@ public class RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, AnalyzerResources.RH5044MessageFormat));
+        await Verify(testData, Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -189,7 +189,7 @@ public class RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, AnalyzerResources.RH5044MessageFormat));
+        await Verify(testData, Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -237,7 +237,7 @@ public class RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, AnalyzerResources.RH5044MessageFormat));
+        await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -261,8 +261,8 @@ public class RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, AnalyzerResources.RH5044MessageFormat));
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, AnalyzerResources.RH5044MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -286,8 +286,8 @@ public class RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, AnalyzerResources.RH5044MessageFormat));
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, AnalyzerResources.RH5044MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5044CommentsMustNotBePlacedInsideAttributeListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

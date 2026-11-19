@@ -327,7 +327,7 @@ public class RemoveWhitespaceRunCodeFixProviderBaseTests : BatchCodeFixTestsBase
 
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6006MessageFormat, 2));
+                                  Diagnostics(RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

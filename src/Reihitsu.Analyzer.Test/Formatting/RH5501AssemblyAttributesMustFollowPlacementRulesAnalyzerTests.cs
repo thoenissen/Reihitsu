@@ -50,7 +50,7 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5501MessageFormat));
+                     Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -88,7 +88,7 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5501MessageFormat));
+                     Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -126,7 +126,7 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5501MessageFormat));
+                     Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -163,7 +163,7 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5501MessageFormat, 2));
+                     Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -192,7 +192,7 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5501MessageFormat));
+                     Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -229,7 +229,7 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5501MessageFormat));
+                     Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -283,7 +283,7 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
                                    """;
 
         await Verify(testData,
-                     Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5501MessageFormat));
+                     Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
                                                    RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId,
@@ -375,7 +375,7 @@ public class RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzerTests : Bat
         // opening bracket, and the second fix rewrites the gap up to the class keyword, so their fix spans abut
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5501MessageFormat, 2));
+                                  Diagnostics(RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

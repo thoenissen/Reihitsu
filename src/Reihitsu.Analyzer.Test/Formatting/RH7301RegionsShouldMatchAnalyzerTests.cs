@@ -132,7 +132,7 @@ public class RH7301RegionsShouldMatchAnalyzerTests : BatchCodeFixTestsBase<RH730
 
         await Verify(testData.Replace("\r\n", "\n"),
                      resultData.Replace("\r\n", "\n"),
-                     Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat, 3));
+                     Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -242,7 +242,7 @@ public class RH7301RegionsShouldMatchAnalyzerTests : BatchCodeFixTestsBase<RH730
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat));
+        await Verify(testData, Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -294,7 +294,7 @@ public class RH7301RegionsShouldMatchAnalyzerTests : BatchCodeFixTestsBase<RH730
                               """;
         var testData = source.Replace("#endregion // Named", "{|#0:#endregion // Named|}");
 
-        await Verify(testData, Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat));
+        await Verify(testData, Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(source,
                                                    RH7301RegionsShouldMatchAnalyzer.DiagnosticId,
@@ -334,7 +334,7 @@ public class RH7301RegionsShouldMatchAnalyzerTests : BatchCodeFixTestsBase<RH730
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -364,7 +364,7 @@ public class RH7301RegionsShouldMatchAnalyzerTests : BatchCodeFixTestsBase<RH730
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -393,7 +393,7 @@ public class RH7301RegionsShouldMatchAnalyzerTests : BatchCodeFixTestsBase<RH730
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -692,7 +692,7 @@ public class RH7301RegionsShouldMatchAnalyzerTests : BatchCodeFixTestsBase<RH730
         // Verifies that nested, sequential and inactive-branch region pairs use LIFO matching and are independently corrected by Fix All without crossing pair boundaries
         return new FixAllScenario(testData,
                                   resultData,
-                                  Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat, 4),
+                                  Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, MessageFormat, 4),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

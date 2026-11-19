@@ -50,7 +50,7 @@ public class RH5509EnumAttributesMustFollowPlacementRulesAnalyzerTests : BatchCo
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5509EnumAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5509MessageFormat));
+                     Diagnostics(RH5509EnumAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -104,7 +104,7 @@ public class RH5509EnumAttributesMustFollowPlacementRulesAnalyzerTests : BatchCo
                                    """;
 
         await Verify(testData,
-                     Diagnostics(RH5509EnumAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5509MessageFormat));
+                     Diagnostics(RH5509EnumAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
                                                    RH5509EnumAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId,
@@ -149,7 +149,7 @@ public class RH5509EnumAttributesMustFollowPlacementRulesAnalyzerTests : BatchCo
         // opening bracket, and the second fix rewrites the gap up to the enum keyword, so their fix spans abut
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5509EnumAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5509MessageFormat, 2));
+                                  Diagnostics(RH5509EnumAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

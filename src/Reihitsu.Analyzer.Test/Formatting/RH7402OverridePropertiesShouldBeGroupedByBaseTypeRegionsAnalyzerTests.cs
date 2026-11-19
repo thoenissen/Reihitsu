@@ -324,7 +324,7 @@ public class RH7402OverridePropertiesShouldBeGroupedByBaseTypeRegionsAnalyzerTes
     /// <returns>Diagnostic message</returns>
     private static string CreateMessage(string baseTypeName)
     {
-        return string.Format(AnalyzerResources.RH7402MessageFormat, baseTypeName);
+        return string.Format(MessageFormat, baseTypeName);
     }
 
     #endregion // Methods

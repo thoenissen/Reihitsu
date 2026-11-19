@@ -111,7 +111,7 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyRepeatedFixTests 
         // still converge the whole chain in this one batch application, leaving no RH5302 diagnostic behind
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5302MessageFormat, 3));
+                                  Diagnostics(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     #endregion // BatchCodeFixTestsBase

@@ -36,7 +36,7 @@ public class RH2103StructsShouldNotUseParameterizedPrimaryConstructorsAnalyzerTe
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH2103StructsShouldNotUseParameterizedPrimaryConstructorsAnalyzer.DiagnosticId, AnalyzerResources.RH2103MessageFormat, 2));
+        await Verify(source, Diagnostics(RH2103StructsShouldNotUseParameterizedPrimaryConstructorsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -133,7 +133,7 @@ public class RH2103StructsShouldNotUseParameterizedPrimaryConstructorsAnalyzerTe
                               record struct Point(int X);
                               """;
 
-        await Verify(source, Diagnostics(RH2103StructsShouldNotUseParameterizedPrimaryConstructorsAnalyzer.DiagnosticId, AnalyzerResources.RH2103MessageFormat, 3));
+        await Verify(source, Diagnostics(RH2103StructsShouldNotUseParameterizedPrimaryConstructorsAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -152,7 +152,7 @@ public class RH2103StructsShouldNotUseParameterizedPrimaryConstructorsAnalyzerTe
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH2103StructsShouldNotUseParameterizedPrimaryConstructorsAnalyzer.DiagnosticId, AnalyzerResources.RH2103MessageFormat));
+        await Verify(source, Diagnostics(RH2103StructsShouldNotUseParameterizedPrimaryConstructorsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

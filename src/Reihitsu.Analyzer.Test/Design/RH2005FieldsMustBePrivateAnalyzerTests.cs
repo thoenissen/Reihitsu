@@ -742,7 +742,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat, 2));
+        await Verify(testData, resultData, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -801,7 +801,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -815,7 +815,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     {
         await Verify(AttributedStaticPublicFieldSource,
                      AttributedStaticPublicFieldFixedSource,
-                     Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+                     Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -829,7 +829,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     {
         await Verify(NormalizeToCarriageReturnLineFeed(AttributedStaticPublicFieldSource),
                      NormalizeToCarriageReturnLineFeed(AttributedStaticPublicFieldFixedSource),
-                     Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+                     Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -844,7 +844,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     {
         await Verify(AttributedFieldWithCommentAndDirectiveSource,
                      AttributedFieldWithCommentAndDirectiveFixedSource,
-                     Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+                     Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -858,7 +858,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     {
         await Verify(NormalizeToCarriageReturnLineFeed(AttributedFieldWithCommentAndDirectiveSource),
                      NormalizeToCarriageReturnLineFeed(AttributedFieldWithCommentAndDirectiveFixedSource),
-                     Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+                     Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -892,7 +892,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -926,7 +926,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -955,7 +955,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -987,7 +987,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1156,7 +1156,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1196,7 +1196,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
                          test.TestState.Sources.Add(("/0/Test1.cs", otherPart));
                          test.FixedState.Sources.Add(("/0/Test1.cs", otherPart));
                      },
-                     Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+                     Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1373,7 +1373,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1426,7 +1426,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
                          test.FixedState.MarkupHandling = MarkupMode.Allow;
                          test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
                      },
-                     Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat, 2));
+                     Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1473,7 +1473,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     {
         await Verify(PublicOnItsOwnLineSource,
                      PublicOnItsOwnLineFixedSource,
-                     Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+                     Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1487,7 +1487,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     {
         await Verify(NormalizeToCarriageReturnLineFeed(PublicOnItsOwnLineSource),
                      NormalizeToCarriageReturnLineFeed(PublicOnItsOwnLineFixedSource),
-                     Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+                     Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1596,7 +1596,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixKeepsTheLineBreakBehindAPublicThatEndsItsLineBehindAnotherModifier()
     {
-        await Verify(PublicEndingItsLineSource, PublicEndingItsLineFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(PublicEndingItsLineSource, PublicEndingItsLineFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1607,7 +1607,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixKeepsTheLineBreakBehindAPublicThatEndsItsLineBehindAnotherModifierCarriageReturnLineFeed()
     {
-        await Verify(NormalizeToCarriageReturnLineFeed(PublicEndingItsLineSource), NormalizeToCarriageReturnLineFeed(PublicEndingItsLineFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(PublicEndingItsLineSource), NormalizeToCarriageReturnLineFeed(PublicEndingItsLineFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1618,7 +1618,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixKeepsTheLineOfAPublicThatStartsAndEndsItsOwnLineBehindAnotherModifier()
     {
-        await Verify(PublicStartingAndEndingItsLineSource, PublicStartingAndEndingItsLineFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(PublicStartingAndEndingItsLineSource, PublicStartingAndEndingItsLineFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1629,7 +1629,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixKeepsTheLineOfAPublicThatStartsAndEndsItsOwnLineBehindAnotherModifierCarriageReturnLineFeed()
     {
-        await Verify(NormalizeToCarriageReturnLineFeed(PublicStartingAndEndingItsLineSource), NormalizeToCarriageReturnLineFeed(PublicStartingAndEndingItsLineFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(PublicStartingAndEndingItsLineSource), NormalizeToCarriageReturnLineFeed(PublicStartingAndEndingItsLineFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1640,7 +1640,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixMovesTheTypeIntoTheColumnOfAPublicThatStartsAndEndsItsOwnLine()
     {
-        await Verify(PublicStartingAndEndingItsLineInAnotherColumnSource, PublicStartingAndEndingItsLineInAnotherColumnFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(PublicStartingAndEndingItsLineInAnotherColumnSource, PublicStartingAndEndingItsLineInAnotherColumnFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1651,7 +1651,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixMovesTheTypeIntoTheColumnOfAPublicThatStartsAndEndsItsOwnLineCarriageReturnLineFeed()
     {
-        await Verify(NormalizeToCarriageReturnLineFeed(PublicStartingAndEndingItsLineInAnotherColumnSource), NormalizeToCarriageReturnLineFeed(PublicStartingAndEndingItsLineInAnotherColumnFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(PublicStartingAndEndingItsLineInAnotherColumnSource), NormalizeToCarriageReturnLineFeed(PublicStartingAndEndingItsLineInAnotherColumnFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1662,7 +1662,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixKeepsTheLineBreakBehindAPublicThatEndsItsLineBetweenTwoModifiers()
     {
-        await Verify(MiddlePublicEndingItsLineSource, MiddlePublicEndingItsLineFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(MiddlePublicEndingItsLineSource, MiddlePublicEndingItsLineFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1673,7 +1673,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixKeepsTheLineBreakBehindAPublicThatEndsItsLineBetweenTwoModifiersCarriageReturnLineFeed()
     {
-        await Verify(NormalizeToCarriageReturnLineFeed(MiddlePublicEndingItsLineSource), NormalizeToCarriageReturnLineFeed(MiddlePublicEndingItsLineFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(MiddlePublicEndingItsLineSource), NormalizeToCarriageReturnLineFeed(MiddlePublicEndingItsLineFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1684,7 +1684,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixKeepsTheLineOfAPublicThatStartsAndEndsItsOwnLineBetweenTwoModifiers()
     {
-        await Verify(MiddlePublicStartingAndEndingItsLineSource, MiddlePublicStartingAndEndingItsLineFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(MiddlePublicStartingAndEndingItsLineSource, MiddlePublicStartingAndEndingItsLineFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1695,7 +1695,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixKeepsTheLineOfAPublicThatStartsAndEndsItsOwnLineBetweenTwoModifiersCarriageReturnLineFeed()
     {
-        await Verify(NormalizeToCarriageReturnLineFeed(MiddlePublicStartingAndEndingItsLineSource), NormalizeToCarriageReturnLineFeed(MiddlePublicStartingAndEndingItsLineFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(MiddlePublicStartingAndEndingItsLineSource), NormalizeToCarriageReturnLineFeed(MiddlePublicStartingAndEndingItsLineFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1706,7 +1706,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixKeepsTheLineOfAPublicThatStartsItsOwnLineBetweenTwoModifiers()
     {
-        await Verify(MiddlePublicStartingItsLineSource, MiddlePublicStartingItsLineFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(MiddlePublicStartingItsLineSource, MiddlePublicStartingItsLineFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1717,7 +1717,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixKeepsTheLineOfAPublicThatStartsItsOwnLineBetweenTwoModifiersCarriageReturnLineFeed()
     {
-        await Verify(NormalizeToCarriageReturnLineFeed(MiddlePublicStartingItsLineSource), NormalizeToCarriageReturnLineFeed(MiddlePublicStartingItsLineFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(MiddlePublicStartingItsLineSource), NormalizeToCarriageReturnLineFeed(MiddlePublicStartingItsLineFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1728,7 +1728,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixKeepsTheLineBreakBehindAPublicThatEndsItsLineBehindTwoModifiers()
     {
-        await Verify(LastPublicEndingItsLineSource, LastPublicEndingItsLineFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(LastPublicEndingItsLineSource, LastPublicEndingItsLineFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1739,7 +1739,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixKeepsTheLineBreakBehindAPublicThatEndsItsLineBehindTwoModifiersCarriageReturnLineFeed()
     {
-        await Verify(NormalizeToCarriageReturnLineFeed(LastPublicEndingItsLineSource), NormalizeToCarriageReturnLineFeed(LastPublicEndingItsLineFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(LastPublicEndingItsLineSource), NormalizeToCarriageReturnLineFeed(LastPublicEndingItsLineFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1750,7 +1750,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixKeepsTheLinesOfModifiersInFrontOfAPublicThatEndsItsLine()
     {
-        await Verify(LastPublicEndingASecondLineSource, LastPublicEndingASecondLineFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(LastPublicEndingASecondLineSource, LastPublicEndingASecondLineFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1761,7 +1761,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixKeepsTheLinesOfModifiersInFrontOfAPublicThatEndsItsLineCarriageReturnLineFeed()
     {
-        await Verify(NormalizeToCarriageReturnLineFeed(LastPublicEndingASecondLineSource), NormalizeToCarriageReturnLineFeed(LastPublicEndingASecondLineFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(LastPublicEndingASecondLineSource), NormalizeToCarriageReturnLineFeed(LastPublicEndingASecondLineFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1772,7 +1772,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixKeepsTheLineBreakBehindAPublicThatEndsItsLineBehindAnAttributeList()
     {
-        await Verify(AttributedPublicEndingItsLineSource, AttributedPublicEndingItsLineFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(AttributedPublicEndingItsLineSource, AttributedPublicEndingItsLineFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1783,7 +1783,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixKeepsTheLineBreakBehindAPublicThatEndsItsLineBehindAnAttributeListCarriageReturnLineFeed()
     {
-        await Verify(NormalizeToCarriageReturnLineFeed(AttributedPublicEndingItsLineSource), NormalizeToCarriageReturnLineFeed(AttributedPublicEndingItsLineFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(AttributedPublicEndingItsLineSource), NormalizeToCarriageReturnLineFeed(AttributedPublicEndingItsLineFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1794,7 +1794,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixReplacesAPublicBetweenTwoModifiersOnOneLine()
     {
-        await Verify(MiddlePublicOnOneLineSource, MiddlePublicOnOneLineFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(MiddlePublicOnOneLineSource, MiddlePublicOnOneLineFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1805,7 +1805,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixReplacesAPublicBetweenTwoModifiersOnOneLineCarriageReturnLineFeed()
     {
-        await Verify(NormalizeToCarriageReturnLineFeed(MiddlePublicOnOneLineSource), NormalizeToCarriageReturnLineFeed(MiddlePublicOnOneLineFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(MiddlePublicOnOneLineSource), NormalizeToCarriageReturnLineFeed(MiddlePublicOnOneLineFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1816,7 +1816,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixReplacesAPublicBehindTwoModifiersOnOneLine()
     {
-        await Verify(LastPublicOnOneLineSource, LastPublicOnOneLineFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(LastPublicOnOneLineSource, LastPublicOnOneLineFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1827,7 +1827,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixReplacesAPublicBehindTwoModifiersOnOneLineCarriageReturnLineFeed()
     {
-        await Verify(NormalizeToCarriageReturnLineFeed(LastPublicOnOneLineSource), NormalizeToCarriageReturnLineFeed(LastPublicOnOneLineFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(LastPublicOnOneLineSource), NormalizeToCarriageReturnLineFeed(LastPublicOnOneLineFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1838,7 +1838,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixRemovesAOneLinePublicWithTupleBehindPublic()
     {
-        await Verify(OneLinePublicWithTupleBehindPublicSource, OneLinePublicWithTupleBehindPublicFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(OneLinePublicWithTupleBehindPublicSource, OneLinePublicWithTupleBehindPublicFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1849,7 +1849,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixRemovesAOneLinePublicWithTupleBehindPublicCarriageReturnLineFeed()
     {
-        await Verify(NormalizeToCarriageReturnLineFeed(OneLinePublicWithTupleBehindPublicSource), NormalizeToCarriageReturnLineFeed(OneLinePublicWithTupleBehindPublicFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(OneLinePublicWithTupleBehindPublicSource), NormalizeToCarriageReturnLineFeed(OneLinePublicWithTupleBehindPublicFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1860,7 +1860,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixRemovesAOneLinePublicWithVerbatimTypeBehindPublic()
     {
-        await Verify(OneLinePublicWithVerbatimTypeBehindPublicSource, OneLinePublicWithVerbatimTypeBehindPublicFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(OneLinePublicWithVerbatimTypeBehindPublicSource, OneLinePublicWithVerbatimTypeBehindPublicFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1871,7 +1871,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixRemovesAOneLinePublicWithVerbatimTypeBehindPublicCarriageReturnLineFeed()
     {
-        await Verify(NormalizeToCarriageReturnLineFeed(OneLinePublicWithVerbatimTypeBehindPublicSource), NormalizeToCarriageReturnLineFeed(OneLinePublicWithVerbatimTypeBehindPublicFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(OneLinePublicWithVerbatimTypeBehindPublicSource), NormalizeToCarriageReturnLineFeed(OneLinePublicWithVerbatimTypeBehindPublicFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1882,7 +1882,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixRemovesAOneLinePublicWithWideGapInFrontOfPublic()
     {
-        await Verify(OneLinePublicWithWideGapInFrontOfPublicSource, OneLinePublicWithWideGapInFrontOfPublicFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(OneLinePublicWithWideGapInFrontOfPublicSource, OneLinePublicWithWideGapInFrontOfPublicFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1893,7 +1893,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixRemovesAOneLinePublicWithWideGapInFrontOfPublicCarriageReturnLineFeed()
     {
-        await Verify(NormalizeToCarriageReturnLineFeed(OneLinePublicWithWideGapInFrontOfPublicSource), NormalizeToCarriageReturnLineFeed(OneLinePublicWithWideGapInFrontOfPublicFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(OneLinePublicWithWideGapInFrontOfPublicSource), NormalizeToCarriageReturnLineFeed(OneLinePublicWithWideGapInFrontOfPublicFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1904,7 +1904,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixRemovesAOneLinePublicWithWideGapBehindPublic()
     {
-        await Verify(OneLinePublicWithWideGapBehindPublicSource, OneLinePublicWithWideGapBehindPublicFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(OneLinePublicWithWideGapBehindPublicSource, OneLinePublicWithWideGapBehindPublicFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1915,7 +1915,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixRemovesAOneLinePublicWithWideGapBehindPublicCarriageReturnLineFeed()
     {
-        await Verify(NormalizeToCarriageReturnLineFeed(OneLinePublicWithWideGapBehindPublicSource), NormalizeToCarriageReturnLineFeed(OneLinePublicWithWideGapBehindPublicFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(OneLinePublicWithWideGapBehindPublicSource), NormalizeToCarriageReturnLineFeed(OneLinePublicWithWideGapBehindPublicFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1926,7 +1926,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixRemovesAOneLinePublicWithWideGapBehindPublicInFrontOfModifier()
     {
-        await Verify(OneLinePublicWithWideGapBehindPublicInFrontOfModifierSource, OneLinePublicWithWideGapBehindPublicInFrontOfModifierFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(OneLinePublicWithWideGapBehindPublicInFrontOfModifierSource, OneLinePublicWithWideGapBehindPublicInFrontOfModifierFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1937,7 +1937,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [Requirement("RH2005-003")]
     public async Task VerifyFixRemovesAOneLinePublicWithWideGapBehindPublicInFrontOfModifierCarriageReturnLineFeed()
     {
-        await Verify(NormalizeToCarriageReturnLineFeed(OneLinePublicWithWideGapBehindPublicInFrontOfModifierSource), NormalizeToCarriageReturnLineFeed(OneLinePublicWithWideGapBehindPublicInFrontOfModifierFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(OneLinePublicWithWideGapBehindPublicInFrontOfModifierSource), NormalizeToCarriageReturnLineFeed(OneLinePublicWithWideGapBehindPublicInFrontOfModifierFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1947,7 +1947,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [TestMethod]
     public async Task VerifyFixKeepsTheLineBreakBehindAFirstPublicThatEndsItsLine()
     {
-        await Verify(FirstPublicEndingItsLineSource, FirstPublicEndingItsLineFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(FirstPublicEndingItsLineSource, FirstPublicEndingItsLineFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1957,7 +1957,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [TestMethod]
     public async Task VerifyFixKeepsTheLineBreakBehindAFirstPublicThatEndsItsLineCarriageReturnLineFeed()
     {
-        await Verify(NormalizeToCarriageReturnLineFeed(FirstPublicEndingItsLineSource), NormalizeToCarriageReturnLineFeed(FirstPublicEndingItsLineFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(FirstPublicEndingItsLineSource), NormalizeToCarriageReturnLineFeed(FirstPublicEndingItsLineFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1967,7 +1967,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [TestMethod]
     public async Task VerifyFixKeepsTheCommentBehindAFirstPublicThatEndsItsLine()
     {
-        await Verify(FirstPublicWithACommentBehindItSource, FirstPublicWithACommentBehindItFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(FirstPublicWithACommentBehindItSource, FirstPublicWithACommentBehindItFixedSource, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1977,7 +1977,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
     [TestMethod]
     public async Task VerifyFixKeepsTheCommentBehindAFirstPublicThatEndsItsLineCarriageReturnLineFeed()
     {
-        await Verify(NormalizeToCarriageReturnLineFeed(FirstPublicWithACommentBehindItSource), NormalizeToCarriageReturnLineFeed(FirstPublicWithACommentBehindItFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(FirstPublicWithACommentBehindItSource), NormalizeToCarriageReturnLineFeed(FirstPublicWithACommentBehindItFixedSource), Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2276,7 +2276,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
                          test.FixedState.MarkupHandling = MarkupMode.Allow;
                          test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
                      },
-                     Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat, 3));
+                     Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     #endregion // Tests
@@ -2308,7 +2308,7 @@ public class RH2005FieldsMustBePrivateAnalyzerTests : BatchCodeFixTestsBase<RH20
                                   }
                                   """;
 
-        return new FixAllScenario(testData, resultData, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH2005MessageFormat, 2));
+        return new FixAllScenario(testData, resultData, Diagnostics(RH2005FieldsMustBePrivateAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

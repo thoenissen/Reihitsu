@@ -39,7 +39,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsFormatterTests : FormatterT
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, 2, 1, 3, 1, AnalyzerResources.RH5604MessageFormat));
+                              ExpectedDiagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, 2, 1, 3, 1, MessageFormat));
     }
 
     /// <summary>
@@ -145,12 +145,12 @@ public class RH5604CodeMustNotContainMixedLineEndingsFormatterTests : FormatterT
         // Suppression verification injects directives whose line endings change this document-wide policy fixture.
         await Verify(lfPredominantInput,
                      static config => config.TestBehaviors |= TestBehaviors.SkipSuppressionCheck,
-                     ExpectedDiagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, 5, 1, 6, 1, AnalyzerResources.RH5604MessageFormat));
+                     ExpectedDiagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, 5, 1, 6, 1, MessageFormat));
         await AssertExemptInteriorsSurviveNormalization(lfPredominantInput, lfPredominantExpected);
 
         await Verify(crlfPredominantInput,
                      static config => config.TestBehaviors |= TestBehaviors.SkipSuppressionCheck,
-                     ExpectedDiagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, 5, 1, 6, 1, AnalyzerResources.RH5604MessageFormat));
+                     ExpectedDiagnostic(RH5604CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, 5, 1, 6, 1, MessageFormat));
         await AssertExemptInteriorsSurviveNormalization(crlfPredominantInput, crlfPredominantExpected);
     }
 
@@ -192,7 +192,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsFormatterTests : FormatterT
                                         1,
                                         2,
                                         1,
-                                        AnalyzerResources.RH5604MessageFormat));
+                                        MessageFormat));
 
         var syntaxTree = CSharpSyntaxTree.ParseText(input, cancellationToken: CancellationToken.None);
         var firstTree = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, CancellationToken.None).Output;

@@ -45,7 +45,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesFormatterTests : Forma
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, 3, 9, 3, 40, AnalyzerResources.RH8305MessageFormat));
+                              ExpectedDiagnostic(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, 3, 9, 3, 40, MessageFormat));
     }
 
     /// <summary>

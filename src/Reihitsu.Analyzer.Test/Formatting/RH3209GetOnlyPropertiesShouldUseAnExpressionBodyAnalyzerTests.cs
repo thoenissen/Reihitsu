@@ -44,7 +44,7 @@ public class RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzerTests : Bat
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzer.DiagnosticId, AnalyzerResources.RH3209MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2389,7 +2389,7 @@ public class RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzerTests : Bat
 
         return new FixAllScenario(source,
                                   fixedSource,
-                                  Diagnostics(RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzer.DiagnosticId, AnalyzerResources.RH3209MessageFormat, 3));
+                                  Diagnostics(RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     #endregion // BatchCodeFixTestsBase

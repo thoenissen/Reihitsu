@@ -75,7 +75,7 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7108EventAccessorsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7108MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7108EventAccessorsMustFollowOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -187,7 +187,7 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7108EventAccessorsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7108MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7108EventAccessorsMustFollowOrderAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1072,7 +1072,7 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : BatchCodeFixTest
         // declaration and each accessor move has to stay confined to its own event
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH7108EventAccessorsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7108MessageFormat, 2));
+                                  Diagnostics(RH7108EventAccessorsMustFollowOrderAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

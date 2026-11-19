@@ -43,7 +43,7 @@ public class RH5504ModuleAttributeListsMustFollowShapeRulesFormatterTests : Form
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5504ModuleAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5504MessageFormat));
+                              Diagnostics(RH5504ModuleAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

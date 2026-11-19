@@ -46,7 +46,7 @@ public class RH5403StatementMustNotBeOnSingleLineFormatterTests : FormatterTests
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5403StatementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5403MessageFormat));
+                              Diagnostics(RH5403StatementMustNotBeOnSingleLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

@@ -42,7 +42,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesFormatterTests : Fo
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+                              Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -72,7 +72,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesFormatterTests : Fo
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+                              Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -103,7 +103,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesFormatterTests : Fo
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+                              Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -139,7 +139,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesFormatterTests : Fo
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+                              Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -175,7 +175,7 @@ public class RH5114UsingDirectivesMustBePlacedOnSeparateLinesFormatterTests : Fo
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5114MessageFormat));
+                              Diagnostics(RH5114UsingDirectivesMustBePlacedOnSeparateLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

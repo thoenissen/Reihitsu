@@ -40,7 +40,7 @@ public class RH3207ExpressionStyleFinalizersShouldNotBeUsedFormatterTests : Form
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer.DiagnosticId, 3, 16, 3, 44, AnalyzerResources.RH3207MessageFormat));
+                              ExpectedDiagnostic(RH3207ExpressionStyleFinalizersShouldNotBeUsedAnalyzer.DiagnosticId, 3, 16, 3, 44, MessageFormat));
     }
 
     #endregion // Tests

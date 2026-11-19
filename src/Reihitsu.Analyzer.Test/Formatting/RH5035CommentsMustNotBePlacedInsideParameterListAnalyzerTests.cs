@@ -37,7 +37,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -61,7 +61,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -83,7 +83,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -105,7 +105,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -127,7 +127,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -144,7 +144,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                     int value);
                                 """;
 
-        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -164,7 +164,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -194,7 +194,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -222,7 +222,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -242,7 +242,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -260,7 +260,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject), Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject), Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -283,7 +283,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -395,7 +395,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -415,7 +415,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -435,7 +435,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -464,7 +464,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -481,7 +481,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                     int Value);
                                 """;
 
-        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -501,7 +501,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -524,7 +524,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -550,7 +550,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -570,7 +570,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -594,7 +594,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -616,7 +616,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -638,7 +638,7 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -662,8 +662,8 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -687,8 +687,8 @@ public class RH5035CommentsMustNotBePlacedInsideParameterListAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, AnalyzerResources.RH5035MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5035CommentsMustNotBePlacedInsideParameterListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

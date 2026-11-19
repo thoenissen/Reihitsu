@@ -42,7 +42,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineFormatterTests : For
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+                              Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -64,7 +64,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineFormatterTests : For
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+                              Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -122,7 +122,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineFormatterTests : For
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+                              Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -158,7 +158,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineFormatterTests : For
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+                              Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -191,7 +191,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineFormatterTests : For
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+                              Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -211,7 +211,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineFormatterTests : For
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+                              Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -232,7 +232,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineFormatterTests : For
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+                              Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -253,7 +253,7 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineFormatterTests : For
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5105MessageFormat));
+                              Diagnostics(RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

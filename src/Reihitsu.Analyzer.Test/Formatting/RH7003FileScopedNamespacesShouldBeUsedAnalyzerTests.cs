@@ -46,7 +46,7 @@ public class RH7003FileScopedNamespacesShouldBeUsedAnalyzerTests : AnalyzerTests
                                 """;
 
         await Verify(testData,
-                     Diagnostics(RH7003FileScopedNamespacesShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH7003MessageFormat));
+                     Diagnostics(RH7003FileScopedNamespacesShouldBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -161,7 +161,7 @@ public class RH7003FileScopedNamespacesShouldBeUsedAnalyzerTests : AnalyzerTests
                                 """;
 
         await Verify(testData,
-                     Diagnostics(RH7003FileScopedNamespacesShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH7003MessageFormat));
+                     Diagnostics(RH7003FileScopedNamespacesShouldBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -185,7 +185,7 @@ public class RH7003FileScopedNamespacesShouldBeUsedAnalyzerTests : AnalyzerTests
                                 """;
 
         await Verify(testData,
-                     Diagnostics(RH7003FileScopedNamespacesShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH7003MessageFormat));
+                     Diagnostics(RH7003FileScopedNamespacesShouldBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

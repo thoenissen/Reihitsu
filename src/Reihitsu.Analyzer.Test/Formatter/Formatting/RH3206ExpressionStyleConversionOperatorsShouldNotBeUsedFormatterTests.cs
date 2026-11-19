@@ -40,7 +40,7 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedFormatterTes
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, 3, 56, 3, 61, AnalyzerResources.RH3206MessageFormat));
+                              ExpectedDiagnostic(RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, 3, 56, 3, 61, MessageFormat));
     }
 
     #endregion // Tests

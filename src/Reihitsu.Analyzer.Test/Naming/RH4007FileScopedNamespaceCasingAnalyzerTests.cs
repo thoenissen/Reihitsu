@@ -28,7 +28,7 @@ public class RH4007FileScopedNamespaceCasingAnalyzerTests : AnalyzerTestsBase<RH
                                 namespace {|#0:reihitsu|}.Analyzer.{|#1:naming|}.Resources;
                                 """;
 
-        await Verify(testCode, Diagnostics(RH4007FileScopedNamespaceCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4007MessageFormat, 2));
+        await Verify(testCode, Diagnostics(RH4007FileScopedNamespaceCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -59,7 +59,7 @@ public class RH4007FileScopedNamespaceCasingAnalyzerTests : AnalyzerTestsBase<RH
                                 namespace Reihitsu.{|#0:analyzer|}.Naming.{|#1:resources|};
                                 """;
 
-        await Verify(testCode, Diagnostics(RH4007FileScopedNamespaceCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4007MessageFormat, 2));
+        await Verify(testCode, Diagnostics(RH4007FileScopedNamespaceCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>

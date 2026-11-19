@@ -70,7 +70,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -104,7 +104,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -164,7 +164,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -197,7 +197,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -255,7 +255,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat, 4));
+        await Verify(testData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -346,7 +346,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat, 2));
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -543,7 +543,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -568,7 +568,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
                                  public class C { int A(int a) => a; }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -593,7 +593,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
                                                           public class C { int A(int a) => a; }
                                                           """);
 
-        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -626,7 +626,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -696,7 +696,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -724,7 +724,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -774,7 +774,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -808,7 +808,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -835,7 +835,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
         var testData = $"{prefix}/// {{|#0:<summary>S</summary>|}}\n{declaration}";
         var fixedData = $"{prefix}/// <summary>\n/// S\n/// </summary>\n{declaration}";
 
-        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -849,7 +849,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
     {
         await Verify("/// {|#0:<summary>S</summary>|}\r\npublic class C\r\n{\r\n}",
                      "/// <summary>\r\n/// S\r\n/// </summary>\r\npublic class C\r\n{\r\n}",
-                     Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+                     Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -879,7 +879,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
                                  public class B { }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat, 2));
+        await Verify(testData, fixedData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -895,7 +895,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
                                 public record R(int A);
                                 """;
 
-        await Verify(testData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+        await Verify(testData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -918,7 +918,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
     {
         var testData = $"{prefix}/// {{|#0:<summary>Point</summary>|}}\n{declaration}{suffix}";
 
-        await Verify(testData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+        await Verify(testData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -939,7 +939,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+        await Verify(testData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1057,7 +1057,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+        await Verify(testData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1075,7 +1075,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
                                     int A);
                                 """;
 
-        await Verify(testData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat));
+        await Verify(testData, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -1121,7 +1121,7 @@ public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : BatchC
         // The two members are directly adjacent, so the fix formats each declaration next to the one blank
         // line separating them; this is the shape most likely to have either rewrite reach into the other's
         // leading trivia
-        return new FixAllScenario(source, fixedSource, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8305MessageFormat, 2));
+        return new FixAllScenario(source, fixedSource, Diagnostics(RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

@@ -50,7 +50,7 @@ public class RH5201MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+                              Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -131,7 +131,7 @@ public class RH5201MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+                              Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -214,7 +214,7 @@ public class RH5201MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+                              Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -343,7 +343,7 @@ public class RH5201MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, 8, 12, 8, 13, AnalyzerResources.RH5201MessageFormat));
+                              ExpectedDiagnostic(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, 8, 12, 8, 13, MessageFormat));
     }
 
     /// <summary>
@@ -392,7 +392,7 @@ public class RH5201MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, 8, 12, 8, 13, AnalyzerResources.RH5201MessageFormat));
+                              ExpectedDiagnostic(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, 8, 12, 8, 13, MessageFormat));
     }
 
     /// <summary>
@@ -438,7 +438,7 @@ public class RH5201MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, 8, 18, 8, 19, AnalyzerResources.RH5201MessageFormat));
+                              ExpectedDiagnostic(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, 8, 18, 8, 19, MessageFormat));
     }
 
     #endregion // Tests

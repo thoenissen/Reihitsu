@@ -52,7 +52,7 @@ public class RH5007ForStatementsShouldBePrecededByABlankLineAnalyzerTests : Batc
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5007ForStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5007MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5007ForStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -140,7 +140,7 @@ public class RH5007ForStatementsShouldBePrecededByABlankLineAnalyzerTests : Batc
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5007ForStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5007MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5007ForStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -188,7 +188,7 @@ public class RH5007ForStatementsShouldBePrecededByABlankLineAnalyzerTests : Batc
         // point sits directly against the first fix's closing brace
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5007ForStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5007MessageFormat, 2));
+                                  Diagnostics(RH5007ForStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

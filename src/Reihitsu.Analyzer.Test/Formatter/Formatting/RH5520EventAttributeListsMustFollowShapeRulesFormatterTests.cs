@@ -49,7 +49,7 @@ public class RH5520EventAttributeListsMustFollowShapeRulesFormatterTests : Forma
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5520EventAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5520MessageFormat));
+                              Diagnostics(RH5520EventAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

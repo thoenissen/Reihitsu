@@ -44,7 +44,7 @@ public class RH5509EnumAttributesMustFollowPlacementRulesFormatterTests : Format
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5509EnumAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5509MessageFormat));
+                              Diagnostics(RH5509EnumAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

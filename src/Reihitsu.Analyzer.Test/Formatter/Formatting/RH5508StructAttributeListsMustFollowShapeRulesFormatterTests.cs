@@ -43,7 +43,7 @@ public class RH5508StructAttributeListsMustFollowShapeRulesFormatterTests : Form
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5508StructAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5508MessageFormat));
+                              Diagnostics(RH5508StructAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -74,7 +74,7 @@ public class RH5508StructAttributeListsMustFollowShapeRulesFormatterTests : Form
         await VerifyFormatter(input,
                               fixedData,
                               test => test.TestState.AdditionalReferences.Add(unionSupport),
-                              Diagnostics(RH5508StructAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5508MessageFormat));
+                              Diagnostics(RH5508StructAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

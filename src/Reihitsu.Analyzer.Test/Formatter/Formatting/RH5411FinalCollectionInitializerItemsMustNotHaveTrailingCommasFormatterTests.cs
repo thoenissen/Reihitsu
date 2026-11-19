@@ -55,7 +55,7 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasForma
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, AnalyzerResources.RH5411MessageFormat));
+                              Diagnostics(RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -96,7 +96,7 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasForma
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, AnalyzerResources.RH5411MessageFormat));
+                              Diagnostics(RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

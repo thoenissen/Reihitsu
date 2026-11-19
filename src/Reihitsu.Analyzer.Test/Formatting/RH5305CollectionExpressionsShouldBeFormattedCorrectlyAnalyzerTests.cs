@@ -55,7 +55,7 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5305MessageFormat));
+                     Diagnostics(RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -96,7 +96,7 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5305MessageFormat));
+                     Diagnostics(RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -533,7 +533,7 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzerTests 
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5305MessageFormat));
+                     Diagnostics(RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -746,7 +746,7 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzerTests 
         // every inner collection expression
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5305MessageFormat, 2));
+                                  Diagnostics(RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

@@ -48,7 +48,7 @@ public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagFormatterTe
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, 3, 9, 5, 19, AnalyzerResources.RH8307MessageFormat));
+                              ExpectedDiagnostic(RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, 3, 9, 5, 19, MessageFormat));
     }
 
     /// <summary>

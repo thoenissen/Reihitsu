@@ -32,7 +32,7 @@ public class RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, AnalyzerResources.RH5047MessageFormat));
+        await Verify(testData, Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -56,7 +56,7 @@ public class RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, AnalyzerResources.RH5047MessageFormat));
+        await Verify(testData, Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -76,7 +76,7 @@ public class RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, AnalyzerResources.RH5047MessageFormat));
+        await Verify(testData, Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -94,7 +94,7 @@ public class RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, AnalyzerResources.RH5047MessageFormat));
+        await Verify(testData, Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -116,7 +116,7 @@ public class RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, AnalyzerResources.RH5047MessageFormat));
+        await Verify(testData, Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -269,7 +269,7 @@ public class RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, AnalyzerResources.RH5047MessageFormat));
+        await Verify(testData, Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -292,7 +292,7 @@ public class RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer
                                 }
                                 """;
 
-        await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, AnalyzerResources.RH5047MessageFormat));
+        await Verify(testData.ReplaceLineEndings("\r\n"), Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -313,8 +313,8 @@ public class RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer
                                 }
                                 """;
 
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, AnalyzerResources.RH5047MessageFormat));
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, AnalyzerResources.RH5047MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -335,8 +335,8 @@ public class RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer
                                 }
                                 """;
 
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, AnalyzerResources.RH5047MessageFormat));
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, AnalyzerResources.RH5047MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5047CommentsMustNotBePlacedInsideAutoPropertyAccessorListAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

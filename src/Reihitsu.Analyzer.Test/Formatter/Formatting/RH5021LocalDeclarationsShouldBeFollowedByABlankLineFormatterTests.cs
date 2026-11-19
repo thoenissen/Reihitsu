@@ -69,7 +69,7 @@ public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineFormatterTests :
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 16, AnalyzerResources.RH5021MessageFormat));
+                              ExpectedDiagnostic(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 16, MessageFormat));
     }
 
     /// <summary>
@@ -111,7 +111,7 @@ public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineFormatterTests :
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 16, AnalyzerResources.RH5021MessageFormat));
+                              ExpectedDiagnostic(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 16, MessageFormat));
     }
 
     /// <summary>

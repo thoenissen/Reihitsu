@@ -69,7 +69,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4115MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -119,7 +119,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4115MessageFormat, 2));
+        await Verify(testCode, Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -171,7 +171,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4115MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -214,7 +214,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4115MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -263,7 +263,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4115MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -311,7 +311,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
         await Verify(testCode,
                      fixedCode,
                      AllowUnsafe,
-                     Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4115MessageFormat));
+                     Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -353,7 +353,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4115MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -401,7 +401,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4115MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -457,7 +457,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4115MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1228,7 +1228,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
         await Verify(testCode,
                      fixedCode,
                      static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4115MessageFormat, 2));
+                     Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -2015,7 +2015,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
         // Verifies mixed local declaration forms are renamed together by Fix All in one iteration
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4115MessageFormat, 3),
+                                  Diagnostics(RH4115LocalVariableCasingAnalyzer.DiagnosticId, MessageFormat, 3),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

@@ -55,7 +55,7 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzerTests : BatchCo
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5306MessageFormat));
+                     Diagnostics(RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -95,7 +95,7 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzerTests : BatchCo
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5306MessageFormat));
+                     Diagnostics(RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -164,7 +164,7 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzerTests : BatchCo
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5306MessageFormat));
+        await Verify(testData, Diagnostics(RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -616,7 +616,7 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzerTests : BatchCo
         // withhold the outer diagnostic rather than exercise interference
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5306MessageFormat, 2));
+                                  Diagnostics(RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

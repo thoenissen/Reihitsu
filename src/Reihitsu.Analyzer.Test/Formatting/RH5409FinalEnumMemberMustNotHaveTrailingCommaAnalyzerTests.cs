@@ -43,7 +43,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -93,7 +93,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -120,7 +120,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -154,7 +154,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -178,7 +178,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat, 2));
+        await Verify(testData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -297,7 +297,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -354,7 +354,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
                          test.FixedState.MarkupHandling = MarkupMode.Allow;
                          test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
                      },
-                     Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat));
+                     Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -524,7 +524,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -602,7 +602,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -642,7 +642,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat, 2));
+        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -709,7 +709,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
                                  enum F { A }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat, 2));
+        await Verify(testData, fixedData, Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -950,7 +950,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : BatchC
         // genuinely separate, surgical comma removals
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat, 2));
+                                  Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

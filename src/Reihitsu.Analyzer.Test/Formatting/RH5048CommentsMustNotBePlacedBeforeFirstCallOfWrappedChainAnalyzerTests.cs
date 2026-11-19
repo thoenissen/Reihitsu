@@ -50,7 +50,7 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat));
+        await Verify(testData, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -79,7 +79,7 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData.Replace("\n", "\r\n"), Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat));
+        await Verify(testData.Replace("\n", "\r\n"), Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -107,7 +107,7 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat));
+        await Verify(testData, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -282,7 +282,7 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat));
+        await Verify(testData, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -308,7 +308,7 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat));
+        await Verify(testData, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -337,7 +337,7 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat));
+        await Verify(testData, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -364,7 +364,7 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat, 2));
+        await Verify(testData, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -511,7 +511,7 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat, 2));
+        await Verify(testData, Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -542,8 +542,8 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat));
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -574,8 +574,8 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
                                 }
                                 """;
 
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat));
-        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, MessageFormat));
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -611,8 +611,8 @@ public class RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzerT
 
         var source = testData.ReplaceLineEndings(endOfLine);
 
-        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat, 2));
-        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, AnalyzerResources.RH5048MessageFormat, 2));
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, MessageFormat, 2));
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject), Diagnostics(RH5048CommentsMustNotBePlacedBeforeFirstCallOfWrappedChainAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // Tests

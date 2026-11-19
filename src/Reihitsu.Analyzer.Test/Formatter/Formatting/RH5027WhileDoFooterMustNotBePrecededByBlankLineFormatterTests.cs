@@ -50,7 +50,7 @@ public class RH5027WhileDoFooterMustNotBePrecededByBlankLineFormatterTests : For
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5027MessageFormat));
+                              Diagnostics(RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -182,7 +182,7 @@ public class RH5027WhileDoFooterMustNotBePrecededByBlankLineFormatterTests : For
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5027MessageFormat));
+                              Diagnostics(RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

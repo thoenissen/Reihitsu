@@ -43,7 +43,7 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasFormatterT
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, AnalyzerResources.RH5410MessageFormat));
+                              Diagnostics(RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -76,7 +76,7 @@ public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasFormatterT
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, AnalyzerResources.RH5410MessageFormat));
+                              Diagnostics(RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

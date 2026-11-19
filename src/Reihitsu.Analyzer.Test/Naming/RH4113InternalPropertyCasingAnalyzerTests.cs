@@ -55,7 +55,7 @@ public class RH4113InternalPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<R
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4113InternalPropertyCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4113MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4113InternalPropertyCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -108,7 +108,7 @@ public class RH4113InternalPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<R
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4113InternalPropertyCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4113MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4113InternalPropertyCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -140,7 +140,7 @@ public class RH4113InternalPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<R
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4113InternalPropertyCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4113MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4113InternalPropertyCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -383,7 +383,7 @@ public class RH4113InternalPropertyCasingAnalyzerTests : BatchCodeFixTestsBase<R
         // outside its own declaration
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH4113InternalPropertyCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4113MessageFormat, 2));
+                                  Diagnostics(RH4113InternalPropertyCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

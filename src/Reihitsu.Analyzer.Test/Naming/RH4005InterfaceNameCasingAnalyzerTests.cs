@@ -62,7 +62,7 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4005MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -112,7 +112,7 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4005MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -142,7 +142,7 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4005MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -172,7 +172,7 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4005MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -222,7 +222,7 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4005MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -252,7 +252,7 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4005MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -282,7 +282,7 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4005MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -312,7 +312,7 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4005MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -342,7 +342,7 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4005MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -667,7 +667,7 @@ public class RH4005InterfaceNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH40
         // the "I" prefix, "iPaymentGateway" only has its existing prefix corrected
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4005MessageFormat, 2));
+                                  Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

@@ -63,7 +63,7 @@ public class RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6010MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -119,7 +119,7 @@ public class RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6010MessageFormat, 2));
+        await Verify(testData, fixedData, Diagnostics(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -145,7 +145,7 @@ public class RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6010MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -258,7 +258,7 @@ public class RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6010MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -283,7 +283,7 @@ public class RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
                                  }
                                  """;
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6010MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -308,7 +308,7 @@ public class RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6010MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -344,7 +344,7 @@ public class RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6010MessageFormat, 3));
+        await Verify(testData, fixedData, Diagnostics(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -370,7 +370,7 @@ public class RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6010MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -405,7 +405,7 @@ public class RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
                                 test.TestState.MarkupHandling = MarkupMode.None;
                                 test.FixedState.MarkupHandling = MarkupMode.None;
                             },
-                     Diagnostic(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId).WithSpan(3, 36, 3, 37).WithMessage(AnalyzerResources.RH6010MessageFormat));
+                     Diagnostic(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId).WithSpan(3, 36, 3, 37).WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -474,7 +474,7 @@ public class RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzerTests : BatchCodeFi
         // space at their own brace's boundary, so the batch fixer converges in one pass
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6010MessageFormat, 2));
+                                  Diagnostics(RH6010ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

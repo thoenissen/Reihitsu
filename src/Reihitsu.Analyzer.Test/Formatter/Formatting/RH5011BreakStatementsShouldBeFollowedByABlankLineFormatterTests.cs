@@ -60,7 +60,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineFormatterTests : F
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, 7, 13, 7, 18, AnalyzerResources.RH5011MessageFormat));
+                              ExpectedDiagnostic(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, 7, 13, 7, 18, MessageFormat));
     }
 
     /// <summary>
@@ -113,7 +113,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineFormatterTests : F
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, 7, 13, 7, 18, AnalyzerResources.RH5011MessageFormat));
+                              ExpectedDiagnostic(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, 7, 13, 7, 18, MessageFormat));
     }
 
     /// <summary>
@@ -273,7 +273,7 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineFormatterTests : F
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, 9, 17, 9, 22, AnalyzerResources.RH5011MessageFormat));
+                              ExpectedDiagnostic(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, 9, 17, 9, 22, MessageFormat));
     }
 
     #endregion // Tests

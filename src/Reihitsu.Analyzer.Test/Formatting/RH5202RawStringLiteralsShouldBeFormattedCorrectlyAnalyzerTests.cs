@@ -149,7 +149,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -190,7 +190,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """"";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 1));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -235,7 +235,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 1));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -288,7 +288,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                          test.FixedState.MarkupHandling = MarkupMode.None;
                      },
                      Diagnostic(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId).WithSpan(9, 17, 11, 8)
-                                                                                                       .WithMessage(AnalyzerResources.RH5202MessageFormat));
+                                                                                                       .WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -332,7 +332,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 1));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -398,7 +398,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 1));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -423,7 +423,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                 }
                                 """";
 
-        await Verify(testData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -448,7 +448,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                 }
                                 """";
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -487,7 +487,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -522,7 +522,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -559,7 +559,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -596,7 +596,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -633,7 +633,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -670,7 +670,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -711,7 +711,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -752,7 +752,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -793,7 +793,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -832,7 +832,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -871,7 +871,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -908,7 +908,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -945,7 +945,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -982,7 +982,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1021,7 +1021,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1062,7 +1062,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1099,7 +1099,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1140,7 +1140,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1181,7 +1181,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1220,7 +1220,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1265,7 +1265,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                          test.FixedState.MarkupHandling = MarkupMode.None;
                      },
                      Diagnostic(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId).WithSpan(5, 17, 8, 8)
-                                                                                                       .WithMessage(AnalyzerResources.RH5202MessageFormat));
+                                                                                                       .WithMessage(MessageFormat));
     }
 
     /// <summary>
@@ -1304,7 +1304,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1343,7 +1343,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1380,7 +1380,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1429,7 +1429,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -1468,7 +1468,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1507,7 +1507,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1546,7 +1546,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1585,7 +1585,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1624,7 +1624,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1664,7 +1664,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1704,7 +1704,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+        await Verify(testData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
 
         TestFileMarkupParser.GetSpans(testData, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
         TestFileMarkupParser.GetSpans(resultData, out var plainResult, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
@@ -1713,7 +1713,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
 
         Assert.AreEqual(plainResult, fixedSource);
 
-        await Verify(resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1870,7 +1870,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData.Replace('¤', '\u00A0'), resultData.Replace('¤', '\u00A0'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData.Replace('¤', '\u00A0'), resultData.Replace('¤', '\u00A0'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1905,7 +1905,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData.Replace('¤', '\u00A0')), NormalizeToCarriageReturnLineFeed(resultData.Replace('¤', '\u00A0')), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData.Replace('¤', '\u00A0')), NormalizeToCarriageReturnLineFeed(resultData.Replace('¤', '\u00A0')), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1940,7 +1940,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData.Replace('¤', '\f'), resultData.Replace('¤', '\f'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData.Replace('¤', '\f'), resultData.Replace('¤', '\f'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1975,7 +1975,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData.Replace('¤', '\v'), resultData.Replace('¤', '\v'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData.Replace('¤', '\v'), resultData.Replace('¤', '\v'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2010,7 +2010,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData.Replace('¤', '\u2003'), resultData.Replace('¤', '\u2003'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData.Replace('¤', '\u2003'), resultData.Replace('¤', '\u2003'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2045,7 +2045,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData.Replace('¤', '\u00A0'), resultData.Replace('¤', '\u00A0'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData.Replace('¤', '\u00A0'), resultData.Replace('¤', '\u00A0'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2080,7 +2080,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData.Replace('¤', '\u00A0')), NormalizeToCarriageReturnLineFeed(resultData.Replace('¤', '\u00A0')), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData.Replace('¤', '\u00A0')), NormalizeToCarriageReturnLineFeed(resultData.Replace('¤', '\u00A0')), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2115,7 +2115,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData.Replace('¤', '\u00A0'), resultData.Replace('¤', '\u00A0'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData.Replace('¤', '\u00A0'), resultData.Replace('¤', '\u00A0'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2150,7 +2150,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData.Replace('¤', '\u00A0')), NormalizeToCarriageReturnLineFeed(resultData.Replace('¤', '\u00A0')), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData.Replace('¤', '\u00A0')), NormalizeToCarriageReturnLineFeed(resultData.Replace('¤', '\u00A0')), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2185,7 +2185,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData.Replace('¤', '\u00A0'), resultData.Replace('¤', '\u00A0'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData.Replace('¤', '\u00A0'), resultData.Replace('¤', '\u00A0'), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2225,7 +2225,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2265,7 +2265,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2305,7 +2305,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2347,7 +2347,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2389,7 +2389,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2428,7 +2428,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                   }
                                   """";
 
-        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(ExpandWhitespaceMarkers(testData), ExpandWhitespaceMarkers(resultData), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2476,7 +2476,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
         var source = testData;
         var result = resultData;
 
-        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
 
         TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
         TestFileMarkupParser.GetSpans(result, out var plainResult, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
@@ -2485,7 +2485,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
 
         Assert.AreEqual(plainResult, fixedSource);
 
-        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2533,7 +2533,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
         var source = NormalizeToCarriageReturnLineFeed(testData);
         var result = NormalizeToCarriageReturnLineFeed(resultData);
 
-        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
 
         TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
         TestFileMarkupParser.GetSpans(result, out var plainResult, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
@@ -2542,7 +2542,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
 
         Assert.AreEqual(plainResult, fixedSource);
 
-        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2590,7 +2590,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
         var source = testData;
         var result = resultData;
 
-        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
 
         TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
         TestFileMarkupParser.GetSpans(result, out var plainResult, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
@@ -2599,7 +2599,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
 
         Assert.AreEqual(plainResult, fixedSource);
 
-        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2647,7 +2647,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
         var source = NormalizeToCarriageReturnLineFeed(testData);
         var result = NormalizeToCarriageReturnLineFeed(resultData);
 
-        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
 
         TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
         TestFileMarkupParser.GetSpans(result, out var plainResult, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
@@ -2656,7 +2656,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
 
         Assert.AreEqual(plainResult, fixedSource);
 
-        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -2908,7 +2908,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                          test.NumberOfFixAllInDocumentIterations = 2;
                          test.NumberOfFixAllInProjectIterations = 2;
                      },
-                     Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+                     Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -2958,7 +2958,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                          test.NumberOfFixAllInDocumentIterations = 2;
                          test.NumberOfFixAllInProjectIterations = 2;
                      },
-                     Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+                     Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -3001,7 +3001,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
         var source = testData;
         var result = resultData;
 
-        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
 
         TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
         TestFileMarkupParser.GetSpans(result, out var plainResult, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
@@ -3010,7 +3010,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
 
         Assert.AreEqual(plainResult, fixedSource);
 
-        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -3053,7 +3053,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
         var source = NormalizeToCarriageReturnLineFeed(testData);
         var result = NormalizeToCarriageReturnLineFeed(resultData);
 
-        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
 
         TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
         TestFileMarkupParser.GetSpans(result, out var plainResult, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
@@ -3062,7 +3062,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
 
         Assert.AreEqual(plainResult, fixedSource);
 
-        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -3105,7 +3105,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
         var source = testData;
         var result = resultData;
 
-        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
 
         TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
         TestFileMarkupParser.GetSpans(result, out var plainResult, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
@@ -3114,7 +3114,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
 
         Assert.AreEqual(plainResult, fixedSource);
 
-        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -3157,7 +3157,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
         var source = NormalizeToCarriageReturnLineFeed(testData);
         var result = NormalizeToCarriageReturnLineFeed(resultData);
 
-        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
 
         TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
         TestFileMarkupParser.GetSpans(result, out var plainResult, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
@@ -3166,7 +3166,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
 
         Assert.AreEqual(plainResult, fixedSource);
 
-        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -3263,7 +3263,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
         var source = ExpandWhitespaceMarkers(testData);
         var result = ExpandWhitespaceMarkers(resultData);
 
-        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
 
         TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
         TestFileMarkupParser.GetSpans(result, out var plainResult, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
@@ -3272,7 +3272,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
 
         Assert.AreEqual(plainResult, fixedSource);
 
-        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -3317,7 +3317,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
         var source = NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(testData));
         var result = NormalizeToCarriageReturnLineFeed(ExpandWhitespaceMarkers(resultData));
 
-        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
 
         TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
         TestFileMarkupParser.GetSpans(result, out var plainResult, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
@@ -3326,7 +3326,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
 
         Assert.AreEqual(plainResult, fixedSource);
 
-        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -3369,7 +3369,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
         var source = testData;
         var result = resultData;
 
-        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
 
         TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
         TestFileMarkupParser.GetSpans(result, out var plainResult, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
@@ -3378,7 +3378,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
 
         Assert.AreEqual(plainResult, fixedSource);
 
-        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -3421,7 +3421,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
         var source = NormalizeToCarriageReturnLineFeed(testData);
         var result = NormalizeToCarriageReturnLineFeed(resultData);
 
-        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
 
         TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
         TestFileMarkupParser.GetSpans(result, out var plainResult, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
@@ -3430,7 +3430,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
 
         Assert.AreEqual(plainResult, fixedSource);
 
-        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -3475,7 +3475,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
         var source = testData;
         var result = resultData;
 
-        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
 
         TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
         TestFileMarkupParser.GetSpans(result, out var plainResult, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
@@ -3484,7 +3484,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
 
         Assert.AreEqual(plainResult, fixedSource);
 
-        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -3529,7 +3529,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
         var source = NormalizeToCarriageReturnLineFeed(testData);
         var result = NormalizeToCarriageReturnLineFeed(resultData);
 
-        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
 
         TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
         TestFileMarkupParser.GetSpans(result, out var plainResult, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
@@ -3538,7 +3538,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
 
         Assert.AreEqual(plainResult, fixedSource);
 
-        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(result, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -3565,7 +3565,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
                                 }
                                 """";
 
-        await Verify(ConvertEndOfLine(testData, "\r"), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat));
+        await Verify(ConvertEndOfLine(testData, "\r"), Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -3781,7 +3781,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     private static async Task VerifyOuterLiteralFixIsWithheldAndNestedLiteralFixIsOffered(string source, int diagnosticCount)
     {
-        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, diagnosticCount));
+        await Verify(source, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, diagnosticCount));
 
         TestFileMarkupParser.GetSpans(source, out var plainSource, out ImmutableDictionary<string, ImmutableArray<TextSpan>> _);
 
@@ -3886,7 +3886,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
 
         await Verify(ConvertEndOfLine(testData, "\n").Replace("¶\n", literalLineBreak),
                      ConvertEndOfLine(fixedData, "\n").Replace("¶\n", literalLineBreak),
-                     Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+                     Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // Methods
@@ -3944,7 +3944,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : Ba
         // rule's fix, so this proves both occurrences are corrected independently
         return new FixAllScenario(testCode,
                                   resultData,
-                                  Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 2));
+                                  Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

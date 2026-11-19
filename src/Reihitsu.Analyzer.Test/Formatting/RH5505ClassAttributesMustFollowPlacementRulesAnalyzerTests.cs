@@ -50,7 +50,7 @@ public class RH5505ClassAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5505ClassAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5505MessageFormat));
+                     Diagnostics(RH5505ClassAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -104,7 +104,7 @@ public class RH5505ClassAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
                                    """;
 
         await Verify(testData,
-                     Diagnostics(RH5505ClassAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5505MessageFormat));
+                     Diagnostics(RH5505ClassAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
                                                    RH5505ClassAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId,
@@ -213,7 +213,7 @@ public class RH5505ClassAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5505ClassAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5505MessageFormat));
+                     Diagnostics(RH5505ClassAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -241,7 +241,7 @@ public class RH5505ClassAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5505ClassAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5505MessageFormat));
+                     Diagnostics(RH5505ClassAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -269,7 +269,7 @@ public class RH5505ClassAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5505ClassAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5505MessageFormat));
+                     Diagnostics(RH5505ClassAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -322,7 +322,7 @@ public class RH5505ClassAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5505ClassAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5505MessageFormat));
+                     Diagnostics(RH5505ClassAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -354,7 +354,7 @@ public class RH5505ClassAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5505ClassAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5505MessageFormat));
+                     Diagnostics(RH5505ClassAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -394,7 +394,7 @@ public class RH5505ClassAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
                                    """;
 
         await Verify(testData,
-                     Diagnostics(RH5505ClassAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5505MessageFormat));
+                     Diagnostics(RH5505ClassAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
                                                    RH5505ClassAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId,
@@ -524,7 +524,7 @@ public class RH5505ClassAttributesMustFollowPlacementRulesAnalyzerTests : BatchC
         // opening bracket, and the second fix rewrites the gap up to the class keyword, so their fix spans abut
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5505ClassAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5505MessageFormat, 2));
+                                  Diagnostics(RH5505ClassAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

@@ -35,7 +35,7 @@ public class RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzerTests :
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8032MessageFormat));
+        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -121,7 +121,7 @@ public class RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzerTests :
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8032MessageFormat));
+        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -166,7 +166,7 @@ public class RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzerTests :
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8032MessageFormat));
+        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -212,7 +212,7 @@ public class RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzerTests :
                                      </doc>
                                      """;
 
-        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", documentation)), Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8032MessageFormat));
+        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", documentation)), Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -334,7 +334,7 @@ public class RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzerTests :
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8032MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -534,7 +534,7 @@ public class RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzerTests :
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8032MessageFormat, 4));
+        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -573,7 +573,7 @@ public class RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzerTests :
                                     }
                                     """;
 
-        await Verify(source, test => test.TestState.Sources.Add(("/0/Test1.cs", secondSource)), Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8032MessageFormat));
+        await Verify(source, test => test.TestState.Sources.Add(("/0/Test1.cs", secondSource)), Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -601,7 +601,7 @@ public class RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzerTests :
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8032MessageFormat));
+        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -643,7 +643,7 @@ public class RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzerTests :
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8032MessageFormat, 2));
+        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -690,7 +690,7 @@ public class RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzerTests :
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8032MessageFormat, 2));
+        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -723,7 +723,7 @@ public class RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzerTests :
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8032MessageFormat));
+        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -746,7 +746,7 @@ public class RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzerTests :
                               }
                               """;
 
-        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8032MessageFormat));
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeParseToTestProject), Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -983,7 +983,7 @@ public class RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzerTests :
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8032MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -1014,7 +1014,7 @@ public class RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzerTests :
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8032MessageFormat));
+        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1056,7 +1056,7 @@ public class RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzerTests :
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8032MessageFormat));
+        await Verify(source, Diagnostics(RH8032ExtensionDeclarationParametersMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

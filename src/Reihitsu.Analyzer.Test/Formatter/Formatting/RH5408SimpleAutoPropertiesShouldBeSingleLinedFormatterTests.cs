@@ -41,7 +41,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+                              Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+                              Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -104,7 +104,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+                              Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -234,7 +234,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+                              Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -279,7 +279,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+                              Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -310,7 +310,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+                              Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -341,7 +341,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+                              Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

@@ -83,7 +83,7 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4102MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -142,7 +142,7 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4102MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -178,7 +178,7 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4102MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -214,7 +214,7 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4102MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -313,7 +313,7 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4102MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -349,7 +349,7 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
         await Verify(testCode,
                      fixedCode,
                      static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4102MessageFormat, 2));
+                     Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -446,7 +446,7 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4102MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1039,7 +1039,7 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
                        ReferenceAssemblies = ReferenceAssemblies.Net.Net90
                    };
 
-        test.ExpectedDiagnostics.AddRange(Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4102MessageFormat, diagnosticCount));
+        test.ExpectedDiagnostics.AddRange(Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, MessageFormat, diagnosticCount));
 
         if (fixAll)
         {
@@ -1387,7 +1387,7 @@ public class RH4102EventNameCasingAnalyzerTests : BatchCodeFixTestsBase<RH4102Ev
         // Verifying diagnostics for multiple events declared in a single declaration with wrong casing
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4102MessageFormat, 2));
+                                  Diagnostics(RH4102EventNameCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

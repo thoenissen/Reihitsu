@@ -5227,7 +5227,7 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : BatchCodeFixT
     /// <returns>Diagnostic message</returns>
     private static string CreateMessage(string regionDescription)
     {
-        return string.Format(AnalyzerResources.RH7309MessageFormat, regionDescription);
+        return string.Format(MessageFormat, regionDescription);
     }
 
     #endregion // Methods

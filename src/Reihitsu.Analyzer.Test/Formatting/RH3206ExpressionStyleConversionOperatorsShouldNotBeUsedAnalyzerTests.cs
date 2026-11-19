@@ -47,7 +47,7 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzerTest
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3206MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -77,7 +77,7 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzerTest
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3206MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -118,7 +118,7 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzerTest
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3206MessageFormat, 2));
+        await Verify(testData, resultData, Diagnostics(RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -147,7 +147,7 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzerTest
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3206MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -224,7 +224,7 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzerTest
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3206MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -254,7 +254,7 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzerTest
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3206MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -281,7 +281,7 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzerTest
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3206MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -426,7 +426,7 @@ public class RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzerTest
         // Verifies two expression-bodied conversion operators are fixed in one Fix All iteration
         return new FixAllScenario(testData,
                                   resultData,
-                                  Diagnostics(RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3206MessageFormat, 2),
+                                  Diagnostics(RH3206ExpressionStyleConversionOperatorsShouldNotBeUsedAnalyzer.DiagnosticId, MessageFormat, 2),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

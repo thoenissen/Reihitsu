@@ -48,7 +48,7 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineFormatterTests : 
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat));
+                              Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -82,7 +82,7 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineFormatterTests : 
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat, 2));
+                              Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -124,7 +124,7 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineFormatterTests : 
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat, 2));
+                              Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -189,7 +189,7 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineFormatterTests : 
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat));
+                              Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -240,7 +240,7 @@ public class RH5031RegionDirectivesShouldBePrecededByABlankLineFormatterTests : 
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat));
+                              Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

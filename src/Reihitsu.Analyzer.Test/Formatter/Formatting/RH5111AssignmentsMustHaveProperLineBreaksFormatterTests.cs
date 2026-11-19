@@ -56,7 +56,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksFormatterTests : Formatter
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, 5, 13, 6, 21, AnalyzerResources.RH5111MessageFormat));
+                              ExpectedDiagnostic(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, 5, 13, 6, 21, MessageFormat));
     }
 
     /// <summary>
@@ -82,7 +82,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksFormatterTests : Formatter
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, 3, 5, 4, 18, AnalyzerResources.RH5111MessageFormat));
+                              ExpectedDiagnostic(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, 3, 5, 4, 18, MessageFormat));
     }
 
     /// <summary>
@@ -122,7 +122,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksFormatterTests : Formatter
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+                              Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -148,7 +148,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksFormatterTests : Formatter
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+                              Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -178,7 +178,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksFormatterTests : Formatter
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+                              Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

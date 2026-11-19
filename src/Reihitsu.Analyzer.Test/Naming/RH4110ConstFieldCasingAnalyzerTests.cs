@@ -55,7 +55,7 @@ public class RH4110ConstFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH4110C
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4110ConstFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4110MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4110ConstFieldCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -98,7 +98,7 @@ public class RH4110ConstFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH4110C
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH4110ConstFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4110MessageFormat, 2));
+        await Verify(testCode, Diagnostics(RH4110ConstFieldCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -224,7 +224,7 @@ public class RH4110ConstFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH4110C
         // declaration's initializer
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH4110ConstFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4110MessageFormat, 2));
+                                  Diagnostics(RH4110ConstFieldCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

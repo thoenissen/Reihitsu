@@ -55,7 +55,7 @@ public class RH5528ReturnValueAttributeListsMustFollowShapeRulesFormatterTests :
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5528MessageFormat));
+                              Diagnostics(RH5528ReturnValueAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

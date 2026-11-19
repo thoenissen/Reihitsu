@@ -98,7 +98,7 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -120,7 +120,7 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -205,7 +205,7 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -227,7 +227,7 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -249,7 +249,7 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -271,7 +271,7 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -293,7 +293,7 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -315,7 +315,7 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -495,7 +495,7 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat, 3));
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -527,7 +527,7 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat, 3));
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -559,7 +559,7 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat, 3));
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -588,7 +588,7 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTest
                          }
                          """;
 
-        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -612,7 +612,7 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -636,7 +636,7 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -660,7 +660,7 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -684,7 +684,7 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -736,7 +736,7 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTest
 
         await Verify(implementingPart,
                      test => test.TestState.Sources.Add(("/0/C.g.cs", definingPart)),
-                     Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+                     Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -766,7 +766,7 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTest
 
         await Verify(definingPart,
                      test => test.TestState.Sources.Add(("/0/C.g.cs", implementingPart)),
-                     Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+                     Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

@@ -37,7 +37,7 @@ public class RH8019DestructorsMustBeDocumentedAnalyzerTests : AnalyzerTestsBase<
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8019DestructorsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8019MessageFormat));
+        await Verify(source, Diagnostics(RH8019DestructorsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -83,7 +83,7 @@ public class RH8019DestructorsMustBeDocumentedAnalyzerTests : AnalyzerTestsBase<
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8019DestructorsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8019MessageFormat));
+        await Verify(source, Diagnostics(RH8019DestructorsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

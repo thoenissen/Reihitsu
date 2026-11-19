@@ -45,7 +45,7 @@ public class RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyFormatterTe
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6020MessageFormat));
+                              Diagnostics(RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

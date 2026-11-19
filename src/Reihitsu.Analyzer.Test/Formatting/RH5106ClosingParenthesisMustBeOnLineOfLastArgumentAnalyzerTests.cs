@@ -73,7 +73,7 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : B
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -126,7 +126,7 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : B
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -280,7 +280,7 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : B
 
         await Verify(testData,
                      test => test.CompilerDiagnostics = CompilerDiagnostics.None,
-                     Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat, 13));
+                     Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, MessageFormat, 13));
     }
 
     /// <summary>
@@ -346,7 +346,7 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : B
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat));
+        await Verify(testData, Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -379,7 +379,7 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : B
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -461,7 +461,7 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : B
                                  }
                                  """;
 
-        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat));
+        await Verify(NormalizeToCarriageReturnLineFeed(testData), NormalizeToCarriageReturnLineFeed(fixedData), Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -581,7 +581,7 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : B
         // both occurrences are corrected independently
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat, 2));
+                                  Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

@@ -39,7 +39,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaFormatterTests : Forma
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat));
+                              Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -64,7 +64,7 @@ public class RH5409FinalEnumMemberMustNotHaveTrailingCommaFormatterTests : Forma
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH5409MessageFormat));
+                              Diagnostics(RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

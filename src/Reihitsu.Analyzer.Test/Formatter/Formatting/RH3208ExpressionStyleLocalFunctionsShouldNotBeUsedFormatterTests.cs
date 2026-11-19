@@ -50,7 +50,7 @@ public class RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedFormatterTests : 
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, 7, 31, 7, 43, AnalyzerResources.RH3208MessageFormat));
+                              ExpectedDiagnostic(RH3208ExpressionStyleLocalFunctionsShouldNotBeUsedAnalyzer.DiagnosticId, 7, 31, 7, 43, MessageFormat));
     }
 
     #endregion // Tests

@@ -55,7 +55,7 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, AnalyzerResources.RH8203MessageFormat));
+        await Verify(source, Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -108,7 +108,7 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, AnalyzerResources.RH8203MessageFormat));
+        await Verify(source, Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -132,7 +132,7 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, AnalyzerResources.RH8203MessageFormat));
+        await Verify(source, Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -331,7 +331,7 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, AnalyzerResources.RH8203MessageFormat, 7));
+        await Verify(source, Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, MessageFormat, 7));
     }
 
     /// <summary>
@@ -360,7 +360,7 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, AnalyzerResources.RH8203MessageFormat));
+        await Verify(source, Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -393,7 +393,7 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzerTests : Analyz
                                      </doc>
                                      """;
 
-        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", documentation)), Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, AnalyzerResources.RH8203MessageFormat));
+        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", documentation)), Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -433,7 +433,7 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, AnalyzerResources.RH8203MessageFormat, 4));
+        await Verify(source, Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -475,7 +475,7 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzerTests : Analyz
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, AnalyzerResources.RH8203MessageFormat, 2));
+        await Verify(source, Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -583,7 +583,7 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzerTests : Analyz
                                      </doc>
                                      """;
 
-        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", documentation)), Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, AnalyzerResources.RH8203MessageFormat));
+        await Verify(source, test => test.SolutionTransforms.Add(CreateIncludedDocumentationTransform("docs.xml", documentation)), Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1810,7 +1810,7 @@ public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzerTests : Analyz
 
         var unionSupport = await UnionSupport.GetReferenceAsync();
 
-        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, AnalyzerResources.RH8203MessageFormat));
+        await Verify(source, test => test.TestState.AdditionalReferences.Add(unionSupport), Diagnostics(RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

@@ -59,7 +59,7 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsFormatterTe
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, AnalyzerResources.RH5406MessageFormat));
+                              Diagnostics(RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

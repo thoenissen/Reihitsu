@@ -43,7 +43,7 @@ public class RH6006OpeningParenthesisMustBeSpacedCorrectlyFormatterTests : Forma
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6006MessageFormat));
+                              Diagnostics(RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

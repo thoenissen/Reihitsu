@@ -40,7 +40,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedFormatterTests : Formatt
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, 3, 29, 3, 34, AnalyzerResources.RH3202MessageFormat));
+                              ExpectedDiagnostic(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, 3, 29, 3, 34, MessageFormat));
     }
 
     #endregion // Tests

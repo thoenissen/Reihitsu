@@ -58,7 +58,7 @@ public class RH6013OpeningAttributeBracketsMustBeSpacedCorrectlyAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6013OpeningAttributeBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6013MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6013OpeningAttributeBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -358,7 +358,7 @@ public class RH6013OpeningAttributeBracketsMustBeSpacedCorrectlyAnalyzerTests : 
         // own trailing whitespace run, so the batch fixer converges in one pass
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH6013OpeningAttributeBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6013MessageFormat, 2));
+                                  Diagnostics(RH6013OpeningAttributeBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

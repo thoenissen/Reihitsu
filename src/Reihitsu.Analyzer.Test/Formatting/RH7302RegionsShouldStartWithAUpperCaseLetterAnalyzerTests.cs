@@ -50,7 +50,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+                     Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -89,7 +89,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+                     Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -127,7 +127,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+                     Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -163,7 +163,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+                     Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -202,7 +202,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+                     Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -281,7 +281,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+                     Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -643,7 +643,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -679,7 +679,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -700,7 +700,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
                                 #endregion
                                 """;
 
-        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -718,7 +718,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
                                 #endregion
                                 """;
 
-        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -741,7 +741,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -762,7 +762,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -782,7 +782,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
                                     );
                                 """;
 
-        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -832,7 +832,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
                                     (value);
                                 """;
 
-        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -855,7 +855,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+        await Verify(testData, Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -910,7 +910,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : BatchCo
         // #region/#endregion pair, so the batch fixer converges in one pass
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat, 2));
+                                  Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

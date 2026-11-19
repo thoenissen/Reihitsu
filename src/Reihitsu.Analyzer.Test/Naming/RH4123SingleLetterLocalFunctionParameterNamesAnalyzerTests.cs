@@ -37,7 +37,7 @@ public class RH4123SingleLetterLocalFunctionParameterNamesAnalyzerTests : Analyz
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH4123SingleLetterLocalFunctionParameterNamesAnalyzer.DiagnosticId, AnalyzerResources.RH4123MessageFormat));
+        await Verify(testCode, Diagnostics(RH4123SingleLetterLocalFunctionParameterNamesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

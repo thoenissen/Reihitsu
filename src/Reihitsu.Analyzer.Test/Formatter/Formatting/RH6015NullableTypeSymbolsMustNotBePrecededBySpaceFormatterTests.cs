@@ -41,7 +41,7 @@ public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceFormatterTests : F
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6015MessageFormat));
+                              Diagnostics(RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

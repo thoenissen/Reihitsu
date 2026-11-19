@@ -55,7 +55,7 @@ public class RH4108InternalFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4108InternalFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4108MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4108InternalFieldCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -108,7 +108,7 @@ public class RH4108InternalFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4108InternalFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4108MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4108InternalFieldCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -141,7 +141,7 @@ public class RH4108InternalFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH4108InternalFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4108MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH4108InternalFieldCasingAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -280,7 +280,7 @@ public class RH4108InternalFieldCasingAnalyzerTests : BatchCodeFixTestsBase<RH41
         // its own declaration
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH4108InternalFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4108MessageFormat, 2));
+                                  Diagnostics(RH4108InternalFieldCasingAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

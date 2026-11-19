@@ -35,7 +35,7 @@ public class RH8008PrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8008PrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8008MessageFormat));
+        await Verify(source, Diagnostics(RH8008PrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -59,7 +59,7 @@ public class RH8008PrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8008PrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8008MessageFormat));
+        await Verify(source, Diagnostics(RH8008PrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -86,7 +86,7 @@ public class RH8008PrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8008PrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8008MessageFormat));
+        await Verify(source, Diagnostics(RH8008PrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -108,7 +108,7 @@ public class RH8008PrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8008PrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8008MessageFormat));
+        await Verify(source, Diagnostics(RH8008PrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -133,7 +133,7 @@ public class RH8008PrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8008PrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8008MessageFormat));
+        await Verify(source, Diagnostics(RH8008PrivateRecordsMustBeDocumentedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Diagnostic cases

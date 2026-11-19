@@ -42,7 +42,7 @@ public class RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzerTests : Bat
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5415MessageFormat));
+                     Diagnostics(RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -84,7 +84,7 @@ public class RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzerTests : Bat
                                    """;
 
         await Verify(testData,
-                     Diagnostics(RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5415MessageFormat));
+                     Diagnostics(RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
                                                    RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId,
@@ -133,7 +133,7 @@ public class RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzerTests : Bat
 
         await Verify(testData,
                      fixedData,
-                     Diagnostics(RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5415MessageFormat, 2));
+                     Diagnostics(RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -178,7 +178,7 @@ public class RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzerTests : Bat
 
         await Verify(testData,
                      test => test.SolutionTransforms.Add((solution, projectId) => ApplyLanguageVersion(solution, projectId, LanguageVersion.CSharp9)),
-                     Diagnostics(RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5415MessageFormat));
+                     Diagnostics(RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -229,7 +229,7 @@ public class RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzerTests : Bat
         // replacement span directly abuts the second occurrence's leading trivia
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5415MessageFormat, 2));
+                                  Diagnostics(RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

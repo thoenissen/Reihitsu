@@ -67,7 +67,7 @@ public class RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnal
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH3107MessageFormat, 2));
+        await Verify(testData, resultData, Diagnostics(RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -415,7 +415,7 @@ public class RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnal
                                   }
                                   """;
 
-        return new FixAllScenario(testData, resultData, Diagnostics(RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH3107MessageFormat, 2));
+        return new FixAllScenario(testData, resultData, Diagnostics(RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

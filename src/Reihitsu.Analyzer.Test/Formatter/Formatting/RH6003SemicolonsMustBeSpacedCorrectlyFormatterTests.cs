@@ -43,7 +43,7 @@ public class RH6003SemicolonsMustBeSpacedCorrectlyFormatterTests : FormatterTest
 
         await VerifyFormatter(testData,
                               fixedData,
-                              Diagnostics(RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6003MessageFormat));
+                              Diagnostics(RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>

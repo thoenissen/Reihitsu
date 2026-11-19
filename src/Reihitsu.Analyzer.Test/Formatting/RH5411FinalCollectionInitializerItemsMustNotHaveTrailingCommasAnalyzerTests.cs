@@ -53,7 +53,7 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, AnalyzerResources.RH5411MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -92,7 +92,7 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, AnalyzerResources.RH5411MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -128,7 +128,7 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, AnalyzerResources.RH5411MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -432,7 +432,7 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, AnalyzerResources.RH5411MessageFormat, 4));
+        await Verify(testData, fixedData, Diagnostics(RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -496,7 +496,7 @@ public class RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnaly
         // batch fixer applying two genuinely separate, surgical comma removals
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, AnalyzerResources.RH5411MessageFormat, 2));
+                                  Diagnostics(RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

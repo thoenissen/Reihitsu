@@ -46,7 +46,7 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, AnalyzerResources.RH3204MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -78,7 +78,7 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, AnalyzerResources.RH3204MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -110,7 +110,7 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, AnalyzerResources.RH3204MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -148,7 +148,7 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
                                  }
                                  """";
 
-        await Verify(testData, fixedData, Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, AnalyzerResources.RH3204MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -178,7 +178,7 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, AnalyzerResources.RH3204MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -208,7 +208,7 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, AnalyzerResources.RH3204MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -240,7 +240,7 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, AnalyzerResources.RH3204MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -293,7 +293,7 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, AnalyzerResources.RH3204MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -497,7 +497,7 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
         // so the second fix's replacement is unaffected by the first occurrence's own replacement
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, AnalyzerResources.RH3204MessageFormat, 2));
+                                  Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

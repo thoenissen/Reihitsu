@@ -1027,7 +1027,7 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
     /// <returns>Diagnostic message</returns>
     private static string CreateMessage(string interfaceName)
     {
-        return string.Format(AnalyzerResources.RH7411MessageFormat, interfaceName);
+        return string.Format(MessageFormat, interfaceName);
     }
 
     #endregion // Methods

@@ -74,7 +74,7 @@ public class RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6006MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -150,7 +150,7 @@ public class RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzerTests : BatchC
                                  + "    }\n"
                                  + "}";
 
-        await Verify(testData, fixedData, Diagnostics(RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6006MessageFormat, 3));
+        await Verify(testData, fixedData, Diagnostics(RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -173,7 +173,7 @@ public class RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzerTests : BatchC
                                 + "    }\n"
                                 + "}";
 
-        await Verify(testData, Diagnostics(RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6006MessageFormat));
+        await Verify(testData, Diagnostics(RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
 
         var spanStart = testData.IndexOf("{|#0:", StringComparison.Ordinal);
         var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0:  |}", "  "),
@@ -204,7 +204,7 @@ public class RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzerTests : BatchC
                                 + "    }\n"
                                 + "}";
 
-        await Verify(testData, Diagnostics(RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6006MessageFormat));
+        await Verify(testData, Diagnostics(RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
 
         var spanStart = testData.IndexOf("{|#0:", StringComparison.Ordinal);
         var actions = await GetCodeFixActionsAsync(testData.Replace("{|#0:  |}", "  "),
@@ -243,7 +243,7 @@ public class RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzerTests : BatchC
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6006MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests
@@ -277,7 +277,7 @@ public class RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzerTests : BatchC
         // one pass
         return new FixAllScenario(testData,
                                   fixedData,
-                                  Diagnostics(RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6006MessageFormat, 2));
+                                  Diagnostics(RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

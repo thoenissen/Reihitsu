@@ -51,7 +51,7 @@ public class RH5512ConstructorAttributeListsMustFollowShapeRulesFormatterTests :
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5512MessageFormat));
+                              Diagnostics(RH5512ConstructorAttributeListsMustFollowShapeRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

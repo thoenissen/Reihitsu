@@ -49,7 +49,7 @@ public class RH5523ParameterAttributesMustFollowPlacementRulesFormatterTests : F
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5523ParameterAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5523MessageFormat));
+                              Diagnostics(RH5523ParameterAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

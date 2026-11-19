@@ -71,7 +71,7 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnalyzer.DiagnosticId, AnalyzerResources.RH7501MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -126,7 +126,7 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnalyzer.DiagnosticId, AnalyzerResources.RH7501MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -179,7 +179,7 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnalyzer.DiagnosticId, AnalyzerResources.RH7501MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1739,7 +1739,7 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
         // fixes only move their own block's break statement, so the batch fixer converges in one pass
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnalyzer.DiagnosticId, AnalyzerResources.RH7501MessageFormat, 2));
+                                  Diagnostics(RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase

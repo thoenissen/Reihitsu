@@ -52,7 +52,7 @@ public class RH5005UsingStatementsShouldBePrecededByABlankLineFormatterTests : F
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 14, AnalyzerResources.RH5005MessageFormat));
+                              ExpectedDiagnostic(RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 14, MessageFormat));
     }
 
     /// <summary>
@@ -94,7 +94,7 @@ public class RH5005UsingStatementsShouldBePrecededByABlankLineFormatterTests : F
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 15, 6, 20, AnalyzerResources.RH5005MessageFormat));
+                              ExpectedDiagnostic(RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 15, 6, 20, MessageFormat));
     }
 
     #endregion // Tests

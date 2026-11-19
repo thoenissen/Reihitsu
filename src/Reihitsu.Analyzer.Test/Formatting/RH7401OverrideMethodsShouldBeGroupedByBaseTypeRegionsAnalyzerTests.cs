@@ -1151,7 +1151,7 @@ public class RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzerTests 
     /// <returns>Diagnostic message</returns>
     private static string CreateMessage(string baseTypeName)
     {
-        return string.Format(AnalyzerResources.RH7401MessageFormat, baseTypeName);
+        return string.Format(MessageFormat, baseTypeName);
     }
 
     #endregion // Methods

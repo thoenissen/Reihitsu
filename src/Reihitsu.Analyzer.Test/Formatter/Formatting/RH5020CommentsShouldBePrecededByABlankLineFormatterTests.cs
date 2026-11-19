@@ -58,7 +58,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineFormatterTests : Formatte
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 25, AnalyzerResources.RH5020MessageFormat));
+                              ExpectedDiagnostic(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 25, MessageFormat));
     }
 
     /// <summary>
@@ -110,7 +110,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineFormatterTests : Formatte
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat, 2));
+                              Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -143,7 +143,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineFormatterTests : Formatte
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
+                              Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -220,7 +220,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineFormatterTests : Formatte
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 10, 17, 10, 32, AnalyzerResources.RH5020MessageFormat));
+                              ExpectedDiagnostic(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 10, 17, 10, 32, MessageFormat));
     }
 
     /// <summary>
@@ -282,7 +282,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineFormatterTests : Formatte
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 9, 17, 9, 32, AnalyzerResources.RH5020MessageFormat));
+                              ExpectedDiagnostic(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 9, 17, 9, 32, MessageFormat));
     }
 
     /// <summary>
@@ -389,7 +389,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineFormatterTests : Formatte
 
         await VerifyFormatter(input,
                               fixedData,
-                              Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
+                              Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     #endregion // Tests

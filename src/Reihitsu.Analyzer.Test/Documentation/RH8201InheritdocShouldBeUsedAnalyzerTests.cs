@@ -361,7 +361,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     [Requirement("RH8201-005")]
     public async Task VerifyDiagnosticForMethod()
     {
-        await Verify(MethodTestData, MethodResultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+        await Verify(MethodTestData, MethodResultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -374,7 +374,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     [Requirement("RH8201-005")]
     public async Task VerifyDiagnosticForProperty()
     {
-        await Verify(PropertyTestData, PropertyResultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+        await Verify(PropertyTestData, PropertyResultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -387,7 +387,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     [Requirement("RH8201-005")]
     public async Task VerifyDiagnosticForEvent()
     {
-        await Verify(EventTestData, EventResultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+        await Verify(EventTestData, EventResultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -435,7 +435,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -553,7 +553,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -605,7 +605,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
         await Verify(testData,
                      resultData,
                      static config => config.NumberOfFixAllIterations = 1,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 2));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -618,7 +618,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     [Requirement("RH8201-005")]
     public async Task VerifyDiagnosticForIndexer()
     {
-        await Verify(IndexerTestData, IndexerResultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+        await Verify(IndexerTestData, IndexerResultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -684,7 +684,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -745,7 +745,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -804,7 +804,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -860,7 +860,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -920,7 +920,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -985,7 +985,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -1082,7 +1082,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -1146,7 +1146,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -1256,7 +1256,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -1295,7 +1295,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -1334,7 +1334,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -1393,7 +1393,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -1436,7 +1436,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -1483,7 +1483,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -1578,7 +1578,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -1617,7 +1617,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -1656,7 +1656,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -1715,7 +1715,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -1752,7 +1752,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -1791,7 +1791,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -1842,7 +1842,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -1885,7 +1885,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -1938,7 +1938,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -2012,7 +2012,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -2053,7 +2053,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -2094,7 +2094,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -2135,7 +2135,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -2216,7 +2216,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -2318,7 +2318,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -2522,7 +2522,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -2571,7 +2571,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -2649,7 +2649,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 3));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -2808,7 +2808,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -2857,7 +2857,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -2902,7 +2902,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -3092,7 +3092,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
 
         await Verify(testData,
                      resultData,
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -3190,7 +3190,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                          test.FixedState.Sources.Add(("/0/Test1.cs", interfaceData));
                          test.FixedState.Sources.Add(("/0/Test2.cs", unrelatedData));
                      },
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 1));
     }
 
     /// <summary>
@@ -3275,7 +3275,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 3));
+        await Verify(source, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -3463,7 +3463,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                          test.FixedState.MarkupHandling = MarkupMode.Allow;
                          test.BatchFixedState.MarkupHandling = MarkupMode.Allow;
                      },
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -3494,7 +3494,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                               }
                               """;
 
-        await Verify(source, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat));
+        await Verify(source, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -3584,7 +3584,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 2));
+        await Verify(source, fixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -3635,7 +3635,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -3648,7 +3648,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     [Requirement("RH8201-005")]
     public async Task VerifySpecificationExampleKeepsIndentationDirectivesAndMemberBehindDelimitedComment()
     {
-        await Verify(IndentedSpecificationExampleSource, IndentedSpecificationExampleFixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 2));
+        await Verify(IndentedSpecificationExampleSource, IndentedSpecificationExampleFixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -3662,7 +3662,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
     {
         await Verify(NormalizeToCarriageReturnLineFeed(IndentedSpecificationExampleSource),
                      NormalizeToCarriageReturnLineFeed(IndentedSpecificationExampleFixedSource),
-                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 2));
+                     Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -3752,7 +3752,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                                             }
                                                             """);
 
-        await Verify(source, fixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 2));
+        await Verify(source, fixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -3801,7 +3801,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                                             }
                                                             """);
 
-        await Verify(source, fixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -3858,7 +3858,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                                             }
                                                             """);
 
-        await Verify(source, fixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -3909,7 +3909,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -3964,7 +3964,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
                                    }
                                    """;
 
-        await Verify(source, fixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat));
+        await Verify(source, fixedSource, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -4652,7 +4652,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : BatchCodeFixTestsBase<R
         // Verifies that Fix All replaces every multi-line (/** */) documentation comment in a type in one iteration, which is the common shape when a type overrides several documented members
         return new FixAllScenario(testData,
                                   resultData,
-                                  Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 2),
+                                  Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, MessageFormat, 2),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

@@ -889,7 +889,7 @@ public class RH7405NonOverrideMethodsShouldNotBePlacedInOverrideRegionsAnalyzerT
     /// <returns>Diagnostic message</returns>
     private static string CreateMessage(string regionName)
     {
-        return string.Format(AnalyzerResources.RH7405MessageFormat, regionName);
+        return string.Format(MessageFormat, regionName);
     }
 
     #endregion // Methods

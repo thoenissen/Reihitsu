@@ -38,7 +38,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineFormatterTests :
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, 4, 9, 4, 10, AnalyzerResources.RH5113MessageFormat));
+                              ExpectedDiagnostic(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, 4, 9, 4, 10, MessageFormat));
     }
 
     /// <summary>
@@ -64,7 +64,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineFormatterTests :
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, 4, 9, 4, 10, AnalyzerResources.RH5113MessageFormat));
+                              ExpectedDiagnostic(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, 4, 9, 4, 10, MessageFormat));
     }
 
     /// <summary>
@@ -90,7 +90,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineFormatterTests :
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, 4, 9, 4, 10, AnalyzerResources.RH5113MessageFormat));
+                              ExpectedDiagnostic(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, 4, 9, 4, 10, MessageFormat));
     }
 
     /// <summary>
@@ -116,7 +116,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineFormatterTests :
 
         await VerifyFormatter(input,
                               fixedData,
-                              ExpectedDiagnostic(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, 4, 9, 4, 10, AnalyzerResources.RH5113MessageFormat));
+                              ExpectedDiagnostic(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, 4, 9, 4, 10, MessageFormat));
     }
 
     /// <summary>

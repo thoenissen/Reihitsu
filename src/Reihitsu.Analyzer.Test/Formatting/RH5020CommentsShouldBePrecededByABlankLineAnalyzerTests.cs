@@ -62,7 +62,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -110,7 +110,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -352,7 +352,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -388,7 +388,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -425,7 +425,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -464,7 +464,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -690,7 +690,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -722,7 +722,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1203,7 +1203,7 @@ public class RH5020CommentsShouldBePrecededByABlankLineAnalyzerTests : BatchCode
         // Verifies that Fix All converges for multiple newly covered ordinary-comment kinds
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat, 2),
+                                  Diagnostics(RH5020CommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, MessageFormat, 2),
                                   static config => config.NumberOfFixAllIterations = 1);
     }
 

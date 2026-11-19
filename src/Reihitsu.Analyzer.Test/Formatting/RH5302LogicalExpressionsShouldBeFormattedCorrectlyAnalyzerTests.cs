@@ -124,7 +124,7 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5302MessageFormat, 4));
+        await Verify(testData, resultData, Diagnostics(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 4));
     }
 
     /// <summary>
@@ -165,7 +165,7 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5302MessageFormat, 2));
+        await Verify(testData, resultData, Diagnostics(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -207,7 +207,7 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5302MessageFormat, 3));
+        await Verify(testData, resultData, Diagnostics(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 3));
     }
 
     /// <summary>
@@ -248,7 +248,7 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5302MessageFormat, 2));
+        await Verify(testData, resultData, Diagnostics(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     /// <summary>
@@ -319,7 +319,7 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5302MessageFormat));
+        await Verify(testData, resultData, Diagnostics(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat));
     }
 
     /// <summary>
@@ -1285,7 +1285,7 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : B
         // chain's start
         return new FixAllScenario(testCode,
                                   fixedCode,
-                                  Diagnostics(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5302MessageFormat, 2));
+                                  Diagnostics(RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, MessageFormat, 2));
     }
 
     #endregion // BatchCodeFixTestsBase
