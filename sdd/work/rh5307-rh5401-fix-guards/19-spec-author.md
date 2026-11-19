@@ -57,3 +57,40 @@ _None._ Decision 12 decides the class. It is rare, so the withheld fix needs no 
 ## Follow-up candidates
 
 _None._
+
+## Follow-up
+
+Commit: 1ee7831 (lead decision 13). Decision 13 replaces *For the lead* above and the `U`/`V` entries of *Examples for the tests*.
+
+**RH5401-004.** The refusal is now narrowed to its cause. The fix MUST NOT be offered when an attribute list holds, between its brackets, a blank line or a comment that starts its own line. "Starts its own line" means nothing but whitespace stands in front of the comment on its line. "Between its brackets" is defined as before.
+- A comment between the brackets with code in front of it on its line does not withhold the fix (`U`, `V`, `Y`).
+- Directives and disabled text are outside the condition, which the requirement now says explicitly.
+- `Why:` drops the FMT-BREAK-027 and RH5515 arguments. It states that blank lines inside a list change only by a drop where the list is split, or by an insertion in front of an own-line comment (FMT-BLANK-011). A comment on a line with code causes neither.
+- The withheld block is `N`, `O`, `P`, `Q`, `R`, `T`, `W`.
+
+**RH5401-003.** The condition sentence is narrowed the same way. The offered example (`E`, `F`, `J`) gains:
+- `U`: `[Obsolete /* c */] int U => 1;`, as on `main`.
+- `V`: `[Obsolete("a" /* c */)]⏎int V => 1;`.
+- `Y`: `[Obsolete("a", // c⏎ false)]⏎int Y => 1;`.
+
+**Change doc.**
+- *What* states the narrowed refusal.
+- The offered block gains `V`; it got no fix on `main`.
+- The `U` before/after block is removed. The sentence that `U` "was fixed before and is fixed the same way after" is restored.
+- The "judges the property's own lines" decision gets its FMT-BREAK-027 comment exception back, and names the refusal.
+- The question-6 decision states the narrowed refusal with `N`/`T` (withheld) and `U`/`V` (offered).
+- The rejected alternative now reads "withhold for every comment between the brackets", since the own-line-only check is the chosen one.
+
+**Verified** with `apply-fix.sh`, LF and CRLF, on the current code:
+- The RH5401-003 attribute example (`E`, `F`, `J`, `U`, `V`, `Y`) matches the spec's output byte for byte.
+- In the withheld block, `N`, `O`, `P`, `R`, and `T` are withheld today. `Q` and `W` are fixed today; they are the reproductions.
+- `scripts/test.sh --project architecture`: 198 passed.
+
+**For the tests.**
+- RH5401-004 needs withheld tests for `Q`, `W`, and `T`.
+- RH5401-003 needs exact-output tests for `J`, `U`, `V`, and `Y`. `U`, `V`, and `Y` are offered today, so these tests guard the narrowing.
+- `VerifyFixKeepsABlankLineInsideAnAttributeListTheFormatterDoesNotSplit` (`Q` offered) still contradicts the spec.
+
+**Observation, no question.** `[Obsolete("a",⏎ false) // c⏎ ]⏎int K5⏎    => 1;` is offered, today and under decision 13. Its line comment shares its line with code. The fix moves the `]` one column right (`     ]`), as whole-document formatting does. That is the formatter's placement of a `]` on its own line, the same shape lead decision 10 dropped. RH5401-003 delegates that layout, and FMT-BREAK-027 leaves the placement of a list with a comment between its brackets unspecified, so this is not a spec gap of this run.
+
+Output questions: _None._ Follow-up candidates: _None._
