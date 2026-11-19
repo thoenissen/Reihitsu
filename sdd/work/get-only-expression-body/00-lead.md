@@ -41,6 +41,8 @@ Batch 1 (before test implementer):
 | 13 | Audit 11 | Findings 2 (missing SHARED-GETONLY-003 own-line comment tests) and 3 (code owners incomplete) | Repair: test implementer, spec author | Same requirement | Tests of existing behavior; doc header | — |
 | 14 | Tests 12 | Shared line across a comment (auditor case e and mirror: `public int A { get => 1; } /* c */ public int B => 2;`) | Rare class (input already breaks one-member-per-line, comment in the gap): the fix is withheld for it; the two tests assert no fix offered; the RH3202 family's keep-on-one-line behavior becomes a follow-up candidate | AGENTS.md Code-fix coverage: rare class is refused by a cheap check, never modelled | Withholding a fix for a rare class puts nothing in question | — |
 | 15 | Tests 12 | Line that does not begin with a member (type written on one line, sibling's wrapped initializer, multi-line literal tail) | SHARED-GETONLY adopts the same exception RH3202-002 / RH5417-003 state, through the shared-line helper the fix reuses; test for a one-line type added | One owner of the shared-line rule; consistent with the sibling family | Decided by the existing RH3202-002/RH5417-003 requirements the reused helper implements | — |
+| 16 | Impl 16 (repair round 1) | Fix All switched from BatchFixer to `DocumentOrderFixAllProvider` | Accept | Needed by the shared-line Fix All tests; RH3202/RH5417 precedent | Fix All results equal one-at-a-time results (SHARED-FIX-007) | af77361 |
+| 17 | Impl 16 | Structural option of decision 12 taken: `ExpressionBodyCodeFixUtilities.ReplaceBodyAsync` shared by RH3202/3203/3208 and RH3209/3210 | Accept (~40 code lines, no new type) | Resolves the audit's architecture finding | RH3202 family outputs unchanged (analyzer project 11052/11052 green) | af77361 |
 ## Follow-up candidates
 
 - A balanced `#if` group inside a wrapped argument list in an expression body is indented inconsistently (active branch column 16, disabled branch and `)` column 22); existing formatter behavior (02-skeptic)
@@ -66,5 +68,6 @@ Batch 1 (before test implementer):
 - Auditor 11 (972b3fc): findings — #1 high shared line (SHARED-FIX-007), #2 medium missing test, #3 low code owners; architecture finding decided (decision 12).
 - Spec author 13 (1976629), test implementer 12 (6fb5a80) done; decisions 14, 15.
 - Spec author 14 (9095b22, SHARED-GETONLY-008) and test implementer 15 (c191c72; 26 expected failures) done.
-- Next: implementer 16 (repair round 1, decision 12), then cleaner, spec checker, auditor (repair only), validator.
+- Implementer 16 done (af77361, d170808): all green.
+- Next: cleaner 17, spec checker 18, auditor 19 (repair only, audited base d7990b4), validator 20.
 - (old) Repair round 1: test implementer 12 (shared-line tests + finding 2) and spec author 13 (finding 3) in parallel; then implementer 14; then cleaner, spec checker, auditor (repair only), validator.
