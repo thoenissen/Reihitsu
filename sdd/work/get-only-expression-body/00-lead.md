@@ -75,5 +75,6 @@ Batch 1 (before test implementer):
 - Spec checker 18 (03aa494): one low finding — SHARED-GETONLY code owners miss ExpressionBodyCodeFixUtilities (and possibly BlankLineCodeFixUtilities).
 - Spec author 19 (e6012b7): owners named in intro (one-spec-per-type rule). Merged main e3cf4cd (formatter line-break changes); Release build green; RH3202/3203/3208/3209/3210 tests 311/311.
 - Spec checker 20 consistent. Auditor 21 (5819614): findings 4 (high, repeats class) and 5 (medium) -> decision 18 (architecture finding, refuse by cause; no repair round used).
-- Next: spec author 22 + test implementer 23 in parallel, then implementer 24, cleaner, spec checker, auditor (delta), validator. (old:) spec checker 18, auditor 19 (repair only, audited base d7990b4), validator 20.
+- Spec author 22 (4040015), test implementer 23 (48f23ae; 24 expected failures) done.
+- Next: implementer 24, cleaner, spec checker, auditor (delta), validator. (old:) spec checker 18, auditor 19 (repair only, audited base d7990b4), validator 20.
 - (old) Repair round 1: test implementer 12 (shared-line tests + finding 2) and spec author 13 (finding 3) in parallel; then implementer 14; then cleaner, spec checker, auditor (repair only), validator.
