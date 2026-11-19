@@ -21,7 +21,7 @@ public class RH3209GetOnlyPropertiesShouldUseAnExpressionBodyCodeFixProvider : G
     /// Constructor
     /// </summary>
     public RH3209GetOnlyPropertiesShouldUseAnExpressionBodyCodeFixProvider()
-        : base(RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzer.DiagnosticId, CodeFixResources.RH3209Title)
+        : base(RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzer.DiagnosticId, CodeFixResources.RH3209Title, new RH3209GetOnlyPropertiesShouldUseAnExpressionBodyAnalyzer())
     {
     }
 

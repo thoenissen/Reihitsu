@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,6 +7,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Core;
@@ -36,6 +36,11 @@ public abstract class GetOnlyMemberExpressionBodyCodeFixProviderBase : ReihitsuC
     /// </summary>
     private readonly string _title;
 
+    /// <summary>
+    /// Analyzer that reports the diagnostics the code fix corrects
+    /// </summary>
+    private readonly DiagnosticAnalyzer _analyzer;
+
     #endregion // Fields
 
     #region Constructor
@@ -45,10 +50,12 @@ public abstract class GetOnlyMemberExpressionBodyCodeFixProviderBase : ReihitsuC
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
     /// <param name="title">Title</param>
-    private protected GetOnlyMemberExpressionBodyCodeFixProviderBase(string diagnosticId, string title)
+    /// <param name="analyzer">Analyzer that reports the diagnostics the code fix corrects</param>
+    private protected GetOnlyMemberExpressionBodyCodeFixProviderBase(string diagnosticId, string title, DiagnosticAnalyzer analyzer)
     {
         _diagnosticId = diagnosticId;
         _title = title;
+        _analyzer = analyzer;
     }
 
     #endregion // Constructor
@@ -76,8 +83,8 @@ public abstract class GetOnlyMemberExpressionBodyCodeFixProviderBase : ReihitsuC
     /// Determines whether the fix can be offered for the member. It is withheld where the formatter keeps the accessor list
     /// for a comment, a directive, or disabled text (SHARED-GETONLY-003, SHARED-GETONLY-007); where the getter as written
     /// holds a shape the formatter refuses, which the conversion would delete with the gaps around the getter's arrow
-    /// (SHARED-GETONLY-006, SHARED-FIX-003); and where the converted member the formatter receives holds such a shape
-    /// (SHARED-FIX-010)
+    /// (SHARED-GETONLY-006, SHARED-FIX-003); where the converted member the formatter receives holds such a shape
+    /// (SHARED-FIX-010); and where a comment separates the member from a sibling member on one line (SHARED-GETONLY-008)
     /// </summary>
     /// <param name="member">The property or indexer declaration as written</param>
     /// <returns><see langword="true"/> if the fix can be registered; otherwise, <see langword="false"/></returns>
@@ -85,56 +92,65 @@ public abstract class GetOnlyMemberExpressionBodyCodeFixProviderBase : ReihitsuC
     {
         return TryConvert(member, out var convertedMember)
                && ReihitsuFormatter.FindUnsupportedSyntax(member.AccessorList.Accessors[0]) == null
-               && ReihitsuFormatter.FindUnsupportedSyntax(convertedMember) == null;
+               && ReihitsuFormatter.FindUnsupportedSyntax(convertedMember) == null
+               && BlankLineCodeFixUtilities.SharesLineWithSiblingMemberAcrossComment(member) == false;
+    }
+
+    /// <summary>
+    /// Applying code fix. A member that shares its line with another member is first separated from it, so that both stand
+    /// on lines of their own (SHARED-FIX-007, SHARED-GETONLY-008); then the accessor list is replaced with the arrow clause
+    /// and semicolon the formatter writes for the converted member, and the rest of the member stays as written
+    /// (SHARED-GETONLY-005)
+    /// </summary>
+    /// <param name="document">Document</param>
+    /// <param name="member">The property or indexer declaration as written</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The fixed document</returns>
+    private static Task<Document> ApplyCodeFixAsync(Document document, BasePropertyDeclarationSyntax member, CancellationToken cancellationToken)
+    {
+        return BlankLineCodeFixUtilities.FormatMemberOnLinesOfItsOwnAsync(document, member, ConvertAsync, cancellationToken);
     }
 
     /// <summary>
     /// Replaces the accessor list with the arrow clause and semicolon the formatter writes for the converted member where it
     /// stands in the document. The gap in front of the arrow is the formatter's as well; everything in front of that gap
-    /// stays as written
+    /// stays as written (<see cref="ExpressionBodyCodeFixUtilities.ReplaceBodyAsync"/>)
     /// </summary>
     /// <param name="document">Document</param>
-    /// <param name="member">The property or indexer declaration as written</param>
+    /// <param name="node">The property or indexer declaration, which belongs to <paramref name="document"/></param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The document with the accessor list replaced, or the unchanged document when the member is not converted</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, BasePropertyDeclarationSyntax member, CancellationToken cancellationToken)
+    private static Task<Document> ConvertAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
     {
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-        if (root == null
+        if (node is not BasePropertyDeclarationSyntax member
             || TryConvert(member, out var convertedMember) == false)
         {
-            return document;
+            return Task.FromResult(document);
         }
 
-        // The converted member is marked so that it can be found in the formatter's result; the formatter receives it from
-        // the root of the marked document, the tree it belongs to
-        var annotation = new SyntaxAnnotation();
-        var annotatedDocument = document.WithSyntaxRoot(root.ReplaceNode(member, convertedMember.WithAdditionalAnnotations(annotation)));
-        var annotatedRoot = await annotatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        return ExpressionBodyCodeFixUtilities.ReplaceBodyAsync(document,
+                                                               member,
+                                                               convertedMember,
+                                                               GetBodyStartToken,
+                                                               (signature, formattedMember) => formattedMember is BasePropertyDeclarationSyntax formattedProperty
+                                                                                               && GetExpressionBody(formattedProperty) is { } expressionBody
+                                                                                                   ? WithExpressionBody((BasePropertyDeclarationSyntax)signature, expressionBody, GetSemicolonToken(formattedProperty))
+                                                                                                   : null,
+                                                               BlankLineCodeFixUtilities.FormatNodeInDocumentAsync,
+                                                               cancellationToken);
+    }
 
-        if (annotatedRoot?.GetAnnotatedNodes(annotation).SingleOrDefault() is not { } annotatedMember)
-        {
-            return document;
-        }
-
-        var formattedDocument = await BlankLineCodeFixUtilities.FormatNodeInDocumentAsync(annotatedDocument, annotatedMember, cancellationToken).ConfigureAwait(false);
-        var formattedRoot = await formattedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-        if (formattedRoot?.GetAnnotatedNodes(annotation).SingleOrDefault() is not BasePropertyDeclarationSyntax formattedMember
-            || GetExpressionBody(formattedMember) is not { } expressionBody)
-        {
-            return document;
-        }
-
-        var lastSignatureToken = member.AccessorList.OpenBraceToken.GetPreviousToken();
-        var formattedLastSignatureToken = expressionBody.ArrowToken.GetPreviousToken();
-        var memberWithFormattedGap = member.ReplaceToken(lastSignatureToken, lastSignatureToken.WithTrailingTrivia(formattedLastSignatureToken.TrailingTrivia));
-        var fixedMember = WithExpressionBody(memberWithFormattedGap, expressionBody, GetSemicolonToken(formattedMember));
-
-        return fixedMember == null
-                   ? document
-                   : document.WithSyntaxRoot(root.ReplaceNode(member, fixedMember));
+    /// <summary>
+    /// Gets the first token of the body of a property or indexer: the arrow of its expression body, or the opening brace of
+    /// its accessor list
+    /// </summary>
+    /// <param name="node">Property or indexer declaration</param>
+    /// <returns>The first token of the body, or <see langword="default"/> when there is none</returns>
+    private static SyntaxToken GetBodyStartToken(SyntaxNode node)
+    {
+        return node is BasePropertyDeclarationSyntax member
+                   ? GetExpressionBody(member)?.ArrowToken ?? member.AccessorList?.OpenBraceToken ?? default
+                   : default;
     }
 
     /// <summary>
@@ -198,7 +214,8 @@ public abstract class GetOnlyMemberExpressionBodyCodeFixProviderBase : ReihitsuC
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider()
     {
-        return WellKnownFixAllProviders.BatchFixer;
+        // Two members on one line are separated by the fixes of both, so the fixes run one after another
+        return DocumentOrderFixAllProvider.Create(_analyzer);
     }
 
     #endregion // CodeFixProvider

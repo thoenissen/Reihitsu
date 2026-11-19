@@ -21,7 +21,7 @@ public class RH3210GetOnlyIndexersShouldUseAnExpressionBodyCodeFixProvider : Get
     /// Constructor
     /// </summary>
     public RH3210GetOnlyIndexersShouldUseAnExpressionBodyCodeFixProvider()
-        : base(RH3210GetOnlyIndexersShouldUseAnExpressionBodyAnalyzer.DiagnosticId, CodeFixResources.RH3210Title)
+        : base(RH3210GetOnlyIndexersShouldUseAnExpressionBodyAnalyzer.DiagnosticId, CodeFixResources.RH3210Title, new RH3210GetOnlyIndexersShouldUseAnExpressionBodyAnalyzer())
     {
     }
 

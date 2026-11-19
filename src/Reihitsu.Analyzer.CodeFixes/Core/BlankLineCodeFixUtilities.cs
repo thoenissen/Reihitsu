@@ -109,11 +109,55 @@ internal static class BlankLineCodeFixUtilities
     /// <returns><see langword="true"/> if the gap separates the member from a sibling on one line</returns>
     public static bool SharesLineWithSiblingMember(MemberDeclarationSyntax member, SyntaxToken left, SyntaxToken right)
     {
+        return IsGapToSiblingMember(member, left, right)
+               && left.TrailingTrivia.Concat(right.LeadingTrivia).All(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
+    }
+
+    /// <summary>
+    /// Determines whether a member shares a line with a sibling member across a comment: the member's first token and the
+    /// token in front of it, or its last token and the token behind it, are separated by a gap to another member of the same
+    /// list that holds a comment and no line break (SHARED-GETONLY-008)
+    /// </summary>
+    /// <param name="member">Member</param>
+    /// <returns><see langword="true"/> if a comment separates the member from a sibling on one line</returns>
+    public static bool SharesLineWithSiblingMemberAcrossComment(MemberDeclarationSyntax member)
+    {
+        var firstToken = member.GetFirstToken();
+        var lastToken = member.GetLastToken();
+
+        return IsCommentGapToSiblingMember(member, firstToken.GetPreviousToken(), firstToken)
+               || IsCommentGapToSiblingMember(member, lastToken, lastToken.GetNextToken());
+    }
+
+    /// <summary>
+    /// Determines whether the gap between two adjacent tokens lies between a member and another member of the same list
+    /// </summary>
+    /// <param name="member">Member</param>
+    /// <param name="left">Token in front of the gap</param>
+    /// <param name="right">Token behind the gap</param>
+    /// <returns><see langword="true"/> if the token on the other side of the gap belongs to a sibling member</returns>
+    private static bool IsGapToSiblingMember(MemberDeclarationSyntax member, SyntaxToken left, SyntaxToken right)
+    {
         var siblingToken = left.SpanStart < member.SpanStart ? left : right;
 
         return siblingToken.Parent?.FirstAncestorOrSelf<MemberDeclarationSyntax>(obj => obj.Parent == member.Parent) is { } sibling
-               && sibling != member
-               && left.TrailingTrivia.Concat(right.LeadingTrivia).All(obj => obj.IsKind(SyntaxKind.WhitespaceTrivia));
+               && sibling != member;
+    }
+
+    /// <summary>
+    /// Determines whether the gap between a member and a sibling member holds a comment and no line break
+    /// </summary>
+    /// <param name="member">Member</param>
+    /// <param name="left">Token in front of the gap</param>
+    /// <param name="right">Token behind the gap</param>
+    /// <returns><see langword="true"/> if the gap holds a comment and no line break</returns>
+    private static bool IsCommentGapToSiblingMember(MemberDeclarationSyntax member, SyntaxToken left, SyntaxToken right)
+    {
+        var gap = left.TrailingTrivia.Concat(right.LeadingTrivia).ToList();
+
+        return IsGapToSiblingMember(member, left, right)
+               && gap.Any(obj => obj.IsKind(SyntaxKind.SingleLineCommentTrivia) || obj.IsKind(SyntaxKind.MultiLineCommentTrivia))
+               && gap.All(obj => obj.ToFullString().IndexOf('\n') < 0);
     }
 
     /// <summary>
