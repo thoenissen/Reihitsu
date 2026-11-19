@@ -39,6 +39,11 @@
 | 6 | Skeptic | #1866: rename vs drop; ruleset-ID test | Rename `RH08402` → `RH8402`; add a cheap test that every Reihitsu ID in both rulesets names a shipped rule (adjacent fix, guards the class) | Both rulesets read the same; small, tested | RH8402 reports nothing without a copyright config; no output changes | — |
 | 7 | Skeptic | `AnalyzerResources` over 500 lines | Split into partial parts by category, update `.claude/commands/add-resource-texts.md`; watch FC-036 (resource manifest name, `nameof`, reflection) | Fixes the violation without custom limits | Resource strings unchanged | — |
 
+| 8 | Spec author 03 | Change doc acceptance | Accepted (status set by the spec author on the lead's prompt); all visible output changes answered (1A, 2A, 3C) | Every listed change has an answer | Answers cover them | 65d58eb7 |
+| 9 | Spec author 03 | Resource naming as a spec requirement? | No: recorded in the change doc and the procedure doc only | No user-visible text changes | Internal | 65d58eb7 |
+| 10 | Spec author 03 | Test that the root `reihitsu.json` never sets a limit above the shipped default | Yes, a cheap unit test | Guards the maintainer's "never above the default" | Repository config only | — |
+| 11 | Spec author 03 | `AGENTS.md` names `DiagnosticAnalyzerBase<TAnalyzer>`, but the class is not generic | Adjacent text fix by the spec author after the implementer, matching the final base shape | Text the run's base change touches anyway | Text only | — |
+
 ## Follow-up candidates
 
 (none yet)
@@ -47,4 +52,5 @@
 
 - Done: 01 spec author (change doc Draft, `sdd/changes/2026-11/enable-line-count-rules.md`), 02 skeptic.
 - Output questions answered (1A, 2A, 3C).
-- Next: fresh spec author (03) writes the answers into change doc Decisions, specs, rule pages, sets Accepted; then test implementer.
+- Done: 03 spec author (65d58eb7). Lane check after it: confirmed.
+- Next: test implementer (04).
